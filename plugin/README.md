@@ -1,21 +1,10 @@
-<p align="center">
-  <img src="assets/logo.png" alt="AndThen" width="500">
-</p>
+# AndThen Plugin
 
-<p align="center">
-  Structured workflows for agentic development — from requirements to shipped code.
-</p>
+Structured workflows for agentic development — from requirements to shipped code.
 
-> "I have a feature idea" → *and then?* → clarify → *and then?* → spec → *and then?* → plan → *and then?* → execute → *and then?* → review → **ship it.**
-
-AndThen is an opinionated workflow system for AI coding agents. It provides structured commands that guide development through a disciplined pipeline, producing a **Feature Implementation Specification (FIS)** as the core artifact — a comprehensive blueprint that enables reliable, autonomous implementation.
-
-Works as a **Claude Code plugin** with full sub-agent orchestration, and commands are designed to be **agent-agnostic** — falling back to direct execution when sub-agents aren't available.
-
+See the [full documentation](../README.md) for workflow overview, usage examples, and setup.
 
 ## Installation
-
-### Claude Code Plugin (recommended)
 
 ```bash
 # Add marketplace
@@ -30,31 +19,14 @@ Works as a **Claude Code plugin** with full sub-agent orchestration, and command
 /plugin install andthen --scope project   # current project only (default: user scope)
 ```
 
-**Local install** (if you have the repo cloned):
-```bash
-claude plugin install ./plugin
-```
-
-### Other AI Coding Agents (Codex CLI, Aider, Cursor, etc.)
-
-Commands use capability detection and work without the plugin infrastructure. Copy or reference command files directly:
-
-```bash
-# Codex CLI — copy as prompts
-cp plugin/commands/*.md ~/.codex/prompts/
-
-# Or reference individual commands in any agent
-```
-
-
 ## Setup
 
-Commands reference your project's `CLAUDE.md` for context. Add these sections:
+Commands reference your project's `CLAUDE.md` for two things:
 
-**1. Project Document Index** — tells commands where to write output (specs, plans, etc.)
-**2. Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards
+- **Project Document Index** — tells commands where to write output (specs, plans, etc.)
+- **Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards
 
-See [`templates/CLAUDE.template.md`](templates/CLAUDE.template.md) for a starter template.
+See [`templates/CLAUDE.template.md`](../templates/CLAUDE.template.md) for a starter template.
 
 ### Agent Teams (Optional)
 
@@ -70,7 +42,6 @@ Commands like `review-council` and `exec-plan` use [Agent Teams](https://code.cl
 ```
 
 Commands automatically fall back to single-agent mode when Agent Teams are unavailable.
-
 
 ## Workflow Overview
 
@@ -95,9 +66,9 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 ┌─────────────────────────────────────────────────────────────┐
 │  PLAN WORKFLOW (MVP / multi-feature)                        │
 │                                                             │
-│  ┌──────────────── OPTIONAL PRE-WORK: ─────────────────┐    │
-│  │ wireframes, design-system, trade-off                │    │
-│  └───────────────────────┬─────────────────────────────┘    │
+│  ┌──────────────── OPTIONAL PRE-WORK: ─────────────────┐   │
+│  │ wireframes, design-system, trade-off                 │   │
+│  └───────────────────────┬─────────────────────────────┘   │
 │                          │                                  │
 │  (optional)              ▼            (optional)            │
 │  clarify ──────→  plan  ──────→  review --doc               │
@@ -125,12 +96,16 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 - **Plan workflow**: MVP, new project, multi-feature work
 - **Quick path**: Bug fixes, small features, GitHub issues
 
+**Pre-activities** (feed into spec or plan):
+- `clarify` — When requirements are vague
+- `wireframes` / `design-system` (extras) — When UI design is needed
+- `trade-off` — When architectural decisions are needed
 
 ## Commands
 
 Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 
-### Core Commands
+### Core
 
 | Command | Purpose |
 |---------|---------|
@@ -142,7 +117,7 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 | `exec-plan` | Execute plan via Agent Team pipeline (spec → exec-spec → review per story) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 
-### Extras
+### Extras (`commands/extras/`)
 
 | Command | Purpose |
 |---------|---------|
@@ -153,48 +128,15 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 | `review-council` | Multi-perspective review with Agent Teams (5-7 reviewers + debate) |
 | `troubleshoot` | Diagnose and fix implementation issues systematically |
 
-### Skills
+### Skills (`skills/`)
 
 | Skill | Purpose |
 |-------|---------|
-| `review-code` | Reusable code review with checklists (quality, security, architecture, UI/UX) |
-| `review-doc` | Reusable document review for completeness, clarity, and technical accuracy |
+| `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
+| `review-doc` | Document review for completeness, clarity, and technical accuracy |
 | `e2e-test` | End-to-end browser testing for web applications |
 
-
-## Key Concepts
-
-### Feature Implementation Specification (FIS)
-
-The core artifact. A structured document generated by `spec` containing everything needed for autonomous implementation:
-- Requirements and acceptance criteria
-- Technical approach and architecture
-- File changes and dependencies
-- Validation checklist
-
-### The AndThen Pipeline
-
-The philosophy: every step naturally leads to the next. *"And then?"* forces structured progression rather than ad-hoc development.
-
-```
-clarify → spec → plan → execute → review
-   ↑                                  │
-   └──────── feedback loop ───────────┘
-```
-
-### Implementation Loop
-
-Both `exec-spec` and `quick-implement` use an iterative cycle:
-```
-Implement → Verify → Evaluate → (repeat if needed)
-```
-
-Verification includes code review, testing, and visual validation (when applicable).
-
-
 ## Agents
-
-Specialized sub-agents used internally by commands:
 
 | Agent | Purpose |
 |-------|---------|
@@ -206,42 +148,138 @@ Specialized sub-agents used internally by commands:
 | `ui-ux-designer` | UI/UX design and prototyping |
 | `visual-validation-specialist` | Visual validation workflow |
 
+## Usage Examples
 
-## Docs
+### Feature Workflow (single feature)
 
-### Guidelines (`docs/guidelines/`)
+```bash
+# 1. Clarify vague requirements
+/andthen:clarify "users should be able to export their data"
 
-Simplified starting points — copy into your project and adapt to your needs. Workflow commands reference these via your project's `CLAUDE.md`, so you can replace them entirely with your own.
+# 2. Generate implementation spec (includes research)
+/andthen:spec <requirements from step 1>
 
-| Guide | Purpose |
-|-------|---------|
-| `DEVELOPMENT-ARCHITECTURE-GUIDELINES.md` | Development standards and architecture patterns |
-| `UX-UI-GUIDELINES.md` | UX/UI design guidelines |
-| `WEB-DEV-GUIDELINES.md` | Web development best practices |
-| `CRITICAL-RULES-AND-GUARDRAILS.md` | Safety rules and behavioral guardrails for AI agents |
+# 3. Execute the spec
+/andthen:exec-spec
 
-### Reference (`docs/`)
+# 4. Final review (against requirements)
+/andthen:review
+```
 
-| Document | Purpose |
-|----------|---------|
-| `MODEL-EFFORT-SELECTION-GUIDE.md` | Model and thinking effort selection guide |
+### Plan Workflow (MVP / multi-feature)
 
+```bash
+# 1. Clarify requirements (optional)
+/andthen:clarify "dashboard for analytics"
 
-## Hooks
+# 2. Optional: create design assets
+/andthen:wireframes
+/andthen:design-system
 
-Optional standalone Claude Code hooks for safety and productivity. See [`hooks/README.md`](hooks/README.md) for setup.
+# 3. Generate plan (includes PRD creation if needed + story breakdown)
+/andthen:plan docs/specs/dashboard/
 
-| Hook | Event | Purpose |
-|------|-------|---------|
-| `block-dangerous-commands.py` | PreToolUse | Blocks destructive shell commands (rm -rf, fork bombs, pipe-to-shell, etc.) |
-| `notify.sh` | Stop, Notification | Desktop notifications when Claude finishes or needs attention |
-| `notify-elevenlabs.sh` | Stop, Notification | Voice notifications via ElevenLabs TTS API |
-| `reinject-context.sh` | SessionStart | Re-injects critical rules after context compaction |
+# 4a. Execute all stories via Agent Team pipeline (recommended)
+/andthen:exec-plan docs/specs/dashboard/
 
+# 4b. OR manually per story: create spec JIT, then execute
+/andthen:spec "S01: Project Setup" # from plan
+/andthen:exec-spec
+/andthen:review
+# ... repeat for each story
+
+# 5. Final review (against PRD requirements)
+/andthen:review
+```
+
+### Quick Fix from GitHub Issue
+
+```bash
+# Fetches issue, implements, creates PR
+/andthen:quick-implement --issue 123
+```
+
+### Technical Decision Making
+
+```bash
+# When facing architectural choices
+/andthen:trade-off "caching strategy for API responses"
+```
+
+### Plan Execution with Agent Team Pipeline
+
+```bash
+# Execute entire plan through parallelized Agent Team pipeline
+# Requires Agent Teams feature enabled
+/andthen:exec-plan docs/specs/dashboard/
+
+# Spawns Spec Creators, Implementers, and Reviewers that work
+# through all stories: spec → exec-spec → review
+# Respects phase ordering, dependencies, and [P] parallel markers
+# Team size scales with story count (3-8 agents)
+
+# Falls back to manual per-story execution if Agent Teams unavailable
+```
+
+### Multi-Perspective Review (Agent Teams)
+
+```bash
+# Adaptive review - analyzes scope and selects 5-7 relevant reviewers
+# Requires Agent Teams feature enabled
+/andthen:review-council
+
+# Review specific PR with council
+/andthen:review-council --pr 123
+
+# Focus on specific aspect
+/andthen:review-council "security"
+
+# Reviewers auto-selected based on changes:
+# - Product features → Product Manager, Requirements Analyst, etc.
+# - Backend APIs → Security, Performance, API Designer, etc.
+# - Frontend UI → UX/Accessibility, Frontend Specialist, etc.
+# - Always includes Devil's Advocate + Synthesis Challenger (two-phase validation)
+
+# Falls back to /andthen:review if Agent Teams unavailable
+```
+
+## Key Concepts
+
+### Feature Implementation Specification (FIS)
+
+A structured document generated by `spec` containing everything needed for autonomous implementation:
+- Requirements and acceptance criteria
+- Technical approach and architecture
+- File changes and dependencies
+- Validation checklist
+
+### Implementation Plan
+
+A lightweight planning document generated by `plan` that breaks down PRD into stories:
+- Story scope and acceptance criteria (high-level)
+- Dependencies and execution sequence
+- Phase organization (Foundation → Features → Integration → Polish)
+
+Detailed FIS specs are created just-in-time via `spec` when each story is ready for implementation.
+
+### Implementation Loop
+
+Both `exec-spec` and `quick-implement` use an iterative cycle:
+```
+Implement → Verify → Evaluate → (repeat if needed)
+```
+
+Verification includes code review, testing, and visual validation (when applicable).
+
+### Review Types
+
+- **Gap Analysis** (`review`): Does implementation match requirements? Includes code review + remediation plan (after execution)
+- **Document Review** (`review --doc`): Is the spec/PRD complete and clear? (before execution)
+- **PR Review** (`review --pr`): Scoped review of a pull request
+- **Code Review** (`review-code` skill): Reusable code review with checklists — used by `review` and other commands
+- **Doc Review** (`review-doc` skill): Reusable document review — used by `review --doc` and other commands
 
 ## External Dependencies (Optional)
-
-Some commands optionally use skills from other plugins when available:
 
 | Plugin | Used by | Purpose |
 |--------|---------|---------|
@@ -250,21 +288,6 @@ Some commands optionally use skills from other plugins when available:
 
 Commands work without these plugins but skip the corresponding steps.
 
-
-## Evolved From
-
-AndThen evolved from [cc-workflows](https://github.com/tolo/claude_code_common) — a general-purpose AI coding agent toolkit.
-
-
 ## License
 
 MIT
-
-
-## Inspired by
-
-[![Mullvad](https://img.youtube.com/vi/fPzvUW8qaWY/0.jpg)](https://www.youtube.com/watch?fPzvUW8qaWY)
-
-and then
-
-[![Dude, Where's My Car?](https://img.youtube.com/vi/oqwzuiSy9y0/0.jpg)](https://www.youtube.com/watch?oqwzuiSy9y0)

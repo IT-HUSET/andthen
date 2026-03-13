@@ -545,7 +545,7 @@ S01 ──→ S02 ──→ S05
    - Check off completed acceptance criteria in this plan
    - Update **Status** field (Pending → In Progress → Done)
 3. Phase 2+ stories marked [P] can run in parallel after dependencies met
-4. Use `/andthen:review-gap` after completing all stories
+4. Use `/andthen:review` after completing all stories
 
 > **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path. After implementation and review, check off acceptance criteria and set **Status** to Done. Update the Story Catalog table status accordingly. `/andthen:exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
 </example-plan-format>

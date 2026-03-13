@@ -1,0 +1,60 @@
+{
+  "patterns": [
+    {
+      "regex": "\\brm\\s+(-[a-zA-Z]*r[a-zA-Z]*\\s+-[a-zA-Z]*f[a-zA-Z]*|(-[a-zA-Z]*f[a-zA-Z]*\\s+-[a-zA-Z]*r[a-zA-Z]*)|(-[a-zA-Z]*rf[a-zA-Z]*)|(-[a-zA-Z]*fr[a-zA-Z]*))\\b",
+      "message": "Recursive force delete blocked. Use explicit file paths.",
+      "category": "destructive"
+    },
+    {
+      "regex": "\\bsudo\\s+rm\\b",
+      "message": "sudo rm blocked. Use explicit file paths without sudo.",
+      "category": "destructive"
+    },
+    {
+      "regex": ":\\(\\)\\{\\s*:\\|:\\&\\s*\\}\\s*;\\s*:",
+      "message": "Fork bomb blocked.",
+      "category": "system_damage"
+    },
+    {
+      "regex": "\\bchmod\\s+777\\b",
+      "message": "chmod 777 blocked. Use more restrictive permissions (e.g., 755).",
+      "category": "system_damage"
+    },
+    {
+      "regex": "\\bdd\\s+.*if=.*of=/dev/",
+      "message": "dd to device blocked. Verify target device carefully.",
+      "category": "system_damage"
+    },
+    {
+      "regex": "\\bmkfs\\.",
+      "message": "Filesystem format blocked.",
+      "category": "system_damage"
+    },
+    {
+      "regex": ">\\s*/dev/sd",
+      "message": "Direct write to block device blocked.",
+      "category": "system_damage"
+    },
+    {
+      "regex": "\\b(curl|wget)\\b.*\\|\\s*(sh|bash|zsh|dash|ksh|python|python3|perl|ruby|node)\\b",
+      "message": "Pipe-to-shell blocked. Download first, review, then execute.",
+      "category": "pipe_to_shell"
+    },
+    {
+      "regex": "\\b(bash|sh|zsh|dash|ksh)\\s+-c\\s+[\"']",
+      "message": "Shell interpreter escape blocked. Run the command directly.",
+      "category": "interpreter_escape"
+    },
+    {
+      "regex": "\\beval\\s+[\"']",
+      "message": "eval blocked. Run the command directly.",
+      "category": "interpreter_escape"
+    },
+    {
+      "regex": "\\b(python3?|node|ruby|perl)\\s+-(c|e)\\s+[\"']",
+      "message": "Interpreter inline execution blocked. Use a script file instead.",
+      "category": "interpreter_escape"
+    }
+  ],
+  "safe_pipe_targets": ["jq", "grep", "sort", "wc", "head", "tail", "less", "cat", "tee", "tr", "uniq"]
+}

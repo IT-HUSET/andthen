@@ -1,11 +1,11 @@
 ---
-description: Executes an entire implementation plan through an Agent Team pipeline (spec → exec-spec → review-gap per story)
+description: Executes an entire implementation plan through an Agent Team pipeline (spec → exec-spec → review per story)
 argument-hint: <path-to-plan-directory>
 ---
 
 # Execute Plan with Agent Team Pipeline
 
-Execute ALL stories in an implementation plan (from `/andthen:plan`) through a parallelized Agent Team pipeline: **spec → exec-spec → review-gap** per story.
+Execute ALL stories in an implementation plan (from `/andthen:plan`) through a parallelized Agent Team pipeline: **spec → exec-spec → review** per story.
 
 **Uses Agent Teams** — Falls back to sequential execution (manual per-story loop) if Teams unavailable.
 
@@ -32,7 +32,7 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 - **Complete Implementation**: All stories in plan must be implemented
 - **Plan is source of truth** — follow phase ordering, dependencies, and parallel markers exactly
 - **Agent Team for pipeline** — use Agent Teams for parallel story execution
-- **Per-story pipeline**: spec → exec-spec → review-gap (with fix loop)
+- **Per-story pipeline**: spec → exec-spec → review (with fix loop)
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job is to:
@@ -57,7 +57,7 @@ Verify Agent Teams are available by checking that the `TeamCreate` tool exists i
 
 If the `TeamCreate` tool is NOT available (experimental feature not enabled):
 - Inform user that exec-plan requires Agent Teams (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
-- Suggest manual alternative: execute stories sequentially with `/andthen:spec` → `/andthen:exec-spec` → `/andthen:review-gap` per story
+- Suggest manual alternative: execute stories sequentially with `/andthen:spec` → `/andthen:exec-spec` → `/andthen:review` per story
 - Exit
 
 **Gate**: Agent Teams confirmed available
@@ -110,7 +110,7 @@ You MUST use the `TeamCreate` tool. Do NOT use `Task` alone (without `team_name`
 
 **Implementers** — Claim `impl-{story_id}` tasks (blocked by corresponding spec task) and run `/andthen:exec-spec` on the generated FIS. Output: implemented story.
 
-**Reviewers** — Claim `review-{story_id}` tasks (blocked by corresponding impl task) and run `/andthen:review-gap` per story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via `SendMessage` instead of continuing the loop. Output: validated story.
+**Reviewers** — Claim `review-{story_id}` tasks (blocked by corresponding impl task) and run `/andthen:review` per story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via `SendMessage` instead of continuing the loop. Output: validated story.
 
 Each agent loops: **claim task → execute → mark done → claim next**.
 
@@ -131,7 +131,7 @@ Your workflow (loop until no tasks remain):
 3. Execute:
    - Spec Creator: Run /andthen:spec with story scope from plan. Save FIS to docs/specs/ (per spec.md convention)
    - Implementer: Run /andthen:exec-spec on the FIS for this story
-   - Reviewer: Run /andthen:review-gap for this story. Fix any issues found, then re-validate (max 2 fix attempts — escalate to orchestrator if issues persist)
+   - Reviewer: Run /andthen:review for this story. Fix any issues found, then re-validate (max 2 fix attempts — escalate to orchestrator if issues persist)
 4. Mark task completed via TaskUpdate
 5. Check TaskList for next available task
 6. If no tasks available, notify orchestrator via SendMessage
@@ -248,6 +248,6 @@ If Agent Teams unavailable (Step 1 check fails), suggest the manual equivalent:
 # For each story in plan order:
 /andthen:spec "S01: [Story Name]"
 /andthen:exec-spec
-/andthen:review-gap
+/andthen:review
 # ... repeat for each story
 ```
