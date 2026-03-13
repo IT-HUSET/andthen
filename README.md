@@ -241,7 +241,7 @@ Optional standalone Claude Code hooks for safety and productivity. See [`hooks/R
 
 ## External Dependencies (Optional)
 
-Some commands optionally use skills from other plugins when available:
+These plugins are available from the official Claude plugins marketplace ([anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official)). Some commands optionally use skills from other plugins when available:
 
 | Plugin | Used by | Purpose |
 |--------|---------|---------|
@@ -251,14 +251,17 @@ Some commands optionally use skills from other plugins when available:
 Commands work without these plugins but skip the corresponding steps.
 
 
+
+## Other useful resources (skills, plugins etc)
+
+- Agent Browser (CLI tool and Skill) - https://github.com/vercel-labs/agent-browser
+
+- Excalidraw Diagram Creator Skill - https://github.com/coleam00/excalidraw-diagram-skill/blob/main/SKILL.md
+
+
 ## Evolved From
 
 AndThen evolved from [cc-workflows](https://github.com/tolo/claude_code_common) — a general-purpose AI coding agent toolkit.
-
-
-## License
-
-MIT
 
 
 ## Inspired by
@@ -268,3 +271,8 @@ MIT
 and then
 
 [![Dude, Where's My Car?](https://img.youtube.com/vi/oqwzuiSy9y0/0.jpg)](https://www.youtube.com/watch?oqwzuiSy9y0)
+
+
+## License
+
+MIT
