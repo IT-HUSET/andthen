@@ -1,0 +1,33 @@
+{
+  "name": "andthen",
+  "owner": {
+    "name": "IT-HUSET"
+  },
+  "metadata": {
+    "description": "AndThen — structured workflows for agentic development: clarify → spec → plan → execute → review",
+    "pluginRoot": "."
+  },
+  "plugins": [
+    {
+      "name": "andthen",
+      "source": "./plugin",
+      "strict": false,
+      "version": "1.0.0",
+      "description": "AndThen workflow system: structured agentic development from requirements to shipped code",
+      "author": {
+        "name": "Tobias Löfstrand"
+      },
+      "license": "MIT",
+      "keywords": [
+        "workflow",
+        "specification",
+        "fis",
+        "code-review",
+        "implementation",
+        "requirements",
+        "agentic",
+        "spec-driven"
+      ]
+    }
+  ]
+}
