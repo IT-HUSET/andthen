@@ -145,9 +145,9 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 
 | Command | Description | Model | Effort | Rationale |
 |---------|-------------|-------|--------|-----------|
-| `/review` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) | `sonnet` | `medium`–`high` | Medium for routine, high for security-critical or complex gap analysis |
-| `/review-code` (skill) | Thorough code review (quality, security, architecture) | `sonnet` | `medium`–`high` | Medium for routine review, high for security-critical |
-| `/review-doc` (skill) | Review specs/PRDs/documentation | `sonnet` | `medium` | Comprehension and completeness checking |
+| `/review-gap` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) | `sonnet` | `medium`–`high` | Medium for routine, high for security-critical or complex gap analysis |
+| `andthen-review-code` (skill) | Thorough code review (quality, security, architecture) | `sonnet` | `medium`–`high` | Medium for routine review, high for security-critical |
+| `andthen-review-doc` (skill) | Review specs/PRDs/documentation | `sonnet` | `medium` | Comprehension and completeness checking |
 | `/review-council` (extras) | Multi-perspective adversarial review | `sonnet` | `high` | Multiple subagent perspectives need depth to be meaningful |
 
 #### Other Agents (invoked by commands or directly)
@@ -165,21 +165,21 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 
 ### Commands via Other Agents (Codex CLI, etc.)
 
-Commands are agent-agnostic — the same files work across all agents. Recommendations for Codex CLI:
+Commands are agent-agnostic — the same files work across all agents. Recommendations for Codex CLI assume you ran `./scripts/install-codex.sh`, which exports the prompt files as `andthen-*.md`:
 
 | Command | Description | Model | Effort | Rationale |
 |---------|-------------|-------|--------|-----------|
-| `clarify` | Requirements discovery from vague ideas | `gpt-5.4` | `medium` | Analytical, not deeply complex |
-| `spec` | Clarify requirements + create FIS | `gpt-5.4` | `high` | Reasoning-heavy, completeness critical |
-| `exec-spec` | Execute a FIS | `gpt-5.4` | `medium`–`high` | Medium for straightforward, high for complex specs |
-| `review` | Gap analysis + code review | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical |
-| `design-system` | Design system tokens + style guide | `gpt-5.4` | `medium` | Pattern-following |
-| `wireframes` | HTML wireframes for screens | `gpt-5.4` | `medium` | Structural generation |
-| `trade-off` | Trade-off analysis | `gpt-5.4` | `high` | Decision quality matters |
-| `refactor` | Code simplification and cleanup | `gpt-5.4` | `medium`–`high` | Medium for localized, high for cross-file |
-| `quick-implement` | Fast path for small features/fixes | `gpt-5.4` | `medium` | Bounded scope, standard implementation |
-| `e2e-test` | End-to-end browser testing | `gpt-5.4` | `medium` | Sequential test execution |
-| `troubleshoot` | Systematic debugging | `gpt-5.4` | `medium`–`high` | Medium for clear issues, high for complex |
+| `andthen-clarify` | Requirements discovery from vague ideas | `gpt-5.4` | `medium` | Analytical, not deeply complex |
+| `andthen-spec` | Clarify requirements + create FIS | `gpt-5.4` | `high` | Reasoning-heavy, completeness critical |
+| `andthen-exec-spec` | Execute a FIS | `gpt-5.4` | `medium`–`high` | Medium for straightforward, high for complex specs |
+| `andthen-review-gap` | Gap analysis + code review | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical |
+| `andthen-design-system` | Design system tokens + style guide | `gpt-5.4` | `medium` | Pattern-following |
+| `andthen-wireframes` | HTML wireframes for screens | `gpt-5.4` | `medium` | Structural generation |
+| `andthen-trade-off` | Trade-off analysis | `gpt-5.4` | `high` | Decision quality matters |
+| `andthen-refactor` | Code simplification and cleanup | `gpt-5.4` | `medium`–`high` | Medium for localized, high for cross-file |
+| `andthen-quick-implement` | Fast path for small features/fixes | `gpt-5.4` | `medium` | Bounded scope, standard implementation |
+| `andthen-e2e-test` | End-to-end browser testing | `gpt-5.4` | `medium` | Sequential test execution |
+| `andthen-troubleshoot` | Systematic debugging | `gpt-5.4` | `medium`–`high` | Medium for clear issues, high for complex |
 
 ---
 

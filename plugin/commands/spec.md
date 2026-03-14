@@ -155,7 +155,7 @@ Rate your FIS 1-10 for single-pass implementation success:
 
 **If score <7**: Revise or ask for user clarification.
 
-> **Optional**: Run `/andthen:review-doc` for thorough validation (recommended for large/complex features). Skip for small/clear features — issues surface during execution anyway.
+> **Optional**: Run the `andthen-review-doc` skill for thorough validation (recommended for large/complex features). Skip for small/clear features — issues surface during execution anyway.
 
 
 ## Output

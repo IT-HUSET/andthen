@@ -8,7 +8,7 @@ This file provides guidance to AI coding agents when working with code in this p
 
 ## Project Overview
 
-AndThen is an opinionated workflow system for AI coding agents. It provides structured commands that guide development through a disciplined pipeline: clarify → spec → plan → execute → review.
+AndThen is an opinionated workflow system for AI coding agents. It provides structured commands that guide development through a disciplined pipeline: clarify → spec → plan → execute → review-gap.
 
 The core artifact is the **Feature Implementation Specification (FIS)** — a comprehensive blueprint that enables reliable, autonomous implementation.
 
@@ -48,7 +48,7 @@ All workflow commands are **unified** — a single set of files works across Cla
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Clarify requirements and generate Feature Implementation Specification |
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
-| `review` | Gap analysis, code review, or document review |
+| `review-gap` | Gap analysis, code review, or document review |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
 | `exec-plan` | Execute plan via Agent Team pipeline |
 | `trade-off` | Architecture decision research |
