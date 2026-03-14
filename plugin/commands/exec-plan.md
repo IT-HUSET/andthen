@@ -1,11 +1,11 @@
 ---
-description: Executes an entire implementation plan through an Agent Team pipeline (spec → exec-spec → review per story)
+description: Executes an entire implementation plan through an Agent Team pipeline (spec → exec-spec → review-gap per story)
 argument-hint: <path-to-plan-directory>
 ---
 
 # Execute Plan with Agent Team Pipeline
 
-Execute ALL stories in an implementation plan (from `/andthen:plan`) through a parallelized Agent Team pipeline: **spec → exec-spec → review** per story.
+Execute ALL stories in an implementation plan (from `/andthen:plan`) through a parallelized Agent Team pipeline: **spec → exec-spec → review-gap** per story.
 
 **Uses Agent Teams** — Falls back to sequential execution (manual per-story loop) if Teams unavailable.
 
@@ -32,7 +32,7 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 - **Complete Implementation**: All stories in plan must be implemented
 - **Plan is source of truth** — follow phase ordering, dependencies, and parallel markers exactly
 - **Agent Team for pipeline** — use Agent Teams for parallel story execution
-- **Per-story pipeline**: spec → exec-spec → review (with fix loop)
+- **Per-story pipeline**: spec → exec-spec → review-gap (with fix loop)
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job is to:
@@ -57,7 +57,7 @@ Verify Agent Teams are available by checking that the `TeamCreate` tool exists i
 
 If the `TeamCreate` tool is NOT available (experimental feature not enabled):
 - Inform user that exec-plan requires Agent Teams (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
-- Suggest manual alternative: execute stories sequentially with `/andthen:spec` → `/andthen:exec-spec` → `/andthen:review` per story
+- Suggest manual alternative: execute stories sequentially with `/andthen:spec` → `/andthen:exec-spec` → `/andthen:review-gap` per story
 - Exit
 
 **Gate**: Agent Teams confirmed available
@@ -106,11 +106,11 @@ You MUST use the `TeamCreate` tool. Do NOT use `Task` alone (without `team_name`
 
 #### Agent Roles
 
-**Spec Creators** — Claim `spec-{story_id}` tasks and run `/andthen:spec` with story scope as input. Output: FIS document.
+**Spec Creators** — Claim `spec-{story_id}` tasks. Before running `/andthen:spec`, check if a FIS already exists for the story (check the story's `**FIS**` field in `plan.md` and look in `docs/specs/`). If a valid FIS exists, mark the task as complete and move on. Otherwise, run `/andthen:spec` with story scope as input. Output: FIS document.
 
 **Implementers** — Claim `impl-{story_id}` tasks (blocked by corresponding spec task) and run `/andthen:exec-spec` on the generated FIS. Output: implemented story.
 
-**Reviewers** — Claim `review-{story_id}` tasks (blocked by corresponding impl task) and run `/andthen:review` per story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via `SendMessage` instead of continuing the loop. Output: validated story.
+**Reviewers** — Claim `review-{story_id}` tasks (blocked by corresponding impl task) and run `/andthen:review-gap` per story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via `SendMessage` instead of continuing the loop. Output: validated story.
 
 Each agent loops: **claim task → execute → mark done → claim next**.
 
@@ -129,9 +129,9 @@ Your workflow (loop until no tasks remain):
 1. Check TaskList for available tasks matching your role ({spec-*|impl-*|review-*})
 2. Claim an unblocked, unassigned task via TaskUpdate (set owner to your name)
 3. Execute:
-   - Spec Creator: Run /andthen:spec with story scope from plan. Save FIS to docs/specs/ (per spec.md convention)
+   - Spec Creator: First check if a FIS already exists (check story's FIS field in plan.md and docs/specs/). If it exists, mark task complete and skip. Otherwise, run /andthen:spec with story scope from plan. Save FIS to docs/specs/ (per spec.md convention)
    - Implementer: Run /andthen:exec-spec on the FIS for this story
-   - Reviewer: Run /andthen:review for this story. Fix any issues found, then re-validate (max 2 fix attempts — escalate to orchestrator if issues persist)
+   - Reviewer: Run /andthen:review-gap for this story. Fix any issues found, then re-validate (max 2 fix attempts — escalate to orchestrator if issues persist)
 4. Mark task completed via TaskUpdate
 5. Check TaskList for next available task
 6. If no tasks available, notify orchestrator via SendMessage
@@ -152,15 +152,19 @@ For each phase in the plan:
 
 #### 5a. Create Pipeline Tasks
 
-For each story in the current phase, create 3 tasks:
-- `spec-{story_id}`: "Create FIS for {story_name}"
-- `impl-{story_id}`: "Implement {story_name}"
-- `review-{story_id}`: "Review and validate {story_name}"
+For each story in the current phase:
+
+1. **Check for existing FIS** — Look for a FIS path in the story's `**FIS**` field in `plan.md`, or search `docs/specs/` for a matching spec file. If a valid FIS already exists, skip the `spec-{story_id}` task entirely.
+
+2. Create tasks:
+   - `spec-{story_id}`: "Create FIS for {story_name}" — **only if no existing FIS found**
+   - `impl-{story_id}`: "Implement {story_name}"
+   - `review-{story_id}`: "Review and validate {story_name}"
 
 #### 5b. Set Dependencies
 
 Use `TaskUpdate(addBlockedBy)`:
-- `impl-{story_id}` blocked by `spec-{story_id}`
+- `impl-{story_id}` blocked by `spec-{story_id}` — **unless spec was skipped** (existing FIS), in which case `impl-{story_id}` is immediately unblocked
 - `review-{story_id}` blocked by `impl-{story_id}`
 - Cross-story dependencies from plan: if S05 depends on S03, then `spec-S05` blocked by `review-S03`
 
@@ -171,7 +175,7 @@ Use `TaskUpdate(addBlockedBy)`:
 
 #### 5d. Update Plan
 
-After each story's pipeline completes (spec → exec-spec → review), update `plan.md`:
+After each story's pipeline completes (spec → exec-spec → review-gap), update `plan.md`:
 - Set the story's **Status** field to `Done`
 - Set the story's **FIS** field to the generated spec path (e.g. `**FIS**: docs/specs/story-name.md`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)
@@ -248,6 +252,6 @@ If Agent Teams unavailable (Step 1 check fails), suggest the manual equivalent:
 # For each story in plan order:
 /andthen:spec "S01: [Story Name]"
 /andthen:exec-spec
-/andthen:review
+/andthen:review-gap
 # ... repeat for each story
 ```

@@ -247,7 +247,7 @@ Apply systematic prioritization to features:
 - [ ] No over-specification or gold-plating
 
 ##### Optional: Peer Review
-Use the `/andthen:review-doc` skill to validate PRD for:
+Use the `andthen-review-doc` skill to validate PRD for:
 - Missing requirements or user stories
 - Over-engineered or unnecessarily complex features
 - Conflicting requirements
@@ -545,7 +545,7 @@ S01 ──→ S02 ──→ S05
    - Check off completed acceptance criteria in this plan
    - Update **Status** field (Pending → In Progress → Done)
 3. Phase 2+ stories marked [P] can run in parallel after dependencies met
-4. Use `/andthen:review` after completing all stories
+4. Use `/andthen:review-gap` after completing all stories
 
 > **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path. After implementation and review, check off acceptance criteria and set **Status** to Done. Update the Story Catalog table status accordingly. `/andthen:exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
 </example-plan-format>
@@ -565,7 +565,7 @@ S01 ──→ S02 ──→ S05
 - [ ] Not over-granular (combined where sensible)
 
 #### Optional: Peer Review
-Use the `/andthen:review-doc` skill to validate plan for:
+Use the `andthen-review-doc` skill to validate plan for:
 - Requirements coverage
 - Story scope clarity
 - Dependency correctness
@@ -599,4 +599,4 @@ After completion, suggest:
    gh issue create --title "S02: [Story Name]" --body "..." --milestone "[Project Name] MVP"
    # ... etc
    ```
-4. **Review plan**: `/andthen:review-doc plan.md`
+4. **Review plan**: Use the `andthen-review-doc` skill on `plan.md`

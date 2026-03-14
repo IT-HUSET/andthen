@@ -84,7 +84,7 @@ Run each verification sub-step using **parallel sub-agents** _(if supported by y
 
 ##### 2.1. Code & Architecture Review
 - Static analysis, linting, type checking
-- Use the `/andthen:review-code` skill for comprehensive review (code quality, security, architecture, UI/UX)
+- Use the `andthen-review-code` skill for comprehensive review (code quality, security, architecture, UI/UX)
 
 ##### 2.2. Run Tests
 - Execute all tests
@@ -143,11 +143,9 @@ Include verification evidence in completion summary (as applicable):
 
 
 ## Report
-After completed implementation, create an *Implementation Notes* section at the end of the original spec document, if present, or create a new implementation notes file (e.g. `<feature-name>-implementation-notes-<YYYY-MM-DD>.md`).
+After completed implementation, if the project has an implementation notes file (e.g. `implementation-notes.md`, `fis-implementation-notes.md`), append any **traps, gotchas, and non-obvious patterns** discovered during this implementation. If no such file exists and there are noteworthy traps, create an *Implementation Notes* section at the end of the original spec document.
 
-The _implementation notes_ should be very concise and to the point (avoid any unnecessary verbosity and code listings etc). include details like: 
-- Extremely brief description of what was implemented and how parts integrate
-- Key challenges faced and how they were overcome
-- Important decisions made and their rationale
-- Deviations from plan
-- Unresolved issues or future suggestions
+The bar for inclusion: *"Would a competent developer with access to the code and git history still get bitten by this?"* Keep entries brief (1-2 sentences each). Do NOT record:
+- What was implemented or how parts integrate (that's in git history and code)
+- Routine decisions or deviations (that's in the spec)
+- Language basics or standard framework behavior

@@ -6,7 +6,7 @@
   Structured workflows for agentic development — from requirements to shipped code.
 </p>
 
-> "I have a feature idea" → *and then?* → clarify → *and then?* → spec → *and then?* → plan → *and then?* → execute → *and then?* → review → **ship it.**
+> "I have a feature idea" → *and then?* → clarify → *and then?* → spec → *and then?* → plan → *and then?* → execute → *and then?* → review-gap → **ship it.**
 
 AndThen is an opinionated workflow system for AI coding agents. It provides structured commands that guide development through a disciplined pipeline, producing a **Feature Implementation Specification (FIS)** as the core artifact — a comprehensive blueprint that enables reliable, autonomous implementation.
 
@@ -37,14 +37,20 @@ claude plugin install ./plugin
 
 ### Other AI Coding Agents (Codex CLI, Aider, Cursor, etc.)
 
-Commands use capability detection and work without the plugin infrastructure. Copy or reference command files directly:
+Commands use capability detection and work without the plugin infrastructure. Some agents do not reliably support `:` in prompt or skill names, so use the installer to export commands and skills with `andthen-`-prefixed destination names:
 
 ```bash
-# Codex CLI — copy as prompts
-cp plugin/commands/*.md ~/.codex/prompts/
+# Codex CLI defaults
+./scripts/install-codex.sh
 
-# Or reference individual commands in any agent
+# Optional overrides
+./scripts/install-codex.sh --dry-run
+./scripts/install-codex.sh --prompts-dir ~/.codex/prompts --skills-dir ~/.codex/skills
 ```
+
+This keeps the repo source layout Claude-plugin-friendly while exporting Codex-compatible names such as `andthen-clarify.md`, `andthen-review-gap.md`, `andthen-review-council.md`, `andthen-review-code/`, `andthen-review-doc/`, and `andthen-e2e-test/`.
+
+In Claude Code, keep using `/andthen:<command>`. In copied prompts for other agents, invoke the prefixed names such as `/andthen-clarify`, `/andthen-spec`, and `/andthen-review-gap`.
 
 
 ## Setup
@@ -83,13 +89,13 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 │  └───────────────────────────┬───────────────────────────┘  │
 │                              │                              │
 │  (optional)                  ▼          (optional)          │
-│  clarify ──────────────→   spec   ────→ review --doc        │
+│  clarify ──────────────→   spec   ────→ review-gap --doc        │
 │                              │                              │
 │                              ▼                              │
 │                          exec-spec                          │
 │                              │                              │
 │                              ▼                              │
-│                           review                            │
+│                        review-gap                           │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
@@ -100,23 +106,23 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 │  └───────────────────────┬─────────────────────────────┘    │
 │                          │                                  │
 │  (optional)              ▼            (optional)            │
-│  clarify ──────→  plan  ──────→  review --doc               │
+│  clarify ──────→  plan  ──────→  review-gap --doc               │
 │             (PRD + story breakdown)                         │
 │                          │                                  │
 │              ┌───────────┴───────────┐                      │
 │              ▼                       ▼                      │
 │         exec-plan              Per story:                   │
-│       (Agent Team              spec → exec-spec → review    │
+│       (Agent Team              spec → exec-spec → review-gap    │
 │        pipeline)               (repeat for each story)      │
 │              └───────────┬───────────┘                      │
 │                          ▼                                  │
-│                       review                                │
+│                      review-gap                             │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
 │  QUICK PATH (small features/fixes)                          │
 │                                                             │
-│  quick-implement ──→ review (optional) ──→ done (or PR)     │
+│  quick-implement ──→ review-gap (optional) ──→ done (or PR)     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -128,7 +134,7 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 
 ## Commands
 
-Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
+In Claude Code, invoke with `/andthen:<command>` or just `/<command>` if unambiguous. In copied prompts for other agents, use the prefixed prompt names such as `/andthen-clarify`.
 
 ### Core Commands
 
@@ -137,9 +143,9 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
-| `review` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) |
+| `review-gap` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
-| `exec-plan` | Execute plan via Agent Team pipeline (spec → exec-spec → review per story) |
+| `exec-plan` | Execute plan via Agent Team pipeline (spec → exec-spec → review-gap per story) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 
 ### Extras
@@ -157,9 +163,9 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 
 | Skill | Purpose |
 |-------|---------|
-| `review-code` | Reusable code review with checklists (quality, security, architecture, UI/UX) |
-| `review-doc` | Reusable document review for completeness, clarity, and technical accuracy |
-| `e2e-test` | End-to-end browser testing for web applications |
+| `andthen-review-code` | Reusable code review with checklists (quality, security, architecture, UI/UX) |
+| `andthen-review-doc` | Reusable document review for completeness, clarity, and technical accuracy |
+| `andthen-e2e-test` | End-to-end browser testing for web applications |
 
 
 ## Key Concepts
@@ -177,7 +183,7 @@ The core artifact. A structured document generated by `spec` containing everythi
 The philosophy: every step naturally leads to the next. *"And then?"* forces structured progression rather than ad-hoc development.
 
 ```
-clarify → spec → plan → execute → review
+clarify → spec → plan → execute → review-gap
    ↑                                  │
    └──────── feedback loop ───────────┘
 ```

@@ -55,27 +55,34 @@ fi
 [[ -L "$DEBOUNCE_FILE" ]] && exit 0
 echo "$NOW" > "$DEBOUNCE_FILE"
 
-# ElevenLabs config
-VOICE_ID="${ELEVENLABS_VOICE_ID:-21m00Tcm4TlvDq8ikWAM}"
+# ElevenLabs config — ELEVENLABS_VOICE_ID can be a comma-separated list; one is picked at random
+IFS=',' read -ra VOICE_IDS <<< "${ELEVENLABS_VOICE_ID:-21m00Tcm4TlvDq8ikWAM}"
+VOICE_ID="${VOICE_IDS[RANDOM % ${#VOICE_IDS[@]}]}"
+MODEL_ID="${ELEVENLABS_MODEL_ID:-eleven_flash_v2_5}"
 API_KEY="${ELEVENLABS_API_KEY:-}"
 [[ -z "$API_KEY" ]] && exit 0
 
 # Event routing
-MESSAGE=""
+PROMPT=""
+FALLBACK=""
 case "$EVENT" in
   Stop)
-    MESSAGE="Claude has finished responding"
+    PROMPT="Generate a short, fun, slightly witty spoken notification (max 10 words) announcing that Claude has finished its task. Vary the phrasing each time. Reply with only the message, no quotes."
+    FALLBACK="Claude has finished responding"
     ;;
   Notification)
     case "$MATCHER" in
       *permission_prompt*)
-        MESSAGE="Claude needs your approval"
+        PROMPT="Generate a short, fun spoken notification (max 10 words) asking the user to approve something. Vary the phrasing each time. Reply with only the message, no quotes."
+        FALLBACK="Claude needs your approval"
         ;;
       *idle_prompt*)
-        MESSAGE="Claude is waiting for input"
+        PROMPT="Generate a short, fun spoken notification (max 10 words) letting the user know Claude is waiting for their input. Vary the phrasing each time. Reply with only the message, no quotes."
+        FALLBACK="Claude is waiting for input"
         ;;
       *)
-        MESSAGE="Claude needs your attention"
+        PROMPT="Generate a short, fun spoken notification (max 10 words) saying Claude needs the user's attention. Vary the phrasing each time. Reply with only the message, no quotes."
+        FALLBACK="Claude needs your attention"
         ;;
     esac
     ;;
@@ -84,13 +91,21 @@ case "$EVENT" in
     ;;
 esac
 
+# Generate message via Claude Haiku, fall back to static message
+# Unset CLAUDECODE to allow running claude CLI from within a Claude Code session
+MESSAGE="$FALLBACK"
+if command -v claude &>/dev/null; then
+  GENERATED=$(CLAUDECODE="" claude --model claude-haiku-4-5-20251001 --no-session-persistence -p "$PROMPT" 2>/dev/null | head -1 | tr -d '\"`')
+  [[ -n "$GENERATED" ]] && MESSAGE="$GENERATED"
+fi
+
 # Generate speech
 AUDIO_FILE="$TMPBASE/claude-tts-$$.mp3"
 HTTP_CODE=$(curl -s -o "$AUDIO_FILE" -w "%{http_code}" \
   -X POST "https://api.elevenlabs.io/v1/text-to-speech/$VOICE_ID" \
   -H "xi-api-key: $API_KEY" \
   -H "Content-Type: application/json" \
-  -d "{\"text\":\"$(sanitize "$MESSAGE")\",\"model_id\":\"eleven_monolingual_v1\"}" \
+  -d "{\"text\":\"$(sanitize "$MESSAGE")\",\"model_id\":\"$(sanitize "$MODEL_ID")\"}" \
   2>/dev/null) || { rm -f "$AUDIO_FILE" 2>/dev/null; exit 0; }
 
 [[ "$HTTP_CODE" != "200" ]] && { rm -f "$AUDIO_FILE" 2>/dev/null; exit 0; }

@@ -54,13 +54,13 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 │  └───────────────────────────┬───────────────────────────┘  │
 │                              │                              │
 │  (optional)                  ▼          (optional)          │
-│  clarify ──────────────→   spec   ────→ review --doc        │
+│  clarify ──────────────→   spec   ────→ review-gap --doc        │
 │                              │                              │
 │                              ▼                              │
 │                          exec-spec                          │
 │                              │                              │
 │                              ▼                              │
-│                           review                            │
+│                        review-gap                           │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
@@ -71,23 +71,23 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 │  └───────────────────────┬─────────────────────────────┘   │
 │                          │                                  │
 │  (optional)              ▼            (optional)            │
-│  clarify ──────→  plan  ──────→  review --doc               │
+│  clarify ──────→  plan  ──────→  review-gap --doc               │
 │             (PRD + story breakdown)                         │
 │                          │                                  │
 │              ┌───────────┴───────────┐                      │
 │              ▼                       ▼                      │
 │         exec-plan              Per story:                   │
-│       (Agent Team              spec → exec-spec → review    │
+│       (Agent Team              spec → exec-spec → review-gap    │
 │        pipeline)               (repeat for each story)      │
 │              └───────────┬───────────┘                      │
 │                          ▼                                  │
-│                       review                                │
+│                      review-gap                             │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
 │  QUICK PATH (small features/fixes)                          │
 │                                                             │
-│  quick-implement ──→ review (optional) ──→ done (or PR)     │
+│  quick-implement ──→ review-gap (optional) ──→ done (or PR)     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -112,9 +112,9 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
-| `review` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) |
+| `review-gap` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
-| `exec-plan` | Execute plan via Agent Team pipeline (spec → exec-spec → review per story) |
+| `exec-plan` | Execute plan via Agent Team pipeline (spec → exec-spec → review-gap per story) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 
 ### Extras (`commands/extras/`)
@@ -132,9 +132,9 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 
 | Skill | Purpose |
 |-------|---------|
-| `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
-| `review-doc` | Document review for completeness, clarity, and technical accuracy |
-| `e2e-test` | End-to-end browser testing for web applications |
+| `andthen-review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
+| `andthen-review-doc` | Document review for completeness, clarity, and technical accuracy |
+| `andthen-e2e-test` | End-to-end browser testing for web applications |
 
 ## Agents
 
@@ -163,7 +163,7 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 /andthen:exec-spec
 
 # 4. Final review (against requirements)
-/andthen:review
+/andthen:review-gap
 ```
 
 ### Plan Workflow (MVP / multi-feature)
@@ -185,11 +185,11 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 # 4b. OR manually per story: create spec JIT, then execute
 /andthen:spec "S01: Project Setup" # from plan
 /andthen:exec-spec
-/andthen:review
+/andthen:review-gap
 # ... repeat for each story
 
 # 5. Final review (against PRD requirements)
-/andthen:review
+/andthen:review-gap
 ```
 
 ### Quick Fix from GitHub Issue
@@ -214,7 +214,7 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 /andthen:exec-plan docs/specs/dashboard/
 
 # Spawns Spec Creators, Implementers, and Reviewers that work
-# through all stories: spec → exec-spec → review
+# through all stories: spec → exec-spec → review-gap
 # Respects phase ordering, dependencies, and [P] parallel markers
 # Team size scales with story count (3-8 agents)
 
@@ -240,7 +240,7 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 # - Frontend UI → UX/Accessibility, Frontend Specialist, etc.
 # - Always includes Devil's Advocate + Synthesis Challenger (two-phase validation)
 
-# Falls back to /andthen:review if Agent Teams unavailable
+# Falls back to /andthen:review-gap if Agent Teams unavailable
 ```
 
 ## Key Concepts
@@ -273,11 +273,11 @@ Verification includes code review, testing, and visual validation (when applicab
 
 ### Review Types
 
-- **Gap Analysis** (`review`): Does implementation match requirements? Includes code review + remediation plan (after execution)
-- **Document Review** (`review --doc`): Is the spec/PRD complete and clear? (before execution)
-- **PR Review** (`review --pr`): Scoped review of a pull request
-- **Code Review** (`review-code` skill): Reusable code review with checklists — used by `review` and other commands
-- **Doc Review** (`review-doc` skill): Reusable document review — used by `review --doc` and other commands
+- **Gap Analysis** (`review-gap`): Does implementation match requirements? Includes code review + remediation plan (after execution)
+- **Document Review** (`review-gap --doc`): Is the spec/PRD complete and clear? (before execution)
+- **PR Review** (`review-gap --pr`): Scoped review of a pull request
+- **Code Review** (`andthen-review-code` skill): Reusable code review with checklists — used by `review-gap` and other commands
+- **Doc Review** (`andthen-review-doc` skill): Reusable document review — used by `review-gap --doc` and other commands
 
 ## External Dependencies (Optional)
 

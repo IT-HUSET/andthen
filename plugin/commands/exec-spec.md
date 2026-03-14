@@ -86,7 +86,7 @@ After each sub-agent completes:
 2. Fully Understand vital sections like Success Criteria, Scope & Boundaries, Solution Architecture and Design, Critical Documentation & Context, Implementation Plan, etc.
 3. Analyse the codebase to properly understand the project structure, relevant files and similar patterns
   - Use command like `tree -d` and `git ls-files | head -250` to get an overview of the codebase structure
-4. Read any _`fis-implementation-notes.md`_ document for additional context and learnings from previous specifications
+4. Read any implementation notes document (e.g. _`implementation-notes.md`_, _`fis-implementation-notes.md`_) for traps, gotchas, and non-obvious patterns from previous implementations
 5. Create task tracking for ALL tasks (implementation + validation)
 
 ### Step 2: Execute Implementation Tasks
@@ -113,7 +113,7 @@ For each implementation task (TI01, TI02, etc.):
 Important: Correct implementation of requirements and acceptance criteria must be verified through tests and visual validation (when applicable).
 
 #### TV01 [P] — Level 1: Code Review
-The sub-agent for code review (general-purpose) should use the `/andthen:review-code` skill for comprehensive review and analysis covering:
+The sub-agent for code review (general-purpose) should use the `andthen-review-code` skill for comprehensive review and analysis covering:
 
 - Static analysis, linting, formatting and type checking issues
 - Code quality (correctness, readability, best practices, performance, maintainability)
@@ -167,11 +167,11 @@ If success criteria not met or if previous step failed to successfully verify co
 ## Post-Completion: Update Related Documents
 After completion, update any documents related to this implementation:
 
-**Implementation notes** — update `fis-implementation-notes.md` (concise, no code listings):
-- Brief description of what was implemented and how parts integrate
-- Key challenges and how they were overcome
-- Important decisions and deviations from spec
-- Unresolved issues or future suggestions
+**Implementation notes** — if the project has an implementation notes file (e.g. `implementation-notes.md`), append any **traps, gotchas, and non-obvious patterns** discovered during this story. The bar for inclusion: *"Would a competent developer with access to the code and git history still get bitten by this?"* Keep entries brief (1-2 sentences each). Do NOT record:
+- What was implemented (that's in git history)
+- How parts integrate (that's in the code)
+- Routine decisions (that's in the FIS/spec)
+- Language basics or framework docs
 
 **Source plan** — if this FIS originated from a plan (`plan.md`), update the plan:
 - Set the story's **Status** field to `Done`

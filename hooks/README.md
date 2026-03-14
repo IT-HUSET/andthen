@@ -52,7 +52,7 @@ Config customization still works — scripts check `~/.claude/hooks/configs/` fi
 
 ## Hook Details & Settings Configuration
 
-Add entries to `~/.claude/settings.json` (or project-level `.claude/settings.json`) for each hook you want.
+Add entries to `~/.claude/settings.json` (user-level, global) or `.claude/settings.json` (project-level, shared with team) for each hook you want. Use `.claude/settings.local.json` for project-local overrides that shouldn't be committed.
 
 ---
 
@@ -205,14 +205,28 @@ Default configs live in `hooks/configs/`. To customize, copy to `~/.claude/hooks
 
 ## ElevenLabs Setup
 
-1. Set the `ELEVENLABS_API_KEY` environment variable:
+1. Get an API key from [elevenlabs.io](https://elevenlabs.io/app/settings/api-keys).
+
+2. Set `ELEVENLABS_API_KEY` — pick one approach:
+
+   **Shell profile** (`~/.zshrc`, `~/.bashrc`, etc.):
    ```bash
    export ELEVENLABS_API_KEY="your-api-key-here"
    ```
 
-2. Optionally set `ELEVENLABS_VOICE_ID` (defaults to "Rachel"):
-   ```bash
-   export ELEVENLABS_VOICE_ID="your-preferred-voice-id"
+   **Claude Code settings** (`~/.claude/settings.json` — user-level, always available regardless of how Claude Code is launched):
+   ```json
+   {
+     "env": {
+       "ELEVENLABS_API_KEY": "your-api-key-here"
+     }
+   }
    ```
 
-3. Add both to your shell profile (`~/.zshrc`, `~/.bashrc`, etc.) for persistence.
+3. Optionally override defaults the same way:
+   ```bash
+   export ELEVENLABS_VOICE_ID="id1,id2,id3"   # comma-separated list; one picked at random each time
+   export ELEVENLABS_MODEL_ID="eleven_flash_v2_5"         # default: eleven_flash_v2_5
+   ```
+
+> **Free tier limitation**: ElevenLabs free accounts cannot use premade/library voices via the API. You'll need a paid plan or a custom cloned voice. The voice ID in the hook must match a voice accessible to your account.

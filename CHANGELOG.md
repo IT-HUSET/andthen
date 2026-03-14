@@ -5,6 +5,23 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [1.1.0] — 2026-03-15
+
+### Added
+- **Codex CLI installer** (`scripts/install-codex.sh`): Exports commands and skills with `andthen-`-prefixed names for Codex CLI and other agents that don't support `:` in prompt names
+- **`exec-plan` — FIS existence check**: Pipeline now checks for existing FIS before creating spec tasks, skipping spec creation when one already exists — makes the pipeline resumable after partial runs
+- **ElevenLabs hook enhancements**: Dynamic message generation via Claude Haiku (falls back to static messages), comma-separated voice ID support (random selection per notification), configurable model ID via `ELEVENLABS_MODEL_ID`
+
+### Changed
+- **`review` → `review-gap`**: Command renamed back to `review-gap` — the name `review` caused conflicts in some environments; all references updated across commands and documentation
+- **Skills renamed** to dash-based names for cross-agent compatibility: `andthen:review-code` → `andthen-review-code`, `andthen:review-doc` → `andthen-review-doc`, `e2e-test` → `andthen-e2e-test`
+- **Implementation notes** (`exec-spec`, `quick-implement`): Narrowed scope to traps, gotchas, and non-obvious patterns only — excludes information derivable from code, git history, or specs
+- **ElevenLabs TTS model**: Default changed from `eleven_monolingual_v1` to `eleven_flash_v2_5`
+- **Hooks docs**: Clarified settings file levels (user-level vs project-level vs local), expanded ElevenLabs setup with Claude Code `env` settings approach, free tier voice limitation note
+- **README**: Updated installation section for non-Claude-Code agents to use the installer script
+
+---
+
 ## [1.0.1] — 2026-03-13
 
 ### Added
