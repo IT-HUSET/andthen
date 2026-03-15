@@ -216,7 +216,7 @@ Generate markdown document with:
 
 Store report in: `OUTPUT_DIR/<feature-name>/requirements-clarification.md`
 
-Inform user of report location when complete.
+When complete, print the report's **relative path from the project root**. Do not use absolute paths.
 
 
 ## Follow-Up Actions

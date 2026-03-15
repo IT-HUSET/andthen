@@ -1,13 +1,13 @@
 ---
-description: Multi-perspective code review with adversarial debate to validate findings
+description: Multi-perspective code review using Agent Teams with real-time adversarial debate (requires Agent Teams)
 argument-hint: [Optional - specific files, PR number, or focus area]
 ---
 
-# Review Council
+# Review Council (Agent Teams)
 
-Multi-perspective code review where specialized reviewers challenge each other's findings through adversarial debate, producing validated, high-confidence issues.
+Multi-perspective code review where specialized reviewers challenge each other's findings through real-time debate, producing validated, high-confidence issues.
 
-Uses **parallel sub-agents** _(if supported by your coding agent)_ for concurrent reviews, otherwise executes sequentially.
+**Requires Agent Teams** — Falls back to the `andthen-review-code` skill if Teams unavailable.
 
 
 ## Variables
@@ -18,23 +18,33 @@ ARGUMENTS: $ARGUMENTS
 ## Usage
 
 ```
-/review-council                          # Review recent changes
-/review-council --pr 123                 # Review specific PR
-/review-council src/auth/                # Review specific path
-/review-council "security"               # Focus on security aspect
+/review-council-team                          # Review recent changes
+/review-council-team --pr 123                 # Review specific PR
+/review-council-team src/auth/                # Review specific path
+/review-council-team "security"               # Focus on security aspect
 ```
 
 
 ## Instructions
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
+- **Requires Agent Teams** — Falls back to the `andthen-review-code` skill if unavailable
 - **Multi-perspective validation** — Findings must survive two-phase challenge (Devil's Advocate → Synthesis Challenger)
 - **Read-only analysis** — No code changes, commits, or modifications during review
 
 
 ## Workflow
 
-### 1. Analyze Review Scope
+### 1. Check Agent Teams Availability
+
+Verify Agent Teams are available by checking that team creation tools exist in your available tools (e.g. `TeamCreate`).
+
+If Agent Team tools are NOT available (experimental feature not enabled):
+- Suggest using `/andthen:extras:review-council` instead (portable version that works without Agent Teams)
+- If user specifically wants Agent Teams, inform them it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
+- Exit
+
+### 2. Analyze Review Scope
 
 Determine what's being reviewed to select appropriate council members:
 
@@ -53,7 +63,7 @@ Determine what's being reviewed to select appropriate council members:
 - **Refactoring** — Code restructuring, pattern changes
 - **Bug fix** — Targeted fixes, edge cases
 
-### 2. Select Council Members
+### 3. Select Council Members
 
 Choose 5-7 reviewers from this roster based on scope analysis:
 
@@ -104,99 +114,78 @@ Choose 5-7 reviewers from this roster based on scope analysis:
 
 **Gate:** 5-7 reviewers selected (always include Devil's Advocate + Synthesis Challenger)
 
-### 3. Phase 1 — Specialist Reviews
+### 4. Create Review Council
 
-Run specialist reviews using **parallel sub-agents** _(if supported by your coding agent; otherwise execute sequentially)_.
+**IMPORTANT — Use Agent Teams, NOT regular sub-agents.**
+Reviewers must be spawned into the team (with `team_name` and `name`) so they share a task list and can debate with each other. Regular sub-agents are isolated and cannot communicate, which defeats the purpose of the council's adversarial debate workflow.
 
-Spawn one sub-agent per specialist reviewer (excluding Devil's Advocate and Synthesis Challenger — those run in later phases). Each sub-agent receives this prompt:
+**Workflow:**
+1. Create the team (e.g., name: `"review-council"`)
+2. Create tasks for each review phase (specialist reviews, debate, synthesis)
+3. Spawn each reviewer into the team (with `team_name: "review-council"`, `name: "<reviewer>"`)
+4. Track task assignments and completion
+5. Use inter-agent messaging to coordinate debate and findings exchange
+6. Send shutdown requests when done
+7. Delete the team to clean up resources
 
+**Reviewer spawn template** (use as prompt when spawning each reviewer into the team):
 ```
-You are the {reviewer name} on a Review Council for: {SCOPE}
+Review Council for: {SCOPE}
+Team: review-council (use the shared task list and inter-agent messaging to coordinate)
 
-Your focus areas: {focus areas from roster}
+Your role: {reviewer name and focus areas from roster}
 
-Review process:
-1. Analyze the code through your specialized lens
-2. Use the `andthen-review-code` skill for the review
-3. Report findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
-4. Provide specific file:line references
-5. For each finding, explain WHY it's a problem and suggest a fix
+Review process (two-phase validation):
 
-Note: The `andthen-review-code` skill may not be available in all environments. If unavailable, perform the review directly using your own analysis capabilities.
+PHASE 1 - Initial Review & Debate:
+Each specialist reviewer should:
+- Analyze the code through their specialized lens
+- Report findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
+- Provide specific file:line references
+- Use the `andthen-review-code` skill for the review
 
-Output format per finding:
-- **Severity**: CRITICAL/HIGH/MEDIUM/LOW
-- **Location**: file:line
-- **Finding**: What's wrong
-- **Why it matters**: Impact if not addressed
-- **Suggested fix**: How to resolve
-```
+Devil's Advocate should:
+- Challenge ALL findings from specialist reviewers
+- Ask "why is this actually a problem?"
+- Question assumptions and severity ratings
+- Force validation through debate
+- Help filter false positives
+- Engage in back-and-forth (max 2-3 rounds per finding)
+- If no consensus after 3 rounds, mark finding as "disputed"
 
-Collect all findings from specialist sub-agents.
+PHASE 2 - Synthesis Review:
+After all Phase 1 debates complete, Synthesis Challenger should:
+- Review ALL validated findings holistically
+- Challenge the final conclusions and synthesis
+- Question: "Are severity ratings consistent across findings?"
+- Question: "Are multiple related findings actually one larger issue?"
+- Question: "Did we miss patterns or systemic issues?"
+- Question: "Are any validated findings actually false positives in context?"
+- Question: "Is the overall assessment accurate?"
+- Act as quality gate - only findings that survive both phases get reported
 
-**Gate:** All specialist reviews complete, findings collected
-
-### 4. Phase 2 — Devil's Advocate Challenge
-
-Spawn a **sub-agent** _(if supported by your coding agent; otherwise execute directly)_ as the Devil's Advocate. Provide ALL collected findings as input:
-
-```
-You are the Devil's Advocate on a Review Council for: {SCOPE}
-
-You have received {N} findings from specialist reviewers. Your job is to challenge every single finding:
-
-For each finding, ask:
-- "Is this actually a problem, or is it acceptable in this context?"
-- "Is the severity rating justified?"
-- "Could this be a false positive?"
-- "Is there a simpler explanation or existing mitigation?"
-
-For each finding, output one of:
-- **VALIDATED** — Finding holds up under scrutiny. Explain why.
-- **DOWNGRADED** — Finding is real but severity is too high. Suggest new severity and explain.
-- **WITHDRAWN** — Finding is a false positive or not applicable. Explain why.
-- **DISPUTED** — Reasonable arguments both ways. Note the tension.
-
-Findings to challenge:
-{all collected findings}
+Final output: Unified report showing findings validated through BOTH phases.
 ```
 
-Apply the Devil's Advocate's verdicts to the findings list.
+### 5. Coordinate Review & Debate
 
-**Gate:** All findings challenged, verdicts applied
+Monitor the two-phase validation process:
 
-### 5. Phase 3 — Synthesis Review
+**Phase 1 - Initial Review & Debate:**
+- Wait for all specialist reviewers to complete initial analysis
+- Ensure Devil's Advocate challenges each finding (max 2-3 debate rounds per finding)
+- Track findings as: validated, withdrawn, or disputed (if no consensus after 3 rounds)
+- **Gate:** All Phase 1 debates resolved
 
-Spawn a **sub-agent** _(if supported by your coding agent; otherwise execute directly)_ as the Synthesis Challenger. Provide the validated/downgraded findings:
-
-```
-You are the Synthesis Challenger on a Review Council for: {SCOPE}
-
-You are the final quality gate. Review ALL findings that survived the Devil's Advocate phase holistically:
-
-Questions to answer:
-- "Are severity ratings consistent across findings?"
-- "Are multiple related findings actually one larger issue?"
-- "Did we miss patterns or systemic issues?"
-- "Are any validated findings actually false positives in context?"
-- "Is the overall assessment accurate?"
-
-For each finding, confirm or reclassify. You may also:
-- Merge related findings into a single higher-severity issue
-- Split a finding that covers multiple distinct problems
-- Add a new finding if you spot a systemic pattern the specialists missed
-
-Output: Final validated findings with confirmed severity ratings.
-
-Findings to review:
-{validated and downgraded findings from Phase 2}
-```
-
-**Gate:** Synthesis Challenger completes final validation
+**Phase 2 - Synthesis Review:**
+- After all Phase 1 debates complete, Synthesis Challenger reviews holistically
+- Challenges final conclusions, severity ratings, and synthesis
+- May reclassify, merge, or split findings based on overall context
+- **Gate:** Synthesis Challenger completes final validation
 
 ### 6. Synthesize Report
 
-Compile findings from all phases into unified report:
+Compile findings from all reviewers into unified report:
 
 **Report structure:**
 ```markdown
@@ -206,26 +195,23 @@ Date: {YYYY-MM-DD}
 ## Executive Summary
 {Brief overview of what was reviewed, total issues found, validated count}
 
-## Council Members
-{List of reviewers selected and their focus areas}
-
-## CRITICAL Severity (Validated)
+## CRITICAL Severity (Validated through debate)
 {Blocking issues: security vulnerabilities, data loss, core functionality broken}
 
-## HIGH Severity (Validated)
+## HIGH Severity (Validated through debate)
 {Issues that survived Devil's Advocate challenge}
 
-## MEDIUM Severity (Validated)
-{Issues confirmed after challenge}
+## MEDIUM Severity (Validated through debate)
+{Issues confirmed after discussion}
 
 ## LOW Severity
 {Minor issues and suggestions}
 
-## Withdrawn/Downgraded
-{Findings challenged and withdrawn or downgraded, with reasoning}
+## Disputed/Withdrawn
+{Findings challenged and withdrawn after debate}
 
-## Disputed
-{Findings where reasonable arguments exist both ways}
+## Key Debates
+{Interesting discussions that clarified understanding}
 
 ## Recommendations
 {Prioritized action items based on validated findings}
@@ -234,6 +220,12 @@ Date: {YYYY-MM-DD}
 Store in: `<project_root>/.agent_temp/reviews/<scope>-council-review-<YYYY-MM-DD>.md`
 
 Where `<scope>` is kebab-case identifier: file name (e.g., `auth-module`), PR number (e.g., `pr-123`), or feature name from arguments.
+
+### 7. Clean Up
+
+1. Send shutdown requests to each council reviewer
+2. Wait for shutdown confirmations
+3. Delete the team to remove team and task files
 
 ## Report Location
 

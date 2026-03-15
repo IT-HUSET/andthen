@@ -96,6 +96,9 @@ for source_dir in "$repo_root/plugin/commands" "$repo_root/plugin/commands/extra
   for file in "$source_dir"/*.md; do
     [ -f "$file" ] || continue
     name=$(basename "$file")
+    # Agent Teams commands require Claude Code — skip for other agents
+    [ "$name" = "exec-plan-team.md" ] && continue
+    [ "$name" = "review-council-team.md" ] && continue
     copy_file "$file" "$prompts_dir/$prefix$name"
     commands_count=$((commands_count + 1))
   done

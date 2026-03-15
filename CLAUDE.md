@@ -50,10 +50,11 @@ All workflow commands are **unified** — a single set of files works across Cla
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
 | `review-gap` | Gap analysis, code review, or document review |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
-| `exec-plan` | Execute plan via Agent Team pipeline |
+| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
+| `exec-plan-team` | Execute plan via Agent Team pipeline (requires Agent Teams) |
 | `trade-off` | Architecture decision research |
 
-Specialized commands in `extras/`: `quick-implement`, `design-system`, `wireframes`, `refactor`, `review-council`, `troubleshoot`
+Specialized commands in `extras/`: `quick-implement`, `design-system`, `wireframes`, `refactor`, `review-council`, `review-council-team`, `troubleshoot`
 
 
 ---

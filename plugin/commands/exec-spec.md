@@ -89,6 +89,18 @@ After each sub-agent completes:
 4. Read any implementation notes document (e.g. _`implementation-notes.md`_, _`fis-implementation-notes.md`_) for traps, gotchas, and non-obvious patterns from previous implementations
 5. Create task tracking for ALL tasks (implementation + validation)
 
+### Step 1.5: Scaffold Test Suite (if Testing Strategy present)
+If the FIS contains a **Testing Strategy** section, scaffold tests before implementation:
+
+1. Spawn a `andthen:qa-test-engineer` sub-agent _(if supported by your coding agent)_ to:
+   - Write test skeletons based on the FIS Testing Strategy (test scenarios, edge cases, error cases)
+   - Follow test patterns referenced in the Testing Strategy section
+   - Tests should assert expected behavior — they will naturally fail since implementation doesn't exist yet
+2. Run the test suite to confirm tests are discovered and fail as expected (validates test infrastructure)
+3. These tests become **acceptance gates** — implementation tasks in Step 2 must make them pass
+
+> **Skip this step** when: the FIS has no Testing Strategy section, the feature is purely structural (scaffolding, config, migrations) where tests-first adds no value, or test infrastructure (runner, framework) is not yet set up and will be configured by an implementation task — in that case, defer test scaffolding until after that task completes.
+
 ### Step 2: Execute Implementation Tasks
 For each implementation task (TI01, TI02, etc.):
 
@@ -133,10 +145,16 @@ Use the `andthen:qa-test-engineer` sub-agent _(if supported by your coding agent
 - This agent automatically follows any **Visual Validation Workflow** defined in CLAUDE.md
 - Checks for visual regressions and ensures UI matches design specs
 
-#### TV04 — Address Issues
-- Collect all validation feedback from the validation task sub-agents
-- Spawn sub-agents _(if supported by your coding agent)_ to fix identified issues, if any
-- Re-run affected validation levels if needed
+#### TV04 — Remediation Loop
+Structured fix-and-revalidate cycle with bounded iterations:
+
+1. **Collect** all validation feedback from TV01-TV03 sub-agents
+2. **Triage** issues by severity — CRITICAL and HIGH issues must be fixed; MEDIUM issues should be fixed; LOW issues are optional
+3. **Fix** — spawn sub-agents _(if supported by your coding agent)_ to address issues, grouped by affected area to avoid conflicts
+4. **Re-validate** — re-run only the affected validation levels (e.g., if only code issues were found, re-run TV01; if tests failed, re-run TV02)
+5. **Loop** — repeat steps 2-4 until: all CRITICAL/HIGH issues are resolved and validation passes clean
+
+**Loop bound**: Maximum **3 remediation cycles**. If issues persist after 3 cycles, escalate to the user with a summary of remaining issues and what was attempted.
 
 ### Step 4: Final Quality Assurance
 As orchestrator (not delegated to sub-agent):

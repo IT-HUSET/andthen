@@ -141,4 +141,4 @@ Generate markdown report with:
 
 Store report at: `<project_root>/.agent_temp/reviews/<feature-name>-code-review-<YYYY-MM-DD>.md`
 
-Return report location to user.
+When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-code-review-2026-03-15.md`). Do not use absolute paths.

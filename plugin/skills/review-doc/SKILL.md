@@ -189,9 +189,9 @@ Generate markdown report with:
 - **Prioritized Recommendations** - Critical/High/Medium/Low issues with specific suggestions
 - **Readiness Assessment** - Can implementation start? What must be fixed? Next steps
 
-Store report in: _`<project_root>/.agent_temp/reviews/<spec-name>-doc-review-<YYYY-MM-DD>.md`_
+Store report in: `<project_root>/.agent_temp/reviews/<spec-name>-doc-review-<YYYY-MM-DD>.md`
 
-Inform user of report location when complete.
+When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-doc-review-2026-03-15.md`). Do not use absolute paths.
 
 
 ## Follow-Up Actions

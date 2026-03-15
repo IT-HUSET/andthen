@@ -28,9 +28,9 @@ Commands reference your project's `CLAUDE.md` for two things:
 
 See [`templates/CLAUDE.template.md`](../templates/CLAUDE.template.md) for a starter template.
 
-### Agent Teams (Optional)
+### Agent Teams (Optional, Claude Code only)
 
-Commands like `review-council` and `exec-plan` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for parallel multi-agent coordination. To enable:
+The `-team` command variants (`exec-plan-team`, `review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -40,8 +40,6 @@ Commands like `review-council` and `exec-plan` use [Agent Teams](https://code.cl
   }
 }
 ```
-
-Commands automatically fall back to single-agent mode when Agent Teams are unavailable.
 
 ## Workflow Overview
 
@@ -54,7 +52,7 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 │  └───────────────────────────┬───────────────────────────┘  │
 │                              │                              │
 │  (optional)                  ▼          (optional)          │
-│  clarify ──────────────→   spec   ────→ review-gap --doc        │
+│  clarify ──────────────→   spec   ────→ review-gap --doc    │
 │                              │                              │
 │                              ▼                              │
 │                          exec-spec                          │
@@ -66,19 +64,19 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 ┌─────────────────────────────────────────────────────────────┐
 │  PLAN WORKFLOW (MVP / multi-feature)                        │
 │                                                             │
-│  ┌──────────────── OPTIONAL PRE-WORK: ─────────────────┐   │
-│  │ wireframes, design-system, trade-off                 │   │
-│  └───────────────────────┬─────────────────────────────┘   │
+│  ┌──────────────── OPTIONAL PRE-WORK: ─────────────────┐    │
+│  │ wireframes, design-system, trade-off                │    │
+│  └───────────────────────┬─────────────────────────────┘    │
 │                          │                                  │
 │  (optional)              ▼            (optional)            │
-│  clarify ──────→  plan  ──────→  review-gap --doc               │
+│  clarify ──────→  plan  ──────→  review-gap --doc           │
 │             (PRD + story breakdown)                         │
 │                          │                                  │
 │              ┌───────────┴───────────┐                      │
 │              ▼                       ▼                      │
 │         exec-plan              Per story:                   │
-│       (Agent Team              spec → exec-spec → review-gap    │
-│        pipeline)               (repeat for each story)      │
+│       (sub-agent              spec → exec-spec → review-gap │
+│        pipeline)              (repeat for each story)       │
 │              └───────────┬───────────┘                      │
 │                          ▼                                  │
 │                      review-gap                             │
@@ -87,7 +85,7 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 ┌─────────────────────────────────────────────────────────────┐
 │  QUICK PATH (small features/fixes)                          │
 │                                                             │
-│  quick-implement ──→ review-gap (optional) ──→ done (or PR)     │
+│  quick-implement ──→ review-gap (optional) ──→ done (or PR) │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -114,7 +112,7 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
 | `review-gap` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
-| `exec-plan` | Execute plan via Agent Team pipeline (spec → exec-spec → review-gap per story) |
+| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 
 ### Extras (`commands/extras/`)
@@ -125,8 +123,15 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 | `design-system` | Create design tokens and component styles |
 | `wireframes` | Generate HTML wireframes for UI planning |
 | `refactor` | Code improvement and simplification |
-| `review-council` | Multi-perspective review with Agent Teams (5-7 reviewers + debate) |
+| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
 | `troubleshoot` | Diagnose and fix implementation issues systematically |
+
+### Agent Teams Variants (Claude Code only)
+
+| Command | Purpose |
+|---------|---------|
+| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination |
+| `review-council-team` | Multi-perspective review with real-time Agent Teams debate |
 
 ### Skills (`skills/`)
 
@@ -179,10 +184,13 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 # 3. Generate plan (includes PRD creation if needed + story breakdown)
 /andthen:plan docs/specs/dashboard/
 
-# 4a. Execute all stories via Agent Team pipeline (recommended)
+# 4a. Execute all stories via pipeline (recommended)
 /andthen:exec-plan docs/specs/dashboard/
 
-# 4b. OR manually per story: create spec JIT, then execute
+# 4b. OR use Agent Teams variant for enhanced parallelism (Claude Code only)
+/andthen:exec-plan-team docs/specs/dashboard/
+
+# 4c. OR manually per story: create spec JIT, then execute
 /andthen:spec "S01: Project Setup" # from plan
 /andthen:exec-spec
 /andthen:review-gap
@@ -206,26 +214,20 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 /andthen:trade-off "caching strategy for API responses"
 ```
 
-### Plan Execution with Agent Team Pipeline
+### Plan Execution
 
 ```bash
-# Execute entire plan through parallelized Agent Team pipeline
-# Requires Agent Teams feature enabled
+# Execute entire plan through pipeline (uses sub-agents if available)
 /andthen:exec-plan docs/specs/dashboard/
 
-# Spawns Spec Creators, Implementers, and Reviewers that work
-# through all stories: spec → exec-spec → review-gap
-# Respects phase ordering, dependencies, and [P] parallel markers
-# Team size scales with story count (3-8 agents)
-
-# Falls back to manual per-story execution if Agent Teams unavailable
+# OR use Agent Teams variant for enhanced parallelism (Claude Code only)
+/andthen:exec-plan-team docs/specs/dashboard/
 ```
 
-### Multi-Perspective Review (Agent Teams)
+### Multi-Perspective Review
 
 ```bash
 # Adaptive review - analyzes scope and selects 5-7 relevant reviewers
-# Requires Agent Teams feature enabled
 /andthen:review-council
 
 # Review specific PR with council
@@ -238,9 +240,10 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 # - Product features → Product Manager, Requirements Analyst, etc.
 # - Backend APIs → Security, Performance, API Designer, etc.
 # - Frontend UI → UX/Accessibility, Frontend Specialist, etc.
-# - Always includes Devil's Advocate + Synthesis Challenger (two-phase validation)
+# - Always includes Devil's Advocate + Synthesis Challenger
 
-# Falls back to /andthen:review-gap if Agent Teams unavailable
+# OR use Agent Teams variant for real-time debate (Claude Code only)
+/andthen:review-council-team
 ```
 
 ## Key Concepts

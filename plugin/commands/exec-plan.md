@@ -1,13 +1,13 @@
 ---
-description: Executes an entire implementation plan through an Agent Team pipeline (spec → exec-spec → review-gap per story)
+description: Executes an entire implementation plan through a pipeline (spec → exec-spec → review-gap per story)
 argument-hint: <path-to-plan-directory>
 ---
 
-# Execute Plan with Agent Team Pipeline
+# Execute Plan
 
-Execute ALL stories in an implementation plan (from `/andthen:plan`) through a parallelized Agent Team pipeline: **spec → exec-spec → review-gap** per story.
+Execute ALL stories in an implementation plan (from `/andthen:plan`) through a pipeline: **spec → exec-spec → review-gap** per story.
 
-**Uses Agent Teams** — Falls back to sequential execution (manual per-story loop) if Teams unavailable.
+Uses **parallel sub-agents** _(if supported by your coding agent)_ for concurrent story execution, otherwise executes stories sequentially.
 
 
 ## Variables
@@ -31,15 +31,13 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Complete Implementation**: All stories in plan must be implemented
 - **Plan is source of truth** — follow phase ordering, dependencies, and parallel markers exactly
-- **Agent Team for pipeline** — use Agent Teams for parallel story execution
 - **Per-story pipeline**: spec → exec-spec → review-gap (with fix loop)
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job is to:
 - Parse the plan and extract stories, phases, dependencies, parallel markers
-- Size and create the Agent Team
-- Create pipeline tasks with correct dependency chains
-- Monitor progress via TaskList and coordinate agents
+- Execute the per-story pipeline (delegating to sub-agents when possible)
+- Track progress and update the plan as stories complete
 - Handle failures and escalate when needed
 - Run final verification after all stories complete
 
@@ -51,19 +49,7 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 
 ## Workflow
 
-### Step 1: Check Agent Teams Availability
-
-Verify Agent Teams are available by checking that the `TeamCreate` tool exists in your available tools.
-
-If the `TeamCreate` tool is NOT available (experimental feature not enabled):
-- Inform user that exec-plan requires Agent Teams (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
-- Suggest manual alternative: execute stories sequentially with `/andthen:spec` → `/andthen:exec-spec` → `/andthen:review-gap` per story
-- Exit
-
-**Gate**: Agent Teams confirmed available
-
-
-### Step 2: Parse Plan
+### Step 1: Parse Plan
 
 1. Read `PLAN_DIR/plan.md`
 2. If plan file missing, **STOP** and recommend `/andthen:plan` first
@@ -77,103 +63,62 @@ If the `TeamCreate` tool is NOT available (experimental feature not enabled):
 **Gate**: Plan parsed and phases identified
 
 
-### Step 3: Size Team
-
-Scale team based on total story count:
-
-| Plan Size | Stories | Spec Creators | Implementers | Reviewers | Total |
-|---|---|---|---|---|---|
-| Small | 1-4 | 1 | 1 | 1 | 3 |
-| Medium | 5-10 | 2 | 2 | 2 | 6 |
-| Large | 11+ | 3 | 3 | 2 | 8 |
-
-**Gate**: Team sized based on story count
-
-
-### Step 4: Create Team and Spawn Agents
-
-**IMPORTANT — Use Agent Team tools, NOT regular sub-agents.**
-You MUST use the `TeamCreate` tool. Do NOT use `Task` alone (without `team_name`).
-
-**Required tool sequence:**
-1. `TeamCreate` — Create the team (e.g., `team_name: "plan-pipeline"`)
-2. `Task` with `team_name` param — Spawn each teammate INTO the team
-3. `TaskCreate` — Create pipeline tasks per phase (in Step 5)
-4. `TaskUpdate` — Set dependencies, assignments, track completion
-5. `SendMessage` — Inter-agent coordination
-6. `SendMessage(type: "shutdown_request")` — Graceful shutdown when done
-7. `TeamDelete` — Clean up team resources
-
-#### Agent Roles
-
-**Spec Creators** — Claim `spec-{story_id}` tasks. Before running `/andthen:spec`, check if a FIS already exists for the story (check the story's `**FIS**` field in `plan.md` and look in `docs/specs/`). If a valid FIS exists, mark the task as complete and move on. Otherwise, run `/andthen:spec` with story scope as input. Output: FIS document.
-
-**Implementers** — Claim `impl-{story_id}` tasks (blocked by corresponding spec task) and run `/andthen:exec-spec` on the generated FIS. Output: implemented story.
-
-**Reviewers** — Claim `review-{story_id}` tasks (blocked by corresponding impl task) and run `/andthen:review-gap` per story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via `SendMessage` instead of continuing the loop. Output: validated story.
-
-Each agent loops: **claim task → execute → mark done → claim next**.
-
-**Troubleshooter (on-demand)** — NOT spawned upfront. The orchestrator spawns a troubleshooter teammate only when an agent escalates an issue it cannot resolve (build failures, analysis errors, cross-story conflicts, persistent test failures, etc.). Uses `andthen:build-troubleshooter` agent type. Receives a `fix-{story_id}` task with the issue context from the escalating agent. Shut down after the issue is resolved.
-
-#### Spawn Template
-
-Use this as prompt context when spawning each teammate via `Task(team_name: "plan-pipeline", name: "<role-N>", ...)`:
-
-```
-Role: {Spec Creator | Implementer | Reviewer}
-Team: plan-pipeline
-Plan: {PLAN_DIR}/plan.md
-
-Your workflow (loop until no tasks remain):
-1. Check TaskList for available tasks matching your role ({spec-*|impl-*|review-*})
-2. Claim an unblocked, unassigned task via TaskUpdate (set owner to your name)
-3. Execute:
-   - Spec Creator: First check if a FIS already exists (check story's FIS field in plan.md and docs/specs/). If it exists, mark task complete and skip. Otherwise, run /andthen:spec with story scope from plan. Save FIS to docs/specs/ (per spec.md convention)
-   - Implementer: Run /andthen:exec-spec on the FIS for this story
-   - Reviewer: Run /andthen:review-gap for this story. Fix any issues found, then re-validate (max 2 fix attempts — escalate to orchestrator if issues persist)
-4. Mark task completed via TaskUpdate
-5. Check TaskList for next available task
-6. If no tasks available, notify orchestrator via SendMessage
-
-Important:
-- Wait for tasks to appear in `TaskList` before claiming work
-- Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
-- Follow existing codebase patterns
-- For issues you cannot resolve yourself (build failures, analysis errors, persistent test failures, cross-story conflicts), escalate to orchestrator via SendMessage with full issue context — the orchestrator will spawn a dedicated troubleshooter
-```
-
-**Gate**: Team created and all agents spawned
-
-
-### Step 5: Phase Loop
+### Step 2: Phase Loop
 
 For each phase in the plan:
 
-#### 5a. Create Pipeline Tasks
+#### 2a. Identify Stories for This Phase
 
 For each story in the current phase:
 
-1. **Check for existing FIS** — Look for a FIS path in the story's `**FIS**` field in `plan.md`, or search `docs/specs/` for a matching spec file. If a valid FIS already exists, skip the `spec-{story_id}` task entirely.
+1. **Check for existing FIS** — Look for a FIS path in the story's `**FIS**` field in `plan.md`, or search the spec output directory (typically `docs/specs/`, or as configured in your project's Document Index) for a matching spec file. If a valid FIS already exists, skip the spec step for that story.
 
-2. Create tasks:
-   - `spec-{story_id}`: "Create FIS for {story_name}" — **only if no existing FIS found**
-   - `impl-{story_id}`: "Implement {story_name}"
-   - `review-{story_id}`: "Review and validate {story_name}"
+2. Determine execution approach:
+   - Stories marked `[P]` with no cross-dependencies → can run in parallel
+   - Stories with dependencies → must wait for predecessors to complete
 
-#### 5b. Set Dependencies
+#### 2b. Execute Story Pipelines
 
-Use `TaskUpdate(addBlockedBy)`:
-- `impl-{story_id}` blocked by `spec-{story_id}` — **unless spec was skipped** (existing FIS), in which case `impl-{story_id}` is immediately unblocked
-- `review-{story_id}` blocked by `impl-{story_id}`
-- Cross-story dependencies from plan: if S05 depends on S03, then `spec-S05` blocked by `review-S03`
+For each story (or group of parallel stories), run the three-stage pipeline:
 
-#### 5c. Monitor Progress
+**Stage 1 — Spec** _(skip if FIS already exists)_:
+Run `/andthen:spec` with story scope as input. Output: FIS document in `docs/specs/`.
 
-- Poll `TaskList` periodically until all review tasks for the current phase are complete
-- Handle agent messages (failures, questions, status updates)
+**Stage 2 — Implement**:
+Run `/andthen:exec-spec` on the FIS for this story. Output: implemented story.
 
-#### 5d. Update Plan
+**Stage 3 — Review**:
+Run `/andthen:review-gap` for this story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the user.
+
+> **Note — nested loops**: When `exec-spec` runs internally (Stage 2), its TV04 remediation loop handles *implementation-level* issues (code review, tests, visual validation) with a 3-cycle cap. The exec-plan review-gap loop here handles *integration and gap-level* issues across stories. These are complementary — exec-spec fixes code before exec-plan validates requirements.
+
+**Parallelism strategy** — Use **parallel sub-agents** _(if supported by your coding agent)_ for independent `[P]` stories:
+- Spawn one sub-agent per independent story pipeline (spec → exec-spec → review-gap)
+- Each sub-agent runs the full three-stage pipeline for its story
+- Use `isolation: "worktree"` for parallel sub-agents to avoid file conflicts. If worktree isolation is not available, execute parallel stories sequentially to avoid file conflicts
+- If sub-agents not available, execute stories sequentially
+
+**Sub-agent prompt template** for parallel story execution:
+```
+Execute the full pipeline for story {story_id}: {story_name}
+Plan: {PLAN_DIR}/plan.md
+
+Pipeline:
+1. Spec: Check if FIS exists at {fis_path}. If not, run /andthen:spec with this scope: {story_scope}
+2. Implement: Run /andthen:exec-spec on the FIS
+3. Review: Run /andthen:review-gap. Fix issues (max 2 attempts), then report results.
+
+Important:
+- Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
+- Follow existing codebase patterns
+- Report back: success/failure, FIS path, any issues encountered
+```
+
+**Model assignment** — When spawning sub-agents, use `model: "opus"` for spec-only sub-agents (Stage 1 alone), and `model: "sonnet"` for implementation and review sub-agents. When a single sub-agent runs the full pipeline for a story, use `model: "opus"` (spec quality is the highest-leverage factor).
+
+**When to split stages vs. full-pipeline sub-agents**: For plans with 4+ stories, prefer splitting stages across separate sub-agents to enable parallelism (e.g., spec agent finishes S01 and moves to S02 while impl agent starts S01). For small plans (1-3 stories), a single opus sub-agent per story running the full pipeline is simpler and avoids coordination overhead.
+
+#### 2c. Update Plan
 
 After each story's pipeline completes (spec → exec-spec → review-gap), update `plan.md`:
 - Set the story's **Status** field to `Done`
@@ -187,8 +132,6 @@ Also update each completed FIS file:
 
 Move to next phase only after ALL stories in current phase are complete and plan is updated.
 
-**Create Phase N+1 tasks only after Phase N is fully complete.**
-
 **Gate**: All stories in current phase completed and verified
 
 #### Pipeline Flow Example
@@ -198,14 +141,14 @@ Phase 1 (Sequential): S01 → S02
   spec-S01 → impl-S01 → review-S01 → spec-S02 → impl-S02 → review-S02
 
 Phase 2 (Parallel [P]): S03[P], S04[P], S05 (depends on S03)
-  spec-S03 → impl-S03 → review-S03 → spec-S05 → impl-S05 → review-S05
-  spec-S04 → impl-S04 → review-S04   (parallel with S03)
+  S03 pipeline ──────────────────────→ S05 pipeline
+  S04 pipeline (parallel with S03)
 ```
 
 **Gate**: All phases complete, all stories implemented and reviewed
 
 
-### Step 6: Final Verification
+### Step 3: Final Verification
 
 **Orchestrator performs directly** (not delegated):
 
@@ -220,7 +163,7 @@ Phase 2 (Parallel [P]): S03[P], S04[P], S05 (depends on S03)
 **Gate**: Build, tests, and integration verification all pass
 
 
-### Step 7: Documentation Update
+### Step 4: Documentation Update
 
 Spawn a **general-purpose sub-agent** _(if supported by your coding agent)_ to update project documentation. Scope the update to:
 - **README**: reflect any new features, changed APIs, or updated setup steps from the implementation
@@ -230,28 +173,13 @@ Spawn a **general-purpose sub-agent** _(if supported by your coding agent)_ to u
 **Gate**: Documentation updated
 
 
-### Step 8: Clean Up
-
-1. Use `SendMessage(type: "shutdown_request")` for each teammate
-2. Wait for shutdown confirmations
-3. Use `TeamDelete` to remove team and task files
-
-
 ## Failure Handling
 
-- **Agent reports failure** via `SendMessage` → orchestrator spawns an **on-demand Troubleshooter** teammate (`andthen:build-troubleshooter`) with issue context → creates a `fix-{story_id}` task → troubleshooter diagnoses and fixes → shuts down troubleshooter after resolution → escalates to user only if troubleshooter also fails
+- **Story pipeline fails** → attempt fix (max 2 rounds via review-gap loop). If unresolvable, use `andthen:build-troubleshooter` sub-agent _(if supported)_ for diagnosis. Escalate to user only if troubleshooter also fails.
 - **Dependent stories stay blocked** when a predecessor fails
 - **If >50% of a phase fails** → pause execution, notify user with failure summary
 
 
-## Fallback: No Agent Teams
+## Completion
 
-If Agent Teams unavailable (Step 1 check fails), suggest the manual equivalent:
-
-```bash
-# For each story in plan order:
-/andthen:spec "S01: [Story Name]"
-/andthen:exec-spec
-/andthen:review-gap
-# ... repeat for each story
-```
+When all phases are complete, print a summary including: stories completed, total phases, verification results (build/test status), and the path to the updated `PLAN_DIR/plan.md`.

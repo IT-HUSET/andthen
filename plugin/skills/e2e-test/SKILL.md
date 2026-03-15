@@ -182,7 +182,7 @@ Generate a markdown report:
 
 Store report at: `<project_root>/.agent_temp/qa/e2e-test-report-<YYYY-MM-DD>.md`
 
-Inform user of the report location and summarize key findings.
+When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/qa/e2e-test-report-2026-03-15.md`) and summarize key findings. Do not use absolute paths.
 
 
 ## Follow-Up Actions

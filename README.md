@@ -48,7 +48,7 @@ Commands use capability detection and work without the plugin infrastructure. So
 ./scripts/install-codex.sh --prompts-dir ~/.codex/prompts --skills-dir ~/.codex/skills
 ```
 
-This keeps the repo source layout Claude-plugin-friendly while exporting Codex-compatible names such as `andthen-clarify.md`, `andthen-review-gap.md`, `andthen-review-council.md`, `andthen-review-code/`, `andthen-review-doc/`, and `andthen-e2e-test/`.
+This keeps the repo source layout Claude-plugin-friendly while exporting Codex-compatible names such as `andthen-clarify.md`, `andthen-exec-plan.md`, `andthen-review-gap.md`, `andthen-review-council.md`, `andthen-review-code/`, `andthen-review-doc/`, and `andthen-e2e-test/`. Agent Teams commands (`exec-plan-team`, `review-council-team`) are excluded since they require Claude Code.
 
 In Claude Code, keep using `/andthen:<command>`. In copied prompts for other agents, invoke the prefixed names such as `/andthen-clarify`, `/andthen-spec`, and `/andthen-review-gap`.
 
@@ -62,9 +62,9 @@ Commands reference your project's `CLAUDE.md` for context. Add these sections:
 
 See [`templates/CLAUDE.template.md`](templates/CLAUDE.template.md) for a starter template.
 
-### Agent Teams (Optional)
+### Agent Teams (Optional, Claude Code only)
 
-Commands like `review-council` and `exec-plan` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for parallel multi-agent coordination. To enable:
+The `-team` command variants (`exec-plan-team`, `review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -74,8 +74,6 @@ Commands like `review-council` and `exec-plan` use [Agent Teams](https://code.cl
   }
 }
 ```
-
-Commands automatically fall back to single-agent mode when Agent Teams are unavailable.
 
 
 ## Workflow Overview
@@ -89,7 +87,7 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 │  └───────────────────────────┬───────────────────────────┘  │
 │                              │                              │
 │  (optional)                  ▼          (optional)          │
-│  clarify ──────────────→   spec   ────→ review-gap --doc        │
+│  clarify ──────────────→   spec   ────→ review-gap --doc    │
 │                              │                              │
 │                              ▼                              │
 │                          exec-spec                          │
@@ -106,14 +104,14 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 │  └───────────────────────┬─────────────────────────────┘    │
 │                          │                                  │
 │  (optional)              ▼            (optional)            │
-│  clarify ──────→  plan  ──────→  review-gap --doc               │
+│  clarify ──────→  plan  ──────→  review-gap --doc           │
 │             (PRD + story breakdown)                         │
 │                          │                                  │
 │              ┌───────────┴───────────┐                      │
 │              ▼                       ▼                      │
 │         exec-plan              Per story:                   │
-│       (Agent Team              spec → exec-spec → review-gap    │
-│        pipeline)               (repeat for each story)      │
+│       (sub-agent              spec → exec-spec → review-gap │
+│        pipeline)              (repeat for each story)       │
 │              └───────────┬───────────┘                      │
 │                          ▼                                  │
 │                      review-gap                             │
@@ -122,7 +120,7 @@ Commands automatically fall back to single-agent mode when Agent Teams are unava
 ┌─────────────────────────────────────────────────────────────┐
 │  QUICK PATH (small features/fixes)                          │
 │                                                             │
-│  quick-implement ──→ review-gap (optional) ──→ done (or PR)     │
+│  quick-implement ──→ review-gap (optional) ──→ done (or PR) │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -145,7 +143,7 @@ In Claude Code, invoke with `/andthen:<command>` or just `/<command>` if unambig
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
 | `review-gap` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
-| `exec-plan` | Execute plan via Agent Team pipeline (spec → exec-spec → review-gap per story) |
+| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 
 ### Extras
@@ -156,8 +154,15 @@ In Claude Code, invoke with `/andthen:<command>` or just `/<command>` if unambig
 | `design-system` | Create design tokens and component styles |
 | `wireframes` | Generate HTML wireframes for UI planning |
 | `refactor` | Code improvement and simplification |
-| `review-council` | Multi-perspective review with Agent Teams (5-7 reviewers + debate) |
+| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
 | `troubleshoot` | Diagnose and fix implementation issues systematically |
+
+### Agent Teams Variants (Claude Code only)
+
+| Command | Purpose |
+|---------|---------|
+| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination |
+| `review-council-team` | Multi-perspective review with real-time Agent Teams debate |
 
 ### Skills
 

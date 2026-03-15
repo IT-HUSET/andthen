@@ -337,6 +337,32 @@ Each task's **`Verify:`** line should specify concrete, observable proof of comp
 - **Observable**: file contents, UI state, or measurable behavior (e.g. "root layout includes Pico CSS link")
 - **Not duplicating validation tasks**: avoid generic build/lint/type checks — those are covered by TV01-TV02
 
+### Testing Strategy
+> Defines what to test and how — gives the testing agent concrete direction during exec-spec.
+> Only include scenarios and coverage goals here; actual test code is written during execution.
+
+#### Test Scope
+- **Unit tests**: {{Key modules/functions requiring unit tests, with expected behaviors}}
+- **Integration tests**: {{API endpoints, service interactions, data flows to verify}} _(if applicable)_
+- **E2E tests**: {{Critical user journeys to validate end-to-end}} _(if applicable)_
+
+#### Key Test Scenarios
+{{Derive from success criteria — each criterion should map to at least one test scenario}}
+- {{Scenario 1: description + expected outcome}}
+- {{Scenario 2: description + expected outcome}}
+
+#### Edge Cases & Error Scenarios
+- {{Edge case 1: boundary condition or unusual input}}
+- {{Error scenario 1: expected failure mode and how it should be handled}}
+
+#### Test Patterns & References
+```
+# Reference format: type | path | what to follow
+test   | tests/unit/users.test.ts:15-40      | Test structure and assertion style
+test   | tests/e2e/auth.spec.ts:8-25         | E2E test setup pattern
+config | playwright.config.ts                | E2E configuration
+```
+
 ### Validation Tasks
 > Validation methodology details defined in exec-spec.
 

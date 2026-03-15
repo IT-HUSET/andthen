@@ -580,7 +580,7 @@ OUTPUT_DIR/
 └── plan.md    # Implementation plan
 ```
 
-Inform user of output location when complete.
+When complete, print the output's **relative path from the project root**. Do not use absolute paths.
 
 
 ## Follow-Up Actions
