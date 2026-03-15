@@ -12,7 +12,7 @@
       "name": "andthen",
       "source": "./plugin",
       "strict": false,
-      "version": "1.2.0",
+      "version": "1.2.1",
       "description": "AndThen workflow system: structured agentic development from requirements to shipped code",
       "author": {
         "name": "Tobias Löfstrand"

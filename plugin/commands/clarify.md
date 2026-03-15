@@ -22,7 +22,7 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
-- **Interactive process** - Ask questions iteratively; don't assume answers
+- **Interactive process** - Ask questions iteratively; don't assume answers. After asking questions, **STOP and WAIT** for user responses before proceeding
 - **Be thorough** - Challenge assumptions, find edge cases, identify ambiguities
 - **Stay focused** - Clarify requirements, don't design solutions
 - **Document decisions** - Record rationale for scope choices and trade-offs
@@ -58,7 +58,9 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 
 ### 2. Discovery Interview
 
-Ask targeted questions based on identified gaps. Ask 3-5 questions at a time, iterate until no major gaps remain.
+Ask targeted questions based on identified gaps. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers — you MUST receive actual answers from the user. Iterate until no major gaps remain.
+
+> **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Do not proceed to Step 3 until the user has answered your questions and you've confirmed no major gaps remain. Use the `AskUserQuestion` tool if available in your environment.
 
 **Scope & Boundaries**
 - What's explicitly IN scope?
@@ -223,7 +225,6 @@ When complete, print the report's **relative path from the project root**. Do no
 
 After completion, ask user if they'd like to:
 1. Create feature spec (`/andthen:spec`) — for single features
-2. Proceed to planning (`/andthen:plan`) — for multi-feature / MVP scope (includes requirements discovery if no PRD exists)
-3. Create implementation plan
-4. Review specific areas in more depth
-5. Share with stakeholders for validation
+2. Proceed to planning (`/andthen:plan <output-directory>`) — for multi-feature / MVP scope. The plan command will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery
+3. Review specific areas in more depth
+4. Share with stakeholders for validation

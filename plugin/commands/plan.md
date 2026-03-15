@@ -1,11 +1,11 @@
 ---
-description: Creates implementation plan with story breakdown. Can start from existing PRD or discover requirements first. Lightweight planning - detailed specs created JIT per story.
-argument-hint: [Specs directory containing PRD, or requirements source (file/URL/description)]
+description: Creates implementation plan with story breakdown. Can start from existing PRD or discover requirements first. Picks up prior artifacts from `/andthen:clarify`. Lightweight planning - detailed specs created JIT per story.
+argument-hint: [Specs directory (with PRD, requirements-clarification, or draft PRD), or requirements source (file/URL/description)]
 ---
 
 # Create Implementation Plan
 
-Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If not, runs requirements discovery to create one first.
+Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If prior artifacts exist (e.g., `requirements-clarification.md` from `/andthen:clarify` or a draft PRD), uses them as the basis for PRD creation without re-doing discovery. If nothing exists, runs full requirements discovery to create a PRD first.
 
 Stories are scoped and sequenced but NOT fully specified - use `/andthen:spec` just-in-time before implementing each story.
 
@@ -14,7 +14,7 @@ Stories are scoped and sequenced but NOT fully specified - use `/andthen:spec` j
 
 ## Variables
 
-_Specs directory containing PRD, or requirements source (**required**):_
+_Specs directory (with PRD, requirements-clarification, or draft PRD), or requirements source (**required**):_
 INPUT: $ARGUMENTS
 
 _Output directory (defaults to input directory, or `<project_root>/docs/specs/` for new PRDs):_
@@ -32,7 +32,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 - **No over-engineering** - Minimum stories to cover requirements
 - **Progressive implementation** - Organize into logical phases (examples provided are templates, adapt to project)
 - **JIT specification** - Detailed specs come later via `/andthen:spec`
-- **Interactive when discovering requirements** - Interview user iteratively; don't assume answers
+- **Interactive when discovering requirements** - Interview user iteratively; don't assume answers. After asking questions, **STOP and WAIT** for user responses before proceeding
 - **Focus on "what" not "how"** - Requirements, not implementation details
 - **Be specific** - Replace vague terms with measurable criteria
 - **Document decisions** - Record rationale, trade-offs, alternatives considered
@@ -44,6 +44,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 
 1. **Parse INPUT** - Determine type:
    - **Directory with PRD**: `INPUT` is a directory containing `prd.md` → proceed to Step 2
+   - **Directory with prior artifacts**: `INPUT` is a directory containing `requirements-clarification.md` (from `/andthen:clarify`) and/or a draft PRD (`prd-draft.md`), but no finalized `prd.md` → proceed to Step 1c
    - **File path**: Read and extract requirements → proceed to Step 1b
    - **URL**: Fetch and extract requirements → proceed to Step 1b
    - **Inline description**: Use directly → proceed to Step 1b
@@ -52,7 +53,12 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
    - Document optional assets if present (Architecture/ADRs, Design system, Wireframes)
    - **Gate**: PRD validated → skip to Step 2
 
-3. **If no PRD** (requirements source provided):
+3. **If prior artifacts found** (directory with `requirements-clarification.md` and/or `prd-draft.md`, but no finalized `prd.md`):
+   - Read all existing artifacts in the directory
+   - Document optional assets if present (Architecture/ADRs, Design system, Wireframes)
+   - Proceed to Step 1c (PRD from Existing Artifacts)
+
+4. **If no PRD and no prior artifacts** (requirements source provided):
    - Validate prerequisites: requirements should be reasonably refined (not raw ideas)
    - If input is too vague, recommend `/andthen:clarify` first
    - Initial gap analysis — document what's explicitly stated, assumed/implied, and missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope)
@@ -65,7 +71,9 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 
 #### Requirements Discovery Interview
 
-Interview user to fill gaps. Ask 3-5 targeted questions at a time, iterate until no major gaps remain.
+Interview user to fill gaps. Ask 3-5 targeted questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers — you MUST receive actual answers from the user. Iterate until no major gaps remain.
+
+> **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Do not proceed past this section until the user has answered your questions and you've confirmed no major gaps remain. Use the `AskUserQuestion` tool if available in your environment.
 
 **Core Functionality**
 - Must-have vs nice-to-have features?
@@ -368,6 +376,37 @@ Generate markdown document following this structure:
 ```
 
 Store PRD in: `OUTPUT_DIR/<feature-name>/prd.md`
+
+**Gate**: PRD created → continue to Step 2
+
+
+### 1c. PRD Creation from Existing Artifacts _(skip if PRD already exists or no prior artifacts found)_
+
+Use existing artifacts (`requirements-clarification.md` from `/andthen:clarify` and/or `prd-draft.md`) as the primary basis for creating the PRD. This path avoids duplicating discovery work already completed.
+
+#### Assess Existing Coverage
+
+Review the available artifacts and assess PRD readiness:
+
+- Map existing content against the PRD structure (see Step 1b: Structure PRD)
+- Identify sections that are fully covered by existing artifacts
+- Identify gaps or sections that need additional information
+
+#### Targeted Gap-Filling _(only if needed)_
+
+If significant gaps remain after reviewing existing artifacts, conduct a **focused** interview covering only the missing areas. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response**.
+
+> **CRITICAL**: Do NOT re-ask questions already answered in the existing artifacts. Only ask about genuinely missing information.
+
+Skip this step entirely if existing artifacts provide sufficient coverage for all PRD sections.
+
+**Gate**: All gaps resolved or deemed non-blocking
+
+#### Structure & Generate PRD
+
+Using existing artifacts as the primary source, structure the PRD following the same format as Step 1b: Structure PRD. Preserve decisions, rationale, and specific details from the existing artifacts — do not paraphrase or generalize away specifics.
+
+Then proceed through **Prioritization → PRD Validation → Generate PRD Document** (same substeps as Step 1b).
 
 **Gate**: PRD created → continue to Step 2
 
