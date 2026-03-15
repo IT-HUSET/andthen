@@ -30,6 +30,8 @@ Works as a **Claude Code plugin** with full sub-agent orchestration, and command
 /plugin install andthen --scope project   # current project only (default: user scope)
 ```
 
+**Enable auto-update** (recommended): Run `/plugin`, go to the **Marketplaces** tab, select the `andthen` marketplace, and choose **Enable auto-update**.
+
 **Local install** (if you have the repo cloned):
 ```bash
 claude plugin install ./plugin

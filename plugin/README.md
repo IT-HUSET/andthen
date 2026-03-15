@@ -19,6 +19,8 @@ See the [full documentation](../README.md) for workflow overview, usage examples
 /plugin install andthen --scope project   # current project only (default: user scope)
 ```
 
+**Enable auto-update** (recommended): Run `/plugin`, go to the **Marketplaces** tab, select the `andthen` marketplace, and choose **Enable auto-update**.
+
 ## Setup
 
 Commands reference your project's `CLAUDE.md` for two things:
