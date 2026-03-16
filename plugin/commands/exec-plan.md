@@ -58,6 +58,7 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
    - **Phases**: Phase groupings and execution order
    - **Parallel markers**: `[P]` flags for concurrent execution
    - **Dependencies**: Cross-story dependency graph
+   - **Waves**: Wave assignments per story (W1, W2, W3...) if present in the plan
 4. Build execution plan respecting phase ordering and dependency chains
 
 **Gate**: Plan parsed and phases identified
@@ -92,6 +93,16 @@ Run `/andthen:review-gap` for this story. If issues found: fix them, then re-val
 
 > **Note — nested loops**: When `exec-spec` runs internally (Stage 2), its TV04 remediation loop handles *implementation-level* issues (code review, tests, visual validation) with a 3-cycle cap. The exec-plan review-gap loop here handles *integration and gap-level* issues across stories. These are complementary — exec-spec fixes code before exec-plan validates requirements.
 
+#### Wave-Based Execution (within each phase)
+If stories have wave assignments (W1, W2, etc.) from the plan:
+1. Execute all W1 stories in parallel (these have no dependencies)
+2. After W1 completes, execute all W2 stories in parallel
+3. Continue through remaining waves
+All stories in the same wave run in parallel (waves subsume [P] markers).
+
+If no wave assignments present, fall back to the [P] marker
+and dependency-based approach below.
+
 **Parallelism strategy** — Use **parallel sub-agents** _(if supported by your coding agent)_ for independent `[P]` stories:
 - Spawn one sub-agent per independent story pipeline (spec → exec-spec → review-gap)
 - Each sub-agent runs the full three-stage pipeline for its story
@@ -120,7 +131,7 @@ Important:
 
 #### 2c. Update Plan
 
-After each story's pipeline completes (spec → exec-spec → review-gap), update `plan.md`:
+After each story's pipeline completes (spec → exec-spec → review-gap), update `plan.md` (consider using the `andthen-ops` skill for standardized status updates):
 - Set the story's **Status** field to `Done`
 - Set the story's **FIS** field to the generated spec path (e.g. `**FIS**: docs/specs/story-name.md`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)

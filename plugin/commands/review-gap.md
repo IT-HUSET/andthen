@@ -78,6 +78,7 @@ Review general quality, soundness and adherence to guidelines, standards and bes
 #### Code Analysis
 - Run static analysis, linting, type checking as per project guidelines
 - Use IDE diagnostics (`mcp__ide_getDiagnostics`) if available
+- Scan for incomplete implementations: `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` — flag any found as potential gaps
 
 #### Comprehensive Code Review
 Spawn a **sub-agent** _(if supported by your coding agent)_ (via Task tool, `subagent_type: "general-purpose"`) to perform the code review.
@@ -106,6 +107,12 @@ Systematically identify all gaps between requirements and implementation:
 - **Consistency Gaps** - Deviations from codebase patterns/conventions, documentation gaps, test coverage gaps (unit/integration/e2e)
 
 - **Holistic Sanity Check** - Zoom out: Does the implementation make sense end-to-end? Would it actually work for users? Any hidden assumptions or tech debt introduced?
+
+- **Verification Depth (Substance & Wiring)** — Beyond existence, check:
+  - Are implementations substantive? (No stubs, TODOs, placeholders, empty handlers)
+  - Are components wired into the system? (Imported, routed, called, rendered)
+  - Do verification commands pass? (Build, tests, type-check)
+  - Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
 
 **Gate**: All gaps comprehensively identified and documented
 

@@ -70,8 +70,8 @@ The `-team` command variants (`exec-plan-team`, `review-council-team`) use [Agen
 │  │ wireframes, design-system, trade-off                │    │
 │  └───────────────────────┬─────────────────────────────┘    │
 │                          │                                  │
-│  (optional)              ▼            (optional)            │
-│  clarify ──────→  plan  ──────→  review-gap --doc           │
+│      (optional)          ▼            (optional)            │
+│       clarify ──────→  plan  ──────→  review-gap --doc      │
 │             (PRD + story breakdown)                         │
 │                          │                                  │
 │              ┌───────────┴───────────┐                      │
@@ -109,6 +109,7 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 
 | Command | Purpose |
 |---------|---------|
+| `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
@@ -127,6 +128,7 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 | `refactor` | Code improvement and simplification |
 | `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
 | `troubleshoot` | Diagnose and fix implementation issues systematically |
+| `map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
 
 ### Agent Teams Variants (Claude Code only)
 
@@ -142,6 +144,7 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 | `andthen-review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
 | `andthen-review-doc` | Document review for completeness, clarity, and technical accuracy |
 | `andthen-e2e-test` | End-to-end browser testing for web applications |
+| `andthen-ops` | Deterministic state management, git conventions, and progress tracking |
 
 ## Agents
 

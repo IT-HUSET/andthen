@@ -205,10 +205,11 @@ Use the template below to generate the Feature Implementation Specification.
 {{Clear description of what needs to be built and why}}
 
 
-## Success Criteria
-- [ ] {{Specific measurable outcome}}
-- [ ] {{User-visible behavior}}
-- [ ] {{Technical requirement}}
+## Success Criteria (Must Be TRUE)
+State what must be observably TRUE when this feature is complete:
+- [ ] {{Observable truth from user's perspective}}
+- [ ] {{Verifiable system behavior}}
+- [ ] {{Measurable technical requirement}}
 - [ ] {{Performance/scaling requirement}}
 
 
@@ -306,25 +307,25 @@ _Examples:_
   - Create deno.json with Fresh dependencies and tasks
   - Set up basic routes/, islands/, components/, lib/ directories
   - Configure import maps and TypeScript settings
-  - **Verify**: `routes/`, `islands/`, `components/`, `lib/` dirs exist; deno.json contains `fresh` dependency and `start`/`build` tasks
+  - **Verify**: [Exists] `routes/`, `islands/`, `components/`, `lib/` dirs present; [Substantive] deno.json contains `fresh` dependency and `start`/`build` tasks; [Wired] import map resolves; [Functional] `deno task check` passes
 
 - [ ] **TI02** Configure Supabase integration and environment
   - Create .env.example and .env files with Supabase credentials
   - Set up lib/supabase/client.ts and lib/supabase/server.ts
   - Configure database connection and authentication helpers
-  - **Verify**: `lib/supabase/client.ts` exports `createClient()`, `lib/supabase/server.ts` exports `createServerClient()`; `.env.example` lists `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+  - **Verify**: [Exists] `lib/supabase/client.ts` and `lib/supabase/server.ts` present; [Substantive] `createClient()` and `createServerClient()` have real implementations (not stubs); [Wired] `.env.example` lists `SUPABASE_URL` and `SUPABASE_ANON_KEY`; [Functional] type-check passes
 
 - [ ] **TI03** [P] Set up development tooling and scripts
   - Configure deno fmt, deno lint, and deno check tasks
   - Set up Playwright for E2E testing in tests/e2e/
   - Create development and deployment scripts
-  - **Verify**: deno.json contains `fmt`, `lint`, `check` task entries; `tests/e2e/playwright.config.ts` exists with base URL configured
+  - **Verify**: [Exists] deno.json contains `fmt`, `lint`, `check` tasks; [Substantive] `tests/e2e/playwright.config.ts` has base URL configured; [Wired] tasks are runnable from deno.json; [Functional] `deno task lint` executes without config errors
 
 - [ ] **TI04** [P] Integrate design system foundation
   - Add Pico CSS CDN link and Google Fonts (Nunito Sans, Outfit)
   - Create static/styles/architecture-theme.css with custom variables
   - Set up responsive design system per ADR-002
-  - **Verify**: `architecture-theme.css` defines color, spacing, and typography custom properties per ADR-002; root layout includes Pico CSS and Google Fonts links
+  - **Verify**: [Exists] `architecture-theme.css` present; [Substantive] defines color, spacing, and typography custom properties per ADR-002; [Wired] root layout includes Pico CSS and Google Fonts links; [Functional] styles render correctly in browser
 
 #### Implementation Notes (per task, only when needed)
 - Reference existing patterns: `see src/components/Modal.tsx:45-78 for similar pattern`
@@ -332,10 +333,16 @@ _Examples:_
 - Configuration/data models: describe structure briefly, don't write full schemas
 
 #### Verification Criteria (per task, required)
-Each task's **`Verify:`** line should specify concrete, observable proof of completion unique to that task's deliverable. Good verification criteria are:
-- **Deliverable-specific**: what files exist, what they export, what structure they have (e.g. "`client.ts` exports `createClient()`")
-- **Observable**: file contents, UI state, or measurable behavior (e.g. "root layout includes Pico CSS link")
-- **Not duplicating validation tasks**: avoid generic build/lint/type checks — those are covered by TV01-TV02
+Each task's **`Verify:`** line must check all 4 dimensions:
+- **Exists**: file/path/route is present
+- **Substantive**: contains real implementation (not stubs, TODOs, or placeholders)
+- **Wired**: integrated into the system (imported, routed, called)
+- **Functional**: works when invoked (build passes, test passes, or observable behavior)
+
+Where applicable, verification should trace back to the feature's must-be-TRUE success criteria.
+
+Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md` for stub-detection
+and wiring-check patterns.
 
 ### Testing Strategy
 > Defines what to test and how — gives the testing agent concrete direction during exec-spec.

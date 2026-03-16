@@ -72,6 +72,7 @@ If Agent Team tools are NOT available (experimental feature not enabled):
    - **Phases**: Phase groupings and execution order
    - **Parallel markers**: `[P]` flags for concurrent execution
    - **Dependencies**: Cross-story dependency graph
+   - **Waves**: Wave assignments per story (W1, W2, W3...) if present in the plan
 4. Build execution plan respecting phase ordering and dependency chains
 
 **Gate**: Plan parsed and phases identified
@@ -170,6 +171,13 @@ For each story in the current phase:
    - `impl-{story_id}`: "Implement {story_name}"
    - `review-{story_id}`: "Review and validate {story_name}"
 
+**Wave-based task creation** (if waves present in plan):
+- Group story tasks by wave within each phase
+- W1 story tasks are immediately unblocked (no wave predecessors)
+- W2 story tasks are blocked by completion of all W1 review tasks
+- W3+ story tasks are blocked by completion of all previous wave review tasks
+- This simplifies dependency setup: wave ordering replaces per-story dependency chains
+
 #### 5b. Set Dependencies
 
 Set task dependencies (blocked-by):
@@ -181,6 +189,7 @@ Set task dependencies (blocked-by):
 
 - Poll the task list periodically until all review tasks for the current phase are complete
 - Handle agent messages (failures, questions, status updates)
+- Track completion by wave within each phase — all stories in wave N must complete before wave N+1 tasks are unblocked
 
 #### 5d. Update Plan
 

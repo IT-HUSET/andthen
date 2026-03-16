@@ -8,7 +8,9 @@
 
 > "I have a feature idea" → *and then?* → clarify → *and then?* → spec → *and then?* → plan → *and then?* → execute → *and then?* → review-gap → **ship it.**
 
-AndThen is an opinionated workflow system for AI coding agents. It provides structured commands that guide development through a disciplined pipeline, producing a **Feature Implementation Specification (FIS)** as the core artifact — a comprehensive blueprint that enables reliable, autonomous implementation.
+AndThen is a workflow system for AI coding agents. It provides structured commands that guide development through a disciplined pipeline, producing a **Feature Implementation Specification (FIS)** as the core artifact — a comprehensive blueprint that enables reliable, autonomous implementation.
+
+**Structured process, flexible project.** AndThen is opinionated about *how work flows* (clarify → spec → plan → execute → review) but not about *how your project is organized*. Commands read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live — adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no config files, no lock-in.
 
 Works as a **Claude Code plugin** with full sub-agent orchestration, and commands are designed to be **agent-agnostic** — falling back to direct execution when sub-agents aren't available.
 
@@ -50,19 +52,29 @@ Commands use capability detection and work without the plugin infrastructure. So
 ./scripts/install-codex.sh --prompts-dir ~/.codex/prompts --skills-dir ~/.codex/skills
 ```
 
-This keeps the repo source layout Claude-plugin-friendly while exporting Codex-compatible names such as `andthen-clarify.md`, `andthen-exec-plan.md`, `andthen-review-gap.md`, `andthen-review-council.md`, `andthen-review-code/`, `andthen-review-doc/`, and `andthen-e2e-test/`. Agent Teams commands (`exec-plan-team`, `review-council-team`) are excluded since they require Claude Code.
+This keeps the repo source layout Claude-plugin-friendly while exporting Codex-compatible names such as `andthen-clarify.md`, `andthen-exec-plan.md`, `andthen-review-gap.md`, `andthen-review-council.md`, `andthen-review-code/`, `andthen-review-doc/`, and `andthen-e2e-test/`. Plugin reference docs (e.g., verification patterns) are also copied so commands can find them. Agent Teams commands (`exec-plan-team`, `review-council-team`) are excluded since they require Claude Code.
 
 In Claude Code, keep using `/andthen:<command>`. In copied prompts for other agents, invoke the prefixed names such as `/andthen-clarify`, `/andthen-spec`, and `/andthen-review-gap`.
 
 
 ## Setup
 
-Commands reference your project's `CLAUDE.md` for context. Add these sections:
+The quickest way to get started:
+
+```bash
+/andthen:init
+```
+
+This interactively sets up your project — generates `CLAUDE.md`, creates selected document types, and copies guidelines. Works for new projects, partial setups, and brownfield codebases.
+
+**Manual setup** — if you prefer to set things up yourself, commands reference your project's `CLAUDE.md` for context. Add these sections:
 
 **1. Project Document Index** — tells commands where to write output (specs, plans, etc.)
 **2. Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards
 
 See [`templates/CLAUDE.template.md`](templates/CLAUDE.template.md) for a starter template.
+
+**Optional project docs** — The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these are in [`templates/project-state-templates.md`](templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
 
 ### Agent Teams (Optional, Claude Code only)
 
@@ -140,6 +152,7 @@ In Claude Code, invoke with `/andthen:<command>` or just `/<command>` if unambig
 
 | Command | Purpose |
 |---------|---------|
+| `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
@@ -158,6 +171,7 @@ In Claude Code, invoke with `/andthen:<command>` or just `/<command>` if unambig
 | `refactor` | Code improvement and simplification |
 | `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
 | `troubleshoot` | Diagnose and fix implementation issues systematically |
+| `map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
 
 ### Agent Teams Variants (Claude Code only)
 
@@ -173,6 +187,7 @@ In Claude Code, invoke with `/andthen:<command>` or just `/<command>` if unambig
 | `andthen-review-code` | Reusable code review with checklists (quality, security, architecture, UI/UX) |
 | `andthen-review-doc` | Reusable document review for completeness, clarity, and technical accuracy |
 | `andthen-e2e-test` | End-to-end browser testing for web applications |
+| `andthen-ops` | Deterministic state management, git conventions, and progress tracking |
 
 
 ## Key Concepts
@@ -238,6 +253,19 @@ Simplified starting points — copy into your project and adapt to your needs. W
 | Document | Purpose |
 |----------|---------|
 | `MODEL-EFFORT-SELECTION-GUIDE.md` | Model and thinking effort selection guide |
+
+### Reference (`plugin/references/`)
+
+| Document | Purpose |
+|----------|---------|
+| `verification-patterns.md` | Stub detection, wiring checks, and the Nyquist verification principle |
+
+### Templates (`templates/`)
+
+| Document | Purpose |
+|----------|---------|
+| `CLAUDE.template.md` | Starter template for project `CLAUDE.md` |
+| `project-state-templates.md` | Starter templates for STATE.md, REQUIREMENTS.md, ROADMAP.md, etc. |
 
 
 ## Hooks

@@ -143,7 +143,7 @@ Include verification evidence in completion summary (as applicable):
 
 
 ## Report
-After completed implementation, if the project has an implementation notes file (e.g. `implementation-notes.md`, `fis-implementation-notes.md`), append any **traps, gotchas, and non-obvious patterns** discovered during this implementation. If no such file exists and there are noteworthy traps, create an *Implementation Notes* section at the end of the original spec document.
+After completed implementation, if the project has a learnings file (`LEARNINGS.md` or `implementation-notes.md`), append any **traps, gotchas, and non-obvious patterns** discovered during this implementation. Organize by topic. If no such file exists and there are noteworthy traps, create a *Learnings* section at the end of the original spec document.
 
 The bar for inclusion: *"Would a competent developer with access to the code and git history still get bitten by this?"* Keep entries brief (1-2 sentences each). Do NOT record:
 - What was implemented or how parts integrate (that's in git history and code)

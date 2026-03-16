@@ -120,5 +120,14 @@ for dir in "$repo_root/plugin/skills"/*; do
   skills_count=$((skills_count + 1))
 done
 
+# Copy plugin reference docs alongside prompts so commands can find them
+refs_count=0
+refs_dir="$prompts_dir/${prefix}references"
+if [ -d "$repo_root/plugin/references" ]; then
+  copy_dir_contents "$repo_root/plugin/references" "$refs_dir"
+  refs_count=$(find "$repo_root/plugin/references" -maxdepth 1 -type f | wc -l | tr -d ' ')
+fi
+
 printf 'Installed %s commands into %s\n' "$commands_count" "$prompts_dir"
 printf 'Installed %s skills into %s\n' "$skills_count" "$skills_dir"
+[ "$refs_count" -gt 0 ] && printf 'Installed %s reference docs into %s\n' "$refs_count" "$refs_dir"

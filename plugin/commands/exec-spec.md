@@ -57,6 +57,9 @@ Path: {FIS_FILE_PATH}
 ## Previous Task Context (if sequential dependency)
 {Brief summary of what previous tasks accomplished that this task depends on}
 
+## UI Design Contract (if applicable)
+Path: {UI_SPEC_PATH if generated in Step 1.7, otherwise omit this section}
+
 ## Requirements
 1. Complete the task fully per FIS spec
 2. Follow patterns in referenced files
@@ -86,7 +89,7 @@ After each sub-agent completes:
 2. Fully Understand vital sections like Success Criteria, Scope & Boundaries, Solution Architecture and Design, Critical Documentation & Context, Implementation Plan, etc.
 3. Analyse the codebase to properly understand the project structure, relevant files and similar patterns
   - Use command like `tree -d` and `git ls-files | head -250` to get an overview of the codebase structure
-4. Read any implementation notes document (e.g. _`implementation-notes.md`_, _`fis-implementation-notes.md`_) for traps, gotchas, and non-obvious patterns from previous implementations
+4. Read the project learnings document (e.g. _`LEARNINGS.md`_, _`implementation-notes.md`_) for traps, gotchas, error patterns, and non-obvious knowledge from previous work
 5. Create task tracking for ALL tasks (implementation + validation)
 
 ### Step 1.5: Scaffold Test Suite (if Testing Strategy present)
@@ -100,6 +103,34 @@ If the FIS contains a **Testing Strategy** section, scaffold tests before implem
 3. These tests become **acceptance gates** — implementation tasks in Step 2 must make them pass
 
 > **Skip this step** when: the FIS has no Testing Strategy section, the feature is purely structural (scaffolding, config, migrations) where tests-first adds no value, or test infrastructure (runner, framework) is not yet set up and will be configured by an implementation task — in that case, defer test scaffolding until after that task completes.
+
+### Step 1.7: UI Design Contract (if frontend work detected)
+
+If the FIS contains UI/UX work (check for UI wireframes, frontend components,
+CSS/styling tasks, or a "UI/UX Design" section):
+
+1. Generate a **UI-SPEC.md** design contract covering:
+   - Spacing system (margins, padding, gaps)
+   - Typography (font families, sizes, weights, line heights)
+   - Color palette (primary, secondary, accent, semantic colors)
+   - Component patterns (buttons, forms, cards, modals)
+   - Responsive breakpoints
+   - Copywriting tone and conventions
+
+2. Source decisions from (in priority order):
+   - FIS UI/UX Design section
+   - Project design system (per Document Index)
+   - UX-UI-GUIDELINES.md
+   - Reasonable defaults consistent with the existing codebase
+
+3. Store as `.agent_temp/ui-spec-{feature-name}.md`
+
+4. All subsequent implementation sub-agents receive this contract
+   as additional context for UI consistency.
+
+**Skip this step** when: FIS has no UI work, project has a comprehensive
+design system already referenced, or the FIS explicitly states
+"no UI design contract needed".
 
 ### Step 2: Execute Implementation Tasks
 For each implementation task (TI01, TI02, etc.):
@@ -132,9 +163,11 @@ The sub-agent for code review (general-purpose) should use the `andthen-review-c
 - Architecture (pattern adherence, ADR compliance, anti-pattern detection)
 - Security (input validation, injection prevention, auth, data protection, OWASP Top 10)
 - UI/UX (if applicable - visual quality, usability, accessibility)
+- **Stub detection**: Scan implemented files for TODO/placeholder/stub patterns per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
+- **Wiring verification**: Confirm new components/routes/endpoints are actually connected to the system (imported, routed, called)
 
 #### TV02 [P] — Level 2: Testing
-Use the `andthen:qa-test-engineer` sub-agent _(if supported by your coding agent)_ to execute tests fow new and existing functionality:
+Use the `andthen:qa-test-engineer` sub-agent _(if supported by your coding agent)_ to execute tests for new and existing functionality:
 - Unit tests
 - Integration tests (if applicable)
 - E2E tests (if applicable)
@@ -174,6 +207,8 @@ As orchestrator (not delegated to sub-agent):
    - **Linting/types**: error and warning counts
    - **Visual validation**: screenshot confirming UI matches expectations (if UI)
    - **Runtime**: confirmation app starts and key flows work
+6. **Substantive check**: Run `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` — must return clean (no matches in new implementation files)
+7. **Wiring check**: For each new file/component created, verify it is imported or referenced by at least one other file in the system
 
 ### Step 6: Iteration (if needed)
 If success criteria not met or if previous step failed to successfully verify completion:
@@ -185,13 +220,21 @@ If success criteria not met or if previous step failed to successfully verify co
 ## Post-Completion: Update Related Documents
 After completion, update any documents related to this implementation:
 
-**Implementation notes** — if the project has an implementation notes file (e.g. `implementation-notes.md`), append any **traps, gotchas, and non-obvious patterns** discovered during this story. The bar for inclusion: *"Would a competent developer with access to the code and git history still get bitten by this?"* Keep entries brief (1-2 sentences each). Do NOT record:
+**Project learnings** — if the project has a learnings file (`LEARNINGS.md` or `implementation-notes.md`), update it with knowledge discovered during this story. Organize by topic, not chronologically. Types of knowledge to capture:
+- **Traps & gotchas**: Non-obvious patterns that would bite a competent developer even with access to code and git history
+- **Domain knowledge**: API quirks, framework behavior, naming decisions, business rules discovered in code
+- **Procedural knowledge**: Deploy steps, test prerequisites, tooling patterns
+- **Error patterns**: Recurring errors — note if deterministic (bad schema, wrong type → conclude immediately) or infrastructure (timeout, rate limit → log, conclude only when pattern emerges)
+
+Keep entries brief (1-2 sentences each). Do NOT record:
 - What was implemented (that's in git history)
 - How parts integrate (that's in the code)
 - Routine decisions (that's in the FIS/spec)
 - Language basics or framework docs
 
-**Source plan** — if this FIS originated from a plan (`plan.md`), update the plan:
+**Self-maintenance**: When updating, also review nearby entries — merge overlapping items, remove knowledge that's no longer accurate, split sections that grow too long.
+
+**Source plan** — if this FIS originated from a plan (`plan.md`), update the plan (consider using the `andthen-ops` skill for standardized status updates):
 - Set the story's **Status** field to `Done`
 - Set the story's **FIS** field to the FIS file path (if not already set by `/andthen:spec`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)

@@ -476,6 +476,25 @@ Phase 4: Polish (Parallel)
 └── [P] Accessibility
 ```
 
+#### Wave Assignment
+Assign stories to execution waves within each phase:
+- **W1**: Stories with no dependencies (can start immediately)
+- **W2**: Stories dependent only on W1 completions
+- **W3+**: Continue cascading
+
+Stories in the same wave with [P] markers run in parallel.
+Wave assignments are pre-computed here so exec-plan doesn't need
+runtime dependency analysis.
+
+#### Goal-Backward Analysis (per story)
+Before defining tasks, work backward from the desired outcome:
+1. **Observable Truth**: What must be TRUE from the user's perspective when this story is done?
+2. **Required Artifacts**: What files, routes, UI elements, data models must exist?
+3. **Wiring Connections**: How must this connect to the rest of the system? (imports, routes, API calls, DB relations)
+4. **Failure Points**: What are the most likely ways this could silently fail?
+
+These feed directly into acceptance criteria — each criterion should be a verifiable observable truth.
+
 #### Story Definition
 
 For each story, define:
@@ -484,9 +503,10 @@ For each story, define:
 - **Status**: Tracking field — initially `Pending` (updated to `In Progress` / `Done` during execution)
 - **FIS**: Reference to generated spec — initially `—` (updated to file path when `/andthen:spec` creates the FIS)
 - **Scope**: 2-4 sentences — what's included and excluded (no implementation approach — that's for `/andthen:spec`)
-- **Acceptance criteria**: 3-6 testable outcomes — specific and unambiguous
+- **Acceptance criteria**: 3-6 testable outcomes — the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
 - **Dependencies**: Other story IDs that must complete first
 - **Phase**: Which implementation phase
+- **Wave**: Execution wave within phase (W1, W2, W3...) — pre-computed during planning
 - **Parallel**: [P] if can run parallel with others in same phase
 - **Risk**: Low/Medium/High with brief note if Medium+
 - **Asset refs**: Relevant wireframes, ADRs, design system sections
@@ -521,11 +541,11 @@ Generate `plan.md` with a structure like the following (adapt phases and structu
 
 ## Story Catalog
 
-| ID | Name | Phase | Dependencies | Parallel | Risk | Status |
-|----|------|-------|--------------|----------|------|--------|
-| S01 | [Name] | Foundation | - | No | Low | Pending |
-| S02 | [Name] | Foundation | S01 | No | Low | Pending |
-| S03 | [Name] | Core | S01, S02 | [P] | Medium | Pending |
+| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status |
+|----|------|-------|------|--------------|----------|------|--------|
+| S01 | [Name] | Foundation | W1 | - | No | Low | Pending |
+| S02 | [Name] | Foundation | W1 | S01 | No | Low | Pending |
+| S03 | [Name] | Core | W2 | S01, S02 | [P] | Medium | Pending |
 
 ## Phase Breakdown
 
@@ -537,9 +557,9 @@ _Sequential execution - establishes base for all features_
 **FIS**: —
 **Scope**: [2-4 sentences covering what is built and what's excluded]
 **Acceptance Criteria**:
-- [ ] [Criterion 1]
-- [ ] [Criterion 2]
-- [ ] [Criterion 3]
+- [ ] Project scaffolding exists and builds successfully _(must-be-TRUE)_
+- [ ] Core architecture patterns are established and documented _(must-be-TRUE)_
+- [ ] [Supplementary criterion]
 **Assets**: [Wireframe refs, ADR refs if any]
 
 #### S02: [Story Name]
@@ -560,6 +580,7 @@ _Parallel execution where marked [P]_
 ## Dependency Graph
 
 ```
+Dependency arrows:
 S01 ──→ S02 ──→ S05
   │       │
   │       └──→ S06
@@ -567,6 +588,11 @@ S01 ──→ S02 ──→ S05
   └──→ S03 ──→ S07
   │
   └──→ S04
+
+Wave assignments:
+W1: S01
+W2: S02, S03, S04
+W3: S05, S06, S07
 ```
 
 ## Risk Summary

@@ -45,6 +45,7 @@ All workflow commands are **unified** — a single set of files works across Cla
 
 | Command | Purpose |
 |---------|---------|
+| `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Clarify requirements and generate Feature Implementation Specification |
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
@@ -54,7 +55,7 @@ All workflow commands are **unified** — a single set of files works across Cla
 | `exec-plan-team` | Execute plan via Agent Team pipeline (requires Agent Teams) |
 | `trade-off` | Architecture decision research |
 
-Specialized commands in `extras/`: `quick-implement`, `design-system`, `wireframes`, `refactor`, `review-council`, `review-council-team`, `troubleshoot`
+Specialized commands in `extras/`: `quick-implement`, `design-system`, `wireframes`, `refactor`, `review-council`, `review-council-team`, `troubleshoot`, `map-codebase`
 
 
 ---

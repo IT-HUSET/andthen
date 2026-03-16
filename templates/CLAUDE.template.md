@@ -33,13 +33,23 @@ _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 | Design System        | `docs/design-system/`               | Tokens, components, style guide         |
 | Guidelines           | `docs/guidelines/`                  | Development guidelines                  |
 | Tech Debt            | `docs/TECH-DEBT-BACKLOG.md`         | Known technical debt                    |
-| Implementation Notes | `docs/implementation-notes.md`      | Accumulated learnings                   |
+| Learnings            | `docs/LEARNINGS.md`                 | Accumulated project knowledge and error patterns |
 | Changelog            | `CHANGELOG.md`                      | Release history                         |
+| State                | `docs/STATE.md`                     | Cross-session state tracking (current phase, progress, blockers) |
+| Requirements         | `docs/REQUIREMENTS.md`              | Validated project requirements with REQ-IDs |
+| Roadmap              | `docs/ROADMAP.md`                   | Phase structure with success criteria       |
+| Architecture         | `docs/ARCHITECTURE.md`              | System architecture overview                |
+| Conventions          | `docs/CONVENTIONS.md`               | Codebase conventions and patterns           |
+| Stack                | `docs/STACK.md`                     | Technology stack documentation              |
 
 &dagger; Organized by version or feature name: `docs/specs/{version-or-feature}/prd.md`, `plan.md`, `fis/`. Standalone specs go directly in `docs/specs/`.
 
 <!-- Workflow commands read this table to determine where to write output.
-     If a location isn't specified, commands use the defaults shown above. -->
+     If a location isn't specified, commands use the defaults shown above.
+     The State–Stack rows are optional. Starter templates for these documents
+     are in the AndThen repo at templates/project-state-templates.md.
+     You can also generate Architecture, Conventions, and Stack docs
+     automatically using /andthen:map-codebase. -->
 
 
 ---

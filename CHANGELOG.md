@@ -5,7 +5,28 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [1.2.1] — 2026-03-16
+## [0.4.0] — 2026-03-16
+
+### Added
+- **Goal-backward planning** (`plan`): New "Goal-Backward Analysis" step works backward from desired outcomes before defining stories — produces Must-be-TRUE statements that become primary acceptance criteria
+- **Wave-based parallelization** (`plan`, `exec-plan`, `exec-plan-team`): Stories are pre-assigned to execution waves (W1, W2, W3...) during planning; execution commands consume wave assignments for cleaner parallel orchestration without runtime dependency analysis
+- **Deep verification — Nyquist Rule** (`spec`, `exec-spec`, `review-gap`): Verification now checks 4 dimensions (Exists, Substantive, Wired, Functional) instead of just existence; stub detection and wiring checks catch TODOs, placeholders, and unconnected components
+- **Verification patterns reference** (`plugin/references/verification-patterns.md`): Comprehensive reference with stub detection patterns, wiring check commands, and the Nyquist verification principle
+- **`init` command**: Interactive project setup — detects current state (new project, partial setup, brownfield) and fills gaps non-destructively. Generates CLAUDE.md from template, creates selected document types, copies guidelines, and integrates with `map-codebase` for existing codebases
+- **`map-codebase`** (extras): Brownfield codebase analysis command — spawns parallel sub-agents to produce STACK.md, ARCHITECTURE.md, CONVENTIONS.md, and a discovered requirements document that feeds directly into `/andthen:plan`
+- **`andthen-ops` skill**: Deterministic operations for state management (STATE.md, plan.md status, FIS checkboxes), git conventions (commit messages, branch naming, changelog entries), and progress tracking (summary, stale detection)
+- **UI Design Contract gate** (`exec-spec`): New Step 1.7 auto-generates a UI-SPEC.md design contract (spacing, typography, colors, components, breakpoints) when frontend work is detected, ensuring visual consistency across sub-agents
+- **Project state templates** (`templates/project-state-templates.md`): Starter templates for STATE.md, REQUIREMENTS.md, ROADMAP.md, ARCHITECTURE.md, CONVENTIONS.md, LEARNINGS.md, and STACK.md
+- **Project Document Index** (`templates/CLAUDE.template.md`): Seven new optional document rows — State, Requirements, Roadmap, Architecture, Conventions, Learnings, Stack
+
+### Changed
+- **`implementation-notes.md` → `LEARNINGS.md`**: Renamed and broadened scope — now captures domain knowledge, procedural knowledge, and error patterns (with deterministic vs infrastructure distinction) alongside implementation traps. Includes self-maintenance guidance (review, merge, prune). Topic-based organization instead of chronological
+- **Story Catalog format** (`plan`): Table now includes a Wave column for pre-computed execution wave assignments
+- **Codex installer**: Now also copies `plugin/references/` alongside prompts so non-Claude-Code agents can access verification patterns
+
+---
+
+## [0.3.1] — 2026-03-16
 
 ### Improved
 - **`plan` — artifact chaining from `clarify`**: Plan command now detects `requirements-clarification.md` (from `/andthen:clarify`) and draft PRDs (`prd-draft.md`) in the input directory, using them as the basis for PRD creation instead of re-running full discovery
@@ -15,7 +36,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [1.2.0] — 2026-03-15
+## [0.3.0] — 2026-03-15
 
 ### Added
 - **Portable `exec-plan`**: New version that works across all coding agents (Claude Code, Codex CLI, Aider, Cursor, etc.) using sub-agents with sequential fallback — no longer requires Agent Teams
@@ -36,7 +57,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [1.1.0] — 2026-03-15
+## [0.2.0] — 2026-03-15
 
 ### Added
 - **Codex CLI installer** (`scripts/install-codex.sh`): Exports commands and skills with `andthen-`-prefixed names for Codex CLI and other agents that don't support `:` in prompt names
@@ -53,7 +74,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [1.0.1] — 2026-03-13
+## [0.1.1] — 2026-03-13
 
 ### Added
 - **Hooks**: `block-dangerous-commands.py` (blocks destructive shell commands), `notify.sh` (desktop notifications), `notify-elevenlabs.sh` (voice notifications via ElevenLabs TTS), `reinject-context.sh` (re-injects CLAUDE.md after context compaction)
@@ -64,7 +85,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [1.0.0] — 2026-03-13
+## [0.1.0] — 2026-03-13
 
 Initial release of **AndThen** — structured workflows for agentic development.
 
