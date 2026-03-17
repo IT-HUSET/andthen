@@ -137,43 +137,6 @@ Status: On Track | At Risk | Blocked
 
 ---
 
-## CONVENTIONS.md
-
-> Codebase conventions and patterns specific to this project.
-
-```markdown
-# Conventions
-
-## Naming
-<!-- Naming patterns for files, functions, variables, components, etc. -->
-
-- Files: ...
-- Functions: ...
-- Components: ...
-
-## File Organization
-<!-- Where different types of code/files belong. -->
-
-- ...
-
-## Coding Standards
-<!-- Project-specific standards beyond what linters enforce. -->
-
-- ...
-
-## Patterns
-<!-- Recurring implementation patterns used in this codebase. -->
-
-- ...
-
-## Anti-Patterns
-<!-- Things to avoid — document mistakes that have been made. -->
-
-- ...
-```
-
----
-
 ## LEARNINGS.md
 
 > Accumulated project knowledge — traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically. Replaces/evolves the narrower "implementation-notes.md" concept.
@@ -242,4 +205,31 @@ Status: On Track | At Risk | Blocked
 | Tool | Purpose | Config |
 |------|---------|--------|
 | ...  | ...     | ...    |
+```
+
+---
+
+## UBIQUITOUS_LANGUAGE.md
+
+```markdown
+# Ubiquitous Language
+
+> Domain glossary for [Project Name]. Canonical terms for use in code, documentation, and team communication.
+>
+> **Usage**: Use these exact terms in code (class names, variables, functions), documentation, and discussion. Avoid synonyms listed in the "Avoid" column.
+
+## [Domain Cluster Name]
+
+| Term | Definition | Avoid (synonyms) | Bounded Context |
+|------|-----------|-------------------|-----------------|
+| | | | |
+
+## Overloaded Terms
+
+| Term | Context A | Meaning A | Context B | Meaning B |
+|------|-----------|-----------|-----------|-----------|
+| | | | | |
+
+## Changelog
+- [date]: Initial extraction
 ```

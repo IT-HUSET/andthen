@@ -46,6 +46,7 @@
 - **Delegate to sub-agents (when possible)** - available sub agents for specific tasks, in order to minimize the load on the context window of the main agent and keep it focused on the core task. This is **CRITICAL** for maintaining performance and ensuring the main agent can work effectively, as an orchestrator.
 - **Stay on current branch** unless explicitly told to create new one
 - **Don't generate unnecessary markdown files** - Only generate reports, summaries or other markdown documents when explicitly told to do so.
+- **Only commit your own changes** - Never stage or commit changes made by other agents or users. Always review the diff before committing to ensure only your intended changes are included.
 
 ### **FORBIDDEN COMMANDS - NEVER USE THESE!**
 - Any command that reformats the entire codebase

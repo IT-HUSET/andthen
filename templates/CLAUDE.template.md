@@ -25,22 +25,22 @@ _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 
 | Document Type        | Location                            | Notes                                   |
 |----------------------|-------------------------------------|-----------------------------------------|
-| Product              | `docs/product.md`                   | Product vision and high-level roadmap, requirements backlog etc   |
-| Specs & Plans        | `docs/specs/<version-or-feature>/`  | PRDs, implementation plans, FIS, story breakdowns &dagger;    |
+| Product              | `docs/PRODUCT.md`                   | Product vision and high-level roadmap, requirements backlog etc   |
+| Requirements         | `docs/REQUIREMENTS.md`              | Project-level requirements backlog for future work (REQ-IDs) |
+| Roadmap              | `docs/ROADMAP.md`                   | Phase structure with success criteria   |
+| Specs & Plans        | `docs/specs/<version-or-feature>/`  | PRDs, implementation plans, FIS, story breakdowns &dagger; |
 | ADRs                 | `docs/adrs/`                        | Architecture Decision Records           |
 | Research             | `docs/research/`                    | Trade-off analysis output               |
+| Architecture         | `docs/ARCHITECTURE.md`              | System architecture overview            |
+| Stack                | `docs/STACK.md`                     | Technology stack documentation          |
+| Ubiquitous Language  | `docs/UBIQUITOUS_LANGUAGE.md`       | Domain glossary — canonical terms, definitions, synonyms to avoid |
+| Guidelines           | `docs/guidelines/`                  | Development guidelines                  |
 | Wireframes           | `docs/wireframes/`                  | UI wireframes (HTML or images)          |
 | Design System        | `docs/design-system/`               | Tokens, components, style guide         |
-| Guidelines           | `docs/guidelines/`                  | Development guidelines                  |
-| Tech Debt            | `docs/TECH-DEBT-BACKLOG.md`         | Known technical debt                    |
-| Learnings            | `docs/LEARNINGS.md`                 | Accumulated project knowledge and error patterns |
-| Changelog            | `CHANGELOG.md`                      | Release history                         |
 | State                | `docs/STATE.md`                     | Cross-session state tracking (current phase, progress, blockers) |
-| Requirements         | `docs/REQUIREMENTS.md`              | Validated project requirements with REQ-IDs |
-| Roadmap              | `docs/ROADMAP.md`                   | Phase structure with success criteria       |
-| Architecture         | `docs/ARCHITECTURE.md`              | System architecture overview                |
-| Conventions          | `docs/CONVENTIONS.md`               | Codebase conventions and patterns           |
-| Stack                | `docs/STACK.md`                     | Technology stack documentation              |
+| Learnings            | `docs/LEARNINGS.md`                 | Accumulated project knowledge and error patterns |
+| Tech Debt            | `docs/TECH-DEBT-BACKLOG.md`         | Known technical debt                    |
+| Changelog            | `CHANGELOG.md`                      | Release history                         |
 
 &dagger; Organized by version or feature name: `docs/specs/{version-or-feature}/prd.md`, `plan.md`, `fis/`. Standalone specs go directly in `docs/specs/`.
 

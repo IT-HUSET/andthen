@@ -1,5 +1,5 @@
 ---
-name: extras-design-system
+name: andthen.design-system
 description: Creates a pragmatic design system/style guide from feature requirements and optional concept design inputs
 argument-hint: [Feature requirements - inline, file path, or PRD reference] [Optional - concept design directory]
 ---
@@ -24,7 +24,7 @@ OUTPUT_DIR: ${3:-docs/design-system} _(or as configured in **Project Document In
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Favor simplicity** - recommend simplest solution (KISS, YAGNI, DRY)
-- **Design system only** - No wireframes or page layouts (use `wireframes` command for that)
+- **Design system only** - No wireframes or page layouts (use `andthen.wireframes` skill for that)
 - **Delegate to sub-agents** _(if supported by your coding agent)_ for research and review tasks
 
 

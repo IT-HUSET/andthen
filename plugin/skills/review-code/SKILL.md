@@ -1,14 +1,24 @@
 ---
-name: review-code
+name: andthen.review-code
 description: Performs thorough code reviews covering code quality, security, architecture, and UI/UX. Use when reviewing code changes, PRs, implementations, or when asked to review, audit, or assess code quality. Generates detailed reports with prioritized findings.
 context: fork
 agent: general-purpose
 user-invocable: true
+argument-hint: [scope/files] [--to-issue] [--to-pr <number>]
 ---
 
 # Code Review Skill
 
 Comprehensive code review covering quality, security, architecture, and UI/UX aspects.
+
+
+## Variables
+
+ARGUMENTS: $ARGUMENTS
+
+### Optional Output Flags
+- `--to-issue` → PUBLISH_ISSUE: Publish review report as a GitHub issue
+- `--to-pr <number>` → PUBLISH_PR: Post review report as a comment on the specified PR
 
 
 ## Instructions
@@ -71,6 +81,8 @@ Assess:
 - API security, headers, CORS, CSRF
 - OWASP Top 10 coverage
 
+Additionally, run `/security-review` _(if available — Claude Code built-in)_ for a quick scan of pending changes against common vulnerability patterns.
+
 #### Architecture Review
 **Checklist**: [ARCHITECTURAL-REVIEW-CHECKLIST.md](checklists/ARCHITECTURAL-REVIEW-CHECKLIST.md)
 
@@ -79,6 +91,12 @@ Assess:
 - DDD patterns (bounded contexts, aggregates, domain events)
 - Pattern adherence (clean architecture, service boundaries, API design)
 - Anti-patterns, performance, scalability, resilience
+
+#### Domain Language Review
+**Checklist**: [DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md](checklists/DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md) _(skip if no `UBIQUITOUS_LANGUAGE.md` exists)_
+
+Assess:
+- Terminology consistency, domain model alignment, new term detection
 
 #### UI/UX Review (when applicable)
 **Checklist**: [UI-UX-REVIEW-CHECKLIST.md](checklists/UI-UX-REVIEW-CHECKLIST.md)
@@ -146,3 +164,12 @@ Generate markdown report with:
 Store report at: `<project_root>/.agent_temp/reviews/<feature-name>-code-review-<agent>-<YYYY-MM-DD>.md`
 
 When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-code-review-claude-2026-03-15.md`). Do not use absolute paths.
+
+### Publish to GitHub _(if --to-issue or --to-pr)_
+If PUBLISH_ISSUE is `true`:
+1. Create a GitHub issue: title `[Code Review] {scope}: Review Report`, body = report content
+2. Print the issue URL
+
+If PUBLISH_PR is set:
+1. Post report as a PR comment using `gh pr comment <number> --body "..."`
+2. Print confirmation

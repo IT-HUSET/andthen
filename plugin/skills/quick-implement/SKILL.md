@@ -1,5 +1,5 @@
 ---
-name: extras-quick-implement
+name: andthen.quick-implement
 description: Quick implementation path for small features or fixes with verification
 argument-hint: <spec> | --issue <number>
 ---
@@ -85,7 +85,7 @@ Run each verification sub-step using **parallel sub-agents** _(if supported by y
 
 ##### 2.1. Code & Architecture Review
 - Static analysis, linting, type checking
-- Use the `review-code` skill for comprehensive review (code quality, security, architecture, UI/UX)
+- Use the `andthen.review-code` skill for comprehensive review (code quality, security, architecture, UI/UX)
 
 ##### 2.2. Run Tests
 - Execute all tests

@@ -1,5 +1,5 @@
 ---
-name: exec-spec
+name: andthen.exec-spec
 description: Executes a Feature Implementation Specification that contains all implementation details
 argument-hint: <path-to-fis>
 ---
@@ -58,6 +58,15 @@ Path: {FIS_FILE_PATH}
 ## Previous Task Context (if sequential dependency)
 {Brief summary of what previous tasks accomplished that this task depends on}
 
+## Tests to Satisfy (if Test-Implementation Pairing exists)
+{Test scenarios paired with this task from FIS Testing Strategy}
+Write/verify these tests BEFORE implementing. They should fail initially (red),
+then pass after your implementation (green).
+
+## Domain Language (if UBIQUITOUS_LANGUAGE.md exists)
+{Key terms relevant to this task from the project's Ubiquitous Language glossary}
+Use canonical terms in code (class names, variables, functions). Avoid listed synonyms.
+
 ## UI Design Contract (if applicable)
 Path: {UI_SPEC_PATH if generated in Step 1.7, otherwise omit this section}
 
@@ -94,10 +103,11 @@ After each sub-agent completes:
 5. Create task tracking for ALL tasks (implementation + validation)
 
 ### Step 1.5: Scaffold Test Suite (if Testing Strategy present)
-If the FIS contains a **Testing Strategy** section, scaffold tests before implementation:
+If the FIS contains a **Testing Strategy** section:
 
 1. Spawn a `andthen:qa-test-engineer` sub-agent _(if supported by your coding agent)_ to:
    - Write test skeletons based on the FIS Testing Strategy (test scenarios, edge cases, error cases)
+   - If a **Test-Implementation Pairing** table exists, organize tests by their paired implementation task
    - Follow test patterns referenced in the Testing Strategy section
    - Tests should assert expected behavior — they will naturally fail since implementation doesn't exist yet
 2. Run the test suite to confirm tests are discovered and fail as expected (validates test infrastructure)
@@ -141,6 +151,12 @@ For each implementation task (TI01, TI02, etc.):
 - Wait for result
 - Process output, update FIS, track context for next task
 
+**Test-first rhythm** (when FIS has Test-Implementation Pairing):
+- Before delegating each implementation task, include the paired test scenarios in the sub-agent prompt
+- Sub-agent should first verify the paired tests exist and fail (red)
+- Then implement until paired tests pass (green)
+- The remediation loop (TV04) handles refactoring
+
 **Parallel tasks [P]:**
 - Spawn **parallel sub-agents** _(if supported by your coding agent; otherwise execute sequentially)_
 - Ensure tasks don't have file conflicts
@@ -157,13 +173,14 @@ For each implementation task (TI01, TI02, etc.):
 Important: Correct implementation of requirements and acceptance criteria must be verified through tests and visual validation (when applicable).
 
 #### TV01 [P] — Level 1: Code Review
-The sub-agent for code review (general-purpose) should use the `review-code` skill for comprehensive review and analysis covering:
+The sub-agent for code review (general-purpose) should use the `andthen.review-code` skill for comprehensive review and analysis covering:
 
 - Static analysis, linting, formatting and type checking issues
 - Code quality (correctness, readability, best practices, performance, maintainability)
 - Architecture (pattern adherence, ADR compliance, anti-pattern detection)
 - Security (input validation, injection prevention, auth, data protection, OWASP Top 10)
 - UI/UX (if applicable - visual quality, usability, accessibility)
+- **Domain language**: Apply `DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md` — verify code uses canonical terms from `UBIQUITOUS_LANGUAGE.md`
 - **Stub detection**: Scan implemented files for TODO/placeholder/stub patterns per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
 - **Wiring verification**: Confirm new components/routes/endpoints are actually connected to the system (imported, routed, called)
 
@@ -235,9 +252,9 @@ Keep entries brief (1-2 sentences each). Do NOT record:
 
 **Self-maintenance**: When updating, also review nearby entries — merge overlapping items, remove knowledge that's no longer accurate, split sections that grow too long.
 
-**Source plan** — if this FIS originated from a plan (`plan.md`), update the plan (consider using the `ops` skill for standardized status updates):
+**Source plan** — if this FIS originated from a plan (`plan.md`), update the plan (consider using the `andthen.ops` skill for standardized status updates):
 - Set the story's **Status** field to `Done`
-- Set the story's **FIS** field to the FIS file path (if not already set by `/andthen:spec`)
+- Set the story's **FIS** field to the FIS file path (if not already set by `andthen.spec`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)
 - Update the Story Catalog table status column to `Done`
 - Note any scope changes or deviations

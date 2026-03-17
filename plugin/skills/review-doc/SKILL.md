@@ -1,5 +1,5 @@
 ---
-name: review-doc
+name: andthen.review-doc
 description: Reviews specifications, plans, PRDs, requirement documents, or other documentation for completeness, clarity, edge cases, and technical accuracy. Generates detailed report with prioritized findings and readiness assessment.
 context: fork
 agent: general-purpose
@@ -76,7 +76,7 @@ Identify unclear, ambiguous, or contradictory specifications:
 2. **Implementation clarity** - Verify developers can implement without guessing, acceptance criteria are testable
 3. **Missing details** - Find TBD/TODO items, referenced missing documents, unvalidated assumptions
 4. **Consistency** - Verify consistency across sections, examples match specs, naming is consistent
-   - If the reviewed spec is a FIS (Feature Implementation Specification), ensure the spec follows the format and structure as defined in the `/andthen:spec` command
+   - If the reviewed spec is a FIS (Feature Implementation Specification), ensure the spec follows the format and structure as defined in the `andthen.spec` command
 5. **Conciseness and Brevity** - Ensure specs are as brief and concise as possible without losing meaning. Unnecessary prose should be avoided, and code listings should be minimized (prefer using pseudo code when possible)
 6. **Maintain Important Details** - Ensure all important and essential details are preserved. Avoid removing or simplifying details that are critical to understanding the specification, such as diagrams, process flows, or complex requirements.
 
@@ -128,7 +128,7 @@ Ensure scope is well-defined and architecture is sound:
    - Challenge "nice-to-haves" masquerading as requirements
 
 2. **Architecture review** _(calibrate to project scale — skip aspects that are irrelevant to the project's nature and stage)_
-   - Use the `review-code` skill's architectural review guidance
+   - Use the `andthen.review-code` skill's architectural review guidance
    - Assess and evaluate **only aspects relevant to the project's scale and goals**, such as:
       - Architectural soundness, component separation, separation of concerns
       - Evaluate scalability, performance, maintainability

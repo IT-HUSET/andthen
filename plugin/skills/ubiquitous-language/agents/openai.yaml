@@ -1,0 +1,6 @@
+interface:
+  display_name: "Extract Ubiquitous Language"
+  short_description: "Extract and maintain domain glossary from codebase"
+
+policy:
+  allow_implicit_invocation: false

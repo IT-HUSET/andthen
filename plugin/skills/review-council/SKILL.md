@@ -1,5 +1,5 @@
 ---
-name: extras-review-council
+name: andthen.review-council
 description: Multi-perspective code review with adversarial debate to validate findings
 argument-hint: [Optional - specific files, PR number, or focus area]
 ---
@@ -118,12 +118,12 @@ Your focus areas: {focus areas from roster}
 
 Review process:
 1. Analyze the code through your specialized lens
-2. Use the `review-code` skill for the review
+2. Use the `andthen.review-code` skill for the review
 3. Report findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
 4. Provide specific file:line references
 5. For each finding, explain WHY it's a problem and suggest a fix
 
-Note: The `review-code` skill may not be available in all environments. If unavailable, perform the review directly using your own analysis capabilities.
+Note: The `andthen.review-code` skill may not be available in all environments. If unavailable, perform the review directly using your own analysis capabilities.
 
 Output format per finding:
 - **Severity**: CRITICAL/HIGH/MEDIUM/LOW

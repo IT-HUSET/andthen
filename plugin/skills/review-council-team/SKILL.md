@@ -1,5 +1,5 @@
 ---
-name: extras-review-council-team
+name: andthen.review-council-team
 description: Multi-perspective code review using Agent Teams with real-time adversarial debate (requires Agent Teams)
 argument-hint: [Optional - specific files, PR number, or focus area]
 ---
@@ -8,7 +8,7 @@ argument-hint: [Optional - specific files, PR number, or focus area]
 
 Multi-perspective code review where specialized reviewers challenge each other's findings through real-time debate, producing validated, high-confidence issues.
 
-**Requires Agent Teams** — Falls back to the `review-code` skill if Teams unavailable.
+**Requires Agent Teams** — Falls back to the `andthen.review-code` skill if Teams unavailable.
 
 
 ## Variables
@@ -29,7 +29,7 @@ ARGUMENTS: $ARGUMENTS
 ## Instructions
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
-- **Requires Agent Teams** — Falls back to the `review-code` skill if unavailable
+- **Requires Agent Teams** — Falls back to the `andthen.review-code` skill if unavailable
 - **Multi-perspective validation** — Findings must survive two-phase challenge (Devil's Advocate → Synthesis Challenger)
 - **Read-only analysis** — No code changes, commits, or modifications during review
 
@@ -41,7 +41,7 @@ ARGUMENTS: $ARGUMENTS
 Verify Agent Teams are available by checking that team creation tools exist in your available tools (e.g. `TeamCreate`).
 
 If Agent Team tools are NOT available (experimental feature not enabled):
-- Suggest using `/andthen:extras-review-council` instead (portable version that works without Agent Teams)
+- Suggest using `andthen.review-council` instead (portable version that works without Agent Teams)
 - If user specifically wants Agent Teams, inform them it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 - Exit
 
@@ -143,7 +143,7 @@ Each specialist reviewer should:
 - Analyze the code through their specialized lens
 - Report findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
 - Provide specific file:line references
-- Use the `review-code` skill for the review
+- Use the `andthen.review-code` skill for the review
 
 Devil's Advocate should:
 - Challenge ALL findings from specialist reviewers

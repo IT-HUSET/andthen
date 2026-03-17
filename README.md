@@ -41,20 +41,20 @@ claude plugin install ./plugin
 
 ### Other AI Coding Agents (Codex CLI, Aider, Cursor, etc.)
 
-Skills use capability detection and work without the plugin infrastructure. Use the installer to export skills with `andthen-`-prefixed names to the agent skills directory:
+Skills use capability detection and work without the plugin infrastructure. Use the installer to export skills with `andthen.`-prefixed names to the agent skills directory:
 
 ```bash
 # Install to ~/.agents/skills/ (default)
-./scripts/install-codex.sh
+./scripts/install-skills.sh
 
 # Optional overrides
-./scripts/install-codex.sh --dry-run
-./scripts/install-codex.sh --skills-dir ~/.agents/skills
+./scripts/install-skills.sh --dry-run
+./scripts/install-skills.sh --skills-dir ~/.agents/skills
 ```
 
-This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-spec/`, `andthen-review-code/`). Plugin reference docs are also copied. Agent Teams skills (`exec-plan-team`, `extras-review-council-team`) are excluded since they require Claude Code.
+This exports all skills as `andthen.`-prefixed directories (e.g., `andthen.clarify/`, `andthen.spec/`, `andthen.review-code/`). Plugin reference docs are also copied. Agent Teams skills (`exec-plan-team`, `review-council-team`) are excluded since they require Claude Code.
 
-In Claude Code, invoke with `/andthen:<skill>`. In Codex and other agents, use `$andthen-<skill>` or `/andthen-<skill>`.
+In Claude Code, invoke with `/andthen:<skill>`. In Codex and other agents, use `$andthen.<skill>` or `/andthen.<skill>`.
 
 
 ## Setup
@@ -74,11 +74,11 @@ This interactively sets up your project — generates `CLAUDE.md`, creates selec
 
 See [`templates/CLAUDE.template.md`](templates/CLAUDE.template.md) for a starter template.
 
-**Optional project docs** — The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these are in [`templates/project-state-templates.md`](templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:extras-map-codebase`.
+**Optional project docs** — The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these are in [`templates/project-state-templates.md`](templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
 
 ### Agent Teams (Optional, Claude Code only)
 
-The `-team` skill variants (`exec-plan-team`, `extras-review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `extras-review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
+The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -146,7 +146,7 @@ The `-team` skill variants (`exec-plan-team`, `extras-review-council-team`) use 
 
 ## Skills
 
-In Claude Code, invoke with `/andthen:<skill>` or just `/<skill>` if unambiguous. In Codex and other agents, use `$andthen-<skill>` or `/andthen-<skill>`.
+In Claude Code, invoke with `/andthen:<skill>`. In Codex and other agents, use `$andthen.<skill>` or `/andthen.<skill>`.
 
 ### Core Skills
 
@@ -156,33 +156,34 @@ In Claude Code, invoke with `/andthen:<skill>` or just `/<skill>` if unambiguous
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
-| `review-gap` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) |
+| `review-gap` | Gap analysis + code review against requirements |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
-| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 | `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
 | `review-doc` | Document review for completeness, clarity, and technical accuracy |
-| `e2e-test` | End-to-end browser testing for web applications |
-| `ops` | Deterministic state management, git conventions, and progress tracking |
 
 ### Extras
 
 | Skill | Purpose |
 |-------|---------|
-| `extras-quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
-| `extras-design-system` | Create design tokens and component styles |
-| `extras-wireframes` | Generate HTML wireframes for UI planning |
-| `extras-refactor` | Code improvement and simplification |
-| `extras-review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
-| `extras-troubleshoot` | Diagnose and fix implementation issues systematically |
-| `extras-map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
+| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
+| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `e2e-test` | End-to-end browser testing for web applications |
+| `ops` | Deterministic state management, git conventions, and progress tracking |
+| `design-system` | Create design tokens and component styles |
+| `wireframes` | Generate HTML wireframes for UI planning |
+| `refactor` | Code improvement and simplification |
+| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
+| `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
+| `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
+| `map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
 
 ### Agent Teams Variants (Claude Code only)
 
 | Skill | Purpose |
 |-------|---------|
 | `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination |
-| `extras-review-council-team` | Multi-perspective review with real-time Agent Teams debate |
+| `review-council-team` | Multi-perspective review with real-time Agent Teams debate |
 
 
 ## Key Concepts
@@ -207,7 +208,7 @@ clarify → spec → plan → execute → review-gap
 
 ### Implementation Loop
 
-Both `exec-spec` and `extras-quick-implement` use an iterative cycle:
+Both `exec-spec` and `quick-implement` use an iterative cycle:
 ```
 Implement → Verify → Evaluate → (repeat if needed)
 ```
@@ -281,11 +282,10 @@ These plugins are available from the official Claude plugins marketplace ([anthr
 
 | Plugin | Used by | Purpose |
 |--------|---------|---------|
-| `code-simplifier` | `extras-refactor`, `exec-spec`, `extras-quick-implement` | Code cleanup and simplification |
-| `frontend-design` | `extras-wireframes` (via `ui-ux-designer` agent) | Design implementation |
+| `code-simplifier` | `refactor`, `exec-spec`, `quick-implement` | Code cleanup and simplification |
+| `frontend-design` | `wireframes` (via `ui-ux-designer` agent) | Design implementation |
 
 Skills work without these plugins but skip the corresponding steps.
-
 
 
 ## Other useful resources (skills, plugins etc)
@@ -307,6 +307,17 @@ AndThen evolved from [cc-workflows](https://github.com/tolo/claude_code_common) 
 and then
 
 [![Dude, Where's My Car?](https://img.youtube.com/vi/oqwzuiSy9y0/0.jpg)](https://www.youtube.com/watch?oqwzuiSy9y0)
+
+
+## Actually inspired by
+
+Too many to list, but special shoutout to:
+- [Peter Steinberger](https://github.com/steipete)
+- [Cole Medin](https://github.com/coleam00)
+- [IndieDevDan](https://github.com/disler)
+- [Matt Maher](https://github.com/bladnman)
+- [Mario Zechner](https://github.com/badlogic)
+- [Matt Pocock](https://github.com/mattpocock)
 
 
 ## License

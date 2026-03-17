@@ -123,6 +123,8 @@ Below is an overview of the tasks that make up the implementation plan.
 
 ### List of implementation tasks to be completed and the order in which they should be completed
 
+> **Vertical slice ordering**: Order tasks so the first 1-2 tasks produce a thin but working end-to-end path through all layers. Subsequent tasks widen the slice with additional cases, edge handling, and polish. The goal is a demoable result as early as possible.
+
 _Examples:_
 - [ ] **TI01** Initialize Fresh project structure in repository root
   - Create deno.json with Fresh dependencies and tasks
@@ -190,6 +192,17 @@ test   | tests/unit/users.test.ts:15-40      | Test structure and assertion styl
 test   | tests/e2e/auth.spec.ts:8-25         | E2E test setup pattern
 config | playwright.config.ts                | E2E configuration
 ```
+
+#### Test-Implementation Pairing
+> Map test scenarios to implementation tasks to create a natural red-green rhythm.
+> Each implementation task should have its tests written (and failing) before the task is implemented.
+
+| Implementation Task | Test Scenarios | Expected Behavior |
+|--------------------|-----------------|--------------------|
+| TI01 | {{Scenario 1, Scenario 2}} | {{Tests fail before TI01, pass after}} |
+| TI02 | {{Scenario 3}} | {{Tests fail before TI02, pass after}} |
+
+_Skip for purely structural tasks (scaffolding, config, migrations) where tests-first adds no value._
 
 ### Validation Tasks
 > Validation methodology details defined in exec-spec.

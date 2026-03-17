@@ -1,15 +1,22 @@
 ---
-name: extras-troubleshoot
-description: Systematically identify, diagnose, and fix issues in the current implementation through comprehensive troubleshooting and root cause analysis.
-argument-hint: [Scope]
+name: andthen.triage
+description: Systematically investigate, diagnose, and fix issues. Default mode fixes issues; --plan-only stops after diagnosis and outputs a fix plan; --to-issue publishes the plan as a GitHub issue.
+argument-hint: [Scope] [--plan-only] [--to-issue]
 ---
 
-# Troubleshoot and Fix Implementation Issues
+# Triage and Fix Implementation Issues
 
 
 ## Variables
 
-SCOPE: $ARGUMENTS
+_Arguments (scope and optional flags):_
+ARGUMENTS: $ARGUMENTS
+
+### Parse Arguments
+- Extract `--plan-only` or `--investigate` flag (synonyms) → sets MODE to `plan-only`
+- Extract `--to-issue` flag → sets PUBLISH_ISSUE to `true`
+- Remaining text → SCOPE (the area/feature to investigate)
+- Default MODE: `fix` (full fix-and-verify pipeline)
 
 
 ## Instructions
@@ -78,7 +85,43 @@ Document all issues with priority (Critical/High/Medium/Low), location, and erro
 
 **Gate**: Root causes identified, fix plan created
 
-### 4. Systematic Issue Resolution
+### 3b. Fix Plan Output _(plan-only mode)_
+
+**If MODE is `plan-only`**: Generate a structured fix plan and **STOP** — do not implement fixes.
+
+#### Fix Plan Format
+```markdown
+# Fix Plan: [Scope/Feature]
+
+## Summary
+[1-2 sentence overview of investigation findings]
+
+## Issues Found
+
+### [CRITICAL/HIGH/MEDIUM] Issue 1: [Title]
+- **Root Cause**: [From 5 Whys analysis]
+- **Affected Files**: [file:line references]
+- **Proposed Fix**: [Specific, actionable fix description]
+- **Risk**: [Low/Medium/High — risk of the fix itself]
+- **Dependencies**: [Other issues that should be fixed first]
+
+### [Priority] Issue 2: [Title]
+...
+```
+
+#### Publish as GitHub Issue _(if --to-issue)_
+If PUBLISH_ISSUE is `true`:
+1. Create a GitHub issue using `gh issue create` with:
+   - Title: `[Triage] [Scope/Feature]: [Summary]`
+   - Body: The fix plan formatted as above
+   - Labels: `bug`, `triage` (create labels if they don't exist)
+2. Share the issue URL with the user
+
+**Gate**: Fix plan delivered → **END** (do not proceed to Step 4)
+
+---
+
+### 4. Systematic Issue Resolution _(fix mode — skip if plan-only)_
 
 Execute fixes methodically and autonomously:
 
@@ -125,7 +168,7 @@ Execute fixes methodically and autonomously:
 - Ensure no sensitive data is exposed or logged
 - Run any security scanning tools available
 
-**Always** use **parallel sub-agents** such as `andthen:qa-test-engineer`, `andthen:solution-architect`, `andthen:ui-ux-designer`, `andthen:build-troubleshooter`, and specialized technology agents as needed. For code review, use the `review-code` skill.
+**Always** use **parallel sub-agents** such as `andthen:qa-test-engineer`, `andthen:solution-architect`, `andthen:ui-ux-designer`, `andthen:build-troubleshooter`, and specialized technology agents as needed. For code review, use the `andthen.review-code` skill.
 
 **Gate**: All validations pass - application builds/starts, all tests pass, code quality checks pass, no regressions, security validated.
 
@@ -138,6 +181,11 @@ Include verification evidence in completion summary (as applicable):
 
 > *Don't skip this: "the change is simple, it obviously works" is not evidence.
 > Code review ≠ running the code. If tests passed before your change, run them again after.*
+
+#### Publish Results _(if --to-issue in fix mode)_
+If PUBLISH_ISSUE is `true` and MODE is `fix`:
+- Create a GitHub issue summarizing: issues found, fixes applied, verification results
+- Title: `[Triage Complete] [Scope/Feature]: [N] issues fixed`
 
 ### 6. Documentation and Prevention
 

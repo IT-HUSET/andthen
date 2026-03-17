@@ -32,7 +32,7 @@ See [`templates/CLAUDE.template.md`](../templates/CLAUDE.template.md) for a star
 
 ### Agent Teams (Optional, Claude Code only)
 
-The `-team` skill variants (`exec-plan-team`, `extras-review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `extras-review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
+The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -98,14 +98,14 @@ The `-team` skill variants (`exec-plan-team`, `extras-review-council-team`) use 
 
 **Pre-activities** (feed into spec or plan):
 - `clarify` — When requirements are vague
-- `wireframes` / `design-system` (extras) — When UI design is needed
+- `wireframes` / `design-system` — When UI design is needed
 - `trade-off` — When architectural decisions are needed
 
 ## Skills
 
-Invoke with `/andthen:<skill>` or just `/<skill>` if unambiguous.
+Invoke with `/andthen:<skill>`. In Codex and other agents, use `$andthen.<skill>` or `/andthen.<skill>`.
 
-### Core
+### Core Skills
 
 | Skill | Purpose |
 |-------|---------|
@@ -113,33 +113,34 @@ Invoke with `/andthen:<skill>` or just `/<skill>` if unambiguous.
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS — orchestrated implementation with validation |
-| `review-gap` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) |
+| `review-gap` | Gap analysis + code review against requirements |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
-| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 | `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
 | `review-doc` | Document review for completeness, clarity, and technical accuracy |
-| `e2e-test` | End-to-end browser testing for web applications |
-| `ops` | Deterministic state management, git conventions, and progress tracking |
 
 ### Extras
 
 | Skill | Purpose |
 |-------|---------|
-| `extras-quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
-| `extras-design-system` | Create design tokens and component styles |
-| `extras-wireframes` | Generate HTML wireframes for UI planning |
-| `extras-refactor` | Code improvement and simplification |
-| `extras-review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
-| `extras-troubleshoot` | Diagnose and fix implementation issues systematically |
-| `extras-map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
+| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
+| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `e2e-test` | End-to-end browser testing for web applications |
+| `ops` | Deterministic state management, git conventions, and progress tracking |
+| `design-system` | Create design tokens and component styles |
+| `wireframes` | Generate HTML wireframes for UI planning |
+| `refactor` | Code improvement and simplification |
+| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
+| `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
+| `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
+| `map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
 
 ### Agent Teams Variants (Claude Code only)
 
 | Skill | Purpose |
 |-------|---------|
 | `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination |
-| `extras-review-council-team` | Multi-perspective review with real-time Agent Teams debate |
+| `review-council-team` | Multi-perspective review with real-time Agent Teams debate |
 
 ## Agents
 
@@ -214,16 +215,6 @@ Invoke with `/andthen:<skill>` or just `/<skill>` if unambiguous.
 /andthen:trade-off "caching strategy for API responses"
 ```
 
-### Plan Execution
-
-```bash
-# Execute entire plan through pipeline (uses sub-agents if available)
-/andthen:exec-plan docs/specs/dashboard/
-
-# OR use Agent Teams variant for enhanced parallelism (Claude Code only)
-/andthen:exec-plan-team docs/specs/dashboard/
-```
-
 ### Multi-Perspective Review
 
 ```bash
@@ -276,11 +267,9 @@ Verification includes code review, testing, and visual validation (when applicab
 
 ### Review Types
 
-- **Gap Analysis** (`review-gap`): Does implementation match requirements? Includes code review + remediation plan (after execution)
-- **Document Review** (`review-gap --doc`): Is the spec/PRD complete and clear? (before execution)
-- **PR Review** (`review-gap --pr`): Scoped review of a pull request
-- **Code Review** (`review-code` skill): Reusable code review with checklists — used by `review-gap` and other skills
-- **Doc Review** (`review-doc` skill): Reusable document review — used by `review-gap --doc` and other skills
+- **Gap Analysis** (`review-gap`): Does implementation match requirements? Includes code review + remediation plan
+- **Code Review** (`review-code`): Reusable code review with checklists — used by `review-gap` and other skills
+- **Doc Review** (`review-doc`): Review specs, PRDs, and documentation for completeness and clarity
 
 ## External Dependencies (Optional)
 
@@ -289,7 +278,7 @@ Verification includes code review, testing, and visual validation (when applicab
 | `code-simplifier` | `refactor`, `exec-spec`, `quick-implement` | Code cleanup and simplification |
 | `frontend-design` | `wireframes` (via `ui-ux-designer` agent) | Design implementation |
 
-Commands work without these plugins but skip the corresponding steps.
+Skills work without these plugins but skip the corresponding steps.
 
 ## License
 

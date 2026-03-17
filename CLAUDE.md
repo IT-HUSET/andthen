@@ -37,30 +37,6 @@ Always fully read relevant guidelines below as needed, based on the type of work
 ---
 
 
-## Skills
-
-All workflow skills are **unified** — a single set of files works across Claude Code, Codex CLI, Aider, Cursor, and other agents. Skills use capability detection to delegate to sub-agents when available and fall back to direct execution when not.
-
-### Available Skills
-
-| Skill | Purpose |
-|-------|---------|
-| `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
-| `clarify` | Requirements discovery — from vague idea to structured requirements |
-| `spec` | Clarify requirements and generate Feature Implementation Specification |
-| `exec-spec` | Execute a FIS — orchestrated implementation with validation |
-| `review-gap` | Gap analysis, code review, or document review |
-| `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
-| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
-| `exec-plan-team` | Execute plan via Agent Team pipeline (requires Agent Teams) |
-| `trade-off` | Architecture decision research |
-
-Extras: `extras-quick-implement`, `extras-design-system`, `extras-wireframes`, `extras-refactor`, `extras-review-council`, `extras-review-council-team`, `extras-troubleshoot`, `extras-map-codebase`
-
-
----
-
-
 ## Vital Documentation Resources
 
 **IMPORTANT**: When lookup of documentation (such as API documentation, user guides, language references, etc.) is needed, or when user asks to lookup documentation directly, _always_ execute the documentation lookup in a separate background sub task (use the _`andthen:documentation-lookup`_ agent). This is **CRITICAL** to reduce the load on the main context window and ensure that the main agent can continue working without interruptions.

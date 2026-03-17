@@ -1,7 +1,7 @@
 ---
-name: review-gap
+name: andthen.review-gap
 description: "Gap analysis: review implementation against requirements with code review and actionable remediation plan."
-argument-hint: [Additional Context]
+argument-hint: [Additional Context] [--to-issue] [--to-pr <number>]
 ---
 
 # Gap Analysis
@@ -13,6 +13,10 @@ Comprehensive post-execution review that validates implementation against requir
 ADDITIONAL_CONTEXT: $ARGUMENTS
 *(Optional: Additional requirements or context beyond what's in the codebase)*
 
+### Optional Output Flags
+- `--to-issue` → PUBLISH_ISSUE: Publish review report as a GitHub issue
+- `--to-pr <number>` → PUBLISH_PR: Post review report as a comment on the specified PR
+
 
 ## Instructions
 
@@ -21,7 +25,7 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Read-only analysis** - No code changes, commits, or modifications during analysis
 - **Be thorough** - Don't skip steps or rush analysis; completeness is critical
-- **Delegate code review to a sub-agent** _(if supported by your coding agent)_ that uses the `review-code` skill (do NOT invoke the skill directly)
+- **Delegate code review to a sub-agent** _(if supported by your coding agent)_ that uses the `andthen.review-code` skill (do NOT invoke the skill directly)
 - **Document everything** - All findings and recommendations must be captured in final report
 
 
@@ -83,7 +87,7 @@ Review general quality, soundness and adherence to guidelines, standards and bes
 
 #### Comprehensive Code Review
 Spawn a **sub-agent** _(if supported by your coding agent)_ (via Task tool, `subagent_type: "general-purpose"`) to perform the code review.
-The sub-agent should **use the `review-code` skill** for thorough review covering:
+The sub-agent should **use the `andthen.review-code` skill** for thorough review covering:
 - Code quality (correctness, readability, best practices, performance)
 - Architecture (CUPID principles, DDD patterns, anti-patterns)
 - Security (OWASP Top 10, injection prevention, auth, data protection)
@@ -106,6 +110,8 @@ Systematically identify all gaps between requirements and implementation:
 - **Requirement Mismatches** - Features that don't match requirements, incorrect behavior/logic, unmet non-functional requirements (performance, security, accessibility, i18n)
 
 - **Consistency Gaps** - Deviations from codebase patterns/conventions, documentation gaps, test coverage gaps (unit/integration/e2e)
+
+- **Domain language gaps** - Terminology drift between requirements and implementation — same concept with different names, terms used outside their bounded context, or new domain concepts without glossary entries. _(Skip if no `UBIQUITOUS_LANGUAGE.md` exists)_
 
 - **Holistic Sanity Check** - Zoom out: Does the implementation make sense end-to-end? Would it actually work for users? Any hidden assumptions or tech debt introduced?
 
@@ -183,3 +189,12 @@ Generate markdown report with:
 Store report in: `<project_root>/.agent_temp/reviews/<feature-name>-gap-review-<agent>-<YYYY-MM-DD>.md`
 
 When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-gap-review-claude-2026-03-15.md`). Do not use absolute paths.
+
+### Publish to GitHub _(if --to-issue or --to-pr)_
+If PUBLISH_ISSUE is `true`:
+1. Create a GitHub issue: title `[Review] {scope}: Gap Analysis Report`, body = report content
+2. Print the issue URL
+
+If PUBLISH_PR is set:
+1. Post report as a PR comment using `gh pr comment <number> --body "..."`
+2. Print confirmation

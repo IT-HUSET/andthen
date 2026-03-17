@@ -1,7 +1,7 @@
 ---
-name: spec
+name: andthen.spec
 description: Creates a Feature Implementation Specification from template
-argument-hint: <description> | --issue <number>
+argument-hint: <description> | --issue <number> [--to-issue]
 ---
 
 # Generate Feature Implementation Specification
@@ -12,6 +12,9 @@ Given a feature request, generate a Feature Implementation Specification (FIS) u
 ## Variables
 
 ARGUMENTS: $ARGUMENTS
+
+### Optional Output Flags
+- `--to-issue` → PUBLISH_ISSUE: Publish FIS as a GitHub issue after saving locally
 
 
 ## Usage
@@ -111,7 +114,6 @@ _Otherwise - if no such references are present_ - perform UI research:
     - Create UI wireframes, mockups and sketches
     - Create and describe UI flows
     - Recommended agents _(if supported by your coding agent)_: `andthen:ui-ux-designer`
-        - When novel UI ideas are needed: `andthen:whimsy-injector`
 
 #### User Clarification
 Ask ONLY if implementation is blocked by ambiguity.
@@ -127,6 +129,7 @@ Ask ONLY if implementation is blocked by ambiguity.
 - UI wireframes/mockups (required for UI tasks)
 - Design system references (required for UI tasks)
 - External documentation URLs with specific sections
+- Ubiquitous Language glossary (`UBIQUITOUS_LANGUAGE.md`) — use canonical terms in the FIS; flag any terms that contradict the glossary
 
 #### Generate from Template
 **USE THE TEMPLATE**: Generate the FIS using the template in the **Appendix** below as your structure.
@@ -156,7 +159,7 @@ Rate your FIS 1-10 for single-pass implementation success:
 
 **If score <7**: Revise or ask for user clarification.
 
-> **Optional**: Run the `review-doc` skill for thorough validation (recommended for large/complex features). Skip for small/clear features — issues surface during execution anyway.
+> **Optional**: Run the `andthen.review-doc` skill for thorough validation (recommended for large/complex features). Skip for small/clear features — issues surface during execution anyway.
 
 
 ## Output
@@ -168,6 +171,14 @@ Save FIS as: _`<project_root>/docs/specs/{feature-name}.md`_ _(or as configured 
 - Set the story's **Status** field to `In Progress`
 
 **Remember**: The FIS should be executable with minimal orchestration. All complexity and detail belongs in the FIS itself, not the execution command.
+
+### Publish to GitHub _(if --to-issue)_
+If PUBLISH_ISSUE is `true`:
+1. Create a GitHub issue using `gh issue create`:
+   - Title: `[FIS] {feature-name}`
+   - Body: Contents of the generated FIS
+   - Labels: `spec`, `fis` (create if they don't exist)
+2. Print the issue URL
 
 
 ---

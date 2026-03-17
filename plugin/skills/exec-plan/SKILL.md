@@ -1,12 +1,12 @@
 ---
-name: exec-plan
+name: andthen.exec-plan
 description: Executes an entire implementation plan through a pipeline (spec → exec-spec → review-gap per story)
 argument-hint: <path-to-plan-directory>
 ---
 
 # Execute Plan
 
-Execute ALL stories in an implementation plan (from `/andthen:plan`) through a pipeline: **spec → exec-spec → review-gap** per story.
+Execute ALL stories in an implementation plan (from `andthen.plan`) through a pipeline: **spec → exec-spec → review-gap** per story.
 
 Uses **parallel sub-agents** _(if supported by your coding agent)_ for concurrent story execution, otherwise executes stories sequentially.
 
@@ -53,7 +53,7 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 ### Step 1: Parse Plan
 
 1. Read `PLAN_DIR/plan.md`
-2. If plan file missing, **STOP** and recommend `/andthen:plan` first
+2. If plan file missing, **STOP** and recommend `andthen.plan` first
 3. Extract:
    - **Stories**: ID, name, scope, acceptance criteria, dependencies
    - **Phases**: Phase groupings and execution order
@@ -84,13 +84,13 @@ For each story in the current phase:
 For each story (or group of parallel stories), run the three-stage pipeline:
 
 **Stage 1 — Spec** _(skip if FIS already exists)_:
-Run `/andthen:spec` with story scope as input. Output: FIS document in `docs/specs/`.
+Run `andthen.spec` with story scope as input. Output: FIS document in `docs/specs/`.
 
 **Stage 2 — Implement**:
-Run `/andthen:exec-spec` on the FIS for this story. Output: implemented story.
+Run `andthen.exec-spec` on the FIS for this story. Output: implemented story.
 
 **Stage 3 — Review**:
-Run `/andthen:review-gap` for this story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the user.
+Run `andthen.review-gap` for this story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the user.
 
 > **Note — nested loops**: When `exec-spec` runs internally (Stage 2), its TV04 remediation loop handles *implementation-level* issues (code review, tests, visual validation) with a 3-cycle cap. The exec-plan review-gap loop here handles *integration and gap-level* issues across stories. These are complementary — exec-spec fixes code before exec-plan validates requirements.
 
@@ -116,9 +116,9 @@ Execute the full pipeline for story {story_id}: {story_name}
 Plan: {PLAN_DIR}/plan.md
 
 Pipeline:
-1. Spec: Check if FIS exists at {fis_path}. If not, run /andthen:spec with this scope: {story_scope}
-2. Implement: Run /andthen:exec-spec on the FIS
-3. Review: Run /andthen:review-gap. Fix issues (max 2 attempts), then report results.
+1. Spec: Check if FIS exists at {fis_path}. If not, run andthen.spec with this scope: {story_scope}
+2. Implement: Run andthen.exec-spec on the FIS
+3. Review: Run andthen.review-gap. Fix issues (max 2 attempts), then report results.
 
 Important:
 - Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
@@ -132,7 +132,7 @@ Important:
 
 #### 2c. Update Plan
 
-After each story's pipeline completes (spec → exec-spec → review-gap), update `plan.md` (consider using the `ops` skill for standardized status updates):
+After each story's pipeline completes (spec → exec-spec → review-gap), update `plan.md` (consider using the `andthen.ops` skill for standardized status updates):
 - Set the story's **Status** field to `Done`
 - Set the story's **FIS** field to the generated spec path (e.g. `**FIS**: docs/specs/story-name.md`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)

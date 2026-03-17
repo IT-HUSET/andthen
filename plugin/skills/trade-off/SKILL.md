@@ -1,5 +1,5 @@
 ---
-name: trade-off
+name: andthen.trade-off
 description: Systematic trade-off analysis and technical research for architectural decisions
 argument-hint: [Topic/decision to research - inline or file path] [Number of alternatives (default is 5)] [Output path (default is docs/research/)]
 ---
@@ -71,11 +71,18 @@ Ask user to define:
 - **Success criteria**: Performance, scalability, maintainability requirements
 - **Dealbreakers**: Absolute requirements or blockers
 
-**1.2 Identify Options**
+**1.2 Design Space Decomposition** _(see `plugin/references/design-tree.md`)_
 
-Based on context, list _`COUNT`_ viable options to evaluate.
+Instead of listing options directly, decompose the decision into its independent dimensions:
 
-If user uncertain, propose initial set based on common patterns.
+1. **Identify dimensions** — What are the orthogonal axes of choice? (These may be architectural, UI/UX, interaction patterns, or any mix.) Dimensions are independent peers — listing order carries no meaning.
+2. **List options per dimension** — Enumerate viable approaches for each axis (2–5 per dimension)
+3. **Cross-consistency assessment** — Evaluate pairwise compatibility between options across dimensions. Mark incompatible or conditional pairings with rationale. This typically eliminates the majority of theoretical combinations.
+4. **Derive candidate solutions** — The remaining consistent combinations are viable options to evaluate. Select up to _`COUNT`_ of the most promising.
+
+Present the decomposition to the user for validation. If a dimension has an obvious winner, resolve it immediately and focus research on contested dimensions.
+
+If the decision is single-dimensional (e.g., "which database?"), skip decomposition and list options directly.
 
 **1.3 Define Evaluation Criteria**
 
@@ -102,6 +109,56 @@ Present relevant criteria from list below, ask user to prioritize (1-10 scale):
 - Standards compliance (web standards, accessibility, frameworks)
 
 **Gate**: User confirms options list + weighted criteria
+
+
+### Phase 1.5: Generative Design Exploration _(optional)_
+
+> **"Design It Twice"** — Instead of evaluating pre-defined options, first generate radically different designs by giving parallel agents contrasting constraints. The value is in contrast, not consensus.
+
+**When to use**: Multi-dimensional decisions with contested design choices. **Skip** for single-option evaluations, well-understood technology choices, or when the design space has already been explored (e.g., via `andthen.trade-off` or `andthen.clarify`).
+
+**1.5.1 Define Constraint Lenses**
+
+Select 3+ contrasting architectural constraints from the decision context. Examples:
+- "Minimize API surface area — fewest possible public methods/endpoints"
+- "Maximize extensibility — plugin/adapter architecture for future needs"
+- "Optimize for the common case — simplest possible happy path"
+- "Ports-and-adapters — strict separation of domain from infrastructure"
+- "Convention over configuration — zero-config defaults"
+
+Each lens should produce a meaningfully different design — avoid lenses that would converge.
+
+**1.5.2 Parallel Design Generation**
+
+Spawn 3+ parallel sub-agents _(if supported by your coding agent; otherwise execute sequentially)_ using `andthen:solution-architect`, each with a different constraint:
+
+```markdown
+## Design Exploration: [TOPIC]
+
+**Your constraint**: [Constraint lens — e.g., "Minimize API surface area"]
+
+Design a solution for [TOPIC] that fully commits to this constraint.
+
+Return:
+1. **Interface sketch**: Key types, methods, endpoints, or components
+2. **What it hides**: Complexity absorbed by the design
+3. **What it exposes**: Decisions pushed to the consumer
+4. **Trade-offs**: What you gain and what you sacrifice
+5. **Best suited for**: Scenarios where this design excels
+6. **Breaks down when**: Scenarios where this design fails
+```
+
+**1.5.3 Comparative Synthesis**
+
+After all sub-agents return, synthesize findings **in prose, not tables**:
+- Compare designs by discussing trade-offs between pairs
+- Identify surprising convergences (where different constraints led to the same choice)
+- Identify genuine tensions (where constraints force incompatible designs)
+- Note which design dimensions are most sensitive to constraint choice
+
+Present synthesis to user. The strongest candidates feed into Phase 2 as the options to evaluate systematically.
+
+**Gate**: Design alternatives generated and synthesized → proceed to Phase 2 with refined options
 
 
 ### Phase 2: Parallel Deep Research (Use Sub-Agents)
@@ -228,9 +285,10 @@ Present recommendation, ask:
 
 Store artifacts in OUTPUT_DIR/[topic-slug]/:
 
-1. **research.md**: Consolidated findings from all options
-2. **tradeoff-matrix.md**: Comparison matrix + risk analysis
-3. **recommendation.md**: Final recommendation + implementation guidance
+1. **design-tree.md**: Decision decomposition with dimensions, options, and pruning rationale (if multi-dimensional)
+2. **research.md**: Consolidated findings from all options
+3. **tradeoff-matrix.md**: Comparison matrix + risk analysis
+4. **recommendation.md**: Final recommendation + implementation guidance
 
 **Optional**: If decision is critical/complex, ask user if they want formal ADR created.
 
@@ -264,6 +322,7 @@ Before completion:
 ```bash
 OUTPUT_DIR/
 ├── [topic-slug]/
+│   ├── design-tree.md        # Decision decomposition (if multi-dimensional)
 │   ├── research.md           # Consolidated research findings
 │   ├── tradeoff-matrix.md    # Systematic comparison
 │   └── recommendation.md     # Evidence-based conclusion

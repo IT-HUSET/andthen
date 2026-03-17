@@ -1,14 +1,14 @@
 ---
-name: plan
-description: Creates implementation plan with story breakdown. Can start from existing PRD or discover requirements first. Picks up prior artifacts from `/andthen:clarify`. Lightweight planning - detailed specs created JIT per story.
-argument-hint: [Specs directory (with PRD, requirements-clarification, or draft PRD), or requirements source (file/URL/description)]
+name: andthen.plan
+description: Creates implementation plan with story breakdown. Can start from existing PRD or discover requirements first. Picks up prior artifacts from `andthen.clarify`. Lightweight planning - detailed specs created JIT per story.
+argument-hint: [Specs directory or requirements source] [--to-issue]
 ---
 
 # Create Implementation Plan
 
-Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If prior artifacts exist (e.g., `requirements-clarification.md` from `/andthen:clarify` or a draft PRD), uses them as the basis for PRD creation without re-doing discovery. If nothing exists, runs full requirements discovery to create a PRD first.
+Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If prior artifacts exist (e.g., `requirements-clarification.md` from `andthen.clarify` or a draft PRD), uses them as the basis for PRD creation without re-doing discovery. If nothing exists, runs full requirements discovery to create a PRD first.
 
-Stories are scoped and sequenced but NOT fully specified - use `/andthen:spec` just-in-time before implementing each story.
+Stories are scoped and sequenced but NOT fully specified - use `andthen.spec` just-in-time before implementing each story.
 
 **Philosophy**: Detailed specs decay quickly. This command creates just enough structure to sequence work and track progress, while deferring detailed specification to implementation time.
 
@@ -21,6 +21,9 @@ INPUT: $ARGUMENTS
 _Output directory (defaults to input directory, or `<project_root>/docs/specs/` for new PRDs):_
 OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as configured in **Project Document Index**)_
 
+### Optional Output Flags
+- `--to-issue` → PUBLISH_ISSUE: Publish plan as a GitHub issue after saving locally
+
 
 ## Instructions
 
@@ -32,7 +35,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 - **Lightweight planning** - Stories define scope, not implementation details
 - **No over-engineering** - Minimum stories to cover requirements
 - **Progressive implementation** - Organize into logical phases (examples provided are templates, adapt to project)
-- **JIT specification** - Detailed specs come later via `/andthen:spec`
+- **JIT specification** - Detailed specs come later via `andthen.spec`
 - **Interactive when discovering requirements** - Interview user iteratively; don't assume answers. After asking questions, **STOP and WAIT** for user responses before proceeding
 - **Focus on "what" not "how"** - Requirements, not implementation details
 - **Be specific** - Replace vague terms with measurable criteria
@@ -45,7 +48,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 
 1. **Parse INPUT** - Determine type:
    - **Directory with PRD**: `INPUT` is a directory containing `prd.md` → proceed to Step 2
-   - **Directory with prior artifacts**: `INPUT` is a directory containing `requirements-clarification.md` (from `/andthen:clarify`) and/or a draft PRD (`prd-draft.md`), but no finalized `prd.md` → proceed to Step 1c
+   - **Directory with prior artifacts**: `INPUT` is a directory containing `requirements-clarification.md` (from `andthen.clarify`) and/or a draft PRD (`prd-draft.md`), but no finalized `prd.md` → proceed to Step 1c
    - **File path**: Read and extract requirements → proceed to Step 1b
    - **URL**: Fetch and extract requirements → proceed to Step 1b
    - **Inline description**: Use directly → proceed to Step 1b
@@ -61,7 +64,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 
 4. **If no PRD and no prior artifacts** (requirements source provided):
    - Validate prerequisites: requirements should be reasonably refined (not raw ideas)
-   - If input is too vague, recommend `/andthen:clarify` first
+   - If input is too vague, recommend `andthen.clarify` first
    - Initial gap analysis — document what's explicitly stated, assumed/implied, and missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope)
    - Proceed to Step 1b (Requirements Discovery)
 
@@ -256,7 +259,7 @@ Apply systematic prioritization to features:
 - [ ] No over-specification or gold-plating
 
 ##### Optional: Peer Review
-Use the `review-doc` skill to validate PRD for:
+Use the `andthen.review-doc` skill to validate PRD for:
 - Missing requirements or user stories
 - Over-engineered or unnecessarily complex features
 - Conflicting requirements
@@ -383,7 +386,7 @@ Store PRD in: `OUTPUT_DIR/<feature-name>/prd.md`
 
 ### 1c. PRD Creation from Existing Artifacts _(skip if PRD already exists or no prior artifacts found)_
 
-Use existing artifacts (`requirements-clarification.md` from `/andthen:clarify` and/or `prd-draft.md`) as the primary basis for creating the PRD. This path avoids duplicating discovery work already completed.
+Use existing artifacts (`requirements-clarification.md` from `andthen.clarify` and/or `prd-draft.md`) as the primary basis for creating the PRD. This path avoids duplicating discovery work already completed.
 
 #### Assess Existing Coverage
 
@@ -425,6 +428,7 @@ Collect sub-agent results and synthesize into a unified understanding of:
 - MVP scope and boundaries
 - Success criteria
 - Prioritization (P0/P1/P2)
+- Domain terminology — reference `UBIQUITOUS_LANGUAGE.md` if it exists; use canonical terms in story names and acceptance criteria
 
 #### Map to Implementation Units
 For each major feature/requirement:
@@ -438,9 +442,24 @@ For each major feature/requirement:
 
 ### 3. Story Breakdown
 
+#### Design Space Analysis _(if applicable)_
+
+For features with multiple design dimensions — whether architectural, UI/UX, or interaction-related — use design space decomposition _(see `plugin/references/design-tree.md`)_ to inform story structure:
+
+1. **Identify design dimensions** from the PRD (e.g., display mode, filtering approach, auth method, data freshness)
+2. **Map dimension independence** — dimensions that can be built and tested separately are candidates for separate, parallelizable stories
+3. **Identify coupling** — dimensions with cross-consistency constraints (where options in one affect viability of options in another) should be in the same story to avoid rework
+4. **Spot foundational dimensions** — choices that other dimensions depend on belong in earlier phases (e.g., data model must precede display mode)
+5. **Flag uncertainty** — dimensions with high uncertainty or contested options may warrant a spike/research story before implementation
+
+If a design space decomposition was produced upstream (by `clarify` or `trade-off`), reference and build on it rather than re-creating it.
+
+_Skip for projects with straightforward design decisions._
+
 #### Story Guidelines
 
 **Each story should be:**
+- **Vertical** - Cuts through all layers (data → logic → API → UI) to produce a demoable/testable end-to-end slice, even if narrow in scope
 - **Bounded** - Clear scope, single responsibility
 - **Verifiable** - Has acceptance criteria
 - **Independent** - Minimal coupling to other stories (after dependencies met)
@@ -455,26 +474,21 @@ For each major feature/requirement:
 Organize stories into logical phases. The number and nature of phases depends on the project - adapt as needed. Common pattern:
 
 ```
-Phase 1: Foundation (Sequential)
-├── Project setup / scaffolding
-├── Core architecture / routing
-└── Data layer setup
+Phase 1: Tracer Bullet (Sequential)
+├── Thin end-to-end slice of the most critical feature
+├── Proves architecture works across all layers
+└── Produces a demoable result
 
-Phase 2: Core Features (Parallel where possible)
-├── [P] Feature A
-├── [P] Feature B
-└── [P] Feature C (depends on A)
+Phase 2: Feature Slices (Parallel where possible)
+├── [P] Feature A — full vertical slice (data → logic → API → UI)
+├── [P] Feature B — full vertical slice
+└── Feature C (depends on A) — full vertical slice
 
-Phase 3: Integration (Sequential)
-├── External service connections
-├── API integrations
-└── Cross-feature integration
-
-Phase 4: Polish (Parallel)
-├── [P] UI refinement
-├── [P] Error handling
-├── [P] Performance
-└── [P] Accessibility
+Phase 3: Hardening (Parallel)
+├── [P] Edge cases and error handling
+├── [P] Performance optimization
+├── [P] Accessibility and polish
+└── [P] Cross-feature integration
 ```
 
 #### Wave Assignment
@@ -493,6 +507,7 @@ Before defining tasks, work backward from the desired outcome:
 2. **Required Artifacts**: What files, routes, UI elements, data models must exist?
 3. **Wiring Connections**: How must this connect to the rest of the system? (imports, routes, API calls, DB relations)
 4. **Failure Points**: What are the most likely ways this could silently fail?
+5. **Vertical Slice Order**: What is the thinnest path through all layers that proves this story works end-to-end? This becomes the first implementation task.
 
 These feed directly into acceptance criteria — each criterion should be a verifiable observable truth.
 
@@ -502,8 +517,8 @@ For each story, define:
 - **ID**: Sequential identifier (S01, S02, etc.)
 - **Name**: Brief descriptive name
 - **Status**: Tracking field — initially `Pending` (updated to `In Progress` / `Done` during execution)
-- **FIS**: Reference to generated spec — initially `—` (updated to file path when `/andthen:spec` creates the FIS)
-- **Scope**: 2-4 sentences — what's included and excluded (no implementation approach — that's for `/andthen:spec`)
+- **FIS**: Reference to generated spec — initially `—` (updated to file path when `andthen.spec` creates the FIS)
+- **Scope**: 2-4 sentences — what's included and excluded (no implementation approach — that's for `andthen.spec`)
 - **Acceptance criteria**: 3-6 testable outcomes — the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
 - **Dependencies**: Other story IDs that must complete first
 - **Phase**: Which implementation phase
@@ -512,7 +527,7 @@ For each story, define:
 - **Risk**: Low/Medium/High with brief note if Medium+
 - **Asset refs**: Relevant wireframes, ADRs, design system sections
 
-**Do NOT include** (these are deferred to `/andthen:spec`):
+**Do NOT include** (these are deferred to `andthen.spec`):
 - Technical approach, patterns, or library choices
 - File paths, line numbers, or code specifics
 - Implementation gotchas or constraints with workarounds
@@ -606,14 +621,14 @@ W3: S05, S06, S07
 
 1. Execute Phase 1 stories sequentially (S01 → S02 → ...)
 2. For each story ready to implement:
-   - Run `/andthen:spec` with story scope as input → update **FIS** field with generated spec path
-   - Run `/andthen:exec-spec` on generated FIS
+   - Run `andthen.spec` with story scope as input → update **FIS** field with generated spec path
+   - Run `andthen.exec-spec` on generated FIS
    - Check off completed acceptance criteria in this plan
    - Update **Status** field (Pending → In Progress → Done)
 3. Phase 2+ stories marked [P] can run in parallel after dependencies met
-4. Use `/andthen:review-gap` after completing all stories
+4. Use `andthen.review-gap` after completing all stories
 
-> **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path. After implementation and review, check off acceptance criteria and set **Status** to Done. Update the Story Catalog table status accordingly. `/andthen:exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
+> **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path. After implementation and review, check off acceptance criteria and set **Status** to Done. Update the Story Catalog table status accordingly. `andthen.exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
 </example-plan-format>
 
 **Gate**: Plan document complete
@@ -631,7 +646,7 @@ W3: S05, S06, S07
 - [ ] Not over-granular (combined where sensible)
 
 #### Optional: Peer Review
-Use the `review-doc` skill to validate plan for:
+Use the `andthen.review-doc` skill to validate plan for:
 - Requirements coverage
 - Story scope clarity
 - Dependency correctness
@@ -648,13 +663,21 @@ OUTPUT_DIR/
 
 When complete, print the output's **relative path from the project root**. Do not use absolute paths.
 
+### Publish to GitHub _(if --to-issue)_
+If PUBLISH_ISSUE is `true`:
+1. Create a GitHub issue using `gh issue create`:
+   - Title: `[Plan] {project-name}: Implementation Plan`
+   - Body: Contents of the generated plan.md
+   - Labels: `plan` (create if it doesn't exist)
+2. Print the issue URL
+
 
 ## Follow-Up Actions
 
 After completion, suggest:
 
-1. **Start implementation**: `/andthen:spec` for first story (S01)
-2. **Create wireframes** (if UI work): `/andthen:extras-wireframes`
+1. **Start implementation**: `andthen.spec` for first story (S01)
+2. **Create wireframes** (if UI work): `andthen.wireframes`
 3. **Create GitHub issues** (if requested):
    ```bash
    # Create milestone
@@ -665,4 +688,4 @@ After completion, suggest:
    gh issue create --title "S02: [Story Name]" --body "..." --milestone "[Project Name] MVP"
    # ... etc
    ```
-4. **Review plan**: Use the `review-doc` skill on `plan.md`
+4. **Review plan**: Use the `andthen.review-doc` skill on `plan.md`

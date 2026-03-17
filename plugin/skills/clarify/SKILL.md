@@ -1,5 +1,5 @@
 ---
-name: clarify
+name: andthen.clarify
 description: Clarify requirements through systematic discovery of gaps, edge cases, and scope boundaries for applications or features.
 argument-hint: [Requirements source - description, file path, or GitHub issue URL]
 ---
@@ -54,12 +54,25 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
    - Success criteria
    - Scope boundaries
 
-**Gate**: Assessment complete with documented gap list
+5. **Design space decomposition** _(see `plugin/references/design-tree.md`)_
+
+   When the feature involves design decisions with multiple viable approaches — whether architectural, UI/UX, or user-facing functionality — decompose the solution space into independent dimensions:
+
+   - Identify **independent dimensions of choice** (e.g., navigation model, data display, authentication method, interaction pattern) — these are peers, not a hierarchy
+   - List viable options per dimension (2–5 each)
+   - Perform **cross-consistency assessment**: evaluate pairwise compatibility between options across dimensions, marking incompatible or conditional pairings with rationale
+   - Use the decomposition to generate targeted questions for the discovery interview — each unresolved dimension is a question to ask
+
+   Include the decomposition in the requirements output so downstream skills (`plan`, `spec`) can reference the resolved decisions.
+
+   _Skip this step for simple features with no meaningful design alternatives._
+
+**Gate**: Assessment complete with documented gap list and design space decomposition (if applicable)
 
 
 ### 2. Discovery Interview
 
-Ask targeted questions based on identified gaps. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers — you MUST receive actual answers from the user. Iterate until no major gaps remain.
+Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers — you MUST receive actual answers from the user. Iterate until no major gaps remain.
 
 > **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Do not proceed to Step 3 until the user has answered your questions and you've confirmed no major gaps remain. Use the `AskUserQuestion` tool if available in your environment.
 
@@ -121,6 +134,7 @@ Structure all findings into comprehensive requirements document:
 Review consolidated requirements for quality:
 
 - [ ] All user flows have clear steps
+- [ ] Design space decomposition constructed with decisions resolved or flagged (if applicable)
 - [ ] UI wireframes included (if applicable)
 - [ ] Edge cases identified with expected behavior
 - [ ] Scope boundaries explicit (in/out)
@@ -132,6 +146,23 @@ Review consolidated requirements for quality:
 Fix any issues found before finalizing.
 
 **Gate**: All validation checks pass
+
+
+### 5. Domain Language Extraction _(if domain complexity warrants)_
+
+If the project involves significant domain complexity (business rules, multiple bounded contexts, domain-specific terminology):
+
+1. Review the consolidated requirements for domain-relevant terms
+2. Extract candidate terms: entities, actions, states, rules, relationships
+3. Identify synonym clusters and ambiguous terms
+4. Create or update `UBIQUITOUS_LANGUAGE.md` with initial glossary:
+   - Group terms by domain cluster
+   - Pick canonical names, list synonyms to avoid
+   - Note bounded contexts where applicable
+
+> **Skip** for simple projects (CRUD apps, utilities, scripts) or when domain language is obvious and unambiguous.
+
+**Gate**: Domain glossary created or skipped with rationale
 
 
 ## Report
@@ -184,6 +215,28 @@ Generate markdown document with:
 +----------------------------------+
 ```
 
+## Design Decisions
+<!-- Include only if design space decomposition was constructed -->
+### Design Space Decomposition
+```
+[Feature Name]
+├── [Dimension 1]: [Option A] ← chosen · [Option B] · [Option C] ✗ (pruned)
+├── [Dimension 2]: [Option X] ← chosen · [Option Y]
+└── [Dimension 3]: [Open — deferred to spec/trade-off]
+```
+
+### Cross-Consistency Notes
+- [Option] + [Option] — incompatible: [reason]
+- [Option] + [Option] — conditional: [condition]
+
+### Resolved Decisions
+| Dimension | Choice | Rationale |
+|-----------|--------|-----------|
+| [Dimension] | [Chosen option] | [Why] |
+
+### Open Design Questions
+- [Dimensions needing further analysis via `andthen.trade-off`]
+
 ## Edge Cases
 | Scenario | Expected Behavior |
 |----------|------------------|
@@ -219,13 +272,15 @@ Generate markdown document with:
 
 Store report in: `OUTPUT_DIR/<feature-name>/requirements-clarification.md`
 
+If domain language extraction was performed, also store: `docs/UBIQUITOUS_LANGUAGE.md` _(or as configured in **Project Document Index**)_
+
 When complete, print the report's **relative path from the project root**. Do not use absolute paths.
 
 
 ## Follow-Up Actions
 
 After completion, ask user if they'd like to:
-1. Create feature spec (`/andthen:spec`) — for single features
-2. Proceed to planning (`/andthen:plan <output-directory>`) — for multi-feature / MVP scope. The plan command will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery
+1. Create feature spec (`andthen.spec`) — for single features
+2. Proceed to planning (`andthen.plan <output-directory>`) — for multi-feature / MVP scope. The plan command will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery
 3. Review specific areas in more depth
 4. Share with stakeholders for validation

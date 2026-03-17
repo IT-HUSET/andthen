@@ -1,12 +1,12 @@
 ---
-name: exec-plan-team
+name: andthen.exec-plan-team
 description: Executes an implementation plan through an Agent Team pipeline with inter-agent coordination (requires Agent Teams)
 argument-hint: <path-to-plan-directory>
 ---
 
 # Execute Plan (Agent Teams)
 
-Execute ALL stories in an implementation plan (from `/andthen:plan`) through a parallelized Agent Team pipeline: **spec → exec-spec → review-gap** per story.
+Execute ALL stories in an implementation plan (from `andthen.plan`) through a parallelized Agent Team pipeline: **spec → exec-spec → review-gap** per story.
 
 **Requires Agent Teams** — Falls back to sequential execution (manual per-story loop) if Teams unavailable.
 
@@ -57,7 +57,7 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 Verify Agent Teams are available by checking that team creation tools exist in your available tools (e.g. `TeamCreate`).
 
 If Agent Team tools are NOT available (experimental feature not enabled):
-- Suggest using `/andthen:exec-plan` instead (portable version that works without Agent Teams)
+- Suggest using `andthen.exec-plan` instead (portable version that works without Agent Teams)
 - If user specifically wants Agent Teams, inform them it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 - Exit
 
@@ -67,7 +67,7 @@ If Agent Team tools are NOT available (experimental feature not enabled):
 ### Step 2: Parse Plan
 
 1. Read `PLAN_DIR/plan.md`
-2. If plan file missing, **STOP** and recommend `/andthen:plan` first
+2. If plan file missing, **STOP** and recommend `andthen.plan` first
 3. Extract:
    - **Stories**: ID, name, scope, acceptance criteria, dependencies
    - **Phases**: Phase groupings and execution order
@@ -115,11 +115,11 @@ Teammates must be spawned into the team (with `team_name` and `name`) so they sh
 | Reviewer | `sonnet` | Efficient validation and fix loops |
 | Troubleshooter | `sonnet` | Fast diagnosis and targeted fixes |
 
-**Spec Creators** (`model: "opus"`) — Claim `spec-{story_id}` tasks. Before running `/andthen:spec`, check if a FIS already exists for the story (check the story's `**FIS**` field in `plan.md` and look in `docs/specs/`). If a valid FIS exists, mark the task as complete and move on. Otherwise, run `/andthen:spec` with story scope as input. Output: FIS document.
+**Spec Creators** (`model: "opus"`) — Claim `spec-{story_id}` tasks. Before running `andthen.spec`, check if a FIS already exists for the story (check the story's `**FIS**` field in `plan.md` and look in `docs/specs/`). If a valid FIS exists, mark the task as complete and move on. Otherwise, run `andthen.spec` with story scope as input. Output: FIS document.
 
-**Implementers** (`model: "sonnet"`) — Claim `impl-{story_id}` tasks (blocked by corresponding spec task) and run `/andthen:exec-spec` on the generated FIS. Output: implemented story.
+**Implementers** (`model: "sonnet"`) — Claim `impl-{story_id}` tasks (blocked by corresponding spec task) and run `andthen.exec-spec` on the generated FIS. Output: implemented story.
 
-**Reviewers** (`model: "sonnet"`) — Claim `review-{story_id}` tasks (blocked by corresponding impl task) and run `/andthen:review-gap` per story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story.
+**Reviewers** (`model: "sonnet"`) — Claim `review-{story_id}` tasks (blocked by corresponding impl task) and run `andthen.review-gap` per story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story.
 
 Each agent loops: **claim task → execute → mark done → claim next**.
 
@@ -140,9 +140,9 @@ Your workflow (loop until no tasks remain):
 1. Check the task list for available tasks matching your role ({spec-*|impl-*|review-*})
 2. Claim an unblocked, unassigned task (set owner to your name)
 3. Execute:
-   - Spec Creator: First check if a FIS already exists (check story's FIS field in plan.md and docs/specs/). If it exists, mark task complete and skip. Otherwise, run /andthen:spec with story scope from plan. Save FIS to docs/specs/ (per spec.md convention)
-   - Implementer: Run /andthen:exec-spec on the FIS for this story
-   - Reviewer: Run /andthen:review-gap for this story. Fix any issues found, then re-validate (max 2 fix attempts — escalate to orchestrator if issues persist)
+   - Spec Creator: First check if a FIS already exists (check story's FIS field in plan.md and docs/specs/). If it exists, mark task complete and skip. Otherwise, run andthen.spec with story scope from plan. Save FIS to docs/specs/ (per spec.md convention)
+   - Implementer: Run andthen.exec-spec on the FIS for this story
+   - Reviewer: Run andthen.review-gap for this story. Fix any issues found, then re-validate (max 2 fix attempts — escalate to orchestrator if issues persist)
 4. Mark task completed
 5. Check the task list for next available task
 6. If no tasks available, notify orchestrator via message
@@ -274,8 +274,8 @@ If Agent Teams unavailable (Step 1 check fails), suggest the manual equivalent:
 
 ```bash
 # For each story in plan order:
-/andthen:spec "S01: [Story Name]"
-/andthen:exec-spec
-/andthen:review-gap
+andthen.spec "S01: [Story Name]"
+andthen.exec-spec
+andthen.review-gap
 # ... repeat for each story
 ```

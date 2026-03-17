@@ -1,5 +1,5 @@
 ---
-name: init
+name: andthen.init
 description: Set up AndThen workflow structure for a project — handles new projects, partial setups, and brownfield codebases
 argument-hint: [project name or path]
 ---
@@ -84,9 +84,8 @@ Planning (when ready):
   [ ] docs/REQUIREMENTS.md — Requirements with REQ-IDs
   [ ] docs/ROADMAP.md      — Phase structure with success criteria
 
-Architecture (create now or generate later via /andthen:extras-map-codebase):
+Architecture (create now or generate later via andthen.map-codebase):
   [ ] docs/ARCHITECTURE.md — System architecture overview
-  [ ] docs/CONVENTIONS.md  — Codebase conventions and patterns
 
 Which would you like to create? (e.g. "LEARNINGS, STACK" or "all core" or "none for now")
 ```
@@ -168,7 +167,7 @@ Inform the user:
 Existing codebase detected without AndThen workflow structure.
 
 Recommended approach:
-1. Run /andthen:extras-map-codebase to auto-generate ARCHITECTURE.md, CONVENTIONS.md, and STACK.md
+1. Run andthen.map-codebase to auto-generate ARCHITECTURE.md, STACK.md, and conventions for CLAUDE.md
 2. Then set up CLAUDE.md and remaining structure
 
 Run map-codebase first? (recommended for codebases with 20+ files)
@@ -176,7 +175,7 @@ Run map-codebase first? (recommended for codebases with 20+ files)
 
 > **CRITICAL**: **STOP and WAIT** for user response.
 
-**If yes**: Run `/andthen:extras-map-codebase` (or instruct the user to run it), then proceed with Step 2a using the generated documents as a foundation. Skip creating ARCHITECTURE.md, CONVENTIONS.md, and STACK.md since map-codebase already produced them.
+**If yes**: Run `andthen.map-codebase` (or instruct the user to run it), then proceed with Step 2a using the generated documents as a foundation. Skip creating ARCHITECTURE.md and STACK.md since map-codebase already produced them.
 
 **If no**: Proceed directly to Step 2a (standard new project setup). The user can run map-codebase later.
 
@@ -198,8 +197,8 @@ Created:
 
 Next steps:
   1. Review and customize CLAUDE.md (especially Project Overview)
-  2. Start a feature: /andthen:spec "your feature description"
-  3. Or plan an MVP:  /andthen:plan "your requirements"
+  2. Start a feature: andthen.spec "your feature description"
+  3. Or plan an MVP:  andthen.plan "your requirements"
 ```
 
 

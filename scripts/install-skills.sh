@@ -7,17 +7,17 @@ usage() {
 Install AndThen skills into the agent skills directory.
 
 Usage:
-  ./scripts/install-codex.sh [options]
+  ./scripts/install-skills.sh [options]
 
 Options:
   --skills-dir PATH    Destination for skill directories (default: ~/.agents/skills)
-  --prefix PREFIX      Prefix for exported names (default: andthen-)
+  --prefix PREFIX      Prefix for exported names (default: andthen.)
   --dry-run            Print planned operations without copying files
   -h, --help           Show this help text
 
 Notes:
   - All skills are exported as directories named <prefix><skill-name>/
-  - Agent Teams skills (exec-plan-team, extras-review-council-team) are excluded
+  - Agent Teams skills (exec-plan-team, review-council-team) are excluded
     since they require Claude Code
   - Existing files are overwritten in place, but stale files are not deleted
 EOF
@@ -28,7 +28,7 @@ repo_root=$(
 )
 
 skills_dir="${HOME}/.agents/skills"
-prefix="andthen-"
+prefix="andthen."
 dry_run=0
 
 while [ "$#" -gt 0 ]; do
@@ -79,7 +79,7 @@ for dir in "$repo_root/plugin/skills"/*; do
 
   # Agent Teams skills require Claude Code — skip for other agents
   [ "$name" = "exec-plan-team" ] && continue
-  [ "$name" = "extras-review-council-team" ] && continue
+  [ "$name" = "review-council-team" ] && continue
 
   case "$name" in
     "$prefix"*)
