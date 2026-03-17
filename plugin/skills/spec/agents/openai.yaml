@@ -1,0 +1,6 @@
+interface:
+  display_name: "Create Specification"
+  short_description: "Generate Feature Implementation Specification"
+
+policy:
+  allow_implicit_invocation: false

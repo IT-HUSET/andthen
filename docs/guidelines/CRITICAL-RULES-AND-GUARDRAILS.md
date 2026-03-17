@@ -52,3 +52,7 @@
 - `rm -rf` (and similar destructive commands)
 - `git rebase --skip` and similar commands that rewrite history and cause data loss
 - Other destructive commands that can lead to data loss or corruption
+
+### **UNIVERSAL COMMAND RULES**
+- Use `git mv` instead of `mv` for moving/renaming tracked files — preserves blame history.
+- Stage specific files by name (`git add file1 file2`) — avoid `git add .` or `git add -A` which can accidentally include secrets, build artifacts, or unrelated changes.

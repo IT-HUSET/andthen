@@ -1,5 +1,5 @@
 ---
-name: andthen-ops
+name: ops
 description: Deterministic operations for state management, git conventions, and progress tracking. Use for updating STATE.md, plan.md status fields, FIS checkboxes, standardized commits, and progress summaries.
 context: fork
 agent: general-purpose

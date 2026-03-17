@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review Council"
+  short_description: "Multi-perspective review with adversarial debate"
+
+policy:
+  allow_implicit_invocation: false

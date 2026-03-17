@@ -1,0 +1,6 @@
+interface:
+  display_name: "Initialize Project"
+  short_description: "Set up AndThen workflow structure"
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Quick Implement"
+  short_description: "Fast implementation for small features or fixes"

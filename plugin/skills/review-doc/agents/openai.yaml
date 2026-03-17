@@ -1,0 +1,3 @@
+interface:
+  display_name: "Document Review"
+  short_description: "Review docs for completeness and accuracy"

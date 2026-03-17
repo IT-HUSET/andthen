@@ -23,16 +23,16 @@ See the [full documentation](../README.md) for workflow overview, usage examples
 
 ## Setup
 
-Commands reference your project's `CLAUDE.md` for two things:
+Skills reference your project's `CLAUDE.md` for two things:
 
-- **Project Document Index** — tells commands where to write output (specs, plans, etc.)
+- **Project Document Index** — tells skills where to write output (specs, plans, etc.)
 - **Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards
 
 See [`templates/CLAUDE.template.md`](../templates/CLAUDE.template.md) for a starter template.
 
 ### Agent Teams (Optional, Claude Code only)
 
-The `-team` command variants (`exec-plan-team`, `review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
+The `-team` skill variants (`exec-plan-team`, `extras-review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `extras-review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -101,14 +101,14 @@ The `-team` command variants (`exec-plan-team`, `review-council-team`) use [Agen
 - `wireframes` / `design-system` (extras) — When UI design is needed
 - `trade-off` — When architectural decisions are needed
 
-## Commands
+## Skills
 
-Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
+Invoke with `/andthen:<skill>` or just `/<skill>` if unambiguous.
 
 ### Core
 
-| Command | Purpose |
-|---------|---------|
+| Skill | Purpose |
+|-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
@@ -117,34 +117,29 @@ Invoke with `/andthen:<command>` or just `/<command>` if unambiguous.
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
 | `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
+| `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
+| `review-doc` | Document review for completeness, clarity, and technical accuracy |
+| `e2e-test` | End-to-end browser testing for web applications |
+| `ops` | Deterministic state management, git conventions, and progress tracking |
 
-### Extras (`commands/extras/`)
-
-| Command | Purpose |
-|---------|---------|
-| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
-| `design-system` | Create design tokens and component styles |
-| `wireframes` | Generate HTML wireframes for UI planning |
-| `refactor` | Code improvement and simplification |
-| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
-| `troubleshoot` | Diagnose and fix implementation issues systematically |
-| `map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
-
-### Agent Teams Variants (Claude Code only)
-
-| Command | Purpose |
-|---------|---------|
-| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination |
-| `review-council-team` | Multi-perspective review with real-time Agent Teams debate |
-
-### Skills (`skills/`)
+### Extras
 
 | Skill | Purpose |
 |-------|---------|
-| `andthen-review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
-| `andthen-review-doc` | Document review for completeness, clarity, and technical accuracy |
-| `andthen-e2e-test` | End-to-end browser testing for web applications |
-| `andthen-ops` | Deterministic state management, git conventions, and progress tracking |
+| `extras-quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `extras-design-system` | Create design tokens and component styles |
+| `extras-wireframes` | Generate HTML wireframes for UI planning |
+| `extras-refactor` | Code improvement and simplification |
+| `extras-review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
+| `extras-troubleshoot` | Diagnose and fix implementation issues systematically |
+| `extras-map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
+
+### Agent Teams Variants (Claude Code only)
+
+| Skill | Purpose |
+|-------|---------|
+| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination |
+| `extras-review-council-team` | Multi-perspective review with real-time Agent Teams debate |
 
 ## Agents
 
@@ -284,8 +279,8 @@ Verification includes code review, testing, and visual validation (when applicab
 - **Gap Analysis** (`review-gap`): Does implementation match requirements? Includes code review + remediation plan (after execution)
 - **Document Review** (`review-gap --doc`): Is the spec/PRD complete and clear? (before execution)
 - **PR Review** (`review-gap --pr`): Scoped review of a pull request
-- **Code Review** (`andthen-review-code` skill): Reusable code review with checklists — used by `review-gap` and other commands
-- **Doc Review** (`andthen-review-doc` skill): Reusable document review — used by `review-gap --doc` and other commands
+- **Code Review** (`review-code` skill): Reusable code review with checklists — used by `review-gap` and other skills
+- **Doc Review** (`review-doc` skill): Reusable document review — used by `review-gap --doc` and other skills
 
 ## External Dependencies (Optional)
 

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Create Plan"
+  short_description: "Create implementation plan with story breakdown"
+
+policy:
+  allow_implicit_invocation: false

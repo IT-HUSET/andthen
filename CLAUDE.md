@@ -13,8 +13,8 @@ AndThen is an opinionated workflow system for AI coding agents. It provides stru
 The core artifact is the **Feature Implementation Specification (FIS)** — a comprehensive blueprint that enables reliable, autonomous implementation.
 
 **Structure:**
-- `plugin/` — Claude Code plugin (commands, agents, skills)
-- `docs/` — Guidelines and reference documentation used by workflow commands
+- `plugin/` — Claude Code plugin (skills, agents, references)
+- `docs/` — Guidelines and reference documentation used by workflow skills
 - `templates/` — Starter templates for user projects
 
 
@@ -37,14 +37,14 @@ Always fully read relevant guidelines below as needed, based on the type of work
 ---
 
 
-## Commands & Skills
+## Skills
 
-All workflow commands are **unified** — a single set of files works across Claude Code, Codex CLI, Aider, Cursor, and other agents. Commands use capability detection to delegate to sub-agents when available and fall back to direct execution when not.
+All workflow skills are **unified** — a single set of files works across Claude Code, Codex CLI, Aider, Cursor, and other agents. Skills use capability detection to delegate to sub-agents when available and fall back to direct execution when not.
 
-### Available Commands
+### Available Skills
 
-| Command | Purpose |
-|---------|---------|
+| Skill | Purpose |
+|-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Clarify requirements and generate Feature Implementation Specification |
@@ -55,7 +55,7 @@ All workflow commands are **unified** — a single set of files works across Cla
 | `exec-plan-team` | Execute plan via Agent Team pipeline (requires Agent Teams) |
 | `trade-off` | Architecture decision research |
 
-Specialized commands in `extras/`: `quick-implement`, `design-system`, `wireframes`, `refactor`, `review-council`, `review-council-team`, `troubleshoot`, `map-codebase`
+Extras: `extras-quick-implement`, `extras-design-system`, `extras-wireframes`, `extras-refactor`, `extras-review-council`, `extras-review-council-team`, `extras-troubleshoot`, `extras-map-codebase`
 
 
 ---

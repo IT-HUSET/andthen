@@ -1,0 +1,3 @@
+interface:
+  display_name: "Clarify Requirements"
+  short_description: "Discover requirements gaps, edge cases, and scope"

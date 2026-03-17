@@ -1,5 +1,5 @@
 ---
-name: andthen-review-doc
+name: review-doc
 description: Reviews specifications, plans, PRDs, requirement documents, or other documentation for completeness, clarity, edge cases, and technical accuracy. Generates detailed report with prioritized findings and readiness assessment.
 context: fork
 agent: general-purpose
@@ -128,7 +128,7 @@ Ensure scope is well-defined and architecture is sound:
    - Challenge "nice-to-haves" masquerading as requirements
 
 2. **Architecture review** _(calibrate to project scale — skip aspects that are irrelevant to the project's nature and stage)_
-   - Use the `andthen-review-code` skill's architectural review guidance
+   - Use the `review-code` skill's architectural review guidance
    - Assess and evaluate **only aspects relevant to the project's scale and goals**, such as:
       - Architectural soundness, component separation, separation of concerns
       - Evaluate scalability, performance, maintainability

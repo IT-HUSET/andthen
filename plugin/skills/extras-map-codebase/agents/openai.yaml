@@ -1,0 +1,3 @@
+interface:
+  display_name: "Map Codebase"
+  short_description: "Analyze codebase and discover implicit requirements"

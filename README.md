@@ -8,11 +8,11 @@
 
 > "I have a feature idea" → *and then?* → clarify → *and then?* → spec → *and then?* → plan → *and then?* → execute → *and then?* → review-gap → **ship it.**
 
-AndThen is a workflow system for AI coding agents. It provides structured commands that guide development through a disciplined pipeline, producing a **Feature Implementation Specification (FIS)** as the core artifact — a comprehensive blueprint that enables reliable, autonomous implementation.
+AndThen is a workflow system for AI coding agents. It provides structured skills that guide development through a disciplined pipeline, producing a **Feature Implementation Specification (FIS)** as the core artifact — a comprehensive blueprint that enables reliable, autonomous implementation.
 
-**Structured process, flexible project.** AndThen is opinionated about *how work flows* (clarify → spec → plan → execute → review) but not about *how your project is organized*. Commands read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live — adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no config files, no lock-in.
+**Structured process, flexible project.** AndThen is opinionated about *how work flows* (clarify → spec → plan → execute → review) but not about *how your project is organized*. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live — adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no config files, no lock-in.
 
-Works as a **Claude Code plugin** with full sub-agent orchestration, and commands are designed to be **agent-agnostic** — falling back to direct execution when sub-agents aren't available.
+Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** — falling back to direct execution when sub-agents aren't available.
 
 
 ## Installation
@@ -41,20 +41,20 @@ claude plugin install ./plugin
 
 ### Other AI Coding Agents (Codex CLI, Aider, Cursor, etc.)
 
-Commands use capability detection and work without the plugin infrastructure. Some agents do not reliably support `:` in prompt or skill names, so use the installer to export commands and skills with `andthen-`-prefixed destination names:
+Skills use capability detection and work without the plugin infrastructure. Use the installer to export skills with `andthen-`-prefixed names to the agent skills directory:
 
 ```bash
-# Codex CLI defaults
+# Install to ~/.agents/skills/ (default)
 ./scripts/install-codex.sh
 
 # Optional overrides
 ./scripts/install-codex.sh --dry-run
-./scripts/install-codex.sh --prompts-dir ~/.codex/prompts --skills-dir ~/.codex/skills
+./scripts/install-codex.sh --skills-dir ~/.agents/skills
 ```
 
-This keeps the repo source layout Claude-plugin-friendly while exporting Codex-compatible names such as `andthen-clarify.md`, `andthen-exec-plan.md`, `andthen-review-gap.md`, `andthen-review-council.md`, `andthen-review-code/`, `andthen-review-doc/`, and `andthen-e2e-test/`. Plugin reference docs (e.g., verification patterns) are also copied so commands can find them. Agent Teams commands (`exec-plan-team`, `review-council-team`) are excluded since they require Claude Code.
+This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-spec/`, `andthen-review-code/`). Plugin reference docs are also copied. Agent Teams skills (`exec-plan-team`, `extras-review-council-team`) are excluded since they require Claude Code.
 
-In Claude Code, keep using `/andthen:<command>`. In copied prompts for other agents, invoke the prefixed names such as `/andthen-clarify`, `/andthen-spec`, and `/andthen-review-gap`.
+In Claude Code, invoke with `/andthen:<skill>`. In Codex and other agents, use `$andthen-<skill>` or `/andthen-<skill>`.
 
 
 ## Setup
@@ -67,18 +67,18 @@ The quickest way to get started:
 
 This interactively sets up your project — generates `CLAUDE.md`, creates selected document types, and copies guidelines. Works for new projects, partial setups, and brownfield codebases.
 
-**Manual setup** — if you prefer to set things up yourself, commands reference your project's `CLAUDE.md` for context. Add these sections:
+**Manual setup** — if you prefer to set things up yourself, skills reference your project's `CLAUDE.md` for context. Add these sections:
 
-**1. Project Document Index** — tells commands where to write output (specs, plans, etc.)
+**1. Project Document Index** — tells skills where to write output (specs, plans, etc.)
 **2. Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards
 
 See [`templates/CLAUDE.template.md`](templates/CLAUDE.template.md) for a starter template.
 
-**Optional project docs** — The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these are in [`templates/project-state-templates.md`](templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
+**Optional project docs** — The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these are in [`templates/project-state-templates.md`](templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:extras-map-codebase`.
 
 ### Agent Teams (Optional, Claude Code only)
 
-The `-team` command variants (`exec-plan-team`, `review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
+The `-team` skill variants (`exec-plan-team`, `extras-review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `extras-review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -144,14 +144,14 @@ The `-team` command variants (`exec-plan-team`, `review-council-team`) use [Agen
 - **Quick path**: Bug fixes, small features, GitHub issues
 
 
-## Commands
+## Skills
 
-In Claude Code, invoke with `/andthen:<command>` or just `/<command>` if unambiguous. In copied prompts for other agents, use the prefixed prompt names such as `/andthen-clarify`.
+In Claude Code, invoke with `/andthen:<skill>` or just `/<skill>` if unambiguous. In Codex and other agents, use `$andthen-<skill>` or `/andthen-<skill>`.
 
-### Core Commands
+### Core Skills
 
-| Command | Purpose |
-|---------|---------|
+| Skill | Purpose |
+|-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Requirements discovery — from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
@@ -160,34 +160,29 @@ In Claude Code, invoke with `/andthen:<command>` or just `/<command>` if unambig
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
 | `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
+| `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
+| `review-doc` | Document review for completeness, clarity, and technical accuracy |
+| `e2e-test` | End-to-end browser testing for web applications |
+| `ops` | Deterministic state management, git conventions, and progress tracking |
 
 ### Extras
 
-| Command | Purpose |
-|---------|---------|
-| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
-| `design-system` | Create design tokens and component styles |
-| `wireframes` | Generate HTML wireframes for UI planning |
-| `refactor` | Code improvement and simplification |
-| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
-| `troubleshoot` | Diagnose and fix implementation issues systematically |
-| `map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
+| Skill | Purpose |
+|-------|---------|
+| `extras-quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `extras-design-system` | Create design tokens and component styles |
+| `extras-wireframes` | Generate HTML wireframes for UI planning |
+| `extras-refactor` | Code improvement and simplification |
+| `extras-review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
+| `extras-troubleshoot` | Diagnose and fix implementation issues systematically |
+| `extras-map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
 
 ### Agent Teams Variants (Claude Code only)
 
-| Command | Purpose |
-|---------|---------|
-| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination |
-| `review-council-team` | Multi-perspective review with real-time Agent Teams debate |
-
-### Skills
-
 | Skill | Purpose |
 |-------|---------|
-| `andthen-review-code` | Reusable code review with checklists (quality, security, architecture, UI/UX) |
-| `andthen-review-doc` | Reusable document review for completeness, clarity, and technical accuracy |
-| `andthen-e2e-test` | End-to-end browser testing for web applications |
-| `andthen-ops` | Deterministic state management, git conventions, and progress tracking |
+| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination |
+| `extras-review-council-team` | Multi-perspective review with real-time Agent Teams debate |
 
 
 ## Key Concepts
@@ -212,7 +207,7 @@ clarify → spec → plan → execute → review-gap
 
 ### Implementation Loop
 
-Both `exec-spec` and `quick-implement` use an iterative cycle:
+Both `exec-spec` and `extras-quick-implement` use an iterative cycle:
 ```
 Implement → Verify → Evaluate → (repeat if needed)
 ```
@@ -222,7 +217,7 @@ Verification includes code review, testing, and visual validation (when applicab
 
 ## Agents
 
-Specialized sub-agents used internally by commands:
+Specialized sub-agents used internally by skills:
 
 | Agent | Purpose |
 |-------|---------|
@@ -239,7 +234,7 @@ Specialized sub-agents used internally by commands:
 
 ### Guidelines (`docs/guidelines/`)
 
-Simplified starting points — copy into your project and adapt to your needs. Workflow commands reference these via your project's `CLAUDE.md`, so you can replace them entirely with your own.
+Simplified starting points — copy into your project and adapt to your needs. Workflow skills reference these via your project's `CLAUDE.md`, so you can replace them entirely with your own.
 
 | Guide | Purpose |
 |-------|---------|
@@ -282,14 +277,14 @@ Optional standalone Claude Code hooks for safety and productivity. See [`hooks/R
 
 ## External Dependencies (Optional)
 
-These plugins are available from the official Claude plugins marketplace ([anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official)). Some commands optionally use skills from other plugins when available:
+These plugins are available from the official Claude plugins marketplace ([anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official)). Some skills optionally use skills from other plugins when available:
 
 | Plugin | Used by | Purpose |
 |--------|---------|---------|
-| `code-simplifier` | `refactor`, `exec-spec`, `quick-implement` | Code cleanup and simplification |
-| `frontend-design` | `wireframes` (via `ui-ux-designer` agent) | Design implementation |
+| `code-simplifier` | `extras-refactor`, `exec-spec`, `extras-quick-implement` | Code cleanup and simplification |
+| `frontend-design` | `extras-wireframes` (via `ui-ux-designer` agent) | Design implementation |
 
-Commands work without these plugins but skip the corresponding steps.
+Skills work without these plugins but skip the corresponding steps.
 
 
 

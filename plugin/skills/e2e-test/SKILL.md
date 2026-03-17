@@ -1,5 +1,5 @@
 ---
-name: andthen-e2e-test
+name: e2e-test
 description: End-to-end browser testing for web applications. Discovers user journeys, executes interactive browser tests, validates responsive behavior, verifies data persistence, and generates a comprehensive test report. Use when verifying a web app's functionality end-to-end or after significant feature changes.
 context: fork
 agent: general-purpose

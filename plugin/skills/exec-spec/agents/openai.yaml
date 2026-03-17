@@ -1,0 +1,6 @@
+interface:
+  display_name: "Execute Specification"
+  short_description: "Execute a Feature Implementation Specification"
+
+policy:
+  allow_implicit_invocation: false

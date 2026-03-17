@@ -1,0 +1,6 @@
+interface:
+  display_name: "E2E Testing"
+  short_description: "End-to-end browser testing for web apps"
+
+policy:
+  allow_implicit_invocation: false
