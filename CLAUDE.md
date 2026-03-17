@@ -45,6 +45,16 @@ Always fully read relevant guidelines below as needed, based on the type of work
 ---
 
 
+## Version Bumps
+
+When bumping the version, **always** update both:
+- `CHANGELOG.md` — add new version entry
+- `.claude-plugin/marketplace.json` — update the `"version"` field
+
+
+---
+
+
 ## Useful Tools and MCP Servers
 
 ### Command line file search and code exploration tools

@@ -65,7 +65,7 @@ Choose 5-7 reviewers from this roster based on scope analysis:
 - **Requirements Analyst** — Acceptance criteria verification, edge case coverage, spec compliance, completeness
 
 **Technical Specialists:**
-- **Security Sentinel** — Auth, XSS, CSRF, injection, secrets, input validation, OWASP Top 10, trust boundaries
+- **Security Sentinel** — Auth, XSS, CSRF, injection, secrets, input validation, OWASP Top 10, trust boundaries. Should run Semgrep scan (MCP `security_check` tool or CLI `semgrep scan --config auto --json`) on changed files if available, and incorporate findings into review.
 - **Performance Oracle** — Query optimization, N+1, algorithmic complexity, caching, bundle size, rendering
 - **Architecture Strategist** — SOLID principles, coupling/cohesion, patterns, abstractions, maintainability
 - **Database Specialist** — Schema design, migrations, indexes, constraints, data integrity, query performance

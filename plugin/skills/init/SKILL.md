@@ -87,6 +87,9 @@ Planning (when ready):
 Architecture (create now or generate later via andthen.map-codebase):
   [ ] docs/ARCHITECTURE.md — System architecture overview
 
+Domain (create starter now or generate later via andthen.ubiquitous-language):
+  [ ] docs/UBIQUITOUS_LANGUAGE.md — Domain glossary with canonical terms
+
 Which would you like to create? (e.g. "LEARNINGS, STACK" or "all core" or "none for now")
 ```
 

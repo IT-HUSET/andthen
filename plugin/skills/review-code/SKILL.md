@@ -81,7 +81,18 @@ Assess:
 - API security, headers, CORS, CSRF
 - OWASP Top 10 coverage
 
-Additionally, run `/security-review` _(if available — Claude Code built-in)_ for a quick scan of pending changes against common vulnerability patterns.
+**Automated security scanning** — Run available tools in parallel to complement manual checklist review. All tools are optional — proceed with manual review if none are available.
+
+- **`/security-review`** — Run _(if available — Claude Code built-in)_ for a quick scan of pending changes against common vulnerability patterns.
+
+- **Semgrep** — Run on changed files using one of these approaches (in order of preference):
+  1. **Claude Code plugin** (`semgrep/mcp-marketplace`) — If installed, provides auto-scanning on Write/Edit via hooks and MCP tools for on-demand scanning.
+  2. **CLI** — If `semgrep` is installed locally, run directly:
+     ```bash
+     semgrep scan --config auto --severity WARNING --severity ERROR --json <changed-files-or-dirs>
+     ```
+     Parse JSON output: `results[].extra.severity` (ERROR → CRITICAL, WARNING → HIGH), `results[].extra.metadata.cwe` for classification, `results[].extra.message` for descriptions.
+  3. **MCP tools** — If the `semgrep` MCP server is available, call the `security_check` tool on changed files, or `semgrep_scan` with a specific config (e.g. `p/security-audit`, `p/owasp-top-ten`). Provides structured findings with severity, CWE references, and suggested fixes.
 
 #### Architecture Review
 **Checklist**: [ARCHITECTURAL-REVIEW-CHECKLIST.md](checklists/ARCHITECTURAL-REVIEW-CHECKLIST.md)

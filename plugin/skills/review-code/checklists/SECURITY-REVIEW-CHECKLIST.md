@@ -143,6 +143,32 @@ Failing to properly handle errors and edge cases, leading to crashes or vulnerab
 
 ---
 
+## Automated Scanning (if available)
+
+Use automated SAST tools to complement manual review. All tools are optional — proceed with manual review if unavailable.
+
+### Semgrep
+- [ ] Run Semgrep scan on changed files (MCP `security_check` tool or CLI `semgrep scan --config auto`)
+- [ ] Triage ERROR-severity findings as CRITICAL/HIGH candidates
+- [ ] Triage WARNING-severity findings as HIGH/MEDIUM candidates
+- [ ] Cross-reference Semgrep CWE tags with OWASP categories above
+- [ ] Verify Semgrep findings are true positives (not false positives from context)
+- [ ] Check for findings with `fix` field — evaluate suggested auto-fixes
+
+**Semgrep config recommendations by focus:**
+| Focus | Config |
+|-------|--------|
+| General security | `auto` or `p/security-audit` |
+| OWASP compliance | `p/owasp-top-ten` |
+| Secret detection | `p/secrets` |
+| Language-specific | `p/python`, `p/javascript`, `p/java`, etc. |
+
+### Other tools
+- [ ] Run `/security-review` (Claude Code built-in, if available)
+- [ ] Run project-specific linters/SAST per project guidelines
+
+---
+
 ## Issue Classification
 
 ### 🚨 CRITICAL (Immediate Fix Required)
