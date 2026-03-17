@@ -175,6 +175,10 @@ Generate markdown report with:
 - **Remediation Plan** - Categorized/prioritized issues (Critical/High/Medium/Low), dependencies, sequencing, risk assessment, specific remediation steps, acceptance criteria
 - **Appendix** (if needed) - Code snippets, technical details, reference materials
 
-Store report in: `<project_root>/.agent_temp/reviews/<feature-name>-gap-review-<YYYY-MM-DD>.md`
+**Report file naming:**
+- **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
+- **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
 
-When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-gap-review-2026-03-15.md`). Do not use absolute paths.
+Store report in: `<project_root>/.agent_temp/reviews/<feature-name>-gap-review-<agent>-<YYYY-MM-DD>.md`
+
+When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-gap-review-claude-2026-03-15.md`). Do not use absolute paths.

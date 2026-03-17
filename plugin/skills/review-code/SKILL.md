@@ -139,6 +139,10 @@ Generate markdown report with:
 1. [Prioritized action items]
 ```
 
-Store report at: `<project_root>/.agent_temp/reviews/<feature-name>-code-review-<YYYY-MM-DD>.md`
+**Report file naming:**
+- **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
+- **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
 
-When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-code-review-2026-03-15.md`). Do not use absolute paths.
+Store report at: `<project_root>/.agent_temp/reviews/<feature-name>-code-review-<agent>-<YYYY-MM-DD>.md`
+
+When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-code-review-claude-2026-03-15.md`). Do not use absolute paths.

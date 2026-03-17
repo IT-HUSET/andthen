@@ -231,10 +231,14 @@ Date: {YYYY-MM-DD}
 {Prioritized action items based on validated findings}
 ```
 
-Store in: `<project_root>/.agent_temp/reviews/<scope>-council-review-<YYYY-MM-DD>.md`
+**Report file naming:**
+- **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
+- **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
+
+Store in: `<project_root>/.agent_temp/reviews/<scope>-council-review-<agent>-<YYYY-MM-DD>.md`
 
 Where `<scope>` is kebab-case identifier: file name (e.g., `auth-module`), PR number (e.g., `pr-123`), or feature name from arguments.
 
 ## Report Location
 
-When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-module-council-review-2026-03-15.md`). Do not use absolute paths.
+When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-module-council-review-claude-2026-03-15.md`). Do not use absolute paths.
