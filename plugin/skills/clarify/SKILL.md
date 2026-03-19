@@ -1,7 +1,7 @@
 ---
 name: andthen.clarify
 description: Clarify requirements through systematic discovery of gaps, edge cases, and scope boundaries for applications or features.
-argument-hint: [Requirements source - description, file path, or GitHub issue URL]
+argument-hint: "[Requirements source - description, file path, or GitHub issue URL]"
 ---
 
 # Clarify Requirements

@@ -1,3 +1,6 @@
 interface:
-  display_name: "Gap Analysis & Review"
+  display_name: "AndThen - Gap Analysis & Review"
   short_description: "Gap analysis and code review with remediation plan"
+
+policy:
+  allow_implicit_invocation: false

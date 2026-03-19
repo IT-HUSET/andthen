@@ -146,7 +146,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 
 | Command | Description | Model | Effort | Rationale |
 |---------|-------------|-------|--------|-----------|
-| `/review-gap` | Gap analysis + code review (default), doc review (`--doc`), PR review (`--pr`) | `sonnet` | `medium`–`high` | Medium for routine, high for security-critical or complex gap analysis |
+| `/review-gap` | Gap analysis + code review against implementation and requirements | `sonnet` | `medium`–`high` | Medium for routine, high for security-critical or complex gap analysis |
 | `review-code` (skill) | Thorough code review (quality, security, architecture) | `sonnet` | `medium`–`high` | Medium for routine review, high for security-critical |
 | `review-doc` (skill) | Review specs/PRDs/documentation | `sonnet` | `medium` | Comprehension and completeness checking |
 | `/review-council` | Multi-perspective adversarial review | `sonnet` | `high` | Multiple subagent perspectives need depth to be meaningful |

@@ -1,7 +1,7 @@
 ---
 name: andthen.design-system
 description: Creates a pragmatic design system/style guide from feature requirements and optional concept design inputs
-argument-hint: [Feature requirements - inline, file path, or PRD reference] [Optional - concept design directory]
+argument-hint: "[Feature requirements - inline, file path, or PRD reference] [Optional - concept design directory]"
 ---
 
 # Create Design System / Style Guide

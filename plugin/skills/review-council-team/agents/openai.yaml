@@ -1,5 +1,5 @@
 interface:
-  display_name: "Review Council (Agent Teams)"
+  display_name: "AndThen - Review Council (Agent Teams)"
   short_description: "Multi-perspective review via Agent Teams debate"
 
 policy:

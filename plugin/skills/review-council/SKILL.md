@@ -1,7 +1,7 @@
 ---
 name: andthen.review-council
 description: Multi-perspective code review with adversarial debate to validate findings
-argument-hint: [Optional - specific files, PR number, or focus area]
+argument-hint: "[Optional - specific files, PR number, or focus area]"
 ---
 
 # Review Council

@@ -5,6 +5,24 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.6.3] — 2026-03-19
+
+### Changed
+- **Plan skill: PRD responsibility explicit** — description, title, and OpenAI agent display name now clearly state PRD creation as a primary responsibility (not just an implicit prerequisite)
+- **"AndThen -" prefix on all OpenAI display names** — consistent `"AndThen - <Skill>"` branding across all `openai.yaml` agent configs
+- **`review-gap` input interpretation guardrails** — new "Input Interpretation" section clarifies that documents passed as arguments are comparison baselines (requirements sources), not the review target. Stops early if no implementation exists to compare against
+- **Workflow diagrams corrected** — `review-gap --doc` → `review-doc` in README and plugin README pipeline diagrams
+- **Model effort selection guide** — updated `review-gap` description to reflect its focused scope (gap analysis against requirements, no longer doc/PR review modes)
+- **Triage OpenAI agent metadata** — display name and description updated to match the skill's current name and scope (`"Triage & Fix Issues"`)
+- **CLAUDE.template.md** — expanded guideline trigger wording to include "code exploration, architecture and solution design"
+
+### Fixed
+- **Missing `allow_implicit_invocation: false` policy** added to 10 OpenAI agent configs that were missing it (clarify, design-system, map-codebase, ops, quick-implement, refactor, review-code, review-doc, review-gap, trade-off, wireframes)
+- **Argument-hint quoting** — all `argument-hint` values in SKILL.md frontmatter now properly quoted
+- **`install-skills.sh` reference path rewriting** — installed skills now rewrite `plugin/references/` paths to sibling `<prefix>references/` paths so references resolve correctly outside the repo
+
+---
+
 ## [0.6.2] — 2026-03-17
 
 ### Added

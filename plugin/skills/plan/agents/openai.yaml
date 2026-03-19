@@ -1,6 +1,6 @@
 interface:
-  display_name: "Create Plan"
-  short_description: "Create implementation plan with story breakdown"
+  display_name: "AndThen - Create PRD & Plan"
+  short_description: "Create PRD and implementation plan with story breakdown"
 
 policy:
   allow_implicit_invocation: false

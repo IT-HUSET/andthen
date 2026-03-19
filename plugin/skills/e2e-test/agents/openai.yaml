@@ -1,5 +1,5 @@
 interface:
-  display_name: "E2E Testing"
+  display_name: "AndThen - E2E Testing"
   short_description: "End-to-end browser testing for web apps"
 
 policy:

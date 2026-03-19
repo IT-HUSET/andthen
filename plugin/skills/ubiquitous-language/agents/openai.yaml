@@ -1,5 +1,5 @@
 interface:
-  display_name: "Extract Ubiquitous Language"
+  display_name: "AndThen - Extract Ubiquitous Language"
   short_description: "Extract and maintain domain glossary from codebase"
 
 policy:

@@ -1,3 +1,6 @@
 interface:
-  display_name: "Map Codebase"
+  display_name: "AndThen - Map Codebase"
   short_description: "Analyze codebase and discover implicit requirements"
+
+policy:
+  allow_implicit_invocation: false

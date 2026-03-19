@@ -1,5 +1,5 @@
 interface:
-  display_name: "Execute Plan (Agent Teams)"
+  display_name: "AndThen - Execute Plan (Agent Teams)"
   short_description: "Execute plan via Agent Teams pipeline"
 
 policy:

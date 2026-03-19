@@ -1,5 +1,5 @@
 interface:
-  display_name: "Initialize Project"
+  display_name: "AndThen - Initialize Project"
   short_description: "Set up AndThen workflow structure"
 
 policy:

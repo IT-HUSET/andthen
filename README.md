@@ -101,7 +101,7 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 │  └───────────────────────────┬───────────────────────────┘  │
 │                              │                              │
 │  (optional)                  ▼          (optional)          │
-│  clarify ──────────────→   spec   ────→ review-gap --doc    │
+│  clarify ──────────────→   spec   ────→ review-doc          │
 │                              │                              │
 │                              ▼                              │
 │                          exec-spec                          │
@@ -118,7 +118,7 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 │  └───────────────────────┬─────────────────────────────┘    │
 │                          │                                  │
 │  (optional)              ▼            (optional)            │
-│  clarify ──────→  plan  ──────→  review-gap --doc           │
+│  clarify ──────→  plan  ──────→  review-doc                 │
 │             (PRD + story breakdown)                         │
 │                          │                                  │
 │              ┌───────────┴───────────┐                      │

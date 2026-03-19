@@ -1,7 +1,7 @@
 ---
 name: andthen.triage
 description: Systematically investigate, diagnose, and fix issues. Default mode fixes issues; --plan-only stops after diagnosis and outputs a fix plan; --to-issue publishes the plan as a GitHub issue.
-argument-hint: [Scope] [--plan-only] [--to-issue]
+argument-hint: "[Scope] [--plan-only] [--to-issue]"
 ---
 
 # Triage and Fix Implementation Issues

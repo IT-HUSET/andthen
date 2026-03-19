@@ -1,7 +1,7 @@
 ---
 name: andthen.review-council-team
 description: Multi-perspective code review using Agent Teams with real-time adversarial debate (requires Agent Teams)
-argument-hint: [Optional - specific files, PR number, or focus area]
+argument-hint: "[Optional - specific files, PR number, or focus area]"
 ---
 
 # Review Council (Agent Teams)

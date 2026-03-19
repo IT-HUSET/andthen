@@ -4,7 +4,7 @@ description: Performs thorough code reviews covering code quality, security, arc
 context: fork
 agent: general-purpose
 user-invocable: true
-argument-hint: [scope/files] [--to-issue] [--to-pr <number>]
+argument-hint: "[scope/files] [--to-issue] [--to-pr <number>]"
 ---
 
 # Code Review Skill

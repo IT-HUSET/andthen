@@ -1,5 +1,5 @@
 interface:
-  display_name: "Create Specification"
+  display_name: "AndThen - Create Specification"
   short_description: "Generate Feature Implementation Specification"
 
 policy:

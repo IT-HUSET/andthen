@@ -1,3 +1,6 @@
 interface:
-  display_name: "Quick Implement"
+  display_name: "AndThen - Quick Implement"
   short_description: "Fast implementation for small features or fixes"
+
+policy:
+  allow_implicit_invocation: false

@@ -1,7 +1,7 @@
 ---
 name: andthen.review-gap
 description: "Gap analysis: review implementation against requirements with code review and actionable remediation plan."
-argument-hint: [Additional Context] [--to-issue] [--to-pr <number>]
+argument-hint: "[Requirements source or additional context] [--to-issue] [--to-pr <number>]"
 ---
 
 # Gap Analysis
@@ -12,6 +12,12 @@ Comprehensive post-execution review that validates implementation against requir
 
 ADDITIONAL_CONTEXT: $ARGUMENTS
 *(Optional: Additional requirements or context beyond what's in the codebase)*
+
+### Input Interpretation
+- Treat file paths, directories, URLs, issue links, PRDs, specs, and other documents passed in `ADDITIONAL_CONTEXT` as **requirements sources / comparison baselines**, **not** as the artifact to review.
+- The primary task is always: **compare the current implementation in the repo/worktree against the requirements** and identify gaps.
+- If the user wants the document itself reviewed for clarity, completeness, or quality, that is **not** `andthen.review-gap`; use `andthen.review-doc`.
+- If requirements documents are provided but there is no identifiable implementation to compare against, stop and report that a gap analysis cannot be performed yet because there is no implementation target.
 
 ### Optional Output Flags
 - `--to-issue` → PUBLISH_ISSUE: Publish review report as a GitHub issue
@@ -25,6 +31,7 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Read-only analysis** - No code changes, commits, or modifications during analysis
 - **Be thorough** - Don't skip steps or rush analysis; completeness is critical
+- **Review the implementation, not the input documents** - Documents supplied via arguments are sources of expected behavior and acceptance criteria. They are not the review target unless the user explicitly invoked `andthen.review-doc` instead.
 - **Delegate code review to a sub-agent** _(if supported by your coding agent)_ that uses the `andthen.review-code` skill (do NOT invoke the skill directly)
 - **Document everything** - All findings and recommendations must be captured in final report
 
@@ -39,7 +46,7 @@ Gather and understand all requirements from multiple sources:
 - **Documentation** - Check specs, ADRs, design docs, PRDs, or feature documentation in the codebase
 - **Issue/Ticket References** - Look for referenced issues, tickets, or PRs that define requirements
 - **Code Comments** - Review TODO comments, function documentation, or inline requirement notes
-- **ADDITIONAL_CONTEXT** - If specified via arguments, these requirements take precedence and should be the primary focus
+- **ADDITIONAL_CONTEXT** - If specified via arguments, treat it as supplemental or authoritative requirements input. These requirements take precedence, but they remain the **comparison baseline**, not the review target.
 - **Read additional guidelines and documentation** - Read additional relevant guidelines and documentation (API, guides, reference, etc.) as needed
 - **Verify against authoritative sources** - When reviewing technical choices, API usage, security patterns, or framework conventions, look up official documentation to verify findings are based on current facts (not outdated assumptions). Use web searches and Context7 MCP as needed.
 
@@ -61,6 +68,7 @@ Map the current state of the implementation:
   - Use `git diff` to see actual code changes
   - Use `git log` with options like `--since="1 week ago"` or `--author` to review recent commit history
   - Check for work-in-progress branches or uncommitted changes
+  - If no relevant implementation can be found, stop and report that there is nothing to compare against the requirements yet
 
 - **Codebase Understanding**
   - Use `tree -d -L 3` to understand directory structure
@@ -74,6 +82,8 @@ Map the current state of the implementation:
   - Map relationships and dependencies between modified components
 
 **Gate**: Current implementation state fully mapped and documented
+
+Only after both gates above pass should you continue. Do not substitute a document-quality review for implementation analysis.
 
 
 ### 3. Review Solution Quality

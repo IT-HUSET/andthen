@@ -1,7 +1,7 @@
 ---
 name: andthen.init
 description: Set up AndThen workflow structure for a project — handles new projects, partial setups, and brownfield codebases
-argument-hint: [project name or path]
+argument-hint: "[project name or path]"
 ---
 
 # Initialize Project

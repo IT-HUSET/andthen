@@ -91,6 +91,16 @@ for dir in "$repo_root/plugin/skills"/*; do
   esac
 
   copy_dir_contents "$dir" "$skills_dir/$target_name"
+
+  # Rewrite repo-relative reference paths to installed sibling paths
+  if [ "$dry_run" -eq 0 ]; then
+    for md in "$skills_dir/$target_name"/*.md; do
+      [ -f "$md" ] || continue
+      sed -i.bak "s|plugin/references/|../${prefix}references/|g" "$md"
+      rm -f "$md.bak"
+    done
+  fi
+
   skills_count=$((skills_count + 1))
 done
 

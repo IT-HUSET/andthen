@@ -1,7 +1,7 @@
 ---
 name: andthen.map-codebase
 description: Analyze an existing codebase to produce structured documentation and discover implicit requirements
-argument-hint: [output directory (defaults to docs/)]
+argument-hint: "[output directory (defaults to docs/)]"
 ---
 
 # Map Codebase

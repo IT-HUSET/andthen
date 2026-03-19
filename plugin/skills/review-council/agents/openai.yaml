@@ -1,5 +1,5 @@
 interface:
-  display_name: "Review Council"
+  display_name: "AndThen - Review Council"
   short_description: "Multi-perspective review with adversarial debate"
 
 policy:

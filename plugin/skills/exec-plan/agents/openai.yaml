@@ -1,5 +1,5 @@
 interface:
-  display_name: "Execute Plan"
+  display_name: "AndThen - Execute Plan"
   short_description: "Execute plan via sub-agent pipeline"
 
 policy:

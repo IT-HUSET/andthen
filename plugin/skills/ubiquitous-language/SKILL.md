@@ -1,7 +1,7 @@
 ---
 name: andthen.ubiquitous-language
 description: Extract and maintain a domain glossary (UBIQUITOUS_LANGUAGE.md) from codebase, documentation, and conversation. Use when starting a new domain-heavy project, onboarding to an existing codebase, or when terminology drift is suspected.
-argument-hint: [Scope or focus area] [--update]
+argument-hint: "[Scope or focus area] [--update]"
 ---
 
 # Extract and Maintain Ubiquitous Language

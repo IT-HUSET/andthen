@@ -1,10 +1,10 @@
 ---
 name: andthen.plan
-description: Creates implementation plan with story breakdown. Can start from existing PRD or discover requirements first. Picks up prior artifacts from `andthen.clarify`. Lightweight planning - detailed specs created JIT per story.
-argument-hint: [Specs directory or requirements source] [--to-issue]
+description: Creates PRD and implementation plan with story breakdown. Discovers requirements interactively when no PRD exists, or builds on prior artifacts from `andthen.clarify`. Lightweight planning - detailed specs created JIT per story.
+argument-hint: "[Specs directory or requirements source] [--to-issue]"
 ---
 
-# Create Implementation Plan
+# Create PRD & Implementation Plan
 
 Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If prior artifacts exist (e.g., `requirements-clarification.md` from `andthen.clarify` or a draft PRD), uses them as the basis for PRD creation without re-doing discovery. If nothing exists, runs full requirements discovery to create a PRD first.
 
