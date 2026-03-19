@@ -39,8 +39,8 @@ Every step naturally leads to the next. *"And then?"* forces structured progress
 
 ```
 clarify → plan → spec → execute → review-gap
-   ↑                                  │
-   └──────── feedback loop ───────────┘
+                   ↑                   │
+                   └── feedback loop ──┘
 ```
 
 ### Implementation Loop
