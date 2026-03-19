@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""PreToolUse(Bash) hook: blocks dangerous/destructive shell commands via regex matching."""
+"""PreToolUse(Bash) hook: blocks dangerous/destructive shell commands via regex matching.
+
+NOTE: This is not an exhaustive list of dangerous commands. It covers common destructive
+patterns but cannot catch every possible risky operation. Always keep Claude Code's built-in
+permission system enabled, and add project-specific patterns to blocked-commands.json as needed.
+"""
 
 import json
 import os
@@ -14,6 +19,17 @@ HARDCODED_DEFAULTS = [
     (r"\bchmod\s+777", "chmod 777 blocked."),
     (r"\bdd\s+if=.*of=/dev/", "dd to device blocked."),
     (r"\bmkfs\.", "Filesystem format blocked."),
+    (r"\b(nc|netcat|ncat)\b", "Netcat blocked."),
+    (r"\bsocat\b", "Socat blocked."),
+    (r"\btelnet\b", "Telnet blocked."),
+    (r"\b(shutdown|reboot|halt|poweroff)\b", "System shutdown/reboot blocked."),
+    (r"\b(fdisk|parted)\b", "Disk partitioning blocked."),
+    (r"\b(mount|umount)\b", "Filesystem mount/unmount blocked."),
+    (r"\b(passwd|useradd|userdel|usermod)\b", "User management blocked."),
+    (r"\bchown\b", "Ownership change blocked."),
+    (r"\bcrontab\s+-r\b", "Crontab wipe blocked."),
+    (r"\bbase64\b.*\|\s*(sh|bash|zsh|dash|ksh)\b", "Encoded payload execution blocked."),
+    (r"bash\s+-i\s+>&\s*/dev/tcp/", "Reverse shell blocked."),
 ]
 
 HARDCODED_SAFE_PIPE_TARGETS = ["jq", "grep", "sort", "wc", "head", "tail", "less", "cat", "tee", "tr", "uniq"]

@@ -58,7 +58,9 @@ Add entries to `~/.claude/settings.json` (user-level, global) or `.claude/settin
 
 ### block-dangerous-commands.py
 
-Intercepts Bash commands and blocks destructive patterns: `rm -rf`, fork bombs, `chmod 777`, `dd` to devices, `mkfs`, pipe-to-shell (`curl | sh`), and interpreter escapes (`bash -c`, `eval`, `python3 -c`). Allows safe pipe targets like `jq`, `grep`, `sort`.
+Intercepts Bash commands and blocks destructive patterns: `rm -rf`, fork bombs, `chmod 777`, `dd` to devices, `mkfs`, pipe-to-shell (`curl | sh`), interpreter escapes (`bash -c`, `eval`, `python3 -c`), network tools (`nc`, `socat`, `telnet`), system control (`shutdown`, `reboot`), privilege commands (`chown`, `passwd`, `useradd`), and obfuscated execution (`base64 | bash`, reverse shells). Allows safe pipe targets like `jq`, `grep`, `sort`.
+
+> **Note/Disclaimer/Warning:** This is not an exhaustive list of dangerous commands. It covers common destructive patterns but cannot catch every possible risky operation. Always review agent commands, keep Claude Code's built-in permission system enabled, and add project-specific patterns to your local `blocked-commands.json` as needed.
 
 **Config**: `blocked-commands.json` — customize blocked patterns and safe pipe targets. Copy to `~/.claude/hooks/configs/` to override defaults.
 

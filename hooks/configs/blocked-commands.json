@@ -54,6 +54,61 @@
       "regex": "\\b(python3?|node|ruby|perl)\\s+-(c|e)\\s+[\"']",
       "message": "Interpreter inline execution blocked. Use a script file instead.",
       "category": "interpreter_escape"
+    },
+    {
+      "regex": "\\b(nc|netcat|ncat)\\b",
+      "message": "Netcat blocked. Network socket tools are not needed for development tasks.",
+      "category": "network"
+    },
+    {
+      "regex": "\\bsocat\\b",
+      "message": "Socat blocked. Bidirectional data relay tools are not needed for development tasks.",
+      "category": "network"
+    },
+    {
+      "regex": "\\btelnet\\b",
+      "message": "Telnet blocked. Use curl or other HTTP tools instead.",
+      "category": "network"
+    },
+    {
+      "regex": "\\b(shutdown|reboot|halt|poweroff)\\b",
+      "message": "System shutdown/reboot blocked.",
+      "category": "system_damage"
+    },
+    {
+      "regex": "\\b(fdisk|parted)\\b",
+      "message": "Disk partitioning blocked.",
+      "category": "system_damage"
+    },
+    {
+      "regex": "\\b(mount|umount)\\b",
+      "message": "Filesystem mount/unmount blocked.",
+      "category": "system_damage"
+    },
+    {
+      "regex": "\\b(passwd|useradd|userdel|usermod)\\b",
+      "message": "User management blocked.",
+      "category": "privilege"
+    },
+    {
+      "regex": "\\bchown\\b",
+      "message": "Ownership change blocked.",
+      "category": "privilege"
+    },
+    {
+      "regex": "\\bcrontab\\s+-r\\b",
+      "message": "Crontab wipe blocked. Remove individual entries instead.",
+      "category": "privilege"
+    },
+    {
+      "regex": "\\bbase64\\b.*\\|\\s*(sh|bash|zsh|dash|ksh)\\b",
+      "message": "Encoded payload execution blocked. Do not decode into a shell.",
+      "category": "obfuscated_exec"
+    },
+    {
+      "regex": "bash\\s+-i\\s+>&\\s*/dev/tcp/",
+      "message": "Reverse shell blocked.",
+      "category": "reverse_shell"
     }
   ],
   "safe_pipe_targets": ["jq", "grep", "sort", "wc", "head", "tail", "less", "cat", "tee", "tr", "uniq"]
