@@ -1,6 +1,6 @@
 # AndThen Plugin
 
-Structured workflows for agentic development — from requirements to shipped code.
+Lightweight spec-driven development for AI coding agents.
 
 See the [full documentation](../README.md) for workflow overview, usage examples, and setup.
 
