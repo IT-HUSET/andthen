@@ -31,7 +31,7 @@ Vulnerabilities introduced through third-party SDKs, libraries, or build tooling
 
 - [ ] All third-party SDKs and dependencies inventoried and sourced from trusted registries
 - [ ] Dependencies pinned to specific versions with integrity verification
-- [ ] Automated vulnerability scanning in CI/CD (e.g., `npm audit`, `pod-audit`, Dependabot)
+- [ ] Automated vulnerability scanning in CI/CD (e.g., `npm audit`, `cocoapods-audit`, Dependabot)
 - [ ] Third-party SDKs reviewed for excessive permissions or data collection
 - [ ] Ad/analytics SDKs audited for data exfiltration risks
 
