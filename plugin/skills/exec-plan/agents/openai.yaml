@@ -3,4 +3,4 @@ interface:
   short_description: "Execute plan via sub-agent pipeline"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

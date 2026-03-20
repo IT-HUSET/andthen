@@ -3,4 +3,4 @@ interface:
   short_description: "End-to-end browser testing for web apps"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

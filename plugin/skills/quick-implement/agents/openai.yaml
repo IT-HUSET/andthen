@@ -3,4 +3,4 @@ interface:
   short_description: "Fast implementation for small features or fixes"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

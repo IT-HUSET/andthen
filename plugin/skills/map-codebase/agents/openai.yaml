@@ -3,4 +3,4 @@ interface:
   short_description: "Analyze codebase and discover implicit requirements"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

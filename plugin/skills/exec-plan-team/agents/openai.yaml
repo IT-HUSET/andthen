@@ -3,4 +3,4 @@ interface:
   short_description: "Execute plan via Agent Teams pipeline"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

@@ -24,7 +24,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **CLAUDE.template.md** — expanded guideline trigger wording to include "code exploration, architecture and solution design"
 
 ### Fixed
-- **Missing `allow_implicit_invocation: false` policy** added to 10 OpenAI agent configs that were missing it (clarify, design-system, map-codebase, ops, quick-implement, refactor, review-code, review-doc, review-gap, trade-off, wireframes)
+- **`allow_implicit_invocation: true` policy** added to OpenAI agent skill configs – this is a workaround for an apparent bug in Codex.
 - **Argument-hint quoting** — all `argument-hint` values in SKILL.md frontmatter now properly quoted
 - **`install-skills.sh` reference path rewriting** — installed skills now rewrite `plugin/references/` paths to sibling `<prefix>references/` paths so references resolve correctly outside the repo
 

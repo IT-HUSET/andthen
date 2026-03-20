@@ -3,4 +3,4 @@ interface:
   short_description: "State management, git conventions, progress tracking"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

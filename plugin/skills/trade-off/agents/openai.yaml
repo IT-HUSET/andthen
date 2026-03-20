@@ -3,4 +3,4 @@ interface:
   short_description: "Technical research and trade-off analysis"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

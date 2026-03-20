@@ -3,4 +3,4 @@ interface:
   short_description: "Create PRD and implementation plan with story breakdown"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

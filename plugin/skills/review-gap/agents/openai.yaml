@@ -3,4 +3,4 @@ interface:
   short_description: "Gap analysis and code review with remediation plan"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

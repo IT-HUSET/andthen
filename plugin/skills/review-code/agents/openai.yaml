@@ -3,4 +3,4 @@ interface:
   short_description: "Thorough code review with checklists"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

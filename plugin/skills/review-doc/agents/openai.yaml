@@ -3,4 +3,4 @@ interface:
   short_description: "Review docs for completeness and accuracy"
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true
