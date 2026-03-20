@@ -150,27 +150,27 @@ Weak, broken, or incorrectly implemented cryptography protecting sensitive data.
 
 ## Issue Classification
 
-### CRITICAL
+### 🚨 CRITICAL (Immediate Fix Required)
 - Hardcoded credentials or API keys in binary
 - TLS certificate validation disabled
 - Authentication state stored in tamperable, unprotected storage
 - Sensitive PII stored in plain SharedPreferences or NSUserDefaults
 - Broken cryptography (weak keys, static IVs, ECB mode)
 
-### HIGH
+### ⚠️ HIGH (Fix Before Release)
 - Jailbreak/root detection absent in high-security apps
 - Debug build distributed to production
 - Sensitive data in logs
 - `android:allowBackup=true` on apps with sensitive data
 - Deep link / URL scheme parameters not validated
 
-### MEDIUM
+### 🔶 MEDIUM (Fix Soon)
 - Excessive permissions requested
 - Analytics SDKs collecting unnecessary PII
 - Missing `FLAG_SECURE` on sensitive screens
 - Certificate pinning absent for high-risk communications
 
-### LOW
+### 💡 LOW (Track & Plan)
 - Obfuscation not applied to sensitive logic
 - Coarse location used where precise is requested
 - Clipboard not restricted on password fields

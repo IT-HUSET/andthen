@@ -139,25 +139,25 @@ Trusting data from third-party APIs without validation, enabling injection or lo
 
 ## Issue Classification
 
-### CRITICAL
+### 🚨 CRITICAL (Immediate Fix Required)
 - BOLA — accessing another user's resources (data breach)
 - BFLA — regular user accessing admin functions
 - Authentication bypass
 - Mass assignment of privileged fields (e.g., `role`, `isAdmin`)
 
-### HIGH
+### ⚠️ HIGH (Fix Before Release)
 - No rate limiting on auth or high-value endpoints
 - CORS wildcard on credentialed endpoints
 - SSRF via user-supplied URLs
 - JWT not fully validated
 
-### MEDIUM
+### 🔶 MEDIUM (Fix Soon)
 - Response over-exposure (extra fields returned)
 - Missing pagination limits
 - Deprecated API versions still active and unmonitored
 - Error messages leaking internal details
 
-### LOW
+### 💡 LOW (Track & Plan)
 - API docs exposed in production
 - Missing idempotency on sensitive operations
 - Third-party API calls missing timeouts

@@ -144,25 +144,25 @@ Pipeline activity not logged or monitored, making attacks or misuse undetectable
 
 ## Issue Classification
 
-### CRITICAL
+### 🚨 CRITICAL (Immediate Fix Required)
 - Secrets hardcoded in pipeline config or logged in plaintext
 - PPE — untrusted PR code can access production secrets
 - Production deployment has no approval gate
 - Third-party actions pinned to mutable tags (supply chain risk)
 
-### HIGH
+### ⚠️ HIGH (Fix Before Release)
 - Pipeline identity has overly broad permissions (e.g., org-level write)
 - Secrets accessible to build/test jobs that don't need them
 - Self-hosted runners shared across untrusted projects
 - No artifact signing or integrity verification
 
-### MEDIUM
+### 🔶 MEDIUM (Fix Soon)
 - Dependencies not pinned in lock files
 - Stale or unused credentials not revoked
 - Missing pipeline run audit logs
 - Container images not pinned by digest
 
-### LOW
+### 💡 LOW (Track & Plan)
 - Third-party actions not reviewed at adoption
 - SBOMs not generated for artifacts
 - Log retention below compliance recommendations
