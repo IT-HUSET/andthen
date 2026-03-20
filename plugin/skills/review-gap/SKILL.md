@@ -1,7 +1,7 @@
 ---
 name: andthen.review-gap
-description: "Gap analysis: review implementation against requirements with code review and actionable remediation plan."
-argument-hint: "[Requirements source or additional context] [--to-issue] [--to-pr <number>]"
+description: "Implementation gap analysis: compare current code/worktree against requirements baselines with code review and actionable remediation plan."
+argument-hint: "[Requirements baseline: plan/spec/PRD/issue/path/URL] [--to-issue] [--to-pr <number>]"
 ---
 
 # Gap Analysis
@@ -11,13 +11,23 @@ Comprehensive post-execution review that validates implementation against requir
 ## Variables
 
 ADDITIONAL_CONTEXT: $ARGUMENTS
-*(Optional: Additional requirements or context beyond what's in the codebase)*
+*(Optional: Requirements baselines or additional context beyond what's in the codebase)*
 
 ### Input Interpretation
-- Treat file paths, directories, URLs, issue links, PRDs, specs, and other documents passed in `ADDITIONAL_CONTEXT` as **requirements sources / comparison baselines**, **not** as the artifact to review.
-- The primary task is always: **compare the current implementation in the repo/worktree against the requirements** and identify gaps.
+- Treat file paths, directories, URLs, issue links, PRDs, specs, plans, and other documents passed in `ADDITIONAL_CONTEXT` as **requirements sources / comparison baselines**, **not** as the artifact to review.
+- The review target is always the **current implementation in the project workspace**. This may span multiple repos, packages, or directories.
+- If a requirements document lives in a different repo than the implementation, use the document as the baseline and review the implementation repo/worktree it refers to.
+- The primary task is always: **compare the current implementation in the workspace against the requirements** and identify gaps.
 - If the user wants the document itself reviewed for clarity, completeness, or quality, that is **not** `andthen.review-gap`; use `andthen.review-doc`.
-- If requirements documents are provided but there is no identifiable implementation to compare against, stop and report that a gap analysis cannot be performed yet because there is no implementation target.
+- If, after resolving the workspace structure, there is still no identifiable implementation to compare against, stop and report that a gap analysis cannot be performed yet because there is no implementation target.
+
+### Examples
+- `andthen.review-gap docs/specs/payments/plan.md`
+  - Use `plan.md` as the requirements baseline, then inspect the current payments implementation in the workspace. Do **not** review the plan text itself.
+- `andthen.review-gap ../private/docs/specs/sdk-phase4/plan.md`
+  - Use the private-repo plan as the baseline, then inspect the implementation in the public/code repo if workspace docs indicate that is where the code lives.
+- If the user wants feedback on the plan/spec document itself:
+  - That is `andthen.review-doc`, not `andthen.review-gap`.
 
 ### Optional Output Flags
 - `--to-issue` → PUBLISH_ISSUE: Publish review report as a GitHub issue
@@ -31,12 +41,31 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Read-only analysis** - No code changes, commits, or modifications during analysis
 - **Be thorough** - Don't skip steps or rush analysis; completeness is critical
-- **Review the implementation, not the input documents** - Documents supplied via arguments are sources of expected behavior and acceptance criteria. They are not the review target unless the user explicitly invoked `andthen.review-doc` instead.
+- **Default to workspace-wide resolution** - Do not assume the implementation is in the same repo as the requirements document. In multi-repo workspaces, explicitly locate the implementation target first.
 - **Delegate code review to a sub-agent** _(if supported by your coding agent)_ that uses the `andthen.review-code` skill (do NOT invoke the skill directly)
 - **Document everything** - All findings and recommendations must be captured in final report
 
 
 ## Workflow
+
+### 0. Resolve Review Target
+
+Before any analysis, identify and state:
+
+- **Requirements baselines** - Which files, issues, PRDs, specs, plans, or URLs define expected behavior
+- **Implementation target** - Which repo(s), package(s), directories, or changed files contain the implementation to inspect
+- **Mapping rationale** - Why those paths are the correct implementation target for these requirements
+
+Use workspace metadata first:
+
+- `AGENTS.md` / `CLAUDE.md`
+- Repo maps and cross-references
+- Monorepo/workspace manifests
+- Changed files, package boundaries, and import relationships
+
+If no workspace metadata exists, default to the current repo/worktree as the implementation target.
+
+If this mapping is ambiguous, resolve it before proceeding. Do **not** substitute a document-quality review for implementation analysis.
 
 ### 1. Compile and Analyze Requirements
 

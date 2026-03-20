@@ -5,6 +5,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.6.4] — 2026-03-20
+
+### Changed
+- **`review-gap` clarified as implementation review** — description, input interpretation, and workflow now explicitly frame the skill as comparing current code/worktree against requirements baselines. New Step 0 ("Resolve Review Target") locates the implementation target before analysis begins. Added concrete examples showing correct usage vs. `review-doc`. Multi-repo workspace resolution with sensible fallback when no workspace metadata exists.
+
+---
+
 ## [0.6.3] — 2026-03-19
 
 ### Changed
