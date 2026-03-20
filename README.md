@@ -310,11 +310,11 @@ AndThen evolved from [cc-workflows](https://github.com/tolo/claude_code_common) 
 
 ## Inspired by
 
-[![Mullvad](https://img.youtube.com/vi/fPzvUW8qaWY/0.jpg)](https://www.youtube.com/watch?fPzvUW8qaWY)
+[![Mullvad](https://img.youtube.com/vi/fPzvUW8qaWY/0.jpg)](https://www.youtube.com/watch?v=fPzvUW8qaWY)
 
 and then
 
-[![Dude, Where's My Car?](https://img.youtube.com/vi/oqwzuiSy9y0/0.jpg)](https://www.youtube.com/watch?oqwzuiSy9y0)
+[![Dude, Where's My Car?](https://img.youtube.com/vi/oqwzuiSy9y0/0.jpg)](https://www.youtube.com/watch?v=oqwzuiSy9y0)
 
 
 ## Actually inspired by
