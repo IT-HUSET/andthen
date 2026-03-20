@@ -1,6 +1,5 @@
 ---
-name: andthen.exec-spec
-description: Executes a Feature Implementation Specification that contains all implementation details
+description: Implement code from a Feature Implementation Specification. Trigger on 'execute spec', 'implement this FIS', 'build from spec'.
 argument-hint: <path-to-fis>
 ---
 
@@ -8,11 +7,11 @@ argument-hint: <path-to-fis>
 
 Execute a fully-defined FIS document as an **orchestrator**, delegating all implementation and validation tasks to sub-agents _(if supported by your coding agent)_.
 
-## Variables
+## VARIABLES
 FIS_FILE_PATH: $ARGUMENTS
 
 
-## Instructions
+## INSTRUCTIONS
 
 ### Core Rules
 - **Make sure `FIS_FILE_PATH` is provided** — otherwise **STOP** immediately and ask the user to provide the path to the Feature Implementation Specification.
@@ -22,6 +21,18 @@ FIS_FILE_PATH: $ARGUMENTS
 - **Complete Implementation**: 100% completion required - no partial work
 - **FIS is source of truth** — follow it exactly
 - **Sub-agents for all tasks** — act as orchestrator and delegate all work to sub-agents _(if supported by your coding agent)_
+
+
+## GOTCHAS
+- Agent writes code directly instead of delegating to sub-agents — you are the orchestrator, never implement directly
+- Context exhaustion causes skipped final validation — front-load TV04 verification checks
+- FIS references get stale if the spec was updated — always re-read the FIS, don't rely on cached understanding
+
+### Helper Scripts
+Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
+- `check-stubs.sh <path>` — scan for incomplete implementation indicators (TODO/FIXME, empty functions, placeholders)
+- `check-wiring.sh <path>` — verify new/changed files are imported/referenced
+- `verify-implementation.sh <file1> [file2...]` — combined existence + substance + wiring check
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job is to:
@@ -92,7 +103,7 @@ After each sub-agent completes:
 4. **Handle issues** — if blocked/partial, assess and either retry or flag for user
 
 
-## Workflow
+## WORKFLOW
 
 ### Step 1: Load FIS and Prepare
 1. Read FIS at _`FIS_FILE_PATH`_
@@ -173,7 +184,7 @@ For each implementation task (TI01, TI02, etc.):
 Important: Correct implementation of requirements and acceptance criteria must be verified through tests and visual validation (when applicable).
 
 #### TV01 [P] — Level 1: Code Review
-The sub-agent for code review (general-purpose) should use the `andthen.review-code` skill for comprehensive review and analysis covering:
+The sub-agent for code review (general-purpose) should use the `andthen:review-code` skill for comprehensive review and analysis covering:
 
 - Static analysis, linting, formatting and type checking issues
 - Code quality (correctness, readability, best practices, performance, maintainability)
@@ -252,9 +263,9 @@ Keep entries brief (1-2 sentences each). Do NOT record:
 
 **Self-maintenance**: When updating, also review nearby entries — merge overlapping items, remove knowledge that's no longer accurate, split sections that grow too long.
 
-**Source plan** — if this FIS originated from a plan (`plan.md`), update the plan (consider using the `andthen.ops` skill for standardized status updates):
+**Source plan** — if this FIS originated from a plan (`plan.md`), update the plan (consider using the `andthen:ops` skill for standardized status updates):
 - Set the story's **Status** field to `Done`
-- Set the story's **FIS** field to the FIS file path (if not already set by `andthen.spec`)
+- Set the story's **FIS** field to the FIS file path (if not already set by `andthen:spec`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)
 - Update the Story Catalog table status column to `Done`
 - Note any scope changes or deviations

@@ -1,8 +1,5 @@
 ---
-name: andthen.review-code
 description: Performs thorough code reviews covering code quality, security, architecture, and UI/UX. Use when reviewing code changes, PRs, implementations, or when asked to review, audit, or assess code quality. Generates detailed reports with prioritized findings.
-context: fork
-agent: general-purpose
 user-invocable: true
 argument-hint: "[scope/files] [--to-issue] [--to-pr <number>]"
 ---
@@ -12,7 +9,7 @@ argument-hint: "[scope/files] [--to-issue] [--to-pr <number>]"
 Comprehensive code review covering quality, security, architecture, and UI/UX aspects.
 
 
-## Variables
+## VARIABLES
 
 ARGUMENTS: $ARGUMENTS
 
@@ -21,7 +18,7 @@ ARGUMENTS: $ARGUMENTS
 - `--to-pr <number>` → PUBLISH_PR: Post review report as a comment on the specified PR
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md (and/or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
@@ -29,9 +26,49 @@ ARGUMENTS: $ARGUMENTS
 - **Non-modifying** - Analysis only, no code changes
 - Follow project guidelines from CLAUDE.md
 - Use checklists in `checklists/` subdirectory for systematic assessment
+- **Read project learnings** — If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
 
 
-## Workflow
+## GOTCHAS
+- Over-reporting low-severity style nits drowns out critical findings — calibrate to project scale
+- Forgetting to run Semgrep when available — check for it early and integrate findings
+- Reviewing generated/vendored code wastes context — exclude lockfiles, build output, generated types
+
+### Helper Scripts
+Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
+- `run-security-scan.sh <path>` — Semgrep with pattern-based fallback for security scanning
+
+
+## ORCHESTRATOR ROLE _(if supported by your coding agent)_
+
+You are the orchestrator. Your job is to:
+- Determine review scope and select applicable reviews
+- Delegate review work to sub-agents (one per review dimension)
+- Collect and deduplicate findings across reviewers
+- Generate the final unified report
+
+You do NOT:
+- Read large amounts of implementation code directly (delegate to reviewers)
+- Let your context get filled with code content
+
+### Sub-Agent Delegation
+
+Spawn parallel sub-agents _(if supported)_ for each applicable review type:
+
+1. **Code Quality reviewer** — Apply CODE-REVIEW-CHECKLIST.md to changed files
+2. **Security reviewer** — Apply SECURITY-REVIEW-CHECKLIST.md + run Semgrep/security scan
+3. **Architecture reviewer** — Apply ARCHITECTURAL-REVIEW-CHECKLIST.md
+4. **Domain Language reviewer** — Apply DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md (if UL exists)
+5. **UI/UX reviewer** — Apply UI-UX-REVIEW-CHECKLIST.md (if UI changes)
+
+Each sub-agent receives: the checklist content, the list of changed files,
+and project guidelines. They return: categorized findings (CRITICAL/HIGH/SUGGESTION).
+
+If sub-agents are not supported, execute reviews sequentially but
+be mindful of context — prioritize CRITICAL findings.
+
+
+## WORKFLOW
 
 ### Phase 1: Context Analysis
 
@@ -144,7 +181,7 @@ Assess:
 **Gate**: Findings categorized and validated
 
 
-## Report Format
+## REPORT FORMAT
 
 Generate markdown report with:
 

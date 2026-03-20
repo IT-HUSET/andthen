@@ -8,14 +8,52 @@ This file provides guidance to AI coding agents when working with code in this p
 
 ## Project Overview
 
-AndThen is an opinionated workflow system for AI coding agents. It provides structured commands that guide development through a disciplined pipeline: clarify → spec → plan → execute → review-gap.
+AndThen is an opinionated workflow system for AI coding agents. It provides structured skills that guide development through disciplined pipelines — from requirements discovery through implementation to review. See `plugin/README.md` for the full workflow overview and skill reference.
 
-The core artifact is the **Feature Implementation Specification (FIS)** — a comprehensive blueprint that enables reliable, autonomous implementation.
+Core artifacts are the **Feature Implementation Specification (FIS)** for single features and the **PRD + Implementation Plan** (story breakdown) for multi-feature work. Detailed FIS specs are created just-in-time per story during plan execution.
 
 **Structure:**
 - `plugin/` — Claude Code plugin (skills, agents, references)
+- `hooks/` — Claude Code hooks (blocked commands, notification scripts)
+- `scripts/` — Installation and setup scripts
 - `docs/` — Guidelines and reference documentation used by workflow skills
 - `templates/` — Starter templates for user projects
+- `skills` → symlink to `plugin/skills/` (for Codex/agent discovery)
+
+
+---
+
+
+## Skill Invocation
+
+Skills are invoked as `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`). Agents use the same `andthen:<name>` namespace. When skills are exported for other agents via `scripts/install-skills.sh`, references are rewritten to the portable `andthen.` prefix.
+
+
+---
+
+
+## How Skills Work
+
+### Project Context Discovery
+Skills read the **user's project** `CLAUDE.md` (not this repo's) for two key integration points:
+- **Project Document Index** — a table mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `templates/CLAUDE.template.md` for the table format
+- **Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards that skills load before starting work (e.g. rules files, development/architecture/UI guidelines)
+
+### Skill Anatomy
+Each skill lives in `plugin/skills/<name>/` and contains:
+- `SKILL.md` — the skill prompt (with frontmatter: `description`, `argument-hint`, and optional `user-invocable`, `context`, `agent`)
+- `agents/openai.yaml` — OpenAI/Codex agent metadata for cross-agent portability
+- Optional subdirectories for templates, checklists, or references
+
+### Shared References
+`plugin/references/` contains reusable reference documents loaded by multiple skills (e.g. `design-tree.md` used by `clarify`, `plan`, and `trade-off`). When skills are exported via `scripts/install-skills.sh`, reference paths are rewritten to resolve correctly outside this repo.
+
+### External Plugin Dependencies (Optional)
+Some skills delegate to other Claude Code plugins when available:
+- `code-simplifier:code-simplifier` — used by `refactor`, `exec-spec`, `quick-implement` for code cleanup
+- `frontend-design` — used by `wireframes` (via `ui-ux-designer` agent) for design implementation
+
+Skills work without these plugins but skip the corresponding steps.
 
 
 ---
@@ -69,5 +107,3 @@ Context7 MCP pulls up-to-date, version-specific documentation and code examples 
 ### Fetch (https://github.com/modelcontextprotocol/servers/tree/main/src/fetch)
 Retrieves and processes content from web pages, converting HTML to markdown for easier consumption.
 **Only** use Fetch MCP via the _`andthen:documentation-lookup`_ sub-agent for documentation retrieval tasks.
-
----

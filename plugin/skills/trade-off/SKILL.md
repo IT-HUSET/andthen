@@ -1,6 +1,5 @@
 ---
-name: andthen.trade-off
-description: Systematic trade-off analysis and technical research for architectural decisions
+description: Systematic trade-off analysis and technical research for architectural decisions. Trigger on 'compare options', 'trade-off', 'ADR', 'which approach'.
 argument-hint: "[Topic/decision to research - inline or file path] [Number of alternatives (default is 5)] [Output path (default is docs/research/)]"
 ---
 
@@ -9,7 +8,7 @@ argument-hint: "[Topic/decision to research - inline or file path] [Number of al
 Conduct parallel research on technical options, perform systematic trade-off analysis, and deliver evidence-based recommendations for informed decision-making.
 
 
-## Variables
+## VARIABLES
 
 _Topic/decision to research - inline or file path_:
 TOPIC=$1 (required)
@@ -26,7 +25,7 @@ Before running:
     - Create OUTPUT_DIR if missing
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
@@ -45,7 +44,12 @@ Before running:
 - Deviate from COUNT without user approval
 
 
-## Workflow
+## GOTCHAS
+- Recommending a single option without exploring alternatives — present at least 3 viable options
+- Missing non-functional requirements (performance, security, maintenance) in trade-off matrix
+
+
+## WORKFLOW
 
 ### Phase 0: Discovery and Context
 
@@ -115,7 +119,7 @@ Present relevant criteria from list below, ask user to prioritize (1-10 scale):
 
 > **"Design It Twice"** — Instead of evaluating pre-defined options, first generate radically different designs by giving parallel agents contrasting constraints. The value is in contrast, not consensus.
 
-**When to use**: Multi-dimensional decisions with contested design choices. **Skip** for single-option evaluations, well-understood technology choices, or when the design space has already been explored (e.g., via `andthen.trade-off` or `andthen.clarify`).
+**When to use**: Multi-dimensional decisions with contested design choices. **Skip** for single-option evaluations, well-understood technology choices, or when the design space has already been explored (e.g., via `andthen:trade-off` or `andthen:clarify`).
 
 **1.5.1 Define Constraint Lenses**
 
@@ -293,7 +297,7 @@ Store artifacts in OUTPUT_DIR/[topic-slug]/:
 **Optional**: If decision is critical/complex, ask user if they want formal ADR created.
 
 
-## Report
+## REPORT
 
 ### Quality Checklist
 
@@ -329,7 +333,7 @@ OUTPUT_DIR/
 ```
 
 
-## Follow-Up Actions
+## FOLLOW-UP ACTIONS
 
 After generating the reports/recommendations, offer:
 

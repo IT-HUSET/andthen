@@ -1,5 +1,4 @@
 ---
-name: andthen.quick-implement
 description: Quick implementation path for small features or fixes with verification
 argument-hint: <spec> | --issue <number>
 ---
@@ -11,12 +10,12 @@ Fast implementation path for small features, bug fixes, or GitHub issues. Bypass
 **For larger features, use the full workflow:** `clarify` → `spec` → `exec-spec`
 
 
-## Variables
+## VARIABLES
 
 ARGUMENTS: $ARGUMENTS
 
 
-## Usage
+## USAGE
 
 ```
 /quick-implement <feature description>        # Implement from inline spec
@@ -26,7 +25,7 @@ ARGUMENTS: $ARGUMENTS
 ```
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
@@ -36,7 +35,12 @@ ARGUMENTS: $ARGUMENTS
 - Use GitHub CLI (`gh`) for GitHub operations
 
 
-## Workflow
+## GOTCHAS
+- Skipping verification after implementation — always run tests/build
+- Scope creep: implementing more than was asked for in the issue
+
+
+## WORKFLOW
 
 ### Phase 1: Analysis
 
@@ -85,7 +89,7 @@ Run each verification sub-step using **parallel sub-agents** _(if supported by y
 
 ##### 2.1. Code & Architecture Review
 - Static analysis, linting, type checking
-- Use the `andthen.review-code` skill for comprehensive review (code quality, security, architecture, UI/UX)
+- Use the `andthen:review-code` skill for comprehensive review (code quality, security, architecture, UI/UX)
 
 ##### 2.2. Run Tests
 - Execute all tests
@@ -143,7 +147,7 @@ Include verification evidence in completion summary (as applicable):
 **Gate**: PR created successfully (or changes committed if no PR)
 
 
-## Report
+## REPORT
 After completed implementation, if the project has a learnings file (`LEARNINGS.md` or `implementation-notes.md`), append any **traps, gotchas, and non-obvious patterns** discovered during this implementation. Organize by topic. If no such file exists and there are noteworthy traps, create a *Learnings* section at the end of the original spec document.
 
 The bar for inclusion: *"Would a competent developer with access to the code and git history still get bitten by this?"* Keep entries brief (1-2 sentences each). Do NOT record:

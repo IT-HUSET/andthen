@@ -1,6 +1,5 @@
 ---
-name: andthen.spec
-description: Creates a Feature Implementation Specification from template
+description: Create a Feature Implementation Specification from requirements or a plan story. Trigger on 'write spec', 'create FIS', 'specify this feature'.
 argument-hint: <description> | --issue <number> [--to-issue]
 ---
 
@@ -9,7 +8,7 @@ argument-hint: <description> | --issue <number> [--to-issue]
 Given a feature request, generate a Feature Implementation Specification (FIS) using the template in the **Appendix** below.
 
 
-## Variables
+## VARIABLES
 
 ARGUMENTS: $ARGUMENTS
 
@@ -17,7 +16,7 @@ ARGUMENTS: $ARGUMENTS
 - `--to-issue` → PUBLISH_ISSUE: Publish FIS as a GitHub issue after saving locally
 
 
-## Usage
+## USAGE
 
 ```
 /spec <feature description>        # Create FIS from inline description
@@ -26,7 +25,7 @@ ARGUMENTS: $ARGUMENTS
 ```
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Make sure `ARGUMENTS` is provided** — otherwise **STOP** immediately and ask the user to provide the feature requirements.
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
@@ -34,9 +33,38 @@ ARGUMENTS: $ARGUMENTS
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Spec generation only** - No code changes, commits, or modifications during execution of this command
 - **Remember**: Agents executing the FIS only get the context you provide. Include all necessary documentation, examples, and references.
+- **Read project learnings** — If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
 
 
-## Workflow
+## GOTCHAS
+- Generating a FIS without reading the codebase first — architecture analysis must precede specification
+- Over-specifying implementation details that constrain the implementer unnecessarily
+- Acceptance criteria that can't be verified programmatically — every criterion needs a verify command
+
+
+## ORCHESTRATOR ROLE _(if supported by your coding agent)_
+
+You are the orchestrator. Your job is to:
+- Parse input requirements and determine scope
+- Delegate codebase analysis and research to sub-agents
+- Author the FIS using the template, informed by sub-agent findings
+- Ensure the FIS is complete and all sections populated
+
+### Phase Delegation
+
+1. **Codebase Analysis**: Delegate to a sub-agent (andthen:solution-architect).
+   Provide: feature scope, key directories, what to look for.
+   Receive: architecture summary, relevant patterns, existing code to build on,
+   integration points, potential conflicts.
+
+2. **Research** (if needed): Delegate to andthen:documentation-lookup
+   or andthen:research-specialist for API docs, library usage, etc.
+
+3. **FIS Authoring**: Write the FIS yourself using the template and
+   sub-agent findings. This keeps the spec coherent and consistent.
+
+
+## WORKFLOW
 
 ### 0. Parse Input & Get Requirements
 
@@ -159,10 +187,10 @@ Rate your FIS 1-10 for single-pass implementation success:
 
 **If score <7**: Revise or ask for user clarification.
 
-> **Optional**: Run the `andthen.review-doc` skill for thorough validation (recommended for large/complex features). Skip for small/clear features — issues surface during execution anyway.
+> **Optional**: Run the `andthen:review-doc` skill for thorough validation (recommended for large/complex features). Skip for small/clear features — issues surface during execution anyway.
 
 
-## Output
+## OUTPUT
 Save FIS as: _`<project_root>/docs/specs/{feature-name}.md`_ _(or as configured in **Project Document Index**)_
 - If from GitHub issue: include issue reference in filename, e.g. `issue-123-feature-name.md`
 

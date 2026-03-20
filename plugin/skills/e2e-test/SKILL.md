@@ -1,8 +1,5 @@
 ---
-name: andthen.e2e-test
-description: End-to-end browser testing for web applications. Discovers user journeys, executes interactive browser tests, validates responsive behavior, verifies data persistence, and generates a comprehensive test report. Use when verifying a web app's functionality end-to-end or after significant feature changes.
-context: fork
-agent: general-purpose
+description: End-to-end browser testing for web apps. Discovers journeys, runs interactive tests, validates responsive behavior. Trigger on 'test the app', 'e2e test', 'browser test'.
 user-invocable: true
 ---
 
@@ -11,13 +8,13 @@ user-invocable: true
 Orchestrates comprehensive end-to-end testing of web applications: discovers routes and user journeys via parallel sub-agents, executes browser-based tests, validates responsive behavior, and produces a detailed test report with any bugs found and fixed.
 
 
-## Variables
+## VARIABLES
 
 _Optional: specific routes, features, or user journeys to focus on (leave blank for full coverage):_
 FOCUS: $ARGUMENTS
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
@@ -30,7 +27,13 @@ FOCUS: $ARGUMENTS
 - Use sub-agents for parallel discovery work
 
 
-## Workflow
+## GOTCHAS
+- Starting tests before the dev server is running and healthy
+- Not waiting for page load/navigation to complete before asserting
+- Testing only the happy path — include at least one error/edge case per journey
+
+
+## WORKFLOW
 
 ### Phase 1: Pre-flight
 
@@ -136,7 +139,7 @@ Delegate to `andthen:visual-validation-specialist` with:
 **Gate**: Environment restored
 
 
-## Report
+## REPORT
 
 Generate a markdown report:
 
@@ -185,7 +188,7 @@ Store report at: `<project_root>/.agent_temp/qa/e2e-test-report-<YYYY-MM-DD>.md`
 When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/qa/e2e-test-report-2026-03-15.md`) and summarize key findings. Do not use absolute paths.
 
 
-## Follow-Up Actions
+## FOLLOW-UP ACTIONS
 
 After the report, ask the user if they'd like to:
 1. Investigate specific failing journeys in depth

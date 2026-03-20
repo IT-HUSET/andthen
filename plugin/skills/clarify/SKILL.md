@@ -1,6 +1,5 @@
 ---
-name: andthen.clarify
-description: Clarify requirements through systematic discovery of gaps, edge cases, and scope boundaries for applications or features.
+description: Clarify requirements through systematic discovery of gaps, edge cases, and scope boundaries. Trigger on 'clarify', 'what are the requirements', 'discover requirements'.
 argument-hint: "[Requirements source - description, file path, or GitHub issue URL]"
 ---
 
@@ -8,7 +7,7 @@ argument-hint: "[Requirements source - description, file path, or GitHub issue U
 Transform incomplete requirements into complete, actionable specifications through systematic discovery of gaps, edge cases, and scope boundaries.
 
 
-## Variables
+## VARIABLES
 
 _Requirements to clarify (**required**):_
 INPUT: $ARGUMENTS
@@ -17,7 +16,7 @@ _Output directory for clarified requirements:_
 OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Document Index**)_
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Make sure `INPUT` is provided** - otherwise **STOP** immediately and ask user for input
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
@@ -29,7 +28,13 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 - **Document decisions** - Record rationale for scope choices and trade-offs
 
 
-## Workflow
+## GOTCHAS
+- Agent answers its own questions instead of waiting for user input — STOP and WAIT is critical
+- Scope creep: expanding beyond the original request — stay focused on what was asked
+- Jumping to solution design instead of requirement discovery
+
+
+## WORKFLOW
 
 ### 1. Parse and Assess Input
 
@@ -165,7 +170,7 @@ If the project involves significant domain complexity (business rules, multiple 
 **Gate**: Domain glossary created or skipped with rationale
 
 
-## Report
+## REPORT
 
 Generate markdown document with:
 
@@ -235,7 +240,7 @@ Generate markdown document with:
 | [Dimension] | [Chosen option] | [Why] |
 
 ### Open Design Questions
-- [Dimensions needing further analysis via `andthen.trade-off`]
+- [Dimensions needing further analysis via `andthen:trade-off`]
 
 ## Edge Cases
 | Scenario | Expected Behavior |
@@ -277,10 +282,10 @@ If domain language extraction was performed, also store: `docs/UBIQUITOUS_LANGUA
 When complete, print the report's **relative path from the project root**. Do not use absolute paths.
 
 
-## Follow-Up Actions
+## FOLLOW-UP ACTIONS
 
 After completion, ask user if they'd like to:
-1. Create feature spec (`andthen.spec`) — for single features
-2. Proceed to planning (`andthen.plan <output-directory>`) — for multi-feature / MVP scope. The plan command will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery
+1. Create feature spec (`andthen:spec`) — for single features
+2. Proceed to planning (`andthen:plan <output-directory>`) — for multi-feature / MVP scope. The plan command will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery
 3. Review specific areas in more depth
 4. Share with stakeholders for validation

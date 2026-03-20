@@ -1,5 +1,4 @@
 ---
-name: andthen.init
 description: Set up AndThen workflow structure for a project — handles new projects, partial setups, and brownfield codebases
 argument-hint: "[project name or path]"
 ---
@@ -9,12 +8,12 @@ argument-hint: "[project name or path]"
 Set up the AndThen workflow structure for a project. Detects current state and fills gaps non-destructively — never overwrites existing files.
 
 
-## Variables
+## VARIABLES
 
 PROJECT_NAME: $ARGUMENTS _(optional — inferred from directory name or package config if not provided)_
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Non-destructive** — Never overwrite existing files. Only add missing pieces.
 - **Interactive** — Ask before creating optional documents. Don't assume what the user wants.
@@ -22,7 +21,12 @@ PROJECT_NAME: $ARGUMENTS _(optional — inferred from directory name or package 
 - **Detect, don't guess** — Read existing files to understand what's already in place before proposing changes.
 
 
-## Workflow
+## GOTCHAS
+- Overwriting existing project files without checking — non-destructive by design
+- Creating files for workflows the user doesn't need
+
+
+## WORKFLOW
 
 ### 1. Detect Current State
 
@@ -84,10 +88,10 @@ Planning (when ready):
   [ ] docs/REQUIREMENTS.md — Requirements with REQ-IDs
   [ ] docs/ROADMAP.md      — Phase structure with success criteria
 
-Architecture (create now or generate later via andthen.map-codebase):
+Architecture (create now or generate later via andthen:map-codebase):
   [ ] docs/ARCHITECTURE.md — System architecture overview
 
-Domain (create starter now or generate later via andthen.ubiquitous-language):
+Domain (create starter now or generate later via andthen:ubiquitous-language):
   [ ] docs/UBIQUITOUS_LANGUAGE.md — Domain glossary with canonical terms
 
 Which would you like to create? (e.g. "LEARNINGS, STACK" or "all core" or "none for now")
@@ -170,7 +174,7 @@ Inform the user:
 Existing codebase detected without AndThen workflow structure.
 
 Recommended approach:
-1. Run andthen.map-codebase to auto-generate ARCHITECTURE.md, STACK.md, and conventions for CLAUDE.md
+1. Run andthen:map-codebase to auto-generate ARCHITECTURE.md, STACK.md, and conventions for CLAUDE.md
 2. Then set up CLAUDE.md and remaining structure
 
 Run map-codebase first? (recommended for codebases with 20+ files)
@@ -178,7 +182,7 @@ Run map-codebase first? (recommended for codebases with 20+ files)
 
 > **CRITICAL**: **STOP and WAIT** for user response.
 
-**If yes**: Run `andthen.map-codebase` (or instruct the user to run it), then proceed with Step 2a using the generated documents as a foundation. Skip creating ARCHITECTURE.md and STACK.md since map-codebase already produced them.
+**If yes**: Run `andthen:map-codebase` (or instruct the user to run it), then proceed with Step 2a using the generated documents as a foundation. Skip creating ARCHITECTURE.md and STACK.md since map-codebase already produced them.
 
 **If no**: Proceed directly to Step 2a (standard new project setup). The user can run map-codebase later.
 
@@ -200,11 +204,11 @@ Created:
 
 Next steps:
   1. Review and customize CLAUDE.md (especially Project Overview)
-  2. Start a feature: andthen.spec "your feature description"
-  3. Or plan an MVP:  andthen.plan "your requirements"
+  2. Start a feature: andthen:spec "your feature description"
+  3. Or plan an MVP:  andthen:plan "your requirements"
 ```
 
 
-## Output
+## OUTPUT
 
 All files are written to the project root. Print relative paths only.

@@ -1,13 +1,12 @@
 ---
-name: andthen.triage
-description: Systematically investigate, diagnose, and fix issues. Default mode fixes issues; --plan-only stops after diagnosis and outputs a fix plan; --to-issue publishes the plan as a GitHub issue.
+description: Investigate, diagnose, and fix issues. Trigger on 'debug this', 'what's broken', 'triage', 'fix this bug'. Flags: --plan-only, --to-issue.
 argument-hint: "[Scope] [--plan-only] [--to-issue]"
 ---
 
 # Triage and Fix Implementation Issues
 
 
-## Variables
+## VARIABLES
 
 _Arguments (scope and optional flags):_
 ARGUMENTS: $ARGUMENTS
@@ -19,7 +18,7 @@ ARGUMENTS: $ARGUMENTS
 - Default MODE: `fix` (full fix-and-verify pipeline)
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
@@ -29,9 +28,44 @@ ARGUMENTS: $ARGUMENTS
 - Use `andthen:build-troubleshooter` for complex build issues
 - Your context will be compacted as needed - continue troubleshooting iterations until resolved
 - **IMPORTANT:** *Continue troubleshooting iterations until all critical and high-priority issues are resolved*
+- **Read project learnings** — If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
 
 
-## Workflow
+## GOTCHAS
+- Attempting the same fix repeatedly instead of escalating — 3-fix stop condition exists for a reason
+- Missing the root cause by fixing symptoms — use 5 Whys before applying fixes
+- Forgetting to verify the fix actually resolves the original symptom
+
+
+## ORCHESTRATOR ROLE _(if supported by your coding agent)_
+
+You are the orchestrator. Your job is to:
+- Assess current state and determine scope
+- Delegate diagnostic and fix work to sub-agents
+- Track the fix plan and verify results
+- Enforce the 3-fix stop condition
+- Generate documentation
+
+### Phase Delegation
+
+1. **Detection**: Delegate multi-layer issue detection to a sub-agent.
+   Provide: scope, baseline info, project structure.
+   Receive: categorized issue list with priorities and locations.
+
+2. **Root Cause Analysis**: Analyze the issue list yourself (lightweight).
+   Create fix plan with dependency ordering.
+
+3. **Fix Implementation**: For each fix, delegate to a sub-agent.
+   Provide: root cause, affected files, fix approach, project guidelines.
+   Receive: status, files changed, verification results.
+
+4. **Verification**: Delegate post-fix verification to sub-agent
+   (andthen:qa-test-engineer or andthen:build-troubleshooter).
+
+Track fix attempts per symptom. Enforce 3-fix stop condition.
+
+
+## WORKFLOW
 
 ### 1. Current State Assessment
 
@@ -73,10 +107,9 @@ Document all issues with priority (Critical/High/Medium/Low), location, and erro
 - **Low**: Style inconsistencies, minor optimizations
 
 **3.2** - **Analyze root causes**:
-- Use "5 Whys" technique to dig deeper into each issue
+- Perform root-cause analysis using 5 Whys — from symptom, ask "why?" recursively until reaching a root cause that, if fixed, prevents recurrence. Document the chain.
 - Identify if issues are related or have common underlying causes
 - Map issue dependencies (some fixes may resolve multiple problems)
-- Document analysis for each significant issue
 
 **3.3** - **Create comprehensive fix plan**:
 - **Setup task tracking**: Use task management tools to create prioritized todos for all identified issues
@@ -168,7 +201,7 @@ Execute fixes methodically and autonomously:
 - Ensure no sensitive data is exposed or logged
 - Run any security scanning tools available
 
-**Always** use **parallel sub-agents** such as `andthen:qa-test-engineer`, `andthen:solution-architect`, `andthen:ui-ux-designer`, `andthen:build-troubleshooter`, and specialized technology agents as needed. For code review, use the `andthen.review-code` skill.
+**Always** use **parallel sub-agents** such as `andthen:qa-test-engineer`, `andthen:solution-architect`, `andthen:ui-ux-designer`, `andthen:build-troubleshooter`, and specialized technology agents as needed. For code review, use the `andthen:review-code` skill.
 
 **Gate**: All validations pass - application builds/starts, all tests pass, code quality checks pass, no regressions, security validated.
 
@@ -198,6 +231,8 @@ If PUBLISH_ISSUE is `true` and MODE is `fix`:
 - Identify if any development process improvements could prevent similar issues
 - Suggest additional validation steps for future
 - Consider if any monitoring or alerting should be added
+
+**6.3** - **Update project learnings** — If significant non-obvious traps or error patterns are discovered during execution, append them to `LEARNINGS.md` (check Project Document Index for location). Bar: "Would a competent developer with code and git access still get bitten?"
 
 **Gate**: Documentation complete
 

@@ -1,5 +1,4 @@
 ---
-name: andthen.review-doc
 description: Reviews specifications, plans, PRDs, requirement documents, or other documentation for completeness, clarity, edge cases, and technical accuracy. Generates detailed report with prioritized findings and readiness assessment.
 context: fork
 agent: general-purpose
@@ -10,13 +9,13 @@ user-invocable: true
 Thoroughly review specifications, implementation plans, PRDs, technical designs, requirement documents, or other documents to ensure they are complete, clear, unambiguous, and ready for implementation or distribution.
 
 
-## Variables
+## VARIABLES
 
 _Path to specific document(s) to review, or additional focus areas (**required**):_
 SPEC_PATH_OR_FOCUS: $ARGUMENTS
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Make sure `SPEC_PATH_OR_FOCUS` is provided** - otherwise **STOP** immediately and ask user for input
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md (and/or system prompt) before starting work, including but not limited to:
@@ -29,7 +28,12 @@ SPEC_PATH_OR_FOCUS: $ARGUMENTS
 - **The words "spec" and "specification" in this command** refers to any specification, plan, requirement document, PRD, technical design, or other documentation that is the focus of the review
 
 
-## Workflow
+## GOTCHAS
+- Reviewing at the wrong level of detail for the document's maturity stage
+- Confusing review-doc with review-gap — doc reviews the document, gap reviews implementation
+
+
+## WORKFLOW
 
 ### Phase 1: Discovery and Context
 
@@ -76,7 +80,7 @@ Identify unclear, ambiguous, or contradictory specifications:
 2. **Implementation clarity** - Verify developers can implement without guessing, acceptance criteria are testable
 3. **Missing details** - Find TBD/TODO items, referenced missing documents, unvalidated assumptions
 4. **Consistency** - Verify consistency across sections, examples match specs, naming is consistent
-   - If the reviewed spec is a FIS (Feature Implementation Specification), ensure the spec follows the format and structure as defined in the `andthen.spec` command
+   - If the reviewed spec is a FIS (Feature Implementation Specification), ensure the spec follows the format and structure as defined in the `andthen:spec` command
 5. **Conciseness and Brevity** - Ensure specs are as brief and concise as possible without losing meaning. Unnecessary prose should be avoided, and code listings should be minimized (prefer using pseudo code when possible)
 6. **Maintain Important Details** - Ensure all important and essential details are preserved. Avoid removing or simplifying details that are critical to understanding the specification, such as diagrams, process flows, or complex requirements.
 
@@ -128,7 +132,7 @@ Ensure scope is well-defined and architecture is sound:
    - Challenge "nice-to-haves" masquerading as requirements
 
 2. **Architecture review** _(calibrate to project scale — skip aspects that are irrelevant to the project's nature and stage)_
-   - Use the `andthen.review-code` skill's architectural review guidance
+   - Use the `andthen:review-code` skill's architectural review guidance
    - Assess and evaluate **only aspects relevant to the project's scale and goals**, such as:
       - Architectural soundness, component separation, separation of concerns
       - Evaluate scalability, performance, maintainability
@@ -172,7 +176,7 @@ Generate comprehensive review report with prioritized findings:
 **Gate**: Comprehensive review report generated
 
 
-## Report
+## REPORT
 
 Your job is *ONLY* to review and generate report. Do *NOT* modify specification documents.
 
@@ -198,7 +202,7 @@ Store report in: `<project_root>/.agent_temp/reviews/<spec-name>-doc-review-<age
 When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-doc-review-claude-2026-03-15.md`). Do not use absolute paths.
 
 
-## Follow-Up Actions
+## FOLLOW-UP ACTIONS
 
 After report, ask user if they'd like to:
 1. Update specification based on findings

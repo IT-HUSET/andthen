@@ -1,5 +1,4 @@
 ---
-name: andthen.review-council-team
 description: Multi-perspective code review using Agent Teams with real-time adversarial debate (requires Agent Teams)
 argument-hint: "[Optional - specific files, PR number, or focus area]"
 ---
@@ -8,15 +7,15 @@ argument-hint: "[Optional - specific files, PR number, or focus area]"
 
 Multi-perspective code review where specialized reviewers challenge each other's findings through real-time debate, producing validated, high-confidence issues.
 
-**Requires Agent Teams** — Falls back to the `andthen.review-code` skill if Teams unavailable.
+**Requires Agent Teams** — Falls back to the `andthen:review-code` skill if Teams unavailable.
 
 
-## Variables
+## VARIABLES
 
 ARGUMENTS: $ARGUMENTS
 
 
-## Usage
+## USAGE
 
 ```
 /review-council-team                          # Review recent changes
@@ -26,22 +25,29 @@ ARGUMENTS: $ARGUMENTS
 ```
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
-- **Requires Agent Teams** — Falls back to the `andthen.review-code` skill if unavailable
+- **Requires Agent Teams** — Falls back to the `andthen:review-code` skill if unavailable
 - **Multi-perspective validation** — Findings must survive two-phase challenge (Devil's Advocate → Synthesis Challenger)
 - **Read-only analysis** — No code changes, commits, or modifications during review
 
 
-## Workflow
+## GOTCHAS
+- Selecting too many reviewers (>7) dilutes debate quality — 5 is the sweet spot for most reviews
+- Devil's Advocate challenge phase gets skipped under context pressure — it's the most valuable phase
+- Reviewers agreeing too easily — if no findings survive challenge, the review was too shallow
+- Falling back gracefully when Agent Teams is unavailable
+
+
+## WORKFLOW
 
 ### 1. Check Agent Teams Availability
 
 Verify Agent Teams are available by checking that team creation tools exist in your available tools (e.g. `TeamCreate`).
 
 If Agent Team tools are NOT available (experimental feature not enabled):
-- Suggest using `andthen.review-council` instead (portable version that works without Agent Teams)
+- Suggest using `andthen:review-council` instead (portable version that works without Agent Teams)
 - If user specifically wants Agent Teams, inform them it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 - Exit
 
@@ -143,7 +149,7 @@ Each specialist reviewer should:
 - Analyze the code through their specialized lens
 - Report findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
 - Provide specific file:line references
-- Use the `andthen.review-code` skill for the review
+- Use the `andthen:review-code` skill for the review
 
 Devil's Advocate should:
 - Challenge ALL findings from specialist reviewers
@@ -232,6 +238,6 @@ Where `<scope>` is kebab-case identifier: file name (e.g., `auth-module`), PR nu
 2. Wait for shutdown confirmations
 3. Delete the team to remove team and task files
 
-## Report Location
+## REPORT LOCATION
 
 When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-module-council-review-claude-2026-03-15.md`). Do not use absolute paths.

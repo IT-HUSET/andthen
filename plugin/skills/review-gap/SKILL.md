@@ -1,6 +1,5 @@
 ---
-name: andthen.review-gap
-description: "Implementation gap analysis: compare current code/worktree against requirements baselines with code review and actionable remediation plan."
+description: "Gap analysis: review implementation against requirements with code review and actionable remediation plan."
 argument-hint: "[Requirements baseline: plan/spec/PRD/issue/path/URL] [--to-issue] [--to-pr <number>]"
 ---
 
@@ -8,7 +7,7 @@ argument-hint: "[Requirements baseline: plan/spec/PRD/issue/path/URL] [--to-issu
 Comprehensive post-execution review that validates implementation against requirements, performs code review, and identifies gaps. Generates actionable report with findings and remediation plan.
 
 
-## Variables
+## VARIABLES
 
 ADDITIONAL_CONTEXT: $ARGUMENTS
 *(Optional: Requirements baselines or additional context beyond what's in the codebase)*
@@ -18,35 +17,48 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
 - The review target is always the **current implementation in the project workspace**. This may span multiple repos, packages, or directories.
 - If a requirements document lives in a different repo than the implementation, use the document as the baseline and review the implementation repo/worktree it refers to.
 - The primary task is always: **compare the current implementation in the workspace against the requirements** and identify gaps.
-- If the user wants the document itself reviewed for clarity, completeness, or quality, that is **not** `andthen.review-gap`; use `andthen.review-doc`.
+- If the user wants the document itself reviewed for clarity, completeness, or quality, that is **not** `andthen:review-gap`; use `andthen:review-doc`.
 - If, after resolving the workspace structure, there is still no identifiable implementation to compare against, stop and report that a gap analysis cannot be performed yet because there is no implementation target.
 
 ### Examples
-- `andthen.review-gap docs/specs/payments/plan.md`
+- `andthen:review-gap docs/specs/payments/plan.md`
   - Use `plan.md` as the requirements baseline, then inspect the current payments implementation in the workspace. Do **not** review the plan text itself.
-- `andthen.review-gap ../private/docs/specs/sdk-phase4/plan.md`
+- `andthen:review-gap ../private/docs/specs/sdk-phase4/plan.md`
   - Use the private-repo plan as the baseline, then inspect the implementation in the public/code repo if workspace docs indicate that is where the code lives.
 - If the user wants feedback on the plan/spec document itself:
-  - That is `andthen.review-doc`, not `andthen.review-gap`.
+  - That is `andthen:review-doc`, not `andthen:review-gap`.
 
 ### Optional Output Flags
 - `--to-issue` → PUBLISH_ISSUE: Publish review report as a GitHub issue
 - `--to-pr <number>` → PUBLISH_PR: Post review report as a comment on the specified PR
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
-- **Read-only analysis** - No code changes, commits, or modifications during analysis
+- **Read-only analysis** — no code changes or commits. The only file you write is the final report.
 - **Be thorough** - Don't skip steps or rush analysis; completeness is critical
 - **Default to workspace-wide resolution** - Do not assume the implementation is in the same repo as the requirements document. In multi-repo workspaces, explicitly locate the implementation target first.
-- **Delegate code review to a sub-agent** _(if supported by your coding agent)_ that uses the `andthen.review-code` skill (do NOT invoke the skill directly)
+- **Delegate code review to a sub-agent** _(if supported by your coding agent)_ that uses the `andthen:review-code` skill (do NOT invoke the skill directly)
 - **Document everything** - All findings and recommendations must be captured in final report
+- **Read project learnings** — If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
 
 
-## Workflow
+## GOTCHAS
+- Most common failure: reviewing the wrong target — resolve implementation target FIRST, before any analysis
+- Requirements documents in a different repo than the implementation cause confusion — establish the mapping explicitly
+- Confusing review-gap with review-doc — gap reviews implementation against requirements, doc reviews the document itself
+
+### Helper Scripts
+Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
+- `check-stubs.sh <path>` — scan for incomplete implementation indicators (TODO/FIXME, empty functions, placeholders)
+- `check-wiring.sh <path>` — verify new/changed files are imported/referenced
+- `run-security-scan.sh <path>` — Semgrep with pattern-based fallback
+
+
+## WORKFLOW
 
 ### 0. Resolve Review Target
 
@@ -126,7 +138,7 @@ Review general quality, soundness and adherence to guidelines, standards and bes
 
 #### Comprehensive Code Review
 Spawn a **sub-agent** _(if supported by your coding agent)_ (via Task tool, `subagent_type: "general-purpose"`) to perform the code review.
-The sub-agent should **use the `andthen.review-code` skill** for thorough review covering:
+The sub-agent should **use the `andthen:review-code` skill** for thorough review covering:
 - Code quality (correctness, readability, best practices, performance)
 - Architecture (CUPID principles, DDD patterns, anti-patterns)
 - Security (OWASP Top 10, injection prevention, auth, data protection)
@@ -159,6 +171,7 @@ Systematically identify all gaps between requirements and implementation:
   - Are components wired into the system? (Imported, routed, called, rendered)
   - Do verification commands pass? (Build, tests, type-check)
   - Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
+  - Delegate stub detection and wiring checks to a sub-agent _(if supported by your coding agent)_, or use helper scripts from `${CLAUDE_PLUGIN_ROOT}/scripts/` when available
 
 **Gate**: All gaps comprehensively identified and documented
 
@@ -206,7 +219,7 @@ Prioritized plan for addressing all identified gaps and issues:
 **Gate**: Actionable remediation plan created
 
 
-## Report
+### 7. Write Report
 
 Your job is *ONLY* to analyze and generate report. Do *NOT* make any code changes or commits.
 
@@ -229,7 +242,9 @@ Store report in: `<project_root>/.agent_temp/reviews/<feature-name>-gap-review-<
 
 When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-gap-review-claude-2026-03-15.md`). Do not use absolute paths.
 
-### Publish to GitHub _(if --to-issue or --to-pr)_
+- **Update project learnings** — If significant non-obvious traps or error patterns are discovered during execution (especially recurring patterns across reviews), append them to `LEARNINGS.md` (check Project Document Index for location). Bar: "Would a competent developer with code and git access still get bitten?"
+
+#### Publish to GitHub _(if --to-issue or --to-pr)_
 If PUBLISH_ISSUE is `true`:
 1. Create a GitHub issue: title `[Review] {scope}: Gap Analysis Report`, body = report content
 2. Print the issue URL

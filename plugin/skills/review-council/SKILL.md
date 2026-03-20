@@ -1,6 +1,5 @@
 ---
-name: andthen.review-council
-description: Multi-perspective code review with adversarial debate to validate findings
+description: Multi-perspective code review with adversarial debate to validate findings. Trigger on 'council review', 'adversarial review', 'multi-reviewer'.
 argument-hint: "[Optional - specific files, PR number, or focus area]"
 ---
 
@@ -11,12 +10,12 @@ Multi-perspective code review where specialized reviewers challenge each other's
 Uses **parallel sub-agents** _(if supported by your coding agent)_ for concurrent reviews, otherwise executes sequentially.
 
 
-## Variables
+## VARIABLES
 
 ARGUMENTS: $ARGUMENTS
 
 
-## Usage
+## USAGE
 
 ```
 /review-council                          # Review recent changes
@@ -26,14 +25,20 @@ ARGUMENTS: $ARGUMENTS
 ```
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
 - **Multi-perspective validation** — Findings must survive two-phase challenge (Devil's Advocate → Synthesis Challenger)
 - **Read-only analysis** — No code changes, commits, or modifications during review
 
 
-## Workflow
+## GOTCHAS
+- Selecting too many reviewers (>7) dilutes debate quality — 5 is the sweet spot for most reviews
+- Devil's Advocate challenge phase gets skipped under context pressure — it's the most valuable phase
+- Reviewers agreeing too easily — if no findings survive challenge, the review was too shallow
+
+
+## WORKFLOW
 
 ### 1. Analyze Review Scope
 
@@ -118,12 +123,12 @@ Your focus areas: {focus areas from roster}
 
 Review process:
 1. Analyze the code through your specialized lens
-2. Use the `andthen.review-code` skill for the review
+2. Use the `andthen:review-code` skill for the review
 3. Report findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
 4. Provide specific file:line references
 5. For each finding, explain WHY it's a problem and suggest a fix
 
-Note: The `andthen.review-code` skill may not be available in all environments. If unavailable, perform the review directly using your own analysis capabilities.
+Note: The `andthen:review-code` skill may not be available in all environments. If unavailable, perform the review directly using your own analysis capabilities.
 
 Output format per finding:
 - **Severity**: CRITICAL/HIGH/MEDIUM/LOW
@@ -240,6 +245,6 @@ Store in: `<project_root>/.agent_temp/reviews/<scope>-council-review-<agent>-<YY
 
 Where `<scope>` is kebab-case identifier: file name (e.g., `auth-module`), PR number (e.g., `pr-123`), or feature name from arguments.
 
-## Report Location
+## REPORT LOCATION
 
 When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-module-council-review-claude-2026-03-15.md`). Do not use absolute paths.

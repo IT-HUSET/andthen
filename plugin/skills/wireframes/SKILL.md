@@ -1,5 +1,4 @@
 ---
-name: andthen.wireframes
 description: Creates simple HTML wireframes for all pages/screens from feature requirements
 argument-hint: "[Feature requirements - inline, file path, or PRD reference] [Optional - design system or concept design directory]"
 ---
@@ -11,14 +10,14 @@ Transform feature requirements into simple HTML wireframes that capture key layo
 **Platform-Agnostic**: HTML/CSS is used as the universal design language for ALL projects (web, mobile, desktop). Wireframes serve as the canonical design reference that will be adapted to platform-specific implementations later.
 
 
-## Variables
+## VARIABLES
 
 REQUIREMENTS: $1 (feature requirements - inline description, file path, or PRD reference)
 DESIGN_DIR: $2 (optional - design system directory or concept design inputs)
 OUTPUT_DIR: ${3:-docs/wireframes} _(or as configured in **Project Document Index**)_
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
@@ -30,7 +29,13 @@ OUTPUT_DIR: ${3:-docs/wireframes} _(or as configured in **Project Document Index
 - **Browser automation required** - Use Playwright MCP or Chrome DevTools MCP for visual validation (falls back to manual if unavailable)
 
 
-## Workflow
+## GOTCHAS
+- Missing pages from the requirements — 100% page coverage is critical
+- Creating pixel-perfect designs instead of low-fidelity wireframes — grayscale, layout-only
+- Not testing across viewport sizes — check all 4 viewports
+
+
+## WORKFLOW
 
 ### Phase 1: Requirements Analysis
 
@@ -475,7 +480,7 @@ Create _`OUTPUT_DIR/index.html`_ as navigation hub:
 **Gate**: Documentation complete
 
 
-## Output
+## OUTPUT
 
 ```
 OUTPUT_DIR/
@@ -496,7 +501,7 @@ OUTPUT_DIR/
 ```
 
 
-## Quality Checklist
+## QUALITY CHECKLIST
 
 ### Coverage
 - [ ] **100% coverage**: Every page from requirements has a wireframe

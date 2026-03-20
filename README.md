@@ -146,7 +146,7 @@ Skills use capability detection and work without the plugin infrastructure. Use 
 
 This exports all skills as `andthen.`-prefixed directories (e.g., `andthen.clarify/`, `andthen.spec/`, `andthen.review-code/`). Plugin reference docs are also copied. Agent Teams skills (`exec-plan-team`, `review-council-team`) are excluded since they require Claude Code.
 
-In Claude Code, invoke with `/andthen:<skill>`. In Codex and other agents, use `$andthen.<skill>` or `/andthen.<skill>`.
+Invoke with `/andthen:<skill>` in Claude Code, or `/andthen.<skill>` in Codex and other agents.
 
 
 ## Setup
@@ -184,7 +184,7 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 
 ## Skills
 
-In Claude Code, invoke with `/andthen:<skill>`. In Codex and other agents, use `$andthen.<skill>` or `/andthen.<skill>`.
+Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 
 ### Core Skills
 

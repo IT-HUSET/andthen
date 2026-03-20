@@ -1,6 +1,5 @@
 ---
-name: andthen.ops
-description: Deterministic operations for state management, git conventions, and progress tracking. Use for updating STATE.md, plan.md status fields, FIS checkboxes, standardized commits, and progress summaries.
+description: Deterministic operations: update STATE.md, plan status, FIS checkboxes, standardized commits. Trigger on 'update state', 'mark done', 'progress summary'.
 context: fork
 agent: general-purpose
 user-invocable: true
@@ -13,14 +12,19 @@ Reliable, template-driven operations for state management, git conventions, and 
 > **Philosophy**: This skill provides structured templates and validation — it doesn't bypass the agent but gives it reliable patterns to follow. Think of it as "guardrails for deterministic work."
 
 
-## Instructions
+## INSTRUCTIONS
 
 - Follow patterns exactly — do not improvise or add creative interpretation
 - Validate inputs before making changes
 - Report what was changed in a structured format
 
 
-## Operations
+## GOTCHAS
+- Improvising instead of following patterns exactly — this skill exists to prevent LLM interpretation drift
+- Forgetting to update both CHANGELOG.md and marketplace.json on version bumps
+
+
+## OPERATIONS
 
 ### 1. State File Operations
 

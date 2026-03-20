@@ -5,6 +5,33 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.7.0] — 2026-03-20
+
+### Added
+- **Gotchas sections** in all 22 SKILL.md files — fixed operational knowledge surfaced near the top of each skill (2-5 entries per skill covering known failure modes)
+- **LEARNINGS.md integration** — 5 skills now read project learnings at start (`exec-spec`, `triage`, `spec`, `review-gap`, `review-code`); 3 skills append significant findings after execution (`triage`, `review-gap`, `exec-spec`)
+- **Orchestrator pattern** for context-heavy skills — `review-code`, `triage`, and `spec` now delegate heavy work to sub-agents to preserve workflow context; `review-gap` orchestrator enhanced with stub/wiring delegation
+- **Portable shared scripts** in `plugin/scripts/` — `check-stubs.sh`, `check-wiring.sh`, `run-security-scan.sh`, `verify-implementation.sh` for automated verification (used by review-gap, exec-spec, exec-plan, review-code)
+
+### Changed
+- **Unified `andthen:` namespace** — removed `name:` frontmatter override from all 22 SKILL.md files. Skills now use the natural plugin namespace (`andthen:<skill>`), consistent with agents (`andthen:<agent>`). The portable `andthen.` prefix is now only used when exporting for non-Claude Code agents via `install-skills.sh`
+- **`install-skills.sh` rewrites skill references** — exported skills have `andthen:` cross-references rewritten to the portable `andthen.` prefix, alongside the existing reference path rewriting
+- **CLAUDE.md updated** — added "How Skills Work" section (Project Document Index discovery, skill anatomy, shared references, external plugin dependencies), expanded project structure, updated skill invocation docs
+- **Descriptions as triggers** — 10 skills rewritten with natural-language trigger phrases for better model matching (`exec-spec`, `review-gap`, `review-council`, `clarify`, `spec`, `trade-off`, `triage`, `map-codebase`, `e2e-test`, `ops`)
+- **Reduced railroading** — `plan` requirements discovery condensed from 20+ individual questions to intent + constraints format; `triage` 5 Whys analysis condensed to single directive
+
+### Fixed
+- **Removed `context: fork` from orchestrator skills** — `review-code` and `e2e-test` no longer use `context: fork` because forked sub-agents cannot spawn nested sub-agents, which breaks the orchestrator pattern. `ops` and `review-doc` retain `context: fork` (no sub-agent needs)
+- **Helper scripts made concurrency-safe** — all scripts now use `mktemp` with cleanup traps instead of fixed `/tmp` paths; eliminates race conditions under parallel sub-agent execution
+- **`check-wiring.sh` inspects dirty worktrees** — now checks staged, unstaged, and untracked files (not just committed diffs); supports both file and directory path inputs
+- **`verify-implementation.sh` strict exit codes** — stub and wiring findings now cause non-zero exit (previously treated as warnings); delegates to `check-stubs.sh` when available; removed unused `--base-branch` option
+- **`check-stubs.sh` excludes docs by default** — markdown, templates, and documentation directories excluded to reduce false positives; `--include-docs` flag for full scan
+- **Installer exports shared scripts** — `install-skills.sh` now copies `plugin/scripts/` alongside `plugin/references/` and rewrites `${CLAUDE_PLUGIN_ROOT}/scripts/` and `${CLAUDE_PLUGIN_ROOT}/references/` paths in all exported `.md` files (including nested subdirectories)
+- **Installer filters `.DS_Store`** — macOS metadata files no longer included in exported bundles
+- **CLAUDE.md skill anatomy corrected** — removed stale `name` reference from frontmatter documentation
+
+---
+
 ## [0.6.4] — 2026-03-20
 
 ### Changed

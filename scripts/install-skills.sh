@@ -19,6 +19,7 @@ Notes:
   - All skills are exported as directories named <prefix><skill-name>/
   - Agent Teams skills (exec-plan-team, review-council-team) are excluded
     since they require Claude Code
+  - Shared references and helper scripts are exported alongside skills
   - Existing files are overwritten in place, but stale files are not deleted
 EOF
 }
@@ -69,6 +70,8 @@ copy_dir_contents() {
 
   mkdir -p "$dst"
   cp -R "$src"/. "$dst"/
+  # Remove macOS metadata files from exported bundles
+  find "$dst" -name '.DS_Store' -delete 2>/dev/null || true
 }
 
 skills_count=0
@@ -92,11 +95,19 @@ for dir in "$repo_root/plugin/skills"/*; do
 
   copy_dir_contents "$dir" "$skills_dir/$target_name"
 
-  # Rewrite repo-relative reference paths to installed sibling paths
+  # Rewrite paths and skill references for the target environment
   if [ "$dry_run" -eq 0 ]; then
-    for md in "$skills_dir/$target_name"/*.md; do
-      [ -f "$md" ] || continue
+    find "$skills_dir/$target_name" -name '*.md' -type f | while IFS= read -r md; do
+      # Repo-relative reference paths → installed sibling paths
       sed -i.bak "s|plugin/references/|../${prefix}references/|g" "$md"
+      rm -f "$md.bak"
+      # Plugin namespace (andthen:) → portable prefix (andthen.)
+      sed -i.bak "s|andthen:|${prefix}|g" "$md"
+      rm -f "$md.bak"
+      # Plugin-root paths → installed sibling paths
+      sed -i.bak "s|\${CLAUDE_PLUGIN_ROOT}/scripts/|../${prefix}scripts/|g" "$md"
+      rm -f "$md.bak"
+      sed -i.bak "s|\${CLAUDE_PLUGIN_ROOT}/references/|../${prefix}references/|g" "$md"
       rm -f "$md.bak"
     done
   fi
@@ -104,7 +115,7 @@ for dir in "$repo_root/plugin/skills"/*; do
   skills_count=$((skills_count + 1))
 done
 
-# Copy plugin reference docs as a shared skill so other skills can find them
+# Copy plugin reference docs as a shared directory so other skills can find them
 refs_count=0
 if [ -d "$repo_root/plugin/references" ]; then
   refs_dir="$skills_dir/${prefix}references"
@@ -112,5 +123,14 @@ if [ -d "$repo_root/plugin/references" ]; then
   refs_count=$(find "$repo_root/plugin/references" -maxdepth 1 -type f | wc -l | tr -d ' ')
 fi
 
+# Copy shared helper scripts so exported skills can use them
+scripts_count=0
+if [ -d "$repo_root/plugin/scripts" ]; then
+  scripts_dir="$skills_dir/${prefix}scripts"
+  copy_dir_contents "$repo_root/plugin/scripts" "$scripts_dir"
+  scripts_count=$(find "$repo_root/plugin/scripts" -maxdepth 1 -type f -name '*.sh' | wc -l | tr -d ' ')
+fi
+
 printf 'Installed %s skills into %s\n' "$skills_count" "$skills_dir"
 [ "$refs_count" -gt 0 ] && printf 'Installed %s reference docs into %s\n' "$refs_count" "$refs_dir"
+[ "$scripts_count" -gt 0 ] && printf 'Installed %s helper scripts into %s\n' "$scripts_count" "$scripts_dir"

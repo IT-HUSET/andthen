@@ -1,5 +1,4 @@
 ---
-name: andthen.design-system
 description: Creates a pragmatic design system/style guide from feature requirements and optional concept design inputs
 argument-hint: "[Feature requirements - inline, file path, or PRD reference] [Optional - concept design directory]"
 ---
@@ -11,24 +10,29 @@ Transform feature requirements into a focused design system with essential visua
 **Platform-Agnostic**: Design tokens and styles serve as the canonical reference for ALL platforms (web, mobile, desktop). They will be adapted to platform-specific implementations later.
 
 
-## Variables
+## VARIABLES
 
 REQUIREMENTS: $1 (feature requirements - inline description, file path, or PRD reference)
 CONCEPT_DIR: $2 (optional - directory with concept design, mockups, or existing design system)
 OUTPUT_DIR: ${3:-docs/design-system} _(or as configured in **Project Document Index**)_
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Favor simplicity** - recommend simplest solution (KISS, YAGNI, DRY)
-- **Design system only** - No wireframes or page layouts (use `andthen.wireframes` skill for that)
+- **Design system only** - No wireframes or page layouts (use `andthen:wireframes` skill for that)
 - **Delegate to sub-agents** _(if supported by your coding agent)_ for research and review tasks
 
 
-## Workflow
+## GOTCHAS
+- Creating too many tokens/components — start minimal, essential only
+- Not using CSS custom properties — everything should be themeable
+
+
+## WORKFLOW
 
 ### Phase 1: Input Analysis
 
@@ -228,7 +232,7 @@ Address any issues found:
 **Gate**: Validation complete
 
 
-## Output
+## OUTPUT
 
 ```
 OUTPUT_DIR/
@@ -239,7 +243,7 @@ OUTPUT_DIR/
 ```
 
 
-## Quality Checklist
+## QUALITY CHECKLIST
 
 - [ ] Tokens are consistent and minimal
 - [ ] Components use tokens (no hardcoded values)

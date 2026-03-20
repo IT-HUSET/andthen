@@ -1,5 +1,4 @@
 ---
-name: andthen.ubiquitous-language
 description: Extract and maintain a domain glossary (UBIQUITOUS_LANGUAGE.md) from codebase, documentation, and conversation. Use when starting a new domain-heavy project, onboarding to an existing codebase, or when terminology drift is suspected.
 argument-hint: "[Scope or focus area] [--update]"
 ---
@@ -9,7 +8,7 @@ argument-hint: "[Scope or focus area] [--update]"
 Scan the codebase, documentation, and conversation history to extract domain-relevant terms, resolve ambiguity and synonymy, and produce or update a structured `UBIQUITOUS_LANGUAGE.md` glossary.
 
 
-## Variables
+## VARIABLES
 
 _Arguments (scope and optional flags):_
 ARGUMENTS: $ARGUMENTS
@@ -19,7 +18,7 @@ ARGUMENTS: $ARGUMENTS
 - Remaining text → SCOPE (focus area, e.g., "authentication", "billing", or blank for full project)
 
 
-## Instructions
+## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
@@ -29,7 +28,12 @@ ARGUMENTS: $ARGUMENTS
 - **Resolve, don't accumulate** — when two terms mean the same thing, pick one canonical name and list the other as a synonym to avoid
 
 
-## Workflow
+## GOTCHAS
+- Including technical jargon (framework terms, library names) that aren't domain language
+- Glossary entries without usage examples are hard to apply
+
+
+## WORKFLOW
 
 ### 1. Gather Context
 
@@ -131,11 +135,11 @@ Store in project root or as configured in **Project Document Index**.
 - [ ] Terms are actionable — a developer can use them to name things
 
 
-## Output
+## OUTPUT
 
 Save as: `docs/UBIQUITOUS_LANGUAGE.md` _(or as configured in **Project Document Index**)_
 
 When complete, print the output path and suggest:
 1. Review the glossary for accuracy with domain experts
-2. Run `andthen.ubiquitous-language --update` periodically to keep it current
-3. Use `andthen.review-code` to check code against the glossary
+2. Run `andthen:ubiquitous-language --update` periodically to keep it current
+3. Use `andthen:review-code` to check code against the glossary

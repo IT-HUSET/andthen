@@ -103,7 +103,7 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 
 ## Skills
 
-Invoke with `/andthen:<skill>`. In Codex and other agents, use `$andthen.<skill>` or `/andthen.<skill>`.
+Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 
 ### Core Skills
 
