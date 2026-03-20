@@ -75,7 +75,7 @@ Select the checklist(s) that match the code under review. Apply multiple when ap
 
 | Checklist | Standard | Apply when... |
 |-----------|----------|---------------|
-| [SECURITY-CHECKLIST-WEB.md](checklists/SECURITY-CHECKLIST-WEB.md) | OWASP Top 10:2025 | Web applications, server-rendered pages, or any general-purpose backend — the baseline checklist for all reviews |
+| [SECURITY-CHECKLIST-WEB.md](checklists/SECURITY-CHECKLIST-WEB.md) | OWASP Top 10:2025 | Web applications, server-rendered pages, or any general-purpose backend — the baseline checklist for Web applications (Server-rendered), Web APIs or Browser Applications (SPA)|
 | [SECURITY-CHECKLIST-API.md](checklists/SECURITY-CHECKLIST-API.md) | OWASP API Security Top 10:2023 | REST, GraphQL, or gRPC APIs; microservices; any code that exposes or consumes HTTP endpoints |
 | [SECURITY-CHECKLIST-LLM.md](checklists/SECURITY-CHECKLIST-LLM.md) | OWASP LLM Top 10:2025 | Applications integrating LLMs or generative AI — prompt handling, RAG pipelines, agentic systems, AI-generated output |
 | [SECURITY-CHECKLIST-MOBILE.md](checklists/SECURITY-CHECKLIST-MOBILE.md) | OWASP Mobile Top 10:2024 | Native iOS/Android apps and cross-platform mobile apps (React Native, Flutter, Expo) |
