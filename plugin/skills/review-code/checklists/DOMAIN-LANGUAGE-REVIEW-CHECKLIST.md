@@ -34,14 +34,14 @@
 
 ## Issue Classification
 
-### CRITICAL
+### 🚨 CRITICAL (Immediate Fix Required)
 - Domain term used with wrong meaning (e.g., "Tenant" used to mean "User")
 - Bounded context violation that could cause confusion across teams
 
-### HIGH
+### ⚠️ HIGH (Fix Before Release)
 - Synonym used instead of canonical term (e.g., "client" instead of "Customer")
 - Inconsistent naming across related files (same concept, different names)
 
-### SUGGESTIONS
+### 💡 SUGGESTIONS (Consider)
 - Opportunity to improve naming clarity
 - New concept that should be added to glossary

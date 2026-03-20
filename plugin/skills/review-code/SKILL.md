@@ -70,16 +70,25 @@ Assess:
 - Maintainability, testability, documentation, tech debt
 
 #### Security Review
-**Checklist**: [SECURITY-REVIEW-CHECKLIST.md](checklists/SECURITY-REVIEW-CHECKLIST.md)
 
-Assess:
+Select the checklist(s) that match the code under review. Apply multiple when applicable (e.g. a web app with an API backend and a CI/CD pipeline warrants WEB + API + CICD).
+
+| Checklist | Standard | Apply when... |
+|-----------|----------|---------------|
+| [SECURITY-CHECKLIST-WEB.md](checklists/SECURITY-CHECKLIST-WEB.md) | OWASP Top 10:2025 | Web applications, server-rendered pages, or any general-purpose backend — the baseline checklist for Web applications (Server-rendered), Web APIs or Browser Applications (SPA)|
+| [SECURITY-CHECKLIST-API.md](checklists/SECURITY-CHECKLIST-API.md) | OWASP API Security Top 10:2023 | REST, GraphQL, or gRPC APIs; microservices; any code that exposes or consumes HTTP endpoints |
+| [SECURITY-CHECKLIST-LLM.md](checklists/SECURITY-CHECKLIST-LLM.md) | OWASP LLM Top 10:2025 | Applications integrating LLMs or generative AI — prompt handling, RAG pipelines, agentic systems, AI-generated output |
+| [SECURITY-CHECKLIST-MOBILE.md](checklists/SECURITY-CHECKLIST-MOBILE.md) | OWASP Mobile Top 10:2024 | Native iOS/Android apps and cross-platform mobile apps (React Native, Flutter, Expo) |
+| [SECURITY-CHECKLIST-CICD.md](checklists/SECURITY-CHECKLIST-CICD.md) | OWASP Top 10 CI/CD Security Risks | Pipeline configuration files, deployment workflows, IaC, build scripts, and supply chain changes |
+
+Assess (across applicable checklists):
 - Input validation & sanitization
-- Injection prevention (SQL, command, XSS, path traversal)
+- Injection prevention (SQL, command, XSS, prompt, path traversal)
 - Authentication & authorization
 - Cryptography (encryption, hashing, key management)
 - Data protection (secrets, logging exposure)
 - API security, headers, CORS, CSRF
-- OWASP Top 10 coverage
+- Supply chain and pipeline integrity
 
 **Automated security scanning** — Run available tools in parallel to complement manual checklist review. All tools are optional — proceed with manual review if none are available.
 
