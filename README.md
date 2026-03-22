@@ -102,9 +102,11 @@ Verification includes code review, testing, and visual validation (when applicab
 ```
 
 **When to use which:**
-- **Feature workflow**: Single feature, complex changes, multi-file modifications
-- **Plan workflow**: MVP, new project, multi-feature work
-- **Quick path**: Bug fixes, small features, GitHub issues
+- **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue — you know what to do and it's under ~3 files
+- **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review-gap`): Single feature with real complexity — multiple files, non-obvious requirements, needs a blueprint
+- **Plan workflow** (`clarify` → `plan` → `exec-plan` → `review-gap`): Multiple features, MVP, or a new project — needs story breakdown and phased execution
+
+Not sure? Start with `quick-implement`. If it feels too complex, switch to the feature workflow. See [Getting Started](#getting-started) for a full walkthrough.
 
 
 ## Installation
@@ -133,7 +135,7 @@ claude plugin install ./plugin
 
 ### Other AI Coding Agents (Codex CLI, Aider, Cursor, etc.)
 
-Skills use capability detection and work without the plugin infrastructure. Use the installer to export skills with `andthen.`-prefixed names to the agent skills directory:
+Skills use capability detection and work without the plugin infrastructure. Use the installer to export skills with `andthen-`-prefixed names to the agent skills directory:
 
 ```bash
 # Install to ~/.agents/skills/ (default)
@@ -144,9 +146,9 @@ Skills use capability detection and work without the plugin infrastructure. Use 
 ./scripts/install-skills.sh --skills-dir ~/.agents/skills
 ```
 
-This exports all skills as `andthen.`-prefixed directories (e.g., `andthen.clarify/`, `andthen.spec/`, `andthen.review-code/`). Plugin reference docs are also copied. Agent Teams skills (`exec-plan-team`, `review-council-team`) are excluded since they require Claude Code.
+This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-spec/`, `andthen-review-code/`). Plugin reference docs are also copied. Agent Teams skills (`exec-plan-team`, `review-council-team`) are excluded since they require Claude Code.
 
-Invoke with `/andthen:<skill>` in Claude Code, or `/andthen.<skill>` in Codex and other agents.
+Invoke with `/andthen:<skill>` in Claude Code, or `$andthen-<skill>` in Codex and other agents.
 
 
 ## Setup
@@ -180,6 +182,127 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
   }
 }
 ```
+
+
+## Getting Started
+
+### Your First Feature
+
+You have a feature idea — maybe just a sentence, maybe a rough description. Here's how the pipeline works in practice.
+
+**Step 1: Clarify requirements** *(interactive)*
+
+```bash
+/andthen:clarify "users should be able to export their data"
+```
+
+This starts an **interactive conversation**. Claude analyzes your input, identifies gaps, and asks you 3-5 targeted questions at a time — about scope, user flows, edge cases, success criteria. You answer, it asks more. Typically 2-4 rounds until requirements are solid.
+
+Input can be anything: a sentence, a paragraph, a file path (`@docs/feature-idea.md`), or a GitHub issue URL.
+
+When done, you'll have a structured requirements document:
+```
+docs/specs/data-export/requirements-clarification.md
+```
+
+**Step 2a: Create a spec** *(single feature)*
+
+```bash
+/andthen:spec docs/specs/data-export/
+```
+
+This reads your clarified requirements, analyzes the codebase, and produces a **Feature Implementation Specification (FIS)** — the blueprint for autonomous implementation. No code changes happen here.
+
+```
+docs/specs/data-export/fis.md
+```
+
+**Step 2b: Or create a plan** *(multi-feature / MVP)*
+
+```bash
+/andthen:plan docs/specs/data-export/
+```
+
+This picks up `requirements-clarification.md` automatically, creates a PRD (filling any remaining gaps with a brief targeted interview), and breaks it into sequenced stories with phases and dependencies.
+
+```
+docs/specs/data-export/prd.md
+docs/specs/data-export/plan.md
+```
+
+**Step 3: Execute**
+
+```bash
+# Single feature:
+/andthen:exec-spec
+
+# Multi-feature (automated pipeline — spec → execute → review per story):
+/andthen:exec-plan docs/specs/data-export/
+```
+
+**Step 4: Review**
+
+```bash
+/andthen:review-gap
+```
+
+Compares implementation against requirements. Produces findings with a remediation plan.
+
+### Artifact Flow
+
+Each skill produces artifacts that the next skill consumes. Here's the lineage:
+
+```
+  You                     clarify                      spec                   exec-spec          review-gap
+   │                         │                           │                       │                   │
+   │  "vague idea"           │                           │                       │                   │
+   ├────────────────────────►│                           │                       │                   │
+   │                         │  requirements-            │                       │                   │
+   │                         │  clarification.md         │                       │                   │
+   │                         ├──────────────────────────►│                       │                   │
+   │                         │                           │  fis.md               │                   │
+   │                         │                           ├──────────────────────►│                   │
+   │                         │                           │                       │  code changes      │
+   │                         │                           │                       ├──────────────────►│
+   │                         │                           │                       │                   │  findings +
+   │                         │                           │                       │                   │  remediation
+   │                         │                           │                       │                   │  plan
+```
+
+For the plan workflow, the chain is:
+
+```
+clarify → requirements-clarification.md
+                    ↓
+plan    → prd.md + plan.md (story breakdown)
+                    ↓
+            Per story (via exec-plan or manually):
+            spec → fis.md → exec-spec → code → review-gap
+```
+
+### When to Use `clarify`
+
+`clarify` is optional — but knowing when to use it saves time.
+
+| Your starting point | Recommendation |
+|---|---|
+| A one-liner or vague idea ("users should be able to export data") | **Use `clarify`** — too many unknowns for a good spec |
+| A rough description with some known requirements but unclear scope/edges | **Use `clarify`** — it will focus on gaps, not re-discover what you know |
+| Well-defined requirements with acceptance criteria (from a PM, a detailed issue) | **Skip `clarify`** — go straight to `spec` or `plan` |
+| Existing requirements doc or Notion page | **Skip `clarify`** — pass the file/URL directly to `spec` or `plan` |
+
+**Rule of thumb:** If you can't list 3 concrete acceptance criteria for the feature, run `clarify` first.
+
+### `clarify` vs. `plan`'s Built-in Discovery
+
+Both `clarify` and `plan` can do requirements discovery. The difference:
+
+- **`clarify`** does deep, thorough discovery — design space decomposition, domain language extraction, detailed edge case analysis. It produces a standalone requirements document.
+- **`plan`** has a lighter built-in discovery (Step 1b) for when you skip `clarify`. It focuses on getting enough information to create a PRD and break it into stories, but won't go as deep on edge cases or design alternatives.
+
+**Use `clarify` first when:** The problem space is genuinely unclear, you're exploring multiple design directions, or the domain is complex. `plan` will pick up the output and skip its own discovery.
+
+**Skip `clarify` and let `plan` handle it when:** You have a reasonable understanding of what you want — maybe not perfectly documented, but you could explain it in a few paragraphs. `plan`'s lighter discovery will fill the gaps.
 
 
 ## Skills

@@ -1,6 +1,7 @@
 interface:
   display_name: "AndThen - Document Review"
   short_description: "Review docs for completeness and accuracy"
+  default_prompt: "Review document for completeness, clarity, edge cases, and technical accuracy. Produce findings report with readiness assessment. Document: "
 
 policy:
   allow_implicit_invocation: true

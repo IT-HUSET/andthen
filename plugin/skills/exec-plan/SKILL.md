@@ -1,9 +1,10 @@
 ---
-description: Executes an entire implementation plan through a pipeline (spec → exec-spec → review-gap per story)
+description: Execute an entire implementation plan through a pipeline (spec → exec-spec → review-gap per story)
 argument-hint: <path-to-plan-directory>
 ---
 
 # Execute Plan
+
 
 Execute ALL stories in an implementation plan (from `andthen:plan`) through a pipeline: **spec → exec-spec → review-gap** per story.
 

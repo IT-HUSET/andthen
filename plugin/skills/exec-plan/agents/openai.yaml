@@ -1,6 +1,7 @@
 interface:
   display_name: "AndThen - Execute Plan"
   short_description: "Execute plan via sub-agent pipeline"
+  default_prompt: "Execute all stories in the implementation plan through the pipeline: spec, exec-spec, review-gap per story. Plan directory: "
 
 policy:
   allow_implicit_invocation: true

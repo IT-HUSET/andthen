@@ -13,11 +13,10 @@ AndThen is an opinionated workflow system for AI coding agents. It provides stru
 Core artifacts are the **Feature Implementation Specification (FIS)** for single features and the **PRD + Implementation Plan** (story breakdown) for multi-feature work. Detailed FIS specs are created just-in-time per story during plan execution.
 
 **Structure:**
-- `plugin/` — Claude Code plugin (skills, agents, references)
-- `hooks/` — Claude Code hooks (blocked commands, notification scripts)
+- `plugin/` — Codex plugin (skills, agents, references)
+- `hooks/` — Codex hooks (blocked commands, notification scripts)
 - `scripts/` — Installation and setup scripts
 - `docs/` — Guidelines and reference documentation used by workflow skills
-- `docs/temp/research/` — Research outputs (worktree strategies, skill analysis, etc.)
 - `templates/` — Starter templates for user projects
 - `skills` → symlink to `plugin/skills/` (for Codex/agent discovery)
 
@@ -36,8 +35,8 @@ Skills are invoked as `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`)
 ## How Skills Work
 
 ### Project Context Discovery
-Skills read the **user's project** `CLAUDE.md` (not this repo's) for two key integration points:
-- **Project Document Index** — a table mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `templates/CLAUDE.template.md` for the table format
+Skills read the **user's project** `AGENTS.md` (not this repo's) for two key integration points:
+- **Project Document Index** — a table mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `templates/Codex.template.md` for the table format
 - **Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards that skills load before starting work (e.g. rules files, development/architecture/UI guidelines)
 
 ### Skill Anatomy
@@ -50,7 +49,7 @@ Each skill lives in `plugin/skills/<name>/` and contains:
 `plugin/references/` contains reusable reference documents loaded by multiple skills (e.g. `design-tree.md` used by `clarify`, `plan`, and `trade-off`). When skills are exported via `scripts/install-skills.sh`, reference paths are rewritten to resolve correctly outside this repo.
 
 ### External Plugin Dependencies (Optional)
-Some skills delegate to other Claude Code plugins when available:
+Some skills delegate to other Codex plugins when available:
 - `code-simplifier:code-simplifier` — used by `refactor`, `exec-spec`, `quick-implement` for code cleanup
 - `frontend-design` — used by `wireframes` (via `ui-ux-designer` agent) for design implementation
 
@@ -88,7 +87,7 @@ Always fully read relevant guidelines below as needed, based on the type of work
 
 When bumping the version, **always** update both:
 - `CHANGELOG.md` — add new version entry
-- `.claude-plugin/marketplace.json` — update the `"version"` field
+- `.Codex-plugin/marketplace.json` — update the `"version"` field
 
 
 ---

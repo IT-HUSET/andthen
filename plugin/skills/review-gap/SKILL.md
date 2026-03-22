@@ -4,6 +4,8 @@ argument-hint: "[Requirements baseline: plan/spec/PRD/issue/path/URL] [--to-issu
 ---
 
 # Gap Analysis
+
+
 Comprehensive post-execution review that validates implementation against requirements, performs code review, and identifies gaps. Generates actionable report with findings and remediation plan.
 
 
@@ -238,9 +240,14 @@ Generate markdown report with:
 - **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
 - **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
 
-Store report in: `<project_root>/.agent_temp/reviews/<feature-name>-gap-review-<agent>-<YYYY-MM-DD>.md`
+**Report output directory** — resolve in priority order:
+1. **Spec directory**: If the requirements baseline is a spec/FIS/plan in a spec directory, or the reviewed feature has an associated spec directory from the Project Document Index, store the report **in that spec directory**.
+2. **Target directory**: If the implementation being reviewed is localized to a specific directory, store the report **in the same directory** as the primary implementation target.
+3. **Fallback**: Store in `{AGENT_TEMP}/reviews/` where `{AGENT_TEMP}` is the **Agent Temp** path from the Project Document Index (default: `.agent_temp/`).
 
-When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-gap-review-claude-2026-03-15.md`). Do not use absolute paths.
+**Filename**: `<feature-name>-gap-review-<agent>-<YYYY-MM-DD>.md`
+
+When complete, print the report's **relative path from the project root**. Do not use absolute paths.
 
 - **Update project learnings** — If significant non-obvious traps or error patterns are discovered during execution (especially recurring patterns across reviews), append them to `LEARNINGS.md` (check Project Document Index for location). Bar: "Would a competent developer with code and git access still get bitten?"
 

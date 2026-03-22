@@ -1,9 +1,10 @@
 ---
-description: Creates simple HTML wireframes for all pages/screens from feature requirements
+description: Create simple HTML wireframes for all pages/screens from feature requirements
 argument-hint: "[Feature requirements - inline, file path, or PRD reference] [Optional - design system or concept design directory]"
 ---
 
 # Create Wireframes
+
 
 Transform feature requirements into simple HTML wireframes that capture key layout and interaction patterns for all pages/screens.
 

@@ -5,6 +5,18 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.7.1] — 2026-03-21
+
+### Changed
+- **Review reports co-locate with targets** — all 5 review skills (`review-code`, `review-gap`, `review-doc`, `review-council`, `review-council-team`) now place reports alongside the review target instead of always under `.agent_temp/reviews/`. Resolution priority: spec/FIS directory (if related) → target directory → Agent Temp fallback
+- **Configurable Agent Temp directory** — added `Agent Temp` row to the Project Document Index template, allowing projects to override the default `.agent_temp/` path for temporary agent output (reviews, research, QA)
+
+### Fixed
+- **BREAKING: Export prefix reverted from `andthen.` to `andthen-`** — The dot in `andthen.` was incompatible with Codex CLI's `$` sigil parser regex (`[a-zA-Z0-9_\-:]`), which does not include `.`. This caused explicit `<skill>` injection to silently fail for all 22 exported skills, forcing the model to read SKILL.md files from disk via tool calls (weakest invocation path). Empirically verified: zero `<skill>` injections occurred across 784 Codex sessions with dot-prefixed names. Reverting to hyphen (`andthen-`) restores Codex's explicit skill injection. Users must re-run `./scripts/install-skills.sh` after upgrading.
+- **Research report added** — `docs/research/codex-skill-instruction-following.md` documents the full root cause analysis comparing Codex CLI and Claude Code skill injection architectures
+
+---
+
 ## [0.7.0] — 2026-03-20
 
 ### Added

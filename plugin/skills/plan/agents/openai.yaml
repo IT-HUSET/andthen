@@ -1,6 +1,7 @@
 interface:
   display_name: "AndThen - Create PRD & Plan"
   short_description: "Create PRD and implementation plan with story breakdown"
+  default_prompt: "Create a PRD and implementation plan with story breakdown. Discover requirements if no PRD exists, or build on prior artifacts. Requirements source: "
 
 policy:
   allow_implicit_invocation: true

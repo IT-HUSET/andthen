@@ -1,9 +1,10 @@
 ---
-description: Creates a pragmatic design system/style guide from feature requirements and optional concept design inputs
+description: Create a pragmatic design system/style guide from feature requirements and optional concept design inputs
 argument-hint: "[Feature requirements - inline, file path, or PRD reference] [Optional - concept design directory]"
 ---
 
 # Create Design System / Style Guide
+
 
 Transform feature requirements into a focused design system with essential visual language, design tokens, component styles, and documentation.
 

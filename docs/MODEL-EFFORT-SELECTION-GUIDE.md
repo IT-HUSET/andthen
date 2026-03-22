@@ -167,21 +167,21 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 
 ### Commands via Other Agents (Codex CLI, etc.)
 
-Skills are agent-agnostic — the same files work across all agents. Recommendations for Codex CLI assume you ran `./scripts/install-skills.sh`, which exports skills as `andthen.*/`:
+Skills are agent-agnostic — the same files work across all agents. Recommendations for Codex CLI assume you ran `./scripts/install-skills.sh`, which exports skills as `andthen-*/`:
 
 | Skill | Description | Model | Effort | Rationale |
 |-------|-------------|-------|--------|-----------|
-| `andthen.clarify` | Requirements discovery from vague ideas | `gpt-5.4` | `medium` | Analytical, not deeply complex |
-| `andthen.spec` | Clarify requirements + create FIS | `gpt-5.4` | `high` | Reasoning-heavy, completeness critical |
-| `andthen.exec-spec` | Execute a FIS | `gpt-5.4` | `medium`–`high` | Medium for straightforward, high for complex specs |
-| `andthen.review-gap` | Gap analysis + code review | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical |
-| `andthen.design-system` | Design system tokens + style guide | `gpt-5.4` | `medium` | Pattern-following |
-| `andthen.wireframes` | HTML wireframes for screens | `gpt-5.4` | `medium` | Structural generation |
-| `andthen.trade-off` | Trade-off analysis | `gpt-5.4` | `high` | Decision quality matters |
-| `andthen.refactor` | Code simplification and cleanup | `gpt-5.4` | `medium`–`high` | Medium for localized, high for cross-file |
-| `andthen.quick-implement` | Fast path for small features/fixes | `gpt-5.4` | `medium` | Bounded scope, standard implementation |
-| `andthen.e2e-test` | End-to-end browser testing | `gpt-5.4` | `medium` | Sequential test execution |
-| `andthen.triage` | Systematic debugging | `gpt-5.4` | `medium`–`high` | Medium for clear issues, high for complex |
+| `andthen-clarify` | Requirements discovery from vague ideas | `gpt-5.4` | `medium` | Analytical, not deeply complex |
+| `andthen-spec` | Clarify requirements + create FIS | `gpt-5.4` | `high` | Reasoning-heavy, completeness critical |
+| `andthen-exec-spec` | Execute a FIS | `gpt-5.4` | `medium`–`high` | Medium for straightforward, high for complex specs |
+| `andthen-review-gap` | Gap analysis + code review | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical |
+| `andthen-design-system` | Design system tokens + style guide | `gpt-5.4` | `medium` | Pattern-following |
+| `andthen-wireframes` | HTML wireframes for screens | `gpt-5.4` | `medium` | Structural generation |
+| `andthen-trade-off` | Trade-off analysis | `gpt-5.4` | `high` | Decision quality matters |
+| `andthen-refactor` | Code simplification and cleanup | `gpt-5.4` | `medium`–`high` | Medium for localized, high for cross-file |
+| `andthen-quick-implement` | Fast path for small features/fixes | `gpt-5.4` | `medium` | Bounded scope, standard implementation |
+| `andthen-e2e-test` | End-to-end browser testing | `gpt-5.4` | `medium` | Sequential test execution |
+| `andthen-triage` | Systematic debugging | `gpt-5.4` | `medium`–`high` | Medium for clear issues, high for complex |
 
 ---
 

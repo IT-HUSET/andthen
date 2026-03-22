@@ -5,6 +5,7 @@ argument-hint: <scope/description> | --path <dir/file>
 
 # Refactor & Simplify Code
 
+
 Systematic code improvement — simplification, refactoring, and cleanup — using the `code-simplifier:code-simplifier` agent.
 
 

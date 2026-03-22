@@ -1,9 +1,10 @@
 ---
-description: End-to-end browser testing for web apps. Discovers journeys, runs interactive tests, validates responsive behavior. Trigger on 'test the app', 'e2e test', 'browser test'.
+description: End-to-end browser testing for web apps. Discover journeys, run interactive tests, validate responsive behavior. Trigger on 'test the app', 'e2e test', 'browser test'.
 user-invocable: true
 ---
 
 # E2E Test Skill
+
 
 Orchestrates comprehensive end-to-end testing of web applications: discovers routes and user journeys via parallel sub-agents, executes browser-based tests, validates responsive behavior, and produces a detailed test report with any bugs found and fixed.
 

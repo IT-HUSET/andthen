@@ -92,12 +92,14 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 ```
 
 **When to use which:**
-- **Feature workflow**: Single feature, complex changes, multi-file modifications
-- **Plan workflow**: MVP, new project, multi-feature work
-- **Quick path**: Bug fixes, small features, GitHub issues
+- **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue — you know what to do and it's under ~3 files
+- **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review-gap`): Single feature with real complexity — multiple files, non-obvious requirements, needs a blueprint
+- **Plan workflow** (`clarify` → `plan` → `exec-plan` → `review-gap`): Multiple features, MVP, or a new project — needs story breakdown and phased execution
+
+Not sure? Start with `quick-implement`. If it feels too complex, switch to the feature workflow. See the [full documentation](../README.md#getting-started) for a complete walkthrough.
 
 **Pre-activities** (feed into spec or plan):
-- `clarify` — When requirements are vague
+- `clarify` — When requirements are vague (can't list 3 acceptance criteria? run `clarify`)
 - `wireframes` / `design-system` — When UI design is needed
 - `trade-off` — When architectural decisions are needed
 
@@ -134,6 +136,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
 | `map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
+| `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
 
 ### Agent Teams Variants (Claude Code only)
 

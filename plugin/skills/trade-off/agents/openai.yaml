@@ -1,6 +1,7 @@
 interface:
   display_name: "AndThen - Trade-off Analysis"
   short_description: "Technical research and trade-off analysis"
+  default_prompt: "Research technical options and perform systematic trade-off analysis. Deliver evidence-based recommendation. Topic: "
 
 policy:
   allow_implicit_invocation: true

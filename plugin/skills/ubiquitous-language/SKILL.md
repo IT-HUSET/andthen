@@ -5,6 +5,7 @@ argument-hint: "[Scope or focus area] [--update]"
 
 # Extract and Maintain Ubiquitous Language
 
+
 Scan the codebase, documentation, and conversation history to extract domain-relevant terms, resolve ambiguity and synonymy, and produce or update a structured `UBIQUITOUS_LANGUAGE.md` glossary.
 
 

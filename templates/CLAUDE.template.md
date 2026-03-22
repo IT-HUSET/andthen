@@ -41,6 +41,7 @@ _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 | Learnings            | `docs/LEARNINGS.md`                 | Accumulated project knowledge and error patterns |
 | Tech Debt            | `docs/TECH-DEBT-BACKLOG.md`         | Known technical debt                    |
 | Changelog            | `CHANGELOG.md`                      | Release history                         |
+| Agent Temp           | `.agent_temp/`                      | Temporary agent workspace (reviews, research, QA) |
 
 &dagger; Organized by version or feature name: `docs/specs/{version-or-feature}/prd.md`, `plan.md`, `fis/`. Standalone specs go directly in `docs/specs/`.
 

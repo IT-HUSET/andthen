@@ -5,6 +5,7 @@ argument-hint: "[Topic/decision to research - inline or file path] [Number of al
 
 # Technical Trade-off Research & Analysis
 
+
 Conduct parallel research on technical options, perform systematic trade-off analysis, and deliver evidence-based recommendations for informed decision-making.
 
 

@@ -1,6 +1,7 @@
 interface:
   display_name: "AndThen - E2E Testing"
   short_description: "End-to-end browser testing for web apps"
+  default_prompt: "Run comprehensive end-to-end browser tests — discover user journeys, validate responsive behavior, produce a test report. App to test: "
 
 policy:
   allow_implicit_invocation: true

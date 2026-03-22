@@ -1,11 +1,12 @@
 ---
-description: Executes an implementation plan through an Agent Team pipeline with inter-agent coordination (requires Agent Teams)
+description: Execute an implementation plan through an Agent Team pipeline with inter-agent coordination (requires Agent Teams)
 argument-hint: <path-to-plan-directory>
 ---
 
 # Execute Plan (Agent Teams)
 
-Execute ALL stories in an implementation plan (from `andthen:plan`) through a parallelized pipeline: parallel **spec** generation (sub-agents), then Agent Team **exec-spec → review-gap** per story.
+
+Execute ALL stories in an implementation plan (from `andthen:plan`) through a parallelized pipeline: parallel **spec** generation (sub-agents), then Agent Team **exec-spec (worktree) → merge → review-gap (main)** per wave. Implementers work in **isolated git worktrees** to prevent file conflicts during parallel execution.
 
 **Requires Agent Teams** — Falls back to sequential execution (manual per-story loop) if Teams unavailable.
 
@@ -33,15 +34,18 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 - **Plan is source of truth** — follow phase ordering, dependencies, and parallel markers exactly
 - **Pre-generate specs** — run parallel sub-agents for spec generation before starting the Agent Team
 - **Agent Team for impl + review** — use Agent Teams for parallel implementation and review
-- **Per-story pipeline**: spec (sub-agent) → exec-spec → review-gap (with fix loop)
+- **Worktree isolation** — implementers use `EnterWorktree` per task to prevent file conflicts during parallel execution
+- **Pre-assign all tasks** — orchestrator assigns every task to a specific agent at creation time (no self-claiming)
+- **Per-story pipeline**: spec (sub-agent) → exec-spec (worktree) → merge → review-gap (main branch, with fix loop)
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job is to:
 - Parse the plan and extract stories, phases, dependencies, parallel markers
 - Generate specs for each phase using parallel sub-agents (before team pipeline)
 - Size and create the Agent Team for implementation + review
-- Create pipeline tasks with correct dependency chains
+- Create pipeline tasks with correct dependency chains and **pre-assigned owners**
 - Monitor progress via the task list and coordinate agents
+- **Merge worktree branches** into main after each wave of implementations completes
 - Handle failures and escalate when needed
 - Run final verification after all stories complete
 
@@ -57,6 +61,10 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 - Not running review-gap after completing a wave
 - Agent Teams feature flag not enabled — check for CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS
 - Not spawning troubleshooter on escalation
+- **Agents claiming tasks not assigned to them** — self-review risk; all tasks must be pre-assigned with `owner`
+- **Implementers not using EnterWorktree** — parallel implementers in the same working directory cause file conflicts and race conditions
+- **Forgetting to merge worktree branches** before starting reviews or next wave — reviewers work on main post-merge
+- **Do NOT use `isolation: "worktree"` with `team_name`** — known Claude Code bug ([#33045](https://github.com/anthropics/claude-code/issues/33045)) where isolation is silently ignored for team agents; instruct implementers to call `EnterWorktree` themselves instead
 
 
 ## WORKFLOW
@@ -157,38 +165,75 @@ Teammates must be spawned into the team (with `team_name` and `name`) so they sh
 
 > **Note**: Spec generation is handled by parallel sub-agents _before_ the Agent Team starts (see Step 3). The team only handles implementation and review.
 
-**Implementers** (`model: "sonnet"`) — Claim `impl-{story_id}` tasks and run `andthen:exec-spec` on the pre-generated FIS. Output: implemented story.
+**Implementers** (`model: "sonnet"`) — Work on pre-assigned `impl-{story_id}` tasks. For each task: enter an isolated worktree via `EnterWorktree`, run `andthen:exec-spec` on the pre-generated FIS, commit all changes, exit worktree with `action: "keep"` (preserves the branch for merge), then mark task complete. Output: implemented story on a worktree branch.
 
-**Reviewers** (`model: "sonnet"`) — Claim `review-{story_id}` tasks (blocked by corresponding impl task) and run `andthen:review-gap` per story. If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story.
+**Reviewers** (`model: "sonnet"`) — Work on pre-assigned `review-{story_id}` tasks (unblocked by orchestrator after wave merge). Run `andthen:review-gap` per story **on the main branch** (post-merge). If issues found: fix them on main, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story.
 
-Each agent loops: **claim task → execute → mark done → claim next**.
+Each agent loops: **check for assigned tasks → execute → mark done → check for next assigned task**.
 
 **Troubleshooter (on-demand)** (`model: "sonnet"`) — NOT spawned upfront. The orchestrator spawns a troubleshooter teammate only when an agent escalates an issue it cannot resolve (build failures, analysis errors, cross-story conflicts, persistent test failures, etc.). Uses `andthen:build-troubleshooter` agent type. Receives a `fix-{story_id}` task with the issue context from the escalating agent. Shut down after the issue is resolved.
 
-#### Spawn Template
+#### Spawn Templates
 
-Use this as prompt context when spawning each teammate into the team (with `team_name: "plan-pipeline"`, `name: "<role-N>"`, and `model: "sonnet"`).
+Use these role-specific prompts when spawning each teammate into the team (with `team_name: "plan-pipeline"`, `name: "<role-N>"`, and `model: "sonnet"`).
 
+**Implementer template:**
 ```
-Role: {Implementer | Reviewer}
+Role: Implementer
 Team: plan-pipeline
 Plan: {PLAN_DIR}/plan.md
 
-Your workflow (loop until no tasks remain):
-1. Check the task list for available tasks matching your role ({impl-*|review-*})
-2. Claim an unblocked, unassigned task (set owner to your name)
-3. Execute:
-   - Implementer: Run andthen:exec-spec on the FIS for this story
-   - Reviewer: Run andthen:review-gap for this story. Fix any issues found, then re-validate (max 2 fix attempts — escalate to orchestrator if issues persist)
-4. Mark task completed
-5. Check the task list for next available task
-6. If no tasks available, notify orchestrator via message
+CRITICAL ROLE CONSTRAINT: You are an Implementer. ONLY work on tasks prefixed
+with impl-* that are assigned to you (owner = your name). NEVER claim or work
+on review-* tasks or unassigned tasks.
+
+Your workflow (loop until no assigned tasks remain):
+1. Check the task list for tasks assigned to you (owner = your name)
+2. For each assigned impl-* task:
+   a. Call EnterWorktree with name "story-{story_id}" to create an isolated worktree
+   b. Run andthen:exec-spec on the FIS for this story
+   c. Commit all changes in the worktree (ensure nothing is left uncommitted)
+   d. Call ExitWorktree with action "keep" — the orchestrator needs the branch for merge
+   e. Mark task completed
+3. Check the task list for your next assigned task
+4. If no tasks assigned to you, notify orchestrator via message
 
 Important:
-- Wait for tasks to appear in the task list before claiming work
+- ONLY work on tasks where owner = your name — never claim unassigned tasks
+- ALWAYS use EnterWorktree before starting implementation (prevents file conflicts)
+- ALWAYS commit and ExitWorktree(keep) when done — do not leave worktrees open
 - Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
 - Follow existing codebase patterns
-- For issues you cannot resolve yourself (build failures, analysis errors, persistent test failures, cross-story conflicts), escalate to orchestrator via message with full issue context — the orchestrator will spawn a dedicated troubleshooter
+- Escalate issues you cannot resolve to orchestrator via message with full context
+```
+
+**Reviewer template:**
+```
+Role: Reviewer
+Team: plan-pipeline
+Plan: {PLAN_DIR}/plan.md
+
+CRITICAL ROLE CONSTRAINT: You are a Reviewer. ONLY work on tasks prefixed
+with review-* that are assigned to you (owner = your name). NEVER claim or
+work on impl-* tasks or unassigned tasks.
+
+Your workflow (loop until no assigned tasks remain):
+1. Check the task list for tasks assigned to you (owner = your name)
+2. For each assigned review-* task:
+   a. Run andthen:review-gap for this story (work on main branch — code is already merged)
+   b. If issues found: fix them on main, then re-validate (max 2 fix attempts)
+   c. If issues persist after 2 fix attempts, escalate to orchestrator via message
+   d. Mark task completed
+3. Check the task list for your next assigned task
+4. If no tasks assigned to you, notify orchestrator via message
+
+Important:
+- ONLY work on tasks where owner = your name — never claim unassigned tasks
+- Review tasks are unblocked by the orchestrator AFTER the wave merge completes
+- Work on the main branch (implementation has already been merged from worktrees)
+- Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
+- Follow existing codebase patterns
+- Escalate issues you cannot resolve to orchestrator via message with full context
 ```
 
 **Gate**: Team created and all agents spawned
@@ -202,32 +247,82 @@ For each phase in the plan:
 
 Run Step 3 (Generate Specs) for the current phase's stories. All FIS documents must exist before creating implementation tasks.
 
-#### 6b. Create Pipeline Tasks
+#### 6b. Create Pipeline Tasks (Pre-Assigned)
 
-For each story in the current phase, create tasks:
-- `impl-{story_id}`: "Implement {story_name}" — immediately unblocked (FIS already exists from Step 3/6a)
-- `review-{story_id}`: "Review and validate {story_name}"
+For each story in the current phase, create tasks with **pre-assigned owners**:
+- `impl-{story_id}`: "Implement {story_name}" — assign to a specific implementer
+- `review-{story_id}`: "Review and validate {story_name}" — assign to a specific reviewer
+
+**Pre-assignment rules:**
+- Round-robin distribute `impl-*` tasks across implementers to balance workload
+- Round-robin distribute `review-*` tasks across reviewers
+- **Never assign impl and review of the same story to the same agent** (prevents self-review)
+- Set the `owner` field via TaskUpdate immediately after task creation
 
 **Wave-based task creation** (if waves present in plan):
 - Group story tasks by wave within each phase
-- W1 story tasks are immediately unblocked (no wave predecessors)
-- W2 story tasks are blocked by completion of all W1 review tasks
-- W3+ story tasks are blocked by completion of all previous wave review tasks
-- This simplifies dependency setup: wave ordering replaces per-story dependency chains
+- W1 `impl-*` tasks are immediately unblocked (no wave predecessors)
+- W1 `review-*` tasks are created as **blocked** — the orchestrator unblocks them after the wave merge (see Step 6d)
+- W2 `impl-*` tasks are blocked by completion of all W1 review tasks
+- W3+ tasks follow the same pattern: impl unblocked after previous wave reviews complete, review unblocked after current wave merge
 
 #### 6c. Set Dependencies
 
-Set task dependencies (blocked-by):
-- `review-{story_id}` blocked by `impl-{story_id}`
+Set task dependencies:
+- `impl-{story_id}` — unblocked for current wave (ready for implementers to start)
+- `review-{story_id}` — **create as blocked**. The orchestrator unblocks review tasks for each wave AFTER merging all worktree branches from that wave (see Step 6d)
 - Cross-story dependencies from plan: if S05 depends on S03, then `impl-S05` blocked by `review-S03`
 
-#### 6d. Monitor Progress
+#### 6d. Merge Wave
 
-- Poll the task list periodically until all review tasks for the current phase are complete
+After ALL `impl-*` tasks in the current wave are complete (all implementers have committed and exited their worktrees):
+
+1. **Verify worktree branches exist** — Each completed impl task should have produced a worktree branch named `worktree-story-{story_id}` (the branch EnterWorktree creates)
+
+2. **Pre-merge conflict detection** — Dry-run each merge to identify conflicts before starting:
+   ```bash
+   # Test whether merging would conflict (read-only, no repo modification)
+   git merge-tree $(git merge-base HEAD worktree-story-{story_id}) HEAD worktree-story-{story_id}
+   # Non-empty output = conflicts expected
+   ```
+
+3. **Sequentially merge each story branch into main** (`--no-ff` preserves explicit merge commits for easy per-story rollback):
+   ```bash
+   git checkout main
+   # Merge each story branch one at a time
+   git merge worktree-story-{story_id} --no-ff -m "Merge story {story_id}: {story_name}"
+   # Repeat for each story in the wave
+   ```
+
+4. **Handle merge conflicts** by type:
+   - **Import/config accumulation** (very common) — take both additions, they are additive
+   - **Lock file conflicts** (common) — `git checkout --theirs pnpm-lock.yaml` then re-run package manager install to regenerate
+   - **Adjacent code modifications** — spawn a Troubleshooter teammate with both stories' FIS as context
+   - **Same function, incompatible logic** — escalate to user (implies a missed plan dependency)
+
+5. **Verify build + tests** on merged main before proceeding to reviews
+
+6. **Clean up worktrees**:
+   ```bash
+   git worktree remove .claude/worktrees/story-{story_id}
+   git branch -d worktree-story-{story_id}
+   # Repeat for each story in the wave
+   ```
+
+7. **Unblock review tasks** for this wave — update each `review-{story_id}` task to unblocked status so reviewers can pick them up
+
+> **Critical invariant**: Wave N+1 worktrees must be created AFTER Wave N merges complete. Creating them before means they branch from pre-merge main and lack Wave N's changes — causing guaranteed conflicts and incorrect behavior.
+
+**Gate**: All wave branches merged, build passes, review tasks unblocked
+
+#### 6e. Monitor Progress
+
+- Poll the task list periodically and track completion by wave:
+  1. **Monitor impl tasks** — when all `impl-*` tasks in wave N complete → run wave merge (Step 6d)
+  2. **Monitor review tasks** — when all `review-*` tasks in wave N complete → proceed to wave N+1 or next phase
 - Handle agent messages (failures, questions, status updates)
-- Track completion by wave within each phase — all stories in wave N must complete before wave N+1 tasks are unblocked
 
-#### 6e. Update Plan
+#### 6f. Update Plan
 
 After each story's pipeline completes (exec-spec → review-gap), update `plan.md`:
 - Set the story's **Status** field to `Done`
@@ -248,14 +343,20 @@ Move to next phase only after ALL stories in current phase are complete and plan
 #### Pipeline Flow Example
 
 ```
-Phase 1 (Sequential): S01 → S02
-  [spec-S01, spec-S02 in parallel] → impl-S01 → review-S01 → impl-S02 → review-S02
+Phase 1 (Sequential — W1: S01, W2: S02):
+  [spec-S01, spec-S02 in parallel]
+  W1: impl-S01 (worktree) → MERGE W1 → review-S01 (main)
+  W2: impl-S02 (worktree) → MERGE W2 → review-S02 (main)
 
-Phase 2 (Parallel [P]): S03[P], S04[P], S05 (depends on S03)
+Phase 2 (Parallel — W1: S03[P], S04[P] | W2: S05 depends on S03):
   [spec-S03, spec-S04, spec-S05 in parallel]
-  impl-S03 → review-S03 → impl-S05 → review-S05
-  impl-S04 → review-S04   (parallel with S03)
+  W1: impl-S03 (worktree) ─┐
+      impl-S04 (worktree) ─┤→ MERGE ALL W1 → review-S03 + review-S04 (main, parallel)
+                            │
+  W2: impl-S05 (worktree) ─→ MERGE W2 → review-S05 (main)
 ```
+
+Each implementer works in an isolated git worktree (via `EnterWorktree`). After all implementations in a wave complete, the orchestrator merges all worktree branches into main, then unblocks review tasks. Reviewers work on the merged main branch.
 
 **Gate**: All phases complete, all stories implemented and reviewed
 
@@ -287,9 +388,14 @@ Spawn a **general-purpose sub-agent** _(if supported by your coding agent)_ to u
 
 ### Step 9: Clean Up
 
-1. Send shutdown requests to each teammate
-2. Wait for shutdown confirmations
-3. Delete the team to remove team and task files
+1. **Clean up any remaining worktrees** — remove worktree directories and branches that weren't cleaned up during wave merges:
+   ```bash
+   git worktree list   # check for leftover worktrees
+   git worktree prune  # remove stale worktree references
+   ```
+2. Send shutdown requests to each teammate
+3. Wait for shutdown confirmations
+4. Delete the team to remove team and task files
 
 
 ## FAILURE HANDLING

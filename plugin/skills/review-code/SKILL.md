@@ -1,10 +1,11 @@
 ---
-description: Performs thorough code reviews covering code quality, security, architecture, and UI/UX. Use when reviewing code changes, PRs, implementations, or when asked to review, audit, or assess code quality. Generates detailed reports with prioritized findings.
+description: Perform thorough code reviews covering code quality, security, architecture, and UI/UX. Use when reviewing code changes, PRs, implementations, or when asked to review, audit, or assess code quality. Generate detailed reports with prioritized findings.
 user-invocable: true
 argument-hint: "[scope/files] [--to-issue] [--to-pr <number>]"
 ---
 
 # Code Review Skill
+
 
 Comprehensive code review covering quality, security, architecture, and UI/UX aspects.
 
@@ -218,9 +219,14 @@ Generate markdown report with:
 - **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
 - **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
 
-Store report at: `<project_root>/.agent_temp/reviews/<feature-name>-code-review-<agent>-<YYYY-MM-DD>.md`
+**Report output directory** — resolve in priority order:
+1. **Spec directory**: If the review relates to a spec/FIS directory (e.g., the files being reviewed correspond to a feature that has an associated spec directory from the Project Document Index), store the report **in that spec directory**.
+2. **Target directory**: If the review target is a specific file or localized directory, store the report **in the same directory** as the primary review target.
+3. **Fallback**: Store in `{AGENT_TEMP}/reviews/` where `{AGENT_TEMP}` is the **Agent Temp** path from the Project Document Index (default: `.agent_temp/`).
 
-When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-code-review-claude-2026-03-15.md`). Do not use absolute paths.
+**Filename**: `<feature-name>-code-review-<agent>-<YYYY-MM-DD>.md`
+
+When complete, print the report's **relative path from the project root**. Do not use absolute paths.
 
 ### Publish to GitHub _(if --to-issue or --to-pr)_
 If PUBLISH_ISSUE is `true`:

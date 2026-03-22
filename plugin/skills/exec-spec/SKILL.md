@@ -5,6 +5,7 @@ argument-hint: <path-to-fis>
 
 # Execute Feature Implementation Specification
 
+
 Execute a fully-defined FIS document as an **orchestrator**, delegating all implementation and validation tasks to sub-agents _(if supported by your coding agent)_.
 
 ## VARIABLES
@@ -21,18 +22,6 @@ FIS_FILE_PATH: $ARGUMENTS
 - **Complete Implementation**: 100% completion required - no partial work
 - **FIS is source of truth** — follow it exactly
 - **Sub-agents for all tasks** — act as orchestrator and delegate all work to sub-agents _(if supported by your coding agent)_
-
-
-## GOTCHAS
-- Agent writes code directly instead of delegating to sub-agents — you are the orchestrator, never implement directly
-- Context exhaustion causes skipped final validation — front-load TV04 verification checks
-- FIS references get stale if the spec was updated — always re-read the FIS, don't rely on cached understanding
-
-### Helper Scripts
-Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
-- `check-stubs.sh <path>` — scan for incomplete implementation indicators (TODO/FIXME, empty functions, placeholders)
-- `check-wiring.sh <path>` — verify new/changed files are imported/referenced
-- `verify-implementation.sh <file1> [file2...]` — combined existence + substance + wiring check
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job is to:
@@ -101,6 +90,18 @@ After each sub-agent completes:
 2. **Update FIS** — check off completed task checkbox
 3. **Track context** — note key outputs needed by dependent tasks
 4. **Handle issues** — if blocked/partial, assess and either retry or flag for user
+
+
+## GOTCHAS
+- Agent writes code directly instead of delegating to sub-agents — you are the orchestrator, never implement directly
+- Context exhaustion causes skipped final validation — front-load TV04 verification checks
+- FIS references get stale if the spec was updated — always re-read the FIS, don't rely on cached understanding
+
+### Helper Scripts
+Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
+- `check-stubs.sh <path>` — scan for incomplete implementation indicators (TODO/FIXME, empty functions, placeholders)
+- `check-wiring.sh <path>` — verify new/changed files are imported/referenced
+- `verify-implementation.sh <file1> [file2...]` — combined existence + substance + wiring check
 
 
 ## WORKFLOW

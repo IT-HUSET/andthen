@@ -4,6 +4,8 @@ argument-hint: "[Requirements source - description, file path, or GitHub issue U
 ---
 
 # Clarify Requirements
+
+
 Transform incomplete requirements into complete, actionable specifications through systematic discovery of gaps, edge cases, and scope boundaries.
 
 

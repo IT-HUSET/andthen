@@ -5,6 +5,7 @@ argument-hint: "[project name or path]"
 
 # Initialize Project
 
+
 Set up the AndThen workflow structure for a project. Detects current state and fills gaps non-destructively — never overwrites existing files.
 
 

@@ -5,6 +5,7 @@ argument-hint: <description> | --issue <number> [--to-issue]
 
 # Generate Feature Implementation Specification
 
+
 Given a feature request, generate a Feature Implementation Specification (FIS) using the template in the **Appendix** below.
 
 

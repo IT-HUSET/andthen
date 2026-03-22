@@ -1,11 +1,12 @@
 ---
-description: Deterministic operations: update STATE.md, plan status, FIS checkboxes, standardized commits. Trigger on 'update state', 'mark done', 'progress summary'.
+description: "Deterministic operations: update STATE.md, plan status, FIS checkboxes, standardized commits. Trigger on 'update state', 'mark done', 'progress summary'."
 context: fork
 agent: general-purpose
 user-invocable: true
 ---
 
 # Deterministic Operations Skill
+
 
 Reliable, template-driven operations for state management, git conventions, and progress tracking. These operations follow strict patterns to avoid LLM interpretation drift.
 

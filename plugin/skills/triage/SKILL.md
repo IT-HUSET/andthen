@@ -1,9 +1,11 @@
 ---
-description: Investigate, diagnose, and fix issues. Trigger on 'debug this', 'what's broken', 'triage', 'fix this bug'. Flags: --plan-only, --to-issue.
+description: "Investigate, diagnose, and fix issues. Trigger on 'debug this', 'what's broken', 'triage', 'fix this bug'. Flags: --plan-only, --to-issue."
 argument-hint: "[Scope] [--plan-only] [--to-issue]"
 ---
 
 # Triage and Fix Implementation Issues
+
+Systematic investigation and resolution of implementation issues. Detect problems across multiple layers, perform root cause analysis using the "5 Whys" technique, and apply targeted fixes with verification.
 
 
 ## VARIABLES

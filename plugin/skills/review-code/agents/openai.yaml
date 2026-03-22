@@ -1,6 +1,7 @@
 interface:
   display_name: "AndThen - Code Review"
   short_description: "Thorough code review with checklists"
+  default_prompt: "Perform thorough code review covering quality, security, architecture, and UI/UX. Produce a prioritized findings report. Review scope: "
 
 policy:
   allow_implicit_invocation: true

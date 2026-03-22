@@ -1,6 +1,7 @@
 interface:
   display_name: "AndThen - Clarify Requirements"
   short_description: "Discover requirements gaps, edge cases, and scope"
+  default_prompt: "Discover requirement gaps, edge cases, and scope boundaries. Produce a structured requirements clarification document. Requirements to clarify: "
 
 policy:
   allow_implicit_invocation: true

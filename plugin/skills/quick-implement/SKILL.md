@@ -5,6 +5,7 @@ argument-hint: <spec> | --issue <number>
 
 # Quick Implement with Verification
 
+
 Fast implementation path for small features, bug fixes, or GitHub issues. Bypasses FIS workflow for quick turnaround while maintaining verification quality.
 
 **For larger features, use the full workflow:** `clarify` → `spec` → `exec-spec`

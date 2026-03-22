@@ -1,11 +1,13 @@
 ---
-description: Reviews specifications, plans, PRDs, requirement documents, or other documentation for completeness, clarity, edge cases, and technical accuracy. Generates detailed report with prioritized findings and readiness assessment.
+description: Review specifications, plans, PRDs, requirement documents, or other documentation for completeness, clarity, edge cases, and technical accuracy. Generate detailed report with prioritized findings and readiness assessment.
 context: fork
 agent: general-purpose
 user-invocable: true
 ---
 
 # Review Spec, Plan, Requirements, or Other Documents
+
+
 Thoroughly review specifications, implementation plans, PRDs, technical designs, requirement documents, or other documents to ensure they are complete, clear, unambiguous, and ready for implementation or distribution.
 
 
@@ -197,9 +199,14 @@ Generate markdown report with:
 - **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
 - **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
 
-Store report in: `<project_root>/.agent_temp/reviews/<spec-name>-doc-review-<agent>-<YYYY-MM-DD>.md`
+**Report output directory** — resolve in priority order:
+1. **Spec directory**: If the document being reviewed lives in a spec/FIS directory (or has an associated spec directory from the Project Document Index), store the report **in that same directory**.
+2. **Target directory**: Otherwise, store the report **in the same directory** as the document being reviewed.
+3. **Fallback**: Store in `{AGENT_TEMP}/reviews/` where `{AGENT_TEMP}` is the **Agent Temp** path from the Project Document Index (default: `.agent_temp/`).
 
-When complete, print the report's **relative path from the project root** (e.g., `.agent_temp/reviews/auth-doc-review-claude-2026-03-15.md`). Do not use absolute paths.
+**Filename**: `<spec-name>-doc-review-<agent>-<YYYY-MM-DD>.md`
+
+When complete, print the report's **relative path from the project root**. Do not use absolute paths.
 
 
 ## FOLLOW-UP ACTIONS

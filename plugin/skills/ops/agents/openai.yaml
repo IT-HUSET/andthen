@@ -1,6 +1,7 @@
 interface:
   display_name: "AndThen - Operations"
   short_description: "State management, git conventions, progress tracking"
+  default_prompt: "Execute deterministic operation: update STATE.md, plan status, FIS checkboxes, or create standardized commit. Operation: "
 
 policy:
   allow_implicit_invocation: true

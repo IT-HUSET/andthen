@@ -11,7 +11,7 @@ Usage:
 
 Options:
   --skills-dir PATH    Destination for skill directories (default: ~/.agents/skills)
-  --prefix PREFIX      Prefix for exported names (default: andthen.)
+  --prefix PREFIX      Prefix for exported names (default: andthen-)
   --dry-run            Print planned operations without copying files
   -h, --help           Show this help text
 
@@ -29,7 +29,7 @@ repo_root=$(
 )
 
 skills_dir="${HOME}/.agents/skills"
-prefix="andthen."
+prefix="andthen-"
 dry_run=0
 
 while [ "$#" -gt 0 ]; do
@@ -101,7 +101,7 @@ for dir in "$repo_root/plugin/skills"/*; do
       # Repo-relative reference paths → installed sibling paths
       sed -i.bak "s|plugin/references/|../${prefix}references/|g" "$md"
       rm -f "$md.bak"
-      # Plugin namespace (andthen:) → portable prefix (andthen.)
+      # Plugin namespace (andthen:) → portable prefix (andthen-)
       sed -i.bak "s|andthen:|${prefix}|g" "$md"
       rm -f "$md.bak"
       # Plugin-root paths → installed sibling paths

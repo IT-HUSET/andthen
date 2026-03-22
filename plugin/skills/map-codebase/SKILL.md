@@ -5,6 +5,7 @@ argument-hint: "[output directory (defaults to docs/)]"
 
 # Map Codebase
 
+
 Brownfield codebase analysis that produces structured understanding of an existing codebase plus a discovered requirements document. Use this when onboarding to an existing project or when project documentation is missing/outdated.
 
 **Output**: Structured documentation files + discovered requirements document that feeds directly into `andthen:plan`.

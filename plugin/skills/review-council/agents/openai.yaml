@@ -1,6 +1,7 @@
 interface:
   display_name: "AndThen - Review Council"
   short_description: "Multi-perspective review with adversarial debate"
+  default_prompt: "Run multi-perspective code review with adversarial debate — reviewers challenge each other to validate findings. Review scope: "
 
 policy:
   allow_implicit_invocation: true
