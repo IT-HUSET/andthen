@@ -164,12 +164,47 @@ Ask ONLY if implementation is blocked by ambiguity.
 **USE THE TEMPLATE**: Generate the FIS using the template in the **Appendix** below as your structure.
 
 #### Key Generation Guidelines
-1. Each task: atomic, self-contained, with file:line references
-2. Mark parallelizable tasks with [P]
+1. Each task: atomic, self-contained, with file:line references. Group related tasks into Execution Groups (see Grouping Heuristics below)
+2. Mark parallelizable **groups** with [P] and declare group dependencies. Tasks within a group are always sequential
 3. Reference patterns, don't reproduce them
 4. Each task must include a **`Verify:`** line — concrete, observable proof that the task was completed correctly (e.g. command output, file existence, test result, UI state). This enables meaningful gap analysis during execution.
 5. Stay within 300-500 line target
 6. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
+
+#### Task Grouping Heuristics
+After defining individual tasks (TI01, TI02...), organize them into **Execution Groups**.
+Each group is executed by a single sub-agent, reducing context boundaries between tasks.
+Apply these affinity signals to determine grouping (in priority order):
+
+1. **Tight coupling** — Task B directly extends what Task A creates (API shape,
+   naming, internal structure). Always group together.
+   _Example: "Create data model" + "Create repository for that model"_
+
+2. **Same file** — Tasks that create then modify the same primary file.
+   _Example: "Create ServerBuilder" + "Convert fields to final" + "Decompose handler"_
+
+3. **Same concern across files** — Tasks applying the same conceptual change to
+   different files. Always group together.
+   _Example: "Remove old event firing" from 6 different call sites_
+
+4. **Layer affinity** — Tasks at the same architectural layer that share context.
+   _Example: "Create API routes" + "Add validation middleware" + "Add error handling"_
+
+5. **Test cohesion** — All test tasks for the same implementation group together.
+   _Example: All unit tests for a single class → one group_
+
+6. **Trivial absorption** — Barrel exports, verify steps, cleanup tasks get absorbed
+   into the nearest group rather than standing alone.
+
+**Constraints:**
+- Max 4 implementation tasks per group (test groups can go to 6)
+- Never group across independent concerns
+- First group should produce a thin working end-to-end path (vertical slice principle)
+
+**Dependency & Parallelism:**
+- Mark groups `[P]` when they share the same dependency level and touch different files
+- Declare explicit dependencies: `← [depends: G1, G2]`
+- Test groups typically depend on all implementation groups
 
 
 ### 4. Self-Check
@@ -177,6 +212,7 @@ Ask ONLY if implementation is blocked by ambiguity.
 Quick sanity check before saving:
 - [ ] FIS follows template structure
 - [ ] All tasks are atomic and have file:line references where relevant
+- [ ] Tasks are organized into execution groups with clear dependencies
 - [ ] ADR clearly states the decision
 - [ ] No over-specification — if a section feels padded, trim it
 

@@ -5,6 +5,28 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.7.2] — 2026-03-22
+
+### Added
+- **Execution groups in spec and exec-spec** — FIS template and spec skill now organize tasks into execution groups (clusters of related tasks executed by a single sub-agent). exec-spec refactored from per-task to per-group delegation with Group Input/Result Templates and inter-group context relay
+- **UI design contract gate** (`exec-spec` Step 1.7) — auto-generates a UI-SPEC.md design contract when FIS contains frontend work, sourced from FIS, project design system, and UX guidelines
+- **Post-Completion learnings** in `exec-plan` and `exec-plan-team` — both plan execution skills now update LEARNINGS.md after all phases complete, capturing cross-story insights
+- **Helper scripts** in `exec-plan-team` — added `check-stubs.sh`, `check-wiring.sh`, `verify-implementation.sh` references (consistent with other execution skills)
+
+### Changed
+- **Status updates are now REQUIRED GATES** — `exec-spec` (5b, 5c), `exec-plan` (2c), `exec-plan-team` (6f) all enforce plan/FIS status updates as gate conditions, not optional post-completion cleanup. Addresses observed failure mode where agents skip end-of-document instructions under context exhaustion
+- **ops fork context documented for callers** — all three execution skills now include re-read verification after `andthen:ops` invocation (ops runs in fork context; file modifications may not be visible in caller's state)
+- **ops uses Project Document Index** for STATE.md path resolution instead of hardcoded `docs/STATE.md`
+- **ops checkbox verification clarified** — now checks evidence of completion rather than re-running full 4-dimension verification (avoids redundant work when called by exec-spec)
+- **Severity tier mapping** in `exec-spec` TV04 — explicit mapping from review-code tiers (CRITICAL/HIGH/SUGGESTIONS) to remediation tiers (CRITICAL/HIGH/MEDIUM)
+- **map-codebase reads project learnings** — added LEARNINGS.md reading instruction for contextualizing codebase analysis
+
+### Fixed
+- **exec-plan missing `check-wiring.sh`** in helper scripts section (consistency with exec-spec)
+- **Gotcha added** to all three execution skills warning about status updates being dropped under context exhaustion
+
+---
+
 ## [0.7.1] — 2026-03-21
 
 ### Changed

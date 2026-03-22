@@ -30,14 +30,14 @@ Reliable, template-driven operations for state management, git conventions, and 
 ### 1. State File Operations
 
 #### Read State
-Parse `docs/STATE.md` and return structured summary:
+Parse `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`) and return structured summary:
 - Current phase/milestone
 - Active stories (in-progress)
 - Blockers
 - Last updated timestamp
 
 #### Update State
-Update specific fields in `docs/STATE.md`:
+Update specific fields in `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`):
 
 **Usage**: `update-state <field> <value>`
 
@@ -78,7 +78,7 @@ Check off task/criteria checkboxes in a FIS document:
 
 Actions:
 - Mark task checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
-- Before marking done, verify the task meets 4-dimension criteria per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
+- Before marking done, verify that evidence of completion exists (e.g., the calling skill has already performed 4-dimension verification per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`). Do not re-run full verification — check that it was performed, not that it passes again
 - When all tasks done: also mark success criteria and Final Validation Checklist items
 
 

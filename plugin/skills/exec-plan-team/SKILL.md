@@ -65,6 +65,13 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 - **Implementers not using EnterWorktree** — parallel implementers in the same working directory cause file conflicts and race conditions
 - **Forgetting to merge worktree branches** before starting reviews or next wave — reviewers work on main post-merge
 - **Do NOT use `isolation: "worktree"` with `team_name`** — known Claude Code bug ([#33045](https://github.com/anthropics/claude-code/issues/33045)) where isolation is silently ignored for team agents; instruct implementers to call `EnterWorktree` themselves instead
+- **Status updates get dropped when context is exhausted** — plan and FIS checkbox updates (Step 6f) are GATES that block the next phase, not optional cleanup. Update immediately after each story completes
+
+### Helper Scripts
+Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
+- `check-stubs.sh <path>` — scan for incomplete implementation indicators
+- `check-wiring.sh <path>` — verify new/changed files are imported/referenced
+- `verify-implementation.sh <file1> [file2...]` — combined existence + substance + wiring check
 
 
 ## WORKFLOW
@@ -322,9 +329,11 @@ After ALL `impl-*` tasks in the current wave are complete (all implementers have
   2. **Monitor review tasks** — when all `review-*` tasks in wave N complete → proceed to wave N+1 or next phase
 - Handle agent messages (failures, questions, status updates)
 
-#### 6f. Update Plan
+#### 6f. Update Plan and FIS Status (REQUIRED GATE)
 
-After each story's pipeline completes (exec-spec → review-gap), update `plan.md`:
+**CRITICAL — do this immediately after each story's review completes, not as a batch at the end.**
+
+After each story's pipeline completes (exec-spec → review-gap), use the `andthen:ops` skill to update `plan.md`:
 - Set the story's **Status** field to `Done`
 - Set the story's **FIS** field to the generated spec path (e.g. `**FIS**: docs/specs/story-name.md`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)
@@ -334,11 +343,13 @@ Also update each completed FIS file:
 - Mark all task checkboxes as checked (`- [x]`)
 - Mark success criteria and Final Validation Checklist items as checked
 
+After ops completes, **re-read plan.md and the FIS file** to verify updates were applied (`ops` runs in fork context and modifications may not be visible in your current state).
+
 Move to next phase only after ALL stories in current phase are complete and plan is updated.
 
 **Create Phase N+1 tasks only after Phase N is fully complete.**
 
-**Gate**: All stories in current phase completed and verified
+**Gate**: All stories in current phase completed, verified, AND plan.md + FIS checkboxes updated — verify before proceeding to next phase
 
 #### Pipeline Flow Example
 
@@ -408,6 +419,20 @@ Spawn a **general-purpose sub-agent** _(if supported by your coding agent)_ to u
 ## COMPLETION
 
 When all phases are complete, print a summary including: stories completed, total phases, verification results (build/test status), and the path to the updated `PLAN_DIR/plan.md`.
+
+
+## Post-Completion: Update Project Learnings
+
+After all phases complete, if the project has a learnings file (`LEARNINGS.md` or `implementation-notes.md` — check Project Document Index for location), update it with knowledge discovered across stories. Organize by topic, not chronologically. Types of knowledge to capture:
+- **Traps & gotchas**: Non-obvious patterns that would bite a competent developer even with access to code and git history
+- **Domain knowledge**: API quirks, framework behavior, naming decisions, business rules discovered in code
+- **Procedural knowledge**: Deploy steps, test prerequisites, tooling patterns
+- **Error patterns**: Recurring errors — note if deterministic (bad schema, wrong type → conclude immediately) or infrastructure (timeout, rate limit → log, conclude only when pattern emerges)
+- **Cross-story insights**: Patterns that only become visible when implementing multiple stories (e.g., shared abstractions, recurring conflicts, dependency ordering lessons)
+
+Keep entries brief (1-2 sentences each). Do NOT record what was implemented (that's in git history), how parts integrate (that's in the code), or routine decisions (that's in the FIS/spec).
+
+**Self-maintenance**: When updating, also review nearby entries — merge overlapping items, remove knowledge that's no longer accurate, split sections that grow too long.
 
 
 ## FALLBACK: NO AGENT TEAMS

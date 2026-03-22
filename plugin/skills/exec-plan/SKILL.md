@@ -52,10 +52,12 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 - Executing stories out of wave order when there are dependencies
 - Skipping the spec step (andthen:spec) before implementing a story
 - Not running review-gap after completing a wave
+- **Status updates get dropped when context is exhausted** — plan and FIS checkbox updates (Step 2c) are GATES that block the next phase, not optional cleanup. Update immediately after each story completes
 
 ### Helper Scripts
 Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
 - `check-stubs.sh <path>` — scan for incomplete implementation indicators
+- `check-wiring.sh <path>` — verify new/changed files are imported/referenced
 - `verify-implementation.sh <file1> [file2...]` — combined existence + substance + wiring check
 
 
@@ -129,10 +131,14 @@ Pipeline:
 1. Spec: Check if FIS exists at {fis_path}. If not, run andthen:spec with this scope: {story_scope}
 2. Implement: Run andthen:exec-spec on the FIS
 3. Review: Run andthen:review-gap. Fix issues (max 2 attempts), then report results.
+4. Update status: Update FIS checkboxes (all tasks, success criteria, validation checklist marked [x]).
+   Update plan.md: set story Status to Done, check off acceptance criteria, update Story Catalog table.
+   Use the andthen:ops skill for standardized updates.
 
 Important:
 - Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
 - Follow existing codebase patterns
+- Status updates are REQUIRED, not optional cleanup — do not skip step 4
 - Report back: success/failure, FIS path, any issues encountered
 ```
 
@@ -140,9 +146,11 @@ Important:
 
 **When to split stages vs. full-pipeline sub-agents**: For plans with 4+ stories, prefer splitting stages across separate sub-agents to enable parallelism (e.g., spec agent finishes S01 and moves to S02 while impl agent starts S01). For small plans (1-3 stories), a single opus sub-agent per story running the full pipeline is simpler and avoids coordination overhead.
 
-#### 2c. Update Plan
+#### 2c. Update Plan and FIS Status (REQUIRED GATE)
 
-After each story's pipeline completes (spec → exec-spec → review-gap), update `plan.md` (consider using the `andthen:ops` skill for standardized status updates):
+**CRITICAL — do this immediately after each story's pipeline completes, not as a batch at the end.**
+
+After each story's pipeline completes (spec → exec-spec → review-gap), use the `andthen:ops` skill to update `plan.md`:
 - Set the story's **Status** field to `Done`
 - Set the story's **FIS** field to the generated spec path (e.g. `**FIS**: docs/specs/story-name.md`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)
@@ -152,9 +160,11 @@ Also update each completed FIS file:
 - Mark all task checkboxes as checked (`- [x]`)
 - Mark success criteria and Final Validation Checklist items as checked
 
+After ops completes, **re-read plan.md and the FIS file** to verify updates were applied (`ops` runs in fork context and modifications may not be visible in your current state).
+
 Move to next phase only after ALL stories in current phase are complete and plan is updated.
 
-**Gate**: All stories in current phase completed and verified
+**Gate**: All stories in current phase completed, verified, AND plan.md + FIS checkboxes updated — verify before proceeding to next phase
 
 #### Pipeline Flow Example
 
@@ -205,3 +215,17 @@ Spawn a **general-purpose sub-agent** _(if supported by your coding agent)_ to u
 ## COMPLETION
 
 When all phases are complete, print a summary including: stories completed, total phases, verification results (build/test status), and the path to the updated `PLAN_DIR/plan.md`.
+
+
+## Post-Completion: Update Project Learnings
+
+After all phases complete, if the project has a learnings file (`LEARNINGS.md` or `implementation-notes.md` — check Project Document Index for location), update it with knowledge discovered across stories. Organize by topic, not chronologically. Types of knowledge to capture:
+- **Traps & gotchas**: Non-obvious patterns that would bite a competent developer even with access to code and git history
+- **Domain knowledge**: API quirks, framework behavior, naming decisions, business rules discovered in code
+- **Procedural knowledge**: Deploy steps, test prerequisites, tooling patterns
+- **Error patterns**: Recurring errors — note if deterministic (bad schema, wrong type → conclude immediately) or infrastructure (timeout, rate limit → log, conclude only when pattern emerges)
+- **Cross-story insights**: Patterns that only become visible when implementing multiple stories (e.g., shared abstractions, recurring conflicts, dependency ordering lessons)
+
+Keep entries brief (1-2 sentences each). Do NOT record what was implemented (that's in git history), how parts integrate (that's in the code), or routine decisions (that's in the FIS/spec).
+
+**Self-maintenance**: When updating, also review nearby entries — merge overlapping items, remove knowledge that's no longer accurate, split sections that grow too long.

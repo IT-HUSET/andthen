@@ -37,6 +37,7 @@ _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 | Guidelines           | `docs/guidelines/`                  | Development guidelines                  |
 | Wireframes           | `docs/wireframes/`                  | UI wireframes (HTML or images)          |
 | Design System        | `docs/design-system/`               | Tokens, components, style guide         |
+| Diagram Style Guide  | `docs/design/diagram-style-guide.md` | Excalidraw diagram visual style (colors, fills, typography) |
 | State                | `docs/STATE.md`                     | Cross-session state tracking (current phase, progress, blockers) |
 | Learnings            | `docs/LEARNINGS.md`                 | Accumulated project knowledge and error patterns |
 | Tech Debt            | `docs/TECH-DEBT-BACKLOG.md`         | Known technical debt                    |

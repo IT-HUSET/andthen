@@ -117,15 +117,17 @@ wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 ## Implementation Plan
 Below is an overview of the tasks that make up the implementation plan.
 **IMPORTANT:**
-- Each task is self-contained with all context needed, for independent execution
-- Check off task checkboxes (- [ ] → - [x]) as tasks are completed
-- Tasks that can be safely executed in parallel are marked with [P].
+- Tasks are organized into **Execution Groups** — clusters of related tasks executed by a single sub-agent
+- Tasks within a group execute sequentially. Groups marked **[P]** can run in parallel with sibling groups at the same dependency level
+- Individual tasks retain their IDs (TI01, TI02...) for tracking. Check off task checkboxes (- [ ] → - [x]) as tasks are completed
 
-### List of implementation tasks to be completed and the order in which they should be completed
+### Execution Groups
 
-> **Vertical slice ordering**: Order tasks so the first 1-2 tasks produce a thin but working end-to-end path through all layers. Subsequent tasks widen the slice with additional cases, edge handling, and polish. The goal is a demoable result as early as possible.
+> **Vertical slice ordering**: Order groups so the first group produces a thin but working end-to-end path through all layers. Subsequent groups widen the slice with additional cases, edge handling, and polish. The goal is a demoable result as early as possible.
 
 _Examples:_
+
+#### G1: Project Foundation ← [depends: none]
 - [ ] **TI01** Initialize Fresh project structure in repository root
   - Create deno.json with Fresh dependencies and tasks
   - Set up basic routes/, islands/, components/, lib/ directories
@@ -138,17 +140,26 @@ _Examples:_
   - Configure database connection and authentication helpers
   - **Verify**: [Exists] `lib/supabase/client.ts` and `lib/supabase/server.ts` present; [Substantive] `createClient()` and `createServerClient()` have real implementations (not stubs); [Wired] `.env.example` lists `SUPABASE_URL` and `SUPABASE_ANON_KEY`; [Functional] type-check passes
 
-- [ ] **TI03** [P] Set up development tooling and scripts
+#### G2: Development Tooling [P] ← [depends: G1]
+- [ ] **TI03** Set up development tooling and scripts
   - Configure deno fmt, deno lint, and deno check tasks
   - Set up Playwright for E2E testing in tests/e2e/
   - Create development and deployment scripts
   - **Verify**: [Exists] deno.json contains `fmt`, `lint`, `check` tasks; [Substantive] `tests/e2e/playwright.config.ts` has base URL configured; [Wired] tasks are runnable from deno.json; [Functional] `deno task lint` executes without config errors
 
-- [ ] **TI04** [P] Integrate design system foundation
+#### G3: Design System [P] ← [depends: G1]
+- [ ] **TI04** Integrate design system foundation
   - Add Pico CSS CDN link and Google Fonts (Nunito Sans, Outfit)
   - Create static/styles/architecture-theme.css with custom variables
   - Set up responsive design system per ADR-002
+  - Update barrel exports
   - **Verify**: [Exists] `architecture-theme.css` present; [Substantive] defines color, spacing, and typography custom properties per ADR-002; [Wired] root layout includes Pico CSS and Google Fonts links; [Functional] styles render correctly in browser
+
+#### Grouping Constraints
+- **Max 4 implementation tasks per group** (test groups can have up to 6)
+- **Never group across independent concerns** — if tasks touch unrelated subsystems, keep them in separate groups
+- **Absorb trivial tasks** — barrel exports, verification steps, cleanup tasks go into the nearest related group rather than standing alone
+- **Tests group together** — all test tasks for a feature form one group (split if >6 tasks)
 
 #### Implementation Notes (per task, only when needed)
 - Reference existing patterns: `see src/components/Modal.tsx:45-78 for similar pattern`
@@ -194,13 +205,13 @@ config | playwright.config.ts                | E2E configuration
 ```
 
 #### Test-Implementation Pairing
-> Map test scenarios to implementation tasks to create a natural red-green rhythm.
-> Each implementation task should have its tests written (and failing) before the task is implemented.
+> Map test scenarios to execution groups to create a natural red-green rhythm.
+> Tests paired with a group should be written (and failing) before the group executes.
 
-| Implementation Task | Test Scenarios | Expected Behavior |
-|--------------------|-----------------|--------------------|
-| TI01 | {{Scenario 1, Scenario 2}} | {{Tests fail before TI01, pass after}} |
-| TI02 | {{Scenario 3}} | {{Tests fail before TI02, pass after}} |
+| Execution Group | Test Scenarios | Expected Behavior |
+|----------------|----------------|--------------------|
+| G1 | {{Scenario 1, Scenario 2}} | {{Tests fail before G1, pass after}} |
+| G2 | {{Scenario 3}} | {{Tests fail before G2, pass after}} |
 
 _Skip for purely structural tasks (scaffolding, config, migrations) where tests-first adds no value._
 

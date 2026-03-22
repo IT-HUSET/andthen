@@ -20,6 +20,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 ## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
+- **Read project learnings** — If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to contextualize findings with existing project knowledge
 - **Read-only analysis** — No code changes, commits, or modifications
 - **Delegate heavily** — Spawn parallel sub-agents for codebase analysis
 - **Structured output** — All documents follow templates from `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`
