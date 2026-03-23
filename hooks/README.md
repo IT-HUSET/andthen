@@ -19,7 +19,7 @@ Standalone Claude Code hooks. Pick the ones you need and add them to your settin
 
 ## Installation
 
-Two approaches — pick one per hook:
+Two approaches – pick one per hook:
 
 ### Option A: Copy to `~/.claude/hooks/` (self-contained)
 
@@ -46,7 +46,7 @@ Then reference as `~/.claude/hooks/scripts/<script>` in settings.
 
 Point settings directly at the cloned repo path.
 
-Config customization still works — scripts check `~/.claude/hooks/configs/` first (user override), then script-relative `../configs/` (repo defaults), then hardcoded defaults.
+Config customization still works – scripts check `~/.claude/hooks/configs/` first (user override), then script-relative `../configs/` (repo defaults), then hardcoded defaults.
 
 ---
 
@@ -62,7 +62,7 @@ Intercepts Bash commands and blocks destructive patterns: `rm -rf`, fork bombs, 
 
 > **Note/Disclaimer/Warning:** This is not an exhaustive list of dangerous commands. It covers common destructive patterns but cannot catch every possible risky operation. Always review agent commands, keep Claude Code's built-in permission system enabled, and add project-specific patterns to your local `blocked-commands.json` as needed.
 
-**Config**: `blocked-commands.json` — customize blocked patterns and safe pipe targets. Copy to `~/.claude/hooks/configs/` to override defaults.
+**Config**: `blocked-commands.json` – customize blocked patterns and safe pipe targets. Copy to `~/.claude/hooks/configs/` to override defaults.
 
 **Add to `hooks.PreToolUse` array in settings:**
 
@@ -85,7 +85,7 @@ Sends desktop notifications when Claude finishes a task (Stop event) or needs at
 
 No config file. No dependencies beyond Bash (jq optional, has grep/sed fallback).
 
-**Add both entries to settings** — one under `hooks.Stop`, one under `hooks.Notification`:
+**Add both entries to settings** – one under `hooks.Stop`, one under `hooks.Notification`:
 
 ```json
 "Stop": [{
@@ -113,7 +113,7 @@ Voice notification variant using the ElevenLabs TTS API. Same events and debounc
 
 No config file. Requires `ELEVENLABS_API_KEY` env var and `curl`. See [ElevenLabs Setup](#elevenlabs-setup).
 
-**Add both entries to settings** — same structure as `notify.sh`:
+**Add both entries to settings** – same structure as `notify.sh`:
 
 ```json
 "Stop": [{
@@ -209,14 +209,14 @@ Default configs live in `hooks/configs/`. To customize, copy to `~/.claude/hooks
 
 1. Get an API key from [elevenlabs.io](https://elevenlabs.io/app/settings/api-keys).
 
-2. Set `ELEVENLABS_API_KEY` — pick one approach:
+2. Set `ELEVENLABS_API_KEY` – pick one approach:
 
    **Shell profile** (`~/.zshrc`, `~/.bashrc`, etc.):
    ```bash
    export ELEVENLABS_API_KEY="your-api-key-here"
    ```
 
-   **Claude Code settings** (`~/.claude/settings.json` — user-level, always available regardless of how Claude Code is launched):
+   **Claude Code settings** (`~/.claude/settings.json` – user-level, always available regardless of how Claude Code is launched):
    ```json
    {
      "env": {

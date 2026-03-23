@@ -29,8 +29,8 @@ OUTPUT_DIR: ${3:-docs/design-system} _(or as configured in **Project Document In
 
 
 ## GOTCHAS
-- Creating too many tokens/components — start minimal, essential only
-- Not using CSS custom properties — everything should be themeable
+- Creating too many tokens/components – start minimal, essential only
+- Not using CSS custom properties – everything should be themeable
 
 
 ## WORKFLOW

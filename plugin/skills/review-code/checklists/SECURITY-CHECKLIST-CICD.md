@@ -1,4 +1,4 @@
-# Security Checklist — CI/CD Pipeline Security
+# Security Checklist – CI/CD Pipeline Security
 
 Concise checklist for security reviews of CI/CD pipelines, build systems, and software delivery infrastructure. Based on [OWASP Top 10 CI/CD Security Risks](https://owasp.org/www-project-top-10-ci-cd-security-risks/).
 
@@ -20,7 +20,7 @@ No gates or approvals on pipeline flows, allowing any code change to trigger dep
 - [ ] Protected branches require PR reviews before merge
 - [ ] Deployment to production requires manual approval or environment protection rules
 - [ ] Force pushes disabled on main/release branches
-- [ ] Branch protection rules enforced — direct commits to protected branches blocked
+- [ ] Branch protection rules enforced – direct commits to protected branches blocked
 - [ ] PR merge requires passing CI checks
 
 ---
@@ -55,7 +55,7 @@ Attacker modifies pipeline execution by injecting malicious code into pipeline c
 
 - [ ] Pipeline workflows triggered by external PRs run with minimal permissions (read-only token)
 - [ ] Secrets not exposed to untrusted pipeline runs (fork PRs, external contributors)
-- [ ] `pull_request_target` (GitHub Actions) used with caution — does not checkout untrusted code with write permissions
+- [ ] `pull_request_target` (GitHub Actions) used with caution – does not checkout untrusted code with write permissions
 - [ ] Pipeline configuration files reviewed as security-critical code
 - [ ] No `${{ github.event.*.body }}` or similar user-controlled values interpolated directly into `run:` steps (script injection)
 
@@ -89,7 +89,7 @@ Secrets and credentials leaked, hardcoded, or improperly managed in pipeline con
 
 Misconfigured pipeline infrastructure, runners, or build environments.
 
-- [ ] Self-hosted runners isolated — not shared across projects with different trust levels
+- [ ] Self-hosted runners isolated – not shared across projects with different trust levels
 - [ ] Runners are ephemeral or cleaned between jobs (no state leakage)
 - [ ] Runner OS and tooling kept up to date and hardened
 - [ ] Container images used in pipelines sourced from trusted registries and pinned by digest
@@ -102,8 +102,8 @@ Misconfigured pipeline infrastructure, runners, or build environments.
 Third-party CI/CD services or actions used without vetting, versioning, or oversight.
 
 - [ ] Third-party GitHub Actions / orbs pinned to a specific commit SHA (not a mutable tag like `@v1`)
-- [ ] Third-party actions reviewed before adoption — check permissions requested and code
-- [ ] Minimal set of third-party integrations — unused integrations removed
+- [ ] Third-party actions reviewed before adoption – check permissions requested and code
+- [ ] Minimal set of third-party integrations – unused integrations removed
 - [ ] Third-party services given least-privilege access (scoped tokens, not org-wide)
 - [ ] Changelog for third-party actions monitored when updating
 
@@ -146,7 +146,7 @@ Pipeline activity not logged or monitored, making attacks or misuse undetectable
 
 ### 🚨 CRITICAL (Immediate Fix Required)
 - Secrets hardcoded in pipeline config or logged in plaintext
-- PPE — untrusted PR code can access production secrets
+- PPE – untrusted PR code can access production secrets
 - Production deployment has no approval gate
 - Third-party actions pinned to mutable tags (supply chain risk)
 

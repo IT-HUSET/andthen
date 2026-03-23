@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Create Specification"
   short_description: "Generate Feature Implementation Specification"
-  default_prompt: "Generate a complete Feature Implementation Specification — analyze the codebase first, then write the FIS using the template. Feature: "
+  default_prompt: "Generate a complete Feature Implementation Specification – analyze the codebase first, then write the FIS using the template. Feature: "
 
 policy:
   allow_implicit_invocation: true

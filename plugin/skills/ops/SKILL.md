@@ -10,18 +10,18 @@ user-invocable: true
 
 Reliable, template-driven operations for state management, git conventions, and progress tracking. These operations follow strict patterns to avoid LLM interpretation drift.
 
-> **Philosophy**: This skill provides structured templates and validation — it doesn't bypass the agent but gives it reliable patterns to follow. Think of it as "guardrails for deterministic work."
+> **Philosophy**: This skill provides structured templates and validation – it doesn't bypass the agent but gives it reliable patterns to follow. Think of it as "guardrails for deterministic work."
 
 
 ## INSTRUCTIONS
 
-- Follow patterns exactly — do not improvise or add creative interpretation
+- Follow patterns exactly – do not improvise or add creative interpretation
 - Validate inputs before making changes
 - Report what was changed in a structured format
 
 
 ## GOTCHAS
-- Improvising instead of following patterns exactly — this skill exists to prevent LLM interpretation drift
+- Improvising instead of following patterns exactly – this skill exists to prevent LLM interpretation drift
 - Forgetting to update both CHANGELOG.md and marketplace.json on version bumps
 
 
@@ -51,7 +51,7 @@ Format for entries:
 ```markdown
 ## Current State
 - **Phase**: {phase}
-- **Active Story**: {story_id} — {story_name}
+- **Active Story**: {story_id} – {story_name}
 - **Last Updated**: {YYYY-MM-DD HH:MM}
 
 ## Blockers
@@ -78,7 +78,7 @@ Check off task/criteria checkboxes in a FIS document:
 
 Actions:
 - Mark task checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
-- Before marking done, verify that evidence of completion exists (e.g., the calling skill has already performed 4-dimension verification per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`). Do not re-run full verification — check that it was performed, not that it passes again
+- Before marking done, verify that evidence of completion exists (e.g., the calling skill has already performed 4-dimension verification per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`). Do not re-run full verification – check that it was performed, not that it passes again
 - When all tasks done: also mark success criteria and Final Validation Checklist items
 
 
@@ -120,7 +120,7 @@ Format a changelog entry:
 
 Format:
 ```markdown
-## [{version}] — {YYYY-MM-DD}
+## [{version}] – {YYYY-MM-DD}
 
 ### Added
 - {description} ([S{id}])

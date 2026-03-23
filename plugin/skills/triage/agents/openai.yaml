@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Triage & Fix Issues"
   short_description: "Investigate, diagnose, and fix issues"
-  default_prompt: "Investigate, diagnose, and fix issues — use root cause analysis, apply targeted fixes, verify each fix. Issue scope: "
+  default_prompt: "Investigate, diagnose, and fix issues – use root cause analysis, apply targeted fixes, verify each fix. Issue scope: "
 
 policy:
   allow_implicit_invocation: true

@@ -37,7 +37,7 @@ ARGUMENTS: $ARGUMENTS
 
 
 ## GOTCHAS
-- Skipping verification after implementation — always run tests/build
+- Skipping verification after implementation – always run tests/build
 - Scope creep: implementing more than was asked for in the issue
 
 

@@ -6,7 +6,7 @@ argument-hint: <scope/description> | --path <dir/file>
 # Refactor & Simplify Code
 
 
-Systematic code improvement — simplification, refactoring, and cleanup — using the `code-simplifier:code-simplifier` agent.
+Systematic code improvement – simplification, refactoring, and cleanup – using the `code-simplifier:code-simplifier` agent.
 
 
 ## VARIABLES
@@ -27,14 +27,14 @@ ARGUMENTS: $ARGUMENTS
 ## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
-- **No functional changes** unless explicitly requested — preserve existing behavior
-- **No scope creep** — only refactor what's specified
+- **No functional changes** unless explicitly requested – preserve existing behavior
+- **No scope creep** – only refactor what's specified
 - **Tests must pass** before and after refactoring
 - Delegate refactoring work to `code-simplifier:code-simplifier` agent (if available)
 
 
 ## GOTCHAS
-- Changing behavior while refactoring — preserve all existing functionality
+- Changing behavior while refactoring – preserve all existing functionality
 - Not establishing a baseline (tests pass, build succeeds) before starting
 
 
@@ -87,7 +87,7 @@ Delegate to `code-simplifier:code-simplifier` agent (if available):
 
 Run in **parallel sub-agents**:
 
-1. **Tests**: Run full test suite — all tests must pass
+1. **Tests**: Run full test suite – all tests must pass
 2. **Code review**: Use the `andthen:review-code` skill to verify improvements and catch regressions
 3. **Linting/types**: Run static analysis, confirm no new issues
 

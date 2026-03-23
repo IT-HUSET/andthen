@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-stubs.sh — Scan for indicators of incomplete implementation
+# check-stubs.sh – Scan for indicators of incomplete implementation
 # Used by: review-gap, exec-spec, exec-plan
 
 set -euo pipefail
@@ -20,7 +20,7 @@ Options:
   --help          Show this help message
 
 Exit codes:
-  0  Clean — no stubs found
+  0  Clean – no stubs found
   1  Stubs found
   2  Usage error
 EOF

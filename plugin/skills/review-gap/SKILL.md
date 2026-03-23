@@ -40,24 +40,24 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
-- **Read-only analysis** — no code changes or commits. The only file you write is the final report.
+- **Read-only analysis** – no code changes or commits. The only file you write is the final report.
 - **Be thorough** - Don't skip steps or rush analysis; completeness is critical
 - **Default to workspace-wide resolution** - Do not assume the implementation is in the same repo as the requirements document. In multi-repo workspaces, explicitly locate the implementation target first.
 - **Delegate code review to a sub-agent** _(if supported by your coding agent)_ that uses the `andthen:review-code` skill (do NOT invoke the skill directly)
 - **Document everything** - All findings and recommendations must be captured in final report
-- **Read project learnings** — If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
+- **Read project learnings** – If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
 
 
 ## GOTCHAS
-- Most common failure: reviewing the wrong target — resolve implementation target FIRST, before any analysis
-- Requirements documents in a different repo than the implementation cause confusion — establish the mapping explicitly
-- Confusing review-gap with review-doc — gap reviews implementation against requirements, doc reviews the document itself
+- Most common failure: reviewing the wrong target – resolve implementation target FIRST, before any analysis
+- Requirements documents in a different repo than the implementation cause confusion – establish the mapping explicitly
+- Confusing review-gap with review-doc – gap reviews implementation against requirements, doc reviews the document itself
 
 ### Helper Scripts
-Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
-- `check-stubs.sh <path>` — scan for incomplete implementation indicators (TODO/FIXME, empty functions, placeholders)
-- `check-wiring.sh <path>` — verify new/changed files are imported/referenced
-- `run-security-scan.sh <path>` — Semgrep with pattern-based fallback
+Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
+- `check-stubs.sh <path>` – scan for incomplete implementation indicators (TODO/FIXME, empty functions, placeholders)
+- `check-wiring.sh <path>` – verify new/changed files are imported/referenced
+- `run-security-scan.sh <path>` – Semgrep with pattern-based fallback
 
 
 ## WORKFLOW
@@ -136,7 +136,7 @@ Review general quality, soundness and adherence to guidelines, standards and bes
 #### Code Analysis
 - Run static analysis, linting, type checking as per project guidelines
 - Use IDE diagnostics (`mcp__ide_getDiagnostics`) if available
-- Scan for incomplete implementations: `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` — flag any found as potential gaps
+- Scan for incomplete implementations: `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` – flag any found as potential gaps
 
 #### Comprehensive Code Review
 Spawn a **sub-agent** _(if supported by your coding agent)_ (via Task tool, `subagent_type: "general-purpose"`) to perform the code review.
@@ -146,7 +146,7 @@ The sub-agent should **use the `andthen:review-code` skill** for thorough review
 - Security (OWASP Top 10, injection prevention, auth, data protection)
 - UI/UX (if applicable)
 
-**Do NOT invoke the skill directly** — delegate to a sub-agent to preserve context for remaining workflow steps.
+**Do NOT invoke the skill directly** – delegate to a sub-agent to preserve context for remaining workflow steps.
 Incorporate the sub-agent's findings into the gap analysis.
 
 **Gate**: Quality reviews complete, over-engineering identified, all issues documented
@@ -164,11 +164,11 @@ Systematically identify all gaps between requirements and implementation:
 
 - **Consistency Gaps** - Deviations from codebase patterns/conventions, documentation gaps, test coverage gaps (unit/integration/e2e)
 
-- **Domain language gaps** - Terminology drift between requirements and implementation — same concept with different names, terms used outside their bounded context, or new domain concepts without glossary entries. _(Skip if no `UBIQUITOUS_LANGUAGE.md` exists)_
+- **Domain language gaps** - Terminology drift between requirements and implementation – same concept with different names, terms used outside their bounded context, or new domain concepts without glossary entries. _(Skip if no `UBIQUITOUS_LANGUAGE.md` exists)_
 
 - **Holistic Sanity Check** - Zoom out: Does the implementation make sense end-to-end? Would it actually work for users? Any hidden assumptions or tech debt introduced?
 
-- **Verification Depth (Substance & Wiring)** — Beyond existence, check:
+- **Verification Depth (Substance & Wiring)** – Beyond existence, check:
   - Are implementations substantive? (No stubs, TODOs, placeholders, empty handlers)
   - Are components wired into the system? (Imported, routed, called, rendered)
   - Do verification commands pass? (Build, tests, type-check)
@@ -240,7 +240,7 @@ Generate markdown report with:
 - **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
 - **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
 
-**Report output directory** — resolve in priority order:
+**Report output directory** – resolve in priority order:
 1. **Spec directory**: If the requirements baseline is a spec/FIS/plan in a spec directory, or the reviewed feature has an associated spec directory from the Project Document Index, store the report **in that spec directory**.
 2. **Target directory**: If the implementation being reviewed is localized to a specific directory, store the report **in the same directory** as the primary implementation target.
 3. **Fallback**: Store in `{AGENT_TEMP}/reviews/` where `{AGENT_TEMP}` is the **Agent Temp** path from the Project Document Index (default: `.agent_temp/`).
@@ -249,7 +249,7 @@ Generate markdown report with:
 
 When complete, print the report's **relative path from the project root**. Do not use absolute paths.
 
-- **Update project learnings** — If significant non-obvious traps or error patterns are discovered during execution (especially recurring patterns across reviews), append them to `LEARNINGS.md` (check Project Document Index for location). Bar: "Would a competent developer with code and git access still get bitten?"
+- **Update project learnings** – If significant non-obvious traps or error patterns are discovered during execution (especially recurring patterns across reviews), append them to `LEARNINGS.md` (check Project Document Index for location). Bar: "Would a competent developer with code and git access still get bitten?"
 
 #### Publish to GitHub _(if --to-issue or --to-pr)_
 If PUBLISH_ISSUE is `true`:

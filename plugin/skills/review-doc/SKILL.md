@@ -32,7 +32,7 @@ SPEC_PATH_OR_FOCUS: $ARGUMENTS
 
 ## GOTCHAS
 - Reviewing at the wrong level of detail for the document's maturity stage
-- Confusing review-doc with review-gap — doc reviews the document, gap reviews implementation
+- Confusing review-doc with review-gap – doc reviews the document, gap reviews implementation
 
 
 ## WORKFLOW
@@ -52,7 +52,7 @@ SPEC_PATH_OR_FOCUS: $ARGUMENTS
 3. **Understand project scale and vision**
    - Determine the project's nature (CLI tool, library, web app, SaaS, internal tool, prototype, etc.)
    - Determine the project's stage (greenfield, MVP, early product, mature product, etc.)
-   - Understand the overall vision and goals — what is the project trying to achieve?
+   - Understand the overall vision and goals – what is the project trying to achieve?
    - Use this understanding to calibrate all subsequent review phases proportionally
 
 **Gate**: All relevant specs identified, context understood, and project scale/vision established
@@ -133,7 +133,7 @@ Ensure scope is well-defined and architecture is sound:
    - Identify scope creep risks, phase boundaries
    - Challenge "nice-to-haves" masquerading as requirements
 
-2. **Architecture review** _(calibrate to project scale — skip aspects that are irrelevant to the project's nature and stage)_
+2. **Architecture review** _(calibrate to project scale – skip aspects that are irrelevant to the project's nature and stage)_
    - Use the `andthen:review-code` skill's architectural review guidance
    - Assess and evaluate **only aspects relevant to the project's scale and goals**, such as:
       - Architectural soundness, component separation, separation of concerns
@@ -141,7 +141,7 @@ Ensure scope is well-defined and architecture is sound:
       - Review integration points, API contracts, data flows
       - Where applicable: CUPID principles, DDD patterns, clean architecture, service architecture
       - Anti-patterns, performance, resilience, security architecture
-   - **Do not recommend patterns or architecture disproportionate to the project** — e.g., don't suggest DDD/bounded contexts for a simple library, or microservices for a tool that works fine as a monolith
+   - **Do not recommend patterns or architecture disproportionate to the project** – e.g., don't suggest DDD/bounded contexts for a simple library, or microservices for a tool that works fine as a monolith
    - Identify signs of over-engineering, such as:
       - **Unnecessary complexity**: Custom implementations when standard libraries/patterns exist, premature abstractions, overly generic solutions
       - **Premature optimization**: Performance optimizations without measured need, caching/pooling without proven bottlenecks
@@ -199,7 +199,7 @@ Generate markdown report with:
 - **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
 - **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
 
-**Report output directory** — resolve in priority order:
+**Report output directory** – resolve in priority order:
 1. **Spec directory**: If the document being reviewed lives in a spec/FIS directory (or has an associated spec directory from the Project Document Index), store the report **in that same directory**.
 2. **Target directory**: Otherwise, store the report **in the same directory** as the document being reviewed.
 3. **Fallback**: Store in `{AGENT_TEMP}/reviews/` where `{AGENT_TEMP}` is the **Agent Temp** path from the Project Document Index (default: `.agent_temp/`).

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run-security-scan.sh — Security scanning with Semgrep or pattern fallback
+# run-security-scan.sh – Security scanning with Semgrep or pattern fallback
 # Used by: review-code, review-gap
 
 set -euo pipefail
@@ -17,7 +17,7 @@ Options:
   --help                Show this help message
 
 Exit codes:
-  0  Clean — no findings
+  0  Clean – no findings
   1  Findings detected
   2  Usage error
 EOF
@@ -65,7 +65,7 @@ if command -v semgrep &>/dev/null; then
     fi
   fi
 else
-  echo "Semgrep not installed — falling back to pattern-based checks"
+  echo "Semgrep not installed – falling back to pattern-based checks"
   echo ""
 
   # Concurrency-safe temp directory
@@ -149,7 +149,7 @@ else
         echo "  $detail"
       done
       echo ""
-      echo "Note: Pattern-based scan — verify findings manually. Install Semgrep for deeper analysis."
+      echo "Note: Pattern-based scan – verify findings manually. Install Semgrep for deeper analysis."
     fi
   fi
 fi

@@ -1,6 +1,6 @@
 # Project State Document Templates
 
-Lightweight starter templates for the supplementary project documents referenced in the **Project Document Index** of `CLAUDE.md`. Each template provides structure and brief guidance — fill in what applies, remove what doesn't.
+Lightweight starter templates for the supplementary project documents referenced in the **Project Document Index** of `CLAUDE.md`. Each template provides structure and brief guidance – fill in what applies, remove what doesn't.
 
 ---
 
@@ -18,7 +18,7 @@ Phase: ...
 Status: On Track | At Risk | Blocked
 
 ## Active Stories
-<!-- Stories currently in progress — link to FIS/plan if available -->
+<!-- Stories currently in progress – link to FIS/plan if available -->
 
 | Story | Status | FIS | Notes |
 |-------|--------|-----|-------|
@@ -64,7 +64,7 @@ Status: On Track | At Risk | Blocked
 | REQ-0XX | ...         | ...      | ...            |
 
 ## Out of Scope
-<!-- Explicitly excluded requirements — useful to prevent scope creep. -->
+<!-- Explicitly excluded requirements – useful to prevent scope creep. -->
 
 - ...
 ```
@@ -102,7 +102,7 @@ Status: On Track | At Risk | Blocked
 
 ## ARCHITECTURE.md
 
-> System architecture overview — enough for an agent to understand component boundaries and data flow.
+> System architecture overview – enough for an agent to understand component boundaries and data flow.
 
 ```markdown
 # Architecture
@@ -139,7 +139,7 @@ Status: On Track | At Risk | Blocked
 
 ## LEARNINGS.md
 
-> Accumulated project knowledge — traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically. Replaces/evolves the narrower "implementation-notes.md" concept.
+> Accumulated project knowledge – traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically. Replaces/evolves the narrower "implementation-notes.md" concept.
 
 ```markdown
 # Project Learnings

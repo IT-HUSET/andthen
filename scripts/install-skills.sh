@@ -80,7 +80,7 @@ for dir in "$repo_root/plugin/skills"/*; do
   [ -d "$dir" ] || continue
   name=$(basename "$dir")
 
-  # Agent Teams skills require Claude Code — skip for other agents
+  # Agent Teams skills require Claude Code – skip for other agents
   [ "$name" = "exec-plan-team" ] && continue
   [ "$name" = "review-council-team" ] && continue
 

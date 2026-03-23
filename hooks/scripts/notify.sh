@@ -3,7 +3,7 @@ set -uo pipefail
 
 # Hook 3: Completion Notification (Stop + Notification events)
 # Sends desktop notification when Claude finishes or needs attention.
-# Always exits 0 — notifications must never block Claude.
+# Always exits 0 – notifications must never block Claude.
 
 umask 077
 
@@ -36,7 +36,7 @@ if [[ ! -f "$START_FILE" ]] || [[ -L "$START_FILE" ]]; then
   echo "$NOW" > "$START_FILE"
 fi
 
-# Session duration check (Stop only) — suppress if < 30s
+# Session duration check (Stop only) – suppress if < 30s
 if [[ "$EVENT" == "Stop" ]]; then
   START_TIME=$(cat "$START_FILE" 2>/dev/null || echo "$NOW")
   ELAPSED=$(( NOW - START_TIME ))

@@ -30,12 +30,12 @@ ARGUMENTS: $ARGUMENTS
 - Use `andthen:build-troubleshooter` for complex build issues
 - Your context will be compacted as needed - continue troubleshooting iterations until resolved
 - **IMPORTANT:** *Continue troubleshooting iterations until all critical and high-priority issues are resolved*
-- **Read project learnings** — If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
+- **Read project learnings** – If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
 
 
 ## GOTCHAS
-- Attempting the same fix repeatedly instead of escalating — 3-fix stop condition exists for a reason
-- Missing the root cause by fixing symptoms — use 5 Whys before applying fixes
+- Attempting the same fix repeatedly instead of escalating – 3-fix stop condition exists for a reason
+- Missing the root cause by fixing symptoms – use 5 Whys before applying fixes
 - Forgetting to verify the fix actually resolves the original symptom
 
 
@@ -109,7 +109,7 @@ Document all issues with priority (Critical/High/Medium/Low), location, and erro
 - **Low**: Style inconsistencies, minor optimizations
 
 **3.2** - **Analyze root causes**:
-- Perform root-cause analysis using 5 Whys — from symptom, ask "why?" recursively until reaching a root cause that, if fixed, prevents recurrence. Document the chain.
+- Perform root-cause analysis using 5 Whys – from symptom, ask "why?" recursively until reaching a root cause that, if fixed, prevents recurrence. Document the chain.
 - Identify if issues are related or have common underlying causes
 - Map issue dependencies (some fixes may resolve multiple problems)
 
@@ -122,7 +122,7 @@ Document all issues with priority (Critical/High/Medium/Low), location, and erro
 
 ### 3b. Fix Plan Output _(plan-only mode)_
 
-**If MODE is `plan-only`**: Generate a structured fix plan and **STOP** — do not implement fixes.
+**If MODE is `plan-only`**: Generate a structured fix plan and **STOP** – do not implement fixes.
 
 #### Fix Plan Format
 ```markdown
@@ -137,7 +137,7 @@ Document all issues with priority (Critical/High/Medium/Low), location, and erro
 - **Root Cause**: [From 5 Whys analysis]
 - **Affected Files**: [file:line references]
 - **Proposed Fix**: [Specific, actionable fix description]
-- **Risk**: [Low/Medium/High — risk of the fix itself]
+- **Risk**: [Low/Medium/High – risk of the fix itself]
 - **Dependencies**: [Other issues that should be fixed first]
 
 ### [Priority] Issue 2: [Title]
@@ -156,7 +156,7 @@ If PUBLISH_ISSUE is `true`:
 
 ---
 
-### 4. Systematic Issue Resolution _(fix mode — skip if plan-only)_
+### 4. Systematic Issue Resolution _(fix mode – skip if plan-only)_
 
 Execute fixes methodically and autonomously:
 
@@ -234,13 +234,13 @@ If PUBLISH_ISSUE is `true` and MODE is `fix`:
 - Suggest additional validation steps for future
 - Consider if any monitoring or alerting should be added
 
-**6.3** - **Update project learnings** — If significant non-obvious traps or error patterns are discovered during execution, append them to `LEARNINGS.md` (check Project Document Index for location). Bar: "Would a competent developer with code and git access still get bitten?"
+**6.3** - **Update project learnings** – If significant non-obvious traps or error patterns are discovered during execution, append them to `LEARNINGS.md` (check Project Document Index for location). Bar: "Would a competent developer with code and git access still get bitten?"
 
 **Gate**: Documentation complete
 
 ### 7. Iteration and Escalation
 
-> **BRIGHT LINE — 3-Fix Stop Condition:**
+> **BRIGHT LINE – 3-Fix Stop Condition:**
 > If 3 fix attempts targeting the same symptom or root cause have failed, **STOP immediately**.
 > Do NOT attempt fix #4. The problem is likely architectural, not tactical.
 > Surface the situation to the user with: what you tried, what failed, your hypothesis

@@ -24,9 +24,9 @@ ARGUMENTS: $ARGUMENTS
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
-- **Read-only analysis** — do not modify any source code
-- **Domain focus** — extract terms that represent business/domain concepts, not generic programming terms
-- **Resolve, don't accumulate** — when two terms mean the same thing, pick one canonical name and list the other as a synonym to avoid
+- **Read-only analysis** – do not modify any source code
+- **Domain focus** – extract terms that represent business/domain concepts, not generic programming terms
+- **Resolve, don't accumulate** – when two terms mean the same thing, pick one canonical name and list the other as a synonym to avoid
 
 
 ## GOTCHAS
@@ -71,7 +71,7 @@ For each term, note:
 
 ### 3. Resolve Ambiguity and Synonymy
 
-**3.1** Identify synonym clusters — terms that refer to the same concept:
+**3.1** Identify synonym clusters – terms that refer to the same concept:
 - e.g., "client" vs "customer" vs "user" vs "account holder"
 - e.g., "cancel" vs "terminate" vs "deactivate" vs "suspend"
 
@@ -80,7 +80,7 @@ For each term, note:
 - Which term best matches domain expert language
 - Which term is least ambiguous
 
-**3.3** Identify overloaded terms — same word meaning different things in different contexts:
+**3.3** Identify overloaded terms – same word meaning different things in different contexts:
 - e.g., "account" (user account vs billing account vs bank account)
 - Assign bounded context qualifiers
 
@@ -133,7 +133,7 @@ Store in project root or as configured in **Project Document Index**.
 - [ ] No synonym appears as a canonical term elsewhere
 - [ ] Overloaded terms are identified with context qualifiers
 - [ ] Bounded contexts are meaningful (not just "general")
-- [ ] Terms are actionable — a developer can use them to name things
+- [ ] Terms are actionable – a developer can use them to name things
 
 
 ## OUTPUT

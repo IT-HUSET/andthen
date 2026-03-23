@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-wiring.sh — Verify that new/changed files are imported/referenced
+# check-wiring.sh – Verify that new/changed files are imported/referenced
 # Used by: review-gap, exec-spec
 
 set -euo pipefail
@@ -107,7 +107,7 @@ SKIP_PATTERNS='\.md$|\.txt$|\.json$|\.yml$|\.yaml$|\.toml$|\.ini$|\.cfg$|\.env|\
 while IFS= read -r file; do
   [[ -z "$file" ]] && continue
 
-  # Skip non-code files (but don't skip .sh — scripts can be wired)
+  # Skip non-code files (but don't skip .sh – scripts can be wired)
   if echo "$file" | grep -qE "$SKIP_PATTERNS"; then
     SKIPPED+=("$file")
     continue

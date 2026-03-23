@@ -12,13 +12,13 @@ Comprehensive verification patterns for ensuring implementation quality beyond m
 File, route, component, or endpoint is present at the expected path.
 
 ### 2. Substantive
-Real implementation with actual logic — not a placeholder, stub, or TODO.
+Real implementation with actual logic – not a placeholder, stub, or TODO.
 
 ### 3. Wired
-Connected to the rest of the system — imported, routed, called, migrated, rendered.
+Connected to the rest of the system – imported, routed, called, migrated, rendered.
 
 ### 4. Functional
-Actually works when invoked — build passes, tests pass, behavior is observable.
+Actually works when invoked – build passes, tests pass, behavior is observable.
 
 
 ## Stub Detection Patterns
@@ -171,7 +171,7 @@ Each task's `Verify:` line should cover all 4 dimensions where applicable:
   [Functional] build/tests pass
 ```
 
-Not every dimension applies to every task — use judgment:
+Not every dimension applies to every task – use judgment:
 - A config file might only need Exists + Substantive
 - A UI component needs all four dimensions
 - A migration needs Exists + Substantive + Functional (runs without error)

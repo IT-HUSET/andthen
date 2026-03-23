@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# test-scripts.sh — Integration tests for plugin helper scripts
+# test-scripts.sh – Integration tests for plugin helper scripts
 # Run from repo root: scripts/test-scripts.sh
 
 set -euo pipefail
@@ -36,7 +36,7 @@ assert_contains() {
     printf "${GREEN}  ✓ %s${NC}\n" "$name"
     PASS=$((PASS + 1))
   else
-    printf "${RED}  ✗ %s — expected output to contain: %s${NC}\n" "$name" "$pattern"
+    printf "${RED}  ✗ %s – expected output to contain: %s${NC}\n" "$name" "$pattern"
     FAIL=$((FAIL + 1))
   fi
 }
@@ -47,7 +47,7 @@ assert_not_contains() {
     printf "${GREEN}  ✓ %s${NC}\n" "$name"
     PASS=$((PASS + 1))
   else
-    printf "${RED}  ✗ %s — expected output NOT to contain: %s${NC}\n" "$name" "$pattern"
+    printf "${RED}  ✗ %s – expected output NOT to contain: %s${NC}\n" "$name" "$pattern"
     FAIL=$((FAIL + 1))
   fi
 }
@@ -280,7 +280,7 @@ output=$("$SCRIPT_DIR/run-security-scan.sh" sec/safe.ts 2>&1) && ec=0 || ec=$?
 if ! command -v semgrep &>/dev/null; then
   assert_exit "clean file exits 0 (fallback)" 0 "$ec"
 else
-  printf "  ⊘ skipped (Semgrep installed — exit code depends on Semgrep rules)\n"
+  printf "  ⊘ skipped (Semgrep installed – exit code depends on Semgrep rules)\n"
 fi
 
 # 4b. Vulnerable file detected
@@ -291,9 +291,9 @@ if ! command -v semgrep &>/dev/null; then
   assert_contains "reports XSS" "xss-vector\|innerHTML" "$output"
 else
   # Semgrep may not flag simple patterns without config/rules resolving
-  # Just verify it runs without crashing — exit 0 or 1 are both acceptable
+  # Just verify it runs without crashing – exit 0 or 1 are both acceptable
   if [[ "${ec:-0}" -le 1 ]]; then
-    printf "  ⊘ semgrep ran (exit %s) — rule coverage varies\n" "${ec:-0}"
+    printf "  ⊘ semgrep ran (exit %s) – rule coverage varies\n" "${ec:-0}"
   else
     assert_exit "semgrep ran without error" 1 "${ec:-0}"
   fi

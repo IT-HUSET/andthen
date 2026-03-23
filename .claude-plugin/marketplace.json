@@ -4,7 +4,7 @@
     "name": "IT-HUSET"
   },
   "metadata": {
-    "description": "AndThen — structured workflows for agentic development: clarify → spec → plan → execute → review",
+    "description": "AndThen – structured workflows for agentic development: clarify → spec → plan → execute → review",
     "pluginRoot": "."
   },
   "plugins": [

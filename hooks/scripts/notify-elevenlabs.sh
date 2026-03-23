@@ -4,7 +4,7 @@ set -uo pipefail
 # ElevenLabs TTS Completion Notification (Stop + Notification events)
 # Voice notification when Claude finishes or needs attention.
 # Requires: ELEVENLABS_API_KEY env var, curl, afplay (macOS) or aplay (Linux)
-# Always exits 0 — notifications must never block Claude.
+# Always exits 0 – notifications must never block Claude.
 
 umask 077
 
@@ -37,7 +37,7 @@ if [[ ! -f "$START_FILE" ]] || [[ -L "$START_FILE" ]]; then
   echo "$NOW" > "$START_FILE"
 fi
 
-# Session duration check (Stop only) — suppress if < 30s
+# Session duration check (Stop only) – suppress if < 30s
 if [[ "$EVENT" == "Stop" ]]; then
   START_TIME=$(cat "$START_FILE" 2>/dev/null || echo "$NOW")
   ELAPSED=$(( NOW - START_TIME ))
@@ -55,7 +55,7 @@ fi
 [[ -L "$DEBOUNCE_FILE" ]] && exit 0
 echo "$NOW" > "$DEBOUNCE_FILE"
 
-# ElevenLabs config — ELEVENLABS_VOICE_ID can be a comma-separated list; one is picked at random
+# ElevenLabs config – ELEVENLABS_VOICE_ID can be a comma-separated list; one is picked at random
 IFS=',' read -ra VOICE_IDS <<< "${ELEVENLABS_VOICE_ID:-21m00Tcm4TlvDq8ikWAM}"
 VOICE_ID="${VOICE_IDS[RANDOM % ${#VOICE_IDS[@]}]}"
 MODEL_ID="${ELEVENLABS_MODEL_ID:-eleven_flash_v2_5}"

@@ -31,8 +31,8 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 
 
 ## GOTCHAS
-- Agent answers its own questions instead of waiting for user input — STOP and WAIT is critical
-- Scope creep: expanding beyond the original request — stay focused on what was asked
+- Agent answers its own questions instead of waiting for user input – STOP and WAIT is critical
+- Scope creep: expanding beyond the original request – stay focused on what was asked
 - Jumping to solution design instead of requirement discovery
 
 
@@ -63,12 +63,12 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 
 5. **Design space decomposition** _(see `plugin/references/design-tree.md`)_
 
-   When the feature involves design decisions with multiple viable approaches — whether architectural, UI/UX, or user-facing functionality — decompose the solution space into independent dimensions:
+   When the feature involves design decisions with multiple viable approaches – whether architectural, UI/UX, or user-facing functionality – decompose the solution space into independent dimensions:
 
-   - Identify **independent dimensions of choice** (e.g., navigation model, data display, authentication method, interaction pattern) — these are peers, not a hierarchy
+   - Identify **independent dimensions of choice** (e.g., navigation model, data display, authentication method, interaction pattern) – these are peers, not a hierarchy
    - List viable options per dimension (2–5 each)
    - Perform **cross-consistency assessment**: evaluate pairwise compatibility between options across dimensions, marking incompatible or conditional pairings with rationale
-   - Use the decomposition to generate targeted questions for the discovery interview — each unresolved dimension is a question to ask
+   - Use the decomposition to generate targeted questions for the discovery interview – each unresolved dimension is a question to ask
 
    Include the decomposition in the requirements output so downstream skills (`andthen:plan`, `andthen:spec`) can reference the resolved decisions.
 
@@ -79,7 +79,7 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 
 ### 2. Discovery Interview
 
-Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers — you MUST receive actual answers from the user. Iterate until no major gaps remain.
+Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers – you MUST receive actual answers from the user. Iterate until no major gaps remain.
 
 > **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Do not proceed to Step 3 until the user has answered your questions and you've confirmed no major gaps remain. Use the `AskUserQuestion` tool if available in your environment.
 
@@ -229,12 +229,12 @@ Generate markdown document with:
 [Feature Name]
 ├── [Dimension 1]: [Option A] ← chosen · [Option B] · [Option C] ✗ (pruned)
 ├── [Dimension 2]: [Option X] ← chosen · [Option Y]
-└── [Dimension 3]: [Open — deferred to spec/trade-off]
+└── [Dimension 3]: [Open – deferred to spec/trade-off]
 ```
 
 ### Cross-Consistency Notes
-- [Option] + [Option] — incompatible: [reason]
-- [Option] + [Option] — conditional: [condition]
+- [Option] + [Option] – incompatible: [reason]
+- [Option] + [Option] – conditional: [condition]
 
 ### Resolved Decisions
 | Dimension | Choice | Rationale |
@@ -287,9 +287,9 @@ When complete, print the report's **relative path from the project root**. Do no
 ## FOLLOW-UP ACTIONS
 
 After completion, ask user if they'd like to:
-1. **Create feature spec** — for single features:
+1. **Create feature spec** – for single features:
    `/andthen:spec <output-directory>` (or `$andthen:spec <output-directory>`)
-2. **Proceed to planning** — for multi-feature / MVP scope:
+2. **Proceed to planning** – for multi-feature / MVP scope:
    `/andthen:plan <output-directory>` (or `$andthen:plan <output-directory>`)
    The `andthen:plan` skill will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery
 3. Review specific areas in more depth

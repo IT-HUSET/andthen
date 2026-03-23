@@ -66,8 +66,8 @@ codex -m gpt-5.4 -c model_reasoning_effort='"high"' "prompt"
 
 \* Extended context (>272K input tokens) requires the experimental `model_context_window` parameter and is billed at **2x input / 1.5x output** for the full session.
 
-- **GPT-5.4 is the recommended default** — unified frontier model that absorbed GPT-5.3-Codex coding capabilities. Marginally better on SWE-Bench Pro, same context window, cheaper.
-- **GPT-5.3-Codex** retains a small edge on Terminal-Bench 2.0 (77.3% vs 75.1%) — relevant for terminal-heavy/CLI-scripting workflows. For most tasks, GPT-5.4 is preferred.
+- **GPT-5.4 is the recommended default** – unified frontier model that absorbed GPT-5.3-Codex coding capabilities. Marginally better on SWE-Bench Pro, same context window, cheaper.
+- **GPT-5.3-Codex** retains a small edge on Terminal-Bench 2.0 (77.3% vs 75.1%) – relevant for terminal-heavy/CLI-scripting workflows. For most tasks, GPT-5.4 is preferred.
 - **Retired models** (Feb 2026): o4-mini, GPT-4o, GPT-4.1, GPT-4.1 mini. Do not use for new development.
 - `plan_mode_reasoning_effort` is a separate config key (defaults to `medium`).
 
@@ -77,12 +77,12 @@ codex -m gpt-5.4 -c model_reasoning_effort='"high"' "prompt"
 
 ## Effort Levels Explained
 
-Effort is a **behavioral signal, not a hard token cap**. Even at `low`, the model will still think on genuinely hard problems — just less.
+Effort is a **behavioral signal, not a hard token cap**. Even at `low`, the model will still think on genuinely hard problems – just less.
 
 | Level | Behavior | When to Use |
 |-------|----------|------------|
 | **low** | Minimal thinking, max speed. May skip thinking on simple problems. | Subagents, simple edits, high-volume parallel tasks |
-| **medium** | Balanced. Thinks when useful, skips when not. | Most daily coding work — the recommended default |
+| **medium** | Balanced. Thinks when useful, skips when not. | Most daily coding work – the recommended default |
 | **high** | Almost always thinks deeply. | Complex reasoning, architecture, debugging subtle bugs |
 | **max** / **xhigh** | No constraints on thinking. Maximum depth. | Critical one-off decisions, security audits, hardest problems |
 
@@ -120,7 +120,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 
 | Command | Description | Model | Effort | Rationale |
 |---------|-------------|-------|--------|-----------|
-| `/clarify` | Requirements discovery — structured requirements from vague idea | `sonnet` | `medium` | Analytical but not deeply reasoning-heavy |
+| `/clarify` | Requirements discovery – structured requirements from vague idea | `sonnet` | `medium` | Analytical but not deeply reasoning-heavy |
 | `/plan` | Full-journey planning: requirements discovery through story breakdown | `opus` or `opusplan` | `high` | Architectural thinking, phasing decisions, cross-cutting reasoning |
 
 #### Design & Architecture Phase
@@ -136,7 +136,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 | Command | Description | Model | Effort | Rationale |
 |---------|-------------|-------|--------|-----------|
 | `/spec` | Clarify requirements + create Feature Implementation Spec (FIS) | `opus` | `high` | Reasoning-heavy: edge cases, constraints, cross-cutting concerns |
-| `/exec-spec` | Execute a FIS — orchestrated implementation with validation | `opusplan` | `medium`–`high` | Opus plans subtasks, Sonnet executes code. Medium for straightforward specs, high for complex ones |
+| `/exec-spec` | Execute a FIS – orchestrated implementation with validation | `opusplan` | `medium`–`high` | Opus plans subtasks, Sonnet executes code. Medium for straightforward specs, high for complex ones |
 | `/exec-plan` | Execute full plan via Agent Teams | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
 | `/quick-implement` | Quick path for small features/fixes | `sonnet` | `medium` | Small scope, speed matters |
 | `/refactor` | Code improvement and simplification | `sonnet` | `medium`–`high` | Medium for localized, high for cross-file |
@@ -167,7 +167,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 
 ### Commands via Other Agents (Codex CLI, etc.)
 
-Skills are agent-agnostic — the same files work across all agents. Recommendations for Codex CLI assume you ran `./scripts/install-skills.sh`, which exports skills as `andthen-*/`:
+Skills are agent-agnostic – the same files work across all agents. Recommendations for Codex CLI assume you ran `./scripts/install-skills.sh`, which exports skills as `andthen-*/`:
 
 | Skill | Description | Model | Effort | Rationale |
 |-------|-------------|-------|--------|-----------|
@@ -187,23 +187,23 @@ Skills are agent-agnostic — the same files work across all agents. Recommendat
 
 ## Cost Optimization Strategies
 
-1. **Default to medium effort** — captures ~95% of high-effort quality at significantly lower cost and latency. Both Anthropic and OpenAI recommend this as the daily driver.
+1. **Default to medium effort** – captures ~95% of high-effort quality at significantly lower cost and latency. Both Anthropic and OpenAI recommend this as the daily driver.
 
-2. **Use `opusplan` for plan-then-execute workflows** — gets Opus-quality planning with Sonnet-cost execution automatically. Ideal for `/exec-spec` and `/exec-plan`.
+2. **Use `opusplan` for plan-then-execute workflows** – gets Opus-quality planning with Sonnet-cost execution automatically. Ideal for `/exec-spec` and `/exec-plan`.
 
-3. **Use `haiku` or `low` effort for subagents** — when an orchestrator spawns parallel subagents, cost compounds. Haiku at $1/$5 MTok delivers ~73% SWE-bench at 1/5th the cost of Opus.
+3. **Use `haiku` or `low` effort for subagents** – when an orchestrator spawns parallel subagents, cost compounds. Haiku at $1/$5 MTok delivers ~73% SWE-bench at 1/5th the cost of Opus.
 
-4. **Escalate per-turn, not globally** — use "ultrathink" (Claude Code) or profile switching (Codex CLI) for specific hard turns rather than raising session-level defaults.
+4. **Escalate per-turn, not globally** – use "ultrathink" (Claude Code) or profile switching (Codex CLI) for specific hard turns rather than raising session-level defaults.
 
-5. **Use Codex CLI profiles for task presets** — define `[profiles.security-review]` with `model_reasoning_effort = "high"` to switch cleanly without remembering flags.
+5. **Use Codex CLI profiles for task presets** – define `[profiles.security-review]` with `model_reasoning_effort = "high"` to switch cleanly without remembering flags.
 
-6. **Set `max_tokens` >= 32K for agentic sessions** — thinking and response text share the output budget. At high/max effort, the model can exhaust the budget mid-response.
+6. **Set `max_tokens` >= 32K for agentic sessions** – thinking and response text share the output budget. At high/max effort, the model can exhaust the budget mid-response.
 
 ---
 
 ## Key Behavioral Notes
 
-- **Effort is behavioral, not a hard cap**: even at `low`, models will still think on genuinely hard problems. `low` is safe for subagents — they won't produce garbage on unexpectedly complex subtasks.
+- **Effort is behavioral, not a hard cap**: even at `low`, models will still think on genuinely hard problems. `low` is safe for subagents – they won't produce garbage on unexpectedly complex subtasks.
 - **Adaptive thinking > static budgets**: for agentic coding, interleaved thinking (between tool calls) matters more than a large upfront thinking budget. This is why adaptive mode on 4.6 models outperforms manual extended thinking.
 - **Diminishing returns on pure thinking**: research shows that for tool-heavy agentic tasks, raw thinking token increases have diminishing returns. The number of tool calls and their quality matters as much as thinking depth.
 - **Sonnet 4.6 is surprisingly close to Opus 4.6 on coding**: 79.6% vs 80.8% SWE-bench at 60% of the price. Reserve Opus for reasoning-heavy tasks (planning, specs, ADRs, trade-off analysis), not routine coding.

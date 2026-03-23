@@ -31,9 +31,9 @@ OUTPUT_DIR: ${3:-docs/wireframes} _(or as configured in **Project Document Index
 
 
 ## GOTCHAS
-- Missing pages from the requirements — 100% page coverage is critical
-- Creating pixel-perfect designs instead of low-fidelity wireframes — grayscale, layout-only
-- Not testing across viewport sizes — check all 4 viewports
+- Missing pages from the requirements – 100% page coverage is critical
+- Creating pixel-perfect designs instead of low-fidelity wireframes – grayscale, layout-only
+- Not testing across viewport sizes – check all 4 viewports
 
 
 ## WORKFLOW

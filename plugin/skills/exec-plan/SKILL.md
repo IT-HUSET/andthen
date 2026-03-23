@@ -24,14 +24,14 @@ PLAN_DIR: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the user to provide the path to the plan directory.
+Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the user to provide the path to the plan directory.
 
 ### Core Rules
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails** (absolute must-follow rules)
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Complete Implementation**: All stories in plan must be implemented
-- **Plan is source of truth** — follow phase ordering, dependencies, and parallel markers exactly
+- **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly
 - **Per-story pipeline**: spec → exec-spec → review-gap (with fix loop)
 
 ### Orchestrator Role
@@ -52,13 +52,13 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 - Executing stories out of wave order when there are dependencies
 - Skipping the spec step (`andthen:spec`) before implementing a story
 - Not running review-gap after completing a wave
-- **Status updates get dropped when context is exhausted** — plan and FIS checkbox updates (Step 2c) are GATES that block the next phase, not optional cleanup. Update immediately after each story completes
+- **Status updates get dropped when context is exhausted** – plan and FIS checkbox updates (Step 2c) are GATES that block the next phase, not optional cleanup. Update immediately after each story completes
 
 ### Helper Scripts
-Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
-- `check-stubs.sh <path>` — scan for incomplete implementation indicators
-- `check-wiring.sh <path>` — verify new/changed files are imported/referenced
-- `verify-implementation.sh <file1> [file2...]` — combined existence + substance + wiring check
+Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
+- `check-stubs.sh <path>` – scan for incomplete implementation indicators
+- `check-wiring.sh <path>` – verify new/changed files are imported/referenced
+- `verify-implementation.sh <file1> [file2...]` – combined existence + substance + wiring check
 
 
 ## WORKFLOW
@@ -86,7 +86,7 @@ For each phase in the plan:
 
 For each story in the current phase:
 
-1. **Check for existing FIS** — Look for a FIS path in the story's `**FIS**` field in `plan.md`, or search the spec output directory (typically `docs/specs/`, or as configured in your project's Document Index) for a matching spec file. If a valid FIS already exists, skip the spec step for that story.
+1. **Check for existing FIS** – Look for a FIS path in the story's `**FIS**` field in `plan.md`, or search the spec output directory (typically `docs/specs/`, or as configured in your project's Document Index) for a matching spec file. If a valid FIS already exists, skip the spec step for that story.
 
 2. Determine execution approach:
    - Stories marked `[P]` with no cross-dependencies → can run in parallel
@@ -96,16 +96,16 @@ For each story in the current phase:
 
 For each story (or group of parallel stories), run the three-stage pipeline (use `/` prefix for Claude Code, `$` for Codex CLI):
 
-**Stage 1 — Spec** _(skip if FIS already exists)_:
+**Stage 1 – Spec** _(skip if FIS already exists)_:
 `/andthen:spec story {story_id} of {PLAN_DIR}/plan.md` (or `$andthen:spec ...`) → Output: FIS document in spec output directory.
 
-**Stage 2 — Implement**:
+**Stage 2 – Implement**:
 `/andthen:exec-spec {fis_path}` (or `$andthen:exec-spec {fis_path}`) → Output: implemented story.
 
-**Stage 3 — Review**:
-`/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) — If issues found: fix them, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the user.
+**Stage 3 – Review**:
+`/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) – If issues found: fix them, then re-validate. **Max 2 fix attempts** – if issues persist after 2 rounds, escalate to the user.
 
-> **Note — nested loops**: When `exec-spec` runs internally (Stage 2), its TV04 remediation loop handles *implementation-level* issues (code review, tests, visual validation) with a 3-cycle cap. The exec-plan review-gap loop here handles *integration and gap-level* issues across stories. These are complementary — exec-spec fixes code before exec-plan validates requirements.
+> **Note – nested loops**: When `exec-spec` runs internally (Stage 2), its TV04 remediation loop handles *implementation-level* issues (code review, tests, visual validation) with a 3-cycle cap. The exec-plan review-gap loop here handles *integration and gap-level* issues across stories. These are complementary – exec-spec fixes code before exec-plan validates requirements.
 
 #### Wave-Based Execution (within each phase)
 If stories have wave assignments (W1, W2, etc.) from the plan:
@@ -117,7 +117,7 @@ All stories in the same wave run in parallel (waves subsume [P] markers).
 If no wave assignments present, fall back to the [P] marker
 and dependency-based approach below.
 
-**Parallelism strategy** — Use **parallel sub-agents** _(if supported by your coding agent)_ for independent `[P]` stories:
+**Parallelism strategy** – Use **parallel sub-agents** _(if supported by your coding agent)_ for independent `[P]` stories:
 - Spawn one sub-agent per independent story pipeline (spec → exec-spec → review-gap)
 - Each sub-agent runs the full three-stage pipeline for its story
 - If sub-agents not available, execute stories sequentially
@@ -130,7 +130,7 @@ Plan: {PLAN_DIR}/plan.md
 Pipeline:
 1. Spec: Check if FIS exists at {fis_path}. If not, run: /andthen:spec story {story_id} of {PLAN_DIR}/plan.md
 2. Implement: /andthen:exec-spec {fis_path}
-3. Review: /andthen:review-gap {fis_path} — Fix issues (max 2 attempts), then report results.
+3. Review: /andthen:review-gap {fis_path} – Fix issues (max 2 attempts), then report results.
 4. Update status: Update FIS checkboxes (all tasks, success criteria, validation checklist marked [x]).
    Update plan.md: set story Status to Done, check off acceptance criteria, update Story Catalog table.
    Use the `andthen:ops` skill for standardized updates.
@@ -138,17 +138,17 @@ Pipeline:
 Important:
 - Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
 - Follow existing codebase patterns
-- Status updates are REQUIRED, not optional cleanup — do not skip step 4
+- Status updates are REQUIRED, not optional cleanup – do not skip step 4
 - Report back: success/failure, FIS path, any issues encountered
 ```
 
-**Model assignment** — When spawning sub-agents, use `model: "opus"` for spec-only sub-agents (Stage 1 alone), and `model: "sonnet"` for implementation and review sub-agents. When a single sub-agent runs the full pipeline for a story, use `model: "opus"` (spec quality is the highest-leverage factor).
+**Model assignment** – When spawning sub-agents, use `model: "opus"` for spec-only sub-agents (Stage 1 alone), and `model: "sonnet"` for implementation and review sub-agents. When a single sub-agent runs the full pipeline for a story, use `model: "opus"` (spec quality is the highest-leverage factor).
 
 **When to split stages vs. full-pipeline sub-agents**: For plans with 4+ stories, prefer splitting stages across separate sub-agents to enable parallelism (e.g., spec agent finishes S01 and moves to S02 while impl agent starts S01). For small plans (1-3 stories), a single opus sub-agent per story running the full pipeline is simpler and avoids coordination overhead.
 
 #### 2c. Update Plan and FIS Status (REQUIRED GATE)
 
-**CRITICAL — do this immediately after each story's pipeline completes, not as a batch at the end.**
+**CRITICAL – do this immediately after each story's pipeline completes, not as a batch at the end.**
 
 After each story's pipeline completes (spec → exec-spec → review-gap), use the `andthen:ops` skill to update `plan.md`:
 - Set the story's **Status** field to `Done`
@@ -164,7 +164,7 @@ After ops completes, **re-read plan.md and the FIS file** to verify updates were
 
 Move to next phase only after ALL stories in current phase are complete and plan is updated.
 
-**Gate**: All stories in current phase completed, verified, AND plan.md + FIS checkboxes updated — verify before proceeding to next phase
+**Gate**: All stories in current phase completed, verified, AND plan.md + FIS checkboxes updated – verify before proceeding to next phase
 
 #### Pipeline Flow Example
 
@@ -184,8 +184,8 @@ Phase 2 (Parallel [P]): S03[P], S04[P], S05 (depends on S03)
 
 **Orchestrator performs directly** (not delegated):
 
-1. Run build — verify it succeeds
-2. Run tests — verify all pass
+1. Run build – verify it succeeds
+2. Run tests – verify all pass
 3. Review overall integration across stories
 4. Include verification evidence in completion summary:
    - **Build**: exit code or success/failure status
@@ -219,13 +219,13 @@ When all phases are complete, print a summary including: stories completed, tota
 
 ## Post-Completion: Update Project Learnings
 
-After all phases complete, if the project has a learnings file (`LEARNINGS.md` or `implementation-notes.md` — check Project Document Index for location), update it with knowledge discovered across stories. Organize by topic, not chronologically. Types of knowledge to capture:
+After all phases complete, if the project has a learnings file (`LEARNINGS.md` or `implementation-notes.md` – check Project Document Index for location), update it with knowledge discovered across stories. Organize by topic, not chronologically. Types of knowledge to capture:
 - **Traps & gotchas**: Non-obvious patterns that would bite a competent developer even with access to code and git history
 - **Domain knowledge**: API quirks, framework behavior, naming decisions, business rules discovered in code
 - **Procedural knowledge**: Deploy steps, test prerequisites, tooling patterns
-- **Error patterns**: Recurring errors — note if deterministic (bad schema, wrong type → conclude immediately) or infrastructure (timeout, rate limit → log, conclude only when pattern emerges)
+- **Error patterns**: Recurring errors – note if deterministic (bad schema, wrong type → conclude immediately) or infrastructure (timeout, rate limit → log, conclude only when pattern emerges)
 - **Cross-story insights**: Patterns that only become visible when implementing multiple stories (e.g., shared abstractions, recurring conflicts, dependency ordering lessons)
 
 Keep entries brief (1-2 sentences each). Do NOT record what was implemented (that's in git history), how parts integrate (that's in the code), or routine decisions (that's in the FIS/spec).
 
-**Self-maintenance**: When updating, also review nearby entries — merge overlapping items, remove knowledge that's no longer accurate, split sections that grow too long.
+**Self-maintenance**: When updating, also review nearby entries – merge overlapping items, remove knowledge that's no longer accurate, split sections that grow too long.

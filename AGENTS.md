@@ -1,4 +1,4 @@
-# AndThen — Structured Workflows for Agentic Development
+# AndThen – Structured Workflows for Agentic Development
 
 This file provides guidance to AI coding agents when working with code in this project.
 
@@ -8,16 +8,16 @@ This file provides guidance to AI coding agents when working with code in this p
 
 ## Project Overview
 
-AndThen is an opinionated workflow system for AI coding agents. It provides structured skills that guide development through disciplined pipelines — from requirements discovery through implementation to review. See `plugin/README.md` for the full workflow overview and skill reference.
+AndThen is an opinionated workflow system for AI coding agents. It provides structured skills that guide development through disciplined pipelines – from requirements discovery through implementation to review. See `plugin/README.md` for the full workflow overview and skill reference.
 
 Core artifacts are the **Feature Implementation Specification (FIS)** for single features and the **PRD + Implementation Plan** (story breakdown) for multi-feature work. Detailed FIS specs are created just-in-time per story during plan execution.
 
 **Structure:**
-- `plugin/` — Codex plugin (skills, agents, references)
-- `hooks/` — Codex hooks (blocked commands, notification scripts)
-- `scripts/` — Installation and setup scripts
-- `docs/` — Guidelines and reference documentation used by workflow skills
-- `templates/` — Starter templates for user projects
+- `plugin/` – Codex plugin (skills, agents, references)
+- `hooks/` – Codex hooks (blocked commands, notification scripts)
+- `scripts/` – Installation and setup scripts
+- `docs/` – Guidelines and reference documentation used by workflow skills
+- `templates/` – Starter templates for user projects
 - `skills` → symlink to `plugin/skills/` (for Codex/agent discovery)
 
 
@@ -26,7 +26,7 @@ Core artifacts are the **Feature Implementation Specification (FIS)** for single
 
 ## Skill Invocation
 
-Skills are invoked as `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`). Agents use the same `andthen:<name>` namespace. When skills are exported for other agents via `scripts/install-skills.sh`, references are rewritten to the portable `andthen-` prefix (hyphen, not dot — required for Codex CLI `$` sigil parser compatibility).
+Skills are invoked as `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`). Agents use the same `andthen:<name>` namespace. When skills are exported for other agents via `scripts/install-skills.sh`, references are rewritten to the portable `andthen-` prefix (hyphen, not dot – required for Codex CLI `$` sigil parser compatibility).
 
 
 ---
@@ -36,13 +36,13 @@ Skills are invoked as `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`)
 
 ### Project Context Discovery
 Skills read the **user's project** `AGENTS.md` (not this repo's) for two key integration points:
-- **Project Document Index** — a table mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `templates/Codex.template.md` for the table format
-- **Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards that skills load before starting work (e.g. rules files, development/architecture/UI guidelines)
+- **Project Document Index** – a table mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `templates/Codex.template.md` for the table format
+- **Workflow Rules, Guardrails and Guidelines** – behavioral rules and development standards that skills load before starting work (e.g. rules files, development/architecture/UI guidelines)
 
 ### Skill Anatomy
 Each skill lives in `plugin/skills/<name>/` and contains:
-- `SKILL.md` — the skill prompt (with frontmatter: `description`, `argument-hint`, and optional `user-invocable`, `context`, `agent`)
-- `agents/openai.yaml` — OpenAI/Codex agent metadata for cross-agent portability
+- `SKILL.md` – the skill prompt (with frontmatter: `description`, `argument-hint`, and optional `user-invocable`, `context`, `agent`)
+- `agents/openai.yaml` – OpenAI/Codex agent metadata for cross-agent portability
 - Optional subdirectories for templates, checklists, or references
 
 ### Shared References
@@ -50,8 +50,8 @@ Each skill lives in `plugin/skills/<name>/` and contains:
 
 ### External Plugin Dependencies (Optional)
 Some skills delegate to other Codex plugins when available:
-- `code-simplifier:code-simplifier` — used by `refactor`, `exec-spec`, `quick-implement` for code cleanup
-- `frontend-design` — used by `wireframes` (via `ui-ux-designer` agent) for design implementation
+- `code-simplifier:code-simplifier` – used by `refactor`, `exec-spec`, `quick-implement` for code cleanup
+- `frontend-design` – used by `wireframes` (via `ui-ux-designer` agent) for design implementation
 
 Skills work without these plugins but skip the corresponding steps.
 
@@ -86,8 +86,8 @@ Always fully read relevant guidelines below as needed, based on the type of work
 ## Version Bumps
 
 When bumping the version, **always** update both:
-- `CHANGELOG.md` — add new version entry
-- `.Codex-plugin/marketplace.json` — update the `"version"` field
+- `CHANGELOG.md` – add new version entry
+- `.Codex-plugin/marketplace.json` – update the `"version"` field
 
 
 ---

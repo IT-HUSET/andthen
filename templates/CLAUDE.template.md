@@ -8,8 +8,8 @@
 
 ## Project Overview
 
-<!-- TODO: Describe your project — what it does, who it's for, key architectural patterns.
-     This section is your "steering context" — agents read it before every task. -->
+<!-- TODO: Describe your project – what it does, who it's for, key architectural patterns.
+     This section is your "steering context" – agents read it before every task. -->
 
 _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 
@@ -33,7 +33,7 @@ _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 | Research             | `docs/research/`                    | Trade-off analysis output               |
 | Architecture         | `docs/ARCHITECTURE.md`              | System architecture overview            |
 | Stack                | `docs/STACK.md`                     | Technology stack documentation          |
-| Ubiquitous Language  | `docs/UBIQUITOUS_LANGUAGE.md`       | Domain glossary — canonical terms, definitions, synonyms to avoid |
+| Ubiquitous Language  | `docs/UBIQUITOUS_LANGUAGE.md`       | Domain glossary – canonical terms, definitions, synonyms to avoid |
 | Guidelines           | `docs/guidelines/`                  | Development guidelines                  |
 | Wireframes           | `docs/wireframes/`                  | UI wireframes (HTML or images)          |
 | Design System        | `docs/design-system/`               | Tokens, components, style guide         |

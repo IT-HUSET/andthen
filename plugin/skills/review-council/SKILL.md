@@ -29,14 +29,14 @@ ARGUMENTS: $ARGUMENTS
 ## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
-- **Multi-perspective validation** — Findings must survive two-phase challenge (Devil's Advocate → Synthesis Challenger)
-- **Read-only analysis** — No code changes, commits, or modifications during review
+- **Multi-perspective validation** – Findings must survive two-phase challenge (Devil's Advocate → Synthesis Challenger)
+- **Read-only analysis** – No code changes, commits, or modifications during review
 
 
 ## GOTCHAS
-- Selecting too many reviewers (>7) dilutes debate quality — 5 is the sweet spot for most reviews
-- Devil's Advocate challenge phase gets skipped under context pressure — it's the most valuable phase
-- Reviewers agreeing too easily — if no findings survive challenge, the review was too shallow
+- Selecting too many reviewers (>7) dilutes debate quality – 5 is the sweet spot for most reviews
+- Devil's Advocate challenge phase gets skipped under context pressure – it's the most valuable phase
+- Reviewers agreeing too easily – if no findings survive challenge, the review was too shallow
 
 
 ## WORKFLOW
@@ -52,13 +52,13 @@ Determine what's being reviewed to select appropriate council members:
 - Look for requirements docs, specs, or ADRs in recent changes
 
 **Categorize the review:**
-- **Product feature** — New functionality, user-facing changes, requirement docs
-- **Backend changes** — API endpoints, business logic, data processing
-- **Frontend changes** — UI components, state management, styling
-- **Database changes** — Migrations, schema, queries
-- **Infrastructure** — Config, deployment, build scripts
-- **Refactoring** — Code restructuring, pattern changes
-- **Bug fix** — Targeted fixes, edge cases
+- **Product feature** – New functionality, user-facing changes, requirement docs
+- **Backend changes** – API endpoints, business logic, data processing
+- **Frontend changes** – UI components, state management, styling
+- **Database changes** – Migrations, schema, queries
+- **Infrastructure** – Config, deployment, build scripts
+- **Refactoring** – Code restructuring, pattern changes
+- **Bug fix** – Targeted fixes, edge cases
 
 ### 2. Select Council Members
 
@@ -67,27 +67,27 @@ Choose 5-7 reviewers from this roster based on scope analysis:
 **Available Reviewers:**
 
 **Product & Requirements:**
-- **Product Manager** — Feature alignment, user value, requirements match, scope creep, business logic correctness
-- **Requirements Analyst** — Acceptance criteria verification, edge case coverage, spec compliance, completeness
+- **Product Manager** – Feature alignment, user value, requirements match, scope creep, business logic correctness
+- **Requirements Analyst** – Acceptance criteria verification, edge case coverage, spec compliance, completeness
 
 **Technical Specialists:**
-- **Security Sentinel** — Auth, XSS, CSRF, injection, secrets, input validation, OWASP Top 10, trust boundaries. Should run Semgrep scan (MCP `security_check` tool or CLI `semgrep scan --config auto --json`) on changed files if available, and incorporate findings into review.
-- **Performance Oracle** — Query optimization, N+1, algorithmic complexity, caching, bundle size, rendering
-- **Architecture Strategist** — SOLID principles, coupling/cohesion, patterns, abstractions, maintainability
-- **Database Specialist** — Schema design, migrations, indexes, constraints, data integrity, query performance
-- **API Designer** — API contracts, versioning, backwards compatibility, REST/GraphQL best practices
-- **Frontend Specialist** — Component design, state management, hooks, rendering, bundle optimization
-- **Backend Specialist** — Business logic, error handling, data flow, service integration
+- **Security Sentinel** – Auth, XSS, CSRF, injection, secrets, input validation, OWASP Top 10, trust boundaries. Should run Semgrep scan (MCP `security_check` tool or CLI `semgrep scan --config auto --json`) on changed files if available, and incorporate findings into review.
+- **Performance Oracle** – Query optimization, N+1, algorithmic complexity, caching, bundle size, rendering
+- **Architecture Strategist** – SOLID principles, coupling/cohesion, patterns, abstractions, maintainability
+- **Database Specialist** – Schema design, migrations, indexes, constraints, data integrity, query performance
+- **API Designer** – API contracts, versioning, backwards compatibility, REST/GraphQL best practices
+- **Frontend Specialist** – Component design, state management, hooks, rendering, bundle optimization
+- **Backend Specialist** – Business logic, error handling, data flow, service integration
 
 **Quality & Experience:**
-- **UX/Accessibility Advocate** — Usability, error states, WCAG compliance, keyboard nav, responsive design
-- **Test Strategist** — Test coverage, test quality, missing cases, test maintainability, integration tests
-- **Code Maintainer** — Long-term maintainability, documentation, tech debt, onboarding, code clarity
-- **Content Designer** — Prompt quality (clarity, structure, tokens), user-facing text (error messages, docs, UI copy), technical writing, tone consistency
+- **UX/Accessibility Advocate** – Usability, error states, WCAG compliance, keyboard nav, responsive design
+- **Test Strategist** – Test coverage, test quality, missing cases, test maintainability, integration tests
+- **Code Maintainer** – Long-term maintainability, documentation, tech debt, onboarding, code clarity
+- **Content Designer** – Prompt quality (clarity, structure, tokens), user-facing text (error messages, docs, UI copy), technical writing, tone consistency
 
 **Always Include:**
-- **Devil's Advocate** — Challenges ALL findings during initial review, filters false positives, forces validation through debate
-- **Synthesis Challenger** — Reviews AFTER all debates, challenges final conclusions, ensures consistency, validates severity ratings, acts as quality gate
+- **Devil's Advocate** – Challenges ALL findings during initial review, filters false positives, forces validation through debate
+- **Synthesis Challenger** – Reviews AFTER all debates, challenges final conclusions, ensures consistency, validates severity ratings, acts as quality gate
 
 **Selection examples:**
 
@@ -111,11 +111,11 @@ Choose 5-7 reviewers from this roster based on scope analysis:
 
 **Gate:** 5-7 reviewers selected (always include Devil's Advocate + Synthesis Challenger)
 
-### 3. Phase 1 — Specialist Reviews
+### 3. Phase 1 – Specialist Reviews
 
 Run specialist reviews using **parallel sub-agents** _(if supported by your coding agent; otherwise execute sequentially)_.
 
-Spawn one sub-agent per specialist reviewer (excluding Devil's Advocate and Synthesis Challenger — those run in later phases). Each sub-agent receives this prompt:
+Spawn one sub-agent per specialist reviewer (excluding Devil's Advocate and Synthesis Challenger – those run in later phases). Each sub-agent receives this prompt:
 
 ```
 You are the {reviewer name} on a Review Council for: {SCOPE}
@@ -143,7 +143,7 @@ Collect all findings from specialist sub-agents.
 
 **Gate:** All specialist reviews complete, findings collected
 
-### 4. Phase 2 — Devil's Advocate Challenge
+### 4. Phase 2 – Devil's Advocate Challenge
 
 Spawn a **sub-agent** _(if supported by your coding agent; otherwise execute directly)_ as the Devil's Advocate. Provide ALL collected findings as input:
 
@@ -159,10 +159,10 @@ For each finding, ask:
 - "Is there a simpler explanation or existing mitigation?"
 
 For each finding, output one of:
-- **VALIDATED** — Finding holds up under scrutiny. Explain why.
-- **DOWNGRADED** — Finding is real but severity is too high. Suggest new severity and explain.
-- **WITHDRAWN** — Finding is a false positive or not applicable. Explain why.
-- **DISPUTED** — Reasonable arguments both ways. Note the tension.
+- **VALIDATED** – Finding holds up under scrutiny. Explain why.
+- **DOWNGRADED** – Finding is real but severity is too high. Suggest new severity and explain.
+- **WITHDRAWN** – Finding is a false positive or not applicable. Explain why.
+- **DISPUTED** – Reasonable arguments both ways. Note the tension.
 
 Findings to challenge:
 {all collected findings}
@@ -172,7 +172,7 @@ Apply the Devil's Advocate's verdicts to the findings list.
 
 **Gate:** All findings challenged, verdicts applied
 
-### 5. Phase 3 — Synthesis Review
+### 5. Phase 3 – Synthesis Review
 
 Spawn a **sub-agent** _(if supported by your coding agent; otherwise execute directly)_ as the Synthesis Challenger. Provide the validated/downgraded findings:
 
@@ -242,7 +242,7 @@ Date: {YYYY-MM-DD}
 - **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
 - **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
 
-**Report output directory** — resolve in priority order:
+**Report output directory** – resolve in priority order:
 1. **Spec directory**: If the review relates to a spec/FIS directory (e.g., the reviewed scope corresponds to a feature with an associated spec directory from the Project Document Index), store the report **in that spec directory**.
 2. **Target directory**: If the review target is a specific file or localized directory, store the report **in the same directory** as the primary review target.
 3. **Fallback**: Store in `{AGENT_TEMP}/reviews/` where `{AGENT_TEMP}` is the **Agent Temp** path from the Project Document Index (default: `.agent_temp/`).

@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Execute Specification"
   short_description: "Execute a Feature Implementation Specification"
-  default_prompt: "Implement the Feature Implementation Specification as orchestrator — delegate all coding to sub-agents, follow the FIS exactly. Spec path: "
+  default_prompt: "Implement the Feature Implementation Specification as orchestrator – delegate all coding to sub-agents, follow the FIS exactly. Spec path: "
 
 policy:
   allow_implicit_invocation: true

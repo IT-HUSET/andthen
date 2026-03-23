@@ -1,10 +1,10 @@
 # Feature Implementation Specification Template
 
 > **Purpose:**
-> Executable specification optimized for AI agents — concise, actionable, reference-heavy.
+> Executable specification optimized for AI agents – concise, actionable, reference-heavy.
 >
 > **Core Principles:**
-> 1. **References over Content**: Link to docs, code (file:line), and research — don't inline them
+> 1. **References over Content**: Link to docs, code (file:line), and research – don't inline them
 > 2. **Decisions, not Explanations**: State what to do, not lengthy rationale
 > 3. **Patterns by Reference**: Point to existing code patterns (file:line) rather than reproducing them
 > 4. **Validation at Execution**: Code is written during exec-spec, not spec
@@ -15,10 +15,10 @@
 > - If exceeding 500 lines, split into multiple specs or extract shared content to referenced files
 >
 > **DON'Ts**
-> - ❌ Code snippets longer than 5-10 lines — reference existing patterns instead
-> - ❌ Inline documentation excerpts — link to the source
-> - ❌ Verbose prose or explanations — be terse and actionable
-> - ❌ Repeating information available elsewhere — reference it
+> - ❌ Code snippets longer than 5-10 lines – reference existing patterns instead
+> - ❌ Inline documentation excerpts – link to the source
+> - ❌ Verbose prose or explanations – be terse and actionable
+> - ❌ Repeating information available elsewhere – reference it
 > - ❌ Over-engineering or out-of-scope functionality
 
 
@@ -105,7 +105,7 @@ url    | https://docs.example.com/auth     | OAuth flow reference
 doc    | docs/architecture/adr-001.md      | Auth architecture decision
 wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 ```
-> Keep this list focused — only include references that are essential for implementation.
+> Keep this list focused – only include references that are essential for implementation.
 
 
 ### Known Constraints & Gotchas
@@ -117,7 +117,7 @@ wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 ## Implementation Plan
 Below is an overview of the tasks that make up the implementation plan.
 **IMPORTANT:**
-- Tasks are organized into **Execution Groups** — clusters of related tasks executed by a single sub-agent
+- Tasks are organized into **Execution Groups** – clusters of related tasks executed by a single sub-agent
 - Tasks within a group execute sequentially. Groups marked **[P]** can run in parallel with sibling groups at the same dependency level
 - Individual tasks retain their IDs (TI01, TI02...) for tracking. Check off task checkboxes (- [ ] → - [x]) as tasks are completed
 
@@ -157,9 +157,9 @@ _Examples:_
 
 #### Grouping Constraints
 - **Max 4 implementation tasks per group** (test groups can have up to 6)
-- **Never group across independent concerns** — if tasks touch unrelated subsystems, keep them in separate groups
-- **Absorb trivial tasks** — barrel exports, verification steps, cleanup tasks go into the nearest related group rather than standing alone
-- **Tests group together** — all test tasks for a feature form one group (split if >6 tasks)
+- **Never group across independent concerns** – if tasks touch unrelated subsystems, keep them in separate groups
+- **Absorb trivial tasks** – barrel exports, verification steps, cleanup tasks go into the nearest related group rather than standing alone
+- **Tests group together** – all test tasks for a feature form one group (split if >6 tasks)
 
 #### Implementation Notes (per task, only when needed)
 - Reference existing patterns: `see src/components/Modal.tsx:45-78 for similar pattern`
@@ -179,7 +179,7 @@ Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md` for stub-
 and wiring-check patterns.
 
 ### Testing Strategy
-> Defines what to test and how — gives the testing agent concrete direction during exec-spec.
+> Defines what to test and how – gives the testing agent concrete direction during exec-spec.
 > Only include scenarios and coverage goals here; actual test code is written during execution.
 
 #### Test Scope
@@ -188,7 +188,7 @@ and wiring-check patterns.
 - **E2E tests**: {{Critical user journeys to validate end-to-end}} _(if applicable)_
 
 #### Key Test Scenarios
-{{Derive from success criteria — each criterion should map to at least one test scenario}}
+{{Derive from success criteria – each criterion should map to at least one test scenario}}
 - {{Scenario 1: description + expected outcome}}
 - {{Scenario 2: description + expected outcome}}
 

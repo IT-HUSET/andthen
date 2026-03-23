@@ -46,7 +46,7 @@ Before running:
 
 
 ## GOTCHAS
-- Recommending a single option without exploring alternatives — present at least 3 viable options
+- Recommending a single option without exploring alternatives – present at least 3 viable options
 - Missing non-functional requirements (performance, security, maintenance) in trade-off matrix
 
 
@@ -80,10 +80,10 @@ Ask user to define:
 
 Instead of listing options directly, decompose the decision into its independent dimensions:
 
-1. **Identify dimensions** — What are the orthogonal axes of choice? (These may be architectural, UI/UX, interaction patterns, or any mix.) Dimensions are independent peers — listing order carries no meaning.
-2. **List options per dimension** — Enumerate viable approaches for each axis (2–5 per dimension)
-3. **Cross-consistency assessment** — Evaluate pairwise compatibility between options across dimensions. Mark incompatible or conditional pairings with rationale. This typically eliminates the majority of theoretical combinations.
-4. **Derive candidate solutions** — The remaining consistent combinations are viable options to evaluate. Select up to _`COUNT`_ of the most promising.
+1. **Identify dimensions** – What are the orthogonal axes of choice? (These may be architectural, UI/UX, interaction patterns, or any mix.) Dimensions are independent peers – listing order carries no meaning.
+2. **List options per dimension** – Enumerate viable approaches for each axis (2–5 per dimension)
+3. **Cross-consistency assessment** – Evaluate pairwise compatibility between options across dimensions. Mark incompatible or conditional pairings with rationale. This typically eliminates the majority of theoretical combinations.
+4. **Derive candidate solutions** – The remaining consistent combinations are viable options to evaluate. Select up to _`COUNT`_ of the most promising.
 
 Present the decomposition to the user for validation. If a dimension has an obvious winner, resolve it immediately and focus research on contested dimensions.
 
@@ -118,20 +118,20 @@ Present relevant criteria from list below, ask user to prioritize (1-10 scale):
 
 ### Phase 1.5: Generative Design Exploration _(optional)_
 
-> **"Design It Twice"** — Instead of evaluating pre-defined options, first generate radically different designs by giving parallel agents contrasting constraints. The value is in contrast, not consensus.
+> **"Design It Twice"** – Instead of evaluating pre-defined options, first generate radically different designs by giving parallel agents contrasting constraints. The value is in contrast, not consensus.
 
 **When to use**: Multi-dimensional decisions with contested design choices. **Skip** for single-option evaluations, well-understood technology choices, or when the design space has already been explored (e.g., via `andthen:trade-off` or `andthen:clarify`).
 
 **1.5.1 Define Constraint Lenses**
 
 Select 3+ contrasting architectural constraints from the decision context. Examples:
-- "Minimize API surface area — fewest possible public methods/endpoints"
-- "Maximize extensibility — plugin/adapter architecture for future needs"
-- "Optimize for the common case — simplest possible happy path"
-- "Ports-and-adapters — strict separation of domain from infrastructure"
-- "Convention over configuration — zero-config defaults"
+- "Minimize API surface area – fewest possible public methods/endpoints"
+- "Maximize extensibility – plugin/adapter architecture for future needs"
+- "Optimize for the common case – simplest possible happy path"
+- "Ports-and-adapters – strict separation of domain from infrastructure"
+- "Convention over configuration – zero-config defaults"
 
-Each lens should produce a meaningfully different design — avoid lenses that would converge.
+Each lens should produce a meaningfully different design – avoid lenses that would converge.
 
 **1.5.2 Parallel Design Generation**
 
@@ -140,7 +140,7 @@ Spawn 3+ parallel sub-agents _(if supported by your coding agent; otherwise exec
 ```markdown
 ## Design Exploration: [TOPIC]
 
-**Your constraint**: [Constraint lens — e.g., "Minimize API surface area"]
+**Your constraint**: [Constraint lens – e.g., "Minimize API surface area"]
 
 Design a solution for [TOPIC] that fully commits to this constraint.
 

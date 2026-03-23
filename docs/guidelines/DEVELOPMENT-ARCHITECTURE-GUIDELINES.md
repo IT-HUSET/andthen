@@ -45,11 +45,11 @@ CUPID properties (https://cupid.dev/) focus on creating architectures that are "
 - **Separate Core from Infrastructure**: Keep domain logic free of database, UI, or framework concerns.
 
 #### Ubiquitous Language in Practice
-- **Name things from the domain**: Use business terms for classes, methods, variables, and database columns — not technical jargon or abbreviations.
+- **Name things from the domain**: Use business terms for classes, methods, variables, and database columns – not technical jargon or abbreviations.
 - **One term, one meaning**: If the same word means different things in different contexts, qualify it with its bounded context (e.g., `BillingAccount` vs `UserAccount`).
 - **Maintain a glossary**: Keep `UBIQUITOUS_LANGUAGE.md` as the single source of truth for domain terminology. Update it when new concepts emerge or terms evolve.
 - **Code reflects the glossary**: Variable names, class names, API endpoints, and database columns should use canonical terms from the glossary. Avoid synonyms listed in the "Avoid" column.
-- **Challenge ambiguity early**: When requirements use inconsistent terminology, resolve it before implementation — don't let code inherit the confusion.
+- **Challenge ambiguity early**: When requirements use inconsistent terminology, resolve it before implementation – don't let code inherit the confusion.
 
 ## Coding Guidelines
 

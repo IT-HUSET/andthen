@@ -8,14 +8,14 @@
 
 > "I have a feature idea" → *and then?* → **clarify** → *and then?* → **plan** → *and then?* → **spec** → *and then?* → **execute** → *and then?* → **review-gap** → **ship it.**
 
-AndThen brings spec-driven development to AI coding agents — lightweight, open, and adoptable piece by piece. The core idea: write a spec before you code, then let the agent execute it autonomously. The pipeline produces a **Feature Implementation Specification (FIS)** as its central artifact — a structured blueprint that turns requirements into reliable, verifiable implementations.
+AndThen brings spec-driven development to AI coding agents – lightweight, open, and adoptable piece by piece. The core idea: write a spec before you code, then let the agent execute it autonomously. The pipeline produces a **Feature Implementation Specification (FIS)** as its central artifact – a structured blueprint that turns requirements into reliable, verifiable implementations.
 
 > [!NOTE]
-> **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome — just know that stability is not yet a goal.
+> **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal.
 
-**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need — `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* (`clarify` → `plan` → `spec` →  `exec-spec` → `review-gap`) but not about *how your project is organized*. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live — adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
+**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* (`clarify` → `plan` → `spec` →  `exec-spec` → `review-gap`) but not about *how your project is organized*. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
 
-Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** — falling back to direct execution when sub-agents aren't available.
+Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** – falling back to direct execution when sub-agents aren't available.
 
 [Get started →](#installation) · [Skills reference →](#skills)
 
@@ -23,7 +23,7 @@ Works as a **Claude Code plugin** with full sub-agent orchestration, and skills 
 
 ### Spec-Driven Development
 
-Most AI coding goes straight from idea to code. That works for small fixes, but complex features drift, miss requirements, and produce code that's hard to verify. Spec-driven development adds one step: *write a spec first, then implement against it*. The spec becomes the contract — what to build, how to verify it, and when it's done.
+Most AI coding goes straight from idea to code. That works for small fixes, but complex features drift, miss requirements, and produce code that's hard to verify. Spec-driven development adds one step: *write a spec first, then implement against it*. The spec becomes the contract – what to build, how to verify it, and when it's done.
 
 AndThen makes this practical for AI agents without imposing a heavy methodology. You can start with `quick-implement` for small tasks and reach for `spec` when complexity warrants it.
 
@@ -104,9 +104,9 @@ Verification includes code review, testing, and visual validation (when applicab
 ```
 
 **When to use which:**
-- **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue — you know what to do and it's under ~3 files
-- **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review-gap`): Single feature with real complexity — multiple files, non-obvious requirements, needs a blueprint
-- **Plan workflow** (`clarify` → `plan` → `exec-plan` → `review-gap`): Multiple features, MVP, or a new project — needs story breakdown and phased execution
+- **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue – you know what to do and it's under ~3 files
+- **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review-gap`): Single feature with real complexity – multiple files, non-obvious requirements, needs a blueprint
+- **Plan workflow** (`clarify` → `plan` → `exec-plan` → `review-gap`): Multiple features, MVP, or a new project – needs story breakdown and phased execution
 
 Not sure? Start with `quick-implement`. If it feels too complex, switch to the feature workflow. See [Getting Started](#getting-started) for a full walkthrough.
 
@@ -161,16 +161,16 @@ The quickest way to get started:
 /andthen:init
 ```
 
-This interactively sets up your project — generates `CLAUDE.md`, creates selected document types, and copies guidelines. Works for new projects, partial setups, and brownfield codebases.
+This interactively sets up your project – generates `CLAUDE.md`, creates selected document types, and copies guidelines. Works for new projects, partial setups, and brownfield codebases.
 
-**Manual setup** — if you prefer to set things up yourself, skills reference your project's `CLAUDE.md` for context. Add these sections:
+**Manual setup** – if you prefer to set things up yourself, skills reference your project's `CLAUDE.md` for context. Add these sections:
 
-**1. Project Document Index** — tells skills where to write output (specs, plans, etc.)
-**2. Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards
+**1. Project Document Index** – tells skills where to write output (specs, plans, etc.)
+**2. Workflow Rules, Guardrails and Guidelines** – behavioral rules and development standards
 
 See [`templates/CLAUDE.template.md`](templates/CLAUDE.template.md) for a starter template.
 
-**Optional project docs** — The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these are in [`templates/project-state-templates.md`](templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
+**Optional project docs** – The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these are in [`templates/project-state-templates.md`](templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
 
 ### Agent Teams (Optional, Claude Code only)
 
@@ -190,7 +190,7 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 
 ### Your First Feature
 
-You have a feature idea — maybe just a sentence, maybe a rough description. Here's how the pipeline works in practice.
+You have a feature idea – maybe just a sentence, maybe a rough description. Here's how the pipeline works in practice.
 
 **Step 1: Clarify requirements** *(interactive)*
 
@@ -198,7 +198,7 @@ You have a feature idea — maybe just a sentence, maybe a rough description. He
 /andthen:clarify "users should be able to export their data"
 ```
 
-This starts an **interactive conversation**. Claude analyzes your input, identifies gaps, and asks you 3-5 targeted questions at a time — about scope, user flows, edge cases, success criteria. You answer, it asks more. Typically 2-4 rounds until requirements are solid.
+This starts an **interactive conversation**. Claude analyzes your input, identifies gaps, and asks you 3-5 targeted questions at a time – about scope, user flows, edge cases, success criteria. You answer, it asks more. Typically 2-4 rounds until requirements are solid.
 
 Input can be anything: a sentence, a paragraph, a file path (`@docs/feature-idea.md`), or a GitHub issue URL.
 
@@ -213,7 +213,7 @@ docs/specs/data-export/requirements-clarification.md
 /andthen:spec docs/specs/data-export/
 ```
 
-This reads your clarified requirements, analyzes the codebase, and produces a **Feature Implementation Specification (FIS)** — the blueprint for autonomous implementation. No code changes happen here.
+This reads your clarified requirements, analyzes the codebase, and produces a **Feature Implementation Specification (FIS)** – the blueprint for autonomous implementation. No code changes happen here.
 
 ```
 docs/specs/data-export/fis.md
@@ -238,7 +238,7 @@ docs/specs/data-export/plan.md
 # Single feature:
 /andthen:exec-spec
 
-# Multi-feature (automated pipeline — spec → execute → review per story):
+# Multi-feature (automated pipeline – spec → execute → review per story):
 /andthen:exec-plan docs/specs/data-export/
 ```
 
@@ -284,14 +284,14 @@ plan    → prd.md + plan.md (story breakdown)
 
 ### When to Use `clarify`
 
-`clarify` is optional — but knowing when to use it saves time.
+`clarify` is optional – but knowing when to use it saves time.
 
 | Your starting point | Recommendation |
 |---|---|
-| A one-liner or vague idea ("users should be able to export data") | **Use `clarify`** — too many unknowns for a good spec |
-| A rough description with some known requirements but unclear scope/edges | **Use `clarify`** — it will focus on gaps, not re-discover what you know |
-| Well-defined requirements with acceptance criteria (from a PM, a detailed issue) | **Skip `clarify`** — go straight to `spec` or `plan` |
-| Existing requirements doc or Notion page | **Skip `clarify`** — pass the file/URL directly to `spec` or `plan` |
+| A one-liner or vague idea ("users should be able to export data") | **Use `clarify`** – too many unknowns for a good spec |
+| A rough description with some known requirements but unclear scope/edges | **Use `clarify`** – it will focus on gaps, not re-discover what you know |
+| Well-defined requirements with acceptance criteria (from a PM, a detailed issue) | **Skip `clarify`** – go straight to `spec` or `plan` |
+| Existing requirements doc or Notion page | **Skip `clarify`** – pass the file/URL directly to `spec` or `plan` |
 
 **Rule of thumb:** If you can't list 3 concrete acceptance criteria for the feature, run `clarify` first.
 
@@ -299,12 +299,12 @@ plan    → prd.md + plan.md (story breakdown)
 
 Both `clarify` and `plan` can do requirements discovery. The difference:
 
-- **`clarify`** does deep, thorough discovery — design space decomposition, domain language extraction, detailed edge case analysis. It produces a standalone requirements document.
+- **`clarify`** does deep, thorough discovery – design space decomposition, domain language extraction, detailed edge case analysis. It produces a standalone requirements document.
 - **`plan`** has a lighter built-in discovery (Step 1b) for when you skip `clarify`. It focuses on getting enough information to create a PRD and break it into stories, but won't go as deep on edge cases or design alternatives.
 
 **Use `clarify` first when:** The problem space is genuinely unclear, you're exploring multiple design directions, or the domain is complex. `plan` will pick up the output and skip its own discovery.
 
-**Skip `clarify` and let `plan` handle it when:** You have a reasonable understanding of what you want — maybe not perfectly documented, but you could explain it in a few paragraphs. `plan`'s lighter discovery will fill the gaps.
+**Skip `clarify` and let `plan` handle it when:** You have a reasonable understanding of what you want – maybe not perfectly documented, but you could explain it in a few paragraphs. `plan`'s lighter discovery will fill the gaps.
 
 
 ## Skills
@@ -316,9 +316,9 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | Skill | Purpose |
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
-| `clarify` | Requirements discovery — from vague idea to structured requirements |
+| `clarify` | Requirements discovery – from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
-| `exec-spec` | Execute a FIS — orchestrated implementation with validation |
+| `exec-spec` | Execute a FIS – orchestrated implementation with validation |
 | `review-gap` | Gap analysis + code review against requirements |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
@@ -329,7 +329,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 
 | Skill | Purpose |
 |-------|---------|
-| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
+| `exec-plan` | Execute plan – sub-agent pipeline (spec → exec-spec → review-gap per story) |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
 | `e2e-test` | End-to-end browser testing for web applications |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
@@ -368,7 +368,7 @@ Specialized sub-agents used internally by skills:
 
 ### Guidelines (`docs/guidelines/`)
 
-Simplified starting points — copy into your project and adapt to your needs. Workflow skills reference these via your project's `CLAUDE.md`, so you can replace them entirely with your own.
+Simplified starting points – copy into your project and adapt to your needs. Workflow skills reference these via your project's `CLAUDE.md`, so you can replace them entirely with your own.
 
 | Guide | Purpose |
 |-------|---------|
@@ -433,7 +433,7 @@ Skills work without these plugins but skip the corresponding steps.
 
 ## Evolved From
 
-AndThen evolved from [cc-workflows](https://github.com/tolo/claude_code_common) — a general-purpose AI coding agent toolkit.
+AndThen evolved from [cc-workflows](https://github.com/tolo/claude_code_common) – a general-purpose AI coding agent toolkit.
 
 
 ## Inspired by _(name)_

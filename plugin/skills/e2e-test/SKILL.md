@@ -20,7 +20,7 @@ FOCUS: $ARGUMENTS
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards**
-- **Fix bugs found during testing** — this skill is not read-only; fix and document issues discovered
+- **Fix bugs found during testing** – this skill is not read-only; fix and document issues discovered
 - Use the `agent-browser` skill for all browser automation (snapshots, clicks, form fills, screenshots)
 - If `agent-browser` is unavailable, warn the user and stop
 - Delegate to the `andthen:build-troubleshooter` agent for any server startup failures
@@ -31,17 +31,17 @@ FOCUS: $ARGUMENTS
 ## GOTCHAS
 - Starting tests before the dev server is running and healthy
 - Not waiting for page load/navigation to complete before asserting
-- Testing only the happy path — include at least one error/edge case per journey
+- Testing only the happy path – include at least one error/edge case per journey
 
 
 ## WORKFLOW
 
 ### Phase 1: Pre-flight
 
-1. **Platform check** — confirm macOS, Linux, or WSL; warn and stop on unsupported platforms
-2. **Frontend check** — verify a frontend exists (`package.json`, framework config, `index.html`, etc.)
-3. **Tool check** — confirm `agent-browser` skill is available; if not, stop with clear instructions
-4. **Read guidelines** — read CLAUDE.md and any relevant project guidelines, including any Visual Validation Workflow sections
+1. **Platform check** – confirm macOS, Linux, or WSL; warn and stop on unsupported platforms
+2. **Frontend check** – verify a frontend exists (`package.json`, framework config, `index.html`, etc.)
+3. **Tool check** – confirm `agent-browser` skill is available; if not, stop with clear instructions
+4. **Read guidelines** – read CLAUDE.md and any relevant project guidelines, including any Visual Validation Workflow sections
 
 **Gate**: Environment confirmed suitable for E2E testing
 
@@ -70,19 +70,19 @@ Launch 3 sub-agents concurrently:
 - Identify existing tests and their coverage gaps
 - Look for error handling inconsistencies or missing edge case coverage
 
-**Gate**: Discovery complete — all user journeys, data model, and risk areas documented
+**Gate**: Discovery complete – all user journeys, data model, and risk areas documented
 
 
 ### Phase 3: Test Planning
 
 Using discovery results:
 
-1. **Define scope** — if `FOCUS` is provided, filter to matching routes/features; otherwise full coverage
+1. **Define scope** – if `FOCUS` is provided, filter to matching routes/features; otherwise full coverage
 2. **Prioritize journeys** by:
    - Business criticality (auth, core CRUD, primary workflows first)
    - Recently changed code (higher regression risk)
    - Known fragility or missing test coverage
-3. **Identify test data needs** — note any required setup (seed data, env vars, fixtures)
+3. **Identify test data needs** – note any required setup (seed data, env vars, fixtures)
 4. **Define success criteria** for each journey (expected URL, element, message, or DB state)
 
 **Gate**: Ordered journey list with acceptance criteria ready
@@ -145,7 +145,7 @@ Delegate to `andthen:visual-validation-specialist` with:
 Generate a markdown report:
 
 ```markdown
-# E2E Test Report — [YYYY-MM-DD]
+# E2E Test Report – [YYYY-MM-DD]
 
 ## Summary
 [2-3 sentences: scope, overall result, key findings]
@@ -164,13 +164,13 @@ Generate a markdown report:
 ## Issues Found
 
 ### Critical (flow-blocking)
-[Each: Title — Journey — Steps to reproduce — Expected vs Actual — Screenshot: path]
+[Each: Title – Journey – Steps to reproduce – Expected vs Actual – Screenshot: path]
 
 ### High Priority
 [Same format]
 
 ### Fixed During Testing
-[Title — Root cause — Fix applied]
+[Title – Root cause – Fix applied]
 
 ## Responsive Validation
 [Summary from visual-validation-specialist, with viewport × page matrix]

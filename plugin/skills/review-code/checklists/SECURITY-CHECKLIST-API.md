@@ -1,15 +1,15 @@
-# Security Checklist — API Security
+# Security Checklist – API Security
 
 Concise checklist for security code reviews of APIs (REST, GraphQL, gRPC, and similar). Based on [OWASP API Security Top 10:2023](https://owasp.org/API-Security/editions/2023/en/0x00-header/).
 
-**Applies to:** Any codebase that exposes or consumes HTTP/API endpoints, including microservices, BFFs, and public/private APIs. Complements the Web checklist — use both when the application has a web frontend consuming an API.
+**Applies to:** Any codebase that exposes or consumes HTTP/API endpoints, including microservices, BFFs, and public/private APIs. Complements the Web checklist – use both when the application has a web frontend consuming an API.
 
 ---
 
 ## Pre-Review
 - [ ] Map all exposed API endpoints (routes, methods, parameters)
 - [ ] Identify which endpoints are public vs. authenticated vs. admin
-- [ ] Review data classification — which endpoints handle sensitive or privileged data
+- [ ] Review data classification – which endpoints handle sensitive or privileged data
 
 ---
 
@@ -41,8 +41,8 @@ Weak or missing authentication mechanisms allow attackers to impersonate users.
 
 API returns or accepts more object properties than the caller is allowed to see or set (mass assignment / over-exposure).
 
-- [ ] Response serialization uses explicit allowlists — no `SELECT *` or full ORM object serialization
-- [ ] Input deserialization uses allowlists — no mass assignment of arbitrary client-supplied fields
+- [ ] Response serialization uses explicit allowlists – no `SELECT *` or full ORM object serialization
+- [ ] Input deserialization uses allowlists – no mass assignment of arbitrary client-supplied fields
 - [ ] Sensitive fields (e.g., `role`, `isAdmin`, `balance`) excluded from user-writeable input schemas
 - [ ] API versioning does not inadvertently re-expose deprecated sensitive fields
 
@@ -53,7 +53,7 @@ API returns or accepts more object properties than the caller is allowed to see 
 No limits on API usage, allowing DoS, cost exhaustion, or enumeration attacks.
 
 - [ ] Rate limiting applied per user/IP/tenant on all endpoints
-- [ ] Pagination enforced — no unbounded list queries
+- [ ] Pagination enforced – no unbounded list queries
 - [ ] File upload size limits enforced
 - [ ] Expensive operations (search, export, report) have stricter limits or async processing
 - [ ] Cost-generating third-party calls (email, SMS, LLM) are rate-limited separately
@@ -97,7 +97,7 @@ API fetches remote resources using user-supplied URLs, enabling access to intern
 
 Insecure defaults, overly permissive settings, or unnecessary features exposed through the API.
 
-- [ ] CORS configured restrictively — no wildcard `*` in production for credentialed requests
+- [ ] CORS configured restrictively – no wildcard `*` in production for credentialed requests
 - [ ] Unnecessary HTTP methods disabled per endpoint
 - [ ] Security headers present (CSP, HSTS, X-Content-Type-Options, etc.)
 - [ ] Error responses do not leak stack traces, internal paths, or system details
@@ -140,8 +140,8 @@ Trusting data from third-party APIs without validation, enabling injection or lo
 ## Issue Classification
 
 ### 🚨 CRITICAL (Immediate Fix Required)
-- BOLA — accessing another user's resources (data breach)
-- BFLA — regular user accessing admin functions
+- BOLA – accessing another user's resources (data breach)
+- BFLA – regular user accessing admin functions
 - Authentication bypass
 - Mass assignment of privileged fields (e.g., `role`, `isAdmin`)
 

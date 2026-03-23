@@ -1,8 +1,8 @@
-# Security Checklist — Mobile Applications
+# Security Checklist – Mobile Applications
 
 Concise checklist for security code reviews of native and hybrid mobile applications. Based on [OWASP Mobile Top 10:2024](https://owasp.org/www-project-mobile-top-10/).
 
-**Applies to:** Native iOS (Swift/ObjC), native Android (Kotlin/Java), and cross-platform mobile apps (React Native, Flutter, Expo). Complements the Web and API checklists — also apply those when the app communicates with a backend API.
+**Applies to:** Native iOS (Swift/ObjC), native Android (Kotlin/Java), and cross-platform mobile apps (React Native, Flutter, Expo). Complements the Web and API checklists – also apply those when the app communicates with a backend API.
 
 ---
 
@@ -19,7 +19,7 @@ Hardcoded credentials or insecure credential storage in the app binary or config
 
 - [ ] No hardcoded credentials, API keys, or secrets in source code or config files
 - [ ] API keys and secrets stored server-side where possible; not bundled in the app
-- [ ] Credentials stored in secure system storage (iOS Keychain, Android Keystore) — not SharedPreferences, UserDefaults, or plain files
+- [ ] Credentials stored in secure system storage (iOS Keychain, Android Keystore) – not SharedPreferences, UserDefaults, or plain files
 - [ ] Secrets excluded from source control (`.gitignore` covers `.env`, key files, etc.)
 - [ ] Compiled binary does not contain plaintext secrets (check build outputs)
 
@@ -44,7 +44,7 @@ Weak or bypassable authentication allowing unauthorized access to app functional
 - [ ] Biometric authentication uses platform APIs correctly (iOS LocalAuthentication, Android BiometricPrompt)
 - [ ] Authentication state is not stored in tamperable locations (plain files, unprotected prefs)
 - [ ] Session tokens stored in secure storage (Keychain/Keystore), not in plain SharedPreferences or NSUserDefaults
-- [ ] Authorization checks enforced server-side — client-side checks are UX only
+- [ ] Authorization checks enforced server-side – client-side checks are UX only
 - [ ] Re-authentication required for sensitive operations (payments, account changes)
 - [ ] Logout clears all session tokens from secure storage
 
@@ -56,7 +56,7 @@ Unvalidated input or output enabling injection attacks or unexpected behavior in
 
 - [ ] All user input validated (type, length, format) before use or transmission
 - [ ] Deep link / URL scheme parameters treated as untrusted and validated
-- [ ] WebView content validated — JavaScript interfaces are not exposed unnecessarily
+- [ ] WebView content validated – JavaScript interfaces are not exposed unnecessarily
 - [ ] Data received from the backend validated before rendering (XSS in WebViews, display logic)
 - [ ] Intent extras (Android) and URL scheme parameters (iOS) validated before use
 
@@ -66,7 +66,7 @@ Unvalidated input or output enabling injection attacks or unexpected behavior in
 
 Sensitive data transmitted without proper TLS configuration or with certificate validation disabled.
 
-- [ ] TLS enforced for all network communication — no HTTP fallback
+- [ ] TLS enforced for all network communication – no HTTP fallback
 - [ ] Certificate validation is not disabled (no `trustAllCerts`, `allowAllHostnames`, `NSAllowsArbitraryLoads`)
 - [ ] Certificate pinning implemented for high-risk communications (banking, health)
 - [ ] iOS ATS (App Transport Security) enabled and not broadly exempted
@@ -109,7 +109,7 @@ Insecure platform or framework configuration leaving the app exposed.
 - [ ] iOS data protection entitlement set appropriately for sensitive files
 - [ ] Exported components (Activities, Services, Providers) restricted with permissions where not intended for external use
 - [ ] WebViews have JavaScript disabled unless required; `setAllowFileAccess(false)` on Android
-- [ ] Content providers restricted — no unintentional data exposure via content URIs
+- [ ] Content providers restricted – no unintentional data exposure via content URIs
 - [ ] Clipboard access restricted for sensitive input fields (passwords, card numbers)
 
 ---
@@ -131,9 +131,9 @@ Sensitive data persisted in insecure locations accessible to other apps, backups
 
 Weak, broken, or incorrectly implemented cryptography protecting sensitive data.
 
-- [ ] Strong algorithms only — no MD5, SHA-1, DES, 3DES, RC4, ECB mode
+- [ ] Strong algorithms only – no MD5, SHA-1, DES, 3DES, RC4, ECB mode
 - [ ] AES-256-GCM or AES-256-CBC with HMAC used for symmetric encryption
-- [ ] Cryptographic keys managed via platform APIs (iOS Keychain, Android Keystore) — not derived from static strings
+- [ ] Cryptographic keys managed via platform APIs (iOS Keychain, Android Keystore) – not derived from static strings
 - [ ] IVs and nonces are random and never reused with the same key
 - [ ] Random values for security-sensitive use generated via `SecureRandom` / `SecRandomCopyBytes`
 - [ ] No custom or home-grown cryptographic implementations

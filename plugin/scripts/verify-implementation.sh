@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# verify-implementation.sh — Combined existence + substance + wiring check
+# verify-implementation.sh – Combined existence + substance + wiring check
 # Used by: exec-spec, exec-plan
 
 set -euo pipefail
@@ -59,7 +59,7 @@ for file in "${FILES[@]}"; do
     STATUS="✗"
     ISSUES+=("does not exist")
     ((FAIL++))
-    echo "$STATUS $file — ${ISSUES[*]}"
+    echo "$STATUS $file – ${ISSUES[*]}"
     continue
   fi
 
@@ -69,7 +69,7 @@ for file in "${FILES[@]}"; do
     ISSUES+=("empty file")
   fi
 
-  # Check 3: Stub detection — delegate to check-stubs.sh if available
+  # Check 3: Stub detection – delegate to check-stubs.sh if available
   STUB_COUNT=0
   if [[ -x "$SCRIPT_DIR/check-stubs.sh" ]]; then
     STUB_COUNT=$("$SCRIPT_DIR/check-stubs.sh" "$file" --json 2>/dev/null | grep -o '"count": [0-9]*' | grep -o '[0-9]*' || echo "0")
@@ -107,10 +107,10 @@ for file in "${FILES[@]}"; do
 
   if [[ ${#ISSUES[@]} -eq 0 ]]; then
     ((PASS++))
-    echo "$STATUS $file — pass"
+    echo "$STATUS $file – pass"
   else
     ((FAIL++))
-    echo "$STATUS $file — ${ISSUES[*]}"
+    echo "$STATUS $file – ${ISSUES[*]}"
   fi
 done
 

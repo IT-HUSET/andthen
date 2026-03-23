@@ -43,9 +43,9 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 
 
 ## GOTCHAS
-- Agent creates too many small stories — push for fewer, larger vertical slices
-- Skipping requirements discovery when no PRD exists — if no prior artifacts, run discovery first
-- Wave assignments get ignored during execution — explicitly mark dependencies between stories
+- Agent creates too many small stories – push for fewer, larger vertical slices
+- Skipping requirements discovery when no PRD exists – if no prior artifacts, run discovery first
+- Wave assignments get ignored during execution – explicitly mark dependencies between stories
 
 
 ## WORKFLOW
@@ -71,7 +71,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 4. **If no PRD and no prior artifacts** (requirements source provided):
    - Validate prerequisites: requirements should be reasonably refined (not raw ideas)
    - If input is too vague, recommend running the `andthen:clarify` skill first
-   - Initial gap analysis — document what's explicitly stated, assumed/implied, and missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope)
+   - Initial gap analysis – document what's explicitly stated, assumed/implied, and missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope)
    - Proceed to Step 1b (Requirements Discovery)
 
 **Gate**: Input validated
@@ -81,11 +81,11 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 
 #### Requirements Discovery Interview
 
-Interview user to fill gaps. Ask 3-5 targeted questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers — you MUST receive actual answers from the user. Iterate until no major gaps remain.
+Interview user to fill gaps. Ask 3-5 targeted questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers – you MUST receive actual answers from the user. Iterate until no major gaps remain.
 
 > **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Do not proceed past this section until the user has answered your questions and you've confirmed no major gaps remain. Use the `AskUserQuestion` tool if available in your environment.
 
-Conduct requirements discovery covering: users and personas, core workflows, data model, integrations, constraints, and non-functional requirements. Ask questions iteratively — **STOP and WAIT** for user responses between rounds.
+Conduct requirements discovery covering: users and personas, core workflows, data model, integrations, constraints, and non-functional requirements. Ask questions iteratively – **STOP and WAIT** for user responses between rounds.
 
 Focus areas:
 - Core functionality (must-have vs nice-to-have, workflows, validation, error handling, UI involvement)
@@ -392,7 +392,7 @@ Skip this step entirely if existing artifacts provide sufficient coverage for al
 
 #### Structure & Generate PRD
 
-Using existing artifacts as the primary source, structure the PRD following the same format as Step 1b: Structure PRD. Preserve decisions, rationale, and specific details from the existing artifacts — do not paraphrase or generalize away specifics.
+Using existing artifacts as the primary source, structure the PRD following the same format as Step 1b: Structure PRD. Preserve decisions, rationale, and specific details from the existing artifacts – do not paraphrase or generalize away specifics.
 
 Then proceed through **Prioritization → PRD Validation → Generate PRD Document** (same substeps as Step 1b).
 
@@ -412,7 +412,7 @@ Collect sub-agent results and synthesize into a unified understanding of:
 - MVP scope and boundaries
 - Success criteria
 - Prioritization (P0/P1/P2)
-- Domain terminology — reference `UBIQUITOUS_LANGUAGE.md` if it exists; use canonical terms in story names and acceptance criteria
+- Domain terminology – reference `UBIQUITOUS_LANGUAGE.md` if it exists; use canonical terms in story names and acceptance criteria
 
 #### Map to Implementation Units
 For each major feature/requirement:
@@ -428,13 +428,13 @@ For each major feature/requirement:
 
 #### Design Space Analysis _(if applicable)_
 
-For features with multiple design dimensions — whether architectural, UI/UX, or interaction-related — use design space decomposition _(see `plugin/references/design-tree.md`)_ to inform story structure:
+For features with multiple design dimensions – whether architectural, UI/UX, or interaction-related – use design space decomposition _(see `plugin/references/design-tree.md`)_ to inform story structure:
 
 1. **Identify design dimensions** from the PRD (e.g., display mode, filtering approach, auth method, data freshness)
-2. **Map dimension independence** — dimensions that can be built and tested separately are candidates for separate, parallelizable stories
-3. **Identify coupling** — dimensions with cross-consistency constraints (where options in one affect viability of options in another) should be in the same story to avoid rework
-4. **Spot foundational dimensions** — choices that other dimensions depend on belong in earlier phases (e.g., data model must precede display mode)
-5. **Flag uncertainty** — dimensions with high uncertainty or contested options may warrant a spike/research story before implementation
+2. **Map dimension independence** – dimensions that can be built and tested separately are candidates for separate, parallelizable stories
+3. **Identify coupling** – dimensions with cross-consistency constraints (where options in one affect viability of options in another) should be in the same story to avoid rework
+4. **Spot foundational dimensions** – choices that other dimensions depend on belong in earlier phases (e.g., data model must precede display mode)
+5. **Flag uncertainty** – dimensions with high uncertainty or contested options may warrant a spike/research story before implementation
 
 If a design space decomposition was produced upstream (by `clarify` or `trade-off`), reference and build on it rather than re-creating it.
 
@@ -464,9 +464,9 @@ Phase 1: Tracer Bullet (Sequential)
 └── Produces a demoable result
 
 Phase 2: Feature Slices (Parallel where possible)
-├── [P] Feature A — full vertical slice (data → logic → API → UI)
-├── [P] Feature B — full vertical slice
-└── Feature C (depends on A) — full vertical slice
+├── [P] Feature A – full vertical slice (data → logic → API → UI)
+├── [P] Feature B – full vertical slice
+└── Feature C (depends on A) – full vertical slice
 
 Phase 3: Hardening (Parallel)
 ├── [P] Edge cases and error handling
@@ -493,20 +493,20 @@ Before defining tasks, work backward from the desired outcome:
 4. **Failure Points**: What are the most likely ways this could silently fail?
 5. **Vertical Slice Order**: What is the thinnest path through all layers that proves this story works end-to-end? This becomes the first implementation task.
 
-These feed directly into acceptance criteria — each criterion should be a verifiable observable truth.
+These feed directly into acceptance criteria – each criterion should be a verifiable observable truth.
 
 #### Story Definition
 
 For each story, define:
 - **ID**: Sequential identifier (S01, S02, etc.)
 - **Name**: Brief descriptive name
-- **Status**: Tracking field — initially `Pending` (updated to `In Progress` / `Done` during execution)
-- **FIS**: Reference to generated spec — initially `—` (updated to file path when `andthen:spec` creates the FIS)
-- **Scope**: 2-4 sentences — what's included and excluded (no implementation approach — that's for `andthen:spec`)
-- **Acceptance criteria**: 3-6 testable outcomes — the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
+- **Status**: Tracking field – initially `Pending` (updated to `In Progress` / `Done` during execution)
+- **FIS**: Reference to generated spec – initially `–` (updated to file path when `andthen:spec` creates the FIS)
+- **Scope**: 2-4 sentences – what's included and excluded (no implementation approach – that's for `andthen:spec`)
+- **Acceptance criteria**: 3-6 testable outcomes – the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
 - **Dependencies**: Other story IDs that must complete first
 - **Phase**: Which implementation phase
-- **Wave**: Execution wave within phase (W1, W2, W3...) — pre-computed during planning
+- **Wave**: Execution wave within phase (W1, W2, W3...) – pre-computed during planning
 - **Parallel**: [P] if can run parallel with others in same phase
 - **Risk**: Low/Medium/High with brief note if Medium+
 - **Asset refs**: Relevant wireframes, ADRs, design system sections
@@ -524,7 +524,7 @@ For each story, define:
 
 Generate `plan.md` with a structure like the following (adapt phases and structure to fit the project).
 
-**Document references header**: Include a blockquote header at the top linking to all key reference documents discovered during Input Validation (PRD, ADRs, design system, wireframes, etc.). Use relative paths. Omit entries where no document exists — only include actual references.
+**Document references header**: Include a blockquote header at the top linking to all key reference documents discovered during Input Validation (PRD, ADRs, design system, wireframes, etc.). Use relative paths. Omit entries where no document exists – only include actual references.
 
 <example-plan-format>
 # Implementation Plan: [Project Name]
@@ -554,7 +554,7 @@ _Sequential execution - establishes base for all features_
 
 #### S01: [Story Name]
 **Status**: Pending
-**FIS**: —
+**FIS**: –
 **Scope**: [2-4 sentences covering what is built and what's excluded]
 **Acceptance Criteria**:
 - [ ] Project scaffolding exists and builds successfully _(must-be-TRUE)_

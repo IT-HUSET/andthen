@@ -25,8 +25,8 @@ See the [full documentation](../README.md) for workflow overview, usage examples
 
 Skills reference your project's `CLAUDE.md` for two things:
 
-- **Project Document Index** — tells skills where to write output (specs, plans, etc.)
-- **Workflow Rules, Guardrails and Guidelines** — behavioral rules and development standards
+- **Project Document Index** – tells skills where to write output (specs, plans, etc.)
+- **Workflow Rules, Guardrails and Guidelines** – behavioral rules and development standards
 
 See [`templates/CLAUDE.template.md`](../templates/CLAUDE.template.md) for a starter template.
 
@@ -92,16 +92,16 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 ```
 
 **When to use which:**
-- **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue — you know what to do and it's under ~3 files
-- **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review-gap`): Single feature with real complexity — multiple files, non-obvious requirements, needs a blueprint
-- **Plan workflow** (`clarify` → `plan` → `exec-plan` → `review-gap`): Multiple features, MVP, or a new project — needs story breakdown and phased execution
+- **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue – you know what to do and it's under ~3 files
+- **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review-gap`): Single feature with real complexity – multiple files, non-obvious requirements, needs a blueprint
+- **Plan workflow** (`clarify` → `plan` → `exec-plan` → `review-gap`): Multiple features, MVP, or a new project – needs story breakdown and phased execution
 
 Not sure? Start with `quick-implement`. If it feels too complex, switch to the feature workflow. See the [full documentation](../README.md#getting-started) for a complete walkthrough.
 
 **Pre-activities** (feed into spec or plan):
-- `clarify` — When requirements are vague (can't list 3 acceptance criteria? run `clarify`)
-- `wireframes` / `design-system` — When UI design is needed
-- `trade-off` — When architectural decisions are needed
+- `clarify` – When requirements are vague (can't list 3 acceptance criteria? run `clarify`)
+- `wireframes` / `design-system` – When UI design is needed
+- `trade-off` – When architectural decisions are needed
 
 ## Skills
 
@@ -112,9 +112,9 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | Skill | Purpose |
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
-| `clarify` | Requirements discovery — from vague idea to structured requirements |
+| `clarify` | Requirements discovery – from vague idea to structured requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
-| `exec-spec` | Execute a FIS — orchestrated implementation with validation |
+| `exec-spec` | Execute a FIS – orchestrated implementation with validation |
 | `review-gap` | Gap analysis + code review against requirements |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
@@ -125,7 +125,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 
 | Skill | Purpose |
 |-------|---------|
-| `exec-plan` | Execute plan — sub-agent pipeline (spec → exec-spec → review-gap per story) |
+| `exec-plan` | Execute plan – sub-agent pipeline (spec → exec-spec → review-gap per story) |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
 | `e2e-test` | End-to-end browser testing for web applications |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
@@ -271,7 +271,7 @@ Verification includes code review, testing, and visual validation (when applicab
 ### Review Types
 
 - **Gap Analysis** (`review-gap`): Does implementation match requirements? Includes code review + remediation plan
-- **Code Review** (`review-code`): Reusable code review with checklists — used by `review-gap` and other skills
+- **Code Review** (`review-code`): Reusable code review with checklists – used by `review-gap` and other skills
 - **Doc Review** (`review-doc`): Review specs, PRDs, and documentation for completeness and clarity
 
 ## External Dependencies (Optional)

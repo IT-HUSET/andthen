@@ -1,29 +1,29 @@
 ---
-description: Set up AndThen workflow structure for a project — handles new projects, partial setups, and brownfield codebases
+description: Set up AndThen workflow structure for a project – handles new projects, partial setups, and brownfield codebases
 argument-hint: "[project name or path]"
 ---
 
 # Initialize Project
 
 
-Set up the AndThen workflow structure for a project. Detects current state and fills gaps non-destructively — never overwrites existing files.
+Set up the AndThen workflow structure for a project. Detects current state and fills gaps non-destructively – never overwrites existing files.
 
 
 ## VARIABLES
 
-PROJECT_NAME: $ARGUMENTS _(optional — inferred from directory name or package config if not provided)_
+PROJECT_NAME: $ARGUMENTS _(optional – inferred from directory name or package config if not provided)_
 
 
 ## INSTRUCTIONS
 
-- **Non-destructive** — Never overwrite existing files. Only add missing pieces.
-- **Interactive** — Ask before creating optional documents. Don't assume what the user wants.
-- **Minimal by default** — Create only what's needed. Suggest optional additions.
-- **Detect, don't guess** — Read existing files to understand what's already in place before proposing changes.
+- **Non-destructive** – Never overwrite existing files. Only add missing pieces.
+- **Interactive** – Ask before creating optional documents. Don't assume what the user wants.
+- **Minimal by default** – Create only what's needed. Suggest optional additions.
+- **Detect, don't guess** – Read existing files to understand what's already in place before proposing changes.
 
 
 ## GOTCHAS
-- Overwriting existing project files without checking — non-destructive by design
+- Overwriting existing project files without checking – non-destructive by design
 - Creating files for workflows the user doesn't need
 
 
@@ -81,19 +81,19 @@ Present the available document types and ask which to create:
 Optional project documents (from Project Document Index):
 
 Core (recommended):
-  [ ] docs/LEARNINGS.md    — Accumulated project knowledge and error patterns
-  [ ] docs/STACK.md        — Technology stack documentation
+  [ ] docs/LEARNINGS.md    – Accumulated project knowledge and error patterns
+  [ ] docs/STACK.md        – Technology stack documentation
 
 Planning (when ready):
-  [ ] docs/STATE.md        — Cross-session state tracking
-  [ ] docs/REQUIREMENTS.md — Requirements with REQ-IDs
-  [ ] docs/ROADMAP.md      — Phase structure with success criteria
+  [ ] docs/STATE.md        – Cross-session state tracking
+  [ ] docs/REQUIREMENTS.md – Requirements with REQ-IDs
+  [ ] docs/ROADMAP.md      – Phase structure with success criteria
 
 Architecture (create now or generate later via the `andthen:map-codebase` skill):
-  [ ] docs/ARCHITECTURE.md — System architecture overview
+  [ ] docs/ARCHITECTURE.md – System architecture overview
 
 Domain (create starter now or generate later via the `andthen:ubiquitous-language` skill):
-  [ ] docs/UBIQUITOUS_LANGUAGE.md — Domain glossary with canonical terms
+  [ ] docs/UBIQUITOUS_LANGUAGE.md – Domain glossary with canonical terms
 
 Which would you like to create? (e.g. "LEARNINGS, STACK" or "all core" or "none for now")
 ```
@@ -113,7 +113,7 @@ AndThen includes starter guidelines. Copy any that are useful:
   [ ] WEB-DEV-GUIDELINES.md
   [ ] CRITICAL-RULES-AND-GUARDRAILS.md
 
-These are starting points — adapt to your project's needs.
+These are starting points – adapt to your project's needs.
 ```
 
 > **CRITICAL**: **STOP and WAIT** for user response before copying any guidelines.
@@ -128,10 +128,10 @@ Copy selected guidelines from the AndThen plugin's guidelines directory.
 #### Analyze existing setup
 
 Read CLAUDE.md and check for:
-- **Project Document Index** — Is the table present? Which rows exist?
-- **Workflow Rules section** — Present and properly configured?
-- **Project Overview** — Filled in or still placeholder?
-- **Referenced documents** — Do the files pointed to by the Document Index actually exist?
+- **Project Document Index** – Is the table present? Which rows exist?
+- **Workflow Rules section** – Present and properly configured?
+- **Project Overview** – Filled in or still placeholder?
+- **Referenced documents** – Do the files pointed to by the Document Index actually exist?
 
 #### Report and offer fixes
 
@@ -198,9 +198,9 @@ Print a summary of everything created:
 Project initialized:
 
 Created:
-  CLAUDE.md                              — Project configuration
-  docs/LEARNINGS.md                      — Project knowledge (empty)
-  docs/STACK.md                          — Technology stack (pre-filled)
+  CLAUDE.md                              – Project configuration
+  docs/LEARNINGS.md                      – Project knowledge (empty)
+  docs/STACK.md                          – Technology stack (pre-filled)
   docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md
 
 Next steps:

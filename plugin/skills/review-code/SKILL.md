@@ -27,17 +27,17 @@ ARGUMENTS: $ARGUMENTS
 - **Non-modifying** - Analysis only, no code changes
 - Follow project guidelines from CLAUDE.md
 - Use checklists in `checklists/` subdirectory for systematic assessment
-- **Read project learnings** — If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
+- **Read project learnings** – If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
 
 
 ## GOTCHAS
-- Over-reporting low-severity style nits drowns out critical findings — calibrate to project scale
-- Forgetting to run Semgrep when available — check for it early and integrate findings
-- Reviewing generated/vendored code wastes context — exclude lockfiles, build output, generated types
+- Over-reporting low-severity style nits drowns out critical findings – calibrate to project scale
+- Forgetting to run Semgrep when available – check for it early and integrate findings
+- Reviewing generated/vendored code wastes context – exclude lockfiles, build output, generated types
 
 ### Helper Scripts
-Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when applicable:
-- `run-security-scan.sh <path>` — Semgrep with pattern-based fallback for security scanning
+Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
+- `run-security-scan.sh <path>` – Semgrep with pattern-based fallback for security scanning
 
 
 ## ORCHESTRATOR ROLE _(if supported by your coding agent)_
@@ -56,17 +56,17 @@ You do NOT:
 
 Spawn parallel sub-agents _(if supported)_ for each applicable review type:
 
-1. **Code Quality reviewer** — Apply CODE-REVIEW-CHECKLIST.md to changed files
-2. **Security reviewer** — Apply SECURITY-REVIEW-CHECKLIST.md + run Semgrep/security scan
-3. **Architecture reviewer** — Apply ARCHITECTURAL-REVIEW-CHECKLIST.md
-4. **Domain Language reviewer** — Apply DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md (if UL exists)
-5. **UI/UX reviewer** — Apply UI-UX-REVIEW-CHECKLIST.md (if UI changes)
+1. **Code Quality reviewer** – Apply CODE-REVIEW-CHECKLIST.md to changed files
+2. **Security reviewer** – Apply SECURITY-REVIEW-CHECKLIST.md + run Semgrep/security scan
+3. **Architecture reviewer** – Apply ARCHITECTURAL-REVIEW-CHECKLIST.md
+4. **Domain Language reviewer** – Apply DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md (if UL exists)
+5. **UI/UX reviewer** – Apply UI-UX-REVIEW-CHECKLIST.md (if UI changes)
 
 Each sub-agent receives: the checklist content, the list of changed files,
 and project guidelines. They return: categorized findings (CRITICAL/HIGH/SUGGESTION).
 
 If sub-agents are not supported, execute reviews sequentially but
-be mindful of context — prioritize CRITICAL findings.
+be mindful of context – prioritize CRITICAL findings.
 
 
 ## WORKFLOW
@@ -113,9 +113,9 @@ Select the checklist(s) that match the code under review. Apply multiple when ap
 
 | Checklist | Standard | Apply when... |
 |-----------|----------|---------------|
-| [SECURITY-CHECKLIST-WEB.md](checklists/SECURITY-CHECKLIST-WEB.md) | OWASP Top 10:2025 | Web applications, server-rendered pages, or any general-purpose backend — the baseline checklist for Web applications (Server-rendered), Web APIs or Browser Applications (SPA)|
+| [SECURITY-CHECKLIST-WEB.md](checklists/SECURITY-CHECKLIST-WEB.md) | OWASP Top 10:2025 | Web applications, server-rendered pages, or any general-purpose backend – the baseline checklist for Web applications (Server-rendered), Web APIs or Browser Applications (SPA)|
 | [SECURITY-CHECKLIST-API.md](checklists/SECURITY-CHECKLIST-API.md) | OWASP API Security Top 10:2023 | REST, GraphQL, or gRPC APIs; microservices; any code that exposes or consumes HTTP endpoints |
-| [SECURITY-CHECKLIST-LLM.md](checklists/SECURITY-CHECKLIST-LLM.md) | OWASP LLM Top 10:2025 | Applications integrating LLMs or generative AI — prompt handling, RAG pipelines, agentic systems, AI-generated output |
+| [SECURITY-CHECKLIST-LLM.md](checklists/SECURITY-CHECKLIST-LLM.md) | OWASP LLM Top 10:2025 | Applications integrating LLMs or generative AI – prompt handling, RAG pipelines, agentic systems, AI-generated output |
 | [SECURITY-CHECKLIST-MOBILE.md](checklists/SECURITY-CHECKLIST-MOBILE.md) | OWASP Mobile Top 10:2024 | Native iOS/Android apps and cross-platform mobile apps (React Native, Flutter, Expo) |
 | [SECURITY-CHECKLIST-CICD.md](checklists/SECURITY-CHECKLIST-CICD.md) | OWASP Top 10 CI/CD Security Risks | Pipeline configuration files, deployment workflows, IaC, build scripts, and supply chain changes |
 
@@ -128,18 +128,18 @@ Assess (across applicable checklists):
 - API security, headers, CORS, CSRF
 - Supply chain and pipeline integrity
 
-**Automated security scanning** — Run available tools in parallel to complement manual checklist review. All tools are optional — proceed with manual review if none are available.
+**Automated security scanning** – Run available tools in parallel to complement manual checklist review. All tools are optional – proceed with manual review if none are available.
 
-- **`/security-review`** — Run _(if available — Claude Code built-in)_ for a quick scan of pending changes against common vulnerability patterns.
+- **`/security-review`** – Run _(if available – Claude Code built-in)_ for a quick scan of pending changes against common vulnerability patterns.
 
-- **Semgrep** — Run on changed files using one of these approaches (in order of preference):
-  1. **Claude Code plugin** (`semgrep/mcp-marketplace`) — If installed, provides auto-scanning on Write/Edit via hooks and MCP tools for on-demand scanning.
-  2. **CLI** — If `semgrep` is installed locally, run directly:
+- **Semgrep** – Run on changed files using one of these approaches (in order of preference):
+  1. **Claude Code plugin** (`semgrep/mcp-marketplace`) – If installed, provides auto-scanning on Write/Edit via hooks and MCP tools for on-demand scanning.
+  2. **CLI** – If `semgrep` is installed locally, run directly:
      ```bash
      semgrep scan --config auto --severity WARNING --severity ERROR --json <changed-files-or-dirs>
      ```
      Parse JSON output: `results[].extra.severity` (ERROR → CRITICAL, WARNING → HIGH), `results[].extra.metadata.cwe` for classification, `results[].extra.message` for descriptions.
-  3. **MCP tools** — If the `semgrep` MCP server is available, call the `security_check` tool on changed files, or `semgrep_scan` with a specific config (e.g. `p/security-audit`, `p/owasp-top-ten`). Provides structured findings with severity, CWE references, and suggested fixes.
+  3. **MCP tools** – If the `semgrep` MCP server is available, call the `security_check` tool on changed files, or `semgrep_scan` with a specific config (e.g. `p/security-audit`, `p/owasp-top-ten`). Provides structured findings with severity, CWE references, and suggested fixes.
 
 #### Architecture Review
 **Checklist**: [ARCHITECTURAL-REVIEW-CHECKLIST.md](checklists/ARCHITECTURAL-REVIEW-CHECKLIST.md)
@@ -219,7 +219,7 @@ Generate markdown report with:
 - **Agent identifier**: Determine your agent short name (e.g., `claude`, `codex`, `cursor`, `aider`). If uncertain, use `agent`.
 - **File collision avoidance**: Before writing, check if the target filename already exists. If it does, append an incrementing suffix: `-2`, `-3`, etc. **Never overwrite existing reports!**
 
-**Report output directory** — resolve in priority order:
+**Report output directory** – resolve in priority order:
 1. **Spec directory**: If the review relates to a spec/FIS directory (e.g., the files being reviewed correspond to a feature that has an associated spec directory from the Project Document Index), store the report **in that spec directory**.
 2. **Target directory**: If the review target is a specific file or localized directory, store the report **in the same directory** as the primary review target.
 3. **Fallback**: Store in `{AGENT_TEMP}/reviews/` where `{AGENT_TEMP}` is the **Agent Temp** path from the Project Document Index (default: `.agent_temp/`).
