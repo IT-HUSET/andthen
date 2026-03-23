@@ -23,7 +23,7 @@ OUTPUT_DIR: ${3:-docs/wireframes} _(or as configured in **Project Document Index
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
-- **Wireframes only** - No design system creation (use `design-system` command for that)
+- **Wireframes only** - No design system creation (use the `andthen:design-system` skill for that)
 - **Simple, grayscale layouts** - Focus on structure, not visual polish
 - **100% page coverage** - Every page/screen in requirements MUST have a wireframe
 - **Delegate to sub-agents** _(if supported by your coding agent; otherwise execute sequentially)_ for parallel wireframe creation

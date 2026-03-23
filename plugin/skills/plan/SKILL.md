@@ -8,7 +8,7 @@ argument-hint: "[Specs directory or requirements source] [--to-issue]"
 
 Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If prior artifacts exist (e.g., `requirements-clarification.md` from `andthen:clarify` or a draft PRD), uses them as the basis for PRD creation without re-doing discovery. If nothing exists, runs full requirements discovery to create a PRD first.
 
-Stories are scoped and sequenced but NOT fully specified - use `andthen:spec` just-in-time before implementing each story.
+Stories are scoped and sequenced but NOT fully specified - run the `andthen:spec` skill just-in-time before implementing each story.
 
 **Philosophy**: Detailed specs decay quickly. This command creates just enough structure to sequence work and track progress, while deferring detailed specification to implementation time.
 
@@ -70,7 +70,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 
 4. **If no PRD and no prior artifacts** (requirements source provided):
    - Validate prerequisites: requirements should be reasonably refined (not raw ideas)
-   - If input is too vague, recommend `andthen:clarify` first
+   - If input is too vague, recommend running the `andthen:clarify` skill first
    - Initial gap analysis — document what's explicitly stated, assumed/implied, and missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope)
    - Proceed to Step 1b (Requirements Discovery)
 
@@ -605,12 +605,15 @@ W3: S05, S06, S07
 
 1. Execute Phase 1 stories sequentially (S01 → S02 → ...)
 2. For each story ready to implement:
-   - Run `andthen:spec` with story scope as input → update **FIS** field with generated spec path
-   - Run `andthen:exec-spec` on generated FIS
+   - Run the `andthen:spec` skill with story scope as input → update **FIS** field with generated spec path
+     Example: `/andthen:spec story S01 of docs/specs/my-feature/plan.md` (or `$andthen:spec ...`)
+   - Run the `andthen:exec-spec` skill on the generated FIS
+     Example: `/andthen:exec-spec docs/specs/my-feature/story-name.md` (or `$andthen:exec-spec ...`)
    - Check off completed acceptance criteria in this plan
    - Update **Status** field (Pending → In Progress → Done)
 3. Phase 2+ stories marked [P] can run in parallel after dependencies met
-4. Use `andthen:review-gap` after completing all stories
+4. Run the `andthen:review-gap` skill after completing all stories
+   Example: `/andthen:review-gap docs/specs/my-feature/plan.md` (or `$andthen:review-gap ...`)
 
 > **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path. After implementation and review, check off acceptance criteria and set **Status** to Done. Update the Story Catalog table status accordingly. `andthen:exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
 </example-plan-format>
@@ -660,8 +663,10 @@ If PUBLISH_ISSUE is `true`:
 
 After completion, suggest:
 
-1. **Start implementation**: `andthen:spec` for first story (S01)
-2. **Create wireframes** (if UI work): `andthen:wireframes`
+1. **Start implementation**: Run the `andthen:spec` skill for first story (S01)
+   Example: `/andthen:spec story S01 of docs/specs/my-feature/plan.md` (or `$andthen:spec ...`)
+2. **Create wireframes** (if UI work): Run the `andthen:wireframes` skill
+   Example: `/andthen:wireframes docs/specs/my-feature/prd.md` (or `$andthen:wireframes ...`)
 3. **Create GitHub issues** (if requested):
    ```bash
    # Create milestone
@@ -672,4 +677,5 @@ After completion, suggest:
    gh issue create --title "S02: [Story Name]" --body "..." --milestone "[Project Name] MVP"
    # ... etc
    ```
-4. **Review plan**: Use the `andthen:review-doc` skill on `plan.md`
+4. **Review plan**: Run the `andthen:review-doc` skill on `plan.md`
+   Example: `/andthen:review-doc docs/specs/my-feature/plan.md` (or `$andthen:review-doc ...`)

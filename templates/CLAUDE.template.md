@@ -19,7 +19,7 @@ _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 
 ## Project Document Index
 
-<!-- These paths tell workflow commands (clarify, spec, plan, trade-off, etc.)
+<!-- These paths tell AndThen (https://github.com/IT-HUSET/andthen) workflow commands (clarify, spec, plan, trade-off, etc.)
      where your project keeps its documents. Adjust to match your project structure.
      Remove rows you don't use. Paths are relative to repository root. -->
 

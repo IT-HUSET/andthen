@@ -3,19 +3,21 @@
 </p>
 
 <p align="center">
-  Lightweight spec-driven development for AI coding agents.
+  <i>Lightweight spec-driven development for AI coding agents.</i>
 </p>
 
 > "I have a feature idea" → *and then?* → **clarify** → *and then?* → **plan** → *and then?* → **spec** → *and then?* → **execute** → *and then?* → **review-gap** → **ship it.**
 
 AndThen brings spec-driven development to AI coding agents — lightweight, open, and adoptable piece by piece. The core idea: write a spec before you code, then let the agent execute it autonomously. The pipeline produces a **Feature Implementation Specification (FIS)** as its central artifact — a structured blueprint that turns requirements into reliable, verifiable implementations.
 
+> [!NOTE]
+> **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome — just know that stability is not yet a goal.
+
 **Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need — `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* (`clarify` → `plan` → `spec` →  `exec-spec` → `review-gap`) but not about *how your project is organized*. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live — adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
 
 Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** — falling back to direct execution when sub-agents aren't available.
 
 [Get started →](#installation) · [Skills reference →](#skills)
-
 
 ## Key Concepts
 
@@ -423,7 +425,10 @@ Skills work without these plugins but skip the corresponding steps.
 
 - Agent Browser (CLI tool and Skill) - https://github.com/vercel-labs/agent-browser
 
-- Excalidraw Diagram Creator Skill - https://github.com/coleam00/excalidraw-diagram-skill/blob/main/SKILL.md
+- Other useful plugins from the official marketplace ([anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official)):
+  - [`semgrep`](https://github.com/semgrep/mcp-marketplace) - external but officially recommended
+  - `playground`
+  - `claude-md-management`
 
 
 ## Evolved From
@@ -431,13 +436,14 @@ Skills work without these plugins but skip the corresponding steps.
 AndThen evolved from [cc-workflows](https://github.com/tolo/claude_code_common) — a general-purpose AI coding agent toolkit.
 
 
-## Inspired by
+## Inspired by _(name)_
 
-[![Mullvad](https://img.youtube.com/vi/fPzvUW8qaWY/0.jpg)](https://www.youtube.com/watch?v=fPzvUW8qaWY)
+[![Dude, Where's My Car?](https://img.youtube.com/vi/oqwzuiSy9y0/0.jpg)](https://www.youtube.com/watch?v=oqwzuiSy9y0)
 
 and then
 
-[![Dude, Where's My Car?](https://img.youtube.com/vi/oqwzuiSy9y0/0.jpg)](https://www.youtube.com/watch?v=oqwzuiSy9y0)
+[![Mullvad](https://img.youtube.com/vi/fPzvUW8qaWY/0.jpg)](https://www.youtube.com/watch?v=fPzvUW8qaWY)
+
 
 
 ## Actually inspired by

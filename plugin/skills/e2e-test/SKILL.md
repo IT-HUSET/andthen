@@ -23,8 +23,8 @@ FOCUS: $ARGUMENTS
 - **Fix bugs found during testing** — this skill is not read-only; fix and document issues discovered
 - Use the `agent-browser` skill for all browser automation (snapshots, clicks, form fills, screenshots)
 - If `agent-browser` is unavailable, warn the user and stop
-- Delegate to `andthen:build-troubleshooter` for any server startup failures
-- Delegate responsive screenshot analysis to `andthen:visual-validation-specialist`
+- Delegate to the `andthen:build-troubleshooter` agent for any server startup failures
+- Delegate responsive screenshot analysis to the `andthen:visual-validation-specialist` agent
 - Use sub-agents for parallel discovery work
 
 
@@ -194,5 +194,5 @@ When complete, print the report's **relative path from the project root** (e.g.,
 After the report, ask the user if they'd like to:
 1. Investigate specific failing journeys in depth
 2. Expand coverage to additional routes or edge cases
-3. Set up a persistent automated E2E test suite (use `andthen:qa-test-engineer`)
+3. Set up a persistent automated E2E test suite (use the `andthen:qa-test-engineer` agent)
 4. Fix any outstanding issues found during testing

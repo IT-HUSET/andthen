@@ -89,10 +89,10 @@ Planning (when ready):
   [ ] docs/REQUIREMENTS.md — Requirements with REQ-IDs
   [ ] docs/ROADMAP.md      — Phase structure with success criteria
 
-Architecture (create now or generate later via andthen:map-codebase):
+Architecture (create now or generate later via the `andthen:map-codebase` skill):
   [ ] docs/ARCHITECTURE.md — System architecture overview
 
-Domain (create starter now or generate later via andthen:ubiquitous-language):
+Domain (create starter now or generate later via the `andthen:ubiquitous-language` skill):
   [ ] docs/UBIQUITOUS_LANGUAGE.md — Domain glossary with canonical terms
 
 Which would you like to create? (e.g. "LEARNINGS, STACK" or "all core" or "none for now")
@@ -183,7 +183,7 @@ Run map-codebase first? (recommended for codebases with 20+ files)
 
 > **CRITICAL**: **STOP and WAIT** for user response.
 
-**If yes**: Run `andthen:map-codebase` (or instruct the user to run it), then proceed with Step 2a using the generated documents as a foundation. Skip creating ARCHITECTURE.md and STACK.md since map-codebase already produced them.
+**If yes**: Run the `andthen:map-codebase` skill (or instruct the user to run `/andthen:map-codebase`), then proceed with Step 2a using the generated documents as a foundation. Skip creating ARCHITECTURE.md and STACK.md since map-codebase already produced them.
 
 **If no**: Proceed directly to Step 2a (standard new project setup). The user can run map-codebase later.
 
@@ -205,8 +205,8 @@ Created:
 
 Next steps:
   1. Review and customize CLAUDE.md (especially Project Overview)
-  2. Start a feature: andthen:spec "your feature description"
-  3. Or plan an MVP:  andthen:plan "your requirements"
+  2. Start a feature: /andthen:spec "your feature description"  (or $andthen:spec ...)
+  3. Or plan an MVP:  /andthen:plan "your requirements"  (or $andthen:plan ...)
 ```
 
 

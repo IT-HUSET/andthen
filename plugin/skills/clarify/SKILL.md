@@ -70,7 +70,7 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
    - Perform **cross-consistency assessment**: evaluate pairwise compatibility between options across dimensions, marking incompatible or conditional pairings with rationale
    - Use the decomposition to generate targeted questions for the discovery interview — each unresolved dimension is a question to ask
 
-   Include the decomposition in the requirements output so downstream skills (`plan`, `spec`) can reference the resolved decisions.
+   Include the decomposition in the requirements output so downstream skills (`andthen:plan`, `andthen:spec`) can reference the resolved decisions.
 
    _Skip this step for simple features with no meaningful design alternatives._
 
@@ -287,7 +287,10 @@ When complete, print the report's **relative path from the project root**. Do no
 ## FOLLOW-UP ACTIONS
 
 After completion, ask user if they'd like to:
-1. Create feature spec (`andthen:spec`) — for single features
-2. Proceed to planning (`andthen:plan <output-directory>`) — for multi-feature / MVP scope. The plan command will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery
+1. **Create feature spec** — for single features:
+   `/andthen:spec <output-directory>` (or `$andthen:spec <output-directory>`)
+2. **Proceed to planning** — for multi-feature / MVP scope:
+   `/andthen:plan <output-directory>` (or `$andthen:plan <output-directory>`)
+   The `andthen:plan` skill will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery
 3. Review specific areas in more depth
 4. Share with stakeholders for validation

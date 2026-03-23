@@ -48,7 +48,8 @@ ARGUMENTS: $ARGUMENTS
 Verify Agent Teams are available by checking that team creation tools exist in your available tools (e.g. `TeamCreate`).
 
 If Agent Team tools are NOT available (experimental feature not enabled):
-- Suggest using `andthen:review-council` instead (portable version that works without Agent Teams)
+- Suggest using the `andthen:review-council` skill instead (portable version that works without Agent Teams):
+  `/andthen:review-council` (or `$andthen:review-council`)
 - If user specifically wants Agent Teams, inform them it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 - Exit
 

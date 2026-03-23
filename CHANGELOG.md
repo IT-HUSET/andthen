@@ -5,6 +5,18 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.7.3] — 2026-03-22
+
+### Changed
+- **Cross-skill references standardized** — all 12 skill files with cross-references now use consistent, explicit patterns:
+  - Bare skill names (`plan`, `spec`, `design-system`) replaced with fully qualified `andthen:` prefix
+  - Ambiguous references now include explicit "skill" or "agent" noun (e.g., "run the `andthen:spec` skill", "delegate to the `andthen:build-troubleshooter` agent")
+  - User-facing follow-up sections now include `/` and `$` invocation examples (e.g., `/andthen:spec story S01 of path/to/plan.md`)
+  - Sub-agent prompt templates standardized to "Run the `andthen:xxx` skill" pattern
+  - `review-doc` "command" → "skill" terminology fix
+
+---
+
 ## [0.7.2] — 2026-03-22
 
 ### Added

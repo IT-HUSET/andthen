@@ -1,6 +1,6 @@
 ---
 description: Execute an implementation plan through an Agent Team pipeline with inter-agent coordination (requires Agent Teams)
-argument-hint: <path-to-plan-directory>
+argument-hint: <path-to-plan> [path-to-code-repo]
 ---
 
 # Execute Plan (Agent Teams)
@@ -12,19 +12,46 @@ Execute ALL stories in an implementation plan (from `andthen:plan`) through a pa
 
 
 ## VARIABLES
-PLAN_DIR: $ARGUMENTS
+PLAN_DIR: $0
+CODE_DIR: $1
 
 
 ## USAGE
 
 ```
-/exec-plan-team PLAN_DIR="path/to/plan"
+/exec-plan-team path/to/plan
+/exec-plan-team path/to/plan path/to/code/repo
 ```
+
+- First argument (`$0`): **PLAN_DIR** — path to the plan directory (required)
+- Second argument (`$1`): **CODE_DIR** — path to the code repository (optional, auto-resolved if omitted)
+
+Omit `CODE_DIR` for single-repo projects. **Provide it** when plan/specs live in a different repo than the code (e.g., a private specs repo alongside a public code repo).
 
 
 ## INSTRUCTIONS
 
 Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the user to provide the path to the plan directory.
+
+### Resolve CODE_DIR
+
+**Resolve CODE_DIR** (run before any other work):
+
+1. If `CODE_DIR` was provided (second argument is non-empty): verify it is a git repository (`git -C {CODE_DIR} rev-parse --git-dir`). Resolve to absolute path.
+2. If `CODE_DIR` was NOT provided (second argument is empty), **auto-detect**:
+   a. Get the git root of PLAN_DIR: `git -C {PLAN_DIR} rev-parse --show-toplevel`
+   b. Get the git root of CWD: `git rev-parse --show-toplevel`
+   c. If they are the **same repo** → `CODE_DIR` = that git root (single-repo project)
+   d. If they are **different repos** → `CODE_DIR` = CWD's git root (multi-repo: plan is in a separate repo from code)
+3. Resolve `CODE_DIR` to an **absolute path** and use it throughout all remaining steps.
+4. Log the resolved value: `"CODE_DIR resolved to: {CODE_DIR} (source: explicit | same-repo | multi-repo-auto)"`
+
+**Multi-repo rules** (when CODE_DIR ≠ PLAN_DIR's git root):
+- All `git worktree`, `git merge`, `git branch`, and `git checkout` operations target `CODE_DIR` — never the plan repo
+- `EnterWorktree` must be called from `CODE_DIR` context — agents must verify their CWD is `CODE_DIR` before invoking it
+- FIS paths passed to agents must be **absolute** (they reference files in the plan repo, but agents work in `CODE_DIR`)
+- The plan repo is **read-only for agents** — only the orchestrator updates `plan.md` and FIS checkboxes
+- Never create branches, worktrees, or commits in the plan repo
 
 ### Core Rules
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
@@ -34,7 +61,7 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 - **Plan is source of truth** — follow phase ordering, dependencies, and parallel markers exactly
 - **Pre-generate specs** — run parallel sub-agents for spec generation before starting the Agent Team
 - **Agent Team for impl + review** — use Agent Teams for parallel implementation and review
-- **Worktree isolation** — implementers use `EnterWorktree` per task to prevent file conflicts during parallel execution
+- **Worktree isolation** — implementers use `EnterWorktree` per task (in `CODE_DIR`) to prevent file conflicts during parallel execution
 - **Pre-assign all tasks** — orchestrator assigns every task to a specific agent at creation time (no self-claiming)
 - **Per-story pipeline**: spec (sub-agent) → exec-spec (worktree) → merge → review-gap (main branch, with fix loop)
 
@@ -65,6 +92,9 @@ Make sure `PLAN_DIR` is provided — otherwise **STOP** immediately and ask the 
 - **Implementers not using EnterWorktree** — parallel implementers in the same working directory cause file conflicts and race conditions
 - **Forgetting to merge worktree branches** before starting reviews or next wave — reviewers work on main post-merge
 - **Do NOT use `isolation: "worktree"` with `team_name`** — known Claude Code bug ([#33045](https://github.com/anthropics/claude-code/issues/33045)) where isolation is silently ignored for team agents; instruct implementers to call `EnterWorktree` themselves instead
+- **Multi-repo worktree pollution** — if plan and code live in different repos and `CODE_DIR` is not set, agents create worktrees/branches/commits in the plan repo instead of the code repo. Always set `CODE_DIR` for multi-repo workspaces. Agents must verify they are in `CODE_DIR` before calling `EnterWorktree`
+- **FIS paths must be absolute in multi-repo setups** — FIS files live in the plan repo but agents work in `CODE_DIR`. Relative FIS paths won't resolve from the code repo. The orchestrator must convert all FIS paths to absolute before passing them to agents
+- **Merge/cleanup commands must target CODE_DIR** — all `git merge`, `git checkout`, `git branch`, `git worktree remove` in Step 6d and Step 9 must use `git -C {CODE_DIR}` to target the code repo, not the orchestrator's CWD
 - **Status updates get dropped when context is exhausted** — plan and FIS checkbox updates (Step 6f) are GATES that block the next phase, not optional cleanup. Update immediately after each story completes
 
 ### Helper Scripts
@@ -81,7 +111,8 @@ Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` — use when ap
 Verify Agent Teams are available by checking that team creation tools exist in your available tools (e.g. `TeamCreate`).
 
 If Agent Team tools are NOT available (experimental feature not enabled):
-- Suggest using `andthen:exec-plan` instead (portable version that works without Agent Teams)
+- Suggest using the `andthen:exec-plan` skill instead (portable version that works without Agent Teams):
+  `/andthen:exec-plan path/to/plan` (or `$andthen:exec-plan path/to/plan`)
 - If user specifically wants Agent Teams, inform them it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 - Exit
 
@@ -113,17 +144,16 @@ For each story in the current phase that does **not** already have a FIS:
 
 1. **Check for existing FIS** — Look for a FIS path in the story's `**FIS**` field in `plan.md`, or search the spec output directory (typically `docs/specs/`, or as configured in your project's Document Index). If a valid FIS exists, skip that story.
 
-2. **Spawn parallel sub-agents** — One opus sub-agent per story needing a spec. Each sub-agent runs `andthen:spec` with the story scope as input.
+2. **Spawn parallel sub-agents** — One opus sub-agent per story needing a spec. Each sub-agent runs `/andthen:spec story {story_id} of {PLAN_DIR}/plan.md` (or `$andthen:spec ...`).
 
-**Sub-agent prompt template** for spec generation:
+**Sub-agent prompt template** for spec generation (use `/` or `$` prefix depending on agent platform):
 ```
 Create a Feature Implementation Specification for story {story_id}: {story_name}
 Plan: {PLAN_DIR}/plan.md
 Story scope: {story_scope}
 
-Run andthen:spec with the story scope above.
+Run: /andthen:spec story {story_id} of {PLAN_DIR}/plan.md
 Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting.
-Save the FIS to docs/specs/ (per spec convention).
 Report back: success/failure, FIS path.
 ```
 
@@ -172,9 +202,9 @@ Teammates must be spawned into the team (with `team_name` and `name`) so they sh
 
 > **Note**: Spec generation is handled by parallel sub-agents _before_ the Agent Team starts (see Step 3). The team only handles implementation and review.
 
-**Implementers** (`model: "sonnet"`) — Work on pre-assigned `impl-{story_id}` tasks. For each task: enter an isolated worktree via `EnterWorktree`, run `andthen:exec-spec` on the pre-generated FIS, commit all changes, exit worktree with `action: "keep"` (preserves the branch for merge), then mark task complete. Output: implemented story on a worktree branch.
+**Implementers** (`model: "sonnet"`) — Work on pre-assigned `impl-{story_id}` tasks. For each task: ensure CWD is `CODE_DIR`, enter an isolated worktree via `EnterWorktree`, run `/andthen:exec-spec {fis_path}` (or `$andthen:exec-spec {fis_path}`) with absolute FIS path, commit all changes, exit worktree with `action: "keep"` (preserves the branch for merge), then mark task complete. Output: implemented story on a worktree branch in `CODE_DIR`.
 
-**Reviewers** (`model: "sonnet"`) — Work on pre-assigned `review-{story_id}` tasks (unblocked by orchestrator after wave merge). Run `andthen:review-gap` per story **on the main branch** (post-merge). If issues found: fix them on main, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story.
+**Reviewers** (`model: "sonnet"`) — Work on pre-assigned `review-{story_id}` tasks (unblocked by orchestrator after wave merge). Ensure CWD is `CODE_DIR`, then run `/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) with absolute FIS path per story **on the main branch** (post-merge). If issues found: fix them on main, then re-validate. **Max 2 fix attempts** — if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story.
 
 Each agent loops: **check for assigned tasks → execute → mark done → check for next assigned task**.
 
@@ -182,13 +212,14 @@ Each agent loops: **check for assigned tasks → execute → mark done → check
 
 #### Spawn Templates
 
-Use these role-specific prompts when spawning each teammate into the team (with `team_name: "plan-pipeline"`, `name: "<role-N>"`, and `model: "sonnet"`).
+Use these role-specific prompts when spawning each teammate into the team (with `team_name: "plan-pipeline"`, `name: "<role-N>"`, and `model: "sonnet"`). Use `/` or `$` prefix depending on agent platform.
 
 **Implementer template:**
 ```
 Role: Implementer
 Team: plan-pipeline
 Plan: {PLAN_DIR}/plan.md
+Code repo: {CODE_DIR}
 
 CRITICAL ROLE CONSTRAINT: You are an Implementer. ONLY work on tasks prefixed
 with impl-* that are assigned to you (owner = your name). NEVER claim or work
@@ -197,18 +228,22 @@ on review-* tasks or unassigned tasks.
 Your workflow (loop until no assigned tasks remain):
 1. Check the task list for tasks assigned to you (owner = your name)
 2. For each assigned impl-* task:
-   a. Call EnterWorktree with name "story-{story_id}" to create an isolated worktree
-   b. Run andthen:exec-spec on the FIS for this story
-   c. Commit all changes in the worktree (ensure nothing is left uncommitted)
-   d. Call ExitWorktree with action "keep" — the orchestrator needs the branch for merge
-   e. Mark task completed
+   a. Ensure your CWD is {CODE_DIR} (the code repo) — `cd {CODE_DIR}` if needed
+   b. Call EnterWorktree with name "story-{story_id}" to create an isolated worktree
+   c. /andthen:exec-spec {fis_path}    (FIS path is ABSOLUTE — do not modify it)
+   d. Commit all changes in the worktree (ensure nothing is left uncommitted)
+   e. Call ExitWorktree with action "keep" — the orchestrator needs the branch for merge
+   f. Mark task completed
 3. Check the task list for your next assigned task
 4. If no tasks assigned to you, notify orchestrator via message
 
 Important:
 - ONLY work on tasks where owner = your name — never claim unassigned tasks
+- Your CWD MUST be {CODE_DIR} before calling EnterWorktree — worktrees must be
+  created in the CODE repo, never in the plan repo
 - ALWAYS use EnterWorktree before starting implementation (prevents file conflicts)
 - ALWAYS commit and ExitWorktree(keep) when done — do not leave worktrees open
+- FIS paths in task descriptions are absolute — use them as-is
 - Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
 - Follow existing codebase patterns
 - Escalate issues you cannot resolve to orchestrator via message with full context
@@ -219,6 +254,7 @@ Important:
 Role: Reviewer
 Team: plan-pipeline
 Plan: {PLAN_DIR}/plan.md
+Code repo: {CODE_DIR}
 
 CRITICAL ROLE CONSTRAINT: You are a Reviewer. ONLY work on tasks prefixed
 with review-* that are assigned to you (owner = your name). NEVER claim or
@@ -227,17 +263,21 @@ work on impl-* tasks or unassigned tasks.
 Your workflow (loop until no assigned tasks remain):
 1. Check the task list for tasks assigned to you (owner = your name)
 2. For each assigned review-* task:
-   a. Run andthen:review-gap for this story (work on main branch — code is already merged)
-   b. If issues found: fix them on main, then re-validate (max 2 fix attempts)
-   c. If issues persist after 2 fix attempts, escalate to orchestrator via message
-   d. Mark task completed
+   a. Ensure your CWD is {CODE_DIR} (the code repo) — `cd {CODE_DIR}` if needed
+   b. /andthen:review-gap {fis_path}    (FIS path is ABSOLUTE — do not modify it)
+      Work on main branch — code is already merged from worktrees
+   c. If issues found: fix them on main, then re-validate (max 2 fix attempts)
+   d. If issues persist after 2 fix attempts, escalate to orchestrator via message
+   e. Mark task completed
 3. Check the task list for your next assigned task
 4. If no tasks assigned to you, notify orchestrator via message
 
 Important:
 - ONLY work on tasks where owner = your name — never claim unassigned tasks
+- Your CWD MUST be {CODE_DIR} — all code changes happen in the code repo
 - Review tasks are unblocked by the orchestrator AFTER the wave merge completes
 - Work on the main branch (implementation has already been merged from worktrees)
+- FIS paths in task descriptions are absolute — use them as-is
 - Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
 - Follow existing codebase patterns
 - Escalate issues you cannot resolve to orchestrator via message with full context
@@ -288,16 +328,16 @@ After ALL `impl-*` tasks in the current wave are complete (all implementers have
 
 2. **Pre-merge conflict detection** — Dry-run each merge to identify conflicts before starting:
    ```bash
-   # Test whether merging would conflict (read-only, no repo modification)
-   git merge-tree $(git merge-base HEAD worktree-story-{story_id}) HEAD worktree-story-{story_id}
+   # All git commands target CODE_DIR (the code repo, not the plan repo)
+   git -C {CODE_DIR} merge-tree $(git -C {CODE_DIR} merge-base HEAD worktree-story-{story_id}) HEAD worktree-story-{story_id}
    # Non-empty output = conflicts expected
    ```
 
 3. **Sequentially merge each story branch into main** (`--no-ff` preserves explicit merge commits for easy per-story rollback):
    ```bash
-   git checkout main
+   git -C {CODE_DIR} checkout main
    # Merge each story branch one at a time
-   git merge worktree-story-{story_id} --no-ff -m "Merge story {story_id}: {story_name}"
+   git -C {CODE_DIR} merge worktree-story-{story_id} --no-ff -m "Merge story {story_id}: {story_name}"
    # Repeat for each story in the wave
    ```
 
@@ -311,8 +351,8 @@ After ALL `impl-*` tasks in the current wave are complete (all implementers have
 
 6. **Clean up worktrees**:
    ```bash
-   git worktree remove .claude/worktrees/story-{story_id}
-   git branch -d worktree-story-{story_id}
+   git -C {CODE_DIR} worktree remove .claude/worktrees/story-{story_id}
+   git -C {CODE_DIR} branch -d worktree-story-{story_id}
    # Repeat for each story in the wave
    ```
 
@@ -401,8 +441,8 @@ Spawn a **general-purpose sub-agent** _(if supported by your coding agent)_ to u
 
 1. **Clean up any remaining worktrees** — remove worktree directories and branches that weren't cleaned up during wave merges:
    ```bash
-   git worktree list   # check for leftover worktrees
-   git worktree prune  # remove stale worktree references
+   git -C {CODE_DIR} worktree list   # check for leftover worktrees
+   git -C {CODE_DIR} worktree prune  # remove stale worktree references
    ```
 2. Send shutdown requests to each teammate
 3. Wait for shutdown confirmations
@@ -440,9 +480,9 @@ Keep entries brief (1-2 sentences each). Do NOT record what was implemented (tha
 If Agent Teams unavailable (Step 1 check fails), suggest the manual equivalent:
 
 ```bash
-# For each story in plan order:
-andthen:spec "S01: [Story Name]"
-andthen:exec-spec
-andthen:review-gap
+# For each story in plan order (/ for Claude Code, $ for Codex):
+/andthen:spec story S01 of path/to/plan.md       # or $andthen:spec ...
+/andthen:exec-spec path/to/fis/s01-story-name.md  # or $andthen:exec-spec ...
+/andthen:review-gap path/to/fis/s01-story-name.md # or $andthen:review-gap ...
 # ... repeat for each story
 ```

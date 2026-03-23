@@ -167,7 +167,7 @@ Output: `OUTPUT_DIR/requirements-discovered.md` in a format compatible with `and
 2. Print summary listing all generated files with brief descriptions
 3. Suggest next steps:
    - Review discovered requirements with the team
-   - Run `andthen:plan` with `requirements-discovered.md` as input
+   - Run the `andthen:plan` skill: `/andthen:plan docs/requirements-discovered.md` (or `$andthen:plan ...`)
    - Fill in gaps identified in the discovery document
 
 

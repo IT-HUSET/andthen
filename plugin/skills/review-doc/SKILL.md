@@ -82,7 +82,7 @@ Identify unclear, ambiguous, or contradictory specifications:
 2. **Implementation clarity** - Verify developers can implement without guessing, acceptance criteria are testable
 3. **Missing details** - Find TBD/TODO items, referenced missing documents, unvalidated assumptions
 4. **Consistency** - Verify consistency across sections, examples match specs, naming is consistent
-   - If the reviewed spec is a FIS (Feature Implementation Specification), ensure the spec follows the format and structure as defined in the `andthen:spec` command
+   - If the reviewed spec is a FIS (Feature Implementation Specification), ensure the spec follows the format and structure as defined in the `andthen:spec` skill
 5. **Conciseness and Brevity** - Ensure specs are as brief and concise as possible without losing meaning. Unnecessary prose should be avoided, and code listings should be minimized (prefer using pseudo code when possible)
 6. **Maintain Important Details** - Ensure all important and essential details are preserved. Avoid removing or simplifying details that are critical to understanding the specification, such as diagrams, process flows, or complex requirements.
 

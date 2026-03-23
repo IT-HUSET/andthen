@@ -142,5 +142,6 @@ Save as: `docs/UBIQUITOUS_LANGUAGE.md` _(or as configured in **Project Document 
 
 When complete, print the output path and suggest:
 1. Review the glossary for accuracy with domain experts
-2. Run `andthen:ubiquitous-language --update` periodically to keep it current
-3. Use `andthen:review-code` to check code against the glossary
+2. Run the `andthen:ubiquitous-language` skill periodically to keep it current:
+   `/andthen:ubiquitous-language --update` (or `$andthen:ubiquitous-language --update`)
+3. Run the `andthen:review-code` skill to check code against the glossary
