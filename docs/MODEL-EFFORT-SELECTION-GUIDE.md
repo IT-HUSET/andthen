@@ -137,7 +137,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 |---------|-------------|-------|--------|-----------|
 | `/spec` | Clarify requirements + create Feature Implementation Spec (FIS) | `opus` | `high` | Reasoning-heavy: edge cases, constraints, cross-cutting concerns |
 | `/exec-spec` | Execute a FIS – orchestrated implementation with validation | `opusplan` | `medium`–`high` | Opus plans subtasks, Sonnet executes code. Medium for straightforward specs, high for complex ones |
-| `/exec-plan` | Execute full plan via Agent Teams | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
+| `/exec-plan` | Execute full plan with configurable review mode | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
 | `/quick-implement` | Quick path for small features/fixes | `sonnet` | `medium` | Small scope, speed matters |
 | `/refactor` | Code improvement and simplification | `sonnet` | `medium`–`high` | Medium for localized, high for cross-file |
 | `/triage` | Investigate, diagnose, and fix issues | `sonnet` | `medium`–`high` | Medium for clear issues, high for subtle root cause analysis |

@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.8.1] – 2026-03-24
+
+### Changed
+- **`exec-plan` / `exec-plan-team` configurable review modes** – both plan execution skills now accept `--review-mode per-story|none|full-plan`. Default behavior remains per-story `review-gap`; `none` skips automated review for manual user follow-up; `full-plan` skips per-story review and runs a single final `review-gap` against `plan.md` with remediation
+
+---
+
 ## [0.8.0] – 2026-03-24
 
 ### Added

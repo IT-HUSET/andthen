@@ -13,7 +13,7 @@ AndThen brings spec-driven development to AI coding agents – lightweight, open
 > [!NOTE]
 > **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal.
 
-**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review-gap`; multi-story plans use `spec-plan` before execution. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
+**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review-gap`; multi-story plans use `spec-plan` before execution and can review per story, once after the full plan, or manually. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
 
 Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** – falling back to direct execution when sub-agents aren't available.
 
@@ -90,11 +90,11 @@ Verification includes code review, testing, and visual validation (when applicab
 │              ▼                       ▼                      │
 │         exec-plan              Per phase:                   │
 │       (spec-plan            spec-plan → per story:          │
-│        + sub-agent           exec-spec → review-gap         │
-│        pipeline)                                            │
+│        + sub-agent           exec-spec → optional           │
+│        pipeline)            review-gap                      │
 │              └───────────┬───────────┘                      │
 │                          ▼                                  │
-│                      review-gap                             │
+│                 optional plan review                        │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
@@ -107,7 +107,7 @@ Verification includes code review, testing, and visual validation (when applicab
 **When to use which:**
 - **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue – you know what to do and it's under ~3 files
 - **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review-gap`): Single feature with real complexity – multiple files, non-obvious requirements, needs a blueprint
-- **Plan workflow** (`clarify` → `plan` → `exec-plan` → `review-gap`): Multiple features, MVP, or a new project – needs story breakdown and phased execution
+- **Plan workflow** (`clarify` → `plan` → `exec-plan`): Multiple features, MVP, or a new project – needs story breakdown, phased execution, and either per-story review, full-plan review, or manual review
 
 Not sure? Start with `quick-implement`. If it feels too complex, switch to the feature workflow. See [Getting Started](#getting-started) for a full walkthrough.
 
@@ -239,17 +239,32 @@ docs/specs/data-export/plan.md
 # Single feature:
 /andthen:exec-spec
 
-# Multi-feature (automated pipeline – spec-plan + exec-spec → review per story):
+# Multi-feature (default per-story review):
 /andthen:exec-plan docs/specs/data-export/
+
+# Multi-feature (single full-plan review after all stories):
+/andthen:exec-plan docs/specs/data-export/ --review-mode full-plan
+
+# Multi-feature (skip automated review; user reviews manually after execution):
+/andthen:exec-plan docs/specs/data-export/ --review-mode none
+
+# Claude Code Agent Teams variant:
+/andthen:exec-plan-team docs/specs/data-export/ --review-mode full-plan
 ```
 
 **Step 4: Review**
 
 ```bash
+# Single feature, or manual/full-plan review workflows:
 /andthen:review-gap
 ```
 
-Compares implementation against requirements. Produces findings with a remediation plan.
+For `exec-plan`, this depends on `--review-mode`:
+- `per-story` – handled automatically during plan execution
+- `full-plan` – handled automatically once at the end
+- `none` – run manually after execution if you want AndThen to review the completed plan
+
+`review-gap` compares implementation against requirements and produces findings with a remediation plan.
 
 ### Artifact Flow
 
@@ -280,7 +295,9 @@ clarify → requirements-clarification.md
 plan    → prd.md + plan.md (story breakdown)
                     ↓
             Per phase (via exec-plan or manually):
-            spec-plan → {story}.md → exec-spec → code → review-gap
+            spec-plan → {story}.md → exec-spec → code
+                                                ↓
+                         per-story review | full-plan review | manual review
 ```
 
 ### When to Use `clarify`
@@ -331,7 +348,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 
 | Skill | Purpose |
 |-------|---------|
-| `exec-plan` | Execute plan – spec-plan per phase, then sub-agent pipeline (exec-spec → review-gap per story) |
+| `exec-plan` | Execute plan – spec-plan per phase, then sub-agent pipeline with `--review-mode per-story|none|full-plan` |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
 | `e2e-test` | End-to-end browser testing for web applications |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
@@ -348,7 +365,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 
 | Skill | Purpose |
 |-------|---------|
-| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination |
+| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination and configurable review mode |
 | `review-council-team` | Multi-perspective review with real-time Agent Teams debate |
 
 
