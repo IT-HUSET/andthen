@@ -289,6 +289,7 @@ When complete, print the report's **relative path from the project root**. Do no
 After completion, ask user if they'd like to:
 1. **Create feature spec** – for single features:
    `/andthen:spec <output-directory>` (or `$andthen:spec <output-directory>`)
+   The `andthen:spec` skill will automatically pick up the `requirements-clarification.md` from the output directory and use the clarified requirements (scope, edge cases, design decisions, wireframes) as the feature request – skipping redundant discovery
 2. **Proceed to planning** – for multi-feature / MVP scope:
    `/andthen:plan <output-directory>` (or `$andthen:plan <output-directory>`)
    The `andthen:plan` skill will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery

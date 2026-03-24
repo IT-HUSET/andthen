@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Excalidraw Diagram"
+  short_description: "Create high visual quality Excalidraw diagrams that communicate with clarity and intuition"
+  default_prompt: "Create a clear, intuitive, educational Excalidraw diagram with high visual quality. Follow the skill style guide and design methodology. Topic: "
+
+policy:
+  allow_implicit_invocation: true

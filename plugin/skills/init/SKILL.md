@@ -86,7 +86,7 @@ Core (recommended):
 
 Planning (when ready):
   [ ] docs/STATE.md        – Cross-session state tracking
-  [ ] docs/REQUIREMENTS.md – Requirements with REQ-IDs
+  [ ] docs/PRODUCT-BACKLOG.md – Product backlog with REQ-IDs
   [ ] docs/ROADMAP.md      – Phase structure with success criteria
 
 Architecture (create now or generate later via the `andthen:map-codebase` skill):

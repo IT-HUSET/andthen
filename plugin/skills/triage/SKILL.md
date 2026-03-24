@@ -31,12 +31,14 @@ ARGUMENTS: $ARGUMENTS
 - Your context will be compacted as needed - continue troubleshooting iterations until resolved
 - **IMPORTANT:** *Continue troubleshooting iterations until all critical and high-priority issues are resolved*
 - **Read project learnings** – If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
+- **Read project state** – If `STATE.md` exists (check Project Document Index for location), read it for current phase, active stories, blockers, and recent decisions to contextualize the investigation
 
 
 ## GOTCHAS
 - Attempting the same fix repeatedly instead of escalating – 3-fix stop condition exists for a reason
 - Missing the root cause by fixing symptoms – use 5 Whys before applying fixes
 - Forgetting to verify the fix actually resolves the original symptom
+- Not checking STATE.md for existing blockers before investigating – may duplicate known issues or miss related context
 
 
 ## ORCHESTRATOR ROLE _(if supported by your coding agent)_
@@ -84,6 +86,12 @@ Track fix attempts per symptom. Enforce 3-fix stop condition.
 - Identify scope of components/features that might be affected (from `SCOPE`)
 - **Read additional guidelines and documentation** - Read additional relevant guidelines and documentation (API, guides, reference, etc.) as needed
 
+**1.3** - Load project state context:
+- Read `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`) if it exists
+- Note current phase, active stories, existing blockers, and recent decisions
+- Use this context to scope the investigation (e.g., focus on active stories, check if reported issue relates to known blockers)
+- If STATE.md does not exist, skip – it is optional
+
 **Gate**: Baseline documented
 
 ### 2. Multi-Layer Issue Detection
@@ -117,6 +125,10 @@ Document all issues with priority (Critical/High/Medium/Low), location, and erro
 - **Setup task tracking**: Use task management tools to create prioritized todos for all identified issues
 - Group related issues that can be fixed together
 - Plan fixes in dependency order (foundational issues first)
+
+**3.4** - **Update project state blockers** (if STATE.md exists):
+- For each newly discovered Critical or High priority issue, use `andthen:ops update-state blocker "{issue title}: {brief root cause}"` to add it to STATE.md
+- If a fix plan resolves an existing blocker listed in STATE.md, note it for removal after fix is verified
 
 **Gate**: Root causes identified, fix plan created
 
@@ -204,6 +216,12 @@ Execute fixes methodically and autonomously:
 - Run any security scanning tools available
 
 **Always** use **parallel sub-agents** such as `andthen:qa-test-engineer`, `andthen:solution-architect`, `andthen:ui-ux-designer`, `andthen:build-troubleshooter`, and specialized technology agents as needed. For code review, use the `andthen:review-code` skill.
+
+#### 5.4 Update Project State
+If STATE.md exists:
+- Remove resolved blockers via `andthen:ops update-state blocker remove "{resolved blocker}"`
+- If the overall project status was `Blocked` or `At Risk` and all critical issues are resolved, use `andthen:ops update-state status "On Track"`
+- Add a session note: `andthen:ops update-state note "Triage: {N} issues found, {M} fixed – {scope}"`
 
 **Gate**: All validations pass - application builds/starts, all tests pass, code quality checks pass, no regressions, security validated.
 

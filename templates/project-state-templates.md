@@ -11,6 +11,8 @@ Lightweight starter templates for the supplementary project documents referenced
 ```markdown
 # Project State
 
+Last Updated: YYYY-MM-DD HH:MM
+
 ## Current Phase
 <!-- Active phase/milestone name and one-line status -->
 
@@ -42,12 +44,12 @@ Status: On Track | At Risk | Blocked
 
 ---
 
-## REQUIREMENTS.md
+## PRODUCT-BACKLOG.md
 
-> Validated project requirements with unique IDs for traceability.
+> Product backlog with unique IDs for traceability.
 
 ```markdown
-# Requirements
+# Product Backlog
 
 ## Validated
 <!-- Requirements confirmed and accepted for implementation. -->

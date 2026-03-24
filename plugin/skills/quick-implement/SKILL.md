@@ -148,6 +148,14 @@ Include verification evidence in completion summary (as applicable):
 **Gate**: PR created successfully (or changes committed if no PR)
 
 
+## Post-Completion: Update Project State
+
+If `STATE.md` exists (path from **Project Document Index**, default: `docs/STATE.md`), add a brief session continuity note:
+- `andthen:ops update-state note "Quick-implement: {brief description of what was implemented}"`
+
+This is lightweight – no phase or active-story updates, since quick-implement operates outside the plan pipeline.
+
+
 ## REPORT
 After completed implementation, if the project has a learnings file (`LEARNINGS.md` or `implementation-notes.md`), append any **traps, gotchas, and non-obvious patterns** discovered during this implementation. Organize by topic. If no such file exists and there are noteworthy traps, create a *Learnings* section at the end of the original spec document.
 

@@ -26,7 +26,7 @@ _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 | Document Type        | Location                            | Notes                                   |
 |----------------------|-------------------------------------|-----------------------------------------|
 | Product              | `docs/PRODUCT.md`                   | Product vision and high-level roadmap, requirements backlog etc   |
-| Requirements         | `docs/REQUIREMENTS.md`              | Project-level requirements backlog for future work (REQ-IDs) |
+| Product Backlog      | `docs/PRODUCT-BACKLOG.md`           | Product backlog for future work (REQ-IDs) |
 | Roadmap              | `docs/ROADMAP.md`                   | Phase structure with success criteria   |
 | Specs & Plans        | `docs/specs/<version-or-feature>/`  | PRDs, implementation plans, FIS, story breakdowns &dagger; |
 | ADRs                 | `docs/adrs/`                        | Architecture Decision Records           |

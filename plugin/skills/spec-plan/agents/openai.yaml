@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Batch-Generate Specs for Plan"
+  short_description: "Create all FIS specs for a plan in parallel with cross-cutting review"
+  default_prompt: "Batch-create Feature Implementation Specifications for all stories in the plan. Plan directory: "
+
+policy:
+  allow_implicit_invocation: true

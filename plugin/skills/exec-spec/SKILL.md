@@ -125,6 +125,7 @@ After each group sub-agent completes:
 - Context exhaustion causes skipped final validation – front-load TV04 verification checks
 - FIS references get stale if the spec was updated – always re-read the FIS, don't rely on cached understanding
 - **Status updates get dropped when context is exhausted** – update FIS checkboxes immediately after each group completes (Step 2), not as a batch at the end. Plan and FIS status updates in Step 5 are GATES, not optional cleanup
+- Not signaling active-story status to STATE.md when called in a plan context – set "In Progress" at start for faster session recovery if interrupted
 
 ### Helper Scripts
 Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
@@ -143,6 +144,7 @@ Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when ap
   - Use command like `tree -d` and `git ls-files | head -250` to get an overview of the codebase structure
 5. Read the project learnings document (e.g. _`LEARNINGS.md`_, _`implementation-notes.md`_) for traps, gotchas, error patterns, and non-obvious knowledge from previous work
 6. Create task tracking for ALL execution groups (implementation + validation)
+7. **Update project state** (if STATE.md exists and this FIS originated from a plan story): Use `andthen:ops update-state active-story {story_id} "{story_name}" "In Progress"` to record that implementation has started.
 
 ### Step 1.5: Scaffold Test Suite (if Testing Strategy present)
 If the FIS contains a **Testing Strategy** section:
@@ -301,6 +303,11 @@ If this FIS originated from a plan (`plan.md`), use the `andthen:ops` skill to u
 - Note any scope changes or deviations
 
 After ops completes, **re-read the plan and FIS files** to verify updates were applied (`ops` runs in fork context and modifications may not be visible in your current state).
+
+#### 5d. Update Project State (if STATE.md exists)
+If this FIS originated from a plan story and STATE.md exists:
+- Use `andthen:ops update-state active-story {story_id} Done`
+- Use `andthen:ops update-state note "Completed {story_id}: {story_name}"`
 
 **Gate**: FIS checkboxes, success criteria, and plan status are ALL updated before proceeding
 

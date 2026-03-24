@@ -1,5 +1,5 @@
 ---
-description: Create PRD and implementation plan with story breakdown. Discover requirements interactively when no PRD exists, or build on prior artifacts from `andthen:clarify`. Lightweight planning - detailed specs created JIT per story.
+description: Create PRD and implementation plan with story breakdown. Discover requirements interactively when no PRD exists, or build on prior artifacts from `andthen:clarify`. Lightweight planning - detailed specs are created later via `spec` or `spec-plan`.
 argument-hint: "[Specs directory or requirements source] [--to-issue]"
 ---
 
@@ -8,7 +8,7 @@ argument-hint: "[Specs directory or requirements source] [--to-issue]"
 
 Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If prior artifacts exist (e.g., `requirements-clarification.md` from `andthen:clarify` or a draft PRD), uses them as the basis for PRD creation without re-doing discovery. If nothing exists, runs full requirements discovery to create a PRD first.
 
-Stories are scoped and sequenced but NOT fully specified - run the `andthen:spec` skill just-in-time before implementing each story.
+Stories are scoped and sequenced but NOT fully specified - generate detailed specs later via `andthen:spec` (manual per-story flow) or `andthen:spec-plan` (batch generation for `exec-plan`).
 
 **Philosophy**: Detailed specs decay quickly. This command creates just enough structure to sequence work and track progress, while deferring detailed specification to implementation time.
 
@@ -35,7 +35,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 - **Lightweight planning** - Stories define scope, not implementation details
 - **No over-engineering** - Minimum stories to cover requirements
 - **Progressive implementation** - Organize into logical phases (examples provided are templates, adapt to project)
-- **JIT specification** - Detailed specs come later via `andthen:spec`
+- **Deferred specification** - Detailed specs come later via `andthen:spec` or `andthen:spec-plan`
 - **Interactive when discovering requirements** - Interview user iteratively; don't assume answers. After asking questions, **STOP and WAIT** for user responses before proceeding
 - **Focus on "what" not "how"** - Requirements, not implementation details
 - **Be specific** - Replace vague terms with measurable criteria
@@ -46,6 +46,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 - Agent creates too many small stories – push for fewer, larger vertical slices
 - Skipping requirements discovery when no PRD exists – if no prior artifacts, run discovery first
 - Wave assignments get ignored during execution – explicitly mark dependencies between stories
+- Not reading STATE.md before planning – misses context about current phase, active blockers, and recent decisions that should inform story priorities
 
 
 ## WORKFLOW
@@ -407,6 +408,8 @@ Then proceed through **Prioritization → PRD Validation → Generate PRD Docume
 
 Collect sub-agent results and synthesize into a unified understanding of:
 
+- **Project state context**: Read `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`) if it exists. Use current phase, active stories, blockers, and recent decisions as context for planning – e.g., if blockers exist, plan stories to address them; if a phase is in progress, the new plan may be a continuation.
+
 #### Understand the PRD
 - All requirements and user stories
 - MVP scope and boundaries
@@ -500,7 +503,7 @@ These feed directly into acceptance criteria – each criterion should be a veri
 For each story, define:
 - **ID**: Sequential identifier (S01, S02, etc.)
 - **Name**: Brief descriptive name
-- **Status**: Tracking field – initially `Pending` (updated to `In Progress` / `Done` during execution)
+- **Status**: Tracking field – initially `Pending` (updated to `Spec Ready` / `In Progress` / `Done` during execution)
 - **FIS**: Reference to generated spec – initially `–` (updated to file path when `andthen:spec` creates the FIS)
 - **Scope**: 2-4 sentences – what's included and excluded (no implementation approach – that's for `andthen:spec`)
 - **Acceptance criteria**: 3-6 testable outcomes – the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
@@ -610,15 +613,23 @@ W3: S05, S06, S07
    - Run the `andthen:exec-spec` skill on the generated FIS
      Example: `/andthen:exec-spec docs/specs/my-feature/story-name.md` (or `$andthen:exec-spec ...`)
    - Check off completed acceptance criteria in this plan
-   - Update **Status** field (Pending → In Progress → Done)
+   - Update **Status** field (Pending → Spec Ready → In Progress → Done)
 3. Phase 2+ stories marked [P] can run in parallel after dependencies met
 4. Run the `andthen:review-gap` skill after completing all stories
    Example: `/andthen:review-gap docs/specs/my-feature/plan.md` (or `$andthen:review-gap ...`)
 
-> **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path. After implementation and review, check off acceptance criteria and set **Status** to Done. Update the Story Catalog table status accordingly. `andthen:exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
+> **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path and set **Status** to `Spec Ready`. When implementation starts, set **Status** to `In Progress`. After implementation and review, check off acceptance criteria and set **Status** to `Done`. Update the Story Catalog table status accordingly. `andthen:exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
 </example-plan-format>
 
 **Gate**: Plan document complete
+
+#### Initialize Project State (if STATE.md exists)
+If STATE.md exists (path from **Project Document Index**), update it to reflect the new plan:
+- Use `andthen:ops update-state phase "Phase 1: {first_phase_name}"`
+- Use `andthen:ops update-state status "On Track"`
+- Use `andthen:ops update-state note "Plan created: {plan_name} ({N} stories, {M} phases)"`
+
+If STATE.md does not exist, do not create it – suggest it in follow-up actions instead.
 
 
 ### 5. Validation
@@ -679,3 +690,4 @@ After completion, suggest:
    ```
 4. **Review plan**: Run the `andthen:review-doc` skill on `plan.md`
    Example: `/andthen:review-doc docs/specs/my-feature/plan.md` (or `$andthen:review-doc ...`)
+5. **Initialize project state** (if not already tracking): Create `docs/STATE.md` for cross-session state tracking via `/andthen:init` or manually from the template in `templates/project-state-templates.md`

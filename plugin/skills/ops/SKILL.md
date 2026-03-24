@@ -23,6 +23,8 @@ Reliable, template-driven operations for state management, git conventions, and 
 ## GOTCHAS
 - Improvising instead of following patterns exactly – this skill exists to prevent LLM interpretation drift
 - Forgetting to update both CHANGELOG.md and marketplace.json on version bumps
+- Creating STATE.md when it doesn't exist – state file creation is the `init` skill's job; ops only reads/writes existing files
+- Letting Active Stories or Session Notes grow unbounded – apply maintenance rules on every write
 
 
 ## OPERATIONS
@@ -31,33 +33,64 @@ Reliable, template-driven operations for state management, git conventions, and 
 
 #### Read State
 Parse `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`) and return structured summary:
-- Current phase/milestone
-- Active stories (in-progress)
-- Blockers
+- Current phase and status (On Track / At Risk / Blocked)
+- Active stories table (story, status, FIS, notes)
+- Blockers (list)
+- Recent decisions (list with dates)
+- Session continuity notes (list with dates)
 - Last updated timestamp
+
+If STATE.md does not exist, report "no state file" – do not create it or prompt the user.
 
 #### Update State
 Update specific fields in `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`):
 
 **Usage**: `update-state <field> <value>`
 
+If STATE.md does not exist, report "no state file" – do not create it.
+
 Supported fields:
-- `phase`: Current phase name/number
-- `active-story`: Story ID currently being worked on
-- `blocker`: Add/remove a blocker entry
+- `phase`: Current phase name/number (e.g. `"Phase 2: Core Features"`)
+- `status`: Overall project status – one of `On Track`, `At Risk`, `Blocked`
+- `active-story`: Add or update an active story entry
+  - Set status: `update-state active-story {story_id} "{story_name}" "In Progress"`
+  - Mark done: `update-state active-story {story_id} Done` → removes the row from Active Stories
+  - Set FIS: `update-state active-story {story_id} fis "{fis_path}"` → updates the FIS column
+- `blocker`: Add or remove a blocker
+  - Add: `update-state blocker "{description}"`
+  - Remove: `update-state blocker remove "{description}"` → removes the matching entry
+- `decision`: Add a recent decision entry with timestamp
 - `note`: Add a session continuity note with timestamp
 
-Format for entries:
+After any update, set `Last Updated` to current timestamp.
+
+**Maintenance rules** (apply automatically on every write):
+- Active Stories table: remove rows with status `Done` (they belong in plan.md, not state)
+- Session Continuity Notes: keep only the **last 10** entries; older entries are trimmed
+- Recent Decisions: keep only the **last 10** entries; graduate older items to ADRs if warranted
+
+Format for STATE.md (matches `templates/project-state-templates.md`):
 ```markdown
-## Current State
-- **Phase**: {phase}
-- **Active Story**: {story_id} – {story_name}
-- **Last Updated**: {YYYY-MM-DD HH:MM}
+# Project State
+
+Last Updated: {YYYY-MM-DD HH:MM}
+
+## Current Phase
+Phase: {phase}
+Status: {On Track | At Risk | Blocked}
+
+## Active Stories
+| Story | Status | FIS | Notes |
+|-------|--------|-----|-------|
+| {story_id}: {story_name} | {In Progress | Blocked} | {fis_path or –} | {brief note} |
 
 ## Blockers
-- [ ] {blocker description} _(added {date})_
+- {blocker description} _(added {date})_
 
-## Session Notes
+## Recent Decisions
+- [{date}] {decision}
+
+## Session Continuity Notes
 - [{date}] {note}
 ```
 
@@ -67,7 +100,7 @@ Update story status fields in `plan.md`:
 **Usage**: `update-plan <plan_path> <story_id> <status>`
 
 Actions:
-- Set story **Status** field: `Pending` → `In Progress` → `Done`
+- Set story **Status** field: `Pending` → `Spec Ready` → `In Progress` → `Done`
 - Update Story Catalog table status column
 - When setting to `Done`: check off all acceptance criteria checkboxes
 
@@ -145,14 +178,15 @@ Output:
 ## Progress Summary
 - **Total Stories**: {N}
 - **Completed**: {done} ({percentage}%)
+- **Spec Ready**: {spec_ready}
 - **In Progress**: {in_progress}
 - **Pending**: {pending}
 - **Blocked**: {blocked}
 
 ### By Phase
-| Phase | Total | Done | In Progress | Pending |
-|-------|-------|------|-------------|---------|
-| {phase} | {n} | {n} | {n} | {n} |
+| Phase | Total | Done | Spec Ready | In Progress | Pending |
+|-------|-------|------|------------|-------------|---------|
+| {phase} | {n} | {n} | {n} | {n} | {n} |
 
 ### Current Wave
 - Wave {N}: {status} ({done}/{total} stories complete)

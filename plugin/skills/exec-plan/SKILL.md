@@ -1,14 +1,14 @@
 ---
-description: Execute an entire implementation plan through a pipeline (spec → exec-spec → review-gap per story)
+description: Execute an entire implementation plan through a pipeline (spec-plan per phase, then exec-spec → review-gap per story)
 argument-hint: <path-to-plan-directory>
 ---
 
 # Execute Plan
 
 
-Execute ALL stories in an implementation plan (from `andthen:plan`) through a pipeline: **spec → exec-spec → review-gap** per story.
+Execute ALL stories in an implementation plan (from `andthen:plan`) through a pipeline: **spec-plan (per phase) → exec-spec → review-gap** per story.
 
-Uses **parallel sub-agents** _(if supported by your coding agent)_ for concurrent story execution, otherwise executes stories sequentially.
+Pre-generates all specs for each phase via `andthen:spec-plan` (parallel sub-agents + cross-cutting review), then executes **exec-spec → review-gap** per story using **parallel sub-agents** _(if supported by your coding agent)_, otherwise sequentially.
 
 
 ## VARIABLES
@@ -32,12 +32,14 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Complete Implementation**: All stories in plan must be implemented
 - **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly
-- **Per-story pipeline**: spec → exec-spec → review-gap (with fix loop)
+- **Pre-generate specs**: delegate to `andthen:spec-plan` per phase (handles parallelism, wave ordering, and cross-cutting review)
+- **Per-story pipeline**: exec-spec → review-gap (with fix loop). Specs are pre-generated before execution starts.
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job is to:
 - Parse the plan and extract stories, phases, dependencies, parallel markers
-- Execute the per-story pipeline (delegating to sub-agents when possible)
+- Delegate spec generation to `andthen:spec-plan` per phase
+- Execute the per-story impl+review pipeline (delegating to sub-agents when possible)
 - Track progress and update the plan as stories complete
 - Handle failures and escalate when needed
 - Run final verification after all stories complete
@@ -50,9 +52,10 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 
 ## GOTCHAS
 - Executing stories out of wave order when there are dependencies
-- Skipping the spec step (`andthen:spec`) before implementing a story
+- Skipping spec-plan before executing a phase – all stories must have FIS before implementation starts
 - Not running review-gap after completing a wave
 - **Status updates get dropped when context is exhausted** – plan and FIS checkbox updates (Step 2c) are GATES that block the next phase, not optional cleanup. Update immediately after each story completes
+- Not updating STATE.md when phases transition or blockers are discovered – state drift causes session continuity loss
 
 ### Helper Scripts
 Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
@@ -64,6 +67,8 @@ Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when ap
 ## WORKFLOW
 
 ### Step 1: Parse Plan
+
+0. **Load session state** – Read `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`) if it exists. Extract session continuity notes (context from previous sessions), active stories and their status (detect resumed work), blockers (may affect execution order), and current phase (verify alignment with plan). If STATE.md does not exist, skip – it is optional.
 
 1. Read `PLAN_DIR/plan.md`
 2. If plan file missing, **STOP** and recommend `andthen:plan` first
@@ -82,30 +87,33 @@ Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when ap
 
 For each phase in the plan:
 
-#### 2a. Identify Stories for This Phase
+#### 2a. Identify Stories and Generate Specs for This Phase
 
-For each story in the current phase:
+**Update project state** (if STATE.md exists): Use `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `andthen:ops update-state status "On Track"` to record the active phase.
 
-1. **Check for existing FIS** – Look for a FIS path in the story's `**FIS**` field in `plan.md`, or search the spec output directory (typically `docs/specs/`, or as configured in your project's Document Index) for a matching spec file. If a valid FIS already exists, skip the spec step for that story.
+**Pre-generate all specs** for this phase by delegating to `andthen:spec-plan` (use `/` or `$` prefix depending on agent platform):
+```
+/andthen:spec-plan {PLAN_DIR} --phase {N}
+```
+This handles: checking for existing FIS, parallel sub-agent creation (opus model), wave ordering within the phase, cross-cutting review, and plan.md FIS field updates.
 
-2. Determine execution approach:
-   - Stories marked `[P]` with no cross-dependencies → can run in parallel
-   - Stories with dependencies → must wait for predecessors to complete
+After `spec-plan` completes, re-read `plan.md` to pick up updated FIS paths, then determine execution approach:
+- Stories marked `[P]` with no cross-dependencies → can run in parallel
+- Stories with dependencies → must wait for predecessors to complete
+
+**Gate**: All stories in current phase have FIS documents (verified via plan.md FIS fields)
 
 #### 2b. Execute Story Pipelines
 
-For each story (or group of parallel stories), run the three-stage pipeline (use `/` prefix for Claude Code, `$` for Codex CLI):
+For each story (or group of parallel stories), run the two-stage pipeline (use `/` prefix for Claude Code, `$` for Codex CLI). Specs are already generated by Step 2a.
 
-**Stage 1 – Spec** _(skip if FIS already exists)_:
-`/andthen:spec story {story_id} of {PLAN_DIR}/plan.md` (or `$andthen:spec ...`) → Output: FIS document in spec output directory.
-
-**Stage 2 – Implement**:
+**Stage 1 – Implement**:
 `/andthen:exec-spec {fis_path}` (or `$andthen:exec-spec {fis_path}`) → Output: implemented story.
 
-**Stage 3 – Review**:
+**Stage 2 – Review**:
 `/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) – If issues found: fix them, then re-validate. **Max 2 fix attempts** – if issues persist after 2 rounds, escalate to the user.
 
-> **Note – nested loops**: When `exec-spec` runs internally (Stage 2), its TV04 remediation loop handles *implementation-level* issues (code review, tests, visual validation) with a 3-cycle cap. The exec-plan review-gap loop here handles *integration and gap-level* issues across stories. These are complementary – exec-spec fixes code before exec-plan validates requirements.
+> **Note – nested loops**: When `exec-spec` runs internally (Stage 1), its TV04 remediation loop handles *implementation-level* issues (code review, tests, visual validation) with a 3-cycle cap. The exec-plan review-gap loop here handles *integration and gap-level* issues across stories. These are complementary – exec-spec fixes code before exec-plan validates requirements.
 
 #### Wave-Based Execution (within each phase)
 If stories have wave assignments (W1, W2, etc.) from the plan:
@@ -118,39 +126,38 @@ If no wave assignments present, fall back to the [P] marker
 and dependency-based approach below.
 
 **Parallelism strategy** – Use **parallel sub-agents** _(if supported by your coding agent)_ for independent `[P]` stories:
-- Spawn one sub-agent per independent story pipeline (spec → exec-spec → review-gap)
-- Each sub-agent runs the full three-stage pipeline for its story
+- Spawn one sub-agent per independent story pipeline (exec-spec → review-gap)
+- Each sub-agent runs the two-stage pipeline for its story
 - If sub-agents not available, execute stories sequentially
 
 **Sub-agent prompt template** for parallel story execution (use `/` or `$` prefix depending on agent platform):
 ```
-Execute the full pipeline for story {story_id}: {story_name}
+Execute the implementation pipeline for story {story_id}: {story_name}
 Plan: {PLAN_DIR}/plan.md
+FIS: {fis_path}
 
-Pipeline:
-1. Spec: Check if FIS exists at {fis_path}. If not, run: /andthen:spec story {story_id} of {PLAN_DIR}/plan.md
-2. Implement: /andthen:exec-spec {fis_path}
-3. Review: /andthen:review-gap {fis_path} – Fix issues (max 2 attempts), then report results.
-4. Update status: Update FIS checkboxes (all tasks, success criteria, validation checklist marked [x]).
+Pipeline (spec is already generated):
+1. Implement: /andthen:exec-spec {fis_path}
+2. Review: /andthen:review-gap {fis_path} – Fix issues (max 2 attempts), then report results.
+3. Update status: Update FIS checkboxes (all tasks, success criteria, validation checklist marked [x]).
    Update plan.md: set story Status to Done, check off acceptance criteria, update Story Catalog table.
    Use the `andthen:ops` skill for standardized updates.
 
 Important:
 - Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
 - Follow existing codebase patterns
-- Status updates are REQUIRED, not optional cleanup – do not skip step 4
+- Status updates are REQUIRED, not optional cleanup – do not skip step 3
+- After completing the story pipeline, if STATE.md exists, update active story status via `andthen:ops`
 - Report back: success/failure, FIS path, any issues encountered
 ```
 
-**Model assignment** – When spawning sub-agents, use `model: "opus"` for spec-only sub-agents (Stage 1 alone), and `model: "sonnet"` for implementation and review sub-agents. When a single sub-agent runs the full pipeline for a story, use `model: "opus"` (spec quality is the highest-leverage factor).
-
-**When to split stages vs. full-pipeline sub-agents**: For plans with 4+ stories, prefer splitting stages across separate sub-agents to enable parallelism (e.g., spec agent finishes S01 and moves to S02 while impl agent starts S01). For small plans (1-3 stories), a single opus sub-agent per story running the full pipeline is simpler and avoids coordination overhead.
+**Model assignment** – Use `model: "sonnet"` for all implementation and review sub-agents. Spec generation is handled by `spec-plan` (Step 2a) using opus sub-agents.
 
 #### 2c. Update Plan and FIS Status (REQUIRED GATE)
 
 **CRITICAL – do this immediately after each story's pipeline completes, not as a batch at the end.**
 
-After each story's pipeline completes (spec → exec-spec → review-gap), use the `andthen:ops` skill to update `plan.md`:
+After each story's pipeline completes (exec-spec → review-gap), use the `andthen:ops` skill to update `plan.md`:
 - Set the story's **Status** field to `Done`
 - Set the story's **FIS** field to the generated spec path (e.g. `**FIS**: docs/specs/story-name.md`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)
@@ -159,6 +166,8 @@ After each story's pipeline completes (spec → exec-spec → review-gap), use t
 Also update each completed FIS file:
 - Mark all task checkboxes as checked (`- [x]`)
 - Mark success criteria and Final Validation Checklist items as checked
+
+**Update STATE.md** (if it exists): Use `andthen:ops update-state active-story {story_id} Done` to reflect completion. If the next story is starting, also run `andthen:ops update-state active-story {next_story_id} "{next_story_name}" "In Progress"`.
 
 After ops completes, **re-read plan.md and the FIS file** to verify updates were applied (`ops` runs in fork context and modifications may not be visible in your current state).
 
@@ -170,11 +179,14 @@ Move to next phase only after ALL stories in current phase are complete and plan
 
 ```
 Phase 1 (Sequential): S01 → S02
-  spec-S01 → impl-S01 → review-S01 → spec-S02 → impl-S02 → review-S02
+  spec-plan Phase 1 (parallel spec creation + cross-cutting review)
+  impl-S01 → review-S01 → impl-S02 → review-S02
 
 Phase 2 (Parallel [P]): S03[P], S04[P], S05 (depends on S03)
-  S03 pipeline ──────────────────────→ S05 pipeline
-  S04 pipeline (parallel with S03)
+  spec-plan Phase 2 (parallel spec creation + cross-cutting review)
+  impl-S03 ──────────────────────→ impl-S05 → review-S05
+  impl-S04 (parallel with S03)
+  review-S03 + review-S04 (after S03/S04 complete)
 ```
 
 **Gate**: All phases complete, all stories implemented and reviewed
@@ -210,11 +222,23 @@ Spawn a **general-purpose sub-agent** _(if supported by your coding agent)_ to u
 - **Story pipeline fails** → attempt fix (max 2 rounds via review-gap loop). If unresolvable, use `andthen:build-troubleshooter` sub-agent _(if supported)_ for diagnosis. Escalate to user only if troubleshooter also fails.
 - **Dependent stories stay blocked** when a predecessor fails
 - **If >50% of a phase fails** → pause execution, notify user with failure summary
+- **Update STATE.md on failure** (if it exists): Use `andthen:ops update-state status "At Risk"` (or `"Blocked"` for critical failures). Add blockers via `andthen:ops update-state blocker "{description}"`.
 
 
 ## COMPLETION
 
 When all phases are complete, print a summary including: stories completed, total phases, verification results (build/test status), and the path to the updated `PLAN_DIR/plan.md`.
+
+
+## Post-Completion: Update Project State
+
+After all phases complete (or if execution is interrupted/paused), update STATE.md via `andthen:ops` (if it exists):
+- Set phase to the completed (or current) phase
+- Set status to reflect outcome (`On Track` if all passed, `At Risk` if issues remain)
+- Clear completed stories from Active Stories (mark as `Done`)
+- Add a session continuity note summarizing: what was completed, what remains, any context the next session needs
+
+Example: `andthen:ops update-state note "exec-plan complete: {N}/{M} stories done, all phases passed"` (or describe what remains if interrupted).
 
 
 ## Post-Completion: Update Project Learnings

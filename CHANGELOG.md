@@ -3,6 +3,35 @@
 All notable changes to **AndThen** are documented here.
 Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
 
+
+---
+
+## [0.8.0] – 2026-03-24
+
+### Added
+- **`spec-plan` skill** – new skill that batch-creates FIS specs for all stories in a plan using parallel sub-agents (opus model) with wave-ordered execution and configurable concurrency (default 5, max 10). Includes a **cross-cutting review** step that detects inter-story issues: overlapping scope, inconsistent ADRs, missing integration seams, dependency gaps, naming inconsistencies, and duplicate work. Can be used standalone (enables human review gate before execution) or delegated by `exec-plan` / `exec-plan-team`
+- **STATE.md lifecycle integration** – `exec-plan`, `exec-plan-team`, `exec-spec`, `plan`, `triage`, and `quick-implement` now read and/or write STATE.md via `andthen:ops`. Previously, `ops` had Read State and Update State operations but no skill triggered them — STATE.md was effectively orphaned
+- **`exec-plan` / `exec-plan-team` full state tracking** – read STATE.md at start for session continuity context; update phase/status at each phase transition; update active stories after each story completes; write blockers on failure; write session continuity note at completion or interruption
+- **`exec-spec` active-story signaling** – sets active story to "In Progress" at implementation start (Step 1) and marks it Done at completion (new Step 5d), enabling faster session recovery if interrupted
+- **`plan` state context and initialization** – reads STATE.md during requirements analysis for current phase/blockers/decisions context; initializes STATE.md with Phase 1 after plan creation; suggests STATE.md in follow-up actions
+- **`triage` bidirectional blocker management** – reads STATE.md for investigation context (Step 1.3); adds discovered Critical/High issues as blockers (Step 3.4); removes resolved blockers and restores "On Track" status after fixes (Step 5.4)
+- **`quick-implement` session note** – adds lightweight completion note to STATE.md
+- **`ops` new fields** – `status` (On Track / At Risk / Blocked), `decision` (timestamped entry), `active-story` expanded to support table rows with status/FIS columns, `blocker remove` for clearing resolved blockers
+- **`ops` maintenance rules** – automatic trimming on every write: remove Done rows from Active Stories, keep last 10 Session Continuity Notes and Recent Decisions
+
+### Changed
+- **`exec-plan` delegates spec creation to `spec-plan`** – per-story pipeline simplified from 3 stages (spec → exec-spec → review-gap) to 2 stages (exec-spec → review-gap). All specs for each phase are pre-generated via `andthen:spec-plan --phase {N}` before implementation begins, replacing inline JIT spec creation. Sub-agents now use `model: "sonnet"` only (spec quality handled by spec-plan's opus sub-agents)
+- **`exec-plan-team` delegates spec creation to `spec-plan`** – Step 3 (Generate Specs) replaced from inline parallel sub-agent spawning to a single `andthen:spec-plan --phase {N}` delegation. Eliminates duplicated spec-generation logic between exec-plan and exec-plan-team
+- **`ops` STATE.md format reconciled** with `templates/project-state-templates.md` – replaced divergent `## Current State` bullet format with canonical `## Current Phase` / `## Active Stories` table structure matching what `init` creates
+- **STATE.md template** – added `Last Updated` timestamp field
+
+### Fixed
+- **`spec` artifact chaining from `clarify`** – `spec` Step 0 now explicitly detects `requirements-clarification.md` in a directory argument (output from `andthen:clarify`), consuming clarified requirements, design decisions, edge cases, and wireframes as the feature request. Skips redundant discovery phases. Previously, the `clarify → spec` handoff in the single-feature workflow had no explicit contract – `plan` had artifact chaining but `spec` did not
+- **`spec` FIS output co-location** – FIS files are now co-located with their input artifacts: directory input → FIS inside directory (e.g. `docs/specs/data-export/data-export.md`), plan story → FIS in plan directory. Previously, FIS was always written to the specs root regardless of input source, breaking the feature-directory convention used by `clarify` and `plan`
+- **`exec-plan-team` race condition prevention** – added explicit gotcha that only the orchestrator writes STATE.md; parallel implementers and reviewers must not touch it
+
+
+
 ---
 
 ## [0.7.3] – 2026-03-22
@@ -169,8 +198,8 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`map-codebase`** (extras): Brownfield codebase analysis command – spawns parallel sub-agents to produce STACK.md, ARCHITECTURE.md, CONVENTIONS.md, and a discovered requirements document that feeds directly into `/andthen:plan`
 - **`andthen-ops` skill**: Deterministic operations for state management (STATE.md, plan.md status, FIS checkboxes), git conventions (commit messages, branch naming, changelog entries), and progress tracking (summary, stale detection)
 - **UI Design Contract gate** (`exec-spec`): New Step 1.7 auto-generates a UI-SPEC.md design contract (spacing, typography, colors, components, breakpoints) when frontend work is detected, ensuring visual consistency across sub-agents
-- **Project state templates** (`templates/project-state-templates.md`): Starter templates for STATE.md, REQUIREMENTS.md, ROADMAP.md, ARCHITECTURE.md, CONVENTIONS.md, LEARNINGS.md, and STACK.md
-- **Project Document Index** (`templates/CLAUDE.template.md`): Seven new optional document rows – State, Requirements, Roadmap, Architecture, Conventions, Learnings, Stack
+- **Project state templates** (`templates/project-state-templates.md`): Starter templates for STATE.md, PRODUCT-BACKLOG.md, ROADMAP.md, ARCHITECTURE.md, CONVENTIONS.md, LEARNINGS.md, and STACK.md
+- **Project Document Index** (`templates/CLAUDE.template.md`): Seven new optional document rows – State, Product Backlog, Roadmap, Architecture, Conventions, Learnings, Stack
 
 ### Changed
 - **`implementation-notes.md` → `LEARNINGS.md`**: Renamed and broadened scope – now captures domain knowledge, procedural knowledge, and error patterns (with deterministic vs infrastructure distinction) alongside implementation traps. Includes self-maintenance guidance (review, merge, prune). Topic-based organization instead of chronological

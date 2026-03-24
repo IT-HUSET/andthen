@@ -1,6 +1,6 @@
 ---
 description: Create a Feature Implementation Specification from requirements or a plan story. Trigger on 'write spec', 'create FIS', 'specify this feature'.
-argument-hint: <description> | --issue <number> [--to-issue]
+argument-hint: <description> | @<requirements-file> | story <story-id> of <path-to-plan.md> | --issue <number> [--to-issue]
 ---
 
 # Generate Feature Implementation Specification
@@ -23,6 +23,8 @@ ARGUMENTS: $ARGUMENTS
 /spec <feature description>        # Create FIS from inline description
 /spec --issue 123                  # Create FIS from GitHub issue
 /spec @docs/requirements.md        # Create FIS from requirements file
+/spec docs/specs/my-feature/       # Create FIS from clarify output directory
+/spec story S03 of docs/specs/dashboard/plan.md  # Create FIS for a plan story
 ```
 
 
@@ -74,6 +76,19 @@ You are the orchestrator. Your job is to:
 2. Use `gh issue view <number>` to fetch issue details (title, body, labels, comments)
 3. Use issue content as the feature request
 4. Store issue number for reference in generated FIS
+
+**If ARGUMENTS is a directory containing `requirements-clarification.md`** (output from `andthen:clarify`):
+1. Read `requirements-clarification.md` from the directory
+2. Use the clarified requirements as the feature request – scope, functional requirements, edge cases, success criteria, design decisions, and any wireframes are all pre-resolved
+3. Also read any other artifacts in the directory (design space decomposition, research files, ubiquitous language glossary)
+4. Store the directory path for FIS output co-location
+5. **Skip or reduce** the research phases in Step 2 – clarify has already done requirements discovery, gap analysis, and design space exploration. Only perform additional *codebase* research (Step 2, section 1) and *external/API* research if the clarified requirements reference libraries or services not yet investigated.
+
+**If ARGUMENTS use the plan-story form `story {story_id} of {path-to-plan.md}`:**
+1. Read the referenced `plan.md`
+2. Locate the matching story by ID
+3. Use that story's scope, acceptance criteria, dependencies, and surrounding phase context as the feature request
+4. Store the source plan path and story ID for output updates
 
 **Otherwise:**
 - Use inline description or file reference from ARGUMENTS as the feature request
@@ -228,12 +243,20 @@ Rate your FIS 1-10 for single-pass implementation success:
 
 
 ## OUTPUT
-Save FIS as: _`<project_root>/docs/specs/{feature-name}.md`_ _(or as configured in **Project Document Index**)_
-- If from GitHub issue: include issue reference in filename, e.g. `issue-123-feature-name.md`
+
+**Co-locate with input artifacts when a feature directory exists:**
+- If input was a **directory** (e.g. clarify output dir): save FIS inside that directory as `{feature-name}.md`
+  - Example: input `docs/specs/data-export/` → FIS at `docs/specs/data-export/data-export.md`
+- If input was a **plan story**: save FIS in the plan directory as `{story-name}.md`
+  - Example: plan at `docs/specs/dashboard/plan.md` → FIS at `docs/specs/dashboard/s01-auth-middleware.md`
+- **Otherwise** (inline description, file reference, issue): save FIS at _`<project_root>/docs/specs/{feature-name}.md`_ _(or as configured in **Project Document Index**)_
+  - If from GitHub issue: include issue reference in filename, e.g. `issue-123-feature-name.md`
 
 **Update source plan** – if this spec was created for a story from a `plan.md`:
 - Set the story's **FIS** field to the generated FIS file path
-- Set the story's **Status** field to `In Progress`
+- Set the story's **Status** field to `Spec Ready`
+
+`andthen:exec-spec` is responsible for moving `Spec Ready` → `In Progress` when implementation actually starts.
 
 **Remember**: The FIS should be executable with minimal orchestration. All complexity and detail belongs in the FIS itself, not the execution command.
 

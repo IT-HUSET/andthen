@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #ffffff; overflow: hidden; }
+    #root { display: inline-block; }
+    #root svg { display: block; }
+    #status {
+      position: fixed; top: 8px; left: 8px;
+      font: 14px monospace; color: #757575;
+      max-width: 90vw; word-wrap: break-word;
+    }
+    #error {
+      display: none;
+      position: fixed; top: 40px; left: 8px;
+      font: 13px monospace; color: #c44536;
+      max-width: 90vw; white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div id="status">Loading Excalidraw library...</div>
+  <div id="error"></div>
+
+  <script type="module">
+    import {
+      exportToSvg,
+      convertToExcalidrawElements
+    } from "https://esm.sh/@excalidraw/excalidraw?bundle";
+
+    let convertedElements = null;
+    let lastAppState = null;
+
+    /**
+     * Validate Excalidraw JSON structure.
+     * Returns { valid: true } or { valid: false, errors: string[] }
+     */
+    function validateExcalidraw(data) {
+      const errors = [];
+
+      if (typeof data !== "object" || data === null) {
+        return { valid: false, errors: ["Input is not a JSON object"] };
+      }
+
+      if (data.type !== "excalidraw") {
+        errors.push(`Expected type "excalidraw", got "${data.type}"`);
+      }
+
+      if (!("elements" in data)) {
+        errors.push('Missing "elements" array');
+      } else if (!Array.isArray(data.elements)) {
+        errors.push('"elements" must be an array');
+      } else if (data.elements.length === 0) {
+        errors.push('"elements" array is empty — nothing to render');
+      }
+
+      return errors.length === 0
+        ? { valid: true }
+        : { valid: false, errors };
+    }
+
+    /**
+     * Render an Excalidraw diagram from JSON data.
+     * Accepts either a JSON object or a JSON string.
+     * Returns { success, width, height } or { success: false, error, validationErrors? }
+     */
+    window.renderDiagram = async function(jsonData) {
+      const statusEl = document.getElementById("status");
+      const errorEl = document.getElementById("error");
+      errorEl.style.display = "none";
+
+      try {
+        // Parse
+        const data = typeof jsonData === "string" ? JSON.parse(jsonData) : jsonData;
+
+        // Validate
+        const validation = validateExcalidraw(data);
+        if (!validation.valid) {
+          const msg = "Validation failed:\n  - " + validation.errors.join("\n  - ");
+          statusEl.textContent = "Validation Error";
+          errorEl.textContent = msg;
+          errorEl.style.display = "block";
+          window.__renderComplete = true;
+          window.__renderError = msg;
+          return { success: false, error: msg, validationErrors: validation.errors };
+        }
+
+        let elements = data.elements;
+        const appState = data.appState || {};
+        const files = data.files || {};
+
+        // Convert elements with label shorthand to full Excalidraw format
+        const hasLabels = elements.some(e => e.label);
+        if (hasLabels) {
+          elements = convertToExcalidrawElements(elements);
+        }
+
+        // Store for extraction
+        convertedElements = elements;
+        lastAppState = appState;
+
+        // Background color
+        const bgColor = appState.viewBackgroundColor || "#ffffff";
+        document.body.style.background = bgColor;
+        appState.viewBackgroundColor = bgColor;
+        appState.exportWithDarkMode = false;
+
+        const svg = await exportToSvg({
+          elements,
+          appState: { ...appState, exportBackground: true },
+          files,
+        });
+
+        // Render
+        const root = document.getElementById("root");
+        root.innerHTML = "";
+        root.appendChild(svg);
+
+        // Read rendered dimensions
+        const svgWidth = parseInt(svg.getAttribute("width"), 10) || 800;
+        const svgHeight = parseInt(svg.getAttribute("height"), 10) || 600;
+
+        // Store dimensions for viewport sizing
+        window.__diagramWidth = svgWidth;
+        window.__diagramHeight = svgHeight;
+
+        // Hide status overlay so it doesn't appear in screenshots
+        statusEl.style.display = "none";
+        window.__renderComplete = true;
+        window.__renderError = null;
+        return { success: true, width: svgWidth, height: svgHeight };
+      } catch (err) {
+        statusEl.textContent = "Error: " + err.message;
+        errorEl.textContent = err.stack || err.message;
+        errorEl.style.display = "block";
+        window.__renderComplete = true;
+        window.__renderError = err.message;
+        return { success: false, error: err.message };
+      }
+    };
+
+    /**
+     * Returns the full Excalidraw JSON with expanded elements (label shortcuts converted).
+     * Use this to save a portable .excalidraw file that opens directly in excalidraw.com.
+     */
+    window.getConvertedJSON = function() {
+      if (!convertedElements) return null;
+      const bgColor = lastAppState?.viewBackgroundColor || "#ffffff";
+      return {
+        type: "excalidraw",
+        version: 2,
+        source: "https://excalidraw.com",
+        elements: convertedElements,
+        appState: { viewBackgroundColor: bgColor, gridSize: 20 },
+        files: {}
+      };
+    };
+
+    /**
+     * Returns the rendered diagram dimensions { width, height }.
+     * Call after renderDiagram to know what viewport size to set for a tight screenshot.
+     */
+    window.getDiagramSize = function() {
+      return {
+        width: window.__diagramWidth || 800,
+        height: window.__diagramHeight || 600
+      };
+    };
+
+    // Signal ready
+    window.__moduleReady = true;
+    document.getElementById("status").textContent = "Ready — call renderDiagram(data)";
+  </script>
+</body>
+</html>

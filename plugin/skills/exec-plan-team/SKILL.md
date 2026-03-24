@@ -6,7 +6,7 @@ argument-hint: <path-to-plan> [path-to-code-repo]
 # Execute Plan (Agent Teams)
 
 
-Execute ALL stories in an implementation plan (from `andthen:plan`) through a parallelized pipeline: parallel **spec** generation (sub-agents), then Agent Team **exec-spec (worktree) → merge → review-gap (main)** per wave. Implementers work in **isolated git worktrees** to prevent file conflicts during parallel execution.
+Execute ALL stories in an implementation plan (from `andthen:plan`) through a parallelized pipeline: **spec-plan** (parallel spec generation + cross-cutting review per phase), then Agent Team **exec-spec (worktree) → merge → review-gap (main)** per wave. Implementers work in **isolated git worktrees** to prevent file conflicts during parallel execution.
 
 **Requires Agent Teams** – Falls back to sequential execution (manual per-story loop) if Teams unavailable.
 
@@ -59,16 +59,16 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Complete Implementation**: All stories in plan must be implemented
 - **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly
-- **Pre-generate specs** – run parallel sub-agents for spec generation before starting the Agent Team
+- **Pre-generate specs** – delegate to `andthen:spec-plan` per phase (handles parallelism, wave ordering, and cross-cutting review) before starting the Agent Team
 - **Agent Team for impl + review** – use Agent Teams for parallel implementation and review
 - **Worktree isolation** – implementers use `EnterWorktree` per task (in `CODE_DIR`) to prevent file conflicts during parallel execution
 - **Pre-assign all tasks** – orchestrator assigns every task to a specific agent at creation time (no self-claiming)
-- **Per-story pipeline**: spec (sub-agent) → exec-spec (worktree) → merge → review-gap (main branch, with fix loop)
+- **Per-story pipeline**: spec-plan (per phase) → exec-spec (worktree) → merge → review-gap (main branch, with fix loop)
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job is to:
 - Parse the plan and extract stories, phases, dependencies, parallel markers
-- Generate specs for each phase using parallel sub-agents (before team pipeline)
+- Delegate spec generation to `andthen:spec-plan` per phase (before team pipeline)
 - Size and create the Agent Team for implementation + review
 - Create pipeline tasks with correct dependency chains and **pre-assigned owners**
 - Monitor progress via the task list and coordinate agents
@@ -84,7 +84,7 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 
 ## GOTCHAS
 - Executing stories out of wave order when there are dependencies
-- Starting implementation before all specs for the current phase are generated
+- Starting implementation before `spec-plan` completes for the current phase
 - Not running review-gap after completing a wave
 - Agent Teams feature flag not enabled – check for CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS
 - Not spawning troubleshooter on escalation
@@ -96,6 +96,8 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 - **FIS paths must be absolute in multi-repo setups** – FIS files live in the plan repo but agents work in `CODE_DIR`. Relative FIS paths won't resolve from the code repo. The orchestrator must convert all FIS paths to absolute before passing them to agents
 - **Merge/cleanup commands must target CODE_DIR** – all `git merge`, `git checkout`, `git branch`, `git worktree remove` in Step 6d and Step 9 must use `git -C {CODE_DIR}` to target the code repo, not the orchestrator's CWD
 - **Status updates get dropped when context is exhausted** – plan and FIS checkbox updates (Step 6f) are GATES that block the next phase, not optional cleanup. Update immediately after each story completes
+- Not updating STATE.md when phases transition or blockers are discovered – state drift causes session continuity loss
+- **Agents writing to STATE.md** – only the orchestrator updates STATE.md; implementers and reviewers must NOT write to it (avoids race conditions with parallel agents)
 
 ### Helper Scripts
 Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
@@ -121,6 +123,8 @@ If Agent Team tools are NOT available (experimental feature not enabled):
 
 ### Step 2: Parse Plan
 
+0. **Load session state** – Read `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`) if it exists. Extract session continuity notes (context from previous sessions), active stories and their status (detect resumed work), blockers (may affect execution order), and current phase (verify alignment with plan). If STATE.md does not exist, skip – it is optional.
+
 1. Read `PLAN_DIR/plan.md`
 2. If plan file missing, **STOP** and recommend `andthen:plan` first
 3. Extract:
@@ -134,33 +138,24 @@ If Agent Team tools are NOT available (experimental feature not enabled):
 **Gate**: Plan parsed and phases identified
 
 
-### Step 3: Generate Specs (Parallel Sub-Agents)
+### Step 3: Generate Specs (via spec-plan)
 
-Before setting up the Agent Team, pre-generate all FIS documents for the current phase using parallel sub-agents. Specs produce documentation (low conflict risk), so they can safely run in parallel without worktree isolation.
+Before setting up the Agent Team, pre-generate all FIS documents for the current phase by delegating to `andthen:spec-plan`. This handles parallel sub-agent creation (opus model), wave ordering, cross-cutting review, and plan.md updates.
 
 > **This step repeats for each phase** – generate specs for Phase N stories before starting the Agent Team pipeline for that phase (see Step 6).
 
-For each story in the current phase that does **not** already have a FIS:
-
-1. **Check for existing FIS** – Look for a FIS path in the story's `**FIS**` field in `plan.md`, or search the spec output directory (typically `docs/specs/`, or as configured in your project's Document Index). If a valid FIS exists, skip that story.
-
-2. **Spawn parallel sub-agents** – One opus sub-agent per story needing a spec. Each sub-agent runs `/andthen:spec story {story_id} of {PLAN_DIR}/plan.md` (or `$andthen:spec ...`).
-
-**Sub-agent prompt template** for spec generation (use `/` or `$` prefix depending on agent platform):
+Run (use `/` or `$` prefix depending on agent platform):
 ```
-Create a Feature Implementation Specification for story {story_id}: {story_name}
-Plan: {PLAN_DIR}/plan.md
-Story scope: {story_scope}
-
-Run: /andthen:spec story {story_id} of {PLAN_DIR}/plan.md
-Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting.
-Report back: success/failure, FIS path.
+/andthen:spec-plan {PLAN_DIR} --phase {N}
 ```
 
-**Model assignment**: Use `model: "opus"` for all spec sub-agents (deep reasoning is the highest-leverage factor for spec quality).
+`spec-plan` handles:
+- Checking for existing FIS (skips stories that already have one)
+- Spawning parallel opus sub-agents per story (wave-ordered, up to 5 concurrent)
+- Cross-cutting review to catch inter-story inconsistencies
+- Fixing CRITICAL/HIGH issues and updating plan.md FIS fields
 
-3. **Wait for all spec sub-agents to complete** for the current phase.
-4. **Update plan.md** – Set each story's `**FIS**` field to the generated spec path.
+After `spec-plan` completes, re-read `plan.md` to pick up updated FIS paths.
 
 **Gate**: All stories in current phase have FIS documents
 
@@ -200,7 +195,7 @@ Teammates must be spawned into the team (with `team_name` and `name`) so they sh
 | Reviewer | `sonnet` | Efficient validation and fix loops |
 | Troubleshooter | `sonnet` | Fast diagnosis and targeted fixes |
 
-> **Note**: Spec generation is handled by parallel sub-agents _before_ the Agent Team starts (see Step 3). The team only handles implementation and review.
+> **Note**: Spec generation is delegated to `andthen:spec-plan` _before_ the Agent Team starts (see Step 3). The team only handles implementation and review.
 
 **Implementers** (`model: "sonnet"`) – Work on pre-assigned `impl-{story_id}` tasks. For each task: ensure CWD is `CODE_DIR`, enter an isolated worktree via `EnterWorktree`, run `/andthen:exec-spec {fis_path}` (or `$andthen:exec-spec {fis_path}`) with absolute FIS path, commit all changes, exit worktree with `action: "keep"` (preserves the branch for merge), then mark task complete. Output: implemented story on a worktree branch in `CODE_DIR`.
 
@@ -292,7 +287,9 @@ For each phase in the plan:
 
 #### 6a. Generate Specs for This Phase
 
-Run Step 3 (Generate Specs) for the current phase's stories. All FIS documents must exist before creating implementation tasks.
+**Update project state** (if STATE.md exists): Use `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `andthen:ops update-state status "On Track"` to record the active phase.
+
+Run Step 3 (Generate Specs via `spec-plan`) for the current phase's stories. All FIS documents must exist before creating implementation tasks.
 
 #### 6b. Create Pipeline Tasks (Pre-Assigned)
 
@@ -383,6 +380,8 @@ Also update each completed FIS file:
 - Mark all task checkboxes as checked (`- [x]`)
 - Mark success criteria and Final Validation Checklist items as checked
 
+**Update STATE.md** (if it exists): Use `andthen:ops update-state active-story {story_id} Done` to reflect completion. If the next story is starting, also run `andthen:ops update-state active-story {next_story_id} "{next_story_name}" "In Progress"`.
+
 After ops completes, **re-read plan.md and the FIS file** to verify updates were applied (`ops` runs in fork context and modifications may not be visible in your current state).
 
 Move to next phase only after ALL stories in current phase are complete and plan is updated.
@@ -395,12 +394,12 @@ Move to next phase only after ALL stories in current phase are complete and plan
 
 ```
 Phase 1 (Sequential – W1: S01, W2: S02):
-  [spec-S01, spec-S02 in parallel]
+  spec-plan --phase 1 (parallel spec creation + cross-cutting review)
   W1: impl-S01 (worktree) → MERGE W1 → review-S01 (main)
   W2: impl-S02 (worktree) → MERGE W2 → review-S02 (main)
 
 Phase 2 (Parallel – W1: S03[P], S04[P] | W2: S05 depends on S03):
-  [spec-S03, spec-S04, spec-S05 in parallel]
+  spec-plan --phase 2 (parallel spec creation + cross-cutting review)
   W1: impl-S03 (worktree) ─┐
       impl-S04 (worktree) ─┤→ MERGE ALL W1 → review-S03 + review-S04 (main, parallel)
                             │
@@ -454,11 +453,23 @@ Spawn a **general-purpose sub-agent** _(if supported by your coding agent)_ to u
 - **Agent reports failure** via message → orchestrator spawns an **on-demand Troubleshooter** teammate (`andthen:build-troubleshooter`) with issue context → creates a `fix-{story_id}` task → troubleshooter diagnoses and fixes → shuts down troubleshooter after resolution → escalates to user only if troubleshooter also fails
 - **Dependent stories stay blocked** when a predecessor fails
 - **If >50% of a phase fails** → pause execution, notify user with failure summary
+- **Update STATE.md on failure** (if it exists): Use `andthen:ops update-state status "At Risk"` (or `"Blocked"` for critical failures). Add blockers via `andthen:ops update-state blocker "{description}"`.
 
 
 ## COMPLETION
 
 When all phases are complete, print a summary including: stories completed, total phases, verification results (build/test status), and the path to the updated `PLAN_DIR/plan.md`.
+
+
+## Post-Completion: Update Project State
+
+After all phases complete (or if execution is interrupted/paused), update STATE.md via `andthen:ops` (if it exists):
+- Set phase to the completed (or current) phase
+- Set status to reflect outcome (`On Track` if all passed, `At Risk` if issues remain)
+- Clear completed stories from Active Stories (mark as `Done`)
+- Add a session continuity note summarizing: what was completed, what remains, any context the next session needs
+
+Example: `andthen:ops update-state note "exec-plan-team complete: {N}/{M} stories done, all phases passed"` (or describe what remains if interrupted).
 
 
 ## Post-Completion: Update Project Learnings
@@ -480,9 +491,11 @@ Keep entries brief (1-2 sentences each). Do NOT record what was implemented (tha
 If Agent Teams unavailable (Step 1 check fails), suggest the manual equivalent:
 
 ```bash
-# For each story in plan order (/ for Claude Code, $ for Codex):
-/andthen:spec story S01 of path/to/plan.md       # or $andthen:spec ...
-/andthen:exec-spec path/to/fis/s01-story-name.md  # or $andthen:exec-spec ...
-/andthen:review-gap path/to/fis/s01-story-name.md # or $andthen:review-gap ...
+# 1. Generate all specs first (/ for Claude Code, $ for Codex):
+/andthen:spec-plan path/to/plan                    # or $andthen:spec-plan ...
+
+# 2. Then for each story in plan order:
+/andthen:exec-spec path/to/fis/s01-story-name.md   # or $andthen:exec-spec ...
+/andthen:review-gap path/to/fis/s01-story-name.md  # or $andthen:review-gap ...
 # ... repeat for each story
 ```
