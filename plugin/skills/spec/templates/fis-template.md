@@ -4,21 +4,19 @@
 > Executable specification optimized for AI agents – concise, actionable, reference-heavy.
 >
 > **Core Principles:**
-> 1. **References over Content**: Link to docs, code (file:line), and research – don't inline them
-> 2. **Decisions, not Explanations**: State what to do, not lengthy rationale
+> 1. **Intent over Implementation**: Describe outcomes, goals and context, not exact code changes — the implementing agent decides *how*
+> 2. **References over Content**: Link to docs, code (file:line), and research – don't inline them
 > 3. **Patterns by Reference**: Point to existing code patterns (file:line) rather than reproducing them
-> 4. **Validation at Execution**: Code is written during exec-spec, not spec
-> 5. **Information Dense**: Keywords and patterns from the codebase, minimal prose
->
-> **Size Constraint:**
-> - Target: **300-500 lines** max for most features
-> - If exceeding 500 lines, split into multiple specs or extract shared content to referenced files
+> 4. **Decisions, not Explanations**: State the decision, not lengthy rationale
+> 5. **Validation at Execution**: Code is written during exec-spec, not spec
+> 6. **Information Dense**: Keywords and patterns from the codebase, minimal prose
 >
 > **DON'Ts**
 > - ❌ Code snippets longer than 5-10 lines – reference existing patterns instead
 > - ❌ Inline documentation excerpts – link to the source
 > - ❌ Verbose prose or explanations – be terse and actionable
 > - ❌ Repeating information available elsewhere – reference it
+> - ❌ Describing code changes or file creation steps – describe outcomes and goals instead
 > - ❌ Over-engineering or out-of-scope functionality
 
 
@@ -31,7 +29,12 @@ State what must be observably TRUE when this feature is complete:
 - [ ] {{Observable truth from user's perspective}}
 - [ ] {{Verifiable system behavior}}
 - [ ] {{Measurable technical requirement}}
-- [ ] {{Performance/scaling requirement}}
+
+### Health Metrics (Must NOT Regress)
+Existing behaviors and baselines that must be preserved — guards against Goodhart-style optimization:
+- [ ] {{Existing tests continue to pass}}
+- [ ] {{Performance baseline not degraded}}
+- [ ] {{Existing API contracts / interfaces unchanged (unless explicitly scoped)}}
 
 
 ## Scope & Boundaries
@@ -50,6 +53,10 @@ State what must be observably TRUE when this feature is complete:
 - ❌ Don't {{common mistake}} - instead {{correct approach}}
 - ❌ Don't {{framework misuse}} - use {{proper pattern}}
 - ❌ Don't {{reinvent wheel}} - use existing {{utility/pattern}}
+
+### Agent Decision Authority (optional — include when scope boundaries are ambiguous)
+- **Autonomous**: {{Decisions the agent can make — e.g. internal naming, data structures, file organization}}
+- **Escalate**: {{Decisions requiring human input — e.g. new external dependencies, API contract changes, scope expansion}}
 
 
 ## Solution Architecture and Design
@@ -125,58 +132,32 @@ Below is an overview of the tasks that make up the implementation plan.
 
 > **Vertical slice ordering**: Order groups so the first group produces a thin but working end-to-end path through all layers. Subsequent groups widen the slice with additional cases, edge handling, and polish. The goal is a demoable result as early as possible.
 
-_Examples:_
+_Examples — note how tasks describe outcomes, not code changes:_
 
 #### G1: Project Foundation ← [depends: none]
-- [ ] **TI01** Initialize Fresh project structure in repository root
-  - Create deno.json with Fresh dependencies and tasks
-  - Set up basic routes/, islands/, components/, lib/ directories
-  - Configure import maps and TypeScript settings
-  - **Verify**: [Exists] `routes/`, `islands/`, `components/`, `lib/` dirs present; [Substantive] deno.json contains `fresh` dependency and `start`/`build` tasks; [Wired] import map resolves; [Functional] `deno task check` passes
+- [ ] **TI01** Working Fresh project scaffold with dev server
+  - Deno + Fresh framework, standard directory layout (routes/, islands/, components/, lib/)
+  - Dev server, build, lint, and type-check tasks all operational
+  - **Verify**: `deno task check` passes; `deno task start` serves on localhost
 
-- [ ] **TI02** Configure Supabase integration and environment
-  - Create .env.example and .env files with Supabase credentials
-  - Set up lib/supabase/client.ts and lib/supabase/server.ts
-  - Configure database connection and authentication helpers
-  - **Verify**: [Exists] `lib/supabase/client.ts` and `lib/supabase/server.ts` present; [Substantive] `createClient()` and `createServerClient()` have real implementations (not stubs); [Wired] `.env.example` lists `SUPABASE_URL` and `SUPABASE_ANON_KEY`; [Functional] type-check passes
+- [ ] **TI02** Supabase integration with server and browser clients
+  - Authenticated Supabase access from both server routes and browser islands
+  - Environment variables documented in .env.example
+  - Follow pattern: `lib/db/client.ts:1-20`
+  - **Verify**: Type-check passes; both clients importable from `lib/supabase/`
 
 #### G2: Development Tooling [P] ← [depends: G1]
-- [ ] **TI03** Set up development tooling and scripts
-  - Configure deno fmt, deno lint, and deno check tasks
-  - Set up Playwright for E2E testing in tests/e2e/
-  - Create development and deployment scripts
-  - **Verify**: [Exists] deno.json contains `fmt`, `lint`, `check` tasks; [Substantive] `tests/e2e/playwright.config.ts` has base URL configured; [Wired] tasks are runnable from deno.json; [Functional] `deno task lint` executes without config errors
+- [ ] **TI03** Linting, formatting, and E2E test infrastructure
+  - Deno fmt/lint/check configured as runnable tasks
+  - Playwright configured for E2E tests in tests/e2e/
+  - **Verify**: `deno task lint` runs cleanly; Playwright config resolves
 
 #### G3: Design System [P] ← [depends: G1]
-- [ ] **TI04** Integrate design system foundation
-  - Add Pico CSS CDN link and Google Fonts (Nunito Sans, Outfit)
-  - Create static/styles/architecture-theme.css with custom variables
-  - Set up responsive design system per ADR-002
-  - Update barrel exports
-  - **Verify**: [Exists] `architecture-theme.css` present; [Substantive] defines color, spacing, and typography custom properties per ADR-002; [Wired] root layout includes Pico CSS and Google Fonts links; [Functional] styles render correctly in browser
-
-#### Grouping Constraints
-- **Max 4 implementation tasks per group** (test groups can have up to 6)
-- **Never group across independent concerns** – if tasks touch unrelated subsystems, keep them in separate groups
-- **Absorb trivial tasks** – barrel exports, verification steps, cleanup tasks go into the nearest related group rather than standing alone
-- **Tests group together** – all test tasks for a feature form one group (split if >6 tasks)
-
-#### Implementation Notes (per task, only when needed)
-- Reference existing patterns: `see src/components/Modal.tsx:45-78 for similar pattern`
-- Only include pseudocode (max 5-10 lines) when no existing pattern exists in codebase
-- Configuration/data models: describe structure briefly, don't write full schemas
-
-#### Verification Criteria (per task, required)
-Each task's **`Verify:`** line must check all 4 dimensions:
-- **Exists**: file/path/route is present
-- **Substantive**: contains real implementation (not stubs, TODOs, or placeholders)
-- **Wired**: integrated into the system (imported, routed, called)
-- **Functional**: works when invoked (build passes, test passes, or observable behavior)
-
-Where applicable, verification should trace back to the feature's must-be-TRUE success criteria.
-
-Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md` for stub-detection
-and wiring-check patterns.
+- [ ] **TI04** Design system foundation matching ADR-002
+  - Pico CSS + Google Fonts (Nunito Sans, Outfit) integrated
+  - Custom theme variables (color, spacing, typography) per ADR-002
+  - Responsive breakpoints configured
+  - **Verify**: Dev server renders themed page; CSS custom properties inspectable in browser
 
 ### Testing Strategy
 > Defines what to test and how – gives the testing agent concrete direction during exec-spec.

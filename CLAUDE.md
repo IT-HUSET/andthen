@@ -72,6 +72,10 @@ Always fully read relevant guidelines below as needed, based on the type of work
 - _`docs/guidelines/UX-UI-GUIDELINES.md`_ when doing UX/UI related work
 - _`docs/guidelines/WEB-DEV-GUIDELINES.md`_ when doing web development work
 
+- _`docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md`_ when doing prompt engineering work, i.e. writing skill prompts, agent system prompts, etc.
+   - For Anthropic/Claude models, see also _`docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES-CLAUDE.md`_
+   - For OpenAI GPT models, see also _`docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES-GPT.md`_
+
 
 ---
 

@@ -22,3 +22,4 @@
 - **Use `git mv`** for moving/renaming tracked files — preserves blame history.
 - **Do not reformat entire projects**: Only format code you are modifying. Format entire files or directories only upon explicit request.
 - **Do not use `git rebase --skip`** — it causes data loss. Ask the user for help with rebase conflicts instead.
+- **Don't use em dashes** in any text, use en dash (–) instead. 

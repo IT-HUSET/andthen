@@ -41,8 +41,10 @@ ARGUMENTS: $ARGUMENTS
 
 ## GOTCHAS
 - Generating a FIS without reading the codebase first – architecture analysis must precede specification
-- Over-specifying implementation details that constrain the implementer unnecessarily
+- **Describing detailed code changes instead of outcomes** – tasks should state what must be TRUE when done, not _exactly_ what code to write. The implementing agent decides *how*. Bad: "Create lib/auth.ts with login() and logout() functions". Good: "Auth module with login/logout capability; follow pattern at lib/users.ts:10-30"
+- Over-specifying implementation details that constrain the implementer unnecessarily – a spec that reads like a diff is too detailed
 - Acceptance criteria that can't be verified programmatically – every criterion needs a verify command
+- **Over-researching** – the goal is enough context to write a clear spec, not exhaustive exploration. Default to skipping research phases unless clearly needed (e.g. gap in requirements, unfamiliar APIs/libraries, or novel features etc). 
 
 
 ## ORCHESTRATOR ROLE _(if supported by your coding agent)_
@@ -111,8 +113,8 @@ You are the orchestrator. Your job is to:
 - Determine _completeness of requirements_ - Identify any ambiguities or missing details that need clarification
   - **Identify** if additional research is needed
 
-#### Additional Research - If Needed
-- Only perform research if the feature request lacks sufficient detail or context
+#### Additional Research - Only If Needed
+- **Keep research minimal** — gather just enough context to write a clear spec, not to exhaustively explore. Default to skipping research sub-phases unless clearly needed.
 - Use **parallel sub-agents** _(if supported by your coding agent)_ for research tasks - multiple Task calls in one message.
 - Save findings to _`<project_root>/.agent_temp/research/{feature-name}/`_ **only** if substantial, and add links to generated FIS. Note: If only a file/URL is needed, do not create a research file, just add the reference.
 
@@ -179,12 +181,13 @@ Ask ONLY if implementation is blocked by ambiguity.
 **USE THE TEMPLATE**: Generate the FIS using the template in the **Appendix** below as your structure.
 
 #### Key Generation Guidelines
-1. Each task: atomic, self-contained, with file:line references. Group related tasks into Execution Groups (see Grouping Heuristics below)
-2. Mark parallelizable **groups** with [P] and declare group dependencies. Tasks within a group are always sequential
-3. Reference patterns, don't reproduce them
-4. Each task must include a **`Verify:`** line – concrete, observable proof that the task was completed correctly (e.g. command output, file existence, test result, UI state). This enables meaningful gap analysis during execution.
-5. Stay within 300-500 line target
-6. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
+1. **Outcomes, not code changes**: Each task describes what must be TRUE when done, not what code to write. The implementing agent determines the implementation. Avoid pseudocode and code snippets — only add implementation detail when the agent would otherwise lack critical context (unusual APIs, non-obvious constraints).
+2. Each task: atomic, self-contained, with file:line references to patterns to follow. Group related tasks into Execution Groups (see Grouping Heuristics below)
+3. Mark parallelizable **groups** with [P] and declare group dependencies. Tasks within a group are always sequential
+4. Reference patterns, don't reproduce them
+5. Each task must include a **`Verify:`** line – a concrete, observable check proving the outcome (command output, test result, behavior). Prefer functional checks (`build passes`, `API returns 200`, `test suite green`) over structural ones (`file exists`). Where applicable, trace verification back to the feature's Success Criteria. Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md` for stub-detection and wiring-check patterns.
+6. Stay within 200-400 line target (shorter is better)
+7. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
 
 #### Task Grouping Heuristics
 After defining individual tasks (TI01, TI02...), organize them into **Execution Groups**.

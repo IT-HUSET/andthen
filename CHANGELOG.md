@@ -6,6 +6,17 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.8.2] – 2026-03-29
+
+### Changed
+- **`clarify` requirements vs. implementation boundary** – added explicit guardrails preventing clarify from drifting into implementation-level decisions (architecture patterns, library choices, data storage strategies). New "Requirements vs. Implementation Boundary" section in GOTCHAS with concrete DO/DO NOT lists, scoped design space decomposition to user-visible/product-level dimensions only, and added inline scope guard at the step where drift occurs
+- **`spec` outcome-focused tasks** – tasks now describe what must be TRUE when done, not what code to write. New gotcha against describing detailed code changes. Reduced spec size target from 300–500 to 200–400 lines. Added over-researching gotcha to keep research phases minimal. Authoring instructions (Grouping Constraints, Implementation Notes, Verification Criteria guidance) moved from FIS template into spec skill – template now only contains sections that appear in generated output
+- **FIS template revision** – "Intent over Implementation" added as core principle #1. Example tasks rewritten as outcome-focused. New "Health Metrics" section for anti-regression baselines. New "Agent Decision Authority" section for scope boundary clarity. Verification criteria simplified from 4-dimension checklist to functional checks. Removed authoring meta-instructions that don't belong in generated output
+- **Prompt engineering guidelines** – added `docs/prompt-guidelines/` with guidelines for prompt engineering work, including Claude-specific and GPT-specific supplements. Referenced from CLAUDE.md
+- **Guardrails** – added en dash (–) preference over em dash (—) rule
+
+---
+
 ## [0.8.1] – 2026-03-24
 
 ### Changed

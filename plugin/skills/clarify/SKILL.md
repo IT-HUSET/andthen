@@ -26,7 +26,7 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Interactive process** - Ask questions iteratively; don't assume answers. After asking questions, **STOP and WAIT** for user responses before proceeding
 - **Be thorough** - Challenge assumptions, find edge cases, identify ambiguities
-- **Stay focused** - Clarify requirements, don't design solutions
+- **Stay focused** - Clarify requirements, don't design solutions. Requirements describe *what* the system must do and *what choices users and stakeholders face*. Implementation describes *how* the system achieves it technically – that belongs in `andthen:spec` or `andthen:trade-off`
 - **Document decisions** - Record rationale for scope choices and trade-offs
 
 
@@ -34,6 +34,24 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 - Agent answers its own questions instead of waiting for user input – STOP and WAIT is critical
 - Scope creep: expanding beyond the original request – stay focused on what was asked
 - Jumping to solution design instead of requirement discovery
+- Drifting into implementation-level decisions during design space decomposition – see boundary below
+
+### Requirements vs. Implementation Boundary
+Clarify operates at the **requirements level** – decisions that users, stakeholders, or product owners care about. Technical choices that only developers would evaluate belong downstream in `andthen:spec` or `andthen:trade-off`.
+
+**Do NOT explore or resolve** (defer to `andthen:spec` / `andthen:trade-off`):
+- Technical architecture patterns (e.g., REST vs. GraphQL, monolith vs. microservices)
+- Library, framework, or tooling choices
+- Data storage or caching strategies (e.g., Redis vs. in-memory, SQL vs. NoSQL)
+- Internal API design (protocols, serialization, error code schemes)
+- Code structure, file organization, or module boundaries
+
+**DO explore and resolve** (requirements-level):
+- User-facing behavior and interaction models (e.g., social login vs. email+password, wizard vs. progressive profile)
+- Product scope and feature boundaries (e.g., real-time updates vs. manual refresh *as a user experience*)
+- Workflow and process decisions (e.g., approval flow vs. self-serve, single-step vs. multi-step)
+- Content and information architecture (e.g., flat list vs. categories, search vs. browse)
+- Access control models (e.g., role-based vs. team-based – *who can do what*, not *how it's enforced*)
 
 
 ## WORKFLOW
@@ -63,12 +81,14 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 
 5. **Design space decomposition** _(see `plugin/references/design-tree.md`)_
 
-   When the feature involves design decisions with multiple viable approaches – whether architectural, UI/UX, or user-facing functionality – decompose the solution space into independent dimensions:
+   When the feature involves **user-visible or product-level** design decisions with multiple viable approaches, decompose the solution space into independent dimensions:
 
-   - Identify **independent dimensions of choice** (e.g., navigation model, data display, authentication method, interaction pattern) – these are peers, not a hierarchy
+   - Identify **independent dimensions of choice** at the requirements level (e.g., navigation model, data display, authentication method, interaction pattern, onboarding flow) – these are peers, not a hierarchy
    - List viable options per dimension (2–5 each)
    - Perform **cross-consistency assessment**: evaluate pairwise compatibility between options across dimensions, marking incompatible or conditional pairings with rationale
    - Use the decomposition to generate targeted questions for the discovery interview – each unresolved dimension is a question to ask
+
+   > **Scope guard**: Only decompose dimensions where the *user or stakeholder* would recognize the options as meaningfully different. If a dimension is purely technical (e.g., caching strategy, API protocol, database engine), flag it as a downstream concern for `andthen:spec` or `andthen:trade-off` – do not decompose it here. See **Requirements vs. Implementation Boundary** in GOTCHAS.
 
    Include the decomposition in the requirements output so downstream skills (`andthen:plan`, `andthen:spec`) can reference the resolved decisions.
 
