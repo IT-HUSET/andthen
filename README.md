@@ -201,11 +201,16 @@ You have a feature idea – maybe just a sentence, maybe a rough description. He
 
 This starts an **interactive conversation**. Claude analyzes your input, identifies gaps, and asks you 3-5 targeted questions at a time – about scope, user flows, edge cases, success criteria. You answer, it asks more. Typically 2-4 rounds until requirements are solid.
 
-Input can be anything: a sentence, a paragraph, a file path (`@docs/feature-idea.md`), or a GitHub issue URL.
+Input can be anything: a sentence, a paragraph, a file path (`@docs/feature-idea.md`), or a GitHub issue (`--issue 42`).
 
 When done, you'll have a structured requirements document:
 ```
 docs/specs/data-export/requirements-clarification.md
+```
+
+You can also start directly from a GitHub issue:
+```bash
+/andthen:clarify --issue 42
 ```
 
 **Step 2a: Create a spec** *(single feature)*
@@ -224,9 +229,11 @@ docs/specs/data-export/data-export.md
 
 ```bash
 /andthen:plan docs/specs/data-export/
+# Or directly from a GitHub issue:
+/andthen:plan --issue 42
 ```
 
-This picks up `requirements-clarification.md` automatically, creates a PRD (filling any remaining gaps with a brief targeted interview), and breaks it into sequenced stories with phases and dependencies.
+This picks up `requirements-clarification.md` automatically (or fetches the GitHub issue), creates a PRD (filling any remaining gaps with a brief targeted interview), and breaks it into sequenced stories with phases and dependencies.
 
 ```
 docs/specs/data-export/prd.md
@@ -308,7 +315,7 @@ plan    → prd.md + plan.md (story breakdown)
 |---|---|
 | A one-liner or vague idea ("users should be able to export data") | **Use `clarify`** – too many unknowns for a good spec |
 | A rough description with some known requirements but unclear scope/edges | **Use `clarify`** – it will focus on gaps, not re-discover what you know |
-| Well-defined requirements with acceptance criteria (from a PM, a detailed issue) | **Skip `clarify`** – go straight to `spec` or `plan` |
+| Well-defined requirements with acceptance criteria (from a PM, a detailed issue) | **Skip `clarify`** – go straight to `spec --issue 42` or `plan --issue 42` |
 | Existing requirements doc or Notion page | **Skip `clarify`** – pass the file/URL directly to `spec` or `plan` |
 
 **Rule of thumb:** If you can't list 3 concrete acceptance criteria for the feature, run `clarify` first.
@@ -334,11 +341,11 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | Skill | Purpose |
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
-| `clarify` | Requirements discovery – from vague idea to structured requirements |
-| `spec` | Generate Feature Implementation Specification from requirements |
+| `clarify` | Requirements discovery – from vague idea to structured requirements (supports `--issue`) |
+| `spec` | Generate Feature Implementation Specification from requirements (supports `--issue`) |
 | `exec-spec` | Execute a FIS – orchestrated implementation with validation |
 | `review-gap` | Gap analysis + code review against requirements |
-| `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
+| `plan` | Requirements discovery + PRD creation (if needed) + story breakdown (supports `--issue`) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 | `spec-plan` | Batch-create all FIS specs for a plan (parallel + cross-cutting review) |
 | `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |

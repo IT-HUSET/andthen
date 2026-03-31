@@ -113,11 +113,11 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | Skill | Purpose |
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
-| `clarify` | Requirements discovery – from vague idea to structured requirements |
-| `spec` | Generate Feature Implementation Specification from requirements |
+| `clarify` | Requirements discovery – from vague idea to structured requirements (supports `--issue`) |
+| `spec` | Generate Feature Implementation Specification from requirements (supports `--issue`) |
 | `exec-spec` | Execute a FIS – orchestrated implementation with validation |
 | `review-gap` | Gap analysis + code review against requirements |
-| `plan` | Requirements discovery + PRD creation (if needed) + story breakdown |
+| `plan` | Requirements discovery + PRD creation (if needed) + story breakdown (supports `--issue`) |
 | `spec-plan` | Batch-create all FIS specs for a plan (parallel + cross-cutting review) |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 | `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
@@ -166,6 +166,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 ```bash
 # 1. Clarify vague requirements (interactive)
 /andthen:clarify "users should be able to export their data"
+/andthen:clarify --issue 42   # or from a GitHub issue
 # → docs/specs/data-export/requirements-clarification.md
 
 # 2. Generate implementation spec (picks up clarified requirements automatically)
@@ -190,6 +191,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 
 # 3. Generate plan (includes PRD creation if needed + story breakdown)
 /andthen:plan docs/specs/dashboard/
+/andthen:plan --issue 42   # or directly from a GitHub issue
 
 # 4a. Execute all stories via pipeline (default per-story review)
 /andthen:exec-plan docs/specs/dashboard/
