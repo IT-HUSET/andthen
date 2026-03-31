@@ -1,6 +1,6 @@
 ---
 description: Create PRD and implementation plan with story breakdown. Discover requirements interactively when no PRD exists, or build on prior artifacts from `andthen:clarify`. Lightweight planning - detailed specs are created later via `spec` or `spec-plan`.
-argument-hint: "[Specs directory or requirements source] [--to-issue]"
+argument-hint: "[Specs directory or requirements source] | --issue <number> [--to-issue]"
 ---
 
 # Create PRD & Implementation Plan
@@ -21,8 +21,20 @@ INPUT: $ARGUMENTS
 _Output directory (defaults to input directory, or `<project_root>/docs/specs/` for new PRDs):_
 OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as configured in **Project Document Index**)_
 
-### Optional Output Flags
+### Optional Flags
+- `--issue <number>` → Fetch and use a GitHub issue as requirements input
 - `--to-issue` → PUBLISH_ISSUE: Publish plan as a GitHub issue after saving locally
+
+
+## USAGE
+
+```
+/plan docs/specs/my-feature/            # From directory with PRD or prior artifacts
+/plan @docs/requirements.md             # From requirements file
+/plan --issue 42                        # From GitHub issue
+/plan "Build a user dashboard"          # From inline description
+/plan docs/specs/my-feature/ --to-issue # Create plan and publish to GitHub issue
+```
 
 
 ## INSTRUCTIONS
@@ -54,6 +66,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 ### 1. Input Validation & PRD Detection
 
 1. **Parse INPUT** - Determine type:
+   - **`--issue` flag present** (or INPUT refers to a GitHub issue): Extract issue number from INPUT, use `gh issue view <number>` to fetch issue details (title, body, labels, comments). Use issue content as requirements input. Store issue number for reference in generated plan. → proceed to Step 1b
    - **Directory with PRD**: `INPUT` is a directory containing `prd.md` → proceed to Step 2
    - **Directory with prior artifacts**: `INPUT` is a directory containing `requirements-clarification.md` (from `andthen:clarify`) and/or a draft PRD (`prd-draft.md`), but no finalized `prd.md` → proceed to Step 1c
    - **File path**: Read and extract requirements → proceed to Step 1b
@@ -656,8 +669,11 @@ Use the `andthen:review-doc` skill to validate plan for:
 
 ```
 OUTPUT_DIR/
+├── prd.md     # Product Requirements Document (if created)
 └── plan.md    # Implementation plan
 ```
+
+- If from GitHub issue: use `issue-{number}-{feature-name}/` as the output subdirectory name (e.g. `docs/specs/issue-42-user-dashboard/plan.md`). Include issue reference in the PRD and plan document headers.
 
 When complete, print the output's **relative path from the project root**. Do not use absolute paths.
 

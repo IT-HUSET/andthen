@@ -1,6 +1,6 @@
 ---
 description: Clarify requirements through systematic discovery of gaps, edge cases, and scope boundaries. Trigger on 'clarify', 'what are the requirements', 'discover requirements'.
-argument-hint: "[Requirements source - description, file path, or GitHub issue URL]"
+argument-hint: "[Requirements source - description, file path, or --issue <number>]"
 ---
 
 # Clarify Requirements
@@ -14,8 +14,20 @@ Transform incomplete requirements into complete, actionable specifications throu
 _Requirements to clarify (**required**):_
 INPUT: $ARGUMENTS
 
+### Optional Flags
+- `--issue <number>` → Fetch and use a GitHub issue as requirements input
+
 _Output directory for clarified requirements:_
 OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Document Index**)_
+
+
+## USAGE
+
+```
+/clarify "Users need to export data in multiple formats"  # From inline description
+/clarify @docs/feature-request.md                         # From requirements file
+/clarify --issue 42                                       # From GitHub issue
+```
 
 
 ## INSTRUCTIONS
@@ -58,7 +70,8 @@ Clarify operates at the **requirements level** – decisions that users, stakeho
 
 ### 1. Parse and Assess Input
 
-1. **Parse INPUT** - Determine type: inline description, file path, or URL
+1. **Parse INPUT** - Determine type: inline description, file path, `--issue`, or URL
+   - If `--issue` flag present (or INPUT refers to a GitHub issue): Extract issue number from INPUT, use `gh issue view <number>` to fetch issue details (title, body, labels, comments). Use issue content as requirements input. Store issue number for reference in output.
    - If file path: Read and extract requirements
    - If URL: Fetch and extract requirements
    - If description: Use directly
@@ -298,6 +311,7 @@ Generate markdown document with:
 ```
 
 Store report in: `OUTPUT_DIR/<feature-name>/requirements-clarification.md`
+- If from GitHub issue: use `issue-{number}-{feature-name}/` as the output subdirectory name (e.g. `docs/specs/issue-42-data-export/requirements-clarification.md`). Include issue reference in the document header.
 
 If domain language extraction was performed, also store: `docs/UBIQUITOUS_LANGUAGE.md` _(or as configured in **Project Document Index**)_
 
