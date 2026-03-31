@@ -6,6 +6,18 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.8.3] – 2026-03-31
+
+### Added
+- **Review evaluator calibration** – new `plugin/references/review-calibration.md` shared reference with anti-leniency protocol, contrastive severity examples (IS/is NOT Critical/High), over-lenient review scenario, finding quality calibration, and false positive traps. Loaded by both `review-gap` and `review-code`
+- **Adversarial Challenger for `review-gap`** – new Step 6 spawns a sub-agent with fresh context to challenge all findings (VALIDATED/DOWNGRADED/WITHDRAWN verdicts). Counters self-evaluation bias where evaluators identify issues then rationalize approval. Includes severity mapping from `review-code`'s 3-tier to `review-gap`'s 4-tier system
+- **Dimensional scoring with hard thresholds for `review-gap`** – new Step 7 scores Functionality (>=7), Completeness (>=9), and Wiring (>=8) on validated findings only. Any dimension below threshold = FAIL, no negotiation. Produces structured verdict table in Executive Summary for `exec-plan` to parse
+
+### Fixed
+- **Stub detection regex** – replaced wildcard `not.implemented` pattern with precise `not[_ -]implemented|notImplemented` in `verification-patterns.md` and `review-gap`
+
+---
+
 ## [0.8.2] – 2026-03-29
 
 ### Changed

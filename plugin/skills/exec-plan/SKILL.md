@@ -115,7 +115,7 @@ For each story (or group of parallel stories), run the required execution stages
 `/andthen:exec-spec {fis_path}` (or `$andthen:exec-spec {fis_path}`) → Output: implemented story.
 
 **Stage 2 – Review** (`REVIEW_MODE=per-story` only):
-`/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) – If issues found: fix them, then re-validate. **Max 2 fix attempts** – if issues persist after 2 rounds, escalate to the user.
+`/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) – `review-gap` produces a dimensional verdict (PASS/FAIL) in its report Executive Summary. Treat FAIL as "issues found": fix them, then re-validate. Treat PASS as story complete. **Max 2 fix attempts** – if issues persist after 2 rounds, escalate to the user.
 
 When `REVIEW_MODE=none` or `REVIEW_MODE=full-plan`, skip Stage 2 during story execution. `full-plan` runs a single plan-level `review-gap` after all phases complete; `none` leaves post-execution review to the user.
 

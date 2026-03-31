@@ -27,7 +27,7 @@ Use `rg` (ripgrep) to scan for indicators of incomplete implementation:
 
 ### Generic Indicators
 ```bash
-rg "TODO|FIXME|placeholder|not.implemented|lorem ipsum" <path>
+rg "TODO|FIXME|placeholder|not[_ -]implemented|notImplemented|lorem ipsum" <path>
 ```
 
 ### Function Stubs
@@ -132,7 +132,7 @@ ls -la path/to/expected/file
 ### Substance Check
 ```bash
 # Scan for stub indicators in recently changed files
-rg "TODO|FIXME|placeholder|not.implemented" <changed-files>
+rg "TODO|FIXME|placeholder|not[_ -]implemented|notImplemented" <changed-files>
 
 # Check for empty function bodies (JS/TS)
 rg "=>\s*\{\s*\}" <changed-files>

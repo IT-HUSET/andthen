@@ -42,6 +42,7 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Read-only analysis** – no code changes or commits. The only file you write is the final report.
 - **Be thorough** - Don't skip steps or rush analysis; completeness is critical
+- **Calibrate severity rigorously** – Read `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` before assigning severity. If you identified a problem, it IS a problem — do not rationalize it away. "It probably works" is not a pass.
 - **Default to workspace-wide resolution** - Do not assume the implementation is in the same repo as the requirements document. In multi-repo workspaces, explicitly locate the implementation target first.
 - **Delegate code review to a sub-agent** _(if supported by your coding agent)_ that uses the `andthen:review-code` skill (do NOT invoke the skill directly)
 - **Document everything** - All findings and recommendations must be captured in final report
@@ -136,7 +137,7 @@ Review general quality, soundness and adherence to guidelines, standards and bes
 #### Code Analysis
 - Run static analysis, linting, type checking as per project guidelines
 - Use IDE diagnostics (`mcp__ide_getDiagnostics`) if available
-- Scan for incomplete implementations: `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` – flag any found as potential gaps
+- Scan for incomplete implementations: `rg "TODO|FIXME|placeholder|not[_ -]implemented|notImplemented" <changed-files>` – flag any found as potential gaps
 
 #### Comprehensive Code Review
 Spawn a **sub-agent** _(if supported by your coding agent)_ (via Task tool, `subagent_type: "general-purpose"`) to perform the code review.
@@ -173,6 +174,7 @@ Systematically identify all gaps between requirements and implementation:
   - Are components wired into the system? (Imported, routed, called, rendered)
   - Do verification commands pass? (Build, tests, type-check)
   - Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
+  - Calibration: `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` – use severity examples and anti-leniency protocol to benchmark findings before recording them
   - Delegate stub detection and wiring checks to a sub-agent _(if supported by your coding agent)_, or use helper scripts from `${CLAUDE_PLUGIN_ROOT}/scripts/` when available
 
 **Gate**: All gaps comprehensively identified and documented
@@ -200,7 +202,80 @@ Think deeply and critically about the implementation choices made:
 **Gate**: Retrospective and deep reflection complete with actionable insights
 
 
-### 6. Remediation Plan
+### 6. Adversarial Challenge
+
+Spawn a **sub-agent** _(if supported by your coding agent)_ to challenge the findings from Steps 3-5. The challenger operates in a fresh context — it sees findings and code, but not the reasoning that produced them. This counters self-evaluation bias (evaluators trend toward leniency without adversarial challenge).
+
+**Sub-agent prompt:**
+
+```
+You are an Adversarial Challenger reviewing gap analysis findings.
+
+Read the calibration reference: ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md
+
+For each finding, evaluate:
+1. "Is this a real gap, or acceptable in context (trade-off, framework convention, intentional choice)?"
+2. "Is the severity justified per the calibration examples?"
+3. "Could there be an existing mitigation the reviewer missed?"
+4. "Would a senior engineer on this codebase flag this in a PR review?"
+
+For each finding, assign a verdict:
+- **VALIDATED** — Finding holds up under scrutiny. State why in one sentence.
+- **DOWNGRADED** — Real issue, but severity is too high. State new severity and why.
+- **WITHDRAWN** — False positive or not applicable. State why.
+
+Do NOT add new findings — your job is to filter, not expand.
+
+Severity mapping: `review-code` emits CRITICAL/HIGH/SUGGESTIONS. Normalize before challenging:
+CRITICAL → Critical, HIGH → High, SUGGESTIONS → Medium.
+
+Review target context: {implementation target paths from Step 0}
+Findings to challenge:
+{all findings from Steps 3-5, including code review sub-agent output}
+```
+
+**Apply verdicts**: Remove WITHDRAWN findings from the working set. Update severity for DOWNGRADED findings. Carry VALIDATED and DOWNGRADED findings forward to subsequent steps.
+
+**Record in report**: Challenge statistics (N validated, N downgraded, N withdrawn) and rationale for each DOWNGRADED and WITHDRAWN verdict.
+
+> **Note**: If sub-agents are not available, execute the challenge inline — review your own findings using the four questions above and apply verdicts. The self-challenge is less effective than a fresh-context sub-agent but still catches obvious false positives.
+
+**Gate**: All findings challenged, verdicts applied
+
+
+### 7. Dimensional Scoring & Verdict
+
+Score the implementation on three dimensions using ONLY the **validated/downgraded findings** that survived the Adversarial Challenge. Each dimension is scored 1-10.
+
+| Dimension | Question | Threshold | Scoring Guide |
+|-----------|----------|-----------|---------------|
+| **Functionality** | Does it work correctly for specified requirements? | >= 7 | 10: all requirements met, edge cases handled. 7: core happy path works, minor gaps. 4: major functionality broken. 1: does not function. |
+| **Completeness** | Are there stubs, TODOs, placeholders, or missing features? | >= 9 | 10: no stubs/TODOs, all features present. 9: trivial TODOs only (comments, minor polish). 7: non-critical features stubbed. 4: significant features missing. 1: mostly stubs. |
+| **Wiring** | Is everything connected end-to-end? (imported, routed, called, rendered, migrated) | >= 8 | 10: all components wired, verified via build/tests. 8: all critical paths wired, minor integration gaps. 5: some components exist but aren't connected. 2: significant unwired code. |
+
+**Verdict rules:**
+- If ANY dimension scores below its threshold: **FAIL**
+- If ALL dimensions meet or exceed thresholds: **PASS**
+- No negotiation. No "conditional pass". No "pass with caveats".
+
+**Output format** (include in report Executive Summary):
+
+```
+## Verdict
+
+| Dimension     | Score | Threshold | Status |
+|---------------|-------|-----------|--------|
+| Functionality | X/10  | >= 7      | PASS/FAIL |
+| Completeness  | X/10  | >= 9      | PASS/FAIL |
+| Wiring        | X/10  | >= 8      | PASS/FAIL |
+
+**Overall: PASS / FAIL**
+```
+
+**Gate**: Scores assigned, verdict determined
+
+
+### 8. Remediation Plan
 
 Prioritized plan for addressing all identified gaps and issues:
 
@@ -221,12 +296,12 @@ Prioritized plan for addressing all identified gaps and issues:
 **Gate**: Actionable remediation plan created
 
 
-### 7. Write Report
+### 9. Write Report
 
 Your job is *ONLY* to analyze and generate report. Do *NOT* make any code changes or commits.
 
 Generate markdown report with:
-- **Executive Summary** - What was analyzed, overall assessment, high-level findings
+- **Executive Summary** - What was analyzed, overall assessment, dimensional verdict table (from Step 7), high-level findings, challenge statistics (N validated/downgraded/withdrawn)
 - **Requirements Analysis** - Requirements identified, ambiguities or unclear items
 - **Implementation Overview** - What was implemented, components/files modified, approach taken
 - **Quality Review Findings** - Code quality, security, architecture, maintainability, UI/UX, performance issues
