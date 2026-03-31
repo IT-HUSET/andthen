@@ -162,7 +162,7 @@ The quickest way to get started:
 /andthen:init
 ```
 
-This interactively sets up your project – generates `CLAUDE.md`, creates selected document types, and copies guidelines. Works for new projects, partial setups, and brownfield codebases.
+This is the single entry point for all project types – new, partial setups, and existing codebases. It interactively generates `CLAUDE.md`, creates selected document types, and copies guidelines. For existing codebases, it offers to run `map-codebase` to auto-generate architecture, stack, and conventions documentation from code analysis.
 
 **Manual setup** – if you prefer to set things up yourself, skills reference your project's `CLAUDE.md` for context. Add these sections:
 
@@ -365,7 +365,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
-| `map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
+| `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
 | `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
 
 ### Agent Teams Variants (Claude Code only)

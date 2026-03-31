@@ -155,6 +155,21 @@ Would you like to:
 4. All of the above
 ```
 
+#### Offer map-codebase (if applicable)
+
+If ARCHITECTURE.md, STACK.md, or a Conventions section in CLAUDE.md are missing, and the codebase has 20+ files, suggest running `map-codebase` to auto-generate them:
+
+```
+Missing architecture/stack/conventions documentation detected.
+Run andthen:map-codebase to auto-generate from codebase analysis? (recommended)
+```
+
+> **CRITICAL**: **STOP and WAIT** for user response.
+
+**If yes**: Run the `andthen:map-codebase` skill (or instruct the user to run `/andthen:map-codebase`). Skip creating ARCHITECTURE.md and STACK.md from templates since map-codebase will produce them from actual code analysis.
+
+**If no**: Continue – the user can create these manually or run map-codebase later.
+
 > **CRITICAL**: **STOP and WAIT** for user response. Do not modify CLAUDE.md or create files without confirmation.
 
 For each confirmed action:

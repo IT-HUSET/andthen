@@ -137,7 +137,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
-| `map-codebase` | Brownfield codebase analysis + reverse requirements discovery |
+| `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
 | `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
 
 ### Agent Teams Variants (Claude Code only)
