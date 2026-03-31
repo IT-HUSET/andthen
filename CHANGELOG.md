@@ -12,8 +12,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`plan` GitHub issue input** – `plan` now accepts `--issue <number>` to fetch a GitHub issue via `gh issue view` and use it as requirements input for PRD and plan creation. Issue-sourced plans use `issue-{number}-{feature-name}/` output directory naming. Added USAGE section with examples
 - **`clarify` GitHub issue input** – `clarify` now accepts `--issue <number>` to fetch a GitHub issue and use it as the starting point for requirements discovery. Previously mentioned "GitHub issue URL" in argument-hint but had no workflow implementation. Added USAGE section with examples
 
+---
+
+## [0.8.5] – 2026-03-31
+
 ### Fixed
 - **`init` missing `map-codebase` suggestion in partial setup path** – when CLAUDE.md already existed (partial setup), `init` never offered to run `map-codebase` for auto-generating architecture, stack, and conventions docs. The suggestion only existed in the brownfield path (no CLAUDE.md). Now both partial setup and brownfield paths offer `map-codebase` when relevant docs are missing
+
+### Changed
+- **READMEs clarify `init` / `map-codebase` relationship** – `init` is the single entry point for all project types; `map-codebase` is delegated to by `init` or run standalone. Updated skill table descriptions and Setup section
 
 ---
 
