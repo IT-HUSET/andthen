@@ -37,6 +37,14 @@ Scan the project to determine the setup path:
 2. **Check for docs/ directory** and existing documents
 3. **Check for package config** (package.json, Cargo.toml, go.mod, pyproject.toml, deno.json, etc.) to infer project name and tech stack
 4. **Check for existing guidelines** in docs/guidelines/ or similar
+5. **Check for monorepo/workspace structure** – look for:
+   - `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`
+   - `"workspaces"` field in root `package.json` (npm/yarn workspaces)
+   - `[workspace]` in root `Cargo.toml` (Rust workspaces)
+   - `go.work` (Go workspaces)
+   - Multiple sub-directories each containing their own package config (e.g. `apps/*/package.json`, `packages/*/package.json`)
+
+   If detected, note the workspace tool, list discovered sub-projects, and set `IS_MONOREPO = true` for use in later steps.
 
 Classify into one of three paths:
 
@@ -81,8 +89,9 @@ Present the available document types and ask which to create:
 Optional project documents (from Project Document Index):
 
 Core (recommended):
-  [ ] docs/LEARNINGS.md    – Accumulated project knowledge and error patterns
-  [ ] docs/STACK.md        – Technology stack documentation
+  [ ] docs/LEARNINGS.md                        – Accumulated project knowledge and error patterns
+  [ ] docs/STACK.md                            – Technology stack documentation
+  [ ] docs/KEY_DEVELOPMENT_COMMANDS.md          – Dev, test, build, deploy commands
 
 Planning (when ready):
   [ ] docs/STATE.md        – Cross-session state tracking
@@ -119,6 +128,42 @@ These are starting points – adapt to your project's needs.
 > **CRITICAL**: **STOP and WAIT** for user response before copying any guidelines.
 
 Copy selected guidelines from the AndThen plugin's guidelines directory.
+
+#### Monorepo: Offer per-sub-project CLAUDE.md files
+
+If `IS_MONOREPO = true`, after the root CLAUDE.md and documents are set up:
+
+```
+Monorepo detected ([workspace tool]: [list of sub-projects]).
+
+Claude Code loads per-directory CLAUDE.md files automatically. This means each
+sub-project can have its own CLAUDE.md with sub-project-specific commands,
+conventions, and context – agents pick it up when working in that directory.
+
+Create per-sub-project CLAUDE.md files? (recommended)
+  [list of discovered sub-projects, e.g.:]
+  [ ] apps/frontend/CLAUDE.md
+  [ ] apps/backend/CLAUDE.md
+  [ ] packages/shared/CLAUDE.md
+```
+
+> **CRITICAL**: **STOP and WAIT** for user response.
+
+For each confirmed sub-project, generate a lightweight `CLAUDE.md` containing:
+- **Sub-project name and brief description** (inferred from its package config, README, or directory name)
+- **Key Development Commands** — inferred from the sub-project's package config scripts, Makefile, Taskfile, etc. Use a compact inline format (no separate file needed per sub-project):
+  ```markdown
+  ## Key Development Commands
+  | Command | Description |
+  |---------|-------------|
+  | `npm run dev` | Start dev server |
+  | `npm test` | Run tests |
+  ```
+- **Sub-project-specific notes** — tech stack, framework, or conventions that differ from the root project
+
+Keep these files short (under ~40 lines). They supplement the root CLAUDE.md, not replace it.
+
+Also update the root `docs/KEY_DEVELOPMENT_COMMANDS.md` (if created) to include per-sub-project command sections.
 
 **Gate**: CLAUDE.md created, selected documents generated
 

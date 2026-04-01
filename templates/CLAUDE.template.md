@@ -41,6 +41,7 @@ _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 | State                | `docs/STATE.md`                     | Cross-session state tracking (current phase, progress, blockers) |
 | Learnings            | `docs/LEARNINGS.md`                 | Accumulated project knowledge and error patterns |
 | Tech Debt            | `docs/TECH-DEBT-BACKLOG.md`         | Known technical debt                    |
+| Key Dev Commands     | `docs/KEY_DEVELOPMENT_COMMANDS.md`  | Dev, test, build, deploy commands       |
 | Changelog            | `CHANGELOG.md`                      | Release history                         |
 | Agent Temp           | `.agent_temp/`                      | Temporary agent workspace (reviews, research, QA) |
 
@@ -146,7 +147,7 @@ See also this skill: `chrome-devtools`
 
 ## Key Development Commands
 
-See `<repository_root>/docs/rules/KEY_DEVELOPMENT_COMMANDS.md` for key commands related to development, running, deployment, testing, formatting, linting, and UI testing.
+See `<repository_root>/docs/KEY_DEVELOPMENT_COMMANDS.md` for key commands related to development, running, deployment, testing, formatting, linting, and UI testing.
 
 
 ---

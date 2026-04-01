@@ -14,6 +14,20 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.8.6] – 2026-04-01
+
+### Added
+- **Monorepo support for `init` and `map-codebase`** – both skills now detect workspace structures (pnpm, yarn, npm, Cargo, Go, nx, turbo, lerna) and adapt accordingly. `init` offers to generate per-sub-project `CLAUDE.md` files with sub-project-specific commands and conventions. `map-codebase` passes sub-project lists to all analysis sub-agents for workspace-aware output
+- **`KEY_DEVELOPMENT_COMMANDS.md` template** – new template in `project-state-templates.md` for documenting dev, test, build, and deploy commands. Includes monorepo-aware per-sub-project command sections
+- **`map-codebase` command discovery** – new sub-agent (2e) auto-discovers development commands from package.json scripts, Makefiles, Taskfiles, CI configs, and README files. Pre-fills the KEY_DEVELOPMENT_COMMANDS template with actual values
+- **`init` offers KEY_DEVELOPMENT_COMMANDS.md** – added to "Core (recommended)" optional documents
+
+### Fixed
+- **`CLAUDE.template.md` dangling reference** – the "Key Development Commands" section referenced `docs/rules/KEY_DEVELOPMENT_COMMANDS.md` but the file had no template and wasn't in the Project Document Index. Now properly referenced at `docs/KEY_DEVELOPMENT_COMMANDS.md` with a Document Index row
+- **`code-simplifier` agent name disambiguation** – `exec-spec`, `quick-implement`, and `refactor` skills now explicitly note to use the full agent name `code-simplifier:code-simplifier` to prevent shortening
+
+---
+
 ## [0.8.5] – 2026-03-31
 
 ### Fixed

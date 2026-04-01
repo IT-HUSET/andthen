@@ -211,6 +211,65 @@ Status: On Track | At Risk | Blocked
 
 ---
 
+## KEY_DEVELOPMENT_COMMANDS.md
+
+> Key commands for development, running, testing, deployment, and code quality. Offloads this from CLAUDE.md to keep it focused on structure and context. For monorepos, organize commands per sub-project.
+
+```markdown
+# Key Development Commands
+
+<!-- Keep commands up to date as the project evolves.
+     For monorepos: add a section per sub-project with its own commands. -->
+
+## Running the Application
+<!-- List commands to start the application in development mode. -->
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Start development server |
+
+Application URL: `TODO` <!-- e.g. http://localhost:3000 -->
+
+## Code Quality (Formatting, Linting, Type Checking)
+<!-- Commands to run after each task to ensure code quality. -->
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Format code |
+| `TODO`  | Lint and type-check |
+
+## Testing
+<!-- Commands to run tests – unit, integration, E2E. -->
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Run all tests |
+| `TODO`  | Run a specific test file |
+
+## Build & Deployment
+<!-- Commands for building and deploying the application. -->
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Production build |
+| `TODO`  | Deploy |
+
+## Visual Validation
+<!-- Remove this section if not applicable. -->
+| Command / Tool | Description |
+|----------------|-------------|
+| `TODO`         | Launch app for manual testing |
+| `TODO`         | Capture screenshot |
+
+<!-- For monorepos, add per-sub-project sections below:
+
+## [sub-project-name] (e.g. apps/frontend)
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Start dev server |
+| `TODO`  | Run tests |
+| `TODO`  | Lint |
+-->
+```
+
+---
+
 ## UBIQUITOUS_LANGUAGE.md
 
 ```markdown

@@ -270,7 +270,7 @@ Structured fix-and-revalidate cycle with bounded iterations:
 As orchestrator (not delegated to sub-agent):
 - Review all group results
 - Check for functionality gaps or requirement mismatches
-- Use `code-simplifier:code-simplifier` agent _(if supported by your coding agent)_ to look for simplification, maintainability, and general quality of life improvement opportunities
+- Use the `code-simplifier:code-simplifier` agent _(if supported by your coding agent)_ to look for simplification, maintainability, and general quality of life improvement opportunities. Note: use the full agent name `code-simplifier:code-simplifier` – do not shorten.
 
 ### Step 5: Verify Completion and Update Status
 **Orchestrator performs directly – all substeps are REQUIRED, not optional cleanup:**
