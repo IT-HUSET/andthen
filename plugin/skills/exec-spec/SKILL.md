@@ -127,6 +127,20 @@ After each group sub-agent completes:
 - **Status updates get dropped when context is exhausted** – update FIS checkboxes immediately after each group completes (Step 2), not as a batch at the end. Plan and FIS status updates in Step 5 are GATES, not optional cleanup
 - Not signaling active-story status to STATE.md when called in a plan context – set "In Progress" at start for faster session recovery if interrupted
 
+### Common Rationalizations
+
+These are the excuses you will generate to skip steps. Recognize them.
+
+| Rationalization | Reality |
+|---|---|
+| "I'll just implement this group directly – spinning up a sub-agent is overhead" | That's how context bloat starts. By group 3 your context is half-consumed with implementation details instead of orchestration state. Delegate every group, even trivial ones. |
+| "I'll batch the checkbox updates at the end" | You won't reach the end with the same context. Checkboxes deferred past group 3 are checkboxes lost. Update immediately after each group – this is a gate, not cleanup. |
+| "The next group will figure out what the previous group did from the code" | Sub-agents start cold – they can't "see" prior work unless you relay it. The "Context for Dependent Groups" output exists because this assumption is always wrong. |
+| "Verification gates between groups slow things down" | A bug in Group 1 that cascades to Groups 2–5 costs far more than a 30-second verification gate. Catching it early is the fast path. |
+| "TV01–TV03 is redundant – I already verified each group" | Group verification checks individual tasks. Validation checks system-level integration, security, and quality. The most common post-ship bugs are integration issues that pass group-level checks. |
+| "I'll skip test scaffolding and write tests during implementation" | Tests written alongside implementation test what you built, not what you should have built. Pre-scaffolded tests are acceptance gates – they verify intent, not incidental behavior. |
+| "The FIS is straightforward, I don't need to re-read it" | You're reading your memory of the FIS, not the FIS. Requirements drift, specs get updated, and your cached understanding diverges. Re-read it. |
+
 ### Helper Scripts
 Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
 - `check-stubs.sh <path>` – scan for incomplete implementation indicators (TODO/FIXME, empty functions, placeholders)

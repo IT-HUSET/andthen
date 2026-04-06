@@ -6,7 +6,7 @@ Lightweight starter templates for the supplementary project documents referenced
 
 ## STATE.md
 
-> Cross-session state tracking. Keep this under ~100 lines so agents can consume it quickly.
+> Cross-session state tracking — a snapshot of _current_ state, not a history log. Keep under ~60 lines so agents can consume it quickly.
 
 ```markdown
 # Project State
@@ -20,24 +20,31 @@ Phase: ...
 Status: On Track | At Risk | Blocked
 
 ## Active Stories
-<!-- Stories currently in progress – link to FIS/plan if available -->
+<!-- Only currently in-progress work. Remove completed stories — they go to Recently Completed. -->
 
 | Story | Status | FIS | Notes |
 |-------|--------|-----|-------|
 | ...   | ...    | ... | ...   |
 
+## Recently Completed
+<!-- Last 2 milestones only, one line each. Older milestones belong in CHANGELOG.md.
+     If more exist, add a trailing line: "Previous: 0.3, 0.2, 0.1" -->
+
+- **{version}** ({date}): {one-line summary}
+
 ## Blockers
-<!-- Anything preventing progress. Remove section if none. -->
+<!-- Anything preventing progress. Remove resolved blockers and those older than ~14 days with no activity. -->
 
 - ...
 
 ## Recent Decisions
-<!-- Key decisions made in the last 1-2 sessions. Move older items to ADRs. -->
+<!-- Key decisions made in the last 1-2 sessions. Keep max ~10. Move older items to ADRs. -->
 
 - ...
 
 ## Session Continuity Notes
-<!-- Context the next session needs to pick up where this one left off. -->
+<!-- Context the next session needs to pick up where this one left off. Keep max ~5.
+     Remove notes from milestones already captured in Recently Completed or CHANGELOG. -->
 
 - ...
 ```

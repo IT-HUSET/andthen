@@ -116,6 +116,8 @@ Ask targeted questions based on identified gaps and unresolved design dimensions
 
 > **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Do not proceed to Step 3 until the user has answered your questions and you've confirmed no major gaps remain. Use the `AskUserQuestion` tool if available in your environment.
 
+Use the question categories below to identify *what* to ask. When answers are surface-level, vague, or contradictory, use probing and exploration techniques from `plugin/references/discovery-interview-techniques.md` to go deeper.
+
 **Scope & Boundaries**
 - What's explicitly IN scope?
 - What's explicitly OUT of scope?

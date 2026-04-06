@@ -65,9 +65,12 @@ Supported fields:
 After any update, set `Last Updated` to current timestamp.
 
 **Maintenance rules** (apply automatically on every write):
-- Active Stories table: remove rows with status `Done` (they belong in plan.md, not state)
-- Session Continuity Notes: keep only the **last 10** entries; older entries are trimmed
-- Recent Decisions: keep only the **last 10** entries; graduate older items to ADRs if warranted
+- **Active Stories table**: remove rows with status `Done` (they belong in plan.md, not state). This section tracks only _currently in-progress_ work — never accumulate completed milestone summaries here.
+- **Recently Completed**: keep only the **last 2 milestones/releases**. Older milestones should already be captured in CHANGELOG.md. Use a one-line summary per milestone (not full release notes). If there are older milestones beyond the kept 2, condense into a single trailing line: `Previous: 0.14, 0.13, 0.12, ...`
+- **Blockers**: remove entries that are no longer relevant (e.g. the blocking condition has been resolved, the related story is `Done`, or the blocker is older than 14 days with no recent activity)
+- **Recent Decisions**: keep only the **last 10** entries; graduate older items to ADRs if warranted
+- **Session Continuity Notes**: keep only the **last 5** entries; older entries are trimmed. Notes from completed milestones that have been captured elsewhere (CHANGELOG, Recently Completed) should be removed.
+- **Overall size**: STATE.md should stay under ~60 lines. If it exceeds this after other maintenance rules, trim the oldest/longest entries first. This file is a snapshot of _current_ state, not a history log.
 
 Format for STATE.md (matches `templates/project-state-templates.md`):
 ```markdown
@@ -83,6 +86,11 @@ Status: {On Track | At Risk | Blocked}
 | Story | Status | FIS | Notes |
 |-------|--------|-----|-------|
 | {story_id}: {story_name} | {In Progress | Blocked} | {fis_path or –} | {brief note} |
+
+## Recently Completed
+- **{version/milestone}** ({date}): {one-line summary}
+- **{version/milestone}** ({date}): {one-line summary}
+Previous: {older milestone list, if any}
 
 ## Blockers
 - {blocker description} _(added {date})_

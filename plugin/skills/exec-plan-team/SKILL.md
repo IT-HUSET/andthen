@@ -1,12 +1,12 @@
 ---
 description: Execute an implementation plan through an Agent Team pipeline with configurable review mode (requires Agent Teams)
-argument-hint: <path-to-plan> [path-to-code-repo] [--review-mode per-story|none|full-plan]
+argument-hint: <path-to-plan> [path-to-code-repo] [--review-mode per-story|none|full-plan] [--no-worktree]
 ---
 
 # Execute Plan (Agent Teams)
 
 
-Execute ALL stories in an implementation plan (from `andthen:plan`) through a parallelized pipeline: **spec-plan** (parallel spec generation + cross-cutting review per phase), then Agent Team **exec-spec (worktree) → merge**, with configurable review behavior. Implementers work in **isolated git worktrees** to prevent file conflicts during parallel execution.
+Execute ALL stories in an implementation plan (from `andthen:plan`) through a parallelized pipeline: **spec-plan** (parallel spec generation + cross-cutting review per phase), then Agent Team **exec-spec → merge**, with configurable review behavior. By default, implementers work in **isolated git worktrees** to prevent file conflicts during parallel execution. Use `--no-worktree` to disable worktree isolation (stories execute sequentially on main instead).
 
 **Requires Agent Teams** – Falls back to sequential execution (manual per-story loop) if Teams unavailable.
 
@@ -15,6 +15,7 @@ Execute ALL stories in an implementation plan (from `andthen:plan`) through a pa
 PLAN_DIR: $0
 CODE_DIR: $1
 REVIEW_MODE: parse from `--review-mode` flag (`per-story`, `none`, or `full-plan`; default `per-story`)
+USE_WORKTREE: parse from `--no-worktree` flag (default: `true`; `--no-worktree` sets to `false`)
 
 
 ## USAGE
@@ -25,10 +26,16 @@ REVIEW_MODE: parse from `--review-mode` flag (`per-story`, `none`, or `full-plan
 /exec-plan-team path/to/plan --review-mode per-story
 /exec-plan-team path/to/plan --review-mode none
 /exec-plan-team path/to/plan --review-mode full-plan
+/exec-plan-team path/to/plan --no-worktree
 ```
 
 - First argument (`$0`): **PLAN_DIR** – path to the plan directory (required)
 - Second argument (`$1`): **CODE_DIR** – path to the code repository (optional, auto-resolved if omitted)
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--review-mode` | `per-story` | Review behavior: `per-story`, `none`, or `full-plan` |
+| `--no-worktree` | off (worktrees enabled) | Disable git worktree isolation. Stories execute **sequentially on main** instead of in parallel worktrees. Simpler but slower — use when worktree merge complexity is undesirable or when the plan has few/no parallel stories. |
 
 Omit `CODE_DIR` for single-repo projects. **Provide it** when plan/specs live in a different repo than the code (e.g., a private specs repo alongside a public code repo).
 
@@ -51,8 +58,8 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 4. Log the resolved value: `"CODE_DIR resolved to: {CODE_DIR} (source: explicit | same-repo | multi-repo-auto)"`
 
 **Multi-repo rules** (when CODE_DIR ≠ PLAN_DIR's git root):
-- All `git worktree`, `git merge`, `git branch`, and `git checkout` operations target `CODE_DIR` – never the plan repo
-- `EnterWorktree` must be called from `CODE_DIR` context – agents must verify their CWD is `CODE_DIR` before invoking it
+- All git operations (`git worktree`, `git merge`, `git branch`, `git checkout`) target `CODE_DIR` – never the plan repo
+- When `USE_WORKTREE = true`: `EnterWorktree` must be called from `CODE_DIR` context – agents must verify their CWD is `CODE_DIR` before invoking it
 - FIS paths passed to agents must be **absolute** (they reference files in the plan repo, but agents work in `CODE_DIR`)
 - The plan repo is **read-only for agents** – only the orchestrator updates `plan.md` and FIS checkboxes
 - Never create branches, worktrees, or commits in the plan repo
@@ -66,9 +73,9 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 - **Pre-generate specs** – delegate to `andthen:spec-plan` per phase (handles parallelism, wave ordering, and cross-cutting review) before starting the Agent Team
 - **Review mode contract**: `per-story` (default) runs `review-gap` after each merged story, `none` skips automated `review-gap`, `full-plan` skips per-story review and runs one final `review-gap` against `PLAN_DIR/plan.md` after all stories are implemented and merged
 - **Agent Team for implementation** – use Agent Teams for parallel implementation; create per-story review tasks only when `REVIEW_MODE=per-story`
-- **Worktree isolation** – implementers use `EnterWorktree` per task (in `CODE_DIR`) to prevent file conflicts during parallel execution
+- **Worktree isolation** (`USE_WORKTREE = true`, default) – implementers use `EnterWorktree` per task (in `CODE_DIR`) to prevent file conflicts during parallel execution. When `USE_WORKTREE = false`: implementers work directly on main, only one story may mutate `main` at a time (full story pipeline including review must complete before the next story starts)
 - **Pre-assign all tasks** – orchestrator assigns every task to a specific agent at creation time (no self-claiming)
-- **Story pipeline**: spec-plan (per phase) → exec-spec (worktree) → merge. Review happens per story only in `per-story` mode; `full-plan` defers review to a single final `review-gap` on main after all phases.
+- **Story pipeline**: when `USE_WORKTREE = true`: spec-plan (per phase) → exec-spec (worktree) → merge → review. When `USE_WORKTREE = false`: spec-plan (per phase) → exec-spec (on main, sequential) → review. Review happens per story only in `per-story` mode; `full-plan` defers review to a single final `review-gap` on main after all phases.
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job is to:
@@ -77,7 +84,7 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 - Size and create the Agent Team for implementation (and reviewers only when needed)
 - Create pipeline tasks with correct dependency chains and **pre-assigned owners**
 - Monitor progress via the task list and coordinate agents
-- **Merge worktree branches** into main after each wave of implementations completes
+- **Merge worktree branches** into main after each wave of implementations completes (when `USE_WORKTREE = true`)
 - Handle failures and escalate when needed
 - Run any required final plan-level review, then final verification
 
@@ -94,12 +101,13 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 - Agent Teams feature flag not enabled – check for CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS
 - Not spawning troubleshooter on escalation
 - **Agents claiming tasks not assigned to them** – self-review risk; all tasks must be pre-assigned with `owner`
-- **Implementers not using EnterWorktree** – parallel implementers in the same working directory cause file conflicts and race conditions
-- **Forgetting to merge worktree branches** before starting per-story reviews or the next wave – review happens on merged main
+- **Implementers not using EnterWorktree** (when `USE_WORKTREE = true`) – parallel implementers in the same working directory cause file conflicts and race conditions
+- **Forgetting to merge worktree branches** (when `USE_WORKTREE = true`) before starting per-story reviews or the next wave – review happens on merged main
 - **Do NOT use `isolation: "worktree"` with `team_name`** – known Claude Code bug ([#33045](https://github.com/anthropics/claude-code/issues/33045)) where isolation is silently ignored for team agents; instruct implementers to call `EnterWorktree` themselves instead
-- **Multi-repo worktree pollution** – if plan and code live in different repos and `CODE_DIR` is not set, agents create worktrees/branches/commits in the plan repo instead of the code repo. Always set `CODE_DIR` for multi-repo workspaces. Agents must verify they are in `CODE_DIR` before calling `EnterWorktree`
+- **Multi-repo worktree pollution** (when `USE_WORKTREE = true`) – if plan and code live in different repos and `CODE_DIR` is not set, agents create worktrees/branches/commits in the plan repo instead of the code repo. Always set `CODE_DIR` for multi-repo workspaces. Agents must verify they are in `CODE_DIR` before calling `EnterWorktree`
 - **FIS paths must be absolute in multi-repo setups** – FIS files live in the plan repo but agents work in `CODE_DIR`. Relative FIS paths won't resolve from the code repo. The orchestrator must convert all FIS paths to absolute before passing them to agents
-- **Merge/cleanup commands must target CODE_DIR** – all `git merge`, `git checkout`, `git branch`, `git worktree remove` in Step 6d and Step 10 must use `git -C {CODE_DIR}` to target the code repo, not the orchestrator's CWD
+- **Merge/cleanup commands must target CODE_DIR** (when `USE_WORKTREE = true`) – all `git merge`, `git checkout`, `git branch`, `git worktree remove` in Step 6d and Step 10 must use `git -C {CODE_DIR}` to target the code repo, not the orchestrator's CWD
+- **Sequential execution when `--no-worktree`** – parallel markers `[P]` in the plan are ignored; all stories in a wave run one at a time. This is intentional to avoid file conflicts without worktree isolation
 - **Status updates get dropped when context is exhausted** – plan and FIS checkbox updates (Step 6f) are GATES that block the next phase, not optional cleanup. Update immediately after each story completes
 - Not updating STATE.md when phases transition or blockers are discovered – state drift causes session continuity loss
 - **Agents writing to STATE.md** – only the orchestrator updates STATE.md; implementers and reviewers must NOT write to it (avoids race conditions with parallel agents)
@@ -202,9 +210,9 @@ Teammates must be spawned into the team (with `team_name` and `name`) so they sh
 
 > **Note**: Spec generation is delegated to `andthen:spec-plan` _before_ the Agent Team starts (see Step 3). The team always handles implementation; it handles review tasks only when `REVIEW_MODE=per-story`.
 
-**Implementers** (`model: "sonnet"`) – Work on pre-assigned `impl-{story_id}` tasks. For each task: ensure CWD is `CODE_DIR`, enter an isolated worktree via `EnterWorktree`, run `/andthen:exec-spec {fis_path}` (or `$andthen:exec-spec {fis_path}`) with absolute FIS path, commit all changes, exit worktree with `action: "keep"` (preserves the branch for merge), then mark task complete. Output: implemented story on a worktree branch in `CODE_DIR`.
+**Implementers** (`model: "sonnet"`) – Work on pre-assigned `impl-{story_id}` tasks. When `USE_WORKTREE = true`: ensure CWD is `CODE_DIR`, enter an isolated worktree via `EnterWorktree`, run `/andthen:exec-spec {fis_path}` (or `$andthen:exec-spec {fis_path}`) with absolute FIS path, commit all changes, exit worktree with `action: "keep"` (preserves the branch for merge), then mark task complete. Output: implemented story on a worktree branch in `CODE_DIR`. When `USE_WORKTREE = false`: ensure CWD is `CODE_DIR`, run `/andthen:exec-spec {fis_path}` directly on main, commit all changes, then mark task complete. Output: implemented story committed on main.
 
-**Reviewers** (`model: "sonnet"`, `REVIEW_MODE=per-story` only) – Work on pre-assigned `review-{story_id}` tasks (unblocked by orchestrator after wave merge). Ensure CWD is `CODE_DIR`, then run `/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) with absolute FIS path per story **on the main branch** (post-merge). If issues found: fix them on main, then re-validate. **Max 2 fix attempts** – if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story.
+**Reviewers** (`model: "sonnet"`, `REVIEW_MODE=per-story` only) – Work on pre-assigned `review-{story_id}` tasks. When `USE_WORKTREE = true`: unblocked by orchestrator after wave merge; code is on main post-merge. When `USE_WORKTREE = false`: unblocked after the corresponding `impl-*` completes; code is already on main. In both cases: ensure CWD is `CODE_DIR`, then run `/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) with absolute FIS path per story **on the main branch**. If issues found: fix them on main, then re-validate. **Max 2 fix attempts** – if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story.
 
 Each agent loops: **check for assigned tasks → execute → mark done → check for next assigned task**.
 
@@ -214,13 +222,14 @@ Each agent loops: **check for assigned tasks → execute → mark done → check
 
 Use these role-specific prompts when spawning each teammate into the team (with `team_name: "plan-pipeline"`, `name: "<role-N>"`, and `model: "sonnet"`). Spawn reviewer teammates only when `REVIEW_MODE=per-story`. Use `/` or `$` prefix depending on agent platform.
 
-**Implementer template:**
+**Implementer template (when `USE_WORKTREE = true`):**
 ```
 Role: Implementer
 Team: plan-pipeline
 Plan: {PLAN_DIR}/plan.md
 Code repo: {CODE_DIR}
 Review mode: {REVIEW_MODE}
+Worktree isolation: ENABLED
 
 CRITICAL ROLE CONSTRAINT: You are an Implementer. ONLY work on tasks prefixed
 with impl-* that are assigned to you (owner = your name). NEVER claim or work
@@ -250,13 +259,48 @@ Important:
 - Escalate issues you cannot resolve to orchestrator via message with full context
 ```
 
-**Reviewer template (`REVIEW_MODE=per-story` only):**
+**Implementer template (when `USE_WORKTREE = false`):**
+```
+Role: Implementer
+Team: plan-pipeline
+Plan: {PLAN_DIR}/plan.md
+Code repo: {CODE_DIR}
+Review mode: {REVIEW_MODE}
+Worktree isolation: DISABLED (work directly on main)
+
+CRITICAL ROLE CONSTRAINT: You are an Implementer. ONLY work on tasks prefixed
+with impl-* that are assigned to you (owner = your name). NEVER claim or work
+on review-* tasks or unassigned tasks.
+
+Your workflow (loop until no assigned tasks remain):
+1. Check the task list for tasks assigned to you (owner = your name)
+2. For each assigned impl-* task:
+   a. Ensure your CWD is {CODE_DIR} (the code repo) – `cd {CODE_DIR}` if needed
+   b. /andthen:exec-spec {fis_path}    (FIS path is ABSOLUTE – do not modify it)
+   c. Commit all changes (ensure nothing is left uncommitted)
+   d. Mark task completed
+3. Check the task list for your next assigned task
+4. If no tasks assigned to you, notify orchestrator via message
+
+Important:
+- ONLY work on tasks where owner = your name – never claim unassigned tasks
+- Your CWD MUST be {CODE_DIR} – all implementation happens in the code repo
+- Do NOT use EnterWorktree – worktree isolation is disabled for this run
+- Stories are executed sequentially – wait for your current task to complete before starting the next
+- FIS paths in task descriptions are absolute – use them as-is
+- Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
+- Follow existing codebase patterns
+- Escalate issues you cannot resolve to orchestrator via message with full context
+```
+
+**Reviewer template (when `USE_WORKTREE = true`, `REVIEW_MODE=per-story` only):**
 ```
 Role: Reviewer
 Team: plan-pipeline
 Plan: {PLAN_DIR}/plan.md
 Code repo: {CODE_DIR}
 Review mode: {REVIEW_MODE}
+Worktree isolation: ENABLED (you review on main after wave merge)
 
 CRITICAL ROLE CONSTRAINT: You are a Reviewer. ONLY work on tasks prefixed
 with review-* that are assigned to you (owner = your name). NEVER claim or
@@ -279,6 +323,42 @@ Important:
 - Your CWD MUST be {CODE_DIR} – all code changes happen in the code repo
 - Review tasks are unblocked by the orchestrator AFTER the wave merge completes
 - Work on the main branch (implementation has already been merged from worktrees)
+- FIS paths in task descriptions are absolute – use them as-is
+- Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
+- Follow existing codebase patterns
+- Escalate issues you cannot resolve to orchestrator via message with full context
+```
+
+**Reviewer template (when `USE_WORKTREE = false`, `REVIEW_MODE=per-story` only):**
+```
+Role: Reviewer
+Team: plan-pipeline
+Plan: {PLAN_DIR}/plan.md
+Code repo: {CODE_DIR}
+Review mode: {REVIEW_MODE}
+Worktree isolation: DISABLED (you review the implementer's commits directly on main)
+
+CRITICAL ROLE CONSTRAINT: You are a Reviewer. ONLY work on tasks prefixed
+with review-* that are assigned to you (owner = your name). NEVER claim or
+work on impl-* tasks or unassigned tasks.
+
+Your workflow (loop until no assigned tasks remain):
+1. Check the task list for tasks assigned to you (owner = your name)
+2. For each assigned review-* task:
+   a. Ensure your CWD is {CODE_DIR} (the code repo) – `cd {CODE_DIR}` if needed
+   b. /andthen:review-gap {fis_path}    (FIS path is ABSOLUTE – do not modify it)
+      Work on main branch – code was committed directly by the implementer
+   c. If issues found: fix them on main, then re-validate (max 2 fix attempts)
+   d. If issues persist after 2 fix attempts, escalate to orchestrator via message
+   e. Mark task completed
+3. Check the task list for your next assigned task
+4. If no tasks assigned to you, notify orchestrator via message
+
+Important:
+- ONLY work on tasks where owner = your name – never claim unassigned tasks
+- Your CWD MUST be {CODE_DIR} – all code changes happen in the code repo
+- Review tasks are unblocked after the corresponding implementation task completes
+- The next story will NOT start until your review completes – you are on the critical path
 - FIS paths in task descriptions are absolute – use them as-is
 - Read the Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
 - Follow existing codebase patterns
@@ -311,20 +391,36 @@ For each story in the current phase, create tasks with **pre-assigned owners**:
 - Set the `owner` field via TaskUpdate immediately after task creation
 
 **Wave-based task creation** (if waves present in plan):
+
+When `USE_WORKTREE = true` (parallel execution):
 - Group story tasks by wave within each phase
 - W1 `impl-*` tasks are immediately unblocked (no wave predecessors)
 - W1 `review-*` tasks are created as **blocked** only when `REVIEW_MODE=per-story` – the orchestrator unblocks them after the wave merge (see Step 6d)
 - W2 `impl-*` tasks are blocked by completion of all W1 review tasks when `REVIEW_MODE=per-story`; otherwise they are blocked only by prior-wave implementation dependencies from the plan
 - W3+ tasks follow the same pattern: impl unblocked after previous wave reviews complete in `per-story` mode, or after prior-wave implementation dependencies complete in other modes; review tasks are created only in `per-story` mode
 
+When `USE_WORKTREE = false` (sequential execution — only one story may mutate `main` at a time):
+- When `REVIEW_MODE=per-story`: each `impl-*` is blocked by the previous story's `review-*` completing (not just its `impl-*`), since review may apply fixes to `main`. This ensures the full story pipeline (impl → review) finishes before the next story starts.
+- When `REVIEW_MODE=none` or `full-plan`: each `impl-*` is blocked by the previous `impl-*` completing (no review runs between stories)
+- `review-*` tasks (when `REVIEW_MODE=per-story`) are blocked by their corresponding `impl-*` task
+- Parallel markers `[P]` in the plan are ignored — all stories run sequentially
+
 #### 6c. Set Dependencies
 
-Set task dependencies:
+When `USE_WORKTREE = true`:
 - `impl-{story_id}` – unblocked for current wave (ready for implementers to start)
 - `review-{story_id}` – **create as blocked** only when `REVIEW_MODE=per-story`. The orchestrator unblocks review tasks for each wave AFTER merging all worktree branches from that wave (see Step 6d)
 - Cross-story dependencies from plan: if S05 depends on S03, then `impl-S05` is blocked by `review-S03` in `per-story` mode, otherwise by completion of `impl-S03` and its successful merge
 
-#### 6d. Merge Wave
+When `USE_WORKTREE = false` (only one story may mutate `main` at a time):
+- When `REVIEW_MODE=per-story`: `impl-{story_id}` is blocked by the previous story's `review-*` completing (the full story pipeline must finish before the next starts, since review may apply fixes to `main`)
+- When `REVIEW_MODE=none` or `full-plan`: `impl-{story_id}` is blocked by the previous `impl-*` completing
+- `review-{story_id}` – blocked by its corresponding `impl-{story_id}` (when `REVIEW_MODE=per-story`)
+- Cross-story dependencies from plan are naturally satisfied by sequential execution order
+
+#### 6d. Merge Wave (when `USE_WORKTREE = true`)
+
+> **Skip this step entirely when `USE_WORKTREE = false`** – changes are already committed on main. Proceed directly to unblocking review tasks (if `REVIEW_MODE=per-story`).
 
 After ALL `impl-*` tasks in the current wave are complete (all implementers have committed and exited their worktrees):
 
@@ -369,9 +465,9 @@ After ALL `impl-*` tasks in the current wave are complete (all implementers have
 #### 6e. Monitor Progress
 
 - Poll the task list periodically and track completion by wave:
-  1. **Monitor impl tasks** – when all `impl-*` tasks in wave N complete → run wave merge (Step 6d)
+  1. **Monitor impl tasks** – when all `impl-*` tasks in wave N complete → run wave merge (Step 6d) if `USE_WORKTREE = true`, or proceed directly if `USE_WORKTREE = false`
   2. **Monitor review tasks** (`REVIEW_MODE=per-story`) – when all `review-*` tasks in wave N complete → proceed to wave N+1 or next phase
-  3. **For `none` / `full-plan`** – after merge of wave N completes and plan dependencies are satisfied, proceed directly to wave N+1 or next phase
+  3. **For `none` / `full-plan`** – after merge of wave N completes (or after impl completes when `USE_WORKTREE = false`) and plan dependencies are satisfied, proceed directly to wave N+1 or next phase
 - Handle agent messages (failures, questions, status updates)
 
 #### 6f. Update Plan and FIS Status (REQUIRED GATE)
@@ -400,6 +496,7 @@ Move to next phase only after ALL stories in current phase are complete and plan
 
 #### Pipeline Flow Example
 
+**With worktrees (default):**
 ```
 Phase 1 (Sequential – W1: S01, W2: S02, review mode = per-story):
   spec-plan --phase 1 (parallel spec creation + cross-cutting review)
@@ -416,6 +513,21 @@ Phase 2 (Parallel – W1: S03[P], S04[P] | W2: S05 depends on S03, review mode =
 ```
 
 Each implementer works in an isolated git worktree (via `EnterWorktree`). After all implementations in a wave complete, the orchestrator merges all worktree branches into main. In `per-story` mode it then unblocks review tasks; in `full-plan` mode it defers review until all phases complete; in `none` mode it skips automated review entirely.
+
+**Without worktrees (`--no-worktree`):**
+```
+Phase 1 (Sequential – S01, S02, review mode = per-story):
+  spec-plan --phase 1 (parallel spec creation + cross-cutting review)
+  impl-S01 (main) → review-S01 (main) → impl-S02 (main) → review-S02 (main)
+  (each impl waits for previous review to finish – only one story mutates main at a time)
+
+Phase 2 (S03, S04, S05 – all sequential despite [P] markers, review mode = full-plan):
+  spec-plan --phase 2 (parallel spec creation + cross-cutting review)
+  impl-S03 (main) → impl-S04 (main) → impl-S05 (main)
+  Final: review-gap PLAN_DIR/plan.md on main
+```
+
+All stories execute sequentially on main – no worktree branches, no merge step. Only one story may mutate `main` at a time (in `per-story` mode, the full impl → review pipeline completes before the next story starts). Parallel markers `[P]` are ignored. Simpler but slower for plans with parallel stories.
 
 **Gate**: All phases complete and all stories implemented. Per-story reviews must also be complete when `REVIEW_MODE=per-story`.
 
@@ -460,7 +572,7 @@ Spawn a **general-purpose sub-agent** _(if supported by your coding agent)_ to u
 
 ### Step 10: Clean Up
 
-1. **Clean up any remaining worktrees** – remove worktree directories and branches that weren't cleaned up during wave merges:
+1. **Clean up any remaining worktrees** (when `USE_WORKTREE = true` only) – remove worktree directories and branches that weren't cleaned up during wave merges:
    ```bash
    git -C {CODE_DIR} worktree list   # check for leftover worktrees
    git -C {CODE_DIR} worktree prune  # remove stale worktree references

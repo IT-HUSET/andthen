@@ -25,6 +25,7 @@ SPEC_PATH_OR_FOCUS: $ARGUMENTS
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Read-only review** - No modifications to specs during analysis
 - **Be thorough and critical** - Challenge assumptions, find edge cases, identify ambiguities
+- **Calibrate severity rigorously** – Read `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` for universal calibration principles, then `references/doc-review-calibration.md` (in this skill's directory) for document-specific severity benchmarking. If you identified a problem, it IS a problem — do not rationalize it away.
 - **Favor simplicity** - Actively identify over-engineering; recommend simplest solution (KISS, YAGNI, DRY)
 - **Proportional review** - Calibrate the depth and expectations of your review to the project's actual scale, stage, and goals. A simple CLI tool, a prototype, or an MVP does not need the same scrutiny as an enterprise SaaS platform. Never recommend patterns, processes, or infrastructure that are disproportionate to the project's scope and ambition. If the document doesn't mention something (e.g. i18n, monitoring, rollback), consider whether it's actually needed before flagging it as missing.
 - **The words "spec" and "specification" in this command** refers to any specification, plan, requirement document, PRD, technical design, or other documentation that is the focus of the review
@@ -166,7 +167,49 @@ Validate stakeholder needs and measurable success criteria:
 **Gate**: Stakeholder needs and success criteria validated
 
 
-### Phase 8: Review Report Generation
+### Phase 8: Adversarial Challenge
+
+Spawn a **sub-agent** _(if supported by your coding agent)_ to challenge the findings from Phases 2-7. The challenger operates in a fresh context — it sees findings and the document under review, but not the reasoning that produced the findings. This counters self-evaluation bias (reviewers trend toward both over-flagging irrelevant concerns and rationalizing away real issues).
+
+**Sub-agent prompt:**
+
+```
+You are an Adversarial Challenger reviewing document review findings.
+
+Read the universal calibration reference: ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md
+Then read the document-specific calibration: ${CLAUDE_PLUGIN_ROOT}/skills/review-doc/references/doc-review-calibration.md
+
+Context: The document being reviewed is a {document type} for a {project description and scale}.
+
+For each finding, evaluate:
+1. "Is this a real gap in the document, or irrelevant given the project's scale, stage, and goals?"
+2. "Is the severity proportional to the document's purpose and audience? Would this actually cause an implementer to build the wrong thing?"
+3. "Is this addressed elsewhere in the document or project context that the reviewer may have missed?"
+4. "Would this actually block or mislead an implementer, or is it a nice-to-have level of detail?"
+
+For each finding, assign a verdict:
+- **VALIDATED** — Finding holds up under scrutiny. State why in one sentence.
+- **DOWNGRADED** — Real issue, but severity is too high. State new severity and why.
+- **WITHDRAWN** — False positive, disproportionate to project scale, or not applicable. State why.
+
+Do NOT add new findings — your job is to filter, not expand.
+
+Document under review: {path to document}
+Project scale/stage context: {from Phase 1 discovery}
+Findings to challenge:
+{all findings from Phases 2-7}
+```
+
+**Apply verdicts**: Remove WITHDRAWN findings from the working set. Update severity for DOWNGRADED findings. Carry VALIDATED and DOWNGRADED findings forward to the report.
+
+**Record in report**: Challenge statistics (N validated, N downgraded, N withdrawn) and rationale for each DOWNGRADED and WITHDRAWN verdict.
+
+> **Note**: If sub-agents are not available, execute the challenge inline — review your own findings using the four questions above and apply verdicts. The self-challenge is less effective than a fresh-context sub-agent but still catches obvious false positives and disproportionate flags.
+
+**Gate**: All findings challenged, verdicts applied
+
+
+### Phase 9: Review Report Generation
 
 Generate comprehensive review report with prioritized findings:
 
@@ -182,8 +225,8 @@ Generate comprehensive review report with prioritized findings:
 
 Your job is *ONLY* to review and generate report. Do *NOT* modify specification documents.
 
-Generate markdown report with:
-- **Executive Summary** - What was reviewed, overall assessment, high-level findings, key recommendations
+Generate markdown report using **only findings that survived the Adversarial Challenge** (VALIDATED and DOWNGRADED):
+- **Executive Summary** - What was reviewed, overall assessment, high-level findings, challenge statistics (N validated/downgraded/withdrawn), key recommendations
 - **Scope and Context** - What spec achieves, scope boundaries, assumptions, context issues
 - **Completeness Analysis** - Missing requirements by category, completeness assessment
 - **Clarity Issues** - Ambiguous/vague requirements with suggested improvements

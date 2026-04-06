@@ -42,7 +42,7 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Read-only analysis** – no code changes or commits. The only file you write is the final report.
 - **Be thorough** - Don't skip steps or rush analysis; completeness is critical
-- **Calibrate severity rigorously** – Read `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` before assigning severity. If you identified a problem, it IS a problem — do not rationalize it away. "It probably works" is not a pass.
+- **Calibrate severity rigorously** – Read `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` for universal calibration principles, then `${CLAUDE_PLUGIN_ROOT}/skills/review-code/references/code-review-calibration.md` for code/implementation-specific severity benchmarking. If you identified a problem, it IS a problem — do not rationalize it away. "It probably works" is not a pass.
 - **Default to workspace-wide resolution** - Do not assume the implementation is in the same repo as the requirements document. In multi-repo workspaces, explicitly locate the implementation target first.
 - **Delegate code review to a sub-agent** _(if supported by your coding agent)_ that uses the `andthen:review-code` skill (do NOT invoke the skill directly)
 - **Document everything** - All findings and recommendations must be captured in final report
@@ -174,7 +174,7 @@ Systematically identify all gaps between requirements and implementation:
   - Are components wired into the system? (Imported, routed, called, rendered)
   - Do verification commands pass? (Build, tests, type-check)
   - Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
-  - Calibration: `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` – use severity examples and anti-leniency protocol to benchmark findings before recording them
+  - Calibration: `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (universal) and `${CLAUDE_PLUGIN_ROOT}/skills/review-code/references/code-review-calibration.md` (code-specific) – use severity examples and anti-leniency protocol to benchmark findings before recording them
   - Delegate stub detection and wiring checks to a sub-agent _(if supported by your coding agent)_, or use helper scripts from `${CLAUDE_PLUGIN_ROOT}/scripts/` when available
 
 **Gate**: All gaps comprehensively identified and documented
@@ -211,7 +211,8 @@ Spawn a **sub-agent** _(if supported by your coding agent)_ to challenge the fin
 ```
 You are an Adversarial Challenger reviewing gap analysis findings.
 
-Read the calibration reference: ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md
+Read the universal calibration reference: ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md
+Then read the code-specific calibration: ${CLAUDE_PLUGIN_ROOT}/skills/review-code/references/code-review-calibration.md
 
 For each finding, evaluate:
 1. "Is this a real gap, or acceptable in context (trade-off, framework convention, intentional choice)?"

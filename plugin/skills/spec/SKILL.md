@@ -44,7 +44,20 @@ ARGUMENTS: $ARGUMENTS
 - **Describing detailed code changes instead of outcomes** – tasks should state what must be TRUE when done, not _exactly_ what code to write. The implementing agent decides *how*. Bad: "Create lib/auth.ts with login() and logout() functions". Good: "Auth module with login/logout capability; follow pattern at lib/users.ts:10-30"
 - Over-specifying implementation details that constrain the implementer unnecessarily – a spec that reads like a diff is too detailed
 - Acceptance criteria that can't be verified programmatically – every criterion needs a verify command
-- **Over-researching** – the goal is enough context to write a clear spec, not exhaustive exploration. Default to skipping research phases unless clearly needed (e.g. gap in requirements, unfamiliar APIs/libraries, or novel features etc). 
+- **Over-researching** – the goal is enough context to write a clear spec, not exhaustive exploration. Default to skipping research phases unless clearly needed (e.g. gap in requirements, unfamiliar APIs/libraries, or novel features etc).
+
+### Common Rationalizations
+
+These are the excuses you will generate to skip steps. Recognize them.
+
+| Rationalization | Reality |
+|---|---|
+| "I know this codebase well enough to skip analysis" | You know what you remember, not what's there now. A 5-minute codebase scan catches the refactor that landed last week. |
+| "I'll add implementation details to help the implementer" | A spec that reads like a diff constrains the implementer to your assumptions. Specify *what must be true*, not *what code to write*. The implementer sees the codebase – you don't need to describe it. |
+| "This feature is simple, it barely needs a spec" | Simple features don't need long specs, but they still need acceptance criteria, a verify line, and scope boundaries. A 30-line FIS is fine. Zero FIS is not. |
+| "I'll skip research – I know this API/library" | Your knowledge has a training cutoff. The API may have changed, been deprecated, or gained a better pattern. A 2-minute doc lookup beats a 20-minute debugging session. |
+| "More detail is better – I want to be thorough" | Spec bloat is worse than spec gaps. A 600-line FIS signals unclear thinking, not thoroughness. Target 200–400 lines. If it's longer, you haven't made enough decisions. |
+| "I'll put all the tasks in one group since they're closely related" | Groups over 4 implementation tasks exhaust sub-agent context. The tasks feel related to *you* because you hold the full picture. The sub-agent doesn't. Split at natural boundaries. |
 
 
 ## ORCHESTRATOR ROLE _(if supported by your coding agent)_

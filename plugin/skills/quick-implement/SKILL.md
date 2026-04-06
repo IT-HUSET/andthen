@@ -40,6 +40,19 @@ ARGUMENTS: $ARGUMENTS
 - Skipping verification after implementation – always run tests/build
 - Scope creep: implementing more than was asked for in the issue
 
+### Common Rationalizations
+
+These are the excuses you will generate to skip steps. Recognize them.
+
+| Rationalization | Reality |
+|---|---|
+| "This change is small enough to skip codebase analysis" | Small changes in unfamiliar territory break more things than large changes in understood code. A 5-minute scan catches the convention you'd otherwise violate. |
+| "It compiles and looks right – verification is unnecessary" | "Looks right" is not evidence. The test suite exists to catch the things that look right but aren't. Run it. |
+| "I'll also fix this adjacent issue while I'm here" | Scope creep is the #1 cause of "quick" implementations that aren't quick. Fix what was asked. Note the adjacent issue. Don't touch it. |
+| "This is too small to need tests" | If it's too small to test, it's too small to verify. And if it's too small to verify, how do you know it works? |
+| "Code review is overkill for a quick fix" | Quick fixes are where review matters most – speed encourages shortcuts. A 2-minute review catches the null check you skipped. |
+| "The visual validation is unnecessary, I only changed one CSS property" | One CSS property can break layout across three breakpoints. Take the screenshot. |
+
 
 ## WORKFLOW
 

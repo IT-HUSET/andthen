@@ -6,6 +6,26 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.8.7] – 2026-04-06
+
+### Added
+- **Discovery interview techniques reference** – new `plugin/references/discovery-interview-techniques.md` with probing techniques (Five Whys, Scenario Testing, Extremes, Trade-off Forcing, Laddering), creative exploration methods (What If, Reversal, HMW, Assumption Reversal, SCAMPER, Role Perspective Shift), and strategies for managing difficult interview moments. Referenced from `clarify` Phase 2
+- **`review-doc` adversarial challenge phase** – new Phase 8 spawns a sub-agent to challenge review findings with document-specific questions, filtering false positives and correcting disproportionate severity before report generation
+- **Document review calibration** – new `plugin/skills/review-doc/references/doc-review-calibration.md` with document-specific severity calibration, contrastive examples, proportionality guidance, and false positive traps for spec/plan/PRD reviews
+- **Code review calibration** – new `plugin/skills/review-code/references/code-review-calibration.md` with code-specific severity examples, completeness/wiring calibration, and code false positive traps
+
+### Changed
+- **Review calibration restructured** – `review-calibration.md` trimmed to universal core (anti-leniency protocol, finding quality, over-leniency patterns) with generalized rules. Domain-specific calibration moved to skill-local `references/` directories. `review-gap` now references `review-code`'s calibration since both operate in the code/implementation domain
+- **Common Rationalizations tables** – `exec-spec`, `spec`, and `quick-implement` now include tables of self-deception patterns agents generate to skip steps, with reality checks for each
+- **`exec-plan-team` `--no-worktree` flag** – disables git worktree isolation for sequential execution on main. Simpler for plans with few parallel stories or when merge complexity is undesirable
+- **`ops` STATE.md Recently Completed section** – tracks last 2 milestones with one-line summaries for cross-session continuity
+- **Guidelines condensed** – `DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`, `UX-UI-GUIDELINES.md`, and `WEB-DEV-GUIDELINES.md` significantly trimmed to remove content that restates standard engineering principles. Focus shifted to project-specific standards and judgment calls
+- **`ops` STATE.md maintenance rules tightened** – ~60 line target (down from ~100), Session Continuity Notes capped at 5 (down from 10), completed stories actively pruned, resolved blockers auto-removed
+- **`project-state-templates.md` updated** – STATE.md template aligned with new maintenance rules: Recently Completed section, tighter size guidance, inline documentation for each section's pruning policy
+- **`notify-elevenlabs.sh` async and audio improvements** – TTS/playback detached to background process to avoid hook timeout kills, switched from MP3 to PCM 44100 WAV to eliminate afplay frame-padding clipping
+
+---
+
 ## [0.8.4] – 2026-03-31
 
 ### Added

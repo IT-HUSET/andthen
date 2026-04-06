@@ -27,7 +27,7 @@ ARGUMENTS: $ARGUMENTS
 - **Non-modifying** - Analysis only, no code changes
 - Follow project guidelines from CLAUDE.md
 - Use checklists in `checklists/` subdirectory for systematic assessment
-- **Severity calibration**: Reference `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` for severity benchmarking when assigning finding severity
+- **Severity calibration**: Read `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` for universal calibration principles, then `references/code-review-calibration.md` (in this skill's directory) for code-specific severity benchmarking
 - **Read project learnings** – If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
 
 
