@@ -6,6 +6,30 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.9.0] – 2026-04-09
+
+### Added
+- **`spec-plan` research brief** – new Step 1.5 performs all discovery work once via parallel sub-agents (project context, story-scoped file map, shared architectural decisions, external research) before spawning any spec sub-agents. Eliminates redundant per-story codebase scanning, guideline reading, and architecture analysis. Output saved to `{PLAN_DIR}/.research-brief.md`
+- **`spec-plan` story classification** – new Step 1.6 automatically classifies stories into three tiers: THIN (orchestrator writes minimal FIS directly), COMPOSITE (one sub-agent covers tightly coupled story groups), and STANDARD (one sub-agent per story). Classification uses research brief data (file maps, shared decisions), not subjective judgment
+- **Minimal FIS template** – new `plugin/skills/spec/templates/fis-template-minimal.md` for THIN stories (30-60 line target)
+- **FIS authoring guidelines reference** – new `plugin/references/fis-authoring-guidelines.md` extracts shared authoring knowledge (principles, generation guidelines, task grouping heuristics, plan-spec alignment check, self-check) from `spec` into a reusable reference
+- **Plan-Spec Alignment Check** – new step in `spec` (and shared guidelines) cross-checks each plan acceptance criterion against FIS Success Criteria before finalizing. Prevents specs from silently narrowing plan requirements
+- **Plan Acceptance Gate** – `exec-plan` and `exec-plan-team` now verify each plan acceptance criterion is demonstrably satisfied before marking a story `Done`. Catches scope narrowing that slipped through spec generation
+- **Composite FIS support in `plan`** – plan template and Story Catalog now show composite FIS examples where multiple tightly coupled stories share one spec file
+- **Composite FIS dedup in `exec-plan` and `exec-plan-team`** – when multiple stories share a composite FIS path, `exec-spec` runs once; constituent stories skip re-execution and go straight to the Plan Acceptance Gate
+
+### Changed
+- **`spec-plan` sub-agents no longer invoke `andthen:spec`** – sub-agents now reference the FIS template and authoring guidelines directly, eliminating the indirection of loading spec's full workflow and skipping steps via fast-path guards. Reduces per-sub-agent context by ~200 lines
+- **`spec-plan` relaxed wave ordering** – the research brief pre-resolves most inter-story architectural decisions, so stories can be specced in parallel regardless of wave assignment. Falls back to strict wave ordering only when the brief is incomplete
+- **FIS template streamlined** – removed inline authoring principles/DON'Ts (moved to shared guidelines reference), removed section descriptions and emoji markers, simplified Architecture Decision to compact/full formats, removed pseudocode blocks and "Outline of New/Changed Files" section
+- **`spec` authoring guidelines externalized** – inline FIS Authoring Principles, Key Generation Guidelines, Task Grouping Heuristics, and Self-Check sections replaced with reference to shared `fis-authoring-guidelines.md`
+- **`spec` fast-path guards removed** – the `> Fast-path: If a research brief was provided...` blockquotes in Steps 1 and 2 are no longer needed since `spec-plan` no longer invokes `spec`
+- **`spec` stricter verification** – Verify lines must now assert described behavior, not just build success. Weak/strong examples added. FIS line target tightened from 200-400 to 100-250
+- **`spec` Cross-Group Contracts** – new Task Grouping guidance requiring explicit cross-group interface declarations (sub-agents work in separate contexts with no shared memory)
+- **`exec-plan-team` composite task handling** – task naming, worktree management, dependency chains, and merge steps generalized from `{story_id}` to `{task_id}` convention supporting both standard and composite tasks
+
+---
+
 ## [0.8.7] – 2026-04-06
 
 ### Added

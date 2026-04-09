@@ -54,9 +54,9 @@ These are the excuses you will generate to skip steps. Recognize them.
 |---|---|
 | "I know this codebase well enough to skip analysis" | You know what you remember, not what's there now. A 5-minute codebase scan catches the refactor that landed last week. |
 | "I'll add implementation details to help the implementer" | A spec that reads like a diff constrains the implementer to your assumptions. Specify *what must be true*, not *what code to write*. The implementer sees the codebase – you don't need to describe it. |
-| "This feature is simple, it barely needs a spec" | Simple features don't need long specs, but they still need acceptance criteria, a verify line, and scope boundaries. A 30-line FIS is fine. Zero FIS is not. |
+| "This feature is simple, it barely needs a spec" | Simple features don't need long specs, but they still need acceptance criteria, a verify line, and scope boundaries. A 30-line minimal FIS is fine. Zero FIS is not. |
 | "I'll skip research – I know this API/library" | Your knowledge has a training cutoff. The API may have changed, been deprecated, or gained a better pattern. A 2-minute doc lookup beats a 20-minute debugging session. |
-| "More detail is better – I want to be thorough" | Spec bloat is worse than spec gaps. A 600-line FIS signals unclear thinking, not thoroughness. Target 200–400 lines. If it's longer, you haven't made enough decisions. |
+| "More detail is better — I want to be thorough" | Spec bloat is worse than spec gaps. A 400-line FIS signals unclear thinking, not thoroughness. Target 100-250 lines. If it's longer, you haven't made enough decisions — or you're writing code instead of specifying outcomes. |
 | "I'll put all the tasks in one group since they're closely related" | Groups over 4 implementation tasks exhaust sub-agent context. The tasks feel related to *you* because you hold the full picture. The sub-agent doesn't. Split at natural boundaries. |
 
 
@@ -110,6 +110,7 @@ You are the orchestrator. Your job is to:
 
 
 ### 1. Priming and Project Understanding
+
 - Analyse the codebase to properly understand the project structure, relevant files and similar patterns
    - Use commands like `tree -d` and `git ls-files | head -250` to get overview of codebase structure
    - For complex codebase exploration, consider using the Explore agent _(if supported by your coding agent)_
@@ -193,67 +194,12 @@ Ask ONLY if implementation is blocked by ambiguity.
 #### Generate from Template
 **USE THE TEMPLATE**: Generate the FIS using the template in the **Appendix** below as your structure.
 
-#### Key Generation Guidelines
-1. **Outcomes, not code changes**: Each task describes what must be TRUE when done, not what code to write. The implementing agent determines the implementation. Avoid pseudocode and code snippets — only add implementation detail when the agent would otherwise lack critical context (unusual APIs, non-obvious constraints).
-2. Each task: atomic, self-contained, with file:line references to patterns to follow. Group related tasks into Execution Groups (see Grouping Heuristics below)
-3. Mark parallelizable **groups** with [P] and declare group dependencies. Tasks within a group are always sequential
-4. Reference patterns, don't reproduce them
-5. Each task must include a **`Verify:`** line – a concrete, observable check proving the outcome (command output, test result, behavior). Prefer functional checks (`build passes`, `API returns 200`, `test suite green`) over structural ones (`file exists`). Where applicable, trace verification back to the feature's Success Criteria. Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md` for stub-detection and wiring-check patterns.
-6. Stay within 200-400 line target (shorter is better)
-7. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
+#### FIS Authoring Guidelines
 
-#### Task Grouping Heuristics
-After defining individual tasks (TI01, TI02...), organize them into **Execution Groups**.
-Each group is executed by a single sub-agent, reducing context boundaries between tasks.
-Apply these affinity signals to determine grouping (in priority order):
-
-1. **Tight coupling** – Task B directly extends what Task A creates (API shape,
-   naming, internal structure). Always group together.
-   _Example: "Create data model" + "Create repository for that model"_
-
-2. **Same file** – Tasks that create then modify the same primary file.
-   _Example: "Create ServerBuilder" + "Convert fields to final" + "Decompose handler"_
-
-3. **Same concern across files** – Tasks applying the same conceptual change to
-   different files. Always group together.
-   _Example: "Remove old event firing" from 6 different call sites_
-
-4. **Layer affinity** – Tasks at the same architectural layer that share context.
-   _Example: "Create API routes" + "Add validation middleware" + "Add error handling"_
-
-5. **Test cohesion** – All test tasks for the same implementation group together.
-   _Example: All unit tests for a single class → one group_
-
-6. **Trivial absorption** – Barrel exports, verify steps, cleanup tasks get absorbed
-   into the nearest group rather than standing alone.
-
-**Constraints:**
-- Max 4 implementation tasks per group (test groups can go to 6)
-- Never group across independent concerns
-- First group should produce a thin working end-to-end path (vertical slice principle)
-
-**Dependency & Parallelism:**
-- Mark groups `[P]` when they share the same dependency level and touch different files
-- Declare explicit dependencies: `← [depends: G1, G2]`
-- Test groups typically depend on all implementation groups
-
-
-### 4. Self-Check
-
-Quick sanity check before saving:
-- [ ] FIS follows template structure
-- [ ] All tasks are atomic and have file:line references where relevant
-- [ ] Tasks are organized into execution groups with clear dependencies
-- [ ] ADR clearly states the decision
-- [ ] No over-specification – if a section feels padded, trim it
-
-#### Confidence Check
-Rate your FIS 1-10 for single-pass implementation success:
-- **9-10**: All context present, clear decisions, validation automated
-- **7-8**: Good detail, minor clarifications might be needed
-- **<7**: Missing context, unclear architecture, needs revision
-
-**If score <7**: Revise or ask for user clarification.
+Read and follow the FIS authoring guidelines at
+[`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](../../references/fis-authoring-guidelines.md)
+— this covers: authoring principles, generation guidelines, task grouping
+heuristics, plan-spec alignment check, and self-check.
 
 > **Optional**: Run the `andthen:review-doc` skill for thorough validation (recommended for large/complex features). Skip for small/clear features – issues surface during execution anyway.
 

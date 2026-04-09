@@ -110,7 +110,9 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 - **Sequential execution when `--no-worktree`** – parallel markers `[P]` in the plan are ignored; all stories in a wave run one at a time. This is intentional to avoid file conflicts without worktree isolation
 - **Status updates get dropped when context is exhausted** – plan and FIS checkbox updates (Step 6f) are GATES that block the next phase, not optional cleanup. Update immediately after each story completes
 - Not updating STATE.md when phases transition or blockers are discovered – state drift causes session continuity loss
-- **Agents writing to STATE.md** – only the orchestrator updates STATE.md; implementers and reviewers must NOT write to it (avoids race conditions with parallel agents)
+- **Agents writing to STATE.md** — only the orchestrator updates STATE.md; implementers and reviewers must NOT write to it (avoids race conditions with parallel agents)
+- **Creating separate worktrees for stories that share a composite FIS** — composite stories must share one worktree and one impl task. Creating separate worktrees causes duplicate implementation and merge conflicts
+- **Marking a story Done without verifying plan acceptance criteria** — the plan may promise something the FIS narrowed. Always check plan criteria against implementation before marking Done
 
 ### Helper Scripts
 Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
@@ -210,9 +212,9 @@ Teammates must be spawned into the team (with `team_name` and `name`) so they sh
 
 > **Note**: Spec generation is delegated to `andthen:spec-plan` _before_ the Agent Team starts (see Step 3). The team always handles implementation; it handles review tasks only when `REVIEW_MODE=per-story`.
 
-**Implementers** (`model: "sonnet"`) – Work on pre-assigned `impl-{story_id}` tasks. When `USE_WORKTREE = true`: ensure CWD is `CODE_DIR`, enter an isolated worktree via `EnterWorktree`, run `/andthen:exec-spec {fis_path}` (or `$andthen:exec-spec {fis_path}`) with absolute FIS path, commit all changes, exit worktree with `action: "keep"` (preserves the branch for merge), then mark task complete. Output: implemented story on a worktree branch in `CODE_DIR`. When `USE_WORKTREE = false`: ensure CWD is `CODE_DIR`, run `/andthen:exec-spec {fis_path}` directly on main, commit all changes, then mark task complete. Output: implemented story committed on main.
+**Implementers** (`model: "sonnet"`) – Work on pre-assigned `impl-*` tasks (either `impl-{story_id}` for standard stories or `impl-{S01-S02}` for composites). When `USE_WORKTREE = true`: ensure CWD is `CODE_DIR`, enter an isolated worktree via `EnterWorktree` using the task ID as the worktree name (e.g., `story-S01` or `story-S01-S02`), run `/andthen:exec-spec {fis_path}` (or `$andthen:exec-spec {fis_path}`) with absolute FIS path, commit all changes, exit worktree with `action: "keep"` (preserves the branch for merge), then mark task complete. Output: implemented story (or composite) on a worktree branch in `CODE_DIR`. When `USE_WORKTREE = false`: ensure CWD is `CODE_DIR`, run `/andthen:exec-spec {fis_path}` directly on main, commit all changes, then mark task complete. Output: implemented story committed on main.
 
-**Reviewers** (`model: "sonnet"`, `REVIEW_MODE=per-story` only) – Work on pre-assigned `review-{story_id}` tasks. When `USE_WORKTREE = true`: unblocked by orchestrator after wave merge; code is on main post-merge. When `USE_WORKTREE = false`: unblocked after the corresponding `impl-*` completes; code is already on main. In both cases: ensure CWD is `CODE_DIR`, then run `/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) with absolute FIS path per story **on the main branch**. If issues found: fix them on main, then re-validate. **Max 2 fix attempts** – if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story.
+**Reviewers** (`model: "sonnet"`, `REVIEW_MODE=per-story` only) – Work on pre-assigned `review-*` tasks (either `review-{story_id}` or `review-{S01-S02}` for composites). When `USE_WORKTREE = true`: unblocked by orchestrator after wave merge; code is on main post-merge. When `USE_WORKTREE = false`: unblocked after the corresponding `impl-*` completes; code is already on main. In both cases: ensure CWD is `CODE_DIR`, then run `/andthen:review-gap {fis_path}` (or `$andthen:review-gap {fis_path}`) with absolute FIS path **on the main branch**. If issues found: fix them on main, then re-validate. **Max 2 fix attempts** – if issues persist after 2 rounds, escalate to the orchestrator via message instead of continuing the loop. Output: validated story (or composite).
 
 Each agent loops: **check for assigned tasks → execute → mark done → check for next assigned task**.
 
@@ -239,7 +241,8 @@ Your workflow (loop until no assigned tasks remain):
 1. Check the task list for tasks assigned to you (owner = your name)
 2. For each assigned impl-* task:
    a. Ensure your CWD is {CODE_DIR} (the code repo) – `cd {CODE_DIR}` if needed
-   b. Call EnterWorktree with name "story-{story_id}" to create an isolated worktree
+   b. Call EnterWorktree with name "story-{task_id}" to create an isolated worktree
+      (task_id is the impl task suffix: e.g., "S01" for standard, "S01-S02" for composite)
    c. /andthen:exec-spec {fis_path}    (FIS path is ABSOLUTE – do not modify it)
    d. Commit all changes in the worktree (ensure nothing is left uncommitted)
    e. Call ExitWorktree with action "keep" – the orchestrator needs the branch for merge
@@ -380,9 +383,18 @@ Run Step 3 (Generate Specs via `spec-plan`) for the current phase's stories. All
 
 #### 6b. Create Pipeline Tasks (Pre-Assigned)
 
-For each story in the current phase, create tasks with **pre-assigned owners**:
-- `impl-{story_id}`: "Implement {story_name}" – assign to a specific implementer
-- `review-{story_id}`: "Review and validate {story_name}" – assign to a specific reviewer (`REVIEW_MODE=per-story` only)
+For each story in the current phase, create tasks with **pre-assigned owners**.
+
+**Composite FIS Dedup**: Before creating tasks, group stories by their FIS path. When multiple stories share the same FIS path (composite FIS):
+- Create **one** `impl-{S01-S02}` task for the composite (concatenated IDs), not separate tasks per story
+- Create **one** `review-{S01-S02}` task for the composite when `REVIEW_MODE=per-story`
+- Use **one** worktree per composite FIS (when `USE_WORKTREE = true`)
+- When composite stories span different waves, assign the composite task to the **later wave** (all prerequisite stories must be specced before implementation starts)
+- After the composite task completes, run the **Plan Acceptance Gate** (Step 6f) for ALL constituent stories before marking any of them `Done`
+
+**Task naming:**
+- Standard stories: `impl-{story_id}` / `review-{story_id}`
+- Composite stories: `impl-{story_id_1}-{story_id_2}` / `review-{story_id_1}-{story_id_2}`
 
 **Pre-assignment rules:**
 - Round-robin distribute `impl-*` tasks across implementers to balance workload
@@ -407,15 +419,17 @@ When `USE_WORKTREE = false` (sequential execution — only one story may mutate 
 
 #### 6c. Set Dependencies
 
+> **Task ID convention**: `{task_id}` is either a single story ID (`S01`) or a composite ID (`S01-S02`). All dependency, merge, and cleanup references use the same `{task_id}` that was assigned in Step 6b.
+
 When `USE_WORKTREE = true`:
-- `impl-{story_id}` – unblocked for current wave (ready for implementers to start)
-- `review-{story_id}` – **create as blocked** only when `REVIEW_MODE=per-story`. The orchestrator unblocks review tasks for each wave AFTER merging all worktree branches from that wave (see Step 6d)
-- Cross-story dependencies from plan: if S05 depends on S03, then `impl-S05` is blocked by `review-S03` in `per-story` mode, otherwise by completion of `impl-S03` and its successful merge
+- `impl-{task_id}` – unblocked for current wave (ready for implementers to start)
+- `review-{task_id}` – **create as blocked** only when `REVIEW_MODE=per-story`. The orchestrator unblocks review tasks for each wave AFTER merging all worktree branches from that wave (see Step 6d)
+- Cross-story dependencies from plan: if S05 depends on S03, then `impl-S05` (or the composite task containing S05) is blocked by `review-S03` (or its composite) in `per-story` mode, otherwise by completion of the corresponding `impl-*` and its successful merge. For composites: if any constituent story has a plan dependency, the entire composite task inherits that dependency
 
 When `USE_WORKTREE = false` (only one story may mutate `main` at a time):
-- When `REVIEW_MODE=per-story`: `impl-{story_id}` is blocked by the previous story's `review-*` completing (the full story pipeline must finish before the next starts, since review may apply fixes to `main`)
-- When `REVIEW_MODE=none` or `full-plan`: `impl-{story_id}` is blocked by the previous `impl-*` completing
-- `review-{story_id}` – blocked by its corresponding `impl-{story_id}` (when `REVIEW_MODE=per-story`)
+- When `REVIEW_MODE=per-story`: `impl-{task_id}` is blocked by the previous task's `review-*` completing (the full pipeline must finish before the next starts, since review may apply fixes to `main`)
+- When `REVIEW_MODE=none` or `full-plan`: `impl-{task_id}` is blocked by the previous `impl-*` completing
+- `review-{task_id}` – blocked by its corresponding `impl-{task_id}` (when `REVIEW_MODE=per-story`)
 - Cross-story dependencies from plan are naturally satisfied by sequential execution order
 
 #### 6d. Merge Wave (when `USE_WORKTREE = true`)
@@ -424,39 +438,39 @@ When `USE_WORKTREE = false` (only one story may mutate `main` at a time):
 
 After ALL `impl-*` tasks in the current wave are complete (all implementers have committed and exited their worktrees):
 
-1. **Verify worktree branches exist** – Each completed impl task should have produced a worktree branch named `worktree-story-{story_id}` (the branch EnterWorktree creates)
+1. **Verify worktree branches exist** – Each completed impl task should have produced a worktree branch named `worktree-story-{task_id}` (the branch EnterWorktree creates). For composites, the branch is `worktree-story-{S01-S02}`.
 
 2. **Pre-merge conflict detection** – Dry-run each merge to identify conflicts before starting:
    ```bash
    # All git commands target CODE_DIR (the code repo, not the plan repo)
-   git -C {CODE_DIR} merge-tree $(git -C {CODE_DIR} merge-base HEAD worktree-story-{story_id}) HEAD worktree-story-{story_id}
+   git -C {CODE_DIR} merge-tree $(git -C {CODE_DIR} merge-base HEAD worktree-story-{task_id}) HEAD worktree-story-{task_id}
    # Non-empty output = conflicts expected
    ```
 
-3. **Sequentially merge each story branch into main** (`--no-ff` preserves explicit merge commits for easy per-story rollback):
+3. **Sequentially merge each task branch into main** (`--no-ff` preserves explicit merge commits for easy rollback):
    ```bash
    git -C {CODE_DIR} checkout main
-   # Merge each story branch one at a time
-   git -C {CODE_DIR} merge worktree-story-{story_id} --no-ff -m "Merge story {story_id}: {story_name}"
-   # Repeat for each story in the wave
+   # Merge each task branch one at a time
+   git -C {CODE_DIR} merge worktree-story-{task_id} --no-ff -m "Merge {task_id}: {task_name}"
+   # Repeat for each impl task in the wave
    ```
 
 4. **Handle merge conflicts** by type:
    - **Import/config accumulation** (very common) – take both additions, they are additive
    - **Lock file conflicts** (common) – `git checkout --theirs pnpm-lock.yaml` then re-run package manager install to regenerate
-   - **Adjacent code modifications** – spawn a Troubleshooter teammate with both stories' FIS as context
+   - **Adjacent code modifications** – spawn a Troubleshooter teammate with the relevant FIS as context
    - **Same function, incompatible logic** – escalate to user (implies a missed plan dependency)
 
 5. **Verify build + tests** on merged main before proceeding to reviews
 
 6. **Clean up worktrees**:
    ```bash
-   git -C {CODE_DIR} worktree remove .claude/worktrees/story-{story_id}
-   git -C {CODE_DIR} branch -d worktree-story-{story_id}
-   # Repeat for each story in the wave
+   git -C {CODE_DIR} worktree remove .claude/worktrees/story-{task_id}
+   git -C {CODE_DIR} branch -d worktree-story-{task_id}
+   # Repeat for each impl task in the wave
    ```
 
-7. **Unblock review tasks** for this wave (`REVIEW_MODE=per-story` only) – update each `review-{story_id}` task to unblocked status so reviewers can pick them up
+7. **Unblock review tasks** for this wave (`REVIEW_MODE=per-story` only) – update each `review-{task_id}` task to unblocked status so reviewers can pick them up
 
 > **Critical invariant**: Wave N+1 worktrees must be created AFTER Wave N merges complete. Creating them before means they branch from pre-merge main and lack Wave N's changes – causing guaranteed conflicts and incorrect behavior.
 
@@ -474,8 +488,17 @@ After ALL `impl-*` tasks in the current wave are complete (all implementers have
 
 **CRITICAL – do this immediately after each story completes its required stages for the selected `REVIEW_MODE`, not as a batch at the end.**
 
-After each story's pipeline completes (exec-spec → merge → optional per-story `review-gap`), use the `andthen:ops` skill to update `plan.md`:
-- Set the story's **Status** field to `Done`
+After each story's pipeline completes (exec-spec → merge → optional per-story `review-gap`):
+
+**Plan Acceptance Gate** (verify before marking Done):
+For each acceptance criterion in the plan story:
+1. Is the criterion demonstrably satisfied by the implementation?
+2. If the FIS narrowed scope (added a scope note like "replace-mode only"), is the scope note present in the plan story's acceptance criteria?
+3. If any criterion is unmet and no scope note explains why → do NOT mark Done → escalate to the user with the unmet criterion and the FIS scope note (if any).
+4. For composite FIS: verify acceptance criteria for ALL constituent stories, not just the first.
+
+Then use the `andthen:ops` skill to update `plan.md`:
+- Set the story's **Status** field to `Done` (for composites: set ALL constituent stories to `Done`)
 - Set the story's **FIS** field to the generated spec path (e.g. `**FIS**: docs/specs/story-name.md`)
 - Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)
 - Update the Story Catalog table: set the story's Status column to `Done`

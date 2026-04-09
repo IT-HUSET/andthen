@@ -14,6 +14,12 @@
 _**TODO**: Add Project Overview, Architecture, Tech Stack, Structure etc. here._
 
 
+### Current State
+<!-- If you use STATE.md for cross-session tracking, reference it here
+     so agents pick up project context immediately — even outside workflow skills. -->
+See `docs/STATE.md` for current phase, active stories, blockers, and session continuity notes.
+
+
 ---
 
 

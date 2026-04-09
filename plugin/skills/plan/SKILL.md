@@ -517,7 +517,7 @@ For each story, define:
 - **ID**: Sequential identifier (S01, S02, etc.)
 - **Name**: Brief descriptive name
 - **Status**: Tracking field – initially `Pending` (updated to `Spec Ready` / `In Progress` / `Done` during execution)
-- **FIS**: Reference to generated spec – initially `–` (updated to file path when `andthen:spec` creates the FIS)
+- **FIS**: Reference to generated spec – initially `–` (updated to file path when `andthen:spec` creates the FIS). Multiple stories may reference the same FIS path when grouped into a composite specification by `andthen:spec-plan`
 - **Scope**: 2-4 sentences – what's included and excluded (no implementation approach – that's for `andthen:spec`)
 - **Acceptance criteria**: 3-6 testable outcomes – the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
 - **Dependencies**: Other story IDs that must complete first
@@ -557,11 +557,12 @@ Generate `plan.md` with a structure like the following (adapt phases and structu
 
 ## Story Catalog
 
-| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status |
-|----|------|-------|------|--------------|----------|------|--------|
-| S01 | [Name] | Foundation | W1 | - | No | Low | Pending |
-| S02 | [Name] | Foundation | W1 | S01 | No | Low | Pending |
-| S03 | [Name] | Core | W2 | S01, S02 | [P] | Medium | Pending |
+| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS |
+|----|------|-------|------|--------------|----------|------|--------|-----|
+| S01 | [Name] | Foundation | W1 | - | No | Low | Pending | – |
+| S02 | [Name] | Foundation | W1 | S01 | No | Low | Pending | – |
+| S03 | Auth Middleware | Core | W2 | S01, S02 | [P] | Medium | Pending | `docs/specs/my-feature/s03-s04-auth-system.md` |
+| S04 | Auth API Endpoints | Core | W2 | S03 | [P] | Medium | Pending | `docs/specs/my-feature/s03-s04-auth-system.md` |
 
 ## Phase Breakdown
 
@@ -579,12 +580,26 @@ _Sequential execution - establishes base for all features_
 **Assets**: [Wireframe refs, ADR refs if any]
 
 #### S02: [Story Name]
+**Status**: Pending
+**FIS**: –
 ...
+
+<!-- Example: composite FIS (shared by tightly coupled stories) -->
+#### [P] S03: Auth Middleware
+**Status**: Pending
+**FIS**: docs/specs/my-feature/s03-s04-auth-system.md
+...
+
+#### [P] S04: Auth API Endpoints
+**Status**: Pending
+**FIS**: docs/specs/my-feature/s03-s04-auth-system.md
+...
+<!-- S03 and S04 share a composite FIS because they form a producer-consumer pair -->
 
 ### Phase 2: Core Features
 _Parallel execution where marked [P]_
 
-#### [P] S03: [Story Name]
+#### [P] S05: [Story Name]
 ...
 
 ### Phase 3: Integration
@@ -632,6 +647,8 @@ W3: S05, S06, S07
    Example: `/andthen:review-gap docs/specs/my-feature/plan.md` (or `$andthen:review-gap ...`)
 
 > **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path and set **Status** to `Spec Ready`. When implementation starts, set **Status** to `In Progress`. After implementation and review, check off acceptance criteria and set **Status** to `Done`. Update the Story Catalog table status accordingly. `andthen:exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
+>
+> **Composite FIS**: When multiple stories share a composite FIS (created by `andthen:spec-plan` for tightly coupled stories), `andthen:exec-spec` runs once for the composite FIS. All constituent stories are marked `Done` when the composite spec execution completes.
 </example-plan-format>
 
 **Gate**: Plan document complete

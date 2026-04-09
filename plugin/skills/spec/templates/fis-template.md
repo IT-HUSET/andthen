@@ -1,37 +1,16 @@
 # Feature Implementation Specification Template
 
-> **Purpose:**
-> Executable specification optimized for AI agents – concise, actionable, reference-heavy.
->
-> **Core Principles:**
-> 1. **Intent over Implementation**: Describe outcomes, goals and context, not exact code changes — the implementing agent decides *how*
-> 2. **References over Content**: Link to docs, code (file:line), and research – don't inline them
-> 3. **Patterns by Reference**: Point to existing code patterns (file:line) rather than reproducing them
-> 4. **Decisions, not Explanations**: State the decision, not lengthy rationale
-> 5. **Validation at Execution**: Code is written during exec-spec, not spec
-> 6. **Information Dense**: Keywords and patterns from the codebase, minimal prose
->
-> **DON'Ts**
-> - ❌ Code snippets longer than 5-10 lines – reference existing patterns instead
-> - ❌ Inline documentation excerpts – link to the source
-> - ❌ Verbose prose or explanations – be terse and actionable
-> - ❌ Repeating information available elsewhere – reference it
-> - ❌ Describing code changes or file creation steps – describe outcomes and goals instead
-> - ❌ Over-engineering or out-of-scope functionality
-
 
 ## Feature Overview and Goal
-{{Clear description of what needs to be built and why}}
+{{1-2 sentences: what needs to be built and why}}
 
 
 ## Success Criteria (Must Be TRUE)
-State what must be observably TRUE when this feature is complete:
 - [ ] {{Observable truth from user's perspective}}
 - [ ] {{Verifiable system behavior}}
 - [ ] {{Measurable technical requirement}}
 
 ### Health Metrics (Must NOT Regress)
-Existing behaviors and baselines that must be preserved — guards against Goodhart-style optimization:
 - [ ] {{Existing tests continue to pass}}
 - [ ] {{Performance baseline not degraded}}
 - [ ] {{Existing API contracts / interfaces unchanged (unless explicitly scoped)}}
@@ -40,186 +19,122 @@ Existing behaviors and baselines that must be preserved — guards against Goodh
 ## Scope & Boundaries
 
 ### In Scope
-- ✅ {{Core functionality to be built}}
-- ✅ {{Integration points to be created}}
-- ✅ {{User interactions to be enabled}}
+- {{Core functionality to be built}}
+- {{Integration points to be created}}
 
 ### What We're NOT Doing
-- ❌ {{Out of scope item - be specific}}
-- ❌ {{Feature explicitly not included}}
-- ❌ {{Existing functionality not to be modified}}
+- {{Out of scope item - be specific}}
+- {{Existing functionality not to be modified}}
 
-### Anti-Patterns to Avoid
-- ❌ Don't {{common mistake}} - instead {{correct approach}}
-- ❌ Don't {{framework misuse}} - use {{proper pattern}}
-- ❌ Don't {{reinvent wheel}} - use existing {{utility/pattern}}
-
-### Agent Decision Authority (optional — include when scope boundaries are ambiguous)
-- **Autonomous**: {{Decisions the agent can make — e.g. internal naming, data structures, file organization}}
-- **Escalate**: {{Decisions requiring human input — e.g. new external dependencies, API contract changes, scope expansion}}
+### Agent Decision Authority (optional -- include when scope boundaries are ambiguous)
+- **Autonomous**: {{Decisions the agent can make}}
+- **Escalate**: {{Decisions requiring human input}}
 
 
-## Solution Architecture and Design
+## Architecture Decision
 
-### Architecture Decision Record (ADR)
-{{Links to relevant ADRs / _OR_ include details inline below (Decision, Rationale, Alternatives Considered)}}
+{{For simple decisions (obvious from project patterns), use compact format:}}
 
-#### Decision
-**We will**: {{Chosen approach}}
+**We will**: {{approach}} -- {{one-line rationale}} (over {{rejected alternatives}})
 
-#### Rationale
-{{Why this approach best solves the problem given constraints}}
+{{For genuine trade-offs (2+ viable alternatives), use full format:}}
 
-#### Alternatives Considered
-1. **{{Alternative 1}}**: {{Brief description}}
-- ❌ Rejected because: {{Specific reason}}
-2. **{{Alternative 2}}**: {{Brief description}}
-- ❌ Rejected because: {{Specific reason}}
+**We will**: {{chosen approach}}
+**Rationale**: {{why this approach, given constraints}}
+**Alternatives considered**:
+1. **{{Alt 1}}** -- rejected: {{reason}}
+2. **{{Alt 2}}** -- rejected: {{reason}}
 
-### Technical Overview
-
-#### Outline of New/Changed Files
-```bash
-# Show where new files/modules will be added or updated
-{{Illustrate the changes with annotations}}
-```
-
-#### UI/UX Design (if applicable)
-{{Describe any UI/UX changes, including new screens, UI components, interactions, or user flows}}
-
-#### UI Mockups/Wireframes (if applicable)
-{{Include links to existing wireframes and/or simple mockups/sketches in Markdown / Ascii format}}
+{{If covered by an existing ADR, reference it: `See ADR: docs/adrs/001-foo.md`}}
 
 
-#### Data Models & Structures (if applicable)
-{{Describe new or modified data models, including fields and types etc}}
-```
-# Data model pseudocode
-```
+## Technical Overview
 
-#### Integration Points (if applicable)
-{{Describe how this integrates with existing systems or APIs}}
+### UI/UX Design (if applicable)
+{{Describe UI changes, screens, interactions, user flows}}
+
+### UI Mockups/Wireframes (if applicable)
+{{Links to wireframes or simple ASCII mockups}}
+
+### Data Models (if applicable)
+{{Describe models, fields, types, and relationships in natural language. No pseudocode.}}
+
+### Integration Points (if applicable)
+{{How this integrates with existing systems or APIs}}
 
 
-## Critical Documentation & Context
+## References & Constraints
 
 ### Documentation & References
 ```
-# Reference format: type | path/url | section | why needed
+# type | path/url | why needed
 file   | src/components/Modal.tsx:45-78    | Pattern for dialog handling
 file   | src/api/users.ts:12-34            | API structure to follow
 url    | https://docs.example.com/auth     | OAuth flow reference
 doc    | docs/architecture/adr-001.md      | Auth architecture decision
 wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 ```
-> Keep this list focused – only include references that are essential for implementation.
 
-
-### Known Constraints & Gotchas
-- **Constraint**: {{Known limitation}} - Workaround: {{Specific solution}}
-- **Gotcha**: {{Common mistake}} - Avoid by: {{Best practice}}
-- **Critical**: {{Framework/library limitation}} - Must handle by: {{Specific approach}}
+### Constraints & Gotchas
+- **Constraint**: {{Known limitation}} -- Workaround: {{specific solution}}
+- **Avoid**: {{Common mistake or anti-pattern}} -- Instead: {{correct approach}}
+- **Critical**: {{Framework/library limitation}} -- Must handle by: {{approach}}
 
 
 ## Implementation Plan
-Below is an overview of the tasks that make up the implementation plan.
-**IMPORTANT:**
-- Tasks are organized into **Execution Groups** – clusters of related tasks executed by a single sub-agent
-- Tasks within a group execute sequentially. Groups marked **[P]** can run in parallel with sibling groups at the same dependency level
-- Individual tasks retain their IDs (TI01, TI02...) for tracking. Check off task checkboxes (- [ ] → - [x]) as tasks are completed
+
+Tasks are organized into **Execution Groups** -- clusters of related tasks executed by a single sub-agent.
+Groups marked **[P]** can run in parallel with sibling groups at the same dependency level.
+Tasks within a group execute sequentially.
+
+> **Vertical slice ordering**: First group produces a thin but working end-to-end path. Subsequent groups widen the slice.
 
 ### Execution Groups
 
-> **Vertical slice ordering**: Order groups so the first group produces a thin but working end-to-end path through all layers. Subsequent groups widen the slice with additional cases, edge handling, and polish. The goal is a demoable result as early as possible.
+_Examples -- note how tasks describe outcomes, not code changes:_
 
-_Examples — note how tasks describe outcomes, not code changes:_
+#### G1: Core Data Pipeline <- [depends: none]
+- [ ] **TI01** Event ingestion endpoint accepts and validates incoming payloads
+  - Follow API pattern at `src/api/users.ts:12-34`; reuse existing validation middleware
+  - **Verify**: `Test: POST /events with valid payload returns 201; invalid payload returns 422 with field-level errors`
 
-#### G1: Project Foundation ← [depends: none]
-- [ ] **TI01** Working Fresh project scaffold with dev server
-  - Deno + Fresh framework, standard directory layout (routes/, islands/, components/, lib/)
-  - Dev server, build, lint, and type-check tasks all operational
-  - **Verify**: `deno task check` passes; `deno task start` serves on localhost
+- [ ] **TI02** Events persisted to storage with idempotency guarantee
+  - Use existing repository pattern at `src/repos/base.ts:8-25`; dedup on event ID
+  - **Verify**: `Test: sending same event twice produces exactly one stored record`
 
-- [ ] **TI02** Supabase integration with server and browser clients
-  - Authenticated Supabase access from both server routes and browser islands
-  - Environment variables documented in .env.example
-  - Follow pattern: `lib/db/client.ts:1-20`
-  - **Verify**: Type-check passes; both clients importable from `lib/supabase/`
+#### G2: Query Interface [P] <- [depends: G1]
+- [ ] **TI03** Events queryable by type, time range, and source with pagination
+  - Follow query builder pattern at `src/repos/users.ts:40-65`
+  - **Verify**: `Test: query with type filter returns only matching events; pagination cursor works across pages`
 
-#### G2: Development Tooling [P] ← [depends: G1]
-- [ ] **TI03** Linting, formatting, and E2E test infrastructure
-  - Deno fmt/lint/check configured as runnable tasks
-  - Playwright configured for E2E tests in tests/e2e/
-  - **Verify**: `deno task lint` runs cleanly; Playwright config resolves
+_Replace examples above with your actual tasks. Format: outcome + context line + behavioral Verify._
 
-#### G3: Design System [P] ← [depends: G1]
-- [ ] **TI04** Design system foundation matching ADR-002
-  - Pico CSS + Google Fonts (Nunito Sans, Outfit) integrated
-  - Custom theme variables (color, spacing, typography) per ADR-002
-  - Responsive breakpoints configured
-  - **Verify**: Dev server renders themed page; CSS custom properties inspectable in browser
+#### G1: {{Group Name}} <- [depends: none]
+- [ ] **TI01** {{Outcome that must be TRUE when done}}
+  - {{1-2 lines of context: constraints, pattern reference (file:line), key decisions}}
+  - **Verify**: {{Behavioral assertion that fails if outcome not achieved}}
+
+#### G2: {{Group Name}} [P] <- [depends: G1]
+- [ ] **TI02** {{Outcome}}
+  - {{Context}}
+  - **Verify**: {{Assertion}}
 
 ### Testing Strategy
-> Defines what to test and how – gives the testing agent concrete direction during exec-spec.
-> Only include scenarios and coverage goals here; actual test code is written during execution.
+{{Test scenarios derived from success criteria. Tag with execution group for pairing.}}
+- [G1] {{Scenario: description + expected outcome}}
+- [G2] {{Scenario: description + expected outcome}}
+- [edge] {{Boundary condition or error scenario}}
 
-#### Test Scope
-- **Unit tests**: {{Key modules/functions requiring unit tests, with expected behaviors}}
-- **Integration tests**: {{API endpoints, service interactions, data flows to verify}} _(if applicable)_
-- **E2E tests**: {{Critical user journeys to validate end-to-end}} _(if applicable)_
+### Validation
+> Standard validation (TV01-TV04: code review, testing, visual validation, remediation) is handled by exec-spec.
+> Only add feature-specific validation requirements below if the standard levels are insufficient.
 
-#### Key Test Scenarios
-{{Derive from success criteria – each criterion should map to at least one test scenario}}
-- {{Scenario 1: description + expected outcome}}
-- {{Scenario 2: description + expected outcome}}
-
-#### Edge Cases & Error Scenarios
-- {{Edge case 1: boundary condition or unusual input}}
-- {{Error scenario 1: expected failure mode and how it should be handled}}
-
-#### Test Patterns & References
-```
-# Reference format: type | path | what to follow
-test   | tests/unit/users.test.ts:15-40      | Test structure and assertion style
-test   | tests/e2e/auth.spec.ts:8-25         | E2E test setup pattern
-config | playwright.config.ts                | E2E configuration
-```
-
-#### Test-Implementation Pairing
-> Map test scenarios to execution groups to create a natural red-green rhythm.
-> Tests paired with a group should be written (and failing) before the group executes.
-
-| Execution Group | Test Scenarios | Expected Behavior |
-|----------------|----------------|--------------------|
-| G1 | {{Scenario 1, Scenario 2}} | {{Tests fail before G1, pass after}} |
-| G2 | {{Scenario 3}} | {{Tests fail before G2, pass after}} |
-
-_Skip for purely structural tasks (scaffolding, config, migrations) where tests-first adds no value._
-
-### Validation Tasks
-> Validation methodology details defined in exec-spec.
-
-- [ ] **TV01** [P] Level 1: Code review and analysis
-- [ ] **TV02** [P] Level 2: Unit, integration, E2E testing
-- [ ] **TV03** [P] Level 3: Visual validation _(if UI applicable)_
-- [ ] **TV04** Address validation issues, verify *Final Validation Checklist*
-
-### Feature-Specific Validation (if any)
-{{Only add requirements not covered by standard validation levels}}
+- {{Feature-specific validation requirement, if any}}
 
 
 ## Final Validation Checklist
 
-### Feature Validation
-- [ ] **All success criteria** from the top-level "Success Criteria" section met
-- [ ] **All tasks** in the implementation plan are _fully completed_ (not partially) and the completion is _reviewed, verified checkboxes checked_
+- [ ] **All success criteria** met
+- [ ] **All tasks** fully completed, verified, and checkboxes checked
 - [ ] **No regressions** or breaking changes introduced
 - [ ] **UI verified** to match requirements (if applicable)
-
-### Technical Validation
-- [ ] **All validation levels** completed successfully
-- [ ] Code **builds / compiles** and **all** tests pass without errors
-- [ ] **No** analysis, linting/type errors or critical code style issues
-- [ ] Code follows existing codebase patterns, naming conventions and structures
-- [ ] **All** temporary, refactored, migrated or obsolete code/files removed and cleaned up
-- [ ] No commented-out code left behind
