@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.10.2] – 2026-04-10
+
+### Fixed
+- **`remediate-findings` re-validation loop** – replaced impractical "re-run originating review" step (which the model always skipped, cascading into skipped state updates) with a concrete findings re-check pattern: walk each finding, classify as RESOLVED/PARTIALLY RESOLVED/UNRESOLVED/DEFERRED with evidence, then run `review-code` on touched scope for regression detection. Scoped the "do not defer state updates" directive to prevent both the original caution deadlock and premature state updates on partial resolutions. Removed duplicate `review-code` invocation and aligned the Phase 4 gate with the severity policy
+
+---
+
 ## [0.10.1] – 2026-04-10
 
 ### Added

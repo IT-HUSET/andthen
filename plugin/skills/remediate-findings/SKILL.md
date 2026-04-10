@@ -96,18 +96,17 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
 4. Run final validation in parallel when supported:
    - Tests
    - Linting and type checks
-   - `andthen:review-code` on touched scope
    - Visual validation when UI changed
-5. Re-run the originating review when possible:
-   - `review-gap` report → re-run `andthen:review-gap` against the same baseline
-   - `review-code` report → re-run `andthen:review-code` on the same scope
-   - Other review types → run the closest equivalent validator and state the inference explicitly
-6. Repeat the remediation loop until all required findings are resolved, or escalate after 2 cycles.
+5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state one of: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), or `DEFERRED` (intentionally left open per severity policy, with justification). This is the primary close-the-loop validation — it proves each finding was addressed without the cost of a full re-review.
+6. Run `andthen:review-code` on the touched scope to catch regressions introduced by the fixes.
+7. Repeat the remediation loop until all required findings are resolved or explicitly deferred, or escalate after 2 cycles.
 
-**Gate**: Required findings are resolved, verification is clean, and no new regressions are introduced
+**Gate**: Every Critical/High finding is RESOLVED with evidence, Medium/Low findings are RESOLVED or DEFERRED with justification, review-code on touched scope is clean, and no new regressions are introduced
 
 
 ### Phase 5: Update Workflow State
+
+The findings re-check and review-code results from Phase 4 are the evidence needed to update state. When all required findings are resolved and verification is clean, update state now — do not defer to "a future run" merely because the originating review was not re-run.
 
 If the report is tied to a story or FIS and remediation passed validation:
 - Use `andthen:ops update-fis {fis_path} all` when the FIS work is substantively complete and evidence exists
@@ -125,8 +124,7 @@ If the report is a full-plan or workspace-wide review:
 ## COMPLETION
 
 Report:
-- Findings resolved
+- Findings re-check table (each finding → RESOLVED / PARTIALLY RESOLVED / UNRESOLVED with evidence)
 - Findings intentionally left open and why
-- Verification evidence
-- Whether the follow-up review now passes
+- Verification results (tests, lints, review-code)
 - Which workflow artifacts were updated
