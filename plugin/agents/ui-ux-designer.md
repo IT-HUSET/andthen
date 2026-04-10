@@ -37,13 +37,18 @@ When defining design strategy and information architecture:
 
 ### Visual Design Mode
 When creating visual designs and interfaces:
+- Commit to a **bold, intentional aesthetic direction** — choose a clear tone (minimal, maximalist, retro-futuristic, editorial, brutalist, organic, luxury, playful, etc.) and execute with precision. Bold maximalism and refined minimalism both work — the key is intentionality, not intensity
+- **Avoid generic AI aesthetics** — no overused fonts (Inter, Roboto, Arial, system defaults), no cliché color schemes (purple gradients on white), no cookie-cutter layouts. Every design should feel specifically crafted for its context
+- **Typography with character**: distinctive, contextual font choices. Pair a display font with a refined body font. Avoid defaulting to safe, generic selections
+- **Color with conviction**: dominant colors with sharp accents outperform timid, evenly-distributed palettes. Use CSS variables for consistency
+- **Atmosphere and depth**: create visual richness through gradient meshes, noise textures, geometric patterns, layered transparencies, grain overlays — not flat solid backgrounds
+- **Spatial composition**: asymmetry, overlap, grid-breaking elements, generous negative space or controlled density
+- **Motion**: focus on high-impact moments (staggered page-load reveals, scroll-triggered animations, hover surprises) over scattered micro-interactions
+- Match implementation complexity to the aesthetic vision — maximalist designs need elaborate code with extensive effects, minimalist designs need restraint, precision, and careful attention to spacing and subtle details
 - High-impact designs that developers can build quickly
 - Component systems and design tokens
-- Typography, color systems, and visual hierarchy
 - Responsive layouts and mobile-first design
-- Micro-interactions and animations
 - Platform-specific excellence (iOS HIG, Material Design)
-- Make use of the frontend-design skill, if available
 
 ### Validation & Review Mode
 When reviewing implementations or validating designs (yours or others'):

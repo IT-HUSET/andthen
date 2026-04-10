@@ -6,6 +6,54 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.10.0] – 2026-04-10
+
+### Added
+- **`architecture-review` skill** – deep quantitative architecture review with four modes: **review** (dependency metrics, package principles, connascence analysis, anti-pattern scan), **decompose** (split/merge evaluation using Ford/Richards drivers), **advise** (framework-grounded architectural guidance), and **fitness** (fitness function proposals with 4-level governance stack). Includes 9 reference files synthesizing Ford & Richards, Farley, Martin's Package Principles, Page-Jones/Weirich connascence taxonomy, and Building Evolutionary Architectures. Features adversarial challenge pass, language-aware tooling suggestions, and shared calibration integration
+- **`quick-review` skill** – lightweight in-conversation review that spawns a fresh-context sub-agent for adversarial critique of recent changes. Auto-scopes from pending git changes or conversation context, classifies change type (code, spec, config, docs, prompt) to select the appropriate review lens, and applies anti-leniency principles inline. Designed for mid-conversation sanity checks without the overhead of formal review skills
+- **Skill Authoring Philosophy** in CLAUDE.md – codifies intent-driven authoring principles: why over what, right altitude, named principles over unnamed rules, and intent reasoning as non-waste. Establishes the reference point for skill authors to prevent over/under-correction in future edits
+- **Structured Output Protocols reference** – new `plugin/references/structured-output-protocols.md` with three named agent-user communication formats (CONFUSION, NOTICED BUT NOT TOUCHING, MISSING REQUIREMENT) for surfacing ambiguity and scope boundaries. Referenced from `exec-spec`, `quick-implement`, `triage`, and `spec`
+- **Slicing vocabulary** in FIS authoring guidelines – three named strategies (Vertical, Risk-First, Contract-First) for execution group ordering decisions
+- **Named principles** across skills – Chesterton's Fence (`refactor`), Prove-It Pattern (`triage`), Proof-of-Work (`spec`, `exec-spec`), Stop-the-Line (`exec-spec` verification gates), Trust Tiers for external content (`e2e-test`, `triage`)
+- **Scenarios and Proof-of-Work** – BDD-inspired Given/When/Then scenarios serve triple duty: requirement, test specification, and proof-of-work contract. Traceable chain across the workflow: `plan` stories seed Key Scenarios (one-line behavioral seeds) → `spec` elaborates them into full Given/When/Then → `exec-spec` scaffolds them as failing tests (Step 1.5) and proves them green during implementation. Concept grounded in Tegmark & Omohundro's verification asymmetry (arXiv:2309.01933)
+- **Documentation Source Authority** hierarchy in development guidelines – 4-tier source ranking with explicit exclusion of unreliable sources (Stack Overflow, blog tutorials, AI-generated summaries, training data recall)
+- **Restored intent reasoning** in `exec-spec` – three pieces of load-bearing "why" reasoning from the v0.8.7 rationalizations tables that were over-aggressively removed during condensation: why test scaffolding precedes implementation (verifies intent, not incidental behavior), why verification gates exist (prevent cascading failures across groups), and why Step 3 validation differs from Step 2 gates (cross-cutting vs task-level issues)
+
+### Removed
+- **Minimal FIS template removed** – `plugin/skills/spec/templates/fis-template-minimal.md` deleted. THIN stories now use the standard FIS template, collected into a single `thin-specs.md` per phase
+- **All external plugin dependencies removed** – `code-simplifier` and `frontend-design` plugins are no longer referenced by any skill or agent. AndThen is now fully standalone
+  - **`refactor` skill made standalone** – removed all `code-simplifier:code-simplifier` delegation. Refactoring philosophy (preserve behavior, favor readability over cleverness, balance simplification) integrated directly into the skill
+  - **`exec-spec` and `quick-implement` code-simplifier references inlined** – replaced external agent delegation with inline intent ("review implemented code for simplification opportunities")
+  - **`frontend-design` philosophy integrated into `ui-ux-designer` agent** – bold aesthetic direction, anti-AI-slop stance, typography/color/atmosphere/motion principles added to Visual Design Mode
+  - External Dependencies sections removed from CLAUDE.md, README.md, and plugin/README.md
+
+### Changed
+- **`spec-plan` THIN stories collected into single file** – THIN specs are no longer written as individual files using the minimal FIS template. All THIN stories are collected into one `{PLAN_DIR}/thin-specs.md` following standard FIS structure, with execution groups organized by story. Leverages existing shared-FIS dedup in `exec-plan`/`exec-plan-team` — exec-spec runs once, remaining stories skip to acceptance gate
+- **`spec-plan` COMPOSITE criteria broadened** – added two new grouping signals: same module/directory (stories primarily affecting the same directory per research brief), phase cohesion (all stories in a phase of ≤4 stories sharing an architectural layer). Max composite group size raised from 3 to 5. Shared files threshold relaxed from 50% to any shared files. Guidance added to prefer COMPOSITE over STANDARD when grouping signals exist
+- **Shared-FIS Dedup terminology unified** – `exec-plan` and `exec-plan-team` dedup sections now reference both composite and collected thin-specs FIS paths
+- **`exec-spec` validation restructured** – quality review (functionality gaps, simplification opportunities) moved from standalone Step 4 into Step 3 as TV04, feeding into the remediation loop (now TV05). Previously, issues found in Step 4 had no fix path. Step numbering updated throughout (old Steps 5/6 → Steps 4/5)
+- **Intent engineering overhaul** – all 24 skill prompts condensed to eliminate cross-skill duplication, template over-specification, validation bloat, and emphatic overtriggering. Total prompt volume reduced from ~7,500 to ~4,500 lines (~40% reduction). Post-condensation review restored 30 behavioral details initially over-trimmed (tool references, scope guards, gate instructions, classification rules across 11 skills and references)
+- **Shared references extracted** – `report-output-conventions.md`, `adversarial-challenge.md`, `reviewer-roster.md`, `post-completion-guide.md`, `verification-evidence.md` created in `plugin/references/`. Review and execution skills reference these instead of inlining duplicate content
+- **`exec-plan-team` worktree default flipped** – sequential execution on the current branch is now the default. Use `--worktree` to opt in to isolated git worktrees (previously the default, with `--no-worktree` as opt-out)
+- **`exec-plan-team` branch name generalized** – hardcoded `main` branch references replaced with a `BASE_BRANCH` variable resolved at startup via `git rev-parse --abbrev-ref HEAD`, supporting feature branches and non-main base branches
+- **`exec-plan-team` wave overlap** – W2 implementation can now overlap with W1 reviews (worktrees are isolated), but W2 *merge* waits for W1 review completion (`per-story` mode) since reviews may fix code on the base branch. Updated timing diagrams and dependency rules
+- **`exec-plan-team` progress reporting** – orchestrator must print status updates (task creation, agent start/complete, wave/merge/review/phase milestones) to the user throughout execution — the user cannot see agent activity directly
+- **Spawn templates consolidated** – `exec-plan-team` reduced from 4 spawn templates (implementer/reviewer × worktree/no-worktree) to 2 with inline worktree conditionals
+- **PRD template deduplicated** – `plan` skill collapsed from structure enumeration + duplicate markdown template into a single condensed template
+- **Quality checklists trimmed** – all skill validation checklists reduced from 12-30 items to 3-5 non-obvious items per skill
+- **Rationalizations tables removed** – `exec-spec`, `spec`, and `quick-implement` no longer include "Common Rationalizations" tables (introduced in 0.8.7). The table format micro-managed reasoning; load-bearing intent reasoning from the tables was restored separately as inline explanations (see Added)
+- **GOTCHAS sections pruned** – all skills trimmed to genuinely non-obvious hazards only (items the model would not infer from the workflow itself)
+- **Emphatic markers reduced** – `MUST`/`NEVER`/`CRITICAL` reserved for genuinely counter-intuitive constraints across all skills
+- **review-council-team refocused** – eliminated ~70 lines duplicated from `review-council`, now focuses exclusively on Agent Teams-specific mechanics
+- **excalidraw-diagram phases merged** – near-duplicate Phase 4 (Design Refinement) and Phase 5 (Visual Validation) merged into one review-and-refine phase; render code block stated once and referenced
+- **wireframes templates replaced** – inline HTML/CSS code blocks replaced with design principles
+- **exec-plan review modes** – defined once in a "Review Mode Contract" section instead of restated 3 times
+- **Model references made platform-agnostic** – all hardcoded `model: "opus"` / `"sonnet"` / `"haiku"` references now include cross-platform equivalents (`gpt-5.4`, `gpt-5.3-codex`, `gpt-5.4-mini`) and "or similar" to support Codex CLI and other agents
+- **Report output resolution order** – `report-output-conventions.md` now explicitly states the `spec directory → target directory → fallback` priority, previously implicit in bullet ordering
+- **`review-council-team` fallback corrected** – instructions now consistently point to `andthen:review-council` (was incorrectly `review-code` in one location)
+
+---
+
 ## [0.9.0] – 2026-04-09
 
 ### Added

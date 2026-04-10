@@ -1,7 +1,0 @@
-interface:
-  display_name: "AndThen - Review Council (Agent Teams)"
-  short_description: "Multi-perspective review via Agent Teams debate"
-  default_prompt: "Run multi-perspective code review with real-time adversarial debate via Agent Teams. Produce validated findings. Review scope: "
-
-policy:
-  allow_implicit_invocation: true

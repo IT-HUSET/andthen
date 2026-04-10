@@ -1,5 +1,5 @@
 interface:
-  display_name: "AndThen - Create Wireframes"
+  display_name: "AndThen - Wireframes"
   short_description: "Generate HTML wireframes from requirements"
   default_prompt: "Create HTML wireframes capturing layout and interaction patterns for all pages/screens from requirements. Feature requirements: "
 

@@ -37,14 +37,7 @@ Scan the project to determine the setup path:
 2. **Check for docs/ directory** and existing documents
 3. **Check for package config** (package.json, Cargo.toml, go.mod, pyproject.toml, deno.json, etc.) to infer project name and tech stack
 4. **Check for existing guidelines** in docs/guidelines/ or similar
-5. **Check for monorepo/workspace structure** – look for:
-   - `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`
-   - `"workspaces"` field in root `package.json` (npm/yarn workspaces)
-   - `[workspace]` in root `Cargo.toml` (Rust workspaces)
-   - `go.work` (Go workspaces)
-   - Multiple sub-directories each containing their own package config (e.g. `apps/*/package.json`, `packages/*/package.json`)
-
-   If detected, note the workspace tool, list discovered sub-projects, and set `IS_MONOREPO = true` for use in later steps.
+5. **Detect monorepo/workspace structure** – look for `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `"workspaces"` in root `package.json`, `[workspace]` in root `Cargo.toml`, `go.work`, or multiple sub-dirs with their own package config. If detected, note the workspace tool, list sub-projects, and set `IS_MONOREPO = true`.
 
 Classify into one of three paths:
 
@@ -59,34 +52,21 @@ Classify into one of three paths:
 
 ### 2a. New Project Setup
 
-#### Generate CLAUDE.md
+Ask the user for basic project context (or accept from `PROJECT_NAME`): project name, brief description, primary tech stack (if not auto-detected).
 
-Ask the user for basic project context (or accept what's provided in `PROJECT_NAME`):
-- Project name
-- Brief description (1-2 sentences)
-- Primary tech stack (if not auto-detected from package config)
+Generate `CLAUDE.md` using `${CLAUDE_PLUGIN_ROOT}/../templates/CLAUDE.template.md` as the base. Fill in the Project Overview section; keep the Project Document Index and Workflow Rules sections intact; remove TODO comments from filled sections.
 
-Generate `CLAUDE.md` using `${CLAUDE_PLUGIN_ROOT}/../templates/CLAUDE.template.md` as the base:
-- Fill in the Project Overview section with provided context
-- Keep the full Project Document Index (users can remove rows they don't need)
-- Keep Workflow Rules, Guardrails and Guidelines references intact
-- Remove TODO comments and placeholder text from filled sections
-
-#### Create docs/ structure
-
-Create the base directory:
+Create base directory structure:
 ```
 docs/
 ├── specs/
 └── guidelines/
 ```
 
-#### Offer optional starter documents
-
-Present the available document types and ask which to create:
+Present optional documents and ask which to create:
 
 ```
-Optional project documents (from Project Document Index):
+Optional project documents:
 
 Core (recommended):
   [ ] docs/LEARNINGS.md                        – Accumulated project knowledge and error patterns
@@ -94,94 +74,52 @@ Core (recommended):
   [ ] docs/KEY_DEVELOPMENT_COMMANDS.md          – Dev, test, build, deploy commands
 
 Planning (when ready):
-  [ ] docs/STATE.md        – Cross-session state tracking
-  [ ] docs/PRODUCT-BACKLOG.md – Product backlog with REQ-IDs
-  [ ] docs/ROADMAP.md      – Phase structure with success criteria
+  [ ] docs/STATE.md                            – Cross-session state tracking
+  [ ] docs/PRODUCT-BACKLOG.md                  – Product backlog with REQ-IDs
+  [ ] docs/ROADMAP.md                          – Phase structure with success criteria
 
-Architecture (create now or generate later via the `andthen:map-codebase` skill):
-  [ ] docs/ARCHITECTURE.md – System architecture overview
+Architecture (or generate later via andthen:map-codebase):
+  [ ] docs/ARCHITECTURE.md                     – System architecture overview
 
-Domain (create starter now or generate later via the `andthen:ubiquitous-language` skill):
-  [ ] docs/UBIQUITOUS_LANGUAGE.md – Domain glossary with canonical terms
+Domain (or generate later via andthen:ubiquitous-language):
+  [ ] docs/UBIQUITOUS_LANGUAGE.md              – Domain glossary
 
 Which would you like to create? (e.g. "LEARNINGS, STACK" or "all core" or "none for now")
 ```
 
-> **CRITICAL**: Present this list and **STOP and WAIT** for user response. Do not create documents without confirmation.
-
-For each selected document, generate from templates in `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`. Pre-fill what's auto-detectable (e.g., STACK.md from package config).
-
-#### Offer guidelines
-
-If `docs/guidelines/` is empty:
-
+If `docs/guidelines/` is empty, also offer:
 ```
 AndThen includes starter guidelines. Copy any that are useful:
   [ ] DEVELOPMENT-ARCHITECTURE-GUIDELINES.md
   [ ] UX-UI-GUIDELINES.md
   [ ] WEB-DEV-GUIDELINES.md
   [ ] CRITICAL-RULES-AND-GUARDRAILS.md
-
-These are starting points – adapt to your project's needs.
 ```
 
-> **CRITICAL**: **STOP and WAIT** for user response before copying any guidelines.
-
-Copy selected guidelines from the AndThen plugin's guidelines directory.
-
-#### Monorepo: Offer per-sub-project CLAUDE.md files
-
-If `IS_MONOREPO = true`, after the root CLAUDE.md and documents are set up:
-
+If `IS_MONOREPO = true`, also offer per-sub-project CLAUDE.md files:
 ```
 Monorepo detected ([workspace tool]: [list of sub-projects]).
-
-Claude Code loads per-directory CLAUDE.md files automatically. This means each
-sub-project can have its own CLAUDE.md with sub-project-specific commands,
-conventions, and context – agents pick it up when working in that directory.
+Claude Code loads per-directory CLAUDE.md files automatically – each sub-project can have
+its own context agents pick up when working in that directory.
 
 Create per-sub-project CLAUDE.md files? (recommended)
-  [list of discovered sub-projects, e.g.:]
-  [ ] apps/frontend/CLAUDE.md
-  [ ] apps/backend/CLAUDE.md
-  [ ] packages/shared/CLAUDE.md
+  [list of discovered sub-projects]
 ```
 
-> **CRITICAL**: **STOP and WAIT** for user response.
+> **CRITICAL**: Present all the above options together and **STOP and WAIT** for user response before creating any files.
 
-For each confirmed sub-project, generate a lightweight `CLAUDE.md` containing:
-- **Sub-project name and brief description** (inferred from its package config, README, or directory name)
-- **Key Development Commands** — inferred from the sub-project's package config scripts, Makefile, Taskfile, etc. Use a compact inline format (no separate file needed per sub-project):
-  ```markdown
-  ## Key Development Commands
-  | Command | Description |
-  |---------|-------------|
-  | `npm run dev` | Start dev server |
-  | `npm test` | Run tests |
-  ```
-- **Sub-project-specific notes** — tech stack, framework, or conventions that differ from the root project
+For each confirmed document, generate from templates in `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`. Pre-fill what's auto-detectable (e.g., STACK.md from package config).
 
-Keep these files short (under ~40 lines). They supplement the root CLAUDE.md, not replace it.
-
-Also update the root `docs/KEY_DEVELOPMENT_COMMANDS.md` (if created) to include per-sub-project command sections.
+For each confirmed sub-project CLAUDE.md, generate a lightweight file (under ~40 lines) containing: sub-project name and description, key development commands (inline table), and any conventions that differ from root. Also update root `docs/KEY_DEVELOPMENT_COMMANDS.md` (if created) to include per-sub-project sections.
 
 **Gate**: CLAUDE.md created, selected documents generated
 
 
 ### 2b. Partial Setup (CLAUDE.md exists)
 
-#### Analyze existing setup
+Read CLAUDE.md and check for: Project Document Index (table present? which rows exist?), Workflow Rules section, Project Overview filled in, and referenced documents that actually exist.
 
-Read CLAUDE.md and check for:
-- **Project Document Index** – Is the table present? Which rows exist?
-- **Workflow Rules section** – Present and properly configured?
-- **Project Overview** – Filled in or still placeholder?
-- **Referenced documents** – Do the files pointed to by the Document Index actually exist?
-
-#### Report and offer fixes
-
-Present findings:
-
+Present findings and offer fixes:
 ```
 Current setup analysis:
 
@@ -200,35 +138,23 @@ Would you like to:
 4. All of the above
 ```
 
-#### Offer map-codebase (if applicable)
-
-If ARCHITECTURE.md, STACK.md, or a Conventions section in CLAUDE.md are missing, and the codebase has 20+ files, suggest running `map-codebase` to auto-generate them:
-
+If ARCHITECTURE.md, STACK.md, or a Conventions section in CLAUDE.md are missing and the codebase has 20+ files, also suggest:
 ```
 Missing architecture/stack/conventions documentation detected.
 Run andthen:map-codebase to auto-generate from codebase analysis? (recommended)
 ```
 
-> **CRITICAL**: **STOP and WAIT** for user response.
-
-**If yes**: Run the `andthen:map-codebase` skill (or instruct the user to run `/andthen:map-codebase`). Skip creating ARCHITECTURE.md and STACK.md from templates since map-codebase will produce them from actual code analysis.
-
-**If no**: Continue – the user can create these manually or run map-codebase later.
-
-> **CRITICAL**: **STOP and WAIT** for user response. Do not modify CLAUDE.md or create files without confirmation.
-
-For each confirmed action:
+Wait for user response, then execute confirmed actions:
 - **Missing Index rows**: Append to existing table (don't rewrite the whole table)
 - **Missing documents**: Generate from templates, pre-fill where possible
 - **Missing guidelines**: Copy from plugin
 - **Missing sections**: Add to CLAUDE.md at the appropriate location
+- **map-codebase**: Run `andthen:map-codebase` skill; skip creating ARCHITECTURE.md and STACK.md from templates since map-codebase produces them from actual analysis
 
 **Gate**: All selected gaps filled
 
 
 ### 2c. Brownfield Setup (existing codebase, no workflow structure)
-
-#### Codebase analysis
 
 Inform the user:
 ```
@@ -241,11 +167,7 @@ Recommended approach:
 Run map-codebase first? (recommended for codebases with 20+ files)
 ```
 
-> **CRITICAL**: **STOP and WAIT** for user response.
-
-**If yes**: Run the `andthen:map-codebase` skill (or instruct the user to run `/andthen:map-codebase`), then proceed with Step 2a using the generated documents as a foundation. Skip creating ARCHITECTURE.md and STACK.md since map-codebase already produced them.
-
-**If no**: Proceed directly to Step 2a (standard new project setup). The user can run map-codebase later.
+Wait for response. If yes: run `andthen:map-codebase`, then proceed with Step 2a using generated documents as foundation (skip ARCHITECTURE.md and STACK.md from templates). If no: proceed directly to Step 2a.
 
 **Gate**: Brownfield analysis complete (or skipped), proceed to project setup
 

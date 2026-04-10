@@ -1,5 +1,5 @@
 interface:
-  display_name: "AndThen - Extract Ubiquitous Language"
+  display_name: "AndThen - Ubiquitous Language"
   short_description: "Extract and maintain domain glossary from codebase"
   default_prompt: "Extract domain terms from codebase and docs – resolve ambiguity, produce or update UBIQUITOUS_LANGUAGE.md glossary. Scope: "
 

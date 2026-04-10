@@ -95,289 +95,39 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 
 #### Requirements Discovery Interview
 
-Interview user to fill gaps. Ask 3-5 targeted questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers – you MUST receive actual answers from the user. Iterate until no major gaps remain.
+Follow the same interview approach as `andthen:clarify` Phase 2 (targeted questions, **STOP and WAIT** for user responses, do not infer answers). Focus on gaps identified in Step 1a — cover areas relevant to planning: users & personas, core workflows, data model, integrations, constraints, NFRs, success metrics. Iterate until no major gaps remain.
 
-> **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Do not proceed past this section until the user has answered your questions and you've confirmed no major gaps remain. Use the `AskUserQuestion` tool if available in your environment.
-
-Conduct requirements discovery covering: users and personas, core workflows, data model, integrations, constraints, and non-functional requirements. Ask questions iteratively – **STOP and WAIT** for user responses between rounds.
-
-Focus areas:
-- Core functionality (must-have vs nice-to-have, workflows, validation, error handling, UI involvement)
-- Users & permissions (roles, accessibility, devices)
-- Business logic (rules, concurrency, compliance)
-- Edge cases & error handling (connectivity, partial data, timeouts, graceful degradation)
-- Success metrics (measurable outcomes, performance benchmarks)
+> **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Use the `AskUserQuestion` tool if available in your environment. Do not proceed past this section until the user has answered your questions and you've confirmed no major gaps remain.
 
 **Gate**: All critical questions answered, no blocking ambiguities
 
 
-#### Structure PRD
-
-Based on interview responses, structure comprehensive PRD:
-
-##### Executive Summary
-- Project title
-- Problem statement with quantified impact
-- Product vision and objectives
-- Target audience and user personas
-- Success definition with measurable metrics
-
-##### Problem Definition & Context
-- Clear problem statement with evidence
-- User research insights and pain points
-- Market opportunity (if applicable)
-- Competitive landscape (if applicable)
-
-##### MVP Scope & Boundaries
-
-**In Scope**
-- Core functionality (must-haves)
-- Explicit inclusions
-
-**Out of Scope**
-- Explicit exclusions
-- Deferred to future iterations
-
-**MVP Boundary**
-- Minimum viable version definition
-- MVP validation approach
-
-##### Functional Requirements
-
-**User Stories**
-- Format: "As a [user type], I want [goal], so that [benefit]"
-- Include acceptance criteria for each
-
-**Feature Specifications**
-For each feature:
-- Description and purpose
-- Testable acceptance criteria
-- Input/output specifications
-- Validation rules
-- Error handling
-- Priority (P0/P1/P2)
-
-**Core User Flows**
-- Primary flows with step-by-step descriptions
-- Alternative paths
-- Error scenarios and recovery
-
-**UI Wireframes** _(if applicable - skip for backend-only work)_
-- Simple ASCII wireframes for core screens/views
-- Focus on layout structure and key elements only
-- Show primary user interaction points
-- Keep minimal - just enough to communicate intent
-
-**Data Requirements**
-- Data models and relationships
-- Required fields and constraints
-- Data validation rules
-- Privacy considerations
-
-##### Non-Functional Requirements
-
-**Performance**
-- Response time expectations
-- Throughput requirements
-- Scalability considerations
-
-**Reliability**
-- Uptime requirements
-- Error recovery expectations
-- Data backup needs
-
-**Security**
-- Authentication requirements
-- Authorization and access control
-- Data protection needs
-- Compliance requirements
-
-**Usability**
-- Accessibility standards
-- Browser/device compatibility
-- Internationalization needs
-
-##### Edge Cases
-| Scenario | Expected Behavior |
-|----------|------------------|
-| [Edge case] | [Handling] |
-
-##### Constraints & Assumptions
-
-**Constraints**
-- Technical constraints
-- Resource limitations
-- Regulatory constraints
-
-**Assumptions**
-- User behavior assumptions
-- Technical assumptions
-- Business assumptions
-- External dependencies
-
-**Gate**: PRD structure complete with all sections filled
-
-
-#### Prioritization
-
-Apply systematic prioritization to features:
-
-**MoSCoW Classification**
-- **Must have**: Core MVP functionality
-- **Should have**: Important but not vital
-- **Could have**: Desirable but optional
-- **Won't have**: Explicitly out of scope
-
-**Priority Levels**
-- P0: Critical - MVP blocker
-- P1: High - Core functionality
-- P2: Medium - Important enhancement
-
-**Gate**: All features prioritized
-
-
-#### PRD Validation
-
-##### Completeness Check
-- [ ] Problem definition clearly articulated with impact
-- [ ] All user stories have testable acceptance criteria
-- [ ] Every feature has defined error handling
-- [ ] All edge cases have specified behavior
-- [ ] Success metrics are specific and measurable
-- [ ] Non-functional requirements have clear thresholds
-- [ ] No ambiguous terms without definitions
-
-##### Quality Check
-- [ ] Requirements focus on "what" not "how"
-- [ ] All assumptions documented
-- [ ] Dependencies identified
-- [ ] Security considerations included
-- [ ] Accessibility standards specified
-- [ ] No conflicting requirements
-- [ ] No over-specification or gold-plating
-
-##### Optional: Peer Review
-Use the `andthen:review-doc` skill to validate PRD for:
-- Missing requirements or user stories
-- Over-engineered or unnecessarily complex features
-- Conflicting requirements
-- Ambiguities and unclear priorities
-- Scope creep beyond MVP
-
-**Action**: Revise PRD based on review findings before finalizing.
-
-**Gate**: All validation checks pass
-
-
 #### Generate PRD Document
 
-Generate markdown document following this structure:
+Structure the PRD from interview responses and save as `OUTPUT_DIR/<feature-name>/prd.md`. Apply MoSCoW prioritization (Must/Should/Could/Won't) and P0/P1/P2 levels to features.
 
-```markdown
-# Product Requirements Document: [Name]
+Required sections:
+- **Executive Summary** – project title, problem with quantified impact, vision, target users, success metrics
+- **Problem Definition** – clear problem statement with evidence and context
+- **Scope** – In Scope / Out of Scope / MVP Boundary
+- **Functional Requirements** – User Stories table (`ID | Story | Acceptance Criteria | Priority`), Feature Specifications (description, acceptance criteria, inputs/outputs, validation, error handling, priority per feature), User Flows, UI Wireframes _(if applicable)_, Data Requirements
+- **Non-Functional Requirements** – Performance, Reliability, Security, Usability (thresholds for each)
+- **Edge Cases** – `Scenario | Expected Behavior` table
+- **Constraints & Assumptions** – technical/resource/regulatory constraints, user/technical/business assumptions, Dependencies table
+- **Decisions Log** – `Decision | Rationale | Alternatives Considered` table
 
-## Executive Summary
-- **Project**: [Title]
-- **Problem**: [Statement with quantified impact]
-- **Vision**: [Product vision]
-- **Target Users**: [User personas]
-- **Success Metrics**: [Measurable outcomes]
+#### PRD Validation
+- [ ] Problem statement with measurable impact
+- [ ] All user stories have testable acceptance criteria
+- [ ] Success metrics are specific and measurable
+- [ ] Scope explicitly defined (in/out)
+- [ ] Every feature has defined error handling
+- [ ] Non-functional requirements have clear thresholds
+- [ ] No ambiguous terms without definitions
+- [ ] All assumptions documented
+- [ ] No conflicting requirements
 
-## Problem Definition
-[Clear problem statement with evidence and context]
-
-## Scope
-
-### In Scope
-- [Explicit inclusions]
-
-### Out of Scope
-- [Explicit exclusions]
-
-### MVP Boundary
-- [Minimum viable version definition]
-
-## Functional Requirements
-
-### User Stories
-| ID | Story | Acceptance Criteria | Priority |
-|----|-------|---------------------|----------|
-| US01 | As a [user], I want [goal], so that [benefit] | [Criteria] | P0/P1/P2 |
-
-### Feature Specifications
-
-#### [Feature Name]
-- **Description**: [What and why]
-- **Acceptance Criteria**: [Testable criteria]
-- **Inputs**: [Expected inputs]
-- **Outputs**: [Expected outputs]
-- **Validation**: [Rules and constraints]
-- **Error Handling**: [Error scenarios and recovery]
-- **Priority**: P0/P1/P2
-
-### User Flows
-1. [Primary flow with steps]
-
-### UI Wireframes
-<!-- Include only if PRD involves UI work -->
-```
-+----------------------------------+
-|  [Screen Name]                   |
-+----------------------------------+
-|  [Header/Nav]                    |
-+----------------------------------+
-|                                  |
-|  [Main Content Area]             |
-|  - Key element 1                 |
-|  - Key element 2                 |
-|                                  |
-+----------------------------------+
-|  [Actions/Footer]                |
-+----------------------------------+
-```
-
-### Data Requirements
-- [Data models, fields, constraints]
-
-## Non-Functional Requirements
-
-### Performance
-- [Response times, throughput, scalability]
-
-### Reliability
-- [Uptime, recovery, backup]
-
-### Security
-- [Auth, access control, compliance]
-
-### Usability
-- [Accessibility, compatibility, i18n]
-
-## Edge Cases
-| Scenario | Expected Behavior |
-|----------|------------------|
-| [Edge case] | [Handling] |
-
-## Constraints & Assumptions
-
-### Constraints
-- [Technical, resource, regulatory]
-
-### Assumptions
-- [User, technical, business assumptions]
-
-### Dependencies
-| Dependency | Purpose | Risk |
-|------------|---------|------|
-| [System/API] | [Why needed] | [Risk level] |
-
-## Decisions Log
-| Decision | Rationale | Alternatives Considered |
-|----------|-----------|------------------------|
-| [Choice] | [Why] | [Other options rejected] |
-```
-
-Store PRD in: `OUTPUT_DIR/<feature-name>/prd.md`
+Optional: Use `andthen:review-doc` to validate the PRD before finalizing.
 
 **Gate**: PRD created → continue to Step 2
 
@@ -386,56 +136,20 @@ Store PRD in: `OUTPUT_DIR/<feature-name>/prd.md`
 
 Use existing artifacts (`requirements-clarification.md` from `andthen:clarify` and/or `prd-draft.md`) as the primary basis for creating the PRD. This path avoids duplicating discovery work already completed.
 
-#### Assess Existing Coverage
-
-Review the available artifacts and assess PRD readiness:
-
-- Map existing content against the PRD structure (see Step 1b: Structure PRD)
-- Identify sections that are fully covered by existing artifacts
-- Identify gaps or sections that need additional information
-
-#### Targeted Gap-Filling _(only if needed)_
-
-If significant gaps remain after reviewing existing artifacts, conduct a **focused** interview covering only the missing areas. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response**.
-
-> **CRITICAL**: Do NOT re-ask questions already answered in the existing artifacts. Only ask about genuinely missing information.
-
-Skip this step entirely if existing artifacts provide sufficient coverage for all PRD sections.
-
-**Gate**: All gaps resolved or deemed non-blocking
-
-#### Structure & Generate PRD
-
-Using existing artifacts as the primary source, structure the PRD following the same format as Step 1b: Structure PRD. Preserve decisions, rationale, and specific details from the existing artifacts – do not paraphrase or generalize away specifics.
-
-Then proceed through **Prioritization → PRD Validation → Generate PRD Document** (same substeps as Step 1b).
+- Map existing content against the PRD template (see Step 1b)
+- If significant gaps remain, conduct a focused interview covering only the missing areas – ask 3-5 questions at a time, **STOP and WAIT for responses**.
+  > **CRITICAL**: Do NOT re-ask questions already answered in the existing artifacts. Only ask about genuinely missing information.
+- Structure and generate the PRD following the same template as Step 1b. Preserve decisions, rationale, and specific details from existing artifacts – do not paraphrase or generalize away specifics.
+- Apply same Prioritization → PRD Validation steps as Step 1b.
 
 **Gate**: PRD created → continue to Step 2
 
 
 ### 2. Requirements Analysis
 
-**Delegate** codebase exploration to sub-agents _(if supported by your coding agent)_ to keep your context lean:
+Delegate codebase exploration to a sub-agent _(if supported)_ to keep context lean. Read `STATE.md` (default: `docs/STATE.md`) if it exists – use current phase, active stories, and blockers to inform story priorities. Reference `UBIQUITOUS_LANGUAGE.md` if present; use canonical terms in story names and acceptance criteria.
 
-- Spawn an **Explore agent** _(if supported by your coding agent)_ to analyze codebase structure, existing patterns, and relevant files
-
-Collect sub-agent results and synthesize into a unified understanding of:
-
-- **Project state context**: Read `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`) if it exists. Use current phase, active stories, blockers, and recent decisions as context for planning – e.g., if blockers exist, plan stories to address them; if a phase is in progress, the new plan may be a continuation.
-
-#### Understand the PRD
-- All requirements and user stories
-- MVP scope and boundaries
-- Success criteria
-- Prioritization (P0/P1/P2)
-- Domain terminology – reference `UBIQUITOUS_LANGUAGE.md` if it exists; use canonical terms in story names and acceptance criteria
-
-#### Map to Implementation Units
-For each major feature/requirement:
-- Identify natural implementation boundaries
-- Note dependencies between features
-- Flag complexity and risk areas
-- Group related functionality
+Synthesize into a unified understanding of: all PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), natural implementation boundaries, feature dependencies, and complexity/risk areas.
 
 **Gate**: Feature mapping complete
 
@@ -520,6 +234,7 @@ For each story, define:
 - **FIS**: Reference to generated spec – initially `–` (updated to file path when `andthen:spec` creates the FIS). Multiple stories may reference the same FIS path when grouped into a composite specification by `andthen:spec-plan`
 - **Scope**: 2-4 sentences – what's included and excluded (no implementation approach – that's for `andthen:spec`)
 - **Acceptance criteria**: 3-6 testable outcomes – the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
+- **Key Scenarios** _(optional)_: 2-3 one-line behavioral seeds — the most important happy path, edge case, and error/failure scenario. These are elaborated into full Given/When/Then scenarios in the FIS during `andthen:spec`. Skip for purely structural stories
 - **Dependencies**: Other story IDs that must complete first
 - **Phase**: Which implementation phase
 - **Wave**: Execution wave within phase (W1, W2, W3...) – pre-computed during planning
@@ -582,30 +297,31 @@ _Sequential execution - establishes base for all features_
 #### S02: [Story Name]
 **Status**: Pending
 **FIS**: –
-...
+**Scope**: [2-4 sentences]
+**Acceptance Criteria**: ...
+**Assets**: ...
 
-<!-- Example: composite FIS (shared by tightly coupled stories) -->
+<!-- Composite FIS example: tightly coupled stories share one spec -->
 #### [P] S03: Auth Middleware
 **Status**: Pending
 **FIS**: docs/specs/my-feature/s03-s04-auth-system.md
-...
+**Scope**: ...
+**Key Scenarios**: _(elaborated into full Given/When/Then in FIS)_
+- Happy: valid credentials → session token returned, user redirected to dashboard
+- Edge: concurrent login from two devices → both sessions valid
+- Error: expired token on protected route → 401 with clear re-auth prompt
 
 #### [P] S04: Auth API Endpoints
 **Status**: Pending
 **FIS**: docs/specs/my-feature/s03-s04-auth-system.md
-...
-<!-- S03 and S04 share a composite FIS because they form a producer-consumer pair -->
+**Scope**: ...
+<!-- S03/S04 share a composite FIS; exec-spec runs once for both -->
 
 ### Phase 2: Core Features
 _Parallel execution where marked [P]_
-
-#### [P] S05: [Story Name]
 ...
 
-### Phase 3: Integration
-...
-
-### Phase 4: Polish
+### Phase 3+: Continue pattern
 ...
 
 ## Dependency Graph
@@ -666,18 +382,15 @@ If STATE.md does not exist, do not create it – suggest it in follow-up actions
 
 #### Self-Check
 - [ ] All PRD features have corresponding stories
-- [ ] No missing functionality
 - [ ] Stories have clear boundaries (no overlap)
 - [ ] Dependencies accurately mapped
 - [ ] Parallel markers correctly applied
-- [ ] Risk areas identified
+- [ ] Wave assignments are pre-computed and consistent with dependencies
+- [ ] Risk areas identified (Risk column and Risk Summary populated)
+- [ ] No missing functionality (cross-cutting concerns like auth, logging, error pages covered)
 - [ ] Not over-granular (combined where sensible)
 
-#### Optional: Peer Review
-Use the `andthen:review-doc` skill to validate plan for:
-- Requirements coverage
-- Story scope clarity
-- Dependency correctness
+Optional: Use `andthen:review-doc` to validate the plan for requirements coverage and story scope clarity.
 
 **Gate**: Validation complete
 
@@ -696,10 +409,7 @@ When complete, print the output's **relative path from the project root**. Do no
 
 ### Publish to GitHub _(if --to-issue)_
 If PUBLISH_ISSUE is `true`:
-1. Create a GitHub issue using `gh issue create`:
-   - Title: `[Plan] {project-name}: Implementation Plan`
-   - Body: Contents of the generated plan.md
-   - Labels: `plan` (create if it doesn't exist)
+1. Create a GitHub issue with title `[Plan] {project-name}: Implementation Plan`, body from plan.md, and label `plan` (create if it doesn't exist)
 2. Print the issue URL
 
 
@@ -711,16 +421,8 @@ After completion, suggest:
    Example: `/andthen:spec story S01 of docs/specs/my-feature/plan.md` (or `$andthen:spec ...`)
 2. **Create wireframes** (if UI work): Run the `andthen:wireframes` skill
    Example: `/andthen:wireframes docs/specs/my-feature/prd.md` (or `$andthen:wireframes ...`)
-3. **Create GitHub issues** (if requested):
-   ```bash
-   # Create milestone
-   gh milestone create "[Project Name] MVP" --description "..."
-
-   # Create issues per story
-   gh issue create --title "S01: [Story Name]" --body "..." --milestone "[Project Name] MVP"
-   gh issue create --title "S02: [Story Name]" --body "..." --milestone "[Project Name] MVP"
-   # ... etc
-   ```
+3. **Batch-generate specs**: Run `andthen:spec-plan` to pre-create all FIS before execution
+   Example: `/andthen:spec-plan docs/specs/my-feature/` (or `$andthen:spec-plan ...`)
 4. **Review plan**: Run the `andthen:review-doc` skill on `plan.md`
    Example: `/andthen:review-doc docs/specs/my-feature/plan.md` (or `$andthen:review-doc ...`)
 5. **Initialize project state** (if not already tracking): Create `docs/STATE.md` for cross-session state tracking via `/andthen:init` or manually from the template in `templates/project-state-templates.md`

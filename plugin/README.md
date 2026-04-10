@@ -43,66 +43,9 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 }
 ```
 
-## Workflow Overview
+## Workflows
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  FEATURE WORKFLOW (single feature)                          │
-│                                                             │
-│  ┌─────────────────────── OPTIONAL: ─────────────────────┐  │
-│  │ wireframes, design-system, trade-off                  │  │
-│  └───────────────────────────┬───────────────────────────┘  │
-│                              │                              │
-│  (optional)                  ▼          (optional)          │
-│  clarify ──────────────→   spec   ────→ review-doc          │
-│                              │                              │
-│                              ▼                              │
-│                          exec-spec                          │
-│                              │                              │
-│                              ▼                              │
-│                        review-gap                           │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│  PLAN WORKFLOW (MVP / multi-feature)                        │
-│                                                             │
-│  ┌──────────────── OPTIONAL PRE-WORK: ─────────────────┐    │
-│  │ wireframes, design-system, trade-off                │    │
-│  └───────────────────────┬─────────────────────────────┘    │
-│                          │                                  │
-│      (optional)          ▼            (optional)            │
-│       clarify ──────→  plan  ──────→  review-doc            │
-│             (PRD + story breakdown)                         │
-│                          │                                  │
-│              ┌───────────┴───────────┐                      │
-│              ▼                       ▼                      │
-│         exec-plan              Per phase:                   │
-│       (spec-plan            spec-plan → per story:          │
-│        + sub-agent           exec-spec → optional           │
-│        pipeline)            review-gap                      │
-│              └───────────┬───────────┘                      │
-│                          ▼                                  │
-│                 optional plan review                        │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│  QUICK PATH (small features/fixes)                          │
-│                                                             │
-│  quick-implement ──→ review-gap (optional) ──→ done (or PR) │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**When to use which:**
-- **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue – you know what to do and it's under ~3 files
-- **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review-gap`): Single feature with real complexity – multiple files, non-obvious requirements, needs a blueprint
-- **Plan workflow** (`clarify` → `plan` → `exec-plan`): Multiple features, MVP, or a new project – needs story breakdown, phased execution, and either per-story review, full-plan review, or manual review
-
-Not sure? Start with `quick-implement`. If it feels too complex, switch to the feature workflow. See the [full documentation](../README.md#getting-started) for a complete walkthrough.
-
-**Pre-activities** (feed into spec or plan):
-- `clarify` – When requirements are vague (can't list 3 acceptance criteria? run `clarify`)
-- `wireframes` / `design-system` – When UI design is needed
-- `trade-off` – When architectural decisions are needed
+Three paths: **quick** (small fixes), **feature** (single feature with spec), **plan** (multi-feature with story breakdown). See the [full documentation](../README.md#key-concepts) for detailed workflow diagrams, artifact flow, and guidance on when to use which.
 
 ## Skills
 
@@ -133,7 +76,9 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | `ops` | Deterministic state management, git conventions, and progress tracking |
 | `design-system` | Create design tokens and component styles |
 | `wireframes` | Generate HTML wireframes for UI planning |
+| `quick-review` | Quick in-conversation review – fresh-context sub-agent for adversarial critique |
 | `refactor` | Code improvement and simplification |
+| `architecture-review` | Deep quantitative architecture review – metrics, connascence, decomposition, fitness functions |
 | `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
@@ -232,6 +177,28 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 /andthen:trade-off "caching strategy for API responses"
 ```
 
+### Architecture Review
+
+```bash
+# Interactive — presents modes and asks what you want to analyze
+/andthen:architecture-review
+
+# Full architecture health assessment
+/andthen:architecture-review src/
+
+# Evaluate a split/merge decision
+/andthen:architecture-review src/core --mode decompose
+
+# Propose fitness functions for architectural governance
+/andthen:architecture-review --mode fitness
+
+# Get framework-grounded guidance on an architecture question
+/andthen:architecture-review "should I use event sourcing for the order domain" --mode advise
+
+# Supports multi-step sessions — after any analysis, continue with
+# another mode (e.g. review → decompose a finding → propose fitness functions)
+```
+
 ### Multi-Perspective Review
 
 ```bash
@@ -253,49 +220,6 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 # OR use Agent Teams variant for real-time debate (Claude Code only)
 /andthen:review-council-team
 ```
-
-## Key Concepts
-
-### Feature Implementation Specification (FIS)
-
-A structured document generated by `spec` containing everything needed for autonomous implementation:
-- Requirements and acceptance criteria
-- Technical approach and architecture
-- File changes and dependencies
-- Validation checklist
-
-### Implementation Plan
-
-A lightweight planning document generated by `plan` that breaks down PRD into stories:
-- Story scope and acceptance criteria (high-level)
-- Dependencies and execution sequence
-- Phase organization (Foundation → Features → Integration → Polish)
-
-Detailed FIS specs are created later via `spec` (manual per-story flow) or `spec-plan` (batch generation before `exec-plan` / `exec-plan-team`).
-
-### Implementation Loop
-
-Both `exec-spec` and `quick-implement` use an iterative cycle:
-```
-Implement → Verify → Evaluate → (repeat if needed)
-```
-
-Verification includes code review, testing, and visual validation (when applicable).
-
-### Review Types
-
-- **Gap Analysis** (`review-gap`): Does implementation match requirements? Includes code review + remediation plan
-- **Code Review** (`review-code`): Reusable code review with checklists – used by `review-gap` and other skills
-- **Doc Review** (`review-doc`): Review specs, PRDs, and documentation for completeness and clarity
-
-## External Dependencies (Optional)
-
-| Plugin | Used by | Purpose |
-|--------|---------|---------|
-| `code-simplifier` | `refactor`, `exec-spec`, `quick-implement` | Code cleanup and simplification |
-| `frontend-design` | `wireframes`, `excalidraw-diagram` (via `ui-ux-designer` agent) | Design quality review and implementation |
-
-Skills work without these plugins but skip the corresponding steps.
 
 ## License
 

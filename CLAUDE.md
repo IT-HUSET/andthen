@@ -49,12 +49,19 @@ Each skill lives in `plugin/skills/<name>/` and contains:
 ### Shared References
 `plugin/references/` contains reusable reference documents loaded by multiple skills (e.g. `design-tree.md` used by `clarify`, `plan`, and `trade-off`). When skills are exported via `scripts/install-skills.sh`, reference paths are rewritten to resolve correctly outside this repo.
 
-### External Plugin Dependencies (Optional)
-Some skills delegate to other Claude Code plugins when available:
-- `code-simplifier:code-simplifier` – used by `refactor`, `exec-spec`, `quick-implement` for code cleanup
-- `frontend-design` – used by `wireframes` (via `ui-ux-designer` agent) for design implementation
 
-Skills work without these plugins but skip the corresponding steps.
+---
+
+
+## Skill Authoring Philosophy
+
+Modern frontier models understand *why* things matter. Skills should express **intent** — goals, outcomes, and verification criteria — not micro-managed procedures, if-then chains, or exhaustive enumerations.
+
+**Core principles:**
+- **Why over what**: Explain the reasoning behind non-obvious rules so the model can generalize to novel situations. A rule without a "why" is followed rigidly; a rule with a "why" is followed intelligently. (Aligned with Anthropic's own principle: *"AI models need to understand why we want them to behave in certain ways, rather than merely specifying what we want them to do."*)
+- **Right altitude**: Use heuristics and principles, not step-by-step prescriptions. If a frontier model would naturally do something, don't instruct it. Be specific about counter-intuitive behaviors, cross-skill integration contracts, and named failure modes. Be general about standard engineering practices.
+- **Named principles over unnamed rules**: A named principle (Chesterton's Fence, Prove-It Pattern, Proof-of-Work, Stop-the-Line) gives the model a conceptual anchor for *when* and *why* the principle applies. An unnamed rule is just a constraint to follow or ignore.
+- **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens — it prevents the model from rationalizing its way past the step.
 
 
 ---

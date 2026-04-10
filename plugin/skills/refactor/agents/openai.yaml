@@ -1,7 +1,7 @@
 interface:
-  display_name: "AndThen - Refactor & Simplify"
+  display_name: "AndThen - Refactor"
   short_description: "Code improvement and simplification"
-  default_prompt: "Systematically improve and simplify code using the code-simplifier agent. Scope: "
+  default_prompt: "Systematically improve and simplify code for clarity, consistency, and maintainability. Scope: "
 
 policy:
   allow_implicit_invocation: true

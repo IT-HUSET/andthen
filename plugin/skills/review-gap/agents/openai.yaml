@@ -1,5 +1,5 @@
 interface:
-  display_name: "AndThen - Gap Analysis & Review"
+  display_name: "AndThen - Review Gap"
   short_description: "Gap analysis and code review with remediation plan"
   default_prompt: "Compare current implementation against requirements – identify gaps and produce actionable remediation plan. Requirements baseline: "
 

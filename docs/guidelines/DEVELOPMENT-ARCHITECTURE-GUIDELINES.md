@@ -45,6 +45,16 @@ Evaluate architecture using [CUPID](https://cupid.dev/):
 - Delegate complex subtasks to sub-agents; main agent orchestrates
 - Update README.md only when features, dependencies, or setup steps change
 
+### Documentation Source Authority
+
+When researching APIs, libraries, or frameworks, prioritize sources in this order:
+1. **Official documentation** (react.dev, docs.djangoproject.com, developer.apple.com, etc.)
+2. **Official blogs and changelogs** (framework release notes, migration guides)
+3. **Web standards references** (MDN, web.dev, language specs)
+4. **Compatibility references** (caniuse.com, platform support matrices)
+
+**Do not rely on**: Stack Overflow answers, blog tutorials, AI-generated summaries, or model training data recall — these may reflect outdated APIs, deprecated patterns, or incorrect usage. When in doubt, verify against the official source.
+
 
 ## Visual UI Validation
 

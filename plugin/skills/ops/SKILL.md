@@ -115,12 +115,13 @@ Actions:
 #### Update FIS Checkboxes
 Check off task/criteria checkboxes in a FIS document:
 
-**Usage**: `update-fis <fis_path> <task_id> [done]`
+**Usage**: `update-fis <fis_path> <task_id|all>`
 
 Actions:
-- Mark task checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
-- Before marking done, verify that evidence of completion exists (e.g., the calling skill has already performed 4-dimension verification per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`). Do not re-run full verification – check that it was performed, not that it passes again
-- When all tasks done: also mark success criteria and Final Validation Checklist items
+- When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
+- When `task_id` is `all`: Mark ALL unchecked task checkboxes (`- [ ]` → `- [x]`), all success criteria checkboxes, and all Final Validation Checklist items in one pass
+- Before marking done, verify that evidence of completion exists (e.g., the calling skill has already performed verification per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`). Do not re-run full verification – check that it was performed, not that it passes again
+- When all tasks are done (or using `all`): also mark success criteria and Final Validation Checklist items
 
 
 ### 2. Git Operations

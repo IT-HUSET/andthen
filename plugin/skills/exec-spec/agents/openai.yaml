@@ -1,5 +1,5 @@
 interface:
-  display_name: "AndThen - Execute Specification"
+  display_name: "AndThen - Exec Spec"
   short_description: "Execute a Feature Implementation Specification"
   default_prompt: "Implement the Feature Implementation Specification as orchestrator – delegate all coding to sub-agents, follow the FIS exactly. Spec path: "
 

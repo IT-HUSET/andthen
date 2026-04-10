@@ -6,6 +6,7 @@
 
 
 ## Success Criteria (Must Be TRUE)
+> Each criterion must have a defined proof path — at least one Scenario (for behavioral criteria) or a task Verify line (for structural criteria). If you can't define how to prove it, the criterion is too vague.
 - [ ] {{Observable truth from user's perspective}}
 - [ ] {{Verifiable system behavior}}
 - [ ] {{Measurable technical requirement}}
@@ -14,6 +15,23 @@
 - [ ] {{Existing tests continue to pass}}
 - [ ] {{Performance baseline not degraded}}
 - [ ] {{Existing API contracts / interfaces unchanged (unless explicitly scoped)}}
+
+
+## Scenarios
+
+> Concrete examples of expected behavior that serve as both requirement and test specification (Proof-of-Work — see authoring guidelines).
+
+### {{Scenario Name}}
+- **Given** {{precondition / system state}}
+- **When** {{triggering action or event}}
+- **Then** {{observable outcome}}
+
+### {{Edge Case / Error Scenario Name}}
+- **Given** {{precondition or boundary state}}
+- **When** {{boundary condition or error trigger}}
+- **Then** {{expected handling behavior}}
+
+_Write 3-7 scenarios. Cover the happy path, key edge cases, and at least one error/failure case. Skip for purely structural work (scaffolding, config, migrations)._
 
 
 ## Scope & Boundaries
@@ -120,13 +138,13 @@ _Replace examples above with your actual tasks. Format: outcome + context line +
   - **Verify**: {{Assertion}}
 
 ### Testing Strategy
-{{Test scenarios derived from success criteria. Tag with execution group for pairing.}}
-- [G1] {{Scenario: description + expected outcome}}
-- [G2] {{Scenario: description + expected outcome}}
-- [edge] {{Boundary condition or error scenario}}
+> Derive test cases from the **Scenarios** section. Each scenario maps to one or more test cases. Tag with execution group for pairing.
+- [G1] Scenario: {{scenario name}} → {{test description}}
+- [G2] Scenario: {{scenario name}} → {{test description}}
+- [edge] Scenario: {{scenario name}} → {{edge case test description}}
 
 ### Validation
-> Standard validation (TV01-TV04: code review, testing, visual validation, remediation) is handled by exec-spec.
+> Standard validation (TV01-TV05: code review, testing, visual validation, quality review, remediation) is handled by exec-spec.
 > Only add feature-specific validation requirements below if the standard levels are insufficient.
 
 - {{Feature-specific validation requirement, if any}}

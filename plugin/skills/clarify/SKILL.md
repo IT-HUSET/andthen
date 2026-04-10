@@ -33,37 +33,20 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 ## INSTRUCTIONS
 
 - **Make sure `INPUT` is provided** - otherwise **STOP** immediately and ask user for input
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
-  - **Foundational Rules and Guardrails**
-  - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
+- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
 - **Interactive process** - Ask questions iteratively; don't assume answers. After asking questions, **STOP and WAIT** for user responses before proceeding
 - **Be thorough** - Challenge assumptions, find edge cases, identify ambiguities
-- **Stay focused** - Clarify requirements, don't design solutions. Requirements describe *what* the system must do and *what choices users and stakeholders face*. Implementation describes *how* the system achieves it technically – that belongs in `andthen:spec` or `andthen:trade-off`
-- **Document decisions** - Record rationale for scope choices and trade-offs
+- **Stay focused** - Clarify requirements, don't design solutions
+
+### Requirements vs. Implementation Boundary
+Clarify operates at the **requirements level** — decisions that users, stakeholders, or product owners care about. Technical choices that only developers evaluate (architecture patterns, library choices, data storage strategies, internal API design, code organization) belong downstream in `andthen:spec` or `andthen:trade-off`. Explore only user-facing behavior, product scope, workflow, content architecture, and access control models.
 
 
 ## GOTCHAS
 - Agent answers its own questions instead of waiting for user input – STOP and WAIT is critical
-- Scope creep: expanding beyond the original request – stay focused on what was asked
+- Scope creep: expanding beyond the original request
 - Jumping to solution design instead of requirement discovery
-- Drifting into implementation-level decisions during design space decomposition – see boundary below
-
-### Requirements vs. Implementation Boundary
-Clarify operates at the **requirements level** – decisions that users, stakeholders, or product owners care about. Technical choices that only developers would evaluate belong downstream in `andthen:spec` or `andthen:trade-off`.
-
-**Do NOT explore or resolve** (defer to `andthen:spec` / `andthen:trade-off`):
-- Technical architecture patterns (e.g., REST vs. GraphQL, monolith vs. microservices)
-- Library, framework, or tooling choices
-- Data storage or caching strategies (e.g., Redis vs. in-memory, SQL vs. NoSQL)
-- Internal API design (protocols, serialization, error code schemes)
-- Code structure, file organization, or module boundaries
-
-**DO explore and resolve** (requirements-level):
-- User-facing behavior and interaction models (e.g., social login vs. email+password, wizard vs. progressive profile)
-- Product scope and feature boundaries (e.g., real-time updates vs. manual refresh *as a user experience*)
-- Workflow and process decisions (e.g., approval flow vs. self-serve, single-step vs. multi-step)
-- Content and information architecture (e.g., flat list vs. categories, search vs. browse)
-- Access control models (e.g., role-based vs. team-based – *who can do what*, not *how it's enforced*)
+- Drifting into implementation-level decisions during design space decomposition (see boundary above)
 
 
 ## WORKFLOW
@@ -71,40 +54,26 @@ Clarify operates at the **requirements level** – decisions that users, stakeho
 ### 1. Parse and Assess Input
 
 1. **Parse INPUT** - Determine type: inline description, file path, `--issue`, or URL
-   - If `--issue` flag present (or INPUT refers to a GitHub issue): Extract issue number from INPUT, use `gh issue view <number>` to fetch issue details (title, body, labels, comments). Use issue content as requirements input. Store issue number for reference in output.
+   - If `--issue` flag present (or INPUT refers to a GitHub issue): use `gh issue view <number>` to fetch issue details (title, body, labels, comments). Use issue content as requirements input. Store issue number for reference in output.
    - If file path: Read and extract requirements
    - If URL: Fetch and extract requirements
    - If description: Use directly
 
-2. **Identify requirement type**
-   - **New application/MVP**: Full product scope needed
-   - **Feature addition**: Bounded scope within existing system
+2. **Initial assessment** - Document what's explicitly stated, what's assumed, what's missing
 
-3. **Initial assessment** - Document:
-   - What's explicitly stated
-   - What's assumed or implied
-   - What's missing or unclear
+3. **Gap identification** - List gaps in: functional requirements, user flows, edge cases, success criteria, scope boundaries
 
-4. **Gap identification** - List gaps in:
-   - Functional requirements
-   - User flows and interactions
-   - Edge cases and error handling
-   - Success criteria
-   - Scope boundaries
-
-5. **Design space decomposition** _(see `plugin/references/design-tree.md`)_
+4. **Design space decomposition** _(see `plugin/references/design-tree.md`)_
 
    When the feature involves **user-visible or product-level** design decisions with multiple viable approaches, decompose the solution space into independent dimensions:
-
-   - Identify **independent dimensions of choice** at the requirements level (e.g., navigation model, data display, authentication method, interaction pattern, onboarding flow) – these are peers, not a hierarchy
+   - Identify independent dimensions of choice at the requirements level (navigation model, data display, auth method, interaction pattern) – these are peers, not a hierarchy
    - List viable options per dimension (2–5 each)
-   - Perform **cross-consistency assessment**: evaluate pairwise compatibility between options across dimensions, marking incompatible or conditional pairings with rationale
-   - Use the decomposition to generate targeted questions for the discovery interview – each unresolved dimension is a question to ask
+   - Assess cross-consistency: evaluate pairwise compatibility between options, marking incompatible or conditional pairings with rationale
+   - Use the decomposition to generate targeted questions — each unresolved dimension is a question to ask
 
-   > **Scope guard**: Only decompose dimensions where the *user or stakeholder* would recognize the options as meaningfully different. If a dimension is purely technical (e.g., caching strategy, API protocol, database engine), flag it as a downstream concern for `andthen:spec` or `andthen:trade-off` – do not decompose it here. See **Requirements vs. Implementation Boundary** in GOTCHAS.
+   > **Scope guard**: Only decompose dimensions where the *user or stakeholder* would recognize the options as meaningfully different. If a dimension is purely technical (caching strategy, API protocol, DB engine), flag it as a downstream concern for `andthen:spec` or `andthen:trade-off` — do not decompose it here.
 
-   Include the decomposition in the requirements output so downstream skills (`andthen:plan`, `andthen:spec`) can reference the resolved decisions.
-
+   Include the decomposition in the requirements output so downstream skills can reference resolved decisions.
    _Skip this step for simple features with no meaningful design alternatives._
 
 **Gate**: Assessment complete with documented gap list and design space decomposition (if applicable)
@@ -112,43 +81,13 @@ Clarify operates at the **requirements level** – decisions that users, stakeho
 
 ### 2. Discovery Interview
 
-Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers – you MUST receive actual answers from the user. Iterate until no major gaps remain.
+Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers — you MUST receive actual answers from the user. Iterate until no major gaps remain.
 
-> **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Do not proceed to Step 3 until the user has answered your questions and you've confirmed no major gaps remain. Use the `AskUserQuestion` tool if available in your environment.
+> **CRITICAL**: After presenting questions, stop your response and wait for user input. Use the `AskUserQuestion` tool if available in your environment. Do not proceed to Step 3 until the user has answered and you've confirmed no major gaps remain.
 
-Use the question categories below to identify *what* to ask. When answers are surface-level, vague, or contradictory, use probing and exploration techniques from `plugin/references/discovery-interview-techniques.md` to go deeper.
+Cover these areas when relevant: scope & boundaries (in/out of scope, MVP, deferrals); users & flows (roles, happy path, alternate paths, UI involvement); edge cases & errors (invalid input, failures, boundary conditions); success criteria (acceptance criteria, metrics, test/validation approach); dependencies & constraints (external systems, technical constraints, timeline).
 
-**Scope & Boundaries**
-- What's explicitly IN scope?
-- What's explicitly OUT of scope?
-- What's the minimum viable version?
-- What can be deferred to future iterations?
-
-**Users & Flows**
-- Who are the users? What roles/permissions?
-- What's the primary user flow (happy path)?
-- What alternate paths exist?
-- What's the expected user journey?
-- Does this involve UI/frontend work? (determines if wireframes needed)
-
-**Edge Cases & Errors**
-- What happens with invalid input?
-- How to handle network/service failures?
-- What are the boundary conditions (max/min values)?
-- How should errors be communicated to users?
-- What about concurrent access scenarios?
-
-**Success Criteria**
-- How do we know this is done?
-- What are the acceptance criteria?
-- What metrics define success?
-- How will this be tested/validated?
-
-**Dependencies & Constraints**
-- What external systems/APIs are involved?
-- What technical constraints exist?
-- What data/integrations are required?
-- Are there timeline or resource constraints?
+When answers are surface-level, vague, or contradictory, use probing techniques from `plugin/references/discovery-interview-techniques.md`.
 
 **Gate**: All critical questions answered, no blocking ambiguities
 
@@ -156,7 +95,6 @@ Use the question categories below to identify *what* to ask. When answers are su
 ### 3. Consolidate Requirements
 
 Structure all findings into comprehensive requirements document:
-
 1. **Summary** - 2-3 sentences: what, who, core value
 2. **Scope definition** - In scope, out of scope, MVP boundary
 3. **Functional requirements** - Core flows, alternate paths, user stories
@@ -173,17 +111,7 @@ Structure all findings into comprehensive requirements document:
 
 ### 4. Validation
 
-Review consolidated requirements for quality:
-
-- [ ] All user flows have clear steps
-- [ ] Design space decomposition constructed with decisions resolved or flagged (if applicable)
-- [ ] UI wireframes included (if applicable)
-- [ ] Edge cases identified with expected behavior
-- [ ] Scope boundaries explicit (in/out)
-- [ ] Success criteria specific and testable
-- [ ] No contradictions between requirements
-- [ ] Dependencies documented
-- [ ] No vague terms without definitions
+Review consolidated requirements: all user flows have clear steps; design space decomposition constructed with decisions resolved or flagged; wireframes included if applicable; edge cases identified; scope boundaries explicit; success criteria specific and testable; no contradictions; dependencies documented; no vague undefined terms.
 
 Fix any issues found before finalizing.
 
@@ -193,23 +121,18 @@ Fix any issues found before finalizing.
 ### 5. Domain Language Extraction _(if domain complexity warrants)_
 
 If the project involves significant domain complexity (business rules, multiple bounded contexts, domain-specific terminology):
+1. Extract candidate terms from requirements: entities, actions, states, rules, relationships
+2. Identify synonym clusters and ambiguous terms
+3. Create or update `UBIQUITOUS_LANGUAGE.md` with initial glossary grouped by domain cluster
 
-1. Review the consolidated requirements for domain-relevant terms
-2. Extract candidate terms: entities, actions, states, rules, relationships
-3. Identify synonym clusters and ambiguous terms
-4. Create or update `UBIQUITOUS_LANGUAGE.md` with initial glossary:
-   - Group terms by domain cluster
-   - Pick canonical names, list synonyms to avoid
-   - Note bounded contexts where applicable
-
-> **Skip** for simple projects (CRUD apps, utilities, scripts) or when domain language is obvious and unambiguous.
+> **Skip** for simple projects (CRUD apps, utilities, scripts) or when domain language is obvious.
 
 **Gate**: Domain glossary created or skipped with rationale
 
 
 ## REPORT
 
-Generate markdown document with:
+Generate markdown document:
 
 ```markdown
 # Requirements Clarification: [Name]
@@ -241,53 +164,26 @@ Generate markdown document with:
 
 ### UI Wireframes
 <!-- Include only if requirements involve UI work -->
-```
-+----------------------------------+
-|  [Screen Name]                   |
-+----------------------------------+
-|  [Header/Nav]                    |
-+----------------------------------+
-|                                  |
-|  [Main Content Area]             |
-|  - Key element 1                 |
-|  - Key element 2                 |
-|                                  |
-+----------------------------------+
-|  [Actions/Footer]                |
-+----------------------------------+
-```
 
 ## Design Decisions
 <!-- Include only if design space decomposition was constructed -->
 ### Design Space Decomposition
-```
-[Feature Name]
-├── [Dimension 1]: [Option A] ← chosen · [Option B] · [Option C] ✗ (pruned)
-├── [Dimension 2]: [Option X] ← chosen · [Option Y]
-└── [Dimension 3]: [Open – deferred to spec/trade-off]
-```
+[Feature] ├── [Dimension 1]: [Option A] ← chosen · [Option B] · [Option C] ✗ (pruned)
 
 ### Cross-Consistency Notes
-- [Option] + [Option] – incompatible: [reason]
-- [Option] + [Option] – conditional: [condition]
+- [Option] + [Option] – incompatible/conditional: [reason]
 
 ### Resolved Decisions
 | Dimension | Choice | Rationale |
-|-----------|--------|-----------|
-| [Dimension] | [Chosen option] | [Why] |
 
 ### Open Design Questions
 - [Dimensions needing further analysis via `andthen:trade-off`]
 
 ## Edge Cases
 | Scenario | Expected Behavior |
-|----------|------------------|
-| [Edge case] | [Handling] |
 
 ## Error Handling
 | Error | User Message | Recovery |
-|-------|--------------|----------|
-| [Error type] | [Message] | [Action] |
 
 ## Non-Functional Requirements
 - **Performance**: [Expectations]
@@ -295,21 +191,16 @@ Generate markdown document with:
 - **Accessibility**: [Standards]
 
 ## Success Criteria
-- [ ] [Testable criterion 1]
-- [ ] [Testable criterion 2]
+- [ ] [Testable criterion]
 
 ## Dependencies
 | Dependency | Purpose | Risk |
-|------------|---------|------|
-| [System/API] | [Why needed] | [Risk level] |
 
 ## Open Questions
-- [Any remaining ambiguities for later phases]
+- [Remaining ambiguities for later phases]
 
 ## Decisions Log
 | Decision | Rationale | Date |
-|----------|-----------|------|
-| [Choice made] | [Why] | [When] |
 ```
 
 Store report in: `OUTPUT_DIR/<feature-name>/requirements-clarification.md`
@@ -317,17 +208,13 @@ Store report in: `OUTPUT_DIR/<feature-name>/requirements-clarification.md`
 
 If domain language extraction was performed, also store: `docs/UBIQUITOUS_LANGUAGE.md` _(or as configured in **Project Document Index**)_
 
-When complete, print the report's **relative path from the project root**. Do not use absolute paths.
+When complete, print the report's **relative path from the project root**.
 
 
 ## FOLLOW-UP ACTIONS
 
 After completion, ask user if they'd like to:
-1. **Create feature spec** – for single features:
-   `/andthen:spec <output-directory>` (or `$andthen:spec <output-directory>`)
-   The `andthen:spec` skill will automatically pick up the `requirements-clarification.md` from the output directory and use the clarified requirements (scope, edge cases, design decisions, wireframes) as the feature request – skipping redundant discovery
-2. **Proceed to planning** – for multi-feature / MVP scope:
-   `/andthen:plan <output-directory>` (or `$andthen:plan <output-directory>`)
-   The `andthen:plan` skill will automatically pick up the `requirements-clarification.md` from the output directory and use it as the basis for PRD creation, avoiding duplicate discovery
+1. **Create feature spec** – for single features: `/andthen:spec <output-directory>` (or `$andthen:spec` for Codex CLI). The spec skill will pick up `requirements-clarification.md` from the output directory and use the clarified requirements as input.
+2. **Proceed to planning** – for multi-feature / MVP scope: `/andthen:plan <output-directory>` (or `$andthen:plan`). The plan skill will pick up `requirements-clarification.md` and use it as the basis for PRD creation.
 3. Review specific areas in more depth
 4. Share with stakeholders for validation

@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Architecture Review"
+  short_description: "Deep quantitative architecture review with metrics, connascence, and fitness functions"
+  default_prompt: "Perform architecture review with quantitative metrics, connascence analysis, and fitness function proposals. Scope: "
+
+policy:
+  allow_implicit_invocation: true

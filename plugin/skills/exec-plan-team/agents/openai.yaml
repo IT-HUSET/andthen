@@ -1,7 +1,0 @@
-interface:
-  display_name: "AndThen - Execute Plan (Agent Teams)"
-  short_description: "Execute plan via Agent Teams pipeline with configurable review mode"
-  default_prompt: "Execute all stories in the implementation plan through the Agent Teams pipeline: parallel spec generation, then exec-spec with review mode per-story|none|full-plan. Plan directory: "
-
-policy:
-  allow_implicit_invocation: true

@@ -1,5 +1,5 @@
 interface:
-  display_name: "AndThen - Triage & Fix Issues"
+  display_name: "AndThen - Triage"
   short_description: "Investigate, diagnose, and fix issues"
   default_prompt: "Investigate, diagnose, and fix issues – use root cause analysis, apply targeted fixes, verify each fix. Issue scope: "
 

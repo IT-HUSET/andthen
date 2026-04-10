@@ -5,8 +5,7 @@ argument-hint: <path-to-fis>
 
 # Execute Feature Implementation Specification
 
-
-Execute a fully-defined FIS document as an **orchestrator**, delegating all execution groups to sub-agents _(if supported by your coding agent)_. Each execution group is a cluster of related tasks executed by a single sub-agent, reducing context boundaries and improving coherence.
+Execute a fully-defined FIS document as an **orchestrator**, delegating all execution groups to sub-agents _(if supported by your coding agent)_. Each execution group is a cluster of related tasks executed by a single sub-agent.
 
 ## VARIABLES
 FIS_FILE_PATH: $ARGUMENTS
@@ -15,45 +14,30 @@ FIS_FILE_PATH: $ARGUMENTS
 ## INSTRUCTIONS
 
 ### Core Rules
-- **Make sure `FIS_FILE_PATH` is provided** – otherwise **STOP** immediately and ask the user to provide the path to the Feature Implementation Specification.
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
-  - **Foundational Rules and Guardrails** (absolute must-follow rules)
-  - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
+- **Make sure `FIS_FILE_PATH` is provided** – otherwise **STOP** immediately and ask for it.
+- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** in CLAUDE.md / AGENTS.md before starting.
 - **Complete Implementation**: 100% completion required - no partial work
 - **FIS is source of truth** – follow it exactly
-- **Sub-agents for all execution groups** – act as orchestrator and delegate all work to sub-agents, one per execution group _(if supported by your coding agent)_
+- **Sub-agents for all execution groups** – act as orchestrator, delegate all work to sub-agents, one per group _(if supported)_
 
 ### Orchestrator Role
-**You are the orchestrator.** Your job is to:
-- Load and understand the FIS, including the execution group structure
-- Delegate ALL execution groups to sub-agents (one sub-agent per group)
+**You are the orchestrator.** Your job:
+- Load and understand the FIS, including execution group structure
+- Delegate ALL execution groups to sub-agents (one per group)
 - Track group completion and relay context between dependent groups
 - Run verification gates between groups
 - Ensure final validation checklist is complete
 
-**You do NOT:**
-- Write implementation code directly (delegate to sub-agents)
-- Let your context get bloated with implementation details
-- Skip final steps due to context exhaustion
+**You do NOT:** write implementation code directly, let context bloat with details, or skip final steps.
 
-**Context Injection:**
-Before spawning each group sub-agent, extract the relevant task descriptions, key references,
-and ADR decision from the FIS and pass them directly in the prompt. For dependent groups,
-inject the "Context for Dependent Groups" output from prerequisite groups – this is the
-primary mechanism for maintaining coherence across group boundaries. For critical handoffs
-(e.g., data model group → service group), also read key output files to verify context accuracy.
+**Context Injection:** Before spawning each group sub-agent, extract the relevant task descriptions, key references, and ADR decisions from the FIS and pass them directly in the prompt. For dependent groups, inject the "Context for Dependent Groups" output from prerequisite groups. For critical handoffs, read key output files to verify context accuracy.
 
 ### Sub-Agent Protocol
 
-#### Group Input Template (provide to each group sub-agent)
+#### Group Input Template
 ```
 ## Execution Group: {GROUP_ID} – {Group Name}
-Execute the following tasks sequentially. Verify each task's criteria before
-proceeding to the next. If a task's verification fails, fix it before moving on.
-
-### Task: {TASK_ID} – {Task title}
-{Task description and sub-items from FIS}
-**Verify**: {verification criteria}
+Execute the following tasks sequentially. Verify each task's criteria before proceeding.
 
 ### Task: {TASK_ID} – {Task title}
 {Task description and sub-items from FIS}
@@ -67,41 +51,41 @@ Path: {FIS_FILE_PATH}
 {File:line references relevant to ANY task in this group}
 
 ## Context from Prerequisite Groups
-{Context for Dependent Groups output from completed prerequisite groups.
-Omit for the first group.}
+{Context for Dependent Groups output from completed prerequisite groups. Omit for the first group.}
 
-## Tests to Satisfy (if Test-Implementation Pairing exists)
-{Test scenarios paired with tasks in this group from FIS Testing Strategy}
-Write/verify these tests BEFORE implementing. They should fail initially (red),
-then pass after your implementation (green).
+## Scenarios to Satisfy
+{Scenarios paired with tasks in this group from FIS Scenarios + Testing Strategy}
+Write/verify tests for these scenarios BEFORE implementing – they should fail initially (red), then pass after (green). These tests are proof-of-work for the behavioral claims; task Verify lines provide proof for other dimensions.
 
 ## Domain Language (if UBIQUITOUS_LANGUAGE.md exists)
-{Key terms relevant to this group from the project's Ubiquitous Language glossary}
+{Key terms relevant to this group}
 Use canonical terms in code (class names, variables, functions). Avoid listed synonyms.
 
 ## UI Design Contract (if applicable)
-Path: {UI_SPEC_PATH if generated in Step 1.7, otherwise omit this section}
+Path: {UI_SPEC_PATH if generated in Step 1.7, otherwise omit}
+
+## Structured Output Protocols
+Use CONFUSION, NOTICED BUT NOT TOUCHING, and MISSING REQUIREMENT formats per `${CLAUDE_PLUGIN_ROOT}/references/structured-output-protocols.md`.
 
 ## Requirements
 1. Execute tasks sequentially within this group
-2. Verify each task before proceeding to the next
+2. Verify each task before proceeding
 3. Follow patterns in referenced files
 4. Report back with the Group Result format below
 ```
 
-#### Group Result Template (sub-agent must provide)
+#### Group Result Template
 ```
 ## Group Result: {GROUP_ID} – {Group Name}
 
 ### Per-Task Status
-- {TASK_ID}: complete | partial | blocked – {brief summary of what was done}
 - {TASK_ID}: complete | partial | blocked – {brief summary}
 
 ### Context for Dependent Groups
-- APIs/interfaces introduced: {function signatures, class shapes – not full code}
-- Naming conventions established: {patterns chosen that dependents must follow}
-- Key file paths created/modified: {path – brief role description}
-- Integration points exposed: {what subsequent groups can hook into}
+- APIs/interfaces introduced: {function signatures, class shapes}
+- Naming conventions established: {patterns chosen}
+- Key file paths created/modified: {path – brief role}
+- Integration points exposed: {what subsequent groups hook into}
 
 ### Issues
 {blockers, errors, concerns for orchestrator}
@@ -111,39 +95,22 @@ Path: {UI_SPEC_PATH if generated in Step 1.7, otherwise omit this section}
 After each group sub-agent completes:
 1. **Read the result** – extract per-task status and group-level context
 2. **Verify** – run verification commands for all tasks in the group
-3. **Update FIS checkboxes immediately** – check off completed task checkboxes (`- [ ]` → `- [x]`) for all tasks in the group. **Do this now, not later** – this is the primary mechanism to prevent status updates from being lost to context exhaustion
-4. **Relay context** – extract "Context for Dependent Groups" for use in subsequent group prompts
-5. **Handle issues** – if any task is blocked/partial:
-   - If fixable: spawn a targeted sub-agent for just the failing task(s)
-   - If blocked: flag for user before proceeding to dependent groups
+3. **Update FIS checkboxes immediately** – `- [ ]` → `- [x]` for all completed tasks. **Do this now** – this is a gate, not cleanup
+4. **Relay context** – extract "Context for Dependent Groups" for subsequent group prompts
+5. **Handle issues** – if blocked/partial: spawn a targeted fix sub-agent; if truly blocked, flag for user
 
 
 ## GOTCHAS
-- Agent writes code directly instead of delegating groups to sub-agents – you are the orchestrator, never implement directly. Spawn one sub-agent per execution group
-- Context lost between groups – always relay the "Context for Dependent Groups" output from completed groups. For critical handoffs, read key output files to verify context accuracy
-- Group too large (>4 implementation tasks) – sub-agent risks context fatigue. If the FIS has oversized groups, split them before executing
-- Context exhaustion causes skipped final validation – front-load TV04 verification checks
-- FIS references get stale if the spec was updated – always re-read the FIS, don't rely on cached understanding
-- **Status updates get dropped when context is exhausted** – update FIS checkboxes immediately after each group completes (Step 2), not as a batch at the end. Plan and FIS status updates in Step 5 are GATES, not optional cleanup
-- Not signaling active-story status to STATE.md when called in a plan context – set "In Progress" at start for faster session recovery if interrupted
-
-### Common Rationalizations
-
-These are the excuses you will generate to skip steps. Recognize them.
-
-| Rationalization | Reality |
-|---|---|
-| "I'll just implement this group directly – spinning up a sub-agent is overhead" | That's how context bloat starts. By group 3 your context is half-consumed with implementation details instead of orchestration state. Delegate every group, even trivial ones. |
-| "I'll batch the checkbox updates at the end" | You won't reach the end with the same context. Checkboxes deferred past group 3 are checkboxes lost. Update immediately after each group – this is a gate, not cleanup. |
-| "The next group will figure out what the previous group did from the code" | Sub-agents start cold – they can't "see" prior work unless you relay it. The "Context for Dependent Groups" output exists because this assumption is always wrong. |
-| "Verification gates between groups slow things down" | A bug in Group 1 that cascades to Groups 2–5 costs far more than a 30-second verification gate. Catching it early is the fast path. |
-| "TV01–TV03 is redundant – I already verified each group" | Group verification checks individual tasks. Validation checks system-level integration, security, and quality. The most common post-ship bugs are integration issues that pass group-level checks. |
-| "I'll skip test scaffolding and write tests during implementation" | Tests written alongside implementation test what you built, not what you should have built. Pre-scaffolded tests are acceptance gates – they verify intent, not incidental behavior. |
-| "The FIS is straightforward, I don't need to re-read it" | You're reading your memory of the FIS, not the FIS. Requirements drift, specs get updated, and your cached understanding diverges. Re-read it. |
+- Writing code directly instead of delegating – you are the orchestrator, always spawn sub-agents per group
+- Context lost between groups – always relay "Context for Dependent Groups" output; read key output files for critical handoffs
+- Group too large (>4 tasks) – split before executing to avoid sub-agent context fatigue
+- **Status updates dropped when context exhausted** – update FIS checkboxes immediately after each group (Step 2), not as a batch. Plan and FIS updates in Step 4 are GATES
+- FIS references get stale if spec was updated – always re-read the FIS
+- Not signaling active-story status to STATE.md when called in a plan context – set "In Progress" at start
 
 ### Helper Scripts
-Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
-- `check-stubs.sh <path>` – scan for incomplete implementation indicators (TODO/FIXME, empty functions, placeholders)
+Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`:
+- `check-stubs.sh <path>` – scan for incomplete implementation indicators
 - `check-wiring.sh <path>` – verify new/changed files are imported/referenced
 - `verify-implementation.sh <file1> [file2...]` – combined existence + substance + wiring check
 
@@ -152,199 +119,89 @@ Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when ap
 
 ### Step 1: Load FIS and Prepare
 1. Read FIS at _`FIS_FILE_PATH`_
-2. Fully Understand vital sections like Success Criteria, Scope & Boundaries, Solution Architecture and Design, Critical Documentation & Context, Implementation Plan, etc.
-3. Understand the execution group structure – identify group dependencies, parallelism opportunities, and the critical path through groups
-4. Analyse the codebase to properly understand the project structure, relevant files and similar patterns
-  - Use command like `tree -d` and `git ls-files | head -250` to get an overview of the codebase structure
-5. Read the project learnings document (e.g. _`LEARNINGS.md`_, _`implementation-notes.md`_) for traps, gotchas, error patterns, and non-obvious knowledge from previous work
+2. Understand vital sections: Success Criteria, Scope, Architecture, Implementation Plan
+3. Understand execution group structure – identify dependencies, parallelism, critical path
+4. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview
+5. Read project learnings document (e.g. _`LEARNINGS.md`_, _`implementation-notes.md`_) for traps and non-obvious patterns
 6. Create task tracking for ALL execution groups (implementation + validation)
-7. **Update project state** (if STATE.md exists and this FIS originated from a plan story): Use `andthen:ops update-state active-story {story_id} "{story_name}" "In Progress"` to record that implementation has started.
+7. **Update project state** (if STATE.md exists and FIS originated from a plan): `andthen:ops update-state active-story {story_id} "{story_name}" "In Progress"`
 
-### Step 1.5: Scaffold Test Suite (if Testing Strategy present)
-If the FIS contains a **Testing Strategy** section:
+### Step 1.5: Scaffold Scenario Tests
+If the FIS has a **Scenarios** and/or **Testing Strategy** section, spawn `andthen:qa-test-engineer` _(if supported)_ to write test skeletons derived from the scenarios, organized by paired execution group. Run the suite to confirm tests fail (red) — they become acceptance gates for Step 2. These are proof-of-work for the behavioral scenarios — they verify *intent* (what should be true) rather than incidentally confirming what the implementation happens to produce. Verify lines and verification gates cover other proof dimensions (existence, wiring, structural correctness).
 
-1. Spawn a `andthen:qa-test-engineer` sub-agent _(if supported by your coding agent)_ to:
-   - Write test skeletons based on the FIS Testing Strategy (test scenarios, edge cases, error cases)
-   - If a **Test-Implementation Pairing** table exists, organize tests by their paired execution group
-   - Follow test patterns referenced in the Testing Strategy section
-   - Tests should assert expected behavior – they will naturally fail since implementation doesn't exist yet
-2. Run the test suite to confirm tests are discovered and fail as expected (validates test infrastructure)
-3. These tests become **acceptance gates** – implementation tasks in Step 2 must make them pass
-
-> **Skip this step** when: the FIS has no Testing Strategy section, the feature is purely structural (scaffolding, config, migrations) where tests-first adds no value, or test infrastructure (runner, framework) is not yet set up and will be configured by an implementation task – in that case, defer test scaffolding until after that task completes.
+> **Skip when**: no Scenarios/Testing Strategy, purely structural feature, or test infrastructure not yet set up (defer until after that task completes).
 
 ### Step 1.7: UI Design Contract (if frontend work detected)
+If the FIS contains UI/UX work, generate a **UI-SPEC.md** covering spacing, typography, color palette, component patterns, and responsive breakpoints. Source from FIS → project design system → UX-UI-GUIDELINES.md → reasonable defaults. Store as `.agent_temp/ui-spec-{feature-name}.md`. All subsequent sub-agents receive this contract.
 
-If the FIS contains UI/UX work (check for UI wireframes, frontend components,
-CSS/styling tasks, or a "UI/UX Design" section):
-
-1. Generate a **UI-SPEC.md** design contract covering:
-   - Spacing system (margins, padding, gaps)
-   - Typography (font families, sizes, weights, line heights)
-   - Color palette (primary, secondary, accent, semantic colors)
-   - Component patterns (buttons, forms, cards, modals)
-   - Responsive breakpoints
-   - Copywriting tone and conventions
-
-2. Source decisions from (in priority order):
-   - FIS UI/UX Design section
-   - Project design system (per Document Index)
-   - UX-UI-GUIDELINES.md
-   - Reasonable defaults consistent with the existing codebase
-
-3. Store as `.agent_temp/ui-spec-{feature-name}.md`
-
-4. All subsequent implementation sub-agents receive this contract
-   as additional context for UI consistency.
-
-**Skip this step** when: FIS has no UI work, project has a comprehensive
-design system already referenced, or the FIS explicitly states
-"no UI design contract needed".
+**Skip when**: no UI work, comprehensive design system already referenced, or FIS states "no UI design contract needed".
 
 ### Step 2: Execute Implementation Groups
-For each execution group, following the dependency order declared in the FIS:
+For each execution group (following dependency order in FIS):
 
-**Sequential groups:**
-- Spawn a **foreground sub-agent** _(if supported by your coding agent)_ with Group Input Template
-- Wait for Group Result
-- Run verification gate (verify all tasks in the group)
-- Extract "Context for Dependent Groups" for the next group's prompt
-- Update FIS checkboxes, track cumulative context
+**Sequential groups:** spawn foreground sub-agent → wait for Group Result → run verification gate → extract context → update FIS checkboxes.
 
-**Parallel groups [P]:**
-- Spawn **multiple foreground sub-agents in a single message** _(if supported by your coding agent; otherwise execute sequentially)_ – one per parallel group
-- All parallel groups execute concurrently
-- Groups don't have file conflicts (the spec skill ensures this via grouping heuristics)
-- Collect all Group Results
-- Merge "Context for Dependent Groups" from all parallel groups for downstream use
+**Parallel groups [P]:** spawn multiple foreground sub-agents in a single message → collect all Group Results → merge "Context for Dependent Groups".
 
-**Verification gate (between groups):**
-After each group completes, before spawning dependent groups:
-1. Run the `Verify` line for each task in the completed group
-2. If any verification fails, spawn a targeted fix sub-agent before proceeding
-3. This catches cascading failures early – before they propagate to dependent groups
+**Verification gate (between groups):** run `Verify` for each task in the completed group; if any fail, spawn a targeted fix sub-agent before proceeding. Never proceed to a dependent group with unresolved failures — a bug in Group 1 that propagates through Groups 2-5 costs far more than catching it here.
 
-**Test-first rhythm** (when FIS has Test-Implementation Pairing):
-- Before delegating each group, include the paired test scenarios in the sub-agent prompt
-- Sub-agent should first verify the paired tests exist and fail (red)
-- Then implement until paired tests pass (green)
-- The remediation loop (TV04) handles refactoring
+**Proof-of-Work rhythm** (when FIS has Scenarios): include paired scenario tests in sub-agent prompt; sub-agent verifies tests fail (red), implements until they pass (green). Combined with Verify-line checks at the verification gate, these provide layered proof of correct implementation. TV05 handles refactoring.
 
-**Sub-agent selection (per group):**
-- Default: `general-purpose` agent
-- Groups with build/tooling tasks: `andthen:build-troubleshooter`
-- Groups with UI tasks: `andthen:ui-ux-designer`
-- Groups with architecture tasks: `andthen:solution-architect`
-
-**Agent mode:**
-- Use **foreground** sub-agents by default (orchestrator needs results before proceeding to dependent groups)
-- For parallel groups: spawn as multiple foreground Agent calls in a single message
-- Background agents only for Step 1.5 (test scaffolding) and Step 1.7 (UI spec) when the orchestrator has independent prep work to do simultaneously
+**Sub-agent selection:** default `general-purpose`; build/tooling → `andthen:build-troubleshooter`; UI → `andthen:ui-ux-designer`; architecture → `andthen:solution-architect`. Use **foreground** agents by default; background only for Steps 1.5 and 1.7 when independent prep work runs simultaneously.
 
 ### Step 3: Execute Validation Tasks
-**CRITICAL**: Execute all validation tasks (TV01-TV03) as a validation group in **parallel sub-agents** _(if supported by your coding agent; otherwise execute sequentially)_, never directly from the main agent.
-Important: Correct implementation of requirements and acceptance criteria must be verified through tests and visual validation (when applicable).
+Step 2 gates catch task-level failures within groups. Step 3 catches cross-cutting issues — integration, security, architectural coherence — that pass individual group checks.
 
-#### TV01 [P] – Level 1: Code Review
-The sub-agent for code review (general-purpose) should use the `andthen:review-code` skill for comprehensive review and analysis covering:
+**CRITICAL**: Run all validation tasks as parallel sub-agents _(if supported; otherwise sequentially)_ – never directly from main agent.
 
-- Static analysis, linting, formatting and type checking issues
-- Code quality (correctness, readability, best practices, performance, maintainability)
-- Architecture (pattern adherence, ADR compliance, anti-pattern detection)
-- Security (input validation, injection prevention, auth, data protection, OWASP Top 10)
-- UI/UX (if applicable - visual quality, usability, accessibility)
-- **Domain language**: Apply `DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md` – verify code uses canonical terms from `UBIQUITOUS_LANGUAGE.md`
-- **Stub detection**: Scan implemented files for TODO/placeholder/stub patterns per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
-- **Wiring verification**: Confirm new components/routes/endpoints are actually connected to the system (imported, routed, called)
+#### TV01 [P] – Code Review
+Sub-agent uses `andthen:review-code` covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, and wiring verification.
 
-#### TV02 [P] – Level 2: Testing
-Use the `andthen:qa-test-engineer` sub-agent _(if supported by your coding agent)_ to execute tests for new and existing functionality:
-- Unit tests
-- Integration tests (if applicable)
-- E2E tests (if applicable)
+#### TV02 [P] – Testing
+`andthen:qa-test-engineer` sub-agent runs unit, integration, and E2E tests (as applicable).
 
-#### TV03 [P] – Level 3: Visual Validation (if UI)
-- Verify updated UI works correctly according to specified requirements
-- Use the `andthen:visual-validation-specialist` sub-agent _(if supported by your coding agent)_ for full visual validation
-- This agent automatically follows any **Visual Validation Workflow** defined in CLAUDE.md
-- Checks for visual regressions and ensures UI matches design specs
+#### TV03 [P] – Visual Validation (if UI)
+`andthen:visual-validation-specialist` sub-agent _(if supported)_ for full visual validation per any Visual Validation Workflow defined in CLAUDE.md.
 
-#### TV04 – Remediation Loop
-Structured fix-and-revalidate cycle with bounded iterations:
+#### TV04 – Quality Review (orchestrator, not delegated)
+- Review all group results for functionality gaps or requirement mismatches
+- Review implemented code for simplification opportunities – unnecessary complexity, duplication, or over-abstraction introduced during implementation. Use the `andthen:refactor` skill for this.
 
-1. **Collect** all validation feedback from TV01-TV03 sub-agents
-2. **Triage** issues by severity – CRITICAL and HIGH issues must be fixed; MEDIUM issues should be fixed; LOW issues are optional. When mapping from review-code findings: CRITICAL→CRITICAL, HIGH→HIGH, SUGGESTIONS→MEDIUM
-3. **Fix** – spawn sub-agents _(if supported by your coding agent)_ to address issues, grouped by affected area to avoid conflicts
-4. **Re-validate** – re-run only the affected validation levels (e.g., if only code issues were found, re-run TV01; if tests failed, re-run TV02)
-5. **Loop** – repeat steps 2-4 until: all CRITICAL/HIGH issues are resolved and validation passes clean
+#### TV05 – Remediation Loop
+1. **Collect** all validation feedback from TV01-TV04
+2. **Triage** by severity – CRITICAL/HIGH must fix; MEDIUM should fix; LOW optional. (review-code mapping: CRITICAL→CRITICAL, HIGH→HIGH, SUGGESTIONS→MEDIUM)
+3. **Fix** – spawn sub-agents grouped by affected area to avoid conflicts
+4. **Re-validate** – re-run only affected validation levels
+5. **Loop** – repeat until all CRITICAL/HIGH resolved
 
-**Loop bound**: Maximum **3 remediation cycles**. If issues persist after 3 cycles, escalate to the user with a summary of remaining issues and what was attempted.
+**Loop bound**: Maximum **3 remediation cycles**. If issues persist, escalate to user with summary.
 
-### Step 4: Final Quality Assurance
-As orchestrator (not delegated to sub-agent):
-- Review all group results
-- Check for functionality gaps or requirement mismatches
-- Use the `code-simplifier:code-simplifier` agent _(if supported by your coding agent)_ to look for simplification, maintainability, and general quality of life improvement opportunities. Note: use the full agent name `code-simplifier:code-simplifier` – do not shorten.
+### Step 4: Verify Completion and Update Status
+**Orchestrator performs directly – all substeps REQUIRED:**
 
-### Step 5: Verify Completion and Update Status
-**Orchestrator performs directly – all substeps are REQUIRED, not optional cleanup:**
-
-#### 5a. Verify Implementation
+#### 4a. Verify Implementation
 1. Verify ALL success criteria in FIS are met
-2. Verify ALL task checkboxes marked complete (`- [x]`) – if any were missed during Step 2, mark them now
-3. Verify Final Validation Checklist items are satisfied
-4. **Substantive check**: Run `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` – must return clean (no matches in new implementation files)
-5. **Wiring check**: For each new file/component created, verify it is imported or referenced by at least one other file in the system
-6. Include verification evidence in completion summary (as applicable):
-   - **Build**: exit code or success/failure status
-   - **Tests**: pass/fail counts (e.g., "42/42 pass")
-   - **Linting/types**: error and warning counts
-   - **Visual validation**: screenshot confirming UI matches expectations (if UI)
-   - **Runtime**: confirmation app starts and key flows work
+2. Verify ALL task checkboxes marked complete; mark any missed now
+3. Verify Final Validation Checklist items satisfied
+4. **Substantive check**: `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` – must be clean
+5. **Wiring check**: each new file/component is imported or referenced by at least one other file
+6. Include verification evidence per `${CLAUDE_PLUGIN_ROOT}/references/verification-evidence.md`: **Build**, **Tests**, **Linting/types**; add **Visual validation** and **Runtime** for UI/runtime stories
 
-#### 5b. Update FIS Status (REQUIRED GATE)
-Update the FIS document itself:
-- Mark all completed task checkboxes (`- [ ]` → `- [x]`)
-- Mark all completed success criteria checkboxes
-- Mark all Final Validation Checklist items as checked
+#### 4b. Update FIS Status (REQUIRED GATE)
+Mark completed task, success-criteria, and Final Validation Checklist checkboxes in the FIS document.
 
-#### 5c. Update Source Plan (REQUIRED GATE – if FIS originated from a plan)
-If this FIS originated from a plan (`plan.md`), use the `andthen:ops` skill to update the plan:
-- Set the story's **Status** field to `Done`
-- Set the story's **FIS** field to the FIS file path (if not already set by `andthen:spec`)
-- Check off completed acceptance criteria checkboxes (`- [ ]` → `- [x]`)
-- Update the Story Catalog table status column to `Done`
-- Note any scope changes or deviations
+#### 4c. Update Source Plan (REQUIRED GATE – if FIS from a plan)
+Use `andthen:ops` to: set story Status to `Done`, set FIS field path, check off acceptance criteria, update Story Catalog table. Note any scope changes or deviations. After ops completes, **re-read plan and FIS files** to verify updates applied (`ops` runs in fork context and modifications may not be visible in your current state).
 
-After ops completes, **re-read the plan and FIS files** to verify updates were applied (`ops` runs in fork context and modifications may not be visible in your current state).
+#### 4d. Update Project State (if STATE.md exists)
+Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Story Runs` → `STATE.md`).
 
-#### 5d. Update Project State (if STATE.md exists)
-If this FIS originated from a plan story and STATE.md exists:
-- Use `andthen:ops update-state active-story {story_id} Done`
-- Use `andthen:ops update-state note "Completed {story_id}: {story_name}"`
+**Gate**: FIS checkboxes, success criteria, and plan status ALL updated before proceeding
 
-**Gate**: FIS checkboxes, success criteria, and plan status are ALL updated before proceeding
+### Step 5: Iteration (if needed)
+If success criteria unmet: analyze gaps, create targeted fix groups, execute Steps 2-4 again.
 
-### Step 6: Iteration (if needed)
-If success criteria not met or if previous step failed to successfully verify completion:
-1. Analyze gaps from validation feedback
-2. Create targeted fix groups for remaining issues
-3. Execute Steps 2-5 again
+## Post-Completion
+Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Story Runs` → `Learnings`) for learnings-file updates. Do not create a new learnings file from exec-spec.
 
-
-## Post-Completion: Update Project Learnings
-After completion, if the project has a learnings file (`LEARNINGS.md` or `implementation-notes.md`), update it with knowledge discovered during this story. Organize by topic, not chronologically. Types of knowledge to capture:
-- **Traps & gotchas**: Non-obvious patterns that would bite a competent developer even with access to code and git history
-- **Domain knowledge**: API quirks, framework behavior, naming decisions, business rules discovered in code
-- **Procedural knowledge**: Deploy steps, test prerequisites, tooling patterns
-- **Error patterns**: Recurring errors – note if deterministic (bad schema, wrong type → conclude immediately) or infrastructure (timeout, rate limit → log, conclude only when pattern emerges)
-
-Keep entries brief (1-2 sentences each). Do NOT record:
-- What was implemented (that's in git history)
-- How parts integrate (that's in the code)
-- Routine decisions (that's in the FIS/spec)
-- Language basics or framework docs
-
-**Self-maintenance**: When updating, also review nearby entries – merge overlapping items, remove knowledge that's no longer accurate, split sections that grow too long.
-
-> **Note**: FIS checkbox/status updates and source plan updates are handled in Step 5 (Verify Completion and Update Status) – they are required gates, not post-completion tasks.
+> FIS checkbox/status updates and plan updates are handled in Step 4 – they are REQUIRED GATES, not post-completion tasks.
