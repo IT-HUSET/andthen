@@ -139,6 +139,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 | `/exec-spec` | Execute a FIS – orchestrated implementation with validation | `opusplan` | `medium`–`high` | Opus plans subtasks, Sonnet executes code. Medium for straightforward specs, high for complex ones |
 | `/exec-plan` | Execute full plan with configurable review mode | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
 | `/quick-implement` | Quick path for small features/fixes | `sonnet` | `medium` | Small scope, speed matters |
+| `/remediate-findings` | Apply validated review findings and update workflow status | `sonnet` | `medium`–`high` | Must distinguish stale vs valid findings, keep scope tight, and re-validate |
 | `/refactor` | Code improvement and simplification | `sonnet` | `medium`–`high` | Medium for localized, high for cross-file |
 | `/triage` | Investigate, diagnose, and fix issues | `sonnet` | `medium`–`high` | Medium for clear issues, high for subtle root cause analysis |
 
@@ -175,6 +176,7 @@ Skills are agent-agnostic – the same files work across all agents. Recommendat
 | `andthen-spec` | Clarify requirements + create FIS | `gpt-5.4` | `high` | Reasoning-heavy, completeness critical |
 | `andthen-exec-spec` | Execute a FIS | `gpt-5.4` | `medium`–`high` | Medium for straightforward, high for complex specs |
 | `andthen-review-gap` | Gap analysis + code review | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical |
+| `andthen-remediate-findings` | Implement validated review findings | `gpt-5.4` | `medium`–`high` | Requires bounded remediation, re-validation, and status bookkeeping |
 | `andthen-design-system` | Design system tokens + style guide | `gpt-5.4` | `medium` | Pattern-following |
 | `andthen-wireframes` | HTML wireframes for screens | `gpt-5.4` | `medium` | Structural generation |
 | `andthen-trade-off` | Trade-off analysis | `gpt-5.4` | `high` | Decision quality matters |

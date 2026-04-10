@@ -72,6 +72,7 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 |-------|---------|
 | `exec-plan` | Execute plan – spec-plan per phase, then sub-agent pipeline with `--review-mode per-story|none|full-plan` |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `e2e-test` | End-to-end browser testing for web applications |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
 | `design-system` | Create design tokens and component styles |
@@ -122,6 +123,9 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 
 # 4. Final review (against requirements)
 /andthen:review-gap <path-to-fis>
+
+# 5. If the review reports actionable findings:
+/andthen:remediate-findings <path-to-gap-review-report>
 ```
 
 ### Plan Workflow (MVP / multi-feature)
@@ -157,7 +161,8 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 /andthen:spec-plan docs/specs/dashboard/
 /andthen:exec-spec docs/specs/dashboard/s01-project-setup.md
 /andthen:review-gap docs/specs/dashboard/s01-project-setup.md
-# ... repeat exec-spec + review-gap for each story in per-story mode
+/andthen:remediate-findings <path-to-gap-review-report>   # when review-gap fails
+# ... repeat exec-spec + review-gap (+ remediation when needed) for each story in per-story mode
 
 # 5. Final review (single-feature workflow, or manual review after `--review-mode none`)
 /andthen:review-gap

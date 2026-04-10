@@ -31,11 +31,11 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** and ask.
 - **Pre-generate specs**: delegate to `andthen:spec-plan` per phase
 
 ### Review Mode Contract (defined once)
-- `per-story` (default): `review-gap` after each story (max 2 fix attempts per story)
+- `per-story` (default): `review-gap` after each story; FAIL triggers `remediate-findings` (max 2 review/remediation rounds per story)
 - `none`: skips automated `review-gap`
-- `full-plan`: skips per-story review; one final `review-gap` on `PLAN_DIR/plan.md` after all phases (max 2 fix attempts)
+- `full-plan`: skips per-story review; one final `review-gap` on `PLAN_DIR/plan.md` after all phases; FAIL triggers `remediate-findings` (max 2 review/remediation rounds)
 
-Specs are pre-generated before execution starts. `exec-spec`'s TV05 loop handles *implementation-level* issues (3-cycle cap); `exec-plan`'s review-gap loop handles *integration and gap-level* issues.
+Specs are pre-generated before execution starts. `exec-spec`'s TV05 loop handles *implementation-level* issues (3-cycle cap); `exec-plan`'s review-gap + remediate-findings loop handles *integration and gap-level* issues.
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job:
@@ -101,7 +101,7 @@ For each story (or group of parallel stories), run the required stages for the s
 
 **Stage 1 – Implement**: `/andthen:exec-spec {fis_path}`
 
-**Stage 2 – Review** (`per-story` only): `/andthen:review-gap {fis_path}` – FAIL = fix (max 2 attempts), PASS = story complete. Skip for `none` and `full-plan`.
+**Stage 2 – Review** (`per-story` only): `/andthen:review-gap {fis_path}`. If it fails, capture the report path and run `/andthen:remediate-findings {report_path}`. Re-run review and repeat up to 2 rounds. Skip for `none` and `full-plan`.
 
 **Wave-based execution**: Execute W1 stories in parallel, then W2, etc. If no wave assignments, use `[P]` markers and dependency order. If sub-agents not available, execute stories sequentially.
 
@@ -114,7 +114,7 @@ Review mode: {REVIEW_MODE}
 
 Pipeline (spec already generated):
 1. Implement: /andthen:exec-spec {fis_path}
-2. If review mode is per-story: /andthen:review-gap {fis_path} – Fix issues (max 2 attempts).
+2. If review mode is per-story: /andthen:review-gap {fis_path}. If FAIL, capture the report path and run /andthen:remediate-findings {report_path}; then re-run review (max 2 rounds).
 3. Update status:
    - FIS checkboxes: /andthen:ops update-fis {fis_path} all
    - Plan status: /andthen:ops update-plan {PLAN_DIR}/plan.md {story_id} Done
@@ -157,7 +157,7 @@ Phase 2 (Parallel, full-plan):   spec-plan → impl-S03 ────────
 
 - `per-story` – No extra step.
 - `none` – Skip; note manual review pending in completion summary and STATE.md session note.
-- `full-plan` – `/andthen:review-gap {PLAN_DIR}/plan.md`; fix (max 2 attempts); escalate if persist.
+- `full-plan` – `/andthen:review-gap {PLAN_DIR}/plan.md`; if FAIL, capture the report path and run `/andthen:remediate-findings {report_path}`; re-run review for up to 2 rounds, then escalate if issues persist.
 
 **Gate**: Required review for selected `REVIEW_MODE` complete
 
@@ -176,8 +176,8 @@ Spawn a general-purpose sub-agent to refresh: README (new features, changed APIs
 
 ## FAILURE HANDLING
 
-- **Story pipeline fails** → attempt fix (max 2 rounds via review-gap when `per-story`; otherwise use `andthen:build-troubleshooter` or escalate)
-- **Final review fails** (`full-plan`) → fix (max 2 rounds); escalate if persist
+- **Story pipeline fails** → attempt remediation (max 2 review/remediation rounds when `per-story`; otherwise use `andthen:build-troubleshooter` or escalate)
+- **Final review fails** (`full-plan`) → remediate (max 2 review/remediation rounds); escalate if persist
 - **Dependent stories blocked** when predecessor fails
 - **>50% of a phase fails** → pause, notify user with failure summary
 - **Update STATE.md on failure**: `andthen:ops update-state status "At Risk"` or `"Blocked"`. Add blockers via `andthen:ops update-state blocker "{description}"`.

@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Remediate Findings"
+  short_description: "Apply review findings with minimal verified fixes"
+  default_prompt: "Implement the actionable findings from a review report with minimal safe changes, re-validate the result, and update workflow status. Review report: "
+
+policy:
+  allow_implicit_invocation: true

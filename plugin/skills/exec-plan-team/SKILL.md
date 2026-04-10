@@ -56,7 +56,7 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 - Read **Workflow Rules, Guardrails and Guidelines** from CLAUDE.md before starting
 - Plan is source of truth – follow phase ordering, dependencies, and parallel markers exactly
 - Pre-generate specs via `andthen:spec-plan` per phase before starting the Agent Team
-- **Review mode**: `per-story` → `review-gap` after each merged story; `none` → skip; `full-plan` → one final `review-gap` on `PLAN_DIR/plan.md` after all stories merged
+- **Review mode**: `per-story` → `review-gap` after each merged story; FAIL triggers `remediate-findings`. `none` → skip. `full-plan` → one final `review-gap` on `PLAN_DIR/plan.md` after all stories merged; FAIL triggers `remediate-findings`
 - **Worktree isolation** (`USE_WORKTREE = false` by default) – stories run sequentially on `{BASE_BRANCH}`. `USE_WORKTREE = true` (via `--worktree`) → implementers call `EnterWorktree` per task in `CODE_DIR` for parallel execution
 - **Pre-assign all tasks** – no self-claiming; orchestrator assigns every task at creation time
 
@@ -199,7 +199,7 @@ Your workflow (loop until no assigned tasks remain):
    a. Ensure your CWD is {CODE_DIR} – `cd {CODE_DIR}` if needed
    b. /andthen:review-gap {fis_path}    (FIS path is ABSOLUTE – do not modify it)
       Work on {BASE_BRANCH} – code is already merged {from worktrees if USE_WORKTREE=true / committed by implementer if false}
-   c. If issues found: fix them on {BASE_BRANCH}, then re-validate (max 2 fix attempts)
+   c. If review-gap fails: capture the report path, run /andthen:remediate-findings {report_path} on {BASE_BRANCH}, then re-run review-gap (max 2 review/remediation rounds)
    d. If issues persist after 2 attempts, escalate to orchestrator via message
    e. Mark task completed
 3. Check for your next assigned task
@@ -332,7 +332,7 @@ Phase 1: spec-plan --phase 1
 Phase 2: spec-plan --phase 2, full-plan review:
   W1: impl-S03 ─┐
       impl-S04 ─┤→ MERGE ALL W1 → impl-S05 → MERGE W2
-  Final: review-gap plan.md ({BASE_BRANCH})
+  Final: review-gap plan.md ({BASE_BRANCH}) → remediate-findings if FAIL
 ```
 
 **Gate**: All phases complete. Per-story reviews complete when `REVIEW_MODE=per-story`.
@@ -344,7 +344,7 @@ Phase 2: spec-plan --phase 2, full-plan review:
 - `none` – Skip automated review. Record in completion summary that manual review is pending.
 - `full-plan` – Run one final plan-level review:
   `/andthen:review-gap {PLAN_DIR}/plan.md`
-  Fix issues; **max 2 fix attempts** before escalating to user.
+  If it fails, capture the report path and run `/andthen:remediate-findings {report_path}`. Re-run review for up to 2 rounds before escalating to user.
 
 **Gate**: Required review behavior for the selected `REVIEW_MODE` is complete
 
@@ -380,7 +380,7 @@ Spawn a **general-purpose sub-agent** _(if supported)_ to update project documen
 ## FAILURE HANDLING
 
 - **Agent reports failure** → spawn an on-demand Troubleshooter (`andthen:build-troubleshooter`) with a `fix-{story_id}` task → shut down after resolution → escalate to user if troubleshooter also fails
-- **Final plan review fails** (`full-plan`) → fix then re-validate (max 2 rounds). Escalate to user if issues persist.
+- **Final plan review fails** (`full-plan`) → remediate then re-validate (max 2 review/remediation rounds). Escalate to user if issues persist.
 - **Dependent stories stay blocked** when a predecessor fails
 - **If >50% of a phase fails** → pause execution, notify user with failure summary
 - **Update STATE.md on failure** (if it exists): `andthen:ops update-state status "At Risk"` (or `"Blocked"` for critical failures); add blockers via `andthen:ops update-state blocker "{description}"`
@@ -411,8 +411,10 @@ If Agent Teams unavailable (Step 1 check fails), suggest the manual equivalent:
 # 2. For each story in plan order:
 /andthen:exec-spec path/to/fis/s01-story-name.md
 /andthen:review-gap path/to/fis/s01-story-name.md  # per-story mode only
+/andthen:remediate-findings <path-to-gap-review-report>  # when review-gap fails
 
 # 3. Optional review modes:
 /andthen:review-gap path/to/plan/plan.md  # full-plan review after all stories
+/andthen:remediate-findings <path-to-gap-review-report>  # when full-plan review fails
 # none: user performs manual review
 ```

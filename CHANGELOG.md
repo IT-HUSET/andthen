@@ -6,6 +6,17 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.10.1] – 2026-04-10
+
+### Added
+- **`remediate-findings` skill** – new remediation workflow for implementing actionable findings from review reports such as `review-gap` and `review-code`. Re-validates findings against the current workspace, applies the smallest safe fix set, re-runs the relevant verification, and updates `plan.md`, FIS checkboxes, and `STATE.md` through `ops` when the reviewed work is now complete
+
+### Changed
+- **Review remediation path made explicit** – `exec-plan` and `exec-plan-team` now route review failures through `remediate-findings` instead of vague inline “fix issues” instructions, with consistent two-round review/remediation limits
+- **Workflow and model docs updated** – README, plugin README, and the model-effort guide now document `remediate-findings` as the follow-up path after actionable review findings
+
+---
+
 ## [0.10.0] – 2026-04-10
 
 ### Added
