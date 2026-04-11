@@ -6,6 +6,28 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.10.5] – 2026-04-12
+
+### Added
+- **Technical Research Separation** – new `technical-research.md` companion document pattern keeps FIS and PRD/Plan focused on intent (reviewable for correctness) while preserving codebase analysis, API research, and architecture trade-offs for the executing agent. Updated FIS authoring guidelines with "what goes where" guidance and verification-during-execution contract. Touches `spec`, `plan`, `spec-plan`, `exec-spec`, FIS template, and authoring guidelines
+- **Rollback-Friendly Groups** (`fis-authoring-guidelines`) – cross-cutting constraint on all slicing strategies: prefer additive changes within a group, separate "add new" from "remove old" so each group is independently revertable. A group that deletes and replaces in one pass leaves the system broken on revert
+- **Prove-It Pattern for verification gates** (`exec-spec`) – behavioral failures between execution groups now require a failing test before the fix, proving the bug existed and preventing reintroduction in later groups
+- **Non-reproducible bug classification** (`triage`) – when 5 Whys stalls on non-reproducible issues, classify by failure pattern (timing-dependent, environment-dependent, state-dependent, truly intermittent) with concrete investigation actions for each
+
+### Changed
+- **`spec-plan` renamed `.research-brief.md` to `technical-research.md`** – no dot prefix, includes "technical" for clarity. All prose references updated from "research brief" to "technical research" for consistency
+- **`exec-spec` Step 1.5 skip conditions refined** – scaffold tests when a test runner exists and tasks have branching logic; skip only for config-only tasks with no scenarios. Beyonce Rule: when in doubt, scaffold
+- **Development guidelines testing principle** – added Beyonce Rule: non-trivial branching logic gets a test even when no scenario covers it
+- **FIS template scenario skip aligned with exec-spec** – replaced broad "purely structural work (scaffolding, config, migrations)" with narrow "configuration-only work with no branching logic" to match exec-spec's test-scaffold gate
+
+### Fixed
+- **Stale "Research brief" in `spec-plan`** – one COMPOSITE classification criterion still referenced "Research brief" after the rename to "technical research"
+- **`spec` unconditional research file creation** – Step 2 mandated `technical-research.md` creation without qualifier; added "if substantial" guard matching `plan` skill's pattern
+- **FIS template broken relative link** – `../../references/fis-authoring-guidelines.md` resolves inside the plugin tree but breaks in every generated FIS; removed the link, kept the description
+- **`exec-spec` skip condition AND/OR ambiguity** – natural-language precedence was unclear; restructured as bulleted list with unambiguous nesting
+
+---
+
 ## [0.10.4] – 2026-04-11
 
 ### Added

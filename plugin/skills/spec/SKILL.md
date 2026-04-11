@@ -84,7 +84,9 @@ Fully understand the feature request. Identify any ambiguities. Research only wh
 - **Architecture trade-offs** _(if no ADR in ARGUMENTS)_: analyze 1-3 approaches, document risks. Delegate to the `andthen:solution-architect` agent _(if supported)_.
 - **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Delegate to the `andthen:ui-ux-designer` agent _(if supported)_.
 
-Save substantial findings to `.agent_temp/research/{feature-name}/` and link from the FIS.
+**Save research findings** (if substantial) to `technical-research.md` in the FIS output directory — a companion document that keeps the FIS lean and reviewable. The FIS references this document; the executing agent reads it alongside the FIS for implementation context. See the [Technical Research Separation](../../references/fis-authoring-guidelines.md#technical-research-separation) guidelines for what belongs in the research doc vs the FIS. Skip this if findings are minimal — not every spec needs a technical research document.
+
+If an existing `technical-research.md` already exists (e.g. from `andthen:spec-plan` or `andthen:plan`), append story-specific findings under a `## {Story Name}` heading rather than overwriting.
 
 Ask user ONLY if implementation is blocked by ambiguity.
 
@@ -99,7 +101,7 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 ### 4. Generate FIS
 
 #### Gather Context (as references, not inline content)
-- Research docs from previous phase (link to files in `.agent_temp/research/`)
+- Technical research from Step 2 (reference `technical-research.md` — don't inline findings into the FIS)
 - ADRs and architecture docs; file paths with line numbers for patterns to follow
 - UI wireframes/mockups; design system references; external documentation URLs
 - Ubiquitous Language glossary (`UBIQUITOUS_LANGUAGE.md`) – use canonical terms; flag any contradictions
@@ -120,6 +122,7 @@ Use the template in the **Appendix** below. Then read and follow the FIS authori
 - Plan story input: save FIS in plan directory as `{story-name}.md`
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in Project Document Index)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
+- **Technical research**: save as `technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and a plan-level `technical-research.md` already exists, append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
 
 **Update source plan** – if this spec was created for a plan story:
 - Set the story's **FIS** field to the generated FIS file path

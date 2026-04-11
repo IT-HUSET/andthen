@@ -74,6 +74,11 @@ Document each issue with severity, location, symptoms, and any relevant error ou
    - High: failing tests, major regressions, significant performance or integration failures
    - Medium/Low: smaller quality or polish issues
 2. For each critical/high issue, run 5 Whys until you reach a root cause worth fixing.
+   If 5 Whys stalls because the symptom is not reliably reproducible, classify by failure pattern to guide investigation:
+   - **Timing-dependent** — race conditions, async ordering: add logging around concurrent paths, test with artificial delays
+   - **Environment-dependent** — config, OS, runtime differences: diff configs across environments, reproduce in each
+   - **State-dependent** — stale caches, uninitialized data, leaked state between tests: trace state mutations, check setup/teardown
+   - **Truly intermittent** — no pattern after classification: add telemetry, collect N occurrences before hypothesizing
 3. Group related issues, order them by dependency, and create task tracking.
 4. If `STATE.md` exists, add new critical/high blockers and plan to remove resolved ones after verification.
 

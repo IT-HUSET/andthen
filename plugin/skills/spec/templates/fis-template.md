@@ -4,6 +4,9 @@
 ## Feature Overview and Goal
 {{1-2 sentences: what needs to be built and why}}
 
+{{If technical research was produced during spec creation, include this reference line. Remove if no research doc exists.}}
+> **Technical Research**: [technical-research.md](./technical-research.md) _(codebase patterns, architecture analysis, API research)_
+
 
 ## Success Criteria (Must Be TRUE)
 > Each criterion must have a defined proof path — at least one Scenario (for behavioral criteria) or a task Verify line (for structural criteria). If you can't define how to prove it, the criterion is too vague.
@@ -31,7 +34,7 @@
 - **When** {{boundary condition or error trigger}}
 - **Then** {{expected handling behavior}}
 
-_Write 3-7 scenarios. Cover the happy path, key edge cases, and at least one error/failure case. Skip for purely structural work (scaffolding, config, migrations)._
+_Write 3-7 scenarios. Cover the happy path, key edge cases, and at least one error/failure case. Skip only for configuration-only work with no branching logic (e.g. env config, static asset changes)._
 
 
 ## Scope & Boundaries
@@ -67,6 +70,8 @@ _Write 3-7 scenarios. Cover the happy path, key edge cases, and at least one err
 
 
 ## Technical Overview
+
+> High-level decisions and key references only. Detailed codebase analysis, API specifics, and implementation research belong in the **Technical Research** document.
 
 ### UI/UX Design (if applicable)
 {{Describe UI changes, screens, interactions, user flows}}

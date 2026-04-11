@@ -151,6 +151,8 @@ Delegate codebase exploration to a sub-agent _(if supported)_ to keep context le
 
 Synthesize into a unified understanding of: all PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), natural implementation boundaries, feature dependencies, and complexity/risk areas.
 
+**Technical research**: If codebase exploration surfaces substantial technical findings (architecture patterns, framework constraints, integration details, existing conventions) that would be useful during spec creation or execution, save them to `{OUTPUT_DIR}/technical-research.md`. This keeps the PRD and plan free of implementation details while preserving research for downstream skills (`andthen:spec`, `andthen:spec-plan`). Skip this if findings are minimal — not every plan needs a technical research document.
+
 **Gate**: Feature mapping complete
 
 
@@ -242,7 +244,7 @@ For each story, define:
 - **Risk**: Low/Medium/High with brief note if Medium+
 - **Asset refs**: Relevant wireframes, ADRs, design system sections
 
-**Do NOT include** (these are deferred to `andthen:spec`):
+**Do NOT include in stories** (these are deferred to `andthen:spec`; save to `technical-research.md` if discovered during analysis):
 - Technical approach, patterns, or library choices
 - File paths, line numbers, or code specifics
 - Implementation gotchas or constraints with workarounds
@@ -399,8 +401,9 @@ Optional: Invoke the `andthen:review-doc` skill to validate the plan for require
 
 ```
 OUTPUT_DIR/
-├── prd.md     # Product Requirements Document (if created)
-└── plan.md    # Implementation plan
+├── prd.md                # Product Requirements Document (if created)
+├── plan.md               # Implementation plan
+└── technical-research.md # Technical findings from codebase analysis (if substantial)
 ```
 
 - If from GitHub issue: use `issue-{number}-{feature-name}/` as the output subdirectory name (e.g. `docs/specs/issue-42-user-dashboard/plan.md`). Include issue reference in the PRD and plan document headers.

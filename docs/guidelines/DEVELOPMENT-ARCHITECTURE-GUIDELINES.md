@@ -30,7 +30,7 @@ Evaluate architecture using [CUPID](https://cupid.dev/):
 
 - Use the simplest solution that meets the requirements
 - Check for existing similar functionality before writing new code
-- Write tests for critical paths; prefer TDD. Temporary tests during implementation are fine if removed after
+- Write tests for critical paths; prefer TDD. If you introduce non-trivial branching logic, put a test on it — even when no scenario covers it (Beyonce Rule). Temporary tests during implementation are fine if removed after
 - Keep source files focused on a single concern
 - Document only the "why" — never the obvious "what"
 - Use latest stable versions of frameworks and libraries

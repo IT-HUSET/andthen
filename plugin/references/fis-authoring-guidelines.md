@@ -23,6 +23,40 @@ Shared authoring guidelines for generating Feature Implementation Specifications
 > - No file tree listings or "Outline of New/Changed Files" — the implementer discovers structure from the codebase
 
 
+## Technical Research Separation
+
+Technical research that supports the FIS but doesn't require intent review belongs in a **Technical Research** companion document (`technical-research.md`) stored alongside the FIS. This keeps the FIS reviewable for intent correctness while preserving implementation-enabling details for the executing agent.
+
+### What stays in the FIS (needs human intent review)
+- Success criteria, scenarios, scope decisions
+- Architecture decision (compact: chosen approach + rationale)
+- UI/UX flows and user-facing interactions
+- High-level data shapes and integration points (what connects, not protocol details)
+- Constraints that affect scope or feasibility
+
+### What goes in Technical Research (enables execution, doesn't need intent review)
+- Codebase analysis: patterns found, conventions, file:line inventories, similar implementations
+- API documentation excerpts, library research, version-specific gotchas
+- Detailed architecture trade-off analysis (full alternatives comparison, PoC results)
+- Field-level data model details, schema specifics, migration considerations
+- Integration implementation details (auth flows, webhook formats, SDK usage patterns)
+- Detailed workarounds for known limitations
+
+**Guiding principle**: If a reviewer needs to validate *"are we building the right thing?"* → FIS. If the detail helps the executing agent *"build the thing right"* → Technical Research.
+
+When writing the FIS, reference the technical research rather than inlining findings. Example: `See [Technical Research](./technical-research.md#architecture-analysis) for detailed trade-off analysis`.
+
+### Verification during execution
+
+Technical research is a **point-in-time snapshot** — codebase patterns, API behaviors, and library versions change. The executing agent MUST treat research findings as leads to verify, not facts to trust:
+- **File:line references** may be stale — verify they still exist and match the described pattern
+- **API behaviors** described in research should be confirmed against the current codebase or docs
+- **Library gotchas** may be version-specific — check the project's actual dependency versions
+- **Architecture patterns** referenced should be confirmed they still exist in the codebase
+
+A research finding that doesn't match reality is a signal to investigate, not to force-fit the research into the implementation.
+
+
 ## Scenarios and Proof-of-Work
 
 Scenarios are the bridge between requirements and tests. Borrowed from BDD's core insight: a well-written scenario IS both the requirement and the test specification — no translation gap, no drift between "what we want" and "how we verify it."
@@ -87,6 +121,8 @@ Apply these affinity signals to determine grouping (in priority order):
 - **Vertical Slicing** (default): First group produces a thin end-to-end path through the stack; subsequent groups add breadth
 - **Risk-First Slicing**: Tackle the highest-uncertainty piece first — fail fast before investing in dependent work. If a WebSocket connection is the architectural unknown, that's Group 1
 - **Contract-First Slicing**: Define interfaces/types first (API contracts, TypeScript types, protocol buffers), then both sides implement against the contract in parallel
+
+**Rollback-Friendly Groups** (applies to all strategies): Prefer additive changes within a group — add the new, wire it in, then remove the old in a subsequent group. When a group both deletes and replaces in one pass, a failed verification gate forces a revert that leaves the system broken (old system removed, replacement also reverted). Separating "add new" from "remove old" keeps each group independently revertable.
 
 **Constraints:**
 - Max 4 implementation tasks per group (test groups can go to 6)

@@ -120,16 +120,21 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`:
 ### Step 1: Load FIS and Prepare
 1. Read FIS at _`FIS_FILE_PATH`_
 2. Understand vital sections: Success Criteria, Scope, Architecture, Implementation Plan
-3. Understand execution group structure – identify dependencies, parallelism, critical path
-4. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview
-5. Read project learnings document (e.g. _`LEARNINGS.md`_, _`implementation-notes.md`_) for traps and non-obvious patterns
-6. Create task tracking for ALL execution groups (implementation + validation)
-7. **Update project state** (if STATE.md exists and FIS originated from a plan): `andthen:ops update-state active-story {story_id} "{story_name}" "In Progress"`
+3. **Read Technical Research** – if the FIS references a `technical-research.md` (companion document with codebase analysis, API research, architecture trade-offs), read it for implementation context. **Treat findings as leads to verify, not facts to trust** — file:line references, API behaviors, and library details may be stale. Confirm key references against the current codebase before relying on them. Include relevant verified findings when injecting context into sub-agent prompts.
+4. Understand execution group structure – identify dependencies, parallelism, critical path
+5. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview
+6. Read project learnings document (e.g. _`LEARNINGS.md`_, _`implementation-notes.md`_) for traps and non-obvious patterns
+7. Create task tracking for ALL execution groups (implementation + validation)
+8. **Update project state** (if STATE.md exists and FIS originated from a plan): `andthen:ops update-state active-story {story_id} "{story_name}" "In Progress"`
 
 ### Step 1.5: Scaffold Scenario Tests
 If the FIS has a **Scenarios** and/or **Testing Strategy** section, spawn the `andthen:qa-test-engineer` agent _(if supported)_ to write test skeletons derived from the scenarios, organized by paired execution group. Run the suite to confirm tests fail (red) — they become acceptance gates for Step 2. These are proof-of-work for the behavioral scenarios — they verify *intent* (what should be true) rather than incidentally confirming what the implementation happens to produce. Verify lines and verification gates cover other proof dimensions (existence, wiring, structural correctness).
 
-> **Skip when**: no Scenarios/Testing Strategy, purely structural feature, or test infrastructure not yet set up (defer until after that task completes).
+> **Skip when**:
+> - No test runner exists in the project, OR
+> - The FIS has no Scenarios/Testing Strategy section AND all tasks are configuration-only (no branching logic)
+>
+> When in doubt, scaffold — a test that can be written is a test worth having (Beyonce Rule).
 
 ### Step 1.7: UI Design Contract (if frontend work detected)
 If the FIS contains UI/UX work, generate a **UI-SPEC.md** covering spacing, typography, color palette, component patterns, and responsive breakpoints. Source from FIS → project design system → UX-UI-GUIDELINES.md → reasonable defaults. Store as `.agent_temp/ui-spec-{feature-name}.md`. All subsequent sub-agents receive this contract.
@@ -143,7 +148,7 @@ For each execution group (following dependency order in FIS):
 
 **Parallel groups [P]:** spawn multiple foreground sub-agents in a single message → collect all Group Results → merge "Context for Dependent Groups".
 
-**Verification gate (between groups):** run `Verify` for each task in the completed group; if any fail, spawn a targeted fix sub-agent before proceeding. Never proceed to a dependent group with unresolved failures — a bug in Group 1 that propagates through Groups 2-5 costs far more than catching it here.
+**Verification gate (between groups):** run `Verify` for each task in the completed group; if any fail, spawn a targeted fix sub-agent before proceeding. For behavioral failures (wrong output, broken interaction, regression), apply the Prove-It Pattern: the fix sub-agent writes a failing test that demonstrates the bug before fixing it — the test proves the bug existed and prevents reintroduction in later groups. Never proceed to a dependent group with unresolved failures — a bug in Group 1 that propagates through Groups 2-5 costs far more than catching it here.
 
 **Proof-of-Work rhythm** (when FIS has Scenarios): include paired scenario tests in sub-agent prompt; sub-agent verifies tests fail (red), implements until they pass (green). Combined with Verify-line checks at the verification gate, these provide layered proof of correct implementation. TV05 handles refactoring.
 

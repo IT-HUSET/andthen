@@ -51,11 +51,11 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 
 
 ## GOTCHAS
-- Spawning specs for stories with unresolved spec-time dependencies before the producing story's spec completes — check the research brief for pre-resolved decisions; if covered, parallelization is safe
+- Spawning specs for stories with unresolved spec-time dependencies before the producing story's spec completes — check the technical research for pre-resolved decisions; if covered, parallelization is safe
 - Not updating `plan.md` FIS fields after spec generation — downstream skills check this field to skip already-specced stories
 - Over-parallelizing – more than 10 concurrent sub-agents causes I/O contention and degraded spec quality
 - Skipping cross-cutting review — individual specs can't detect overlapping scope, inconsistent ADRs, or missing integration seams
-- **Research brief becomes stale if plan changes** — re-run Step 1.5 before generating new specs after plan edits
+- **Technical research becomes stale if plan changes** — re-run Step 1.5 before generating new specs after plan edits
 - **Status updates get dropped when context is exhausted** — plan.md FIS field updates are GATES, not optional cleanup. Update immediately after each sub-wave
 
 
@@ -73,7 +73,7 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 **Gate**: Plan parsed, stories identified, wave order established
 
 
-### Step 1.5: Research Brief (One-Time Upfront Discovery)
+### Step 1.5: Technical Research (One-Time Upfront Discovery)
 
 Before spawning any spec sub-agents, do **all discovery and research work once** via up to 4 parallel sub-agents. This eliminates redundant codebase scanning, guideline reading, and architecture analysis each spec sub-agent would otherwise do independently.
 
@@ -85,11 +85,13 @@ Before spawning any spec sub-agents, do **all discovery and research work once**
 
 **Sub-agent 4: External Research** _(only if stories reference external APIs/libraries needing documentation lookup)_ — For each external resource: look up current docs (use the `andthen:documentation-lookup` agent), identify relevant patterns and known gotchas. Output: consolidated reference with one section per resource.
 
-**Consolidation**: After all sub-agents complete, save to `{PLAN_DIR}/.research-brief.md`:
+**Consolidation**: After all sub-agents complete, save to `{PLAN_DIR}/technical-research.md`:
 
 ```markdown
-# Research Brief: {Plan Name}
+# Technical Research: {Plan Name}
 Generated: {date}
+
+> **Verification note**: This research is a point-in-time snapshot. File:line references, API behaviors, and library details must be verified against the current codebase during spec execution. Treat findings as leads to investigate, not facts to trust.
 
 ## Project Context
 {Sub-agent 1 output}
@@ -104,29 +106,31 @@ Generated: {date}
 {Sub-agent 4 output, or "No external research needed"}
 ```
 
-**Gate**: Research brief saved to `{PLAN_DIR}/.research-brief.md`, covers all stories in scope
+If a `technical-research.md` already exists (e.g. from `andthen:plan`), merge new sections into it rather than overwriting — the plan-level findings may still be relevant.
+
+**Gate**: Technical research saved to `{PLAN_DIR}/technical-research.md`, covers all stories in scope
 
 
 ### Step 1.6: Story Classification & Grouping
 
-After the research brief, classify each story — **fully automatic**, no user confirmation needed.
+After the technical research, classify each story — **fully automatic**, no user confirmation needed.
 
 #### Classification Criteria
 
 **THIN** — ALL conditions must be true:
 - 2 or fewer acceptance criteria in the plan
 - Scope description is 3 sentences or shorter
-- Touches 3 or fewer files (per research brief file map)
-- Story has no entries in the research brief's "Shared Architectural Decisions" section
+- Touches 3 or fewer files (per technical research file map)
+- Story has no entries in the technical research's "Shared Architectural Decisions" section
 
 **COMPOSITE** — ANY condition triggers grouping:
-- **Linear dependency chain with shared files**: Stories form a chain (S01→S02 or longer) AND the research brief shows they share implementation files (exclude config/boilerplate like `package.json`, `tsconfig.json`, barrel index files)
-- **Producer-consumer pair**: Research brief "Shared Architectural Decisions" lists an interface where Story A is the sole producer and Story B is the sole consumer
-- **Same module/directory**: Stories primarily affect the same directory or module (per research brief file map), even without explicit dependencies
+- **Linear dependency chain with shared files**: Stories form a chain (S01→S02 or longer) AND the technical research shows they share implementation files (exclude config/boilerplate like `package.json`, `tsconfig.json`, barrel index files)
+- **Producer-consumer pair**: Technical research "Shared Architectural Decisions" lists an interface where Story A is the sole producer and Story B is the sole consumer
+- **Same module/directory**: Stories primarily affect the same directory or module (per technical research file map), even without explicit dependencies
 - **Phase cohesion**: All stories in a phase of ≤4 stories that share an architectural layer or concern
 - **Maximum 5 stories per composite group** — split larger groups into multiple composites (split by dependency sub-chains, then by file overlap)
 
-> **Precedence**: COMPOSITE > THIN > STANDARD. If a THIN-qualifying story participates in any COMPOSITE group, it joins the composite — not thin-specs.md. Classification uses data from the research brief (file maps, shared decisions), not subjective judgment. If the research brief doesn't provide clear signals, classify as STANDARD. Prefer COMPOSITE over STANDARD when grouping signals exist — fewer, richer FIS files produce better implementation coherence than many thin ones.
+> **Precedence**: COMPOSITE > THIN > STANDARD. If a THIN-qualifying story participates in any COMPOSITE group, it joins the composite — not thin-specs.md. Classification uses data from the technical research (file maps, shared decisions), not subjective judgment. If the technical research doesn't provide clear signals, classify as STANDARD. Prefer COMPOSITE over STANDARD when grouping signals exist — fewer, richer FIS files produce better implementation coherence than many thin ones.
 
 **STANDARD** — everything else (the default).
 
@@ -136,11 +140,11 @@ After the research brief, classify each story — **fully automatic**, no user c
 |----------------|---------------|
 | THIN | Orchestrator collects all THIN stories into one FIS — no sub-agent needed |
 | COMPOSITE | One spec sub-agent writes one FIS covering the entire group |
-| STANDARD | One spec sub-agent per story, with research brief pre-loaded |
+| STANDARD | One spec sub-agent per story, with technical research pre-loaded |
 
 #### THIN: Collected FIS
 
-All THIN stories in the current scope are collected into a **single** FIS file: `{PLAN_DIR}/thin-specs.md` (or `thin-specs-p{N}.md` when running with `--phase N`). The orchestrator writes this directly — no sub-agents needed. Use the standard FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`) and FIS authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`). Tag Success Criteria with source story IDs (e.g., `### S08: Story Name`) so acceptance gates can map criteria per story. Organize execution groups by story (tag each group with its source story ID) — same structure as COMPOSITE. Populate from plan story scope/criteria, Key Scenarios (if present), and research brief. Target: compact but complete.
+All THIN stories in the current scope are collected into a **single** FIS file: `{PLAN_DIR}/thin-specs.md` (or `thin-specs-p{N}.md` when running with `--phase N`). The orchestrator writes this directly — no sub-agents needed. Use the standard FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`) and FIS authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`). Tag Success Criteria with source story IDs (e.g., `### S08: Story Name`) so acceptance gates can map criteria per story. Organize execution groups by story (tag each group with its source story ID) — same structure as COMPOSITE. Populate from plan story scope/criteria, Key Scenarios (if present), and technical research. Target: compact but complete.
 
 After writing, update **ALL** THIN stories' **FIS** fields in plan.md to point to the thin-specs file and set **Status** to `Spec Ready`. The shared FIS path triggers existing shared-FIS dedup in exec-plan/exec-plan-team — exec-spec runs once, remaining stories skip to acceptance gate.
 
@@ -159,7 +163,7 @@ For COMPOSITE groups, one sub-agent covers all stories. Use concatenated IDs for
 
 #### Wave Ordering
 
-The research brief pre-resolves most inter-story architectural decisions. Default: all remaining STANDARD and COMPOSITE stories launch in parallel (up to MAX_PARALLEL). Exception: hold back a story if its spec depends on a decision the research brief could not pre-resolve — wait for the producing story's spec to complete first. Fallback: if the research brief is incomplete or unavailable, use strict wave ordering (W1 complete → W2).
+The technical research pre-resolves most inter-story architectural decisions. Default: all remaining STANDARD and COMPOSITE stories launch in parallel (up to MAX_PARALLEL). Exception: hold back a story if its spec depends on a decision the technical research could not pre-resolve — wait for the producing story's spec to complete first. Fallback: if the technical research is incomplete or unavailable, use strict wave ordering (W1 complete → W2).
 
 Batch into sub-waves if story count exceeds MAX_PARALLEL.
 
@@ -169,13 +173,13 @@ Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) for all sp
 
 **STANDARD sub-agent** — provide:
 - Story ID, name, scope, acceptance criteria, Key Scenarios (if present), dependencies
-- References: FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`), authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`), research brief (`{PLAN_DIR}/.research-brief.md`)
-- Instructions: read research brief for context and shared decisions; read FIS template and guidelines; generate FIS; run Plan-Spec Alignment Check and Self-Check from guidelines; save to `{PLAN_DIR}/{story-name}.md`; report back success/failure, FIS path, confidence score
+- References: FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`), authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`), technical research (`{PLAN_DIR}/technical-research.md`)
+- Instructions: read technical research for context and shared decisions; read FIS template and guidelines (including Technical Research Separation section); generate FIS that **references** the technical research rather than inlining its content; run Plan-Spec Alignment Check and Self-Check from guidelines; save to `{PLAN_DIR}/{story-name}.md`; report back success/failure, FIS path, confidence score
 
 **COMPOSITE sub-agent** — provide:
 - All constituent stories (ID, name, scope, acceptance criteria, Key Scenarios if present)
 - Same references as STANDARD
-- Instructions: read research brief; generate ONE FIS covering all stories with execution groups organized by story (tag each group with its source story ID); run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
+- Instructions: read technical research; generate ONE FIS covering all stories with execution groups organized by story (tag each group with its source story ID); **reference** technical research from FIS — do not duplicate codebase analysis or API details into the spec; run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
 
 #### Wait, Collect, and Update Plan
 
