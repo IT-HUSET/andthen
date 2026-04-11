@@ -415,14 +415,16 @@ If PUBLISH_ISSUE is `true`:
 
 ## FOLLOW-UP ACTIONS
 
-After completion, suggest:
+After completion, suggest the following next steps. **Recommend starting a clean session** for the context-intensive skills (`spec-plan`, `exec-plan`) — they perform best with a fresh context window.
 
-1. **Start implementation**: Run the `andthen:spec` skill for first story (S01)
+1. **Start with first story**: Run the `andthen:spec` skill for first story (S01)
    Example: `/andthen:spec story S01 of docs/specs/my-feature/plan.md` (or `$andthen:spec ...`)
 2. **Create wireframes** (if UI work): Run the `andthen:wireframes` skill
    Example: `/andthen:wireframes docs/specs/my-feature/prd.md` (or `$andthen:wireframes ...`)
-3. **Batch-generate specs**: Run the `andthen:spec-plan` skill to pre-create all FIS before execution
-   Example: `/andthen:spec-plan docs/specs/my-feature/` (or `$andthen:spec-plan ...`)
-4. **Review plan**: Run the `andthen:review-doc` skill on `plan.md`
+3. **Review plan**: Run the `andthen:review-doc` skill on `plan.md`
    Example: `/andthen:review-doc docs/specs/my-feature/plan.md` (or `$andthen:review-doc ...`)
-5. **Initialize project state** (if not already tracking): Create `docs/STATE.md` for cross-session state tracking via `/andthen:init` or manually from the template in `templates/project-state-templates.md`
+4. **Batch-generate specs** _(clean session)_: Run the `andthen:spec-plan` skill to pre-create all FIS before execution
+   Example: `/andthen:spec-plan docs/specs/my-feature/` (or `$andthen:spec-plan ...`)
+5. **Execute the full plan** _(clean session)_: Run the `andthen:exec-plan` skill to spec and implement all stories
+   Example: `/andthen:exec-plan docs/specs/my-feature/` (or `$andthen:exec-plan ...`)
+6. **Initialize project state** (if not already tracking): Create `docs/STATE.md` for cross-session state tracking via `/andthen:init` or manually from the template in `templates/project-state-templates.md`

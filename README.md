@@ -354,9 +354,31 @@ Both `clarify` and `plan` can do requirements discovery. The difference:
 
 ## Skills
 
-Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
+Invoke with `/andthen:<skill>` (e.g. `/andthen:triage`, `/andthen:spec`).
 
-### Core Skills
+### Standalone Skills
+
+Use these individually for everyday development — no setup, no pipeline, no prior artifacts needed.
+
+| Skill | Purpose |
+|-------|---------|
+| `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
+| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |
+| `refactor` | Code improvement and simplification |
+| `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
+| `review-doc` | Document review for completeness, clarity, and technical accuracy |
+| `trade-off` | Architecture decision research with evidence-based recommendations |
+| `architecture-review` | Deep quantitative architecture review – metrics, connascence, decomposition, fitness functions |
+| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
+| `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
+| `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
+| `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
+| `e2e-test` | End-to-end browser testing for web applications |
+
+### Pipeline Skills
+
+These compose into structured workflows — from requirements through implementation to review.
 
 | Skill | Purpose |
 |-------|---------|
@@ -364,32 +386,14 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | `clarify` | Requirements discovery – from vague idea to structured requirements (supports `--issue`) |
 | `spec` | Generate Feature Implementation Specification from requirements (supports `--issue`) |
 | `exec-spec` | Execute a FIS – orchestrated implementation with validation |
-| `review-gap` | Gap analysis + code review against requirements |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown (supports `--issue`) |
-| `trade-off` | Architecture decision research with evidence-based recommendations |
 | `spec-plan` | Batch-create all FIS specs for a plan (parallel + cross-cutting review) |
-| `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
-| `review-doc` | Document review for completeness, clarity, and technical accuracy |
-
-### Extras
-
-| Skill | Purpose |
-|-------|---------|
 | `exec-plan` | Execute plan – spec-plan per phase, then sub-agent pipeline with `--review-mode per-story|none|full-plan` |
-| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `review-gap` | Gap analysis + code review against requirements |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
-| `e2e-test` | End-to-end browser testing for web applications |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
-| `design-system` | Create design tokens and component styles |
 | `wireframes` | Generate HTML wireframes for UI planning |
-| `quick-review` | Quick in-conversation review – fresh-context sub-agent for adversarial critique |
-| `refactor` | Code improvement and simplification |
-| `architecture-review` | Deep quantitative architecture review – metrics, connascence, decomposition, fitness functions |
-| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
-| `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
-| `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
-| `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
-| `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
+| `design-system` | Create design tokens and component styles |
 
 ### Agent Teams Variants (Claude Code only)
 

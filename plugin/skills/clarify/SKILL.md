@@ -218,3 +218,5 @@ After completion, ask user if they'd like to:
 2. **Proceed to planning** – for multi-feature / MVP scope: `/andthen:plan <output-directory>` (or `$andthen:plan`). The plan skill will pick up `requirements-clarification.md` and use it as the basis for PRD creation.
 3. Review specific areas in more depth
 4. Share with stakeholders for validation
+
+> **Session tip**: `spec` and `plan` can run in this session. But the heavier skills that follow them — `exec-spec`, `spec-plan`, `exec-plan` — are context-intensive and perform best in a **clean session**.

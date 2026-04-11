@@ -1,23 +1,22 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "andthen",
+  "description": "AndThen – structured workflows for agentic development: clarify → spec → plan → execute → review",
   "owner": {
     "name": "IT-HUSET"
-  },
-  "metadata": {
-    "description": "AndThen – structured workflows for agentic development: clarify → spec → plan → execute → review",
-    "pluginRoot": "."
   },
   "plugins": [
     {
       "name": "andthen",
       "source": "./plugin",
-      "strict": false,
-      "version": "0.10.3",
+      "version": "0.10.4",
       "description": "AndThen workflow system: structured agentic development from requirements to shipped code",
       "author": {
         "name": "Tobias Löfstrand"
       },
       "license": "MIT",
+      "category": "development",
+      "homepage": "https://github.com/IT-HUSET/andthen",
       "keywords": [
         "workflow",
         "specification",

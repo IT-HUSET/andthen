@@ -6,6 +6,20 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.10.4] – 2026-04-11
+
+### Added
+- **Plugin manifest** (`plugin/.claude-plugin/plugin.json`) – new per-plugin manifest file aligned with the official Claude Code plugin specification. Version bump instructions updated in `CLAUDE.md` and `ops` skill to cover all three version locations
+- **Session management guidance** – predecessor skills (`clarify`, `plan`, `spec`, `spec-plan`) now recommend starting a clean session before context-intensive skills (`exec-spec`, `spec-plan`, `exec-plan`/`exec-plan-team`, `review-council`/`review-council-team`). README documents the principle in the Workflows section
+- **Follow-up actions for `spec` and `spec-plan`** – both skills now have FOLLOW-UP ACTIONS sections suggesting next steps (previously missing)
+
+### Changed
+- **Marketplace.json aligned with official schema** – added `$schema`, moved `description` to top level, added `category` and `homepage`, removed redundant `metadata.pluginRoot` and `strict` fields
+- **Skills reorganized as Standalone / Pipeline** – README skill tables restructured from Core/Extras to Standalone (13 everyday skills) and Pipeline (12 workflow skills), with usage examples reordered to lead with standalone one-liners. Both `plugin/README.md` and root `README.md` aligned
+- **`plan` follow-up actions reordered** – lightweight options (spec S01, wireframes, review) listed first, context-intensive options (spec-plan, exec-plan) grouped after with clean-session tags
+
+---
+
 ## [0.10.3] – 2026-04-11
 
 ### Fixed

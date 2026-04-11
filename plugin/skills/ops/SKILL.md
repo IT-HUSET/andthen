@@ -22,7 +22,7 @@ Reliable, template-driven operations for state management, git conventions, and 
 
 ## GOTCHAS
 - Improvising instead of following patterns exactly – this skill exists to prevent LLM interpretation drift
-- Forgetting to update both CHANGELOG.md and marketplace.json on version bumps
+- Forgetting to update all three version locations on version bumps: CHANGELOG.md, .claude-plugin/marketplace.json, and plugin/.claude-plugin/plugin.json
 - Creating STATE.md when it doesn't exist – state file creation is the `init` skill's job; ops only reads/writes existing files
 - Letting Active Stories or Session Notes grow unbounded – apply maintenance rules on every write
 

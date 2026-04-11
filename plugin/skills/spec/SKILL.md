@@ -132,6 +132,21 @@ Create a GitHub issue with `gh issue create`: title `[FIS] {feature-name}`, body
 ---
 
 
+## FOLLOW-UP ACTIONS
+
+After completion, suggest:
+
+1. **Execute the spec** _(clean session recommended)_: Run the `andthen:exec-spec` skill to implement the FIS
+   Example: `/andthen:exec-spec <path-to-fis>` (or `$andthen:exec-spec ...`)
+2. **Review the spec first**: Run the `andthen:review-doc` skill for thorough validation before implementation
+   Example: `/andthen:review-doc <path-to-fis>` (or `$andthen:review-doc ...`)
+
+> **Session tip**: `exec-spec` is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
+
+
+---
+
+
 ## Appendix: FIS Template
 
 **USE THE TEMPLATE**: Read and use the template at [`templates/fis-template.md`](templates/fis-template.md) to generate the Feature Implementation Specification.

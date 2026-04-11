@@ -97,9 +97,10 @@ Always fully read relevant guidelines below as needed, based on the type of work
 
 ## Version Bumps
 
-When bumping the version, **always** update both:
+When bumping the version, **always** update all three:
 - `CHANGELOG.md` – add new version entry
-- `.claude-plugin/marketplace.json` – update the `"version"` field
+- `.claude-plugin/marketplace.json` – update the `"version"` field in the plugin entry
+- `plugin/.claude-plugin/plugin.json` – update the `"version"` field
 
 
 ---

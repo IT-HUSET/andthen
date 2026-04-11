@@ -272,6 +272,18 @@ Ready for execution.
 ```
 
 
+## FOLLOW-UP ACTIONS
+
+After completion, suggest:
+
+1. **Execute the plan** _(clean session)_: Run the `andthen:exec-plan` skill to implement all stories
+   Example: `/andthen:exec-plan <plan-directory>` (or `$andthen:exec-plan ...`)
+2. **Execute manually, story by story** _(clean session)_: Run `andthen:exec-spec` per story for more control
+   Example: `/andthen:exec-spec <path-to-fis>` (or `$andthen:exec-spec ...`)
+
+> **Session tip**: `spec-plan` itself is context-intensive. Start a **clean session** before running `exec-plan` or `exec-spec` — don't chain directly from this session.
+
+
 ## FAILURE HANDLING
 
 - **Individual spec failure** → log and continue. Report in summary.

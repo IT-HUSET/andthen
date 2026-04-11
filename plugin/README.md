@@ -45,13 +45,37 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 
 ## Workflows
 
-Three paths: **quick** (small fixes), **feature** (single feature with spec), **plan** (multi-feature with story breakdown). See the [full documentation](../README.md#key-concepts) for detailed workflow diagrams, artifact flow, and guidance on when to use which.
+Every skill works standalone — no pipeline required. Use them individually for everyday tasks, or compose them into structured workflows for larger efforts. See the [full documentation](../README.md#key-concepts) for detailed workflow diagrams and artifact flow.
+
+**Session management**: The context-intensive skills — `exec-spec`, `spec-plan`, `exec-plan`/`exec-plan-team`, `review-council`/`review-council-team` — perform best when started in a **clean session**. Pipeline predecessor skills (`clarify`, `plan`, `spec`) will suggest when to start fresh. Standalone skills like `triage`, `quick-review`, and `refactor` are lightweight and run well mid-conversation.
 
 ## Skills
 
-Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
+Invoke with `/andthen:<skill>` (e.g. `/andthen:triage`, `/andthen:spec`).
 
-### Core Skills
+### Standalone Skills
+
+Use these individually for everyday development — no setup, no pipeline, no prior artifacts needed.
+
+| Skill | Purpose |
+|-------|---------|
+| `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
+| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |
+| `refactor` | Code improvement and simplification |
+| `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
+| `review-doc` | Document review for completeness, clarity, and technical accuracy |
+| `trade-off` | Architecture decision research with evidence-based recommendations |
+| `architecture-review` | Deep quantitative architecture review – metrics, connascence, decomposition, fitness functions |
+| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
+| `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
+| `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
+| `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
+| `e2e-test` | End-to-end browser testing for web applications |
+
+### Pipeline Skills
+
+These compose into structured workflows — from requirements through implementation to review.
 
 | Skill | Purpose |
 |-------|---------|
@@ -59,32 +83,14 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | `clarify` | Requirements discovery – from vague idea to structured requirements (supports `--issue`) |
 | `spec` | Generate Feature Implementation Specification from requirements (supports `--issue`) |
 | `exec-spec` | Execute a FIS – orchestrated implementation with validation |
-| `review-gap` | Gap analysis + code review against requirements |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown (supports `--issue`) |
 | `spec-plan` | Batch-create all FIS specs for a plan (parallel + cross-cutting review) |
-| `trade-off` | Architecture decision research with evidence-based recommendations |
-| `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
-| `review-doc` | Document review for completeness, clarity, and technical accuracy |
-
-### Extras
-
-| Skill | Purpose |
-|-------|---------|
 | `exec-plan` | Execute plan – spec-plan per phase, then sub-agent pipeline with `--review-mode per-story|none|full-plan` |
-| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `review-gap` | Gap analysis + code review against requirements |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
-| `e2e-test` | End-to-end browser testing for web applications |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
-| `design-system` | Create design tokens and component styles |
 | `wireframes` | Generate HTML wireframes for UI planning |
-| `quick-review` | Quick in-conversation review – fresh-context sub-agent for adversarial critique |
-| `refactor` | Code improvement and simplification |
-| `architecture-review` | Deep quantitative architecture review – metrics, connascence, decomposition, fitness functions |
-| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
-| `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
-| `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
-| `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
-| `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
+| `design-system` | Create design tokens and component styles |
 
 ### Agent Teams Variants (Claude Code only)
 
@@ -106,6 +112,88 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 | `visual-validation-specialist` | Visual validation workflow |
 
 ## Usage Examples
+
+### Standalone
+
+```bash
+# Debug and fix a broken build
+/andthen:triage
+
+# Quick feature or bug fix from a GitHub issue
+/andthen:quick-implement --issue 123
+
+# Sanity-check what you just built (mid-conversation)
+/andthen:quick-review
+
+# Review code changes or a PR
+/andthen:review-code
+/andthen:review-code --pr 42
+
+# Refactor messy code
+/andthen:refactor src/utils/
+
+# Evaluate architectural options
+/andthen:trade-off "caching strategy for API responses"
+
+# Architecture health check
+/andthen:architecture-review src/
+
+# Multi-perspective review with adversarial debate
+/andthen:review-council
+
+# Understand a new codebase
+/andthen:map-codebase
+
+# Build a domain glossary
+/andthen:ubiquitous-language
+
+# Visualize an architecture or workflow
+/andthen:excalidraw-diagram "data pipeline architecture"
+```
+
+#### Architecture Review Modes
+
+```bash
+# Interactive — presents modes and asks what you want to analyze
+/andthen:architecture-review
+
+# Full architecture health assessment
+/andthen:architecture-review src/
+
+# Evaluate a split/merge decision
+/andthen:architecture-review src/core --mode decompose
+
+# Propose fitness functions for architectural governance
+/andthen:architecture-review --mode fitness
+
+# Get framework-grounded guidance on an architecture question
+/andthen:architecture-review "should I use event sourcing for the order domain" --mode advise
+
+# Supports multi-step sessions — after any analysis, continue with
+# another mode (e.g. review → decompose a finding → propose fitness functions)
+```
+
+#### Multi-Perspective Review
+
+```bash
+# Adaptive review - analyzes scope and selects 5-7 relevant reviewers
+/andthen:review-council
+
+# Review specific PR with council
+/andthen:review-council --pr 123
+
+# Focus on specific aspect
+/andthen:review-council "security"
+
+# Reviewers auto-selected based on changes:
+# - Product features → Product Manager, Requirements Analyst, etc.
+# - Backend APIs → Security, Performance, API Designer, etc.
+# - Frontend UI → UX/Accessibility, Frontend Specialist, etc.
+# - Always includes Devil's Advocate + Synthesis Challenger
+
+# OR use Agent Teams variant for real-time debate (Claude Code only)
+/andthen:review-council-team
+```
 
 ### Feature Workflow (single feature)
 
@@ -166,64 +254,6 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`).
 
 # 5. Final review (single-feature workflow, or manual review after `--review-mode none`)
 /andthen:review-gap
-```
-
-### Quick Fix from GitHub Issue
-
-```bash
-# Fetches issue, implements, creates PR
-/andthen:quick-implement --issue 123
-```
-
-### Technical Decision Making
-
-```bash
-# When facing architectural choices
-/andthen:trade-off "caching strategy for API responses"
-```
-
-### Architecture Review
-
-```bash
-# Interactive — presents modes and asks what you want to analyze
-/andthen:architecture-review
-
-# Full architecture health assessment
-/andthen:architecture-review src/
-
-# Evaluate a split/merge decision
-/andthen:architecture-review src/core --mode decompose
-
-# Propose fitness functions for architectural governance
-/andthen:architecture-review --mode fitness
-
-# Get framework-grounded guidance on an architecture question
-/andthen:architecture-review "should I use event sourcing for the order domain" --mode advise
-
-# Supports multi-step sessions — after any analysis, continue with
-# another mode (e.g. review → decompose a finding → propose fitness functions)
-```
-
-### Multi-Perspective Review
-
-```bash
-# Adaptive review - analyzes scope and selects 5-7 relevant reviewers
-/andthen:review-council
-
-# Review specific PR with council
-/andthen:review-council --pr 123
-
-# Focus on specific aspect
-/andthen:review-council "security"
-
-# Reviewers auto-selected based on changes:
-# - Product features → Product Manager, Requirements Analyst, etc.
-# - Backend APIs → Security, Performance, API Designer, etc.
-# - Frontend UI → UX/Accessibility, Frontend Specialist, etc.
-# - Always includes Devil's Advocate + Synthesis Challenger
-
-# OR use Agent Teams variant for real-time debate (Claude Code only)
-/andthen:review-council-team
 ```
 
 ## License
