@@ -1,6 +1,6 @@
 ---
 description: "Gap analysis: review implementation against requirements with code review and actionable remediation plan."
-argument-hint: "[Requirements baseline: plan/spec/PRD/issue/path/URL] [--to-issue] [--to-pr <number>]"
+argument-hint: "[Requirements baseline: plan/spec/PRD/issue/directory/URL] [--to-issue] [--to-pr <number>]"
 ---
 
 # Gap Analysis
@@ -19,12 +19,13 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
 - Read-only analysis. The only file you write is the report.
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `${CLAUDE_PLUGIN_ROOT}/skills/review-code/references/code-review-calibration.md`.
 - Default to workspace-wide resolution when requirements and implementation may live in different repos.
-- Delegate the implementation code review to a sub-agent using `andthen:review-code` when available.
+- Delegate implementation code review to a sub-agent using `andthen:review-code` when available. Instruct the sub-agent to return findings inline — do **not** let it write a separate report file. This skill produces the single consolidated report.
 
 ## GOTCHAS
 - Reviewing the wrong implementation target
 - Treating the requirements document as the review target
 - Losing the PASS/FAIL contract by writing a hand-wavy conclusion
+- Using only the provided input as requirements when sibling PRD/plan/FIS files exist — always run discovery
 
 ### Helper Scripts
 - `${CLAUDE_PLUGIN_ROOT}/scripts/check-stubs.sh <path>`
@@ -34,8 +35,25 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
 ## WORKFLOW
 
 ### 0. Resolve Review Target
-State:
-- **Requirements baselines**: files, issues, PRDs, plans, or URLs that define expected behavior
+
+#### Requirements Discovery
+When `ADDITIONAL_CONTEXT` is a directory path or a plan file, discover the full requirements baseline rather than treating the single input as the only source.
+
+**Directory path** — search the directory (and its parent, for cases where a subdirectory like `fis/` is given) for:
+- `plan.md` — the implementation plan with story breakdown
+- `prd.md` — the product requirements document
+- FIS/spec files (`s01-*.md`, `s02-*.md`, etc.) co-located with the plan
+- Also check the Project Document Index in the project `CLAUDE.md` for additional pointers
+
+**Plan file** — read the plan and extract related requirements:
+- Look for a sibling `prd.md` in the same directory
+- Extract FIS file paths from the **Story Catalog** table (`FIS` column) and from `**FIS**:` fields in Phase Breakdown sections — these are typically relative paths in the same directory or under a `fis/` subdirectory
+- Read all referenced FIS files that exist on disk (skip entries marked `–` or not yet created)
+
+**Any other input** (specific file, issue, URL) — use as-is without further discovery.
+
+#### State
+- **Requirements baselines**: all discovered files, issues, PRDs, plans, or URLs that define expected behavior
 - **Implementation target**: repo(s), package(s), directories, or changed files that contain the implementation
 - **Mapping rationale**: why those paths are the right implementation target
 
@@ -60,7 +78,7 @@ Map the current implementation state:
 Review solution quality and gather evidence:
 - Run project checks that matter here: static analysis, linting, type checks, tests when applicable
 - Scan for stubs/placeholders
-- Run or delegate comprehensive code review via `andthen:review-code`
+- Delegate comprehensive code review to `andthen:review-code` sub-agent — instruct it to skip report file output and return findings inline
 - Check substance and wiring using `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
 
 **Gate**: Quality review complete

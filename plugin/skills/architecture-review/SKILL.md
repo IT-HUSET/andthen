@@ -265,8 +265,8 @@ After each analysis, present findings and offer:
 1. **Continue with another mode** — e.g. after **review**, offer to decompose a flagged package or propose fitness functions. Carry forward the current session context.
 2. **Deep-dive into a specific finding** — zoom into a single package or boundary for more detailed analysis
 3. **Create fitness function implementations** from proposals
-4. **Generate an ADR** for key architectural decisions (`andthen:trade-off`)
-5. **Code-level review** for correctness, style, security (`andthen:review-code`)
+4. **Generate an ADR** for key architectural decisions (invoke the `andthen:trade-off` skill)
+5. **Code-level review** for correctness, style, security (invoke the `andthen:review-code` skill)
 6. **End session** — finalize the report and stop
 
 When the user selects a follow-up that maps to another mode, loop back to Phase 1 with the new mode and narrowed scope. Do not re-read project rules or re-detect language — reuse context from the current session.

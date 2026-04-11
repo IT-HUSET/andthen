@@ -37,7 +37,7 @@ SPEC_PATH_OR_FOCUS: $ARGUMENTS
 Review the document through these lenses and record only issues relevant to the project's scale:
 - **Completeness**: functional requirements, important non-functional requirements, integrations, edge cases, testing, and operations where applicable
 - **Clarity**: vague language, contradictions, missing details, inconsistent naming, unclear acceptance criteria, or unclear implementation handoff
-- **Technical accuracy**: outdated APIs, deprecated approaches, infeasible designs, missing standards alignment. When the document names concrete frameworks, APIs, libraries, or version-bound patterns, verify claims against authoritative documentation (use `andthen:documentation-lookup` if available)
+- **Technical accuracy**: outdated APIs, deprecated approaches, infeasible designs, missing standards alignment. When the document names concrete frameworks, APIs, libraries, or version-bound patterns, verify claims against authoritative documentation (use the `andthen:documentation-lookup` agent if available)
 - **Scope and architecture**: explicit in/out-of-scope boundaries, phase boundaries, architecture soundness, and signs of disproportionate complexity
 - **Stakeholder fit**: user needs, success criteria, UX/error-state coverage
 

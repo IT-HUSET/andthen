@@ -127,7 +127,7 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`:
 7. **Update project state** (if STATE.md exists and FIS originated from a plan): `andthen:ops update-state active-story {story_id} "{story_name}" "In Progress"`
 
 ### Step 1.5: Scaffold Scenario Tests
-If the FIS has a **Scenarios** and/or **Testing Strategy** section, spawn `andthen:qa-test-engineer` _(if supported)_ to write test skeletons derived from the scenarios, organized by paired execution group. Run the suite to confirm tests fail (red) — they become acceptance gates for Step 2. These are proof-of-work for the behavioral scenarios — they verify *intent* (what should be true) rather than incidentally confirming what the implementation happens to produce. Verify lines and verification gates cover other proof dimensions (existence, wiring, structural correctness).
+If the FIS has a **Scenarios** and/or **Testing Strategy** section, spawn the `andthen:qa-test-engineer` agent _(if supported)_ to write test skeletons derived from the scenarios, organized by paired execution group. Run the suite to confirm tests fail (red) — they become acceptance gates for Step 2. These are proof-of-work for the behavioral scenarios — they verify *intent* (what should be true) rather than incidentally confirming what the implementation happens to produce. Verify lines and verification gates cover other proof dimensions (existence, wiring, structural correctness).
 
 > **Skip when**: no Scenarios/Testing Strategy, purely structural feature, or test infrastructure not yet set up (defer until after that task completes).
 
@@ -147,7 +147,7 @@ For each execution group (following dependency order in FIS):
 
 **Proof-of-Work rhythm** (when FIS has Scenarios): include paired scenario tests in sub-agent prompt; sub-agent verifies tests fail (red), implements until they pass (green). Combined with Verify-line checks at the verification gate, these provide layered proof of correct implementation. TV05 handles refactoring.
 
-**Sub-agent selection:** default `general-purpose`; build/tooling → `andthen:build-troubleshooter`; UI → `andthen:ui-ux-designer`; architecture → `andthen:solution-architect`. Use **foreground** agents by default; background only for Steps 1.5 and 1.7 when independent prep work runs simultaneously.
+**Sub-agent selection:** default `general-purpose`; build/tooling → `andthen:build-troubleshooter` agent; UI → `andthen:ui-ux-designer` agent; architecture → `andthen:solution-architect` agent. Use **foreground** agents by default; background only for Steps 1.5 and 1.7 when independent prep work runs simultaneously.
 
 ### Step 3: Execute Validation Tasks
 Step 2 gates catch task-level failures within groups. Step 3 catches cross-cutting issues — integration, security, architectural coherence — that pass individual group checks.
@@ -155,7 +155,7 @@ Step 2 gates catch task-level failures within groups. Step 3 catches cross-cutti
 **CRITICAL**: Run all validation tasks as parallel sub-agents _(if supported; otherwise sequentially)_ – never directly from main agent.
 
 #### TV01 [P] – Code Review
-Sub-agent uses `andthen:review-code` covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, and wiring verification.
+Sub-agent invokes the `andthen:review-code` skill covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, and wiring verification.
 
 #### TV02 [P] – Testing
 `andthen:qa-test-engineer` sub-agent runs unit, integration, and E2E tests (as applicable).
@@ -191,7 +191,7 @@ Sub-agent uses `andthen:review-code` covering: static analysis, linting, formatt
 Mark completed task, success-criteria, and Final Validation Checklist checkboxes in the FIS document.
 
 #### 4c. Update Source Plan (REQUIRED GATE – if FIS from a plan)
-Use `andthen:ops` to: set story Status to `Done`, set FIS field path, check off acceptance criteria, update Story Catalog table. Note any scope changes or deviations. After ops completes, **re-read plan and FIS files** to verify updates applied (`ops` runs in fork context and modifications may not be visible in your current state).
+Invoke the `andthen:ops` skill to: set story Status to `Done`, set FIS field path, check off acceptance criteria, update Story Catalog table. Note any scope changes or deviations. After ops completes, **re-read plan and FIS files** to verify updates applied (`ops` runs in fork context and modifications may not be visible in your current state).
 
 #### 4d. Update Project State (if STATE.md exists)
 Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Story Runs` → `STATE.md`).

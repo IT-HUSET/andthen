@@ -28,7 +28,7 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** and ask.
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** in CLAUDE.md / AGENTS.md before starting.
 - **Complete Implementation**: All stories in plan must be implemented
 - **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly
-- **Pre-generate specs**: delegate to `andthen:spec-plan` per phase
+- **Pre-generate specs**: invoke the `andthen:spec-plan` skill per phase
 
 ### Review Mode Contract (defined once)
 - `per-story` (default): `review-gap` after each story; FAIL triggers `remediate-findings` (max 2 review/remediation rounds per story)
@@ -40,7 +40,7 @@ Specs are pre-generated before execution starts. `exec-spec`'s TV05 loop handles
 ### Orchestrator Role
 **You are the orchestrator.** Your job:
 - Parse the plan and extract stories, phases, dependencies, parallel markers
-- Delegate spec generation to `andthen:spec-plan` per phase
+- Invoke the `andthen:spec-plan` skill for spec generation per phase
 - Execute the per-story pipeline (and per-story review when `REVIEW_MODE=per-story`)
 - Track progress and update the plan as stories complete
 - Handle failures and escalate when needed
@@ -68,7 +68,7 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`: `check-stubs.sh`, `check-wiring.s
 
 0. **Load session state** – Read `STATE.md` (from Project Document Index, default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
 
-1. Read `PLAN_DIR/plan.md`; if missing, **STOP** and recommend `andthen:plan` first
+1. Read `PLAN_DIR/plan.md`; if missing, **STOP** and recommend the `andthen:plan` skill first
 2. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
 3. Build execution plan respecting phase ordering and dependency chains
 
@@ -83,7 +83,7 @@ For each phase in the plan:
 
 **Update project state** (if STATE.md exists): `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `andthen:ops update-state status "On Track"`.
 
-Delegate to `andthen:spec-plan`:
+Invoke the `andthen:spec-plan` skill:
 ```
 /andthen:spec-plan {PLAN_DIR} --phase {N}
 ```
@@ -136,7 +136,7 @@ Important:
 
 **Plan Acceptance Gate** before marking Done: verify each plan acceptance criterion is satisfied; if FIS narrowed scope, scope note must exist in plan criteria; otherwise escalate to user.
 
-Use `andthen:ops` to update `plan.md`: Status → `Done`, FIS field, acceptance criteria, Story Catalog status. Use `andthen:ops update-fis {fis_path} all` to mark FIS checkboxes (catches context-exhaustion gaps). Update STATE.md: `andthen:ops update-state active-story {story_id} Done`.
+Invoke the `andthen:ops` skill to update `plan.md`: Status → `Done`, FIS field, acceptance criteria, Story Catalog status. Use `andthen:ops update-fis {fis_path} all` to mark FIS checkboxes (catches context-exhaustion gaps). Update STATE.md: `andthen:ops update-state active-story {story_id} Done`.
 
 After ops completes, **re-read plan.md and the FIS** to verify updates applied.
 
@@ -176,7 +176,7 @@ Spawn a general-purpose sub-agent to refresh: README (new features, changed APIs
 
 ## FAILURE HANDLING
 
-- **Story pipeline fails** → attempt remediation (max 2 review/remediation rounds when `per-story`; otherwise use `andthen:build-troubleshooter` or escalate)
+- **Story pipeline fails** → attempt remediation (max 2 review/remediation rounds when `per-story`; otherwise use the `andthen:build-troubleshooter` agent or escalate)
 - **Final review fails** (`full-plan`) → remediate (max 2 review/remediation rounds); escalate if persist
 - **Dependent stories blocked** when predecessor fails
 - **>50% of a phase fails** → pause, notify user with failure summary

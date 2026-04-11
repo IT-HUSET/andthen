@@ -54,7 +54,7 @@ ARGUMENTS: $ARGUMENTS
 
 ## ORCHESTRATOR ROLE _(if supported by your coding agent)_
 
-You are the orchestrator: parse input, delegate codebase analysis and research to sub-agents, then author the FIS from their findings. Delegate codebase analysis to `andthen:solution-architect`; research to `andthen:documentation-lookup` or `andthen:research-specialist`. Write the FIS yourself to keep it coherent.
+You are the orchestrator: parse input, delegate codebase analysis and research to sub-agents, then author the FIS from their findings. Delegate codebase analysis to the `andthen:solution-architect` agent; research to the `andthen:documentation-lookup` or `andthen:research-specialist` agent. Write the FIS yourself to keep it coherent.
 
 
 ## WORKFLOW
@@ -79,10 +79,10 @@ Analyse the codebase to understand project structure, relevant files and similar
 
 Fully understand the feature request. Identify any ambiguities. Research only what's needed:
 
-- **Codebase research**: similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Delegate to `andthen:solution-architect` _(if supported)_.
-- **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to `andthen:research-specialist` or `andthen:documentation-lookup` _(if supported)_.
-- **Architecture trade-offs** _(if no ADR in ARGUMENTS)_: analyze 1-3 approaches, document risks. Delegate to `andthen:solution-architect` _(if supported)_.
-- **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Delegate to `andthen:ui-ux-designer` _(if supported)_.
+- **Codebase research**: similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Delegate to the `andthen:solution-architect` agent _(if supported)_.
+- **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to the `andthen:research-specialist` or `andthen:documentation-lookup` agent _(if supported)_.
+- **Architecture trade-offs** _(if no ADR in ARGUMENTS)_: analyze 1-3 approaches, document risks. Delegate to the `andthen:solution-architect` agent _(if supported)_.
+- **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Delegate to the `andthen:ui-ux-designer` agent _(if supported)_.
 
 Save substantial findings to `.agent_temp/research/{feature-name}/` and link from the FIS.
 
@@ -110,7 +110,7 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
 [`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](../../references/fis-authoring-guidelines.md).
 
-> **Optional**: Run `andthen:review-doc` for thorough validation (recommended for large/complex features).
+> **Optional**: Invoke the `andthen:review-doc` skill for thorough validation (recommended for large/complex features).
 
 
 ## OUTPUT

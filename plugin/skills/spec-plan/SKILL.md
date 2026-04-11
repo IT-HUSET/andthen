@@ -63,7 +63,7 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 
 ### Step 1: Parse Plan
 
-1. Read `PLAN_DIR/plan.md`. If missing, **STOP** and recommend `andthen:plan` first.
+1. Read `PLAN_DIR/plan.md`. If missing, **STOP** and recommend the `andthen:plan` skill first.
 2. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, wave assignments, dependency graph
 3. Apply filters (STORY_FILTER, PHASE_FILTER); skip stories with existing FIS (check `**FIS**` field in plan.md — if file exists on disk, skip)
 4. Build wave-ordered execution plan; set MAX_PARALLEL (default 5, max 10)
@@ -83,7 +83,7 @@ Before spawning any spec sub-agents, do **all discovery and research work once**
 
 **Sub-agent 3: Shared Architectural Decisions** — For each pair of dependent stories: identify the interface/contract between them (API shape, data types, naming, error handling); document the shared decision so both specs can reference it. Also identify: naming conventions that must be consistent, shared abstractions multiple stories will create/consume, API patterns that must be uniform. Output: numbered list of shared decisions with rationale, specific enough to reference in FIS success criteria.
 
-**Sub-agent 4: External Research** _(only if stories reference external APIs/libraries needing documentation lookup)_ — For each external resource: look up current docs (use `andthen:documentation-lookup`), identify relevant patterns and known gotchas. Output: consolidated reference with one section per resource.
+**Sub-agent 4: External Research** _(only if stories reference external APIs/libraries needing documentation lookup)_ — For each external resource: look up current docs (use the `andthen:documentation-lookup` agent), identify relevant patterns and known gotchas. Output: consolidated reference with one section per resource.
 
 **Consolidation**: After all sub-agents complete, save to `{PLAN_DIR}/.research-brief.md`:
 

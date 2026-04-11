@@ -116,7 +116,7 @@ Output: `OUTPUT_DIR/requirements-discovered.md` in a format compatible with `and
 1. Write all documents to `OUTPUT_DIR/`
 2. Print summary listing all generated files with brief descriptions
 3. If `IS_MONOREPO = true`: generate a lightweight `CLAUDE.md` for each sub-project that doesn't already have one (under ~40 lines: name/description, key development commands inline table, sub-project-specific notes)
-4. Suggest next steps: review discovered requirements with team, run `andthen:plan docs/requirements-discovered.md`
+4. Suggest next steps: review discovered requirements with team, run the `andthen:plan` skill: `andthen:plan docs/requirements-discovered.md`
 
 
 ## OUTPUT

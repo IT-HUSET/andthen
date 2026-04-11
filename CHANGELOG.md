@@ -6,6 +6,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.10.3] – 2026-04-11
+
+### Fixed
+- **Skill/agent invocation disambiguation** – fixed ~44 ambiguous `andthen:` references across 20 SKILL.md files where invocation instructions did not clearly distinguish between skills and sub-agents. Skills now consistently use "invoke the `andthen:X` skill" pattern; agents use "delegate to the `andthen:X` agent" pattern. Cross-references (non-invocation mentions) are left bare. Regression from v0.10.0 where the standardization was incomplete
+- **`review-gap` requirements discovery** – gap analysis now discovers the full requirements baseline when given a directory or plan file, instead of treating the single input as the only requirements source. Searches for sibling PRD, plan, and FIS files; extracts FIS paths from Story Catalog tables and Phase Breakdown sections. Prevents shallow reviews that miss requirements context
+- **`review-gap` code review report consolidation** – review-code sub-agent now returns findings inline instead of writing a separate report file, keeping the gap analysis as the single consolidated report
+
+---
+
 ## [0.10.2] – 2026-04-10
 
 ### Fixed

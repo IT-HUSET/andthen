@@ -100,7 +100,7 @@ Execute improvements from the prioritized list:
 Run in **parallel sub-agents** _(if supported; otherwise sequentially)_:
 
 1. **Tests**: Run full test suite – all tests must pass
-2. **Code review**: Use `andthen:review-code` to verify improvements and catch regressions
+2. **Code review**: Invoke the `andthen:review-code` skill to verify improvements and catch regressions
 3. **Linting/types**: Run static analysis, confirm no new issues
 
 **If failures:** fix issues and re-verify before completing.

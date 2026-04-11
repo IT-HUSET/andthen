@@ -116,7 +116,7 @@ Run the relevant top-level checks:
 - Critical user flows
 - Security/performance validation where relevant
 
-Use parallel specialist agents when available, including `andthen:build-troubleshooter`, `andthen:qa-test-engineer`, `andthen:solution-architect`, `andthen:ui-ux-designer`, and `andthen:review-code`.
+Use parallel specialist agents when available, including the `andthen:build-troubleshooter`, `andthen:qa-test-engineer`, `andthen:solution-architect`, and `andthen:ui-ux-designer` agents, and the `andthen:review-code` skill.
 
 If `STATE.md` exists:
 - Remove resolved blockers

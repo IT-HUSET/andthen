@@ -71,7 +71,7 @@ Launch 3 sub-agents concurrently:
 ### Phase 4: Environment Setup
 
 1. Identify the dev server start command (from `package.json` scripts, README, CLAUDE.md)
-2. Start the dev server; if startup fails, delegate to `andthen:build-troubleshooter`
+2. Start the dev server; if startup fails, delegate to the `andthen:build-troubleshooter` agent
 3. Confirm application is accessible; note the base URL
 
 **Gate**: Dev server running and accessible
@@ -97,7 +97,7 @@ Execute journeys sequentially. For each journey:
 
 ### Phase 6: Responsive Validation
 
-Delegate to `andthen:visual-validation-specialist` with pages (home, primary feature, auth, any in `FOCUS`), viewports (mobile 375×812, tablet 768×1024, desktop 1440×900), checking for layout overflow, text truncation, broken flex/grid, inaccessible touch targets, hidden navigation.
+Delegate to the `andthen:visual-validation-specialist` agent with pages (home, primary feature, auth, any in `FOCUS`), viewports (mobile 375×812, tablet 768×1024, desktop 1440×900), checking for layout overflow, text truncation, broken flex/grid, inaccessible touch targets, hidden navigation.
 
 **Gate**: Responsive validation complete with screenshots
 

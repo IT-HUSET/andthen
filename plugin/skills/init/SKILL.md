@@ -167,7 +167,7 @@ Recommended approach:
 Run map-codebase first? (recommended for codebases with 20+ files)
 ```
 
-Wait for response. If yes: run `andthen:map-codebase`, then proceed with Step 2a using generated documents as foundation (skip ARCHITECTURE.md and STACK.md from templates). If no: proceed directly to Step 2a.
+Wait for response. If yes: run the `andthen:map-codebase` skill, then proceed with Step 2a using generated documents as foundation (skip ARCHITECTURE.md and STACK.md from templates). If no: proceed directly to Step 2a.
 
 **Gate**: Brownfield analysis complete (or skipped), proceed to project setup
 

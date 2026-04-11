@@ -31,8 +31,8 @@ REPORT_SOURCE: $ARGUMENTS
 - Fix validated findings with the smallest coherent patch set that resolves them.
 - Avoid scope creep. Do not "clean up nearby code" unless it is required to resolve a finding or prevent a regression.
 - Prefer explicit, local fixes over new abstractions, helpers, or framework layers.
-- If external documentation is needed, use `andthen:documentation-lookup`.
-- Use `andthen:ops` for deterministic plan/FIS/STATE updates instead of hand-editing those artifacts.
+- If external documentation is needed, use the `andthen:documentation-lookup` agent.
+- Invoke the `andthen:ops` skill for deterministic plan/FIS/STATE updates instead of hand-editing those artifacts.
 
 
 ## GOTCHAS
@@ -98,7 +98,7 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
    - Linting and type checks
    - Visual validation when UI changed
 5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state one of: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), or `DEFERRED` (intentionally left open per severity policy, with justification). This is the primary close-the-loop validation — it proves each finding was addressed without the cost of a full re-review.
-6. Run `andthen:review-code` on the touched scope to catch regressions introduced by the fixes.
+6. Invoke the `andthen:review-code` skill on the touched scope to catch regressions introduced by the fixes.
 7. Repeat the remediation loop until all required findings are resolved or explicitly deferred, or escalate after 2 cycles.
 
 **Gate**: Every Critical/High finding is RESOLVED with evidence, Medium/Low findings are RESOLVED or DEFERRED with justification, review-code on touched scope is clean, and no new regressions are introduced
@@ -111,7 +111,7 @@ The findings re-check and review-code results from Phase 4 are the evidence need
 If the report is tied to a story or FIS and remediation passed validation:
 - Use `andthen:ops update-fis {fis_path} all` when the FIS work is substantively complete and evidence exists
 - Use `andthen:ops update-plan {plan_path} {story_id} Done` only after confirming plan acceptance criteria are satisfied
-- Update `STATE.md` through `andthen:ops` when it exists and the story is now complete
+- Update `STATE.md` through the `andthen:ops` skill when it exists and the story is now complete
 - Re-read the updated artifacts to verify the status changes applied
 
 If the report is a full-plan or workspace-wide review:

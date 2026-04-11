@@ -127,7 +127,7 @@ Required sections:
 - [ ] All assumptions documented
 - [ ] No conflicting requirements
 
-Optional: Use `andthen:review-doc` to validate the PRD before finalizing.
+Optional: Invoke the `andthen:review-doc` skill to validate the PRD before finalizing.
 
 **Gate**: PRD created → continue to Step 2
 
@@ -390,7 +390,7 @@ If STATE.md does not exist, do not create it – suggest it in follow-up actions
 - [ ] No missing functionality (cross-cutting concerns like auth, logging, error pages covered)
 - [ ] Not over-granular (combined where sensible)
 
-Optional: Use `andthen:review-doc` to validate the plan for requirements coverage and story scope clarity.
+Optional: Invoke the `andthen:review-doc` skill to validate the plan for requirements coverage and story scope clarity.
 
 **Gate**: Validation complete
 
@@ -421,7 +421,7 @@ After completion, suggest:
    Example: `/andthen:spec story S01 of docs/specs/my-feature/plan.md` (or `$andthen:spec ...`)
 2. **Create wireframes** (if UI work): Run the `andthen:wireframes` skill
    Example: `/andthen:wireframes docs/specs/my-feature/prd.md` (or `$andthen:wireframes ...`)
-3. **Batch-generate specs**: Run `andthen:spec-plan` to pre-create all FIS before execution
+3. **Batch-generate specs**: Run the `andthen:spec-plan` skill to pre-create all FIS before execution
    Example: `/andthen:spec-plan docs/specs/my-feature/` (or `$andthen:spec-plan ...`)
 4. **Review plan**: Run the `andthen:review-doc` skill on `plan.md`
    Example: `/andthen:review-doc docs/specs/my-feature/plan.md` (or `$andthen:review-doc ...`)

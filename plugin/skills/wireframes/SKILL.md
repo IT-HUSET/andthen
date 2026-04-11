@@ -79,7 +79,7 @@ Create basic, grayscale HTML layouts showing major sections and placement, key c
 #### 2.3 Parallel Wireframe Creation
 **CRITICAL**: Create wireframes in parallel for efficiency.
 
-For each page in the inventory, launch `andthen:ui-ux-designer` _(if supported by your coding agent)_ with:
+For each page in the inventory, launch the `andthen:ui-ux-designer` agent _(if supported by your coding agent)_ with:
 - Reference to base HTML template (the structure from 2.1), page name and purpose, key content/sections, navigation context, responsive requirements
 
 **Execute multiple agents simultaneously** _(if supported by your coding agent; otherwise execute sequentially)_ - each handles a single page.
@@ -100,7 +100,7 @@ Cross-check against Phase 1 inventory. Verify EVERY page has a corresponding wir
 **MCP Server Detection** (in order of preference):
 1. **Playwright MCP** (`mcp__playwright__*` tools) - preferred
 2. **Chrome DevTools MCP** (`mcp__chrome-devtools__*` tools) - fallback
-3. **Manual validation** - if no MCP available, use `andthen:visual-validation-specialist` with manually opened browser
+3. **Manual validation** - if no MCP available, use the `andthen:visual-validation-specialist` agent with manually opened browser
 
 **Viewport Matrix:**
 | Device | Width | Height |
@@ -124,10 +124,10 @@ For each wireframe: navigate to it, set each viewport, capture full-page screens
 **Fix issues** by adjusting CSS (gap, overflow, min-height, breakpoint rules) before proceeding.
 
 #### 3.2 Visual Comparison
-Launch `andthen:visual-validation-specialist` _(if supported by your coding agent)_ with the screenshots. Agent produces `OUTPUT_DIR/validation-report.md` documenting pass/fail per page/viewport and issues found.
+Launch the `andthen:visual-validation-specialist` agent _(if supported by your coding agent)_ with the screenshots. Agent produces `OUTPUT_DIR/validation-report.md` documenting pass/fail per page/viewport and issues found.
 
 #### 3.3 Design Review
-Launch `andthen:ui-ux-designer` _(if supported)_ to evaluate information hierarchy, content organization, user flow representation, and missing UI states.
+Launch the `andthen:ui-ux-designer` agent _(if supported)_ to evaluate information hierarchy, content organization, user flow representation, and missing UI states.
 
 #### 3.4 Refinement
 Fix layout issues, improve unclear sections, add missing elements, ensure consistency.

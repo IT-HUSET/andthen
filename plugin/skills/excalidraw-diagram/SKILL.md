@@ -41,7 +41,7 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 - **Build section-by-section** – do not attempt a non-trivial diagram in one giant JSON pass
 - **Mandatory render loop** – after generating JSON, you MUST render via agent-browser, view the screenshot, and fix issues in a loop until it's right
 - **agent-browser required** – the render-and-validate loop uses `agent-browser`. If not installed, tell the user to run `npm install -g agent-browser && agent-browser install`
-- **Design refinement and final QC** – Phase 4 combines design review (via `andthen:ui-ux-designer` if available) and visual validation (via `andthen:visual-validation-specialist` if available). Fall back to self-evaluation using the criteria in Phase 4 if sub-agents are not supported
+- **Design refinement and final QC** – Phase 4 combines design review (via the `andthen:ui-ux-designer` agent if available) and visual validation (via the `andthen:visual-validation-specialist` agent if available). Fall back to self-evaluation using the criteria in Phase 4 if sub-agents are not supported
 
 
 ## GOTCHAS
@@ -77,7 +77,7 @@ Decide which mode applies:
 When in doubt, choose technical. Concrete details usually improve the result.
 
 #### 1.3 Research Reality (Technical Diagrams)
-Gather real data formats/schemas, method signatures, API endpoints, event names, and communication protocols. Generic labels (`"Service A" → "Service B"`) communicate nothing; use specifics (`"OrderService.create() → Stripe /v1/charges POST → webhook /api/webhooks/stripe"`). Use `andthen:documentation-lookup` or project docs for external APIs.
+Gather real data formats/schemas, method signatures, API endpoints, event names, and communication protocols. Generic labels (`"Service A" → "Service B"`) communicate nothing; use specifics (`"OrderService.create() → Stripe /v1/charges POST → webhook /api/webhooks/stripe"`). Use the `andthen:documentation-lookup` agent or project docs for external APIs.
 
 #### 1.4 Map Concepts to Visual Patterns
 Use the Pattern Catalog (see Design Reference below). Each major concept gets a different pattern. Do not make every section look like the same card layout.
@@ -194,10 +194,10 @@ If the user needs a standard `.excalidraw` file without `label` shortcuts: run `
 Independent review of design quality and final QC. This phase separates creation from judgment.
 
 #### 4.1 Design Quality Review
-Launch `andthen:ui-ux-designer` _(if supported; otherwise self-evaluate)_ with the rendered PNG, resolved style guide, and TOPIC. Review mode only – evaluate, don't redesign. Check: composition and visual weight balance; hierarchy (hero → primary → secondary); color harmony and style guide compliance; hero element has 200px+ breathing room; eye path follows intended narrative; each major concept uses a distinct visual pattern.
+Launch the `andthen:ui-ux-designer` agent _(if supported; otherwise self-evaluate)_ with the rendered PNG, resolved style guide, and TOPIC. Review mode only – evaluate, don't redesign. Check: composition and visual weight balance; hierarchy (hero → primary → secondary); color harmony and style guide compliance; hero element has 200px+ breathing room; eye path follows intended narrative; each major concept uses a distinct visual pattern.
 
 #### 4.2 Visual Validation (Final QC)
-Launch `andthen:visual-validation-specialist` _(if supported; otherwise self-validate)_ with the latest PNG, resolved style guide, and TOPIC description. Check: text overflow/overlap/clipping; arrow misrouting or dangling connections; all text legible (>= 16px body, >= 20px titles); colors/fills/strokes match style guide; no large voids or overcrowded regions.
+Launch the `andthen:visual-validation-specialist` agent _(if supported; otherwise self-validate)_ with the latest PNG, resolved style guide, and TOPIC description. Check: text overflow/overlap/clipping; arrow misrouting or dangling connections; all text legible (>= 16px body, >= 20px titles); colors/fills/strokes match style guide; no large voids or overcrowded regions.
 
 #### 4.3 Remediation Loop
 1. **Triage** – P1/CRITICAL and P2/MAJOR issues MUST be fixed; minor issues fix if straightforward

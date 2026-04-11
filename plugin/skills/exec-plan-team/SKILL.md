@@ -55,7 +55,7 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 ### Core Rules
 - Read **Workflow Rules, Guardrails and Guidelines** from CLAUDE.md before starting
 - Plan is source of truth – follow phase ordering, dependencies, and parallel markers exactly
-- Pre-generate specs via `andthen:spec-plan` per phase before starting the Agent Team
+- Pre-generate specs via the `andthen:spec-plan` skill per phase before starting the Agent Team
 - **Review mode**: `per-story` → `review-gap` after each merged story; FAIL triggers `remediate-findings`. `none` → skip. `full-plan` → one final `review-gap` on `PLAN_DIR/plan.md` after all stories merged; FAIL triggers `remediate-findings`
 - **Worktree isolation** (`USE_WORKTREE = false` by default) – stories run sequentially on `{BASE_BRANCH}`. `USE_WORKTREE = true` (via `--worktree`) → implementers call `EnterWorktree` per task in `CODE_DIR` for parallel execution
 - **Pre-assign all tasks** – no self-claiming; orchestrator assigns every task at creation time
@@ -87,7 +87,7 @@ Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when ap
 Verify Agent Teams are available by checking that team creation tools exist (e.g. `TeamCreate`).
 
 If Agent Team tools are NOT available:
-- Suggest `andthen:exec-plan` instead (portable, no Agent Teams required): `/andthen:exec-plan path/to/plan`
+- Suggest the `andthen:exec-plan` skill instead (portable, no Agent Teams required): `/andthen:exec-plan path/to/plan`
 - If user specifically wants Agent Teams, inform them it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 - Exit
 
@@ -97,7 +97,7 @@ If Agent Team tools are NOT available:
 ### Step 2: Parse Plan
 
 1. **Load session state** – Read `STATE.md` (default: `docs/STATE.md`) if it exists. Extract active stories, blockers, and current phase.
-2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and recommend `andthen:plan` first.
+2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and recommend the `andthen:plan` skill first.
 3. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, wave assignments (W1, W2, W3…)
 4. Build execution plan respecting phase ordering and dependency chains.
 
@@ -134,7 +134,7 @@ Before setting up the Agent Team, pre-generate all FIS documents for the current
 
 **IMPORTANT – Use Agent Teams, NOT regular sub-agents.** Teammates must be spawned into the team (with `team_name` and `name`) so they share a task list and can message each other. Create team `"plan-pipeline"`, spawn teammates with a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar), create pipeline tasks per phase (Step 6), coordinate via inter-agent messaging, then send shutdown requests and delete the team when done.
 
-**Roles**: Implementer (all stories), Reviewer (`per-story` mode only), Troubleshooter (on-demand via `andthen:build-troubleshooter` — NOT spawned upfront; only when an agent escalates).
+**Roles**: Implementer (all stories), Reviewer (`per-story` mode only), Troubleshooter (on-demand via the `andthen:build-troubleshooter` agent — NOT spawned upfront; only when an agent escalates).
 
 #### Spawn Templates
 
@@ -300,7 +300,7 @@ After ALL `impl-*` tasks in the current wave are complete:
 3. If any criterion is unmet and no scope note explains it → do NOT mark Done → escalate to the user
 4. For composite FIS: verify ALL constituent stories
 
-Then use `andthen:ops` to update `plan.md`:
+Then invoke the `andthen:ops` skill to update `plan.md`:
 - Set story **Status** to `Done` (composites: all constituent stories)
 - Set story **FIS** field to generated spec path
 - Check off completed acceptance criteria (`- [ ]` → `- [x]`)
@@ -379,7 +379,7 @@ Spawn a **general-purpose sub-agent** _(if supported)_ to update project documen
 
 ## FAILURE HANDLING
 
-- **Agent reports failure** → spawn an on-demand Troubleshooter (`andthen:build-troubleshooter`) with a `fix-{story_id}` task → shut down after resolution → escalate to user if troubleshooter also fails
+- **Agent reports failure** → spawn an on-demand Troubleshooter (`andthen:build-troubleshooter` agent) with a `fix-{story_id}` task → shut down after resolution → escalate to user if troubleshooter also fails
 - **Final plan review fails** (`full-plan`) → remediate then re-validate (max 2 review/remediation rounds). Escalate to user if issues persist.
 - **Dependent stories stay blocked** when a predecessor fails
 - **If >50% of a phase fails** → pause execution, notify user with failure summary

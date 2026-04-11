@@ -38,7 +38,7 @@ ARGUMENTS: $ARGUMENTS
 Verify Agent Teams are available by checking that team creation tools exist (e.g. `TeamCreate`).
 
 If NOT available:
-- Suggest `andthen:review-council` instead (portable, no Agent Teams required)
+- Suggest the `andthen:review-council` skill instead (portable, no Agent Teams required)
 - If user specifically wants Agent Teams, inform them it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
 - Exit
 
