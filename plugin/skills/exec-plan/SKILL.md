@@ -35,6 +35,8 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** and ask.
 - `none`: skips automated `review-gap`
 - `full-plan`: skips per-story review; one final `review-gap` on `PLAN_DIR/plan.md` after all phases; FAIL triggers `remediate-findings` (max 2 review/remediation rounds)
 
+**Review mode guidance**: `per-story` (default) is recommended for most plans — it catches issues at the story level where they are cheapest to fix and prevents issue accumulation across stories. Use `none` only for time-critical execution where you accept the risk of deferred review. Use `full-plan` for small plans (4 or fewer stories) where per-story overhead exceeds the benefit.
+
 Specs are pre-generated before execution starts. `exec-spec`'s TV05 loop handles *implementation-level* issues (3-cycle cap); `exec-plan`'s review-gap + remediate-findings loop handles *integration and gap-level* issues.
 
 ### Orchestrator Role
@@ -134,7 +136,10 @@ Important:
 
 **Do this immediately after each story's pipeline – not as a batch.**
 
-**Plan Acceptance Gate** before marking Done: verify each plan acceptance criterion is satisfied; if FIS narrowed scope, scope note must exist in plan criteria; otherwise escalate to user.
+**Plan Acceptance Gate** before marking Done:
+1. Verify each plan acceptance criterion is satisfied against the implementation
+2. If the FIS narrowed scope, a scope note must exist in plan criteria; otherwise escalate to user
+3. **Verify spec compliance**: confirm that exec-spec's spec compliance spot-check (Step 4a.7) completed — check that FIS task checkboxes are marked and verification evidence exists. If evidence is missing or checkboxes are incomplete, flag the story for re-verification before marking Done
 
 Invoke the `andthen:ops` skill to update `plan.md`: Status → `Done`, FIS field, acceptance criteria, Story Catalog status. Use `andthen:ops update-fis {fis_path} all` to mark FIS checkboxes (catches context-exhaustion gaps). Update STATE.md: `andthen:ops update-state active-story {story_id} Done`.
 

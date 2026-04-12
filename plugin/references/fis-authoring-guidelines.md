@@ -67,6 +67,12 @@ Scenarios are the bridge between requirements and tests. Borrowed from BDD's cor
 - Cover the happy path first, then edge cases (boundaries, empty states, concurrent access), then at least one error/failure case. 3-7 scenarios is the sweet spot.
 - If you can't write the **Then** clause, you don't understand the requirement yet — surface this as ambiguity rather than inventing an answer.
 
+**Negative-path checklist** — after drafting scenarios, review for these three categories of missing coverage. Don't add a scenario per parameter — look for the *riskiest* gap in each category and add one scenario if the category is completely uncovered. The 3-7 scenario target still applies.
+
+- **Omitted optional inputs**: Are there optional parameters where the null/absent case could produce a fragile default (empty string instead of null, zero instead of absent)? One scenario covering the most representative omitted-input case is sufficient.
+- **No-match cases**: Are there selectors, filters, or lookups where "nothing matches" could fall through to an unintended default? A `firstWhere` with an `orElse` fallback that silently proceeds is a bug if the intent is ignore/reject.
+- **Rejection paths**: Are there external integration points (webhooks, API calls) where unmatched/invalid input should be explicitly ignored or rejected? One scenario covering the reject/ignore path is sufficient.
+
 **Proof-of-Work principle** (after Tegmark & Omohundro's asymmetry insight — verification is cheaper than generation): every claim of completion must come with verifiable evidence. An agent that *claims* "task done" is a trust problem; an agent that produces checkable artifacts is an engineering problem. Proof takes many forms — passing tests for behavioral scenarios, green Verify-line checks for task outcomes, clean stub detection for substantive implementation, visual validation for UI, build/type/lint pass for structural correctness.
 
 **Proof is defined at spec time, executed at implementation time.** The FIS locks down what proof is required; exec-spec produces and verifies it. Every Success Criterion must have a proof path: at least one scenario (for behavioral criteria) or a task Verify line (for structural criteria). The Testing Strategy maps scenarios to execution groups so proof is produced incrementally, not deferred to the end. A criterion with no defined proof path is a spec gap, not an implementation decision.
@@ -87,6 +93,16 @@ Scenarios are the bridge between requirements and tests. Borrowed from BDD's cor
    - Strong: `Integration test: follow-up turn receives resume: true at harness boundary`
    - Strong: `Test: effectiveConcurrency(3) returns 3 when maxParallel is 5 — AND dispatch loop calls it`
    Where applicable, trace verification back to the feature's Success Criteria. Reference: `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md` for stub-detection and wiring-check patterns.
+
+   **Prescriptive details must be in Verify lines.** When the FIS prescribes specific outputs (column names, format strings, error messages, file locations), the Verify line MUST check the prescribed detail — not just that "output exists." The implementing sub-agent receives extracted task descriptions, not the full FIS, so prescriptive details that aren't in the Verify line are likely to be overlooked.
+   - Weak: `Verify: traces list shows token breakdown` (doesn't name the columns)
+   - Strong: `Verify: traces list output includes columns IN_TOKENS, OUT_TOKENS, CACHE_R, CACHE_W`
+   - Weak: `Verify: pool summary displays after agent list` (doesn't specify format)
+   - Strong: `Verify: pool summary matches format "Pool: N runners, N active, N available"`
+   - Weak: `Verify: config class exists in config package`
+   - Strong: `Verify: GitHubWebhookConfig exists at packages/dartclaw_config/lib/src/github_config.dart`
+
+   Rule of thumb: if you prescribed a specific format, column name, file path, or string in the FIS — put it in the Verify line verbatim.
 7. Stay within 100-250 line target (shorter is better)
 8. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
 
@@ -155,7 +171,10 @@ Quick sanity check before saving:
 - [ ] Tasks are organized into execution groups with clear dependencies
 - [ ] ADR clearly states the decision
 - [ ] Scenarios cover happy path, edge cases, and at least one error case; all plan Key Scenario seeds mapped (if from a plan story)
+- [ ] Negative-path checklist applied: omitted optional inputs, no-match selectors/filters, and rejection paths for external integrations all covered by scenarios
 - [ ] Every Success Criterion has a proof path — at least one scenario (behavioral) or task Verify line (structural)
+- [ ] **Scope-consistency**: every item listed in "In Scope" is exercised by at least one scenario (for behavioral items) or task with a Verify line (for structural items) — items with no coverage are either phantom features (remove from scope) or underspecified (add a scenario or task)
+- [ ] **Output format completeness**: if `--json`, structured output, or machine-readable format is a Success Criterion, at least one scenario's **Then** clause specifies the output shape (key fields, structure) — not just "returns JSON"
 - [ ] No over-specification — if a section feels padded, trim it
 - [ ] No item in "What We're NOT Doing" blocks or contradicts a Success Criterion — for each exclusion, trace the data/flag path from requirement to runtime behavior; if the exclusion blocks a necessary intermediate step, either remove the exclusion or escalate
 - [ ] No code snippets longer than 5 lines — describe outcomes and reference patterns instead

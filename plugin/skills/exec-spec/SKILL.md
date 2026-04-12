@@ -32,6 +32,8 @@ FIS_FILE_PATH: $ARGUMENTS
 
 **Context Injection:** Before spawning each group sub-agent, extract the relevant task descriptions, key references, and ADR decisions from the FIS and pass them directly in the prompt. For dependent groups, inject the "Context for Dependent Groups" output from prerequisite groups. For critical handoffs, read key output files to verify context accuracy.
 
+**Prescriptive Detail Injection:** When extracting task descriptions for sub-agent prompts, identify and include **prescriptive details** verbatim: specified column names/orders, output format strings, exact error messages, file paths where artifacts must be placed, data field names, and UI element requirements (buttons, controls, labels). These are the details most likely to drift during implementation — include them as explicit requirements in the sub-agent prompt, not just as part of general task context.
+
 ### Sub-Agent Protocol
 
 #### Group Input Template
@@ -191,6 +193,7 @@ Sub-agent invokes the `andthen:review-code` skill covering: static analysis, lin
 4. **Substantive check**: `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` – must be clean
 5. **Wiring check**: each new file/component is imported or referenced by at least one other file
 6. Include verification evidence per `${CLAUDE_PLUGIN_ROOT}/references/verification-evidence.md`: **Build**, **Tests**, **Linting/types**; add **Visual validation** and **Runtime** for UI/runtime stories
+7. **Spec compliance spot-check**: Extract prescriptive details from the FIS (output format strings, column name lists, file paths for new artifacts, exact error messages, UI elements like buttons/controls) and grep/verify each against the implementation. This catches the most common exec-spec failure mode: implementation that works correctly but doesn't match the spec's prescribed format, structure, or location. Check: column names/order appear in source; prescribed file paths exist at specified locations; key substrings of format strings present in output code; prescribed UI elements exist in templates. Fix any mismatches before proceeding to 4b.
 
 #### 4b. Update FIS Status (REQUIRED GATE)
 Mark completed task, success-criteria, and Final Validation Checklist checkboxes in the FIS document.

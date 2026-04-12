@@ -6,6 +6,27 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.10.6] – 2026-04-12
+
+### Added
+- **Negative-path scenario checklist** (`fis-authoring-guidelines`, `fis-template`) – systematic coverage check for omitted optional inputs, no-match selectors/filters, and rejection paths for external integrations. Applies to both `spec` and `spec-plan` via shared references
+- **Scope-consistency and output format self-checks** (`fis-authoring-guidelines`, `fis-template`) – every In Scope item must be covered by a scenario or task; structured output criteria must specify shape, not just "returns JSON"
+- **Prescriptive detail verification for Verify lines** (`fis-authoring-guidelines`) – when a FIS prescribes specific formats, columns, paths, or strings, the Verify line must check them verbatim. Weak/strong examples included
+- **PRD-FIS semantic traceability** (`spec-plan`) – cross-cutting review check #10 verifies PRD feature requirements flow into FIS scenarios, catching requirements lost during plan decomposition. Binding PRD constraints extracted by technical research sub-agent and consumed by spec sub-agents
+- **Spec compliance spot-check** (`exec-spec`) – Step 4a.7 extracts prescriptive details from the FIS and greps the implementation before marking complete. Prescriptive Detail Injection guidance ensures sub-agent prompts include format strings, column names, and file paths verbatim
+- **Review mode guidance** (`exec-plan`) – recommends `per-story` (default) for most plans; documents when `none` and `full-plan` are appropriate
+- **Plan provenance field** (`plan`) – `Provenance` story field for carried-forward stories with no PRD coverage, wired into Story Definition, output example, and validation self-check
+
+### Changed
+- **Plan Acceptance Gate expanded** (`exec-plan`) – now verifies exec-spec's spec compliance check completed (FIS checkboxes marked, verification evidence exists) before marking Done
+- **`spec` Step 3 references negative-path checklist** – scenarios are now drafted with explicit negative-path guidance at the point where they're written, not just in the template
+- **Composite FIS naming convention** (`plan`) – naming rule moved from advisory GOTCHAS into normative Composite FIS section
+
+### Context
+Based on post-mortem analysis of a real 11-story plan execution (plan → spec-plan → exec-plan → 2x review-gap) that failed gap review with 8 findings across 3 systemic patterns: missing negative-path scenarios, PRD-to-FIS requirements drift, and implementation ignoring explicit spec details.
+
+---
+
 ## [0.10.5] – 2026-04-12
 
 ### Added

@@ -19,7 +19,7 @@ _Specs directory (with PRD, requirements-clarification, or draft PRD), or requir
 INPUT: $ARGUMENTS
 
 _Output directory (defaults to input directory, or `<project_root>/docs/specs/` for new PRDs):_
-OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as configured in **Project Document Index**)_
+OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a prior artifact like `prd-draft.md`), or `<project_root>/docs/specs/` (for other inputs) _(or as configured in **Project Document Index**)_
 
 ### Optional Flags
 - `--issue <number>` → Fetch and use a GitHub issue as requirements input
@@ -33,6 +33,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 /plan @docs/requirements.md             # From requirements file
 /plan --issue 42                        # From GitHub issue
 /plan "Build a user dashboard"          # From inline description
+/plan docs/specs/my-feature/prd-draft.md # From draft PRD file
 /plan docs/specs/my-feature/ --to-issue # Create plan and publish to GitHub issue
 ```
 
@@ -59,6 +60,8 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
 - Skipping requirements discovery when no PRD exists – if no prior artifacts, run discovery first
 - Wave assignments get ignored during execution – explicitly mark dependencies between stories
 - Not reading STATE.md before planning – misses context about current phase, active blockers, and recent decisions that should inform story priorities
+- **Carried-forward stories without PRD coverage** – use the **Provenance** field; a story with no PRD feature and no provenance is a traceability gap
+- **Inconsistent FIS path naming** – when composite stories share a FIS, the FIS filename must use the lowest story ID as prefix and include all constituent IDs (e.g., `s01-s02-s03-feature-name.md`). Do not re-assign story-to-FIS mapping after initial assignment — downstream agents and reviewers rely on ID-based file discovery
 
 
 ## WORKFLOW
@@ -69,7 +72,7 @@ OUTPUT_DIR: `INPUT` (if directory) or `<project_root>/docs/specs/` _(or as confi
    - **`--issue` flag present** (or INPUT refers to a GitHub issue): Extract issue number from INPUT, use `gh issue view <number>` to fetch issue details (title, body, labels, comments). Use issue content as requirements input. Store issue number for reference in generated plan. → proceed to Step 1b
    - **Directory with PRD**: `INPUT` is a directory containing `prd.md` → proceed to Step 2
    - **Directory with prior artifacts**: `INPUT` is a directory containing `requirements-clarification.md` (from `andthen:clarify`) and/or a draft PRD (`prd-draft.md`), but no finalized `prd.md` → proceed to Step 1c
-   - **File path**: Read and extract requirements → proceed to Step 1b
+   - **File path**: Read file. If it is a prior artifact (`prd-draft.md` or `requirements-clarification.md`) → proceed to Step 1c. Otherwise → proceed to Step 1b
    - **URL**: Fetch and extract requirements → proceed to Step 1b
    - **Inline description**: Use directly → proceed to Step 1b
 
@@ -139,6 +142,7 @@ Use existing artifacts (`requirements-clarification.md` from `andthen:clarify` a
 - Map existing content against the PRD template (see Step 1b)
 - If significant gaps remain, conduct a focused interview covering only the missing areas – ask 3-5 questions at a time, **STOP and WAIT for responses**.
   > **CRITICAL**: Do NOT re-ask questions already answered in the existing artifacts. Only ask about genuinely missing information.
+- **Extract technical details**: If the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), extract these into `{OUTPUT_DIR}/technical-research.md` rather than carrying them into the PRD. The PRD should focus on *what* to build; technical details are preserved for downstream skills.
 - Structure and generate the PRD following the same template as Step 1b. Preserve decisions, rationale, and specific details from existing artifacts – do not paraphrase or generalize away specifics.
 - Apply same Prioritization → PRD Validation steps as Step 1b.
 
@@ -147,11 +151,13 @@ Use existing artifacts (`requirements-clarification.md` from `andthen:clarify` a
 
 ### 2. Requirements Analysis
 
+> **Hard gate**: Verify `prd.md` exists in OUTPUT_DIR before proceeding. If only a draft or clarification artifact exists, you skipped PRD finalization — go back to Step 1c.
+
 Delegate codebase exploration to a sub-agent _(if supported)_ to keep context lean. Read `STATE.md` (default: `docs/STATE.md`) if it exists – use current phase, active stories, and blockers to inform story priorities. Reference `UBIQUITOUS_LANGUAGE.md` if present; use canonical terms in story names and acceptance criteria.
 
 Synthesize into a unified understanding of: all PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), natural implementation boundaries, feature dependencies, and complexity/risk areas.
 
-**Technical research**: If codebase exploration surfaces substantial technical findings (architecture patterns, framework constraints, integration details, existing conventions) that would be useful during spec creation or execution, save them to `{OUTPUT_DIR}/technical-research.md`. This keeps the PRD and plan free of implementation details while preserving research for downstream skills (`andthen:spec`, `andthen:spec-plan`). Skip this if findings are minimal — not every plan needs a technical research document.
+**Technical research**: If codebase exploration surfaces substantial technical findings (architecture patterns, framework constraints, integration details, existing conventions) that would be useful during spec creation or execution, save them to `{OUTPUT_DIR}/technical-research.md` (append to existing content if the file was already created in Step 1c). This keeps the PRD and plan free of implementation details while preserving research for downstream skills (`andthen:spec`, `andthen:spec-plan`). Skip this if findings are minimal — not every plan needs a technical research document.
 
 **Gate**: Feature mapping complete
 
@@ -242,6 +248,7 @@ For each story, define:
 - **Wave**: Execution wave within phase (W1, W2, W3...) – pre-computed during planning
 - **Parallel**: [P] if can run parallel with others in same phase
 - **Risk**: Low/Medium/High with brief note if Medium+
+- **Provenance** _(if carried forward)_: `Carried from {milestone}: {original-story-id}` — required when a story has no corresponding PRD feature
 - **Asset refs**: Relevant wireframes, ADRs, design system sections
 
 **Do NOT include in stories** (these are deferred to `andthen:spec`; save to `technical-research.md` if discovered during analysis):
@@ -319,6 +326,11 @@ _Sequential execution - establishes base for all features_
 **Scope**: ...
 <!-- S03/S04 share a composite FIS; exec-spec runs once for both -->
 
+#### S05: Workflow Trigger Surfaces
+**Status**: Pending | **FIS**: – | **Provenance**: Carried from 0.16.3: S13
+**Scope**: Enable workflow triggering from web UI, chat commands, and GitHub webhooks.
+**Acceptance Criteria**: ...
+
 ### Phase 2: Core Features
 _Parallel execution where marked [P]_
 ...
@@ -366,7 +378,7 @@ W3: S05, S06, S07
 
 > **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path and set **Status** to `Spec Ready`. When implementation starts, set **Status** to `In Progress`. After implementation and review, check off acceptance criteria and set **Status** to `Done`. Update the Story Catalog table status accordingly. `andthen:exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
 >
-> **Composite FIS**: When multiple stories share a composite FIS (created by `andthen:spec-plan` for tightly coupled stories), `andthen:exec-spec` runs once for the composite FIS. All constituent stories are marked `Done` when the composite spec execution completes.
+> **Composite FIS**: When multiple stories share a composite FIS (created by `andthen:spec-plan` for tightly coupled stories), `andthen:exec-spec` runs once for the composite FIS. All constituent stories are marked `Done` when the composite spec execution completes. Composite FIS filenames must use the lowest story ID as prefix and include all constituent IDs (e.g., `s01-s02-s03-feature-name.md`). Do not re-assign story-to-FIS mapping after initial assignment.
 </example-plan-format>
 
 **Gate**: Plan document complete
@@ -384,6 +396,7 @@ If STATE.md does not exist, do not create it – suggest it in follow-up actions
 
 #### Self-Check
 - [ ] All PRD features have corresponding stories
+- [ ] Stories without PRD feature coverage have a **Provenance** annotation
 - [ ] Stories have clear boundaries (no overlap)
 - [ ] Dependencies accurately mapped
 - [ ] Parallel markers correctly applied

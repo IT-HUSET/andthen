@@ -34,12 +34,13 @@
 - **When** {{boundary condition or error trigger}}
 - **Then** {{expected handling behavior}}
 
-_Write 3-7 scenarios. Cover the happy path, key edge cases, and at least one error/failure case. Skip only for configuration-only work with no branching logic (e.g. env config, static asset changes)._
+_Write 3-7 scenarios. Cover the happy path, key edge cases, and at least one error/failure case. After drafting, apply the **negative-path checklist** from the authoring guidelines: verify coverage for omitted optional inputs, no-match filter/selector cases, and rejection paths for external integrations — add scenarios for any gaps found. Skip scenarios only for configuration-only work with no branching logic (e.g. env config, static asset changes)._
 
 
 ## Scope & Boundaries
 
 ### In Scope
+_Every scope item must be covered by at least one scenario (behavioral items) or task with a Verify line (structural items). If you list it here but can't write coverage for it, either remove it or flag it as underspecified._
 - {{Core functionality to be built}}
 - {{Integration points to be created}}
 

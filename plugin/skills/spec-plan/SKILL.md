@@ -81,7 +81,7 @@ Before spawning any spec sub-agents, do **all discovery and research work once**
 
 **Sub-agent 2: Story-Scoped File Map** — For each story: search for related files/modules, identify existing patterns to follow (file:line references), flag files multiple stories will touch. Output: per-story file list with relevance notes plus a shared-files section.
 
-**Sub-agent 3: Shared Architectural Decisions** — For each pair of dependent stories: identify the interface/contract between them (API shape, data types, naming, error handling); document the shared decision so both specs can reference it. Also identify: naming conventions that must be consistent, shared abstractions multiple stories will create/consume, API patterns that must be uniform. Output: numbered list of shared decisions with rationale, specific enough to reference in FIS success criteria.
+**Sub-agent 3: Shared Architectural Decisions** — For each pair of dependent stories: identify the interface/contract between them (API shape, data types, naming, error handling); document the shared decision so both specs can reference it. Also identify: naming conventions that must be consistent, shared abstractions multiple stories will create/consume, API patterns that must be uniform. If a PRD exists (`{PLAN_DIR}/prd.md`), also extract **binding PRD constraints**: requirements that specify explicit capabilities (e.g., "must support remote hosts"), protocol details, security requirements, or user-facing behaviors. These constraints must flow unchanged into FIS success criteria — they are not subject to architectural trade-offs or scope narrowing by individual stories. Output: numbered list of shared decisions with rationale, specific enough to reference in FIS success criteria; plus a separate "Binding PRD Constraints" section listing constraints with source feature IDs.
 
 **Sub-agent 4: External Research** _(only if stories reference external APIs/libraries needing documentation lookup)_ — For each external resource: look up current docs (use the `andthen:documentation-lookup` agent), identify relevant patterns and known gotchas. Output: consolidated reference with one section per resource.
 
@@ -174,12 +174,12 @@ Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) for all sp
 **STANDARD sub-agent** — provide:
 - Story ID, name, scope, acceptance criteria, Key Scenarios (if present), dependencies
 - References: FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`), authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`), technical research (`{PLAN_DIR}/technical-research.md`)
-- Instructions: read technical research for context and shared decisions; read FIS template and guidelines (including Technical Research Separation section); generate FIS that **references** the technical research rather than inlining its content; run Plan-Spec Alignment Check and Self-Check from guidelines; save to `{PLAN_DIR}/{story-name}.md`; report back success/failure, FIS path, confidence score
+- Instructions: read technical research for context and shared decisions; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to this story flows into FIS success criteria unchanged; read FIS template and guidelines (including Technical Research Separation section); generate FIS that **references** the technical research rather than inlining its content; run Plan-Spec Alignment Check and Self-Check from guidelines; save to `{PLAN_DIR}/{story-name}.md`; report back success/failure, FIS path, confidence score
 
 **COMPOSITE sub-agent** — provide:
 - All constituent stories (ID, name, scope, acceptance criteria, Key Scenarios if present)
 - Same references as STANDARD
-- Instructions: read technical research; generate ONE FIS covering all stories with execution groups organized by story (tag each group with its source story ID); **reference** technical research from FIS — do not duplicate codebase analysis or API details into the spec; run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
+- Instructions: read technical research; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to any constituent story flows into FIS success criteria unchanged; generate ONE FIS covering all stories with execution groups organized by story (tag each group with its source story ID); **reference** technical research from FIS — do not duplicate codebase analysis or API details into the spec; run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
 
 #### Wait, Collect, and Update Plan
 
@@ -222,6 +222,7 @@ Delegate to a single opus sub-agent with all generated FIS paths. Provide: plan 
 7. **Plan-vs-FIS alignment** – every plan acceptance criterion must be covered by FIS success criteria; flag any criterion silently narrowed without a scope note
 8. **Intra-story scope contradictions** – items in "What We're NOT Doing" that block a success criterion
 9. **Scenario gaps** – plan Key Scenario seeds not mapped to FIS scenarios; cross-story scenario dependencies (Story B's scenario assumes behavior from Story A that isn't covered)
+10. **PRD-FIS requirements traceability** – if a PRD exists (`{PLAN_DIR}/prd.md`), verify that every PRD feature requirement's acceptance criteria has at least one corresponding FIS scenario. This catches requirements that were narrowed during plan decomposition or lost during spec generation — the plan may legitimately narrow scope (with a scope note), but the FIS should not silently contradict the PRD. Example: a PRD requiring "remote host support" should not produce a FIS that says "always loopback"
 
 Output per finding: severity (CRITICAL/HIGH/MEDIUM/LOW), stories affected, issue description, recommendation, FIS sections to update. Include a summary with total findings by severity, overall readiness (READY/NEEDS FIXES/BLOCKED), and list of FIS files needing updates.
 
