@@ -205,15 +205,22 @@ These compose into structured workflows — from requirements through implementa
 
 # 2. Generate implementation spec (picks up clarified requirements automatically)
 /andthen:spec docs/specs/data-export/
+# Optional GitHub-first handoff:
+/andthen:spec docs/specs/data-export/ --to-issue
 
 # 3. Execute the spec (path printed by spec)
 /andthen:exec-spec <path-to-fis>
+# Or resume from a typed GitHub FIS artifact:
+/andthen:exec-spec --issue 123
 
 # 4. Final review (against requirements)
 /andthen:review-gap <path-to-fis>
 
 # 5. If the review reports actionable findings:
 /andthen:remediate-findings <path-to-gap-review-report>
+# Or directly from a typed GitHub review artifact:
+/andthen:remediate-findings https://github.com/org/repo/issues/789
+/andthen:remediate-findings https://github.com/org/repo/pull/456#issuecomment-123
 ```
 
 ### Plan Workflow (MVP / multi-feature)
@@ -229,9 +236,13 @@ These compose into structured workflows — from requirements through implementa
 # 3. Generate plan (includes PRD creation if needed + story breakdown)
 /andthen:plan docs/specs/dashboard/
 /andthen:plan --issue 42   # or directly from a GitHub issue
+# Optional GitHub-first handoff:
+/andthen:plan docs/specs/dashboard/ --to-issue
 
 # 4a. Execute all stories via pipeline (default per-story review)
 /andthen:exec-plan docs/specs/dashboard/
+# Or resume from a typed GitHub plan artifact:
+/andthen:exec-plan --issue 456
 
 # 4a-alt. Single full-plan review after all stories
 /andthen:exec-plan docs/specs/dashboard/ --review-mode full-plan
@@ -241,12 +252,16 @@ These compose into structured workflows — from requirements through implementa
 
 # 4b. OR use Agent Teams variant for enhanced parallelism (Claude Code only)
 /andthen:exec-plan-team docs/specs/dashboard/
+# Or resume from the typed GitHub plan artifact:
+/andthen:exec-plan-team --issue 456
 # Same review modes also work here:
 # /andthen:exec-plan-team docs/specs/dashboard/ --review-mode full-plan
 # /andthen:exec-plan-team docs/specs/dashboard/ --review-mode none
 
 # 4c. OR manually: batch-create all specs, then execute per story
 /andthen:spec-plan docs/specs/dashboard/
+# Or resume from the typed GitHub plan artifact:
+/andthen:spec-plan --issue 456
 /andthen:exec-spec docs/specs/dashboard/s01-project-setup.md
 /andthen:review-gap docs/specs/dashboard/s01-project-setup.md
 /andthen:remediate-findings <path-to-gap-review-report>   # when review-gap fails
@@ -255,6 +270,8 @@ These compose into structured workflows — from requirements through implementa
 # 5. Final review (single-feature workflow, or manual review after `--review-mode none`)
 /andthen:review-gap
 ```
+
+`--to-issue` / `--to-pr` outputs are typed AndThen artifacts, so downstream skills can continue directly from GitHub instead of requiring local file paths.
 
 ## License
 

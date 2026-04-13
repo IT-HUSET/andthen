@@ -61,7 +61,11 @@ You are the orchestrator: parse input, delegate codebase analysis and research t
 
 ### 0. Parse Input & Get Requirements
 
-**If `--issue` flag present**: use `gh issue view <number>` to fetch issue details. Use as feature request. Store issue number for FIS reference.
+**If `--issue` flag present**: use `gh issue view <number>` to fetch issue details, then inspect the body for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`.
+- If `artifact_type: fis-bundle`, **STOP** — the spec already exists. Direct the user to `andthen:exec-spec`, `andthen:review-doc`, or the local FIS path instead of regenerating it.
+- If `artifact_type: plan-bundle`, **STOP** — the issue contains a plan, not a single-feature request. Direct the user to `story {story_id} of <path-to-plan.md>`, `andthen:spec-plan`, or `andthen:exec-plan`.
+- If the issue contains another typed workflow artifact (`triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and direct the user to the matching downstream skill.
+- Otherwise use the issue as the feature request and store the issue number for FIS reference.
 
 **If ARGUMENTS is a directory with `requirements-clarification.md`** (from `andthen:clarify`): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
@@ -129,7 +133,15 @@ Use the template in the **Appendix** below. Then read and follow the FIS authori
 - Set the story's **Status** field to `Spec Ready`
 
 ### Publish to GitHub _(if --to-issue)_
-Create a GitHub issue with `gh issue create`: title `[FIS] {feature-name}`, body = FIS contents, labels `spec`, `fis`. Print the issue URL.
+Follow `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
+- `artifact_type`: `fis-bundle`
+- Title: `[FIS] {feature-name}`
+- Primary file: generated FIS (`fis_path`)
+- Companion files: include `technical-research.md` when it exists; if this spec came from a plan story, also include the current `plan.md`
+- Metadata: always set `fis_path`; if this spec came from a plan story, also set `plan_path` and `story_ids` (all constituent story IDs for composite/shared FIS)
+- Labels: `spec`, `fis`, `andthen-artifact`
+
+Print the issue URL and the local primary path (the generated FIS).
 
 
 ---

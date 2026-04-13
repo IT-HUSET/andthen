@@ -1,6 +1,6 @@
 {
   "name": "andthen",
-  "version": "0.10.6",
+  "version": "0.10.7",
   "description": "AndThen workflow system: structured agentic development from requirements to shipped code",
   "author": {
     "name": "Tobias Löfstrand"

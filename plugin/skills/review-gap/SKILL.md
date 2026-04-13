@@ -39,6 +39,13 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
 #### Requirements Discovery
 When `ADDITIONAL_CONTEXT` is a directory path or a plan file, discover the full requirements baseline rather than treating the single input as the only source.
 
+**GitHub issue or URL** — fetch the body and inspect the typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` before treating it as prose:
+- `artifact_type: plan-bundle` — extract embedded files to `.agent_temp/github-artifacts/{github-id}-plan-bundle/` and continue as a directory / plan input so sibling PRD and FIS discovery still works
+- `artifact_type: fis-bundle` — extract embedded files to `.agent_temp/github-artifacts/{github-id}-fis-bundle/` and continue as a specific FIS input
+- Any `*-review` artifact — **STOP** and direct the user to `andthen:remediate-findings`
+- Any other typed artifact — **STOP** and direct the user to the matching workflow skill. Do not infer compatibility from prose content
+- Untyped issue or URL — use as-is without further discovery
+
 **Directory path** — search the directory (and its parent, for cases where a subdirectory like `fis/` is given) for:
 - `plan.md` — the implementation plan with story breakdown
 - `prd.md` — the product requirements document
@@ -169,5 +176,6 @@ If PUBLISH_ISSUE is `true`:
 2. Print the issue URL
 
 If PUBLISH_PR is set:
-1. Post the report as a PR comment using `gh pr comment <number> --body "..."`
-2. Print confirmation
+1. Follow the optional GitHub publishing flow in `${CLAUDE_PLUGIN_ROOT}/references/report-output-conventions.md`
+   Publish target: typed PR comment. If the posting command does not return a direct comment URL, resolve it via follow-up GitHub lookup before completing
+2. Print the direct comment URL

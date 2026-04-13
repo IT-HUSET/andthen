@@ -247,8 +247,8 @@ If PUBLISH_ISSUE is `true`:
 
 If PUBLISH_PR is set:
 1. Follow the optional GitHub publishing flow in `${CLAUDE_PLUGIN_ROOT}/references/report-output-conventions.md`
-   Publish target: PR comment via `gh pr comment <number> --body "..."`
-2. Print confirmation
+   Publish target: typed PR comment. If the posting command does not return a direct comment URL, resolve it via follow-up GitHub lookup before completing
+2. Print the direct comment URL
 
 ## MULTI-STEP SESSIONS
 

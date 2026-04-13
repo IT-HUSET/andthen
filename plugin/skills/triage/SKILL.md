@@ -1,6 +1,6 @@
 ---
 description: "Investigate, diagnose, and fix issues. Trigger on 'debug this', 'what's broken', 'triage', 'fix this bug'. Flags: --plan-only, --to-issue."
-argument-hint: "[Scope] [--plan-only] [--to-issue]"
+argument-hint: "[Scope | --issue <number>] [--plan-only] [--to-issue]"
 ---
 
 # Triage and Fix Implementation Issues
@@ -46,10 +46,16 @@ You orchestrate the workflow:
 
 ### 1. Assess Current State
 
-1. Inspect the current implementation state, pending changes, and recent evolution.
-2. Understand the project structure and the scope implied by `SCOPE`.
-3. Read additional docs only when they change the diagnosis or fix.
-4. If `STATE.md` exists, use it to understand the current phase, active stories, blockers, and recent decisions.
+1. If `SCOPE` is a GitHub issue URL or `--issue <number>` is used, fetch the issue body and inspect for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
+   - `triage-plan` → compatible; use the embedded fix plan as scope for the investigation/fix run
+   - `triage-completion` → **STOP** — the triage is already complete. Show the user the completion summary
+   - `plan-bundle`, `fis-bundle` → **STOP** — direct user to `andthen:exec-plan` / `andthen:exec-spec`
+   - Any `*-review` report → **STOP** — direct user to `andthen:remediate-findings`
+   - Untyped issue → use issue content as the scope description
+2. Inspect the current implementation state, pending changes, and recent evolution.
+3. Understand the project structure and the scope implied by `SCOPE`.
+4. Read additional docs only when they change the diagnosis or fix.
+5. If `STATE.md` exists, use it to understand the current phase, active stories, blockers, and recent decisions.
 
 **Gate**: Baseline documented
 
@@ -95,7 +101,13 @@ If `MODE=plan-only`, stop after producing a structured fix plan:
 - Risk
 - Dependencies
 
-If `--to-issue` is set, publish that plan as a GitHub issue and share the URL.
+If `--to-issue` is set, publish that plan as a typed GitHub issue per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
+- `artifact_type`: `triage-plan`
+- Labels: `triage`, `andthen-artifact`
+- Primary file: `{SCOPE-slug}-triage-plan.md` — use a slug derived from the scope description (e.g. `auth-timeout-triage-plan.md`)
+- `canonical_local_primary`: use the same slug-based filename under `.agent_temp/triage/`
+
+Share the issue URL.
 
 **Gate**: Fix plan delivered and execution stopped
 
@@ -135,7 +147,13 @@ Include verification evidence in the completion summary:
 - Visual validation when UI changed
 - Runtime when you exercised the app or flow directly
 
-If `--to-issue` is set in fix mode, publish a completion issue summarizing issues found, fixes applied, and verification results.
+If `--to-issue` is set in fix mode, publish a completion issue per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
+- `artifact_type`: `triage-completion`
+- Labels: `triage`, `andthen-artifact`
+- Primary file: `{SCOPE-slug}-triage-completion.md` — use the same slug convention as `triage-plan`
+- `canonical_local_primary`: use the same slug-based filename under `.agent_temp/triage/`
+- Primary artifact content: the completion summary (issues found, root causes, fixes applied, verification evidence)
+- Companion files: include the original fix plan when one was produced in plan-only mode before this fix run
 
 **Gate**: Fixes verified end to end
 

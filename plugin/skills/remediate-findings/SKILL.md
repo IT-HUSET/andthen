@@ -1,7 +1,7 @@
 ---
 description: Implement actionable findings from a review report with minimal, guideline-aligned fixes, re-validation, and plan/FIS status updates. Use after review-gap, review-code, or similar review reports.
 user-invocable: true
-argument-hint: <review-report-path | report URL>
+argument-hint: <review-report-path | report URL | GitHub issue/comment URL>
 ---
 
 # Remediate Findings
@@ -20,6 +20,8 @@ REPORT_SOURCE: $ARGUMENTS
 /remediate-findings docs/specs/feature/feature-gap-review-codex-2026-04-10.md
 /remediate-findings https://example.com/reviews/feature-gap-review.md
 /remediate-findings https://github.com/org/repo/wiki/feature-gap-review
+/remediate-findings https://github.com/org/repo/issues/123
+/remediate-findings https://github.com/org/repo/pull/456#issuecomment-789
 ```
 
 
@@ -48,13 +50,19 @@ REPORT_SOURCE: $ARGUMENTS
 
 ### Phase 1: Resolve Report and Targets
 
-1. Read the review report from the provided path or direct report URL.
+1. Resolve `REPORT_SOURCE`:
+   - Local report path or direct raw report URL: read the report content directly
+   - GitHub issue URL or PR comment URL: fetch the body and inspect the typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`
+     - Accept `gap-review`, `code-review`, `architecture-review`, `doc-review`, or `council-review`
+     - Extract the embedded primary report and any companion files to `.agent_temp/github-artifacts/{github-id}-{artifact_type}/`
+     - Use the typed metadata to recover `report_path`, `plan_path`, `fis_path`, `story_ids`, `requirements_baseline`, and `implementation_targets`
+     - If the GitHub artifact is typed but not a review report, **STOP** and ask for the actual review artifact instead
 2. Extract:
    - Review type (`review-gap`, `review-code`, or other)
    - Report verdict (PASS/FAIL) when present
    - Findings, severity, remediation recommendations, and reviewed scope
    - Referenced implementation targets, requirements baseline, FIS path, `plan.md`, and story IDs when available
-3. If the input URL does not contain the actual review report content, stop and ask for the report itself instead of guessing from an issue or PR shell page.
+3. If the input URL does not contain the actual review report content or a valid typed GitHub review artifact, stop and ask for the report itself instead of guessing from an issue or PR shell page.
 4. If the report has no actionable findings, stop and say so.
 
 **Gate**: Actionable findings and the remediation target are explicit

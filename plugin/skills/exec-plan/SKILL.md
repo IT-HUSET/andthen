@@ -1,6 +1,6 @@
 ---
 description: Execute an entire implementation plan through a pipeline (spec-plan per phase, then exec-spec with configurable review mode)
-argument-hint: <path-to-plan-directory> [--review-mode per-story|none|full-plan]
+argument-hint: <path-to-plan-directory | --issue <number> | issue URL> [--review-mode per-story|none|full-plan]
 ---
 
 # Execute Plan
@@ -11,18 +11,19 @@ Pre-generates specs per phase via `andthen:spec-plan`, then executes using **par
 
 
 ## VARIABLES
-PLAN_DIR: positional argument from `$ARGUMENTS`
+PLAN_SOURCE: positional argument from `$ARGUMENTS`
 REVIEW_MODE: from `--review-mode` flag (`per-story`, `none`, or `full-plan`; default `per-story`)
 
 
 ## USAGE
 ```
 /exec-plan path/to/plan [--review-mode per-story|none|full-plan]
+/exec-plan --issue 123 [--review-mode per-story|none|full-plan]
 ```
 
 ## INSTRUCTIONS
 
-Make sure `PLAN_DIR` is provided – otherwise **STOP** and ask.
+Make sure `PLAN_SOURCE` is provided – otherwise **STOP** and ask.
 
 ### Core Rules
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** in CLAUDE.md / AGENTS.md before starting.
@@ -68,11 +69,13 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`: `check-stubs.sh`, `check-wiring.s
 
 ### Step 1: Parse Plan
 
-0. **Load session state** – Read `STATE.md` (from Project Document Index, default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
+0. Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Incompatible typed artifacts → **STOP** and direct the user to the correct skill.
 
-1. Read `PLAN_DIR/plan.md`; if missing, **STOP** and recommend the `andthen:plan` skill first
-2. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
-3. Build execution plan respecting phase ordering and dependency chains
+1. **Load session state** – Read `STATE.md` (from Project Document Index, default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
+
+2. Read `PLAN_DIR/plan.md`; if missing, **STOP** and recommend the `andthen:plan` skill first
+3. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
+4. Build execution plan respecting phase ordering and dependency chains
 
 **Gate**: Plan parsed and phases identified
 
@@ -145,6 +148,8 @@ Invoke the `andthen:ops` skill to update `plan.md`: Status → `Done`, FIS field
 
 After ops completes, **re-read plan.md and the FIS** to verify updates applied.
 
+If `PLAN_SOURCE_MODE = github-artifact`, apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` now.
+
 **Gate**: All stories in current phase completed, verified, and plan.md + FIS checkboxes updated
 
 #### Pipeline Flow Example
@@ -177,6 +182,9 @@ Run build, run tests, review cross-story integration. Include evidence per `${CL
 Spawn a general-purpose sub-agent to refresh: README (new features, changed APIs, setup steps), CHANGELOG (entries for each story, match existing format), and affected docs.
 
 **Gate**: Documentation updated
+
+### Step 6: Canonical Continuation Sync _(if `PLAN_SOURCE_MODE = github-artifact`)_
+Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` as the final gate.
 
 
 ## FAILURE HANDLING

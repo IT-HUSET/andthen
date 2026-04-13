@@ -6,6 +6,17 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.10.7] – 2026-04-13
+
+### Added
+- **Typed GitHub artifact envelope** (`github-artifact-roundtrip`, `plan`, `spec`, `review-gap`, `review-code`, `architecture-review`, `triage`) – GitHub issues and PR comments now have a machine-consumable AndThen envelope with artifact metadata plus embedded file blocks for round-trip workflows
+
+### Changed
+- **GitHub-first execution paths** (`exec-spec`, `spec-plan`, `exec-plan`, `review-gap`, `remediate-findings`) – downstream skills now accept typed GitHub issues / PR comment URLs and extract embedded artifacts into `.agent_temp/github-artifacts/...` before continuing
+- **GitHub publish contract** (`report-output-conventions`, `quick-implement`) – PR-published review artifacts now require direct comment URLs, and `quick-implement` prints the created PR URL / number for follow-on PR workflows
+- **Plan-backed FIS round-trip metadata** (`spec`, `exec-spec`) – `fis-bundle` now preserves `plan_path` / `story_ids`, requires deterministic primary-file resolution via `canonical_local_primary`, and restores plan context before plan/STATE updates
+- **Canonical continuation sync** (`github-artifact-roundtrip`, `spec-plan`, `exec-plan`, `exec-plan-team`, `exec-spec`) – GitHub-extracted bundles are now explicitly treated as working mirrors that must sync back to local canonical files or refreshed GitHub artifacts before completion
+
 ## [0.10.6] – 2026-04-12
 
 ### Added

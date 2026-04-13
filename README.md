@@ -246,6 +246,8 @@ You can also start directly from a GitHub issue:
 
 ```bash
 /andthen:spec docs/specs/data-export/
+# Optional GitHub-first handoff:
+/andthen:spec docs/specs/data-export/ --to-issue
 ```
 
 This reads your clarified requirements, analyzes the codebase, and produces a **Feature Implementation Specification (FIS)** – the blueprint for autonomous implementation. No code changes happen here.
@@ -260,6 +262,8 @@ docs/specs/data-export/data-export.md
 /andthen:plan docs/specs/data-export/
 # Or directly from a GitHub issue:
 /andthen:plan --issue 42
+# Optional GitHub-first handoff:
+/andthen:plan docs/specs/data-export/ --to-issue
 ```
 
 This picks up `requirements-clarification.md` automatically (or fetches the GitHub issue), creates a PRD (filling any remaining gaps with a brief targeted interview), and breaks it into sequenced stories with phases and dependencies.
@@ -273,11 +277,15 @@ docs/specs/data-export/plan.md
 
 ```bash
 # Single feature:
-/andthen:exec-spec
+/andthen:exec-spec docs/specs/data-export/data-export.md
+# Or resume from a typed GitHub FIS artifact:
+/andthen:exec-spec --issue 123
 
 # Multi-feature (manual story-by-story loop):
 # Option A: generate all story specs up front
 /andthen:spec-plan docs/specs/data-export/
+# Or resume from a typed GitHub plan artifact:
+/andthen:spec-plan --issue 456
 # Option B: generate one story spec at a time
 # /andthen:spec docs/specs/data-export/s01-story-name.md
 /andthen:exec-spec docs/specs/data-export/s01-story-name.md
@@ -291,6 +299,8 @@ docs/specs/data-export/plan.md
 
 # Multi-feature (default per-story review, automated):
 /andthen:exec-plan docs/specs/data-export/
+# Or resume from a typed GitHub plan artifact:
+/andthen:exec-plan --issue 456
 
 # Multi-feature (single full-plan review after all stories, automated):
 /andthen:exec-plan docs/specs/data-export/ --review-mode full-plan
@@ -300,6 +310,8 @@ docs/specs/data-export/plan.md
 
 # Claude Code Agent Teams variant:
 /andthen:exec-plan-team docs/specs/data-export/ --review-mode full-plan
+# Or resume from the typed GitHub plan artifact:
+/andthen:exec-plan-team --issue 456 --review-mode full-plan
 ```
 
 **Step 4: Review**
@@ -319,10 +331,20 @@ For `exec-plan` and `exec-plan-team`, this depends on `--review-mode`:
 
 `review-gap` compares implementation against requirements and produces findings with a remediation plan.
 
+When `spec`, `plan`, `review-gap`, or `review-code` publish to GitHub, the issue / PR comment is a **typed AndThen artifact**. That means you can continue from GitHub directly:
+- `/andthen:exec-spec --issue <fis-issue-number>`
+- `/andthen:spec-plan --issue <plan-issue-number>`
+- `/andthen:exec-plan --issue <plan-issue-number>`
+- `/andthen:exec-plan-team --issue <plan-issue-number>`
+- `/andthen:remediate-findings <review-issue-url-or-pr-comment-url>`
+
 **Step 5: Remediate Findings** *(when review returns actionable gaps)*
 
 ```bash
 /andthen:remediate-findings <path-to-review-report>
+# Or directly from a typed GitHub review artifact:
+/andthen:remediate-findings https://github.com/org/repo/issues/789
+/andthen:remediate-findings https://github.com/org/repo/pull/456#issuecomment-123
 ```
 
 This re-validates the findings against the current workspace, applies the smallest safe fixes, re-runs the relevant verification, and updates plan/FIS state when the reviewed work is now complete.

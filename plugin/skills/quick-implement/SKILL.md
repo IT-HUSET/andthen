@@ -47,8 +47,12 @@ ARGUMENTS: $ARGUMENTS
 
 **If `--issue` flag present:**
 1. Extract issue number and fetch with `gh issue view <number>`
-2. Set `CREATE_PR=true` (unless `--no-pr` specified)
-3. Create feature branch following project conventions
+2. If the issue body contains a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
+   - `artifact_type: triage-plan` is compatible — use the embedded plan as the implementation scope
+   - Any `*-review` artifact is **not** compatible — stop and direct the user to `andthen:remediate-findings`
+   - `plan-bundle`, `fis-bundle`, and `triage-completion` are **not** compatible — stop and direct the user to the appropriate plan / spec / triage workflow
+3. Set `CREATE_PR=true` (unless `--no-pr` specified)
+4. Create feature branch following project conventions
 
 **Otherwise:** use inline spec from arguments; set `CREATE_PR=true` only if `--pr` flag present.
 
@@ -103,6 +107,7 @@ Include verification evidence per `${CLAUDE_PLUGIN_ROOT}/references/verification
 1. Commit with descriptive message (reference issue number if applicable)
 2. Push branch to remote
 3. Create PR: `gh pr create` with issue link ("Fixes #<number>" if applicable), implementation description, relevant labels
+4. Print the PR URL and number
 
 **Gate**: PR created (or changes committed if no PR)
 

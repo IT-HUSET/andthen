@@ -1,6 +1,6 @@
 ---
 description: Implement code from a Feature Implementation Specification. Trigger on 'execute spec', 'implement this FIS', 'build from spec'.
-argument-hint: <path-to-fis>
+argument-hint: <path-to-fis | --issue <number> | issue URL>
 ---
 
 # Execute Feature Implementation Specification
@@ -8,13 +8,13 @@ argument-hint: <path-to-fis>
 Execute a fully-defined FIS document as an **orchestrator**, delegating all execution groups to sub-agents _(if supported by your coding agent)_. Each execution group is a cluster of related tasks executed by a single sub-agent.
 
 ## VARIABLES
-FIS_FILE_PATH: $ARGUMENTS
+FIS_SOURCE: $ARGUMENTS
 
 
 ## INSTRUCTIONS
 
 ### Core Rules
-- **Make sure `FIS_FILE_PATH` is provided** – otherwise **STOP** immediately and ask for it.
+- **Make sure `FIS_SOURCE` is provided** – otherwise **STOP** immediately and ask for it.
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** in CLAUDE.md / AGENTS.md before starting.
 - **Complete Implementation**: 100% completion required - no partial work
 - **FIS is source of truth** – follow it exactly
@@ -119,15 +119,29 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`:
 
 ## WORKFLOW
 
-### Step 1: Load FIS and Prepare
-1. Read FIS at _`FIS_FILE_PATH`_
-2. Understand vital sections: Success Criteria, Scope, Architecture, Implementation Plan
-3. **Read Technical Research** – if the FIS references a `technical-research.md` (companion document with codebase analysis, API research, architecture trade-offs), read it for implementation context. **Treat findings as leads to verify, not facts to trust** — file:line references, API behaviors, and library details may be stale. Confirm key references against the current codebase before relying on them. Include relevant verified findings when injecting context into sub-agent prompts.
-4. Understand execution group structure – identify dependencies, parallelism, critical path
-5. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview
-6. Read project learnings document (e.g. _`LEARNINGS.md`_, _`implementation-notes.md`_) for traps and non-obvious patterns
-7. Create task tracking for ALL execution groups (implementation + validation)
-8. **Update project state** (if STATE.md exists and FIS originated from a plan): `andthen:ops update-state active-story {story_id} "{story_name}" "In Progress"`
+### Step 1: Resolve FIS Source and Prepare
+1. Resolve `FIS_SOURCE` to a local `FIS_FILE_PATH`:
+   - Local file path: use it directly
+   - `--issue <number>` or GitHub issue URL: fetch the issue body and inspect the typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Require `artifact_type: fis-bundle`; extract all embedded files preserving their repo-relative paths; set `FIS_FILE_PATH` from `canonical_local_primary`
+   - If `canonical_local_primary` is missing, ambiguous, or does not match an extracted file, **STOP**
+   - Recover metadata from the envelope:
+     - `FIS_CANONICAL_PATH` = `fis_path` when present, otherwise `canonical_local_primary`
+     - `PLAN_FILE_PATH` = `plan_path` when present; if it refers to an embedded companion file, use the extracted copy
+     - `STORY_IDS` = `story_ids`
+   - If the envelope says the FIS originated from a plan (`plan_path` present) but omits `story_ids`, **STOP** — plan-backed FIS execution needs that context for plan/state updates
+   - If matching canonical local file paths already exist in the workspace, switch `FIS_FILE_PATH` / `PLAN_FILE_PATH` to those real files and treat the extracted directory as a read-only mirror
+   - If `plan_path` is present but no embedded or local `PLAN_FILE_PATH` can actually be resolved, **STOP** — plan-backed FIS execution cannot update source plan state without the plan file
+   - Otherwise set `FIS_SOURCE_MODE = github-artifact`
+   - If the GitHub artifact is typed but incompatible (`plan-bundle`, `triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and direct the user to the matching workflow skill
+   - If the GitHub issue is untyped, **STOP** — `exec-spec` requires a local FIS path or a typed GitHub FIS artifact
+2. Read FIS at _`FIS_FILE_PATH`_
+3. Understand vital sections: Success Criteria, Scope, Architecture, Implementation Plan
+4. **Read Technical Research** – if the FIS references a `technical-research.md` (companion document with codebase analysis, API research, architecture trade-offs), read it for implementation context. **Treat findings as leads to verify, not facts to trust** — file:line references, API behaviors, and library details may be stale. Confirm key references against the current codebase before relying on them. Include relevant verified findings when injecting context into sub-agent prompts.
+5. Understand execution group structure – identify dependencies, parallelism, critical path
+6. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview
+7. Read project learnings document (e.g. _`LEARNINGS.md`_, _`implementation-notes.md`_) for traps and non-obvious patterns
+8. Create task tracking for ALL execution groups (implementation + validation)
+9. **Update project state** (if STATE.md exists and the FIS originated from a plan): restore story context from `STORY_IDS`. For a single-story FIS, use that story directly. For a composite/shared FIS, mark the active work as the composite/story set rather than inventing a single story ID.
 
 ### Step 1.5: Scaffold Scenario Tests
 If the FIS has a **Scenarios** and/or **Testing Strategy** section, spawn the `andthen:qa-test-engineer` agent _(if supported)_ to write test skeletons derived from the scenarios, organized by paired execution group. Run the suite to confirm tests fail (red) — they become acceptance gates for Step 2. These are proof-of-work for the behavioral scenarios — they verify *intent* (what should be true) rather than incidentally confirming what the implementation happens to produce. Verify lines and verification gates cover other proof dimensions (existence, wiring, structural correctness).
@@ -199,7 +213,7 @@ Sub-agent invokes the `andthen:review-code` skill covering: static analysis, lin
 Mark completed task, success-criteria, and Final Validation Checklist checkboxes in the FIS document.
 
 #### 4c. Update Source Plan (REQUIRED GATE – if FIS from a plan)
-Invoke the `andthen:ops` skill to: set story Status to `Done`, set FIS field path, check off acceptance criteria, update Story Catalog table. Note any scope changes or deviations. After ops completes, **re-read plan and FIS files** to verify updates applied (`ops` runs in fork context and modifications may not be visible in your current state).
+Use restored `PLAN_FILE_PATH` + `STORY_IDS`. Invoke the `andthen:ops` skill to update the source plan: set each covered story Status to `Done`, set the FIS field path, check off acceptance criteria, and update the Story Catalog table. For composite/shared FIS, update **all** constituent stories listed in `STORY_IDS`. Note any scope changes or deviations. After ops completes, **re-read plan and FIS files** to verify updates applied (`ops` runs in fork context and modifications may not be visible in your current state).
 
 #### 4d. Update Project State (if STATE.md exists)
 Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Story Runs` → `STATE.md`).
@@ -208,6 +222,17 @@ Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Story Runs`
 
 ### Step 5: Iteration (if needed)
 If success criteria unmet: analyze gaps, create targeted fix groups, execute Steps 2-4 again.
+
+### Step 6: Canonical Continuation Sync _(if `FIS_SOURCE_MODE = github-artifact`)_
+The extracted `.agent_temp/github-artifacts/...` directory is only a working mirror. Before finishing:
+- If the canonical local FIS / plan paths exist in the workspace, verify all final updates landed there
+- Otherwise update the source GitHub issue to the latest typed `fis-bundle`, including:
+  - Updated FIS contents
+  - Updated `technical-research.md` when present
+  - Updated `plan.md` when this was a plan-backed FIS
+  - `fis_path`, `plan_path`, and `story_ids` metadata reflecting the final state
+
+Do not finish with the temp mirror as the only updated copy.
 
 ## Post-Completion
 Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Story Runs` → `Learnings`) for learnings-file updates. Do not create a new learnings file from exec-spec.

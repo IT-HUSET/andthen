@@ -69,7 +69,10 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 ### 1. Input Validation & PRD Detection
 
 1. **Parse INPUT** - Determine type:
-   - **`--issue` flag present** (or INPUT refers to a GitHub issue): Extract issue number from INPUT, use `gh issue view <number>` to fetch issue details (title, body, labels, comments). Use issue content as requirements input. Store issue number for reference in generated plan. → proceed to Step 1b
+   - **`--issue` flag present** (or INPUT refers to a GitHub issue): Extract issue number from INPUT, use `gh issue view <number>` to fetch issue details (title, body, labels, comments), then inspect the body for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`.
+     - If `artifact_type: plan-bundle`, extract embedded files preserving their repo-relative paths; treat the extracted directory as `INPUT` and proceed as if the user had provided the local plan directory directly.
+     - If the issue contains another typed workflow artifact (`fis-bundle`, `triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and direct the user to the matching downstream skill instead of re-planning from the artifact body.
+     - Otherwise use the issue content as requirements input. Store issue number for reference in generated plan. → proceed to Step 1b
    - **Directory with PRD**: `INPUT` is a directory containing `prd.md` → proceed to Step 2
    - **Directory with prior artifacts**: `INPUT` is a directory containing `requirements-clarification.md` (from `andthen:clarify`) and/or a draft PRD (`prd-draft.md`), but no finalized `prd.md` → proceed to Step 1c
    - **File path**: Read file. If it is a prior artifact (`prd-draft.md` or `requirements-clarification.md`) → proceed to Step 1c. Otherwise → proceed to Step 1b
@@ -425,8 +428,13 @@ When complete, print the output's **relative path from the project root**. Do no
 
 ### Publish to GitHub _(if --to-issue)_
 If PUBLISH_ISSUE is `true`:
-1. Create a GitHub issue with title `[Plan] {project-name}: Implementation Plan`, body from plan.md, and label `plan` (create if it doesn't exist)
-2. Print the issue URL
+1. Follow `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`
+   - `artifact_type`: `plan-bundle`
+   - Title: `[Plan] {project-name}: Implementation Plan`
+   - Primary file: `plan.md`
+   - Companion files: `prd.md`; include `technical-research.md` when it exists
+   - Labels: `plan`, `andthen-artifact`
+2. Print the issue URL and the local primary path (`plan.md`)
 
 
 ## FOLLOW-UP ACTIONS

@@ -18,5 +18,7 @@ Use this reference when a review skill needs to explain where to write its repor
 ## Optional GitHub Publishing
 Only include this when the calling skill already supports `--to-issue` or `--to-pr`.
 
-- **Publish to issue**: Create a GitHub issue using the skill-specific title template and the report content as the body, then print the issue URL.
-- **Publish to PR**: Post the report as a PR comment using the skill-specific command or integration, then print confirmation.
+- **Typed artifact**: Follow `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Use the report suffix as the default `artifact_type` (for example `gap-review` or `code-review`) unless the calling skill requires a narrower type.
+- **Primary file**: The report file is the primary artifact. Populate metadata with `report_path`, and include `plan_path`, `fis_path`, `story_ids`, `requirements_baseline`, and `implementation_targets` when the report knows them.
+- **Publish to issue**: Create a GitHub issue using the skill-specific title template and the typed artifact body, then print the issue URL.
+- **Publish to PR**: Post the same typed artifact body as a PR comment using the skill-specific command or integration. If the posting command does not return a direct comment URL, resolve it via follow-up lookup, then print that direct comment URL.

@@ -54,7 +54,13 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
 ### 1. Parse and Assess Input
 
 1. **Parse INPUT** - Determine type: inline description, file path, `--issue`, or URL
-   - If `--issue` flag present (or INPUT refers to a GitHub issue): use `gh issue view <number>` to fetch issue details (title, body, labels, comments). Use issue content as requirements input. Store issue number for reference in output.
+   - If `--issue` flag present (or INPUT refers to a GitHub issue): use `gh issue view <number>` to fetch issue details (title, body, labels, comments). Inspect the body for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
+     - `plan-bundle` → **STOP** — direct user to `andthen:exec-plan`, `andthen:spec-plan`, or `andthen:plan`
+     - `fis-bundle` → **STOP** — direct user to `andthen:exec-spec`
+     - `triage-plan` → **STOP** — direct user to `andthen:quick-implement` or `andthen:triage`
+     - `triage-completion` → **STOP** — this is a completed triage report, not actionable requirements
+     - Any `*-review` report → **STOP** — direct user to `andthen:remediate-findings`
+     - Otherwise use issue content as requirements input. Store issue number for reference in output.
    - If file path: Read and extract requirements
    - If URL: Fetch and extract requirements
    - If description: Use directly

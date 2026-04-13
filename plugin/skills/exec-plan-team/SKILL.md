@@ -1,6 +1,6 @@
 ---
 description: Execute an implementation plan through an Agent Team pipeline with configurable review mode (requires Agent Teams)
-argument-hint: <path-to-plan> [path-to-code-repo] [--review-mode per-story|none|full-plan] [--worktree]
+argument-hint: <path-to-plan | --issue <number> | issue URL> [path-to-code-repo] [--review-mode per-story|none|full-plan] [--worktree]
 ---
 
 # Execute Plan (Agent Teams)
@@ -11,7 +11,7 @@ Execute ALL stories in an implementation plan (from `andthen:plan`) through a pa
 
 
 ## VARIABLES
-PLAN_DIR: $0
+PLAN_SOURCE: $0
 CODE_DIR: $1
 REVIEW_MODE: parse from `--review-mode` flag (`per-story`, `none`, or `full-plan`; default `per-story`)
 USE_WORKTREE: parse from `--worktree` flag (default: `false`; `--worktree` sets to `true`)
@@ -22,6 +22,7 @@ BASE_BRANCH: resolved at startup — the current branch of `CODE_DIR` when execu
 
 ```
 /exec-plan-team path/to/plan [path/to/code/repo] [--review-mode per-story|none|full-plan] [--worktree]
+/exec-plan-team --issue 123 [path/to/code/repo] [--review-mode per-story|none|full-plan] [--worktree]
 ```
 
 Omit `CODE_DIR` for single-repo projects; provide it when plan/specs live in a different repo from the code. `--worktree` enables isolated git worktrees for parallel execution; without it, stories run sequentially on the current branch (`[P]` markers are ignored).
@@ -29,7 +30,11 @@ Omit `CODE_DIR` for single-repo projects; provide it when plan/specs live in a d
 
 ## INSTRUCTIONS
 
-Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the user to provide the path to the plan directory.
+Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately and ask the user to provide the path to the plan directory or the typed GitHub plan artifact.
+
+### Resolve PLAN_SOURCE
+
+Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` (run before `Resolve CODE_DIR`). Incompatible typed artifacts → **STOP** and direct the user to the correct skill.
 
 ### Resolve CODE_DIR
 
@@ -37,13 +42,14 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 
 1. If `CODE_DIR` was provided: verify it is a git repository (`git -C {CODE_DIR} rev-parse --git-dir`). Resolve to absolute path.
 2. If `CODE_DIR` was NOT provided, **auto-detect**:
-   a. Get the git root of PLAN_DIR: `git -C {PLAN_DIR} rev-parse --show-toplevel`
-   b. Get the git root of CWD: `git rev-parse --show-toplevel`
-   c. If they are the **same repo** → `CODE_DIR` = that git root
-   d. If they are **different repos** → `CODE_DIR` = CWD's git root (multi-repo: plan is in a separate repo)
+   a. If `PLAN_SOURCE_MODE = github-artifact`: set `CODE_DIR` = CWD's git root. GitHub-extracted artifacts in `.agent_temp/` are not themselves git repos, so repo inference must come from the current workspace. If the code lives in another repo, the user must provide `CODE_DIR` explicitly.
+   b. Otherwise get the git root of PLAN_DIR: `git -C {PLAN_DIR} rev-parse --show-toplevel`
+   c. Get the git root of CWD: `git rev-parse --show-toplevel`
+   d. If they are the **same repo** → `CODE_DIR` = that git root
+   e. If they are **different repos** → `CODE_DIR` = CWD's git root (multi-repo: plan is in a separate repo)
 3. Resolve `CODE_DIR` to an **absolute path** and use it throughout all remaining steps.
 4. Resolve `BASE_BRANCH`: `git -C {CODE_DIR} rev-parse --abbrev-ref HEAD` — this is the branch all work happens on (sequential) or merges back to (worktree mode).
-5. Log: `"CODE_DIR resolved to: {CODE_DIR} (source: explicit | same-repo | multi-repo-auto), BASE_BRANCH: {BASE_BRANCH}"`
+5. Log: `"CODE_DIR resolved to: {CODE_DIR} (source: explicit | same-repo | multi-repo-auto | github-artifact-auto), BASE_BRANCH: {BASE_BRANCH}"`
 
 **Multi-repo rules** (when CODE_DIR ≠ PLAN_DIR's git root):
 - All git operations target `CODE_DIR` – never the plan repo
@@ -72,6 +78,7 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 - **Wave N+1 worktrees must be created AFTER Wave N merges complete** – branching from pre-merge `{BASE_BRANCH}` causes guaranteed conflicts
 - **Wave N+1 merge must wait for Wave N reviews** (`per-story`) – reviews may fix code on `{BASE_BRANCH}`, so the merge target must be stable before merging. W(N+1) *impl* can overlap with W(N) reviews (worktrees are isolated), but the *merge* cannot
 - **Only the orchestrator writes to STATE.md** – implementers and reviewers must NOT update STATE.md (avoids race conditions with parallel agents)
+- **GitHub artifact mirrors are scratch space** – when `PLAN_SOURCE_MODE = github-artifact`, apply the Plan-Bundle Continuation Sync before finishing
 
 ### Helper Scripts
 Helper scripts are available in `${CLAUDE_PLUGIN_ROOT}/scripts/` – use when applicable:
@@ -312,6 +319,8 @@ Also use `andthen:ops update-fis {fis_path} all` for each completed FIS (marks a
 
 After ops completes, **re-read plan.md and the FIS file** to verify updates were applied.
 
+If `PLAN_SOURCE_MODE = github-artifact`, apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` now.
+
 Move to next phase only after ALL stories in current phase are complete and plan is updated. **Create Phase N+1 tasks only after Phase N is fully complete.**
 
 **Gate**: All stories completed, verified, AND plan.md + FIS checkboxes updated
@@ -375,6 +384,10 @@ Spawn a **general-purpose sub-agent** _(if supported)_ to update project documen
    git -C {CODE_DIR} worktree prune
    ```
 2. Send shutdown requests to each teammate; wait for confirmations; delete the team
+
+
+### Step 11: Canonical Continuation Sync _(if `PLAN_SOURCE_MODE = github-artifact`)_
+Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` as the final gate.
 
 
 ## FAILURE HANDLING

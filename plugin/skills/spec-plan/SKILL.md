@@ -1,6 +1,6 @@
 ---
 description: Batch-create FIS specs for all stories in a plan with parallel sub-agents and cross-cutting review. Trigger on 'spec all stories', 'batch spec', 'pre-create specs'.
-argument-hint: <path-to-plan-directory> [--stories S01,S03] [--phase N] [--max-parallel N] [--skip-review]
+argument-hint: <path-to-plan-directory | --issue <number> | issue URL> [--stories S01,S03] [--phase N] [--max-parallel N] [--skip-review]
 ---
 
 # Batch-Generate Specs for Plan
@@ -15,7 +15,7 @@ Can be used:
 
 ## VARIABLES
 
-PLAN_DIR: $ARGUMENTS
+PLAN_SOURCE: $ARGUMENTS
 
 ### Optional Flags
 - `--stories S01,S03,...` → STORY_FILTER: Only generate specs for listed story IDs
@@ -28,6 +28,7 @@ PLAN_DIR: $ARGUMENTS
 
 ```
 /spec-plan path/to/plan                          # All stories
+/spec-plan --issue 123                          # From typed GitHub plan artifact
 /spec-plan path/to/plan --phase 1                # Phase 1 only
 /spec-plan path/to/plan --stories S01,S03,S05    # Specific stories
 /spec-plan path/to/plan --max-parallel 8         # Higher concurrency
@@ -37,7 +38,7 @@ PLAN_DIR: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the user to provide the path to the plan directory.
+Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately and ask the user to provide the path to the plan directory or the typed GitHub plan artifact.
 
 ### Core Rules
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
@@ -63,10 +64,11 @@ Make sure `PLAN_DIR` is provided – otherwise **STOP** immediately and ask the 
 
 ### Step 1: Parse Plan
 
-1. Read `PLAN_DIR/plan.md`. If missing, **STOP** and recommend the `andthen:plan` skill first.
-2. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, wave assignments, dependency graph
-3. Apply filters (STORY_FILTER, PHASE_FILTER); skip stories with existing FIS (check `**FIS**` field in plan.md — if file exists on disk, skip)
-4. Build wave-ordered execution plan; set MAX_PARALLEL (default 5, max 10)
+1. Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Incompatible typed artifacts → **STOP** and direct the user to the correct downstream skill.
+2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and recommend the `andthen:plan` skill first.
+3. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, wave assignments, dependency graph
+4. Apply filters (STORY_FILTER, PHASE_FILTER); skip stories with existing FIS (check `**FIS**` field in plan.md — if file exists on disk, skip)
+5. Build wave-ordered execution plan; set MAX_PARALLEL (default 5, max 10)
 
 **Summary output**: Print stories to be specced, grouped by wave, and concurrency setting.
 
@@ -190,6 +192,8 @@ Wait for all sub-agents in the current sub-wave to complete. Log any failures (c
 - Set `**Status**` field to `Spec Ready` (if not already `In Progress` or `Done`)
 - COMPOSITE: set ALL constituent stories' fields
 
+If `PLAN_SOURCE_MODE = github-artifact`, apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` now.
+
 #### Spec Flow Example
 
 ```
@@ -238,6 +242,10 @@ If the review found CRITICAL or HIGH severity issues, apply fixes to resolve int
 **When delegated** (by exec-plan or exec-plan-team): apply fixes automatically; report fixes back to calling orchestrator.
 
 **Gate**: All CRITICAL and HIGH issues resolved, FIS files updated
+
+
+### Step 5: Canonical Continuation Sync _(if `PLAN_SOURCE_MODE = github-artifact`)_
+Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` as the final gate.
 
 
 ## COMPLETION
