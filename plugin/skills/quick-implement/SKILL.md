@@ -31,6 +31,7 @@ ARGUMENTS: $ARGUMENTS
 - **Autonomously and iteratively** implement with comprehensive verification
 - **Iterate** until all requirements met, no defects remain, all reviews pass
 - Use GitHub CLI (`gh`) for GitHub operations
+- If you feel tempted to skip tests, defer verification, or widen scope, load `${CLAUDE_PLUGIN_ROOT}/references/anti-rationalization.md`.
 
 
 ## GOTCHAS

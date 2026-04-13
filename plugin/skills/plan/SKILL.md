@@ -1,5 +1,5 @@
 ---
-description: Create PRD and implementation plan with story breakdown. Discover requirements interactively when no PRD exists, or build on prior artifacts from `andthen:clarify`. Lightweight planning - detailed specs are created later via `spec` or `spec-plan`.
+description: Create PRD and implementation plan with multi-story breakdown, for large features. Discover requirements interactively when no PRD exists, or build on prior artifacts from `andthen:clarify`. Lightweight planning - detailed specs are created later for each story via `spec` or `spec-plan`.
 argument-hint: "[Specs directory or requirements source] | --issue <number> [--to-issue]"
 ---
 
@@ -112,15 +112,7 @@ Follow the same interview approach as `andthen:clarify` Phase 2 (targeted questi
 
 Structure the PRD from interview responses and save as `OUTPUT_DIR/<feature-name>/prd.md`. Apply MoSCoW prioritization (Must/Should/Could/Won't) and P0/P1/P2 levels to features.
 
-Required sections:
-- **Executive Summary** – project title, problem with quantified impact, vision, target users, success metrics
-- **Problem Definition** – clear problem statement with evidence and context
-- **Scope** – In Scope / Out of Scope / MVP Boundary
-- **Functional Requirements** – User Stories table (`ID | Story | Acceptance Criteria | Priority`), Feature Specifications (description, acceptance criteria, inputs/outputs, validation, error handling, priority per feature), User Flows, UI Wireframes _(if applicable)_, Data Requirements
-- **Non-Functional Requirements** – Performance, Reliability, Security, Usability (thresholds for each)
-- **Edge Cases** – `Scenario | Expected Behavior` table
-- **Constraints & Assumptions** – technical/resource/regulatory constraints, user/technical/business assumptions, Dependencies table
-- **Decisions Log** – `Decision | Rationale | Alternatives Considered` table
+Use the PRD template at [`templates/prd-template.md`](templates/prd-template.md) as the baseline shape. Keep the required sections, adapt optional subsections to the project, and preserve concrete decisions from discovery rather than generalizing them away.
 
 #### PRD Validation
 - [ ] Problem statement with measurable impact
@@ -142,7 +134,7 @@ Optional: Invoke the `andthen:review-doc` skill to validate the PRD before final
 
 Use existing artifacts (`requirements-clarification.md` from `andthen:clarify` and/or `prd-draft.md`) as the primary basis for creating the PRD. This path avoids duplicating discovery work already completed.
 
-- Map existing content against the PRD template (see Step 1b)
+- Map existing content against the PRD template (see Step 1b); use [`templates/prd-template.md`](templates/prd-template.md) as the target structure and only ask focused follow-up questions for genuinely missing sections
 - If significant gaps remain, conduct a focused interview covering only the missing areas – ask 3-5 questions at a time, **STOP and WAIT for responses**.
   > **CRITICAL**: Do NOT re-ask questions already answered in the existing artifacts. Only ask about genuinely missing information.
 - **Extract technical details**: If the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), extract these into `{OUTPUT_DIR}/technical-research.md` rather than carrying them into the PRD. The PRD should focus on *what* to build; technical details are preserved for downstream skills.
@@ -265,124 +257,18 @@ For each story, define:
 
 ### 4. Create Plan Document
 
-Generate `plan.md` with a structure like the following (adapt phases and structure to fit the project).
+Generate `plan.md` using the template at [`templates/plan-template.md`](templates/plan-template.md).
+
+This template defines the document's operational contract. Preserve the heading names, Story Catalog columns, and standard story metadata labels because downstream skills parse them directly. Adapt the phase names, story count, and example content to the project.
 
 **Document references header**: Include a blockquote header at the top linking to all key reference documents discovered during Input Validation (PRD, ADRs, design system, wireframes, etc.). Use relative paths. Omit entries where no document exists – only include actual references.
 
-<example-plan-format>
-# Implementation Plan: [Project Name]
-
-> **PRD**: [`prd.md`](./prd.md)
-> **ADRs**: [link any ADR files if present]
-> **Design System**: [link if present]
-> **Wireframes**: [link if present]
-
-## Overview
-- **Total stories**: [N]
-- **Phases**: [N]
-- **Approach**: [1-2 sentence summary]
-
-## Story Catalog
-
-| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS |
-|----|------|-------|------|--------------|----------|------|--------|-----|
-| S01 | [Name] | Foundation | W1 | - | No | Low | Pending | – |
-| S02 | [Name] | Foundation | W1 | S01 | No | Low | Pending | – |
-| S03 | Auth Middleware | Core | W2 | S01, S02 | [P] | Medium | Pending | `docs/specs/my-feature/s03-s04-auth-system.md` |
-| S04 | Auth API Endpoints | Core | W2 | S03 | [P] | Medium | Pending | `docs/specs/my-feature/s03-s04-auth-system.md` |
-
-## Phase Breakdown
-
-### Phase 1: Foundation
-_Sequential execution - establishes base for all features_
-
-#### S01: [Story Name]
-**Status**: Pending
-**FIS**: –
-**Scope**: [2-4 sentences covering what is built and what's excluded]
-**Acceptance Criteria**:
-- [ ] Project scaffolding exists and builds successfully _(must-be-TRUE)_
-- [ ] Core architecture patterns are established and documented _(must-be-TRUE)_
-- [ ] [Supplementary criterion]
-**Assets**: [Wireframe refs, ADR refs if any]
-
-#### S02: [Story Name]
-**Status**: Pending
-**FIS**: –
-**Scope**: [2-4 sentences]
-**Acceptance Criteria**: ...
-**Assets**: ...
-
-<!-- Composite FIS example: tightly coupled stories share one spec -->
-#### [P] S03: Auth Middleware
-**Status**: Pending
-**FIS**: docs/specs/my-feature/s03-s04-auth-system.md
-**Scope**: ...
-**Key Scenarios**: _(elaborated into full Given/When/Then in FIS)_
-- Happy: valid credentials → session token returned, user redirected to dashboard
-- Edge: concurrent login from two devices → both sessions valid
-- Error: expired token on protected route → 401 with clear re-auth prompt
-
-#### [P] S04: Auth API Endpoints
-**Status**: Pending
-**FIS**: docs/specs/my-feature/s03-s04-auth-system.md
-**Scope**: ...
-<!-- S03/S04 share a composite FIS; exec-spec runs once for both -->
-
-#### S05: Workflow Trigger Surfaces
-**Status**: Pending | **FIS**: – | **Provenance**: Carried from 0.16.3: S13
-**Scope**: Enable workflow triggering from web UI, chat commands, and GitHub webhooks.
-**Acceptance Criteria**: ...
-
-### Phase 2: Core Features
-_Parallel execution where marked [P]_
-...
-
-### Phase 3+: Continue pattern
-...
-
-## Dependency Graph
-
-```
-Dependency arrows:
-S01 ──→ S02 ──→ S05
-  │       │
-  │       └──→ S06
-  │
-  └──→ S03 ──→ S07
-  │
-  └──→ S04
-
-Wave assignments:
-W1: S01
-W2: S02, S03, S04
-W3: S05, S06, S07
-```
-
-## Risk Summary
-
-| Story | Risk | Concern | Mitigation |
-|-------|------|---------|------------|
-| S03 | Medium | [Concern] | [Approach] |
-
-## Execution Guide
-
-1. Execute Phase 1 stories sequentially (S01 → S02 → ...)
-2. For each story ready to implement:
-   - Run the `andthen:spec` skill with story scope as input → update **FIS** field with generated spec path
-     Example: `/andthen:spec story S01 of docs/specs/my-feature/plan.md` (or `$andthen:spec ...`)
-   - Run the `andthen:exec-spec` skill on the generated FIS
-     Example: `/andthen:exec-spec docs/specs/my-feature/story-name.md` (or `$andthen:exec-spec ...`)
-   - Check off completed acceptance criteria in this plan
-   - Update **Status** field (Pending → Spec Ready → In Progress → Done)
-3. Phase 2+ stories marked [P] can run in parallel after dependencies met
-4. Run the `andthen:review-gap` skill after completing all stories
-   Example: `/andthen:review-gap docs/specs/my-feature/plan.md` (or `$andthen:review-gap ...`)
-
-> **Status tracking**: After each story's spec is created, update the **FIS** field with the spec file path and set **Status** to `Spec Ready`. When implementation starts, set **Status** to `In Progress`. After implementation and review, check off acceptance criteria and set **Status** to `Done`. Update the Story Catalog table status accordingly. `andthen:exec-plan` does this automatically; for manual per-story execution, the orchestrating agent or user is responsible.
->
-> **Composite FIS**: When multiple stories share a composite FIS (created by `andthen:spec-plan` for tightly coupled stories), `andthen:exec-spec` runs once for the composite FIS. All constituent stories are marked `Done` when the composite spec execution completes. Composite FIS filenames must use the lowest story ID as prefix and include all constituent IDs (e.g., `s01-s02-s03-feature-name.md`). Do not re-assign story-to-FIS mapping after initial assignment.
-</example-plan-format>
+Keep these invariants from the template:
+- Story Catalog columns remain `ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS`
+- Each story defines `**Status**`, `**FIS**`, `**Phase**`, `**Wave**`, `**Dependencies**`, `**Parallel**`, `**Risk**`, `**Scope**`, `**Acceptance Criteria**`, and `**Asset refs**`
+- `**Key Scenarios**` stays optional and seeds later FIS scenario generation
+- `**Provenance**` is required for stories with no direct PRD feature coverage
+- Composite/shared FIS mappings remain stable once assigned
 
 **Gate**: Plan document complete
 
@@ -452,3 +338,13 @@ After completion, suggest the following next steps. **Recommend starting a clean
 5. **Execute the full plan** _(clean session)_: Run the `andthen:exec-plan` skill to spec and implement all stories
    Example: `/andthen:exec-plan docs/specs/my-feature/` (or `$andthen:exec-plan ...`)
 6. **Initialize project state** (if not already tracking): Create `docs/STATE.md` for cross-session state tracking via `/andthen:init` or manually from the template in `templates/project-state-templates.md`
+
+
+---
+
+
+## Appendix: Templates
+
+**USE THE TEMPLATES**:
+- PRD: [`templates/prd-template.md`](templates/prd-template.md)
+- Plan: [`templates/plan-template.md`](templates/plan-template.md)

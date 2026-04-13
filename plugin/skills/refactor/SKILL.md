@@ -30,6 +30,7 @@ ARGUMENTS: $ARGUMENTS
 - **No scope creep** – only refactor what's specified
 - **Tests must pass** before and after refactoring
 - Match the codebase's existing conventions and style – read the project guidelines before making style judgments
+- If cleanup starts widening in scope or you feel tempted to smuggle unrelated fixes into the refactor, load `${CLAUDE_PLUGIN_ROOT}/references/anti-rationalization.md`.
 
 ### Refactoring Philosophy
 

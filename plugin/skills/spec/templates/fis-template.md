@@ -45,8 +45,9 @@ _Every scope item must be covered by at least one scenario (behavioral items) or
 - {{Integration points to be created}}
 
 ### What We're NOT Doing
-- {{Out of scope item - be specific}}
-- {{Existing functionality not to be modified}}
+_Keep this to 3-5 explicit non-goals or deferrals. Each item should name the exclusion and why it is excluded now._
+- {{Out of scope item - be specific}} -- {{reason it is deferred or excluded}}
+- {{Existing functionality not to be modified}} -- {{reason}}
 
 ### Agent Decision Authority (optional -- include when scope boundaries are ambiguous)
 - **Autonomous**: {{Decisions the agent can make}}

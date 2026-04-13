@@ -51,6 +51,8 @@ ARGUMENTS: $ARGUMENTS
 
 **Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Target 100-250 lines.
 
+**Generic "What We're NOT Doing" section** – use it to record real non-goals or deferrals with reasons, not filler bullets.
+
 
 ## ORCHESTRATOR ROLE _(if supported by your coding agent)_
 
@@ -67,7 +69,7 @@ You are the orchestrator: parse input, delegate codebase analysis and research t
 - If the issue contains another typed workflow artifact (`triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and direct the user to the matching downstream skill.
 - Otherwise use the issue as the feature request and store the issue number for FIS reference.
 
-**If ARGUMENTS is a directory with `requirements-clarification.md`** (from `andthen:clarify`): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
+**If ARGUMENTS is a directory with `requirements-clarification.md`** (from `andthen:clarify`): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes, and any explicit non-goals / deferred items as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
 **If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates.
 

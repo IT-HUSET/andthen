@@ -19,6 +19,7 @@ FIS_SOURCE: $ARGUMENTS
 - **Complete Implementation**: 100% completion required - no partial work
 - **FIS is source of truth** – follow it exactly
 - **Sub-agents for all execution groups** – act as orchestrator, delegate all work to sub-agents, one per group _(if supported)_
+- If you catch yourself rationalizing away test scaffolding, verification gates, or status updates, load `${CLAUDE_PLUGIN_ROOT}/references/anti-rationalization.md`.
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job:

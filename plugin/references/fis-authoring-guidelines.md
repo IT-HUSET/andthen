@@ -105,6 +105,7 @@ Scenarios are the bridge between requirements and tests. Borrowed from BDD's cor
    Rule of thumb: if you prescribed a specific format, column name, file path, or string in the FIS — put it in the Verify line verbatim.
 7. Stay within 100-250 line target (shorter is better)
 8. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
+9. Make **What We're NOT Doing** explicit: 3-5 specific exclusions or deferrals with reasons. Use it to preserve scope boundaries across sessions, not as filler.
 
 
 ## Task Grouping Heuristics
@@ -174,6 +175,7 @@ Quick sanity check before saving:
 - [ ] Negative-path checklist applied: omitted optional inputs, no-match selectors/filters, and rejection paths for external integrations all covered by scenarios
 - [ ] Every Success Criterion has a proof path — at least one scenario (behavioral) or task Verify line (structural)
 - [ ] **Scope-consistency**: every item listed in "In Scope" is exercised by at least one scenario (for behavioral items) or task with a Verify line (for structural items) — items with no coverage are either phantom features (remove from scope) or underspecified (add a scenario or task)
+- [ ] **What We're NOT Doing** section is specific: each exclusion is intentional, justified, and does not silently narrow a Success Criterion
 - [ ] **Output format completeness**: if `--json`, structured output, or machine-readable format is a Success Criterion, at least one scenario's **Then** clause specifies the output shape (key fields, structure) — not just "returns JSON"
 - [ ] No over-specification — if a section feels padded, trim it
 - [ ] No item in "What We're NOT Doing" blocks or contradicts a Success Criterion — for each exclusion, trace the data/flag path from requirement to runtime behavior; if the exclusion blocks a necessary intermediate step, either remove the exclusion or escalate

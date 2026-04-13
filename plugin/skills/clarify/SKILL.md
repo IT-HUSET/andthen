@@ -103,21 +103,22 @@ When answers are surface-level, vague, or contradictory, use probing techniques 
 Structure all findings into comprehensive requirements document:
 1. **Summary** - 2-3 sentences: what, who, core value
 2. **Scope definition** - In scope, out of scope, MVP boundary
-3. **Functional requirements** - Core flows, alternate paths, user stories
-4. **UI wireframes** _(if applicable)_ - Simple ASCII wireframes for core screens
-5. **Edge cases** - Scenarios with expected behavior
-6. **Error handling** - Error types, messages, recovery actions
-7. **Non-functional requirements** - Performance, security, accessibility
-8. **Success criteria** - Testable acceptance criteria
-9. **Dependencies** - External systems, integrations
-10. **Open questions** - Any remaining items for later phases
+3. **Not Doing (for now)** - Explicit non-goals or deferred items with brief reasons
+4. **Functional requirements** - Core flows, alternate paths, user stories
+5. **UI wireframes** _(if applicable)_ - Simple ASCII wireframes for core screens
+6. **Edge cases** - Scenarios with expected behavior
+7. **Error handling** - Error types, messages, recovery actions
+8. **Non-functional requirements** - Performance, security, accessibility
+9. **Success criteria** - Testable acceptance criteria
+10. **Dependencies** - External systems, integrations
+11. **Open questions** - Any remaining items for later phases
 
 **Gate**: Requirements document complete and structured
 
 
 ### 4. Validation
 
-Review consolidated requirements: all user flows have clear steps; design space decomposition constructed with decisions resolved or flagged; wireframes included if applicable; edge cases identified; scope boundaries explicit; success criteria specific and testable; no contradictions; dependencies documented; no vague undefined terms.
+Review consolidated requirements: all user flows have clear steps; design space decomposition constructed with decisions resolved or flagged; wireframes included if applicable; edge cases identified; scope boundaries explicit; **Not Doing** items specific and justified; success criteria specific and testable; no contradictions; dependencies documented; no vague undefined terms.
 
 Fix any issues found before finalizing.
 
@@ -156,6 +157,9 @@ Generate markdown document:
 
 ### MVP Boundary
 - [Minimum viable version definition]
+
+### Not Doing (for now)
+- [Explicit non-goal or deferred item] — [why it is out of scope now]
 
 ## Functional Requirements
 

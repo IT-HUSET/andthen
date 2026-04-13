@@ -21,6 +21,7 @@ ARGUMENTS: $ARGUMENTS
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `references/code-review-calibration.md`.
 - Read project learnings if they exist.
 - Exclude generated, vendored, and lockfile noise.
+- When the review touches browser state, AI/agent flows, logs, stack traces, error output, scraped content, tool results, or other external-data flows, apply `${CLAUDE_PLUGIN_ROOT}/references/trust-boundaries.md`.
 
 ## GOTCHAS
 - Over-reporting nits

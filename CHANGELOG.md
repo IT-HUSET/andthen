@@ -6,6 +6,27 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.10.8] – 2026-04-13
+
+### Added
+- **PRD and plan artifact templates** (`plan`) – added dedicated `prd-template.md` and `plan-template.md` files so long-lived planning artifacts now have explicit reusable baseline formats, similar to the existing FIS template pattern
+- **Shared anti-rationalization reference** (`anti-rationalization`) – new `plugin/references/anti-rationalization.md` keeps the old excuse→reality pattern available as an on-demand reference instead of re-inlining rationalization tables into multiple skill bodies. Wired from `exec-spec`, `quick-implement`, `triage`, and `refactor`
+- **Shared trust-boundaries reference** (`trust-boundaries`) – new `plugin/references/trust-boundaries.md` defines a compact 3-tier trust model (`Trusted` / `Verify Before Acting` / `Untrusted`) for browser state, logs, error output, scraped content, external docs, and tool/model output crossing boundaries
+
+### Changed
+- **Template-backed planning flow** (`plan`) – PRD creation and `plan.md` generation now reference dedicated template files instead of carrying the full document shapes inline in the skill prompt
+- **Plan contract guidance** (`plan`) – the plan skill now explicitly preserves the Story Catalog columns and standard story metadata labels that downstream execution and review skills depend on
+- **Lightweight anti-rationalization hooks** (`exec-spec`, `quick-implement`, `triage`, `refactor`) – skip-prone implementation/refactor skills now point to the shared `anti-rationalization` reference at the moment discipline is most likely to erode, preserving the pattern without re-bloating the main workflows
+- **Trust-boundary wiring centralized** (`e2e-test`, `triage`, `review-code`) – inline trust warnings now route through the shared `trust-boundaries` reference so browser/runtime/tool-output handling can evolve in one place instead of diverging across skills
+- **Scope-boundary artifacts strengthened** (`clarify`, `spec`, `fis-template`, `fis-authoring-guidelines`) – `clarify` now emits a `Not Doing (for now)` section for explicit non-goals and deferrals, `spec` carries those non-goals forward from `requirements-clarification.md`, and FIS authoring now requires non-goal items to be specific and justified rather than filler
+- **FIS non-goals content upgraded without changing the contract** (`spec`, `spec-plan`, `fis-template`, `fis-authoring-guidelines`) – the canonical section remains `What We're NOT Doing`, but the template and guidance now require `3-5` intentional exclusions/deferrals with reasons so scope cuts survive session handoffs cleanly
+
+### Fixed
+- **Plan template story metadata contract** (`plan`) – restored `Phase`, `Wave`, `Dependencies`, `Parallel`, `Risk`, and `Asset refs` in the per-story template so generated plans match the story definition contract
+- **Plan template example consistency** (`plan`) – aligned the Story Catalog example with the Phase Breakdown example to avoid teaching an internally inconsistent `plan.md` structure
+- **Review-code trust-boundary trigger scope** (`review-code`) – broadened the trigger text to include logs, stack traces, error output, scraped content, and tool results so it matches the actual scope of the shared `trust-boundaries` reference
+- **Non-goals section naming drift** (`fis-template`, `fis-authoring-guidelines`, `spec-plan`) – kept `What We're NOT Doing` as the canonical heading after strengthening the template, avoiding downstream checks and review logic keying off inconsistent section names
+
 ## [0.10.7] – 2026-04-13
 
 ### Added
