@@ -1,5 +1,5 @@
 ---
-description: Quick implementation path for small features or fixes with verification
+description: Quick implementation path for small features or fixes with verification. Trigger on 'quick fix this', 'implement this quickly', 'make this small change'.
 argument-hint: <spec> | --issue <number>
 ---
 
@@ -114,4 +114,4 @@ Include verification evidence per `${CLAUDE_PLUGIN_ROOT}/references/verification
 
 
 ## Post-Completion
-Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Quick Implement` → `STATE.md` and `Learnings`).
+Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Quick Implement` → `State` Document and `Learnings`).

@@ -1,6 +1,6 @@
 interface:
   display_name: "AndThen - Quick Review"
-  short_description: "Ad-hoc adversarial review of recent changes in conversation"
+  short_description: "Quick sanity-check of recent changes"
   default_prompt: "Review recent changes in this conversation for errors, inconsistencies, and missed edge cases: "
 
 policy:

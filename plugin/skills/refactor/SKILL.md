@@ -1,5 +1,5 @@
 ---
-description: Improve, simplify, and refactor code for clarity, consistency, and maintainability
+description: Improve, simplify, and refactor code for clarity, consistency, and maintainability. Trigger on 'refactor this', 'clean this up', 'simplify this code'.
 argument-hint: <scope/description> | --path <dir/file>
 ---
 

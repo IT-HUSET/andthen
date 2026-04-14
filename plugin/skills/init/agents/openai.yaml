@@ -1,6 +1,6 @@
 interface:
   display_name: "AndThen - Init"
-  short_description: "Set up AndThen workflow structure"
+  short_description: "Set up AndThen workflow structure for a project"
   default_prompt: "Set up AndThen workflow structure for this project – detect current state and fill gaps non-destructively. Project: "
 
 policy:

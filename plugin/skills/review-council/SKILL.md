@@ -1,5 +1,5 @@
 ---
-description: Multi-perspective code review with adversarial debate to validate findings. Trigger on 'council review', 'adversarial review', 'multi-reviewer'.
+description: Multi-perspective code review with adversarial debate to validate findings. Trigger on 'council review', 'adversarial review', 'multi-reviewer', 'multiple reviewers'.
 argument-hint: "[Optional - specific files, PR number, or focus area]"
 ---
 

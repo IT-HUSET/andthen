@@ -1,177 +1,105 @@
 # Verification Patterns Reference
 
-Comprehensive verification patterns for ensuring implementation quality beyond mere existence.
-
-> **Core Principle (Nyquist Rule)**: Every task verification must be an automated command.
-> Verification checks 4 dimensions: Exists, Substantive, Wired, Functional.
-
+Use this when defining or reviewing proof of completion. The point is to prove the outcome, not merely show that a file exists or a build still passes.
 
 ## The Four Dimensions of Verification
 
 ### 1. Exists
-File, route, component, or endpoint is present at the expected path.
+The file, route, component, command, or config is present where it should be.
 
 ### 2. Substantive
-Real implementation with actual logic – not a placeholder, stub, or TODO.
+There is real implementation, not a placeholder, TODO, no-op, or thin stub.
 
 ### 3. Wired
-Connected to the rest of the system – imported, routed, called, migrated, rendered.
+The new code is actually connected to the rest of the system.
 
 ### 4. Functional
-Actually works when invoked – build passes, tests pass, behavior is observable.
+The behavior works when exercised.
 
+Most meaningful `Verify:` lines cover more than one dimension.
 
 ## Stub Detection Patterns
 
-Use `rg` (ripgrep) to scan for indicators of incomplete implementation:
+Look for evidence that code is present but not real:
 
-### Generic Indicators
+- TODOs, placeholders, `not implemented`, lorem ipsum
+- empty bodies or trivial returns
+- components that render only empty wrappers or placeholder text
+- handlers that always return a canned success response
+- skipped or empty tests
+- config values left at placeholder defaults
+
+Representative scans:
+
 ```bash
-rg "TODO|FIXME|placeholder|not[_ -]implemented|notImplemented|lorem ipsum" <path>
+rg "TODO|FIXME|placeholder|not[_ -]implemented|lorem ipsum" <path>
+rg "=>\\s*\\{\\s*\\}" <changed-files>
+rg "test\\.skip|it\\.todo|xdescribe|xit" <path>
 ```
-
-### Function Stubs
-- Empty function bodies: `{}`
-- Single return statements: `return null`, `return undefined`, `return 0`, `return ""`
-- Python: `pass` as only statement
-- Throw-only: `throw new Error("not implemented")`
-
-### React/Component Stubs
-- Components returning only `<div/>`, `<></>`, or `<Fragment/>`
-- No props consumed (props declared but never read)
-- Hardcoded placeholder text with no dynamic content
-
-### API Route Stubs
-- Handlers returning hardcoded responses
-- No database or service calls
-- `res.json({})` or `return new Response("ok")`
-
-### Database Stubs
-- Migrations with no columns or empty `up()` bodies
-- Models with no fields beyond `id`
-- Seeders with no data
-
-### Test Stubs
-- `test.skip(...)`, `it.todo(...)`, `xit(...)`, `xdescribe(...)`
-- Assertions with hardcoded expected values matching hardcoded actual values
-- Tests with no assertions at all
-- `expect(true).toBe(true)` or equivalent no-ops
-
-### Configuration Stubs
-- `.env.example` values left unchanged in `.env`
-- Default placeholder URLs (`http://localhost:3000`, `https://example.com`)
-- Default secret keys (`changeme`, `secret`, `xxx`)
-
-### CSS Stubs
-- Empty rulesets: `.class {}`
-- `/* TODO */` or `/* placeholder */` comments
-- Only `display: none` rules
-
 
 ## Wiring Check Patterns
 
-Verify that new code is actually connected to the running system:
+Ask the concrete integration question that matches the change:
 
-### Route Registration
+- Is the new route registered?
+- Is the new component imported and rendered?
+- Is the new endpoint actually called by a client?
+- Is the new model used in queries or migrations?
+- Is the new env var actually read?
+- Is the middleware applied where it matters?
+- Is the new export consumed anywhere?
+
+Representative scans:
+
 ```bash
-# Is the route handler registered in the router?
-rg "import.*from.*['\"].*routeFile['\"]" src/
-rg "app\.(get|post|put|delete|use).*routePath" src/
+rg "import.*ComponentName|<ComponentName" src/
+rg "app\\.(get|post|put|delete|use).*routePath" src/
+rg "process\\.env\\.VAR_NAME|env\\(.*VAR_NAME\\)" src/
 ```
-
-### Component Mounting
-```bash
-# Is the component imported and rendered somewhere?
-rg "import.*ComponentName" src/
-rg "<ComponentName" src/
-```
-
-### API Endpoint Consumption
-```bash
-# Is the API endpoint actually called from the frontend?
-rg "fetch.*\/api\/endpoint" src/
-rg "apiClient.*endpoint" src/
-```
-
-### Database Model Usage
-```bash
-# Is the model referenced in queries or migrations?
-rg "ModelName" src/ --type ts
-rg "from.*models.*import.*ModelName" src/
-```
-
-### Environment Variable Usage
-```bash
-# Is the env var actually read by the application?
-rg "process\.env\.VAR_NAME|env\(.*VAR_NAME\)|Env\.get.*VAR_NAME" src/
-```
-
-### Middleware Application
-```bash
-# Is middleware applied to relevant routes?
-rg "use\(.*middlewareName\)" src/
-rg "middleware.*middlewareName" src/
-```
-
-### Export/Import Completeness
-```bash
-# Is the export consumed by at least one import?
-rg "export.*functionName" src/  # find exports
-rg "import.*functionName" src/  # verify imports exist
-```
-
 
 ## Quick Verification Commands
 
+Use commands that prove the specific claim:
+
 ### Existence Check
 ```bash
-# Verify files exist at expected paths
 ls -la path/to/expected/file
 ```
 
 ### Substance Check
 ```bash
-# Scan for stub indicators in recently changed files
-rg "TODO|FIXME|placeholder|not[_ -]implemented|notImplemented" <changed-files>
-
-# Check for empty function bodies (JS/TS)
-rg "=>\s*\{\s*\}" <changed-files>
-rg "function.*\(\).*\{\s*\}" <changed-files>
+rg "TODO|FIXME|placeholder|not[_ -]implemented" <changed-files>
 ```
 
 ### Wiring Check
 ```bash
-# For each new file, verify it's imported somewhere
-rg -l "import.*from.*newFile" src/
+rg -l "import.*from.*newFile|<ComponentName|routePath" src/
 ```
 
 ### Functional Check
 ```bash
-# Build verification
-npm run build  # or equivalent
-deno task check
-
-# Test verification
+npm run build
 npm test
-deno test
-
-# Type verification
 npx tsc --noEmit
 ```
 
+Replace the commands with the project's actual tooling. Generic green checks are weak if they do not exercise the claimed outcome.
 
 ## Applying Verification in FIS Tasks
 
-Each task's `Verify:` line should cover all 4 dimensions where applicable:
+Good `Verify:` lines are concrete and falsifiable.
 
-```
-- **Verify**: [Exists] file present at expected path;
-  [Substantive] contains real logic (no TODOs/stubs);
-  [Wired] imported/registered by parent module;
-  [Functional] build/tests pass
-```
+Weak:
+- `Verify: build passes`
+- `Verify: tests pass`
+- `Verify: output exists`
 
-Not every dimension applies to every task – use judgment:
-- A config file might only need Exists + Substantive
-- A UI component needs all four dimensions
-- A migration needs Exists + Substantive + Functional (runs without error)
+Stronger:
+- `Verify: traces list output includes columns IN_TOKENS, OUT_TOKENS, CACHE_R, CACHE_W`
+- `Verify: dispatch loop calls effectiveConcurrency() from TI01 when maxParallel is set`
+- `Verify: integration test fails before the change and passes after resume=true is returned at the harness boundary`
+
+Rule of thumb:
+- If the task prescribed a format, field, file path, or behavior, the verification must name it.
+- If the task created a new integration point, verification must prove it is wired.
+- If the task changes user-visible behavior, verification must exercise that behavior directly.

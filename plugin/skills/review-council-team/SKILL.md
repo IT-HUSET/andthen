@@ -1,5 +1,5 @@
 ---
-description: Multi-perspective code review using Agent Teams with real-time adversarial debate (requires Agent Teams)
+description: Multi-perspective code review using Agent Teams with real-time adversarial debate (requires Agent Teams). Trigger on 'council review with agents', 'team review', 'multi-reviewer team review'.
 argument-hint: "[Optional - specific files, PR number, or focus area]"
 ---
 

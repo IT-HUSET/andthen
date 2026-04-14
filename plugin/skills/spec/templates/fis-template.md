@@ -68,7 +68,7 @@ _Keep this to 3-5 explicit non-goals or deferrals. Each item should name the exc
 1. **{{Alt 1}}** -- rejected: {{reason}}
 2. **{{Alt 2}}** -- rejected: {{reason}}
 
-{{If covered by an existing ADR, reference it: `See ADR: docs/adrs/001-foo.md`}}
+{{If covered by an existing ADR, reference it using the `ADRs` location from the **Project Document Index**. Example: `See ADR: <path-from-ADRs-entry>/001-foo.md`}}
 
 
 ## Technical Overview
@@ -108,17 +108,15 @@ wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 
 ## Implementation Plan
 
-Tasks are organized into **Execution Groups** -- clusters of related tasks executed by a single sub-agent.
-Groups marked **[P]** can run in parallel with sibling groups at the same dependency level.
-Tasks within a group execute sequentially.
+List implementation tasks in execution order. A later task may depend on a type, interface, or component established by an earlier task; state that dependency explicitly in the later task's context line.
 
-> **Vertical slice ordering**: First group produces a thin but working end-to-end path. Subsequent groups widen the slice.
+> **Vertical slice ordering**: First tasks should produce a thin but working end-to-end path. Later tasks widen the slice.
+> **Size discipline**: Most strong FIS files stay in the 100-300 line range. If a draft is pushing past roughly ~400 lines or >12 implementation tasks, split it at spec time rather than expecting `exec-spec` to recover later.
 
-### Execution Groups
+### Implementation Tasks
 
 _Examples -- note how tasks describe outcomes, not code changes:_
 
-#### G1: Core Data Pipeline <- [depends: none]
 - [ ] **TI01** Event ingestion endpoint accepts and validates incoming payloads
   - Follow API pattern at `src/api/users.ts:12-34`; reuse existing validation middleware
   - **Verify**: `Test: POST /events with valid payload returns 201; invalid payload returns 422 with field-level errors`
@@ -127,34 +125,38 @@ _Examples -- note how tasks describe outcomes, not code changes:_
   - Use existing repository pattern at `src/repos/base.ts:8-25`; dedup on event ID
   - **Verify**: `Test: sending same event twice produces exactly one stored record`
 
-#### G2: Query Interface [P] <- [depends: G1]
 - [ ] **TI03** Events queryable by type, time range, and source with pagination
-  - Follow query builder pattern at `src/repos/users.ts:40-65`
+  - Follow query builder pattern at `src/repos/users.ts:40-65`; depends on TI01/TI02 data model
   - **Verify**: `Test: query with type filter returns only matching events; pagination cursor works across pages`
 
 _Replace examples above with your actual tasks. Format: outcome + context line + behavioral Verify._
 
-#### G1: {{Group Name}} <- [depends: none]
 - [ ] **TI01** {{Outcome that must be TRUE when done}}
   - {{1-2 lines of context: constraints, pattern reference (file:line), key decisions}}
   - **Verify**: {{Behavioral assertion that fails if outcome not achieved}}
 
-#### G2: {{Group Name}} [P] <- [depends: G1]
 - [ ] **TI02** {{Outcome}}
-  - {{Context}}
+  - {{Context — if this task depends on TI01 or another earlier task, state it explicitly here}}
   - **Verify**: {{Assertion}}
 
 ### Testing Strategy
-> Derive test cases from the **Scenarios** section. Each scenario maps to one or more test cases. Tag with execution group for pairing.
-- [G1] Scenario: {{scenario name}} → {{test description}}
-- [G2] Scenario: {{scenario name}} → {{test description}}
-- [edge] Scenario: {{scenario name}} → {{edge case test description}}
+> Derive test cases from the **Scenarios** section. Each scenario maps to one or more test cases. Tag with the task ID(s) the test proves — the executing agent uses these tags to know which tests must go red→green for each task.
+- [TI01] Scenario: {{scenario name}} → {{test description}}
+- [TI02] Scenario: {{scenario name}} → {{test description}}
+- [TI01,TI02] Scenario: {{scenario name}} → {{edge case test description}}
 
 ### Validation
-> Standard validation (TV01-TV05: code review, testing, visual validation, quality review, remediation) is handled by exec-spec.
+> Standard validation (build/test checks, code review, visual validation, and 1-pass remediation) is handled by exec-spec.
 > Only add feature-specific validation requirements below if the standard levels are insufficient.
 
 - {{Feature-specific validation requirement, if any}}
+
+### Execution Contract
+- Implement tasks in listed order. Each **Verify** line must pass before proceeding to the next task.
+- Prescriptive details (column names, format strings, file paths, error messages) are exact — implement them verbatim.
+- Proactively use sub-agents for non-coding needs: documentation lookup, architectural advice, UX/UI guidance, build troubleshooting, research — spawn in background when possible and do not block progress unnecessarily.
+- After all tasks: run the applicable project validation gates for the feature — build/tests/lint-analysis where those checks exist and are relevant — and keep `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` clean.
+- Mark task checkboxes immediately upon completion — do not batch.
 
 
 ## Final Validation Checklist

@@ -1,34 +1,36 @@
 # Shared Review Council Reviewer Roster
 
-Choose 5-7 reviewers from this roster based on scope analysis.
+Choose 5-7 reviewers based on the scope under review. Favor coverage of the real risk areas over role collection for its own sake.
 
 ## Available Reviewers
 
 ### Product & Requirements
-- **Product Manager** – Feature alignment, user value, requirements match, scope creep, business logic correctness
-- **Requirements Analyst** – Acceptance criteria verification, edge case coverage, spec compliance, completeness
+- **Product Manager**: user value, scope fit, business logic, feature intent
+- **Requirements Analyst**: acceptance criteria, edge cases, completeness, spec compliance
 
 ### Technical Specialists
-- **Security Sentinel** – Auth, XSS, CSRF, injection, secrets, input validation, OWASP Top 10, trust boundaries. Should run Semgrep scan (MCP `security_check` tool or CLI `semgrep scan --config auto --json`) on changed files if available, and incorporate findings into review.
-- **Performance Oracle** – Query optimization, N+1, algorithmic complexity, caching, bundle size, rendering
-- **Architecture Strategist** – SOLID principles, coupling/cohesion, patterns, abstractions, maintainability
-- **Database Specialist** – Schema design, migrations, indexes, constraints, data integrity, query performance
-- **API Designer** – API contracts, versioning, backwards compatibility, REST/GraphQL best practices
-- **Frontend Specialist** – Component design, state management, hooks, rendering, bundle optimization
-- **Backend Specialist** – Business logic, error handling, data flow, service integration
+- **Security Sentinel**: auth, validation, trust boundaries, secrets, exploitability
+- **Performance Oracle**: latency, query efficiency, rendering cost, scaling risk
+- **Architecture Strategist**: coupling, boundaries, abstractions, maintainability
+- **Database Specialist**: schema design, migrations, constraints, data integrity
+- **API Designer**: contracts, versioning, compatibility, boundary quality
+- **Frontend Specialist**: component design, state, rendering, client-side behavior
+- **Backend Specialist**: business logic, error handling, integration behavior
 
 ### Quality & Experience
-- **UX/Accessibility Advocate** – Usability, error states, WCAG compliance, keyboard nav, responsive design
-- **Test Strategist** – Test coverage, test quality, missing cases, test maintainability, integration tests
-- **Code Maintainer** – Long-term maintainability, documentation, tech debt, onboarding, code clarity
-- **Content Designer** – Prompt quality (clarity, structure, tokens), user-facing text (error messages, docs, UI copy), technical writing, tone consistency
+- **UX/Accessibility Advocate**: usability, accessibility, error states, responsive quality
+- **Test Strategist**: test coverage, missing scenarios, maintainability of tests
+- **Code Maintainer**: long-term clarity, documentation, onboarding, technical debt
+- **Content Designer**: prompt quality, technical writing, user-facing copy, tone consistency
 
 ## Always Include
-- **Devil's Advocate** – Challenges all findings during initial review, filters false positives, forces validation through debate
-- **Synthesis Challenger** – Reviews after all debates, challenges final conclusions, ensures consistency, validates severity ratings, and acts as the quality gate
+
+- **Devil's Advocate**: pressure-tests the initial findings for false positives and weak severity
+- **Synthesis Challenger**: checks the final set for consistency, overlap, and missed systemic patterns
 
 ## Selection Examples
+
 - **Product feature**: Product Manager, Requirements Analyst, Security Sentinel, Content Designer, Devil's Advocate, Synthesis Challenger
-- **Backend API changes**: Security Sentinel, Performance Oracle, API Designer, Backend Specialist, Devil's Advocate, Synthesis Challenger
-- **Frontend UI update**: UX/Accessibility Advocate, Performance Oracle, Frontend Specialist, Architecture Strategist, Devil's Advocate, Synthesis Challenger
+- **Backend/API work**: Security Sentinel, Performance Oracle, API Designer, Backend Specialist, Devil's Advocate, Synthesis Challenger
+- **Frontend/UI work**: UX/Accessibility Advocate, Frontend Specialist, Performance Oracle, Architecture Strategist, Devil's Advocate, Synthesis Challenger
 - **Infrastructure/config**: Security Sentinel, Architecture Strategist, Code Maintainer, Devil's Advocate, Synthesis Challenger

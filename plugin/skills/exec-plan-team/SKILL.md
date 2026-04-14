@@ -1,5 +1,5 @@
 ---
-description: Execute an implementation plan through an Agent Team pipeline with configurable review mode (requires Agent Teams)
+description: Execute an implementation plan through an Agent Team pipeline with configurable review mode (requires Agent Teams). Trigger on 'execute this plan with agents', 'run this plan as a team', 'implement this plan with Agent Teams'.
 argument-hint: <path-to-plan | --issue <number> | issue URL> [path-to-code-repo] [--review-mode per-story|none|full-plan] [--worktree]
 ---
 
@@ -77,7 +77,7 @@ Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAU
 - **Status updates get dropped on context exhaustion** – plan and FIS checkbox updates (Step 6e) are GATES that block the next phase; update immediately after each story, never as a batch at the end
 - **Wave N+1 worktrees must be created AFTER Wave N merges complete** – branching from pre-merge `{BASE_BRANCH}` causes guaranteed conflicts
 - **Wave N+1 merge must wait for Wave N reviews** (`per-story`) – reviews may fix code on `{BASE_BRANCH}`, so the merge target must be stable before merging. W(N+1) *impl* can overlap with W(N) reviews (worktrees are isolated), but the *merge* cannot
-- **Only the orchestrator writes to STATE.md** – implementers and reviewers must NOT update STATE.md (avoids race conditions with parallel agents)
+- **Only the orchestrator writes to the `State` document** (see **Project Document Index**) – implementers and reviewers must NOT update it (avoids race conditions with parallel agents)
 - **GitHub artifact mirrors are scratch space** – when `PLAN_SOURCE_MODE = github-artifact`, apply the Plan-Bundle Continuation Sync before finishing
 
 ### Helper Scripts
@@ -103,7 +103,7 @@ If Agent Team tools are NOT available:
 
 ### Step 2: Parse Plan
 
-1. **Load session state** – Read `STATE.md` (default: `docs/STATE.md`) if it exists. Extract active stories, blockers, and current phase.
+1. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract active stories, blockers, and current phase.
 2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and recommend the `andthen:plan` skill first.
 3. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, wave assignments (W1, W2, W3…)
 4. Build execution plan respecting phase ordering and dependency chains.
@@ -230,7 +230,7 @@ For each phase in the plan:
 
 #### 6a. Generate Specs for This Phase
 
-**Update project state** (if STATE.md exists): `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `andthen:ops update-state status "On Track"`.
+**Update project state** (if the `State` document exists; see **Project Document Index**): `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `andthen:ops update-state status "On Track"`.
 
 Run Step 3 for the current phase's stories. All FIS documents must exist before creating implementation tasks.
 
@@ -315,7 +315,7 @@ Then invoke the `andthen:ops` skill to update `plan.md`:
 
 Also use `andthen:ops update-fis {fis_path} all` for each completed FIS (marks all checkboxes; verification layer for context-exhausted implementers).
 
-**Update STATE.md** (if it exists): `andthen:ops update-state active-story {story_id} Done`
+**Update the `State` document** (if it exists; see **Project Document Index**): `andthen:ops update-state active-story {story_id} Done`
 
 After ops completes, **re-read plan.md and the FIS file** to verify updates were applied.
 
@@ -396,7 +396,7 @@ Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/referenc
 - **Final plan review fails** (`full-plan`) → remediate then re-validate (max 2 review/remediation rounds). Escalate to user if issues persist.
 - **Dependent stories stay blocked** when a predecessor fails
 - **If >50% of a phase fails** → pause execution, notify user with failure summary
-- **Update STATE.md on failure** (if it exists): `andthen:ops update-state status "At Risk"` (or `"Blocked"` for critical failures); add blockers via `andthen:ops update-state blocker "{description}"`
+- **Update the `State` document on failure** (if it exists; see **Project Document Index**): `andthen:ops update-state status "At Risk"` (or `"Blocked"` for critical failures); add blockers via `andthen:ops update-state blocker "{description}"`
 
 
 ## COMPLETION
@@ -406,11 +406,11 @@ When all phases are complete, print a summary: stories completed, total phases, 
 
 ## Post-Completion: Update Project State
 
-After all phases complete (or if execution is interrupted/paused), follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Plan Runs` → `STATE.md`) for STATE.md updates.
+After all phases complete (or if execution is interrupted/paused), follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Plan Runs` → `State` Document) for `State` document updates as defined in the **Project Document Index**.
 
 ## Post-Completion: Update Project Learnings
 
-After all phases complete, follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Plan Runs` → `Learnings`) for learnings-file updates.
+After all phases complete, follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Plan Runs` → `Learnings`) for `Learnings`-file updates.
 
 
 ## FALLBACK: NO AGENT TEAMS

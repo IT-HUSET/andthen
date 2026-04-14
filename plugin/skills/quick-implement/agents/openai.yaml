@@ -1,6 +1,6 @@
 interface:
   display_name: "AndThen - Quick Implement"
-  short_description: "Fast implementation for small features or fixes"
+  short_description: "Quick implementation for a small feature or fix"
   default_prompt: "Implement a small feature or fix with verification – bypass the full FIS workflow for quick turnaround. Feature: "
 
 policy:

@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Review Code"
-  short_description: "Thorough code review with checklists"
-  default_prompt: "Perform thorough code review covering quality, security, architecture, and UI/UX. Produce a prioritized findings report. Review scope: "
+  short_description: "Specialist implementation/code review"
+  default_prompt: "Perform implementation-focused review covering quality, security, architecture, and UI/UX. Use this when the target is clearly code rather than a general review request. Review scope: "
 
 policy:
   allow_implicit_invocation: true

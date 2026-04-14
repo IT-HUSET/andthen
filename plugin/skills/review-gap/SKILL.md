@@ -1,22 +1,26 @@
 ---
-description: "Gap analysis: review implementation against requirements with code review and actionable remediation plan."
-argument-hint: "[Requirements baseline: plan/spec/PRD/issue/directory/URL] [--to-issue] [--to-pr <number>]"
+description: "Use when you explicitly want requirements-vs-implementation review rather than the general `review` router: compare the current implementation against a spec, PRD, or plan and produce remediation guidance. Trigger on 'gap analysis', 'review against the spec', 'compare implementation to the plan', 'compare implementation to the PRD'."
+argument-hint: "[Requirements baseline: plan/spec/PRD/issue/directory/URL] [--inline-findings] [--to-issue] [--to-pr <number>]"
 ---
 
 # Gap Analysis
 
 Compare the current implementation in the workspace against requirements, then produce a remediation-focused report. The target is always the implementation, not the requirements document itself.
 
+Most users should start with `andthen:review`. Use this skill directly when the question is explicitly whether an implementation matches its requirements baseline.
+
 ## VARIABLES
 ADDITIONAL_CONTEXT: $ARGUMENTS
 
 ### Optional Output Flags
+- `--inline-findings` → return findings and PASS/FAIL verdict inline and skip report-file output (for delegated use by `andthen:review`)
 - `--to-issue` → PUBLISH_ISSUE
 - `--to-pr <number>` → PUBLISH_PR
 
 ## INSTRUCTIONS
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - Read-only analysis. The only file you write is the report.
+- If `--inline-findings` is present, do not write a report file. Return findings plus verdict inline to the parent skill instead.
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `${CLAUDE_PLUGIN_ROOT}/skills/review-code/references/code-review-calibration.md`.
 - Default to workspace-wide resolution when requirements and implementation may live in different repos.
 - Delegate implementation code review to a sub-agent using `andthen:review-code` when available. Instruct the sub-agent to return findings inline — do **not** let it write a separate report file. This skill produces the single consolidated report.
@@ -96,7 +100,7 @@ Record gaps in these categories:
 - **Integration**
 - **Requirement mismatches**
 - **Consistency**
-- **Domain language** when `UBIQUITOUS_LANGUAGE.md` exists
+- **Domain language** when the `Ubiquitous Language` document (see **Project Document Index**) exists
 - **Holistic sanity check**
 - **Verification depth**: substance, wiring, and failing verification signals
 
@@ -150,7 +154,9 @@ Include this exact summary in the Executive Summary:
 ```
 
 ### 8. Report
-Write a markdown report with:
+Write a markdown report with the following sections unless `--inline-findings` is present. When `--inline-findings` is present, return the same content inline in concise structured form, including the PASS/FAIL verdict and prioritized remediation guidance.
+
+Standard report sections:
 - **Executive Summary**: overview, verdict table, high-level findings, challenge stats
 - **Requirements Analysis**
 - **Implementation Overview**

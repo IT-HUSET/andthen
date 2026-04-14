@@ -1,13 +1,16 @@
 ---
-description: Review specifications, plans, PRDs, requirement documents, or other documentation for completeness, clarity, edge cases, and technical accuracy. Generate detailed report with prioritized findings and readiness assessment.
+description: Use when you explicitly want document review for a spec, PRD, plan, or similar artifact rather than the general `review` router. Reviews documentation for clarity, edge cases, and technical accuracy. Trigger on 'review this spec', 'review this PRD', 'review this plan'.
 context: fork
 agent: general-purpose
 user-invocable: true
+argument-hint: "[document path or focus] [--inline-findings]"
 ---
 
 # Review Spec, Plan, Requirements, or Other Documents
 
 Thoroughly review specifications, implementation plans, PRDs, technical designs, or other requirement documents to determine whether they are complete, clear, proportionate, and ready for implementation.
+
+Most users should start with `andthen:review`. Use this skill directly when you already know the target is a document.
 
 ## VARIABLES
 SPEC_PATH_OR_FOCUS: $ARGUMENTS
@@ -16,6 +19,7 @@ SPEC_PATH_OR_FOCUS: $ARGUMENTS
 - Make sure `SPEC_PATH_OR_FOCUS` is provided; otherwise stop and ask for it.
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - Read-only review. Do not modify the reviewed document.
+- If `--inline-findings` is present, do not write a report file. Return findings inline to the parent skill instead.
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `${CLAUDE_PLUGIN_ROOT}/skills/review-doc/references/doc-review-calibration.md`.
 - Favor proportional review. A prototype, library, or MVP should not be judged like an enterprise platform.
 - Favor simplicity. Flag over-engineering and recommend the smallest solution that meets the real need.
@@ -64,7 +68,9 @@ Apply verdicts before writing the final report.
 **Gate**: Findings challenged and filtered
 
 ### 4. Report
-Generate a markdown report using only surviving findings:
+Generate a markdown report using only surviving findings, unless `--inline-findings` is present. When `--inline-findings` is present, return the same content inline in concise structured form instead of writing a file.
+
+Standard report contents:
 - **Executive Summary**: overall assessment, high-level findings, challenge stats, key recommendations
 - **Scope and Context**
 - **Completeness Analysis**

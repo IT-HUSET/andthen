@@ -1,10 +1,11 @@
 ---
 description: >
-  Deep quantitative architecture review: dependency metrics (Ca, Ce, I, A, D),
-  connascence analysis, decomposition evaluation, and fitness function proposals.
-  Synthesizes Ford & Richards, Farley, Martin's Package Principles, and Building
-  Evolutionary Architectures. Use for package structure assessment, split/merge
-  decisions, coupling analysis, or architectural governance.
+  Use when the user wants architecture review, split/merge guidance, coupling
+  analysis, or fitness functions. Deep quantitative architecture review with
+  dependency metrics (Ca, Ce, I, A, D), connascence analysis, decomposition
+  evaluation, and fitness function proposals. Trigger on 'architecture review',
+  'should we split this module', 'should we merge these packages', 'propose
+  fitness functions'.
 user-invocable: true
 argument-hint: "[scope/path] [--mode review|decompose|advise|fitness] [--to-issue] [--to-pr <number>]"
 ---

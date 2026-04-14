@@ -1,12 +1,12 @@
 ---
-description: Extract and maintain a domain glossary (UBIQUITOUS_LANGUAGE.md) from codebase, documentation, and conversation. Use when starting a new domain-heavy project, onboarding to an existing codebase, or when terminology drift is suspected.
+description: Use when the user wants a glossary, ubiquitous language extraction, or domain terminology cleanup. Extracts and maintains the project's `Ubiquitous Language` document as defined in the **Project Document Index**, using the codebase, documentation, and conversation. Trigger on 'build a glossary', 'extract ubiquitous language', 'update the domain language'.
 argument-hint: "[Scope or focus area] [--update]"
 ---
 
 # Extract and Maintain Ubiquitous Language
 
 
-Scan the codebase, documentation, and conversation history to extract domain-relevant terms, resolve ambiguity and synonymy, and produce or update a structured `UBIQUITOUS_LANGUAGE.md` glossary.
+Scan the codebase, documentation, and conversation history to extract domain-relevant terms, resolve ambiguity and synonymy, and produce or update the project's structured `Ubiquitous Language` document as defined in the **Project Document Index**.
 
 
 ## VARIABLES
@@ -15,7 +15,7 @@ _Arguments (scope and optional flags):_
 ARGUMENTS: $ARGUMENTS
 
 ### Parse Arguments
-- Extract `--update` flag → UPDATE_MODE (reads existing `UBIQUITOUS_LANGUAGE.md` and incorporates new terms)
+- Extract `--update` flag → UPDATE_MODE (reads the existing `Ubiquitous Language` document as defined in the **Project Document Index** and incorporates new terms)
 - Remaining text → SCOPE (focus area, e.g., "authentication", "billing", or blank for full project)
 
 
@@ -38,7 +38,7 @@ ARGUMENTS: $ARGUMENTS
 
 ### 1. Gather Context
 
-**1.1** If UPDATE_MODE: read the existing `UBIQUITOUS_LANGUAGE.md` to understand current glossary state.
+**1.1** If UPDATE_MODE: read the existing `Ubiquitous Language` document (see **Project Document Index**) to understand current glossary state.
 
 **1.2** Explore the codebase to identify domain-relevant sources:
 - Domain model files (entities, value objects, aggregates, services)
@@ -90,7 +90,7 @@ For each term, note:
 
 ### 4. Generate Glossary
 
-Output `UBIQUITOUS_LANGUAGE.md` using this structure:
+Output the `Ubiquitous Language` document using this structure:
 
 ```markdown
 # Ubiquitous Language
@@ -122,7 +122,7 @@ Output `UBIQUITOUS_LANGUAGE.md` using this structure:
 - [date]: Initial extraction / Updated [terms]
 ```
 
-Store in project root or as configured in **Project Document Index**.
+Store at the `Ubiquitous Language` document location from the **Project Document Index** (default: `docs/UBIQUITOUS_LANGUAGE.md`).
 
 **Gate**: Glossary generated
 
@@ -138,7 +138,7 @@ Store in project root or as configured in **Project Document Index**.
 
 ## OUTPUT
 
-Save as: `docs/UBIQUITOUS_LANGUAGE.md` _(or as configured in **Project Document Index**)_
+Save to the `Ubiquitous Language` document location from the **Project Document Index** (default: `docs/UBIQUITOUS_LANGUAGE.md`)
 
 When complete, print the output path and suggest:
 1. Review the glossary for accuracy with domain experts

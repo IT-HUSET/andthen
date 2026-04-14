@@ -1,5 +1,5 @@
 ---
-description: Create a pragmatic design system/style guide from feature requirements and optional concept design inputs
+description: Create a pragmatic design system/style guide from feature requirements and optional concept design inputs. Trigger on 'create a design system', 'make a style guide', 'define design tokens'.
 argument-hint: "[Feature requirements - inline, file path, or PRD reference] [Optional - concept design directory]"
 ---
 

@@ -1,6 +1,6 @@
 interface:
   display_name: "AndThen - Spec Plan"
-  short_description: "Create all FIS specs for a plan in parallel with cross-cutting review"
+  short_description: "Create FIS specs for all stories in a plan"
   default_prompt: "Batch-create Feature Implementation Specifications for all stories in the plan. Plan directory: "
 
 policy:

@@ -62,9 +62,8 @@ Use these individually for everyday development — no setup, no pipeline, no pr
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |
+| `review` | Smart review entrypoint that routes to code, doc, or gap review as needed |
 | `refactor` | Code improvement and simplification |
-| `review-code` | Code review with checklists (quality, security, architecture, UI/UX) |
-| `review-doc` | Document review for completeness, clarity, and technical accuracy |
 | `trade-off` | Architecture decision research with evidence-based recommendations |
 | `architecture-review` | Deep quantitative architecture review – metrics, connascence, decomposition, fitness functions |
 | `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
@@ -82,15 +81,16 @@ These compose into structured workflows — from requirements through implementa
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Requirements discovery – from vague idea to structured requirements (supports `--issue`) |
 | `spec` | Generate Feature Implementation Specification from requirements (supports `--issue`) |
-| `exec-spec` | Execute a FIS – orchestrated implementation with validation |
+| `exec-spec` | Execute a FIS – direct implementation with validation |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown (supports `--issue`) |
 | `spec-plan` | Batch-create all FIS specs for a plan (parallel + cross-cutting review) |
 | `exec-plan` | Execute plan – spec-plan per phase, then sub-agent pipeline with `--review-mode per-story|none|full-plan` |
-| `review-gap` | Gap analysis + code review against requirements |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
 | `wireframes` | Generate HTML wireframes for UI planning |
 | `design-system` | Create design tokens and component styles |
+
+Specialist review skills remain available for explicit or internal use: `review-code`, `review-doc`, and `review-gap`. The recommended user-facing entrypoint is `review`.
 
 ### Agent Teams Variants (Claude Code only)
 
@@ -125,9 +125,10 @@ These compose into structured workflows — from requirements through implementa
 # Sanity-check what you just built (mid-conversation)
 /andthen:quick-review
 
-# Review code changes or a PR
-/andthen:review-code
-/andthen:review-code --pr 42
+# Review current changes, a PR, or a spec/plan
+/andthen:review
+/andthen:review --pr 42
+/andthen:review --doc-only docs/specs/my-feature/plan.md
 
 # Refactor messy code
 /andthen:refactor src/utils/
@@ -214,10 +215,10 @@ These compose into structured workflows — from requirements through implementa
 /andthen:exec-spec --issue 123
 
 # 4. Final review (against requirements)
-/andthen:review-gap <path-to-fis>
+/andthen:review --gap-only <path-to-fis>
 
 # 5. If the review reports actionable findings:
-/andthen:remediate-findings <path-to-gap-review-report>
+/andthen:remediate-findings <path-to-review-report>
 # Or directly from a typed GitHub review artifact:
 /andthen:remediate-findings https://github.com/org/repo/issues/789
 /andthen:remediate-findings https://github.com/org/repo/pull/456#issuecomment-123
@@ -263,12 +264,12 @@ These compose into structured workflows — from requirements through implementa
 # Or resume from the typed GitHub plan artifact:
 /andthen:spec-plan --issue 456
 /andthen:exec-spec docs/specs/dashboard/s01-project-setup.md
-/andthen:review-gap docs/specs/dashboard/s01-project-setup.md
-/andthen:remediate-findings <path-to-gap-review-report>   # when review-gap fails
-# ... repeat exec-spec + review-gap (+ remediation when needed) for each story in per-story mode
+/andthen:review --gap-only docs/specs/dashboard/s01-project-setup.md
+/andthen:remediate-findings <path-to-review-report>   # when review reports actionable gaps
+# ... repeat exec-spec + review (+ remediation when needed) for each story in per-story mode
 
 # 5. Final review (single-feature workflow, or manual review after `--review-mode none`)
-/andthen:review-gap
+/andthen:review --gap-only
 ```
 
 `--to-issue` / `--to-pr` outputs are typed AndThen artifacts, so downstream skills can continue directly from GitHub instead of requiring local file paths.

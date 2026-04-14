@@ -1,5 +1,5 @@
 ---
-description: Systematic trade-off analysis and technical research for architectural decisions. Trigger on 'compare options', 'trade-off', 'ADR', 'which approach'.
+description: Systematic trade-off analysis and technical research for architectural decisions. Trigger on 'compare options', 'trade-off', 'write an ADR', 'which approach'.
 argument-hint: "[Topic/decision to research - inline or file path] [Number of alternatives (default is 5)] [Output path (default is docs/research/)]"
 ---
 
@@ -142,7 +142,7 @@ Store artifacts in `OUTPUT_DIR/[topic-slug]/`:
 - `recommendation.md` for the final recommendation
 
 If the user wants an ADR:
-- Use the existing ADR directory if the project has one; otherwise create `docs/adrs/`
+- Use the `ADRs` location from the **Project Document Index** if the project has one; otherwise create the default ADR directory at `docs/adrs/`
 - Follow the existing numbering scheme, or start with `ADR-001`
 - Also keep a copy at `OUTPUT_DIR/[topic-slug]/adr.md`
 

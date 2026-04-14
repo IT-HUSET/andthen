@@ -1,5 +1,5 @@
 ---
-description: "Deterministic operations: update STATE.md, plan status, FIS checkboxes, standardized commits. Trigger on 'update state', 'mark done', 'progress summary'."
+description: "Deterministic operations: update STATE.md, plan status, FIS checkboxes, standardized commits. Trigger on 'update state', 'mark story done', 'update FIS checkboxes', 'progress summary'."
 context: fork
 agent: general-purpose
 user-invocable: true
@@ -23,7 +23,7 @@ Reliable, template-driven operations for state management, git conventions, and 
 ## GOTCHAS
 - Improvising instead of following patterns exactly – this skill exists to prevent LLM interpretation drift
 - Forgetting to update all three version locations on version bumps: CHANGELOG.md, .claude-plugin/marketplace.json, and plugin/.claude-plugin/plugin.json
-- Creating STATE.md when it doesn't exist – state file creation is the `init` skill's job; ops only reads/writes existing files
+- Creating the `State` document when it doesn't exist – initialization is the `init` skill's job; ops only reads/writes an existing `State` document as defined in the **Project Document Index**
 - Letting Active Stories or Session Notes grow unbounded – apply maintenance rules on every write
 
 
@@ -32,7 +32,7 @@ Reliable, template-driven operations for state management, git conventions, and 
 ### 1. State File Operations
 
 #### Read State
-Parse `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`) and return structured summary:
+Parse the `State` document (path from **Project Document Index**, default: `docs/STATE.md`) and return a structured summary:
 - Current phase and status (On Track / At Risk / Blocked)
 - Active stories table (story, status, FIS, notes)
 - Blockers (list)
@@ -40,14 +40,14 @@ Parse `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`
 - Session continuity notes (list with dates)
 - Last updated timestamp
 
-If STATE.md does not exist, report "no state file" – do not create it or prompt the user.
+If the `State` document does not exist in the location defined by the **Project Document Index**, report "no state file" – do not create it or prompt the user.
 
 #### Update State
-Update specific fields in `STATE.md` (path from **Project Document Index**, default: `docs/STATE.md`):
+Update specific fields in the `State` document (path from **Project Document Index**, default: `docs/STATE.md`):
 
 **Usage**: `update-state <field> <value>`
 
-If STATE.md does not exist, report "no state file" – do not create it.
+If the `State` document does not exist in the location defined by the **Project Document Index**, report "no state file" – do not create it.
 
 Supported fields:
 - `phase`: Current phase name/number (e.g. `"Phase 2: Core Features"`)
@@ -72,7 +72,7 @@ After any update, set `Last Updated` to current timestamp.
 - **Session Continuity Notes**: keep only the **last 5** entries; older entries are trimmed. Notes from completed milestones that have been captured elsewhere (CHANGELOG, Recently Completed) should be removed.
 - **Overall size**: STATE.md should stay under ~60 lines. If it exceeds this after other maintenance rules, trim the oldest/longest entries first. This file is a snapshot of _current_ state, not a history log.
 
-Format for STATE.md (matches `templates/project-state-templates.md`):
+Format for the `State` document (see **Project Document Index**; matches `templates/project-state-templates.md`):
 ```markdown
 # Project State
 

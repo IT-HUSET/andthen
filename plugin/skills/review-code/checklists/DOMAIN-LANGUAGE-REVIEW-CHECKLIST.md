@@ -1,13 +1,13 @@
 # Domain Language Review Checklist
 
-> Validates that code uses consistent domain terminology aligned with the project's Ubiquitous Language glossary (`UBIQUITOUS_LANGUAGE.md`).
+> Validates that code uses consistent domain terminology aligned with the project's `Ubiquitous Language` document (see **Project Document Index**).
 >
-> **Skip** when: No `UBIQUITOUS_LANGUAGE.md` exists, the project has no significant domain complexity, or changes are purely infrastructure/tooling.
+> **Skip** when: No `Ubiquitous Language` document (see **Project Document Index**) exists, the project has no significant domain complexity, or changes are purely infrastructure/tooling.
 
 
 ## Pre-Review
 
-- [ ] Read `UBIQUITOUS_LANGUAGE.md` (if it exists) to understand canonical terms
+- [ ] Read the `Ubiquitous Language` document (if it exists; see **Project Document Index**) to understand canonical terms
 - [ ] Identify which bounded contexts are affected by the changes
 
 

@@ -1,5 +1,5 @@
 ---
-description: Create PRD and implementation plan with multi-story breakdown, for large features. Discover requirements interactively when no PRD exists, or build on prior artifacts from `andthen:clarify`. Lightweight planning - detailed specs are created later for each story via `spec` or `spec-plan`.
+description: Use when the user wants a PRD, an implementation plan, or a feature broken into stories. Creates a PRD and multi-story implementation plan for larger work, building on `andthen:clarify` artifacts when present. Trigger on 'create a plan', 'create a PRD', 'break this into stories', 'plan this feature'.
 argument-hint: "[Specs directory or requirements source] | --issue <number> [--to-issue]"
 ---
 
@@ -59,7 +59,7 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 - Agent creates too many small stories – push for fewer, larger vertical slices
 - Skipping requirements discovery when no PRD exists – if no prior artifacts, run discovery first
 - Wave assignments get ignored during execution – explicitly mark dependencies between stories
-- Not reading STATE.md before planning – misses context about current phase, active blockers, and recent decisions that should inform story priorities
+- Not reading the `State` document (see **Project Document Index**) before planning – misses context about current phase, active blockers, and recent decisions that should inform story priorities
 - **Carried-forward stories without PRD coverage** – use the **Provenance** field; a story with no PRD feature and no provenance is a traceability gap
 - **Inconsistent FIS path naming** – when composite stories share a FIS, the FIS filename must use the lowest story ID as prefix and include all constituent IDs (e.g., `s01-s02-s03-feature-name.md`). Do not re-assign story-to-FIS mapping after initial assignment — downstream agents and reviewers rely on ID-based file discovery
 
@@ -125,7 +125,7 @@ Use the PRD template at [`templates/prd-template.md`](templates/prd-template.md)
 - [ ] All assumptions documented
 - [ ] No conflicting requirements
 
-Optional: Invoke the `andthen:review-doc` skill to validate the PRD before finalizing.
+Optional: Invoke the `andthen:review --doc-only` skill to validate the PRD before finalizing.
 
 **Gate**: PRD created → continue to Step 2
 
@@ -148,7 +148,7 @@ Use existing artifacts (`requirements-clarification.md` from `andthen:clarify` a
 
 > **Hard gate**: Verify `prd.md` exists in OUTPUT_DIR before proceeding. If only a draft or clarification artifact exists, you skipped PRD finalization — go back to Step 1c.
 
-Delegate codebase exploration to a sub-agent _(if supported)_ to keep context lean. Read `STATE.md` (default: `docs/STATE.md`) if it exists – use current phase, active stories, and blockers to inform story priorities. Reference `UBIQUITOUS_LANGUAGE.md` if present; use canonical terms in story names and acceptance criteria.
+Delegate codebase exploration to a sub-agent _(if supported)_ to keep context lean. Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists – use current phase, active stories, and blockers to inform story priorities. Reference the `Ubiquitous Language` document (see **Project Document Index**) if it exists; use canonical terms in story names and acceptance criteria.
 
 Synthesize into a unified understanding of: all PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), natural implementation boundaries, feature dependencies, and complexity/risk areas.
 
@@ -272,13 +272,13 @@ Keep these invariants from the template:
 
 **Gate**: Plan document complete
 
-#### Initialize Project State (if STATE.md exists)
-If STATE.md exists (path from **Project Document Index**), update it to reflect the new plan:
+#### Initialize Project State (if the `State` document exists; see **Project Document Index**)
+If the `State` document exists (path from **Project Document Index**), update it to reflect the new plan:
 - Use `andthen:ops update-state phase "Phase 1: {first_phase_name}"`
 - Use `andthen:ops update-state status "On Track"`
 - Use `andthen:ops update-state note "Plan created: {plan_name} ({N} stories, {M} phases)"`
 
-If STATE.md does not exist, do not create it – suggest it in follow-up actions instead.
+If the `State` document does not exist (see **Project Document Index**), do not create it – suggest it in follow-up actions instead.
 
 
 ### 5. Validation
@@ -294,7 +294,7 @@ If STATE.md does not exist, do not create it – suggest it in follow-up actions
 - [ ] No missing functionality (cross-cutting concerns like auth, logging, error pages covered)
 - [ ] Not over-granular (combined where sensible)
 
-Optional: Invoke the `andthen:review-doc` skill to validate the plan for requirements coverage and story scope clarity.
+Optional: Invoke the `andthen:review --doc-only` skill to validate the plan for requirements coverage and story scope clarity.
 
 **Gate**: Validation complete
 
@@ -331,13 +331,13 @@ After completion, suggest the following next steps. **Recommend starting a clean
    Example: `/andthen:spec story S01 of docs/specs/my-feature/plan.md` (or `$andthen:spec ...`)
 2. **Create wireframes** (if UI work): Run the `andthen:wireframes` skill
    Example: `/andthen:wireframes docs/specs/my-feature/prd.md` (or `$andthen:wireframes ...`)
-3. **Review plan**: Run the `andthen:review-doc` skill on `plan.md`
-   Example: `/andthen:review-doc docs/specs/my-feature/plan.md` (or `$andthen:review-doc ...`)
+3. **Review plan**: Run the `andthen:review --doc-only` skill on `plan.md`
+   Example: `/andthen:review --doc-only docs/specs/my-feature/plan.md` (or `$andthen:review --doc-only ...`)
 4. **Batch-generate specs** _(clean session)_: Run the `andthen:spec-plan` skill to pre-create all FIS before execution
    Example: `/andthen:spec-plan docs/specs/my-feature/` (or `$andthen:spec-plan ...`)
 5. **Execute the full plan** _(clean session)_: Run the `andthen:exec-plan` skill to spec and implement all stories
    Example: `/andthen:exec-plan docs/specs/my-feature/` (or `$andthen:exec-plan ...`)
-6. **Initialize project state** (if not already tracking): Create `docs/STATE.md` for cross-session state tracking via `/andthen:init` or manually from the template in `templates/project-state-templates.md`
+6. **Initialize project state** (if not already tracking): Create the `State` document as defined in the **Project Document Index** via `/andthen:init` or manually from the template in `templates/project-state-templates.md` (default path: `docs/STATE.md`)
 
 
 ---

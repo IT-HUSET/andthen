@@ -115,6 +115,6 @@ W3: S05
    - When implementation starts, set `**Status**` to `In Progress`.
    - After implementation and review, check off completed acceptance criteria and set `**Status**` to `Done`.
 3. Stories marked `[P]` may run in parallel after dependencies are satisfied.
-4. After the plan is complete, run `andthen:review-gap` against `plan.md`.
+4. After the plan is complete, run `andthen:review --gap-only` against `plan.md`.
 
 > **Status tracking**: Keep the Story Catalog table and the Phase Breakdown story sections in sync. `andthen:exec-plan` and `andthen:ops` rely on these fields for progress tracking.

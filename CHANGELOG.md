@@ -6,6 +6,27 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.11.0] – 2026-04-14
+
+### Added
+- **Direct `exec-spec` execution model** (`exec-spec`) – `exec-spec` now implements FIS documents directly, keeping deep implementation context in one agent while reserving sub-agents for advisory work, fresh-context review, and visual validation
+- **Shared methodology references for thin agents** (`plugin/references/*-methodology.md`, `plugin/agents/*`, `codex/agents/*`) – extracted reusable diagnostic, documentation lookup, QA, research, solution architecture, UI/UX, and visual validation guidance into shared reference files consumed by thin Claude and Codex agent wrappers
+- **Codex custom agent distribution** (`codex/agents`, `install-skills`) – expanded portable Codex agent distribution for the advisory/review agent layer and wired the installer to export those agents alongside skills
+
+### Changed
+- **FIS execution contract simplified** (`exec-spec`, `spec`, `spec-plan`, `fis-template`, `fis-authoring-guidelines`) – the workflow now centers direct execution, task-level scenario proof mapping, explicit execution contracts, and tighter size/traceability checks for specs
+- **Downstream plan execution alignment** (`exec-plan`, `exec-plan-team`, `MODEL-EFFORT-SELECTION-GUIDE`, `README`) – downstream orchestration and model-selection docs now reflect the direct-execution `exec-spec` contract instead of an implementor sub-agent architecture
+- **Portable install path expanded** (`install-skills`, `README`) – the installer now exports skills, shared references, shared templates, helper scripts, and Codex agents as a single portable setup flow instead of leaving Codex agent installation as a manual step
+- **`exec-spec` execution flow clarified** (`exec-spec`) – scenario-test scaffolding, technical-research/learnings/ubiquitous-language lookup, proactive advisory sub-agent usage, direct remediation, and completion reporting now live in one executor workflow instead of being split across orchestrator and implementor prompts
+
+### Fixed
+- **Bounded remediation path in `exec-spec`** – preserved a single recovery path for required validation failures while keeping the no-second-loop rule after one remediation pass
+- **Portable path and namespace rewriting coverage** (`install-skills`, `templates/CLAUDE.template.md`) – exported bundles now rewrite `${CLAUDE_PLUGIN_ROOT}/skills/...` references, markdown link targets, and embedded `andthen:` skill/agent references in shared templates, preventing broken links and plugin-only command names in installed non-plugin bundles
+- **Direct-execution validation continuity** (`exec-spec`) – `exec-spec` now maintains `changed-files` within the main run before scoped stub/wiring/substance checks instead of depending on a separate implementor handoff
+- **Authoring and diagnostic source-of-truth drift** (`fis-authoring-guidelines`, `triage`) – aligned the FIS guide with task-ID proof mapping and direct-execution context, and pointed `triage` at the shared diagnostic methodology
+- **Stale architecture docs after the direct-execution rewrite** (`README`, `plugin/README`, `CHANGELOG`) – updated live docs to stop describing `exec-spec` as an orchestrator/implementor flow after the implementor agents were removed
+- **Trigger-eval harness robustness** (`scripts/eval-skill-triggers.sh`, `evals/skill-trigger-queries.json`) – removed a duplicate positive routing case from the eval corpus, stopped `--skill` from being interpolated into jq source, and made eval runs fail explicitly on `claude`/`jq` runtime errors instead of misreporting them as routing misses
+
 ## [0.10.8] – 2026-04-13
 
 ### Added

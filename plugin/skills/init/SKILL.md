@@ -1,5 +1,5 @@
 ---
-description: Set up AndThen workflow structure for a project – handles new projects, partial setups, and brownfield codebases
+description: Set up AndThen workflow structure for a project – handles new projects, partial setups, and brownfield codebases. Trigger on 'set up AndThen', 'initialize the workflow', 'bootstrap this project for AndThen'.
 argument-hint: "[project name or path]"
 ---
 
@@ -66,25 +66,25 @@ docs/
 Present optional documents and ask which to create:
 
 ```
-Optional project documents:
+Optional core project document types from the **Project Document Index**:
 
 Core (recommended):
-  [ ] docs/LEARNINGS.md                        – Accumulated project knowledge and error patterns
-  [ ] docs/STACK.md                            – Technology stack documentation
-  [ ] docs/KEY_DEVELOPMENT_COMMANDS.md          – Dev, test, build, deploy commands
+  [ ] `Learnings` document                     – see **Project Document Index**; default: docs/LEARNINGS.md – Accumulated project knowledge and error patterns
+  [ ] `Stack` document                         – see **Project Document Index**; default: docs/STACK.md – Technology stack documentation
+  [ ] `Key Dev Commands` document              – see **Project Document Index**; default: docs/KEY_DEVELOPMENT_COMMANDS.md – Dev, test, build, deploy commands
 
 Planning (when ready):
-  [ ] docs/STATE.md                            – Cross-session state tracking
-  [ ] docs/PRODUCT-BACKLOG.md                  – Product backlog with REQ-IDs
-  [ ] docs/ROADMAP.md                          – Phase structure with success criteria
+  [ ] `State` document                         – see **Project Document Index**; default: docs/STATE.md – Cross-session state tracking
+  [ ] `Product Backlog` document               – see **Project Document Index**; default: docs/PRODUCT-BACKLOG.md – Product backlog with REQ-IDs
+  [ ] `Roadmap` document                       – see **Project Document Index**; default: docs/ROADMAP.md – Phase structure with success criteria
 
 Architecture (or generate later via andthen:map-codebase):
-  [ ] docs/ARCHITECTURE.md                     – System architecture overview
+  [ ] `Architecture` document                  – see **Project Document Index**; default: docs/ARCHITECTURE.md – System architecture overview
 
 Domain (or generate later via andthen:ubiquitous-language):
-  [ ] docs/UBIQUITOUS_LANGUAGE.md              – Domain glossary
+  [ ] `Ubiquitous Language` document           – see **Project Document Index**; default: docs/UBIQUITOUS_LANGUAGE.md – Domain glossary
 
-Which would you like to create? (e.g. "LEARNINGS, STACK" or "all core" or "none for now")
+Which would you like to create? (e.g. "Learnings, Stack" or "all core" or "none for now")
 ```
 
 If `docs/guidelines/` is empty, also offer:
@@ -108,9 +108,9 @@ Create per-sub-project CLAUDE.md files? (recommended)
 
 > **CRITICAL**: Present all the above options together and **STOP and WAIT** for user response before creating any files.
 
-For each confirmed document, generate from templates in `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`. Pre-fill what's auto-detectable (e.g., STACK.md from package config).
+For each confirmed document type, generate the file from templates in `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`, using the location from the **Project Document Index** or the default path above. Pre-fill what's auto-detectable (e.g., the `Stack` document from package config).
 
-For each confirmed sub-project CLAUDE.md, generate a lightweight file (under ~40 lines) containing: sub-project name and description, key development commands (inline table), and any conventions that differ from root. Also update root `docs/KEY_DEVELOPMENT_COMMANDS.md` (if created) to include per-sub-project sections.
+For each confirmed sub-project CLAUDE.md, generate a lightweight file (under ~40 lines) containing: sub-project name and description, key development commands (inline table), and any conventions that differ from root. Also update the root `Key Dev Commands` document (see **Project Document Index**) if created to include per-sub-project sections.
 
 **Gate**: CLAUDE.md created, selected documents generated
 
@@ -129,7 +129,7 @@ Current setup analysis:
   - Missing: State, Requirements, Roadmap, Learnings, Conventions
 ✓ Workflow Rules section configured
 ✗ docs/guidelines/ is empty (referenced but no files)
-✗ docs/LEARNINGS.md referenced but doesn't exist
+✗ `Learnings` document is listed in the **Project Document Index** but the file doesn't exist
 
 Would you like to:
 1. Add missing Document Index rows
@@ -138,7 +138,7 @@ Would you like to:
 4. All of the above
 ```
 
-If ARCHITECTURE.md, STACK.md, or a Conventions section in CLAUDE.md are missing and the codebase has 20+ files, also suggest:
+If the `Architecture` document, the `Stack` document, or a Conventions section in CLAUDE.md are missing and the codebase has 20+ files, also suggest:
 ```
 Missing architecture/stack/conventions documentation detected.
 Run andthen:map-codebase to auto-generate from codebase analysis? (recommended)
@@ -161,7 +161,7 @@ Inform the user:
 Existing codebase detected without AndThen workflow structure.
 
 Recommended approach:
-1. Run andthen:map-codebase to auto-generate ARCHITECTURE.md, STACK.md, and conventions for CLAUDE.md
+1. Run andthen:map-codebase to auto-generate the `Architecture` document and the `Stack` document (see **Project Document Index**) plus conventions for CLAUDE.md
 2. Then set up CLAUDE.md and remaining structure
 
 Run map-codebase first? (recommended for codebases with 20+ files)
@@ -181,8 +181,8 @@ Project initialized:
 
 Created:
   CLAUDE.md                              – Project configuration
-  docs/LEARNINGS.md                      – Project knowledge (empty)
-  docs/STACK.md                          – Technology stack (pre-filled)
+  [Learnings document path]             – Project knowledge (empty)
+  [Stack document path]                 – Technology stack (pre-filled)
   docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md
 
 Next steps:

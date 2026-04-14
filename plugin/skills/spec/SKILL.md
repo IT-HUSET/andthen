@@ -1,12 +1,12 @@
 ---
-description: Create a Feature Implementation Specification from requirements or a plan story. Trigger on 'write spec', 'create FIS', 'specify this feature'.
+description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Creates an execution-sized FIS by default, or pivots to a small plan bundle with multiple FIS files when one spec would be too large. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
 argument-hint: <description> | @<requirements-file> | story <story-id> of <path-to-plan.md> | --issue <number> [--to-issue]
 ---
 
 # Generate Feature Implementation Specification
 
 
-Given a feature request, generate a Feature Implementation Specification (FIS) using the template in the **Appendix** below.
+Given a feature request, generate an execution-sized specification artifact: a single Feature Implementation Specification (FIS) by default, or a small `plan.md` plus multiple child FIS files when one spec would clearly be too large.
 
 
 ## VARIABLES
@@ -14,7 +14,7 @@ Given a feature request, generate a Feature Implementation Specification (FIS) u
 ARGUMENTS: $ARGUMENTS
 
 ### Optional Output Flags
-- `--to-issue` → PUBLISH_ISSUE: Publish FIS as a GitHub issue after saving locally
+- `--to-issue` → PUBLISH_ISSUE: Publish the generated spec artifact (single FIS or plan bundle) as a GitHub issue after saving locally
 
 
 ## USAGE
@@ -34,7 +34,7 @@ ARGUMENTS: $ARGUMENTS
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
 - **Spec generation only** - No code changes, commits, or modifications during execution of this command
 - **Remember**: Agents executing the FIS only get the context you provide. Include all necessary documentation, examples, and references.
-- **Read project learnings** – If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting to avoid known traps and error patterns
+- **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting to avoid known traps and error patterns
 
 
 ## GOTCHAS
@@ -49,7 +49,7 @@ ARGUMENTS: $ARGUMENTS
 
 **Scenarios that describe implementation, not behavior** – scenarios should use Given/When/Then to describe observable outcomes from the user's or system's perspective, not internal code steps. Bad: "Given a new AuthService class, When login() is called...". Good: "Given valid credentials, When the user submits login, Then a session token is returned."
 
-**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Target 100-250 lines.
+**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Most strong FIS files land in the 100-300 line range. If the first-pass draft is pushing past roughly ~400 lines or >12 tasks, pivot at spec time into a small plan bundle with multiple child FIS files instead of leaving the problem for `exec-spec`.
 
 **Generic "What We're NOT Doing" section** – use it to record real non-goals or deferrals with reasons, not filler bullets.
 
@@ -64,7 +64,7 @@ You are the orchestrator: parse input, delegate codebase analysis and research t
 ### 0. Parse Input & Get Requirements
 
 **If `--issue` flag present**: use `gh issue view <number>` to fetch issue details, then inspect the body for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`.
-- If `artifact_type: fis-bundle`, **STOP** — the spec already exists. Direct the user to `andthen:exec-spec`, `andthen:review-doc`, or the local FIS path instead of regenerating it.
+- If `artifact_type: fis-bundle`, **STOP** — the spec already exists. Direct the user to `andthen:exec-spec`, `andthen:review`, or the local FIS path instead of regenerating it.
 - If `artifact_type: plan-bundle`, **STOP** — the issue contains a plan, not a single-feature request. Direct the user to `story {story_id} of <path-to-plan.md>`, `andthen:spec-plan`, or `andthen:exec-plan`.
 - If the issue contains another typed workflow artifact (`triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and direct the user to the matching downstream skill.
 - Otherwise use the issue as the feature request and store the issue number for FIS reference.
@@ -108,9 +108,9 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 
 #### Gather Context (as references, not inline content)
 - Technical research from Step 2 (reference `technical-research.md` — don't inline findings into the FIS)
-- ADRs and architecture docs; file paths with line numbers for patterns to follow
+- ADRs and the `Architecture` document (see **Project Document Index**); file paths with line numbers for patterns to follow
 - UI wireframes/mockups; design system references; external documentation URLs
-- Ubiquitous Language glossary (`UBIQUITOUS_LANGUAGE.md`) – use canonical terms; flag any contradictions
+- `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions
 
 #### Generate from Template
 **IMPORTANT**: Use the `Plan` agent _(if supported by your coding agent)_ to generate the FIS — it provides structured authoring support.
@@ -118,32 +118,81 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
 [`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](../../references/fis-authoring-guidelines.md).
 
-> **Optional**: Invoke the `andthen:review-doc` skill for thorough validation (recommended for large/complex features).
+> **Optional**: Invoke the `andthen:review --doc-only` skill for thorough validation (recommended for large/complex features). This keeps pre-implementation FIS review on the document-review path.
+
+### 4.5 Oversize Pivot
+
+After drafting the first-pass FIS, assess whether it is still execution-sized.
+
+- Oversize signals: the draft is pushing past roughly ~400 lines, exceeds ~12 implementation tasks, spans multiple major execution phases that would likely be executed independently, or feels like a small plan disguised as one spec.
+- If the draft is still execution-sized, save the single FIS normally.
+- If the draft is oversized **and the input is a standalone feature request / issue / clarification directory**:
+  1. Do **not** save the giant single FIS as the primary artifact.
+  2. Create a small `plan.md` in the output directory with 2-5 focused stories in execution order.
+  3. Generate that `plan.md` using the `andthen:plan` template at `${CLAUDE_PLUGIN_ROOT}/skills/plan/templates/plan-template.md`. Treat the template as an operational contract, not loose guidance.
+  4. Preserve the plan template invariants because downstream skills parse them directly:
+     - keep the heading names and overall document shape stable
+     - keep the Story Catalog columns exactly `ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS`
+     - include the document references header blockquote at the top with actual relative links for `PRD`, `ADRs`, `Design System`, `Wireframes`, and `Technical Research` when those documents exist
+     - for each story, include `**Status**`, `**FIS**`, `**Phase**`, `**Wave**`, `**Dependencies**`, `**Parallel**`, `**Risk**`, `**Scope**`, `**Acceptance Criteria**`, and `**Asset refs**`
+     - keep `**Key Scenarios**` optional, but include them when behavioral seeds are useful for downstream FIS generation
+     - include `**Provenance**` when a story has no direct PRD feature coverage
+  5. Use the oversize pivot as a **simple one-story-per-FIS breakdown**. Do **not** run THIN/COMPOSITE/shared-FIS classification here and do **not** emit `thin-specs.md`.
+  6. Generate exactly one child FIS per story in the same directory, reusing the shared `technical-research.md` when present.
+  7. For each child FIS:
+     - use the standard FIS template in the Appendix below and the FIS authoring guidelines
+     - derive the content from that story's `Scope`, `Acceptance Criteria`, and `Key Scenarios` in the generated `plan.md`
+     - reference the shared `technical-research.md` from the FIS instead of copying codebase analysis or API research into each spec
+     - save with a stable story-scoped filename such as `s01-{story-name}.md`
+     - keep the spec execution-sized; if a child FIS would still be oversized, split the story further in `plan.md` before saving specs
+  8. Update the generated `plan.md` immediately after each child FIS is written so that every story points at its child FIS path and has `Status: Spec Ready`.
+  9. Treat the result as a **plan bundle** whose downstream path is `andthen:exec-plan`, not `andthen:exec-spec`.
+- If the draft is oversized **and the input is `story {story_id} of {path-to-plan.md}`**:
+  - Do **not** silently fan one plan story out into multiple FIS files.
+  - **STOP** and report that the story itself needs upstream plan decomposition before spec generation can complete cleanly.
+  - Do not save an oversized single FIS just to satisfy the command.
 
 
 ## OUTPUT
 
-**Co-locate with input artifacts when a feature directory exists:**
+### Single-FIS Mode
 - Directory input (e.g. clarify output): save FIS inside as `{feature-name}.md`
 - Plan story input: save FIS in plan directory as `{story-name}.md`
-- Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in Project Document Index)_
+- Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
 - **Technical research**: save as `technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and a plan-level `technical-research.md` already exists, append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
+- **Update source plan** – if this spec was created for a plan story:
+  - Set the story's **FIS** field to the generated FIS file path
+  - Set the story's **Status** field to `Spec Ready`
 
-**Update source plan** – if this spec was created for a plan story:
-- Set the story's **FIS** field to the generated FIS file path
-- Set the story's **Status** field to `Spec Ready`
+### Oversize Pivot Mode
+- Save `plan.md` in the output directory as the primary artifact
+- Generate `plan.md` from `${CLAUDE_PLUGIN_ROOT}/skills/plan/templates/plan-template.md` and preserve its required headings, Story Catalog columns, and story metadata labels
+- Save exactly one child FIS per story in the same directory (prefer stable names like `s01-{story-name}.md`)
+- Do **not** use THIN/COMPOSITE/shared-FIS grouping in oversize pivot mode; this mode is a straightforward one-story-per-FIS decomposition
+- Save or reuse `technical-research.md` beside the plan bundle
+- Update `plan.md` so each generated story references its child FIS path and has `Status` = `Spec Ready`
+- The downstream execution path is `andthen:exec-plan`
+- Do **not** use oversize pivot mode for `story {story_id} of {path-to-plan.md}` input; that case must escalate for upstream plan decomposition instead
 
 ### Publish to GitHub _(if --to-issue)_
 Follow `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
-- `artifact_type`: `fis-bundle`
-- Title: `[FIS] {feature-name}`
-- Primary file: generated FIS (`fis_path`)
-- Companion files: include `technical-research.md` when it exists; if this spec came from a plan story, also include the current `plan.md`
-- Metadata: always set `fis_path`; if this spec came from a plan story, also set `plan_path` and `story_ids` (all constituent story IDs for composite/shared FIS)
-- Labels: `spec`, `fis`, `andthen-artifact`
+- **Single-FIS mode**:
+  - `artifact_type`: `fis-bundle`
+  - Title: `[FIS] {feature-name}`
+  - Primary file: generated FIS (`fis_path`)
+  - Companion files: include `technical-research.md` when it exists; if this spec came from a plan story, also include the current `plan.md`
+  - Metadata: always set `fis_path`; if this spec came from a plan story, also set `plan_path` and `story_ids` (all constituent story IDs for composite/shared FIS)
+  - Labels: `spec`, `fis`, `andthen-artifact`
+- **Oversize pivot mode**:
+  - `artifact_type`: `plan-bundle`
+  - Title: `[PLAN] {feature-name}`
+  - Primary file: generated `plan.md` (`plan_path`)
+  - Companion files: include sibling `prd.md` when present, `technical-research.md` when present, and every child FIS referenced by the plan
+  - Metadata: set `plan_path`; leave `story_ids` empty at the bundle level unless a downstream consumer requires them
+  - Labels: `plan`, `spec`, `andthen-artifact`
 
-Print the issue URL and the local primary path (the generated FIS).
+Print the issue URL and the local primary path (the generated FIS or `plan.md`, depending on mode).
 
 
 ---
@@ -153,10 +202,12 @@ Print the issue URL and the local primary path (the generated FIS).
 
 After completion, suggest:
 
-1. **Execute the spec** _(clean session recommended)_: Run the `andthen:exec-spec` skill to implement the FIS
+1. **Single-FIS mode**: Run `andthen:exec-spec` to implement the FIS
    Example: `/andthen:exec-spec <path-to-fis>` (or `$andthen:exec-spec ...`)
-2. **Review the spec first**: Run the `andthen:review-doc` skill for thorough validation before implementation
-   Example: `/andthen:review-doc <path-to-fis>` (or `$andthen:review-doc ...`)
+2. **Oversize pivot mode**: Run `andthen:exec-plan` to execute the generated plan bundle
+   Example: `/andthen:exec-plan <path-to-plan-directory>` (or `$andthen:exec-plan ...`)
+3. **Review first**: Run `andthen:review --doc-only` on the primary artifact before implementation
+   Example: `/andthen:review --doc-only <path-to-fis-or-plan>` (or `$andthen:review --doc-only ...`)
 
 > **Session tip**: `exec-spec` is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
 

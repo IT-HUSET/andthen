@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Review Gap"
-  short_description: "Gap analysis and code review with remediation plan"
-  default_prompt: "Compare current implementation against requirements – identify gaps and produce actionable remediation plan. Requirements baseline: "
+  short_description: "Specialist requirements-vs-implementation review"
+  default_prompt: "Compare current implementation against requirements, identify gaps, and produce actionable remediation guidance. Use this when the question is explicitly whether implementation matches a spec, PRD, or plan. Requirements baseline: "
 
 policy:
   allow_implicit_invocation: true

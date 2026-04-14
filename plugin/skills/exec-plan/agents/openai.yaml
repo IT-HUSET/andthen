@@ -1,6 +1,6 @@
 interface:
   display_name: "AndThen - Exec Plan"
-  short_description: "Execute plan via sub-agent pipeline with configurable review mode"
+  short_description: "Execute a plan through the AndThen pipeline"
   default_prompt: "Execute all stories in the implementation plan through the pipeline: spec-plan, exec-spec, with review mode per-story|none|full-plan. Plan directory: "
 
 policy:

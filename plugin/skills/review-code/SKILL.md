@@ -1,23 +1,27 @@
 ---
-description: Perform thorough code reviews covering code quality, security, architecture, and UI/UX. Use when reviewing code changes, PRs, implementations, or when asked to review, audit, or assess code quality. Generate detailed reports with prioritized findings.
+description: Perform implementation-focused review covering code quality, security, architecture, and UI/UX. Use when you explicitly want code review rather than the general `review` router. Trigger on 'review this code', 'review this PR', 'audit these changes'.
 user-invocable: true
-argument-hint: "[scope/files] [--to-issue] [--to-pr <number>]"
+argument-hint: "[scope/files] [--inline-findings] [--to-issue] [--to-pr <number>]"
 ---
 
 # Code Review Skill
 
 Comprehensive code review covering correctness, security, architecture, maintainability, and UI/UX where relevant.
 
+Most users should start with `andthen:review`. Use this skill directly when you already know the target is implementation/code.
+
 ## VARIABLES
 ARGUMENTS: $ARGUMENTS
 
 ### Optional Output Flags
+- `--inline-findings` → return findings inline and skip report-file output (for delegated use by `andthen:review` or other orchestration skills)
 - `--to-issue` → PUBLISH_ISSUE
 - `--to-pr <number>` → PUBLISH_PR
 
 ## INSTRUCTIONS
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - Analysis only. Do not modify code.
+- If `--inline-findings` is present, do not write a report file. Return findings inline to the parent skill instead.
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `references/code-review-calibration.md`.
 - Read project learnings if they exist.
 - Exclude generated, vendored, and lockfile noise.
@@ -51,7 +55,7 @@ Determine scope from conversation context, explicit paths, PR number, or current
 ### 2. Review
 - **Code quality** — use [CODE-REVIEW-CHECKLIST.md](checklists/CODE-REVIEW-CHECKLIST.md): correctness, edge cases, readability, naming, maintainability, performance, duplication
 - **Architecture** — use [ARCHITECTURAL-REVIEW-CHECKLIST.md](checklists/ARCHITECTURAL-REVIEW-CHECKLIST.md): pattern adherence, coupling/cohesion, CUPID, DDD where relevant, resilience/performance trade-offs
-- **Domain language** — use [DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md](checklists/DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md) when `UBIQUITOUS_LANGUAGE.md` exists: terminology consistency
+- **Domain language** — use [DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md](checklists/DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md) when the `Ubiquitous Language` document (see **Project Document Index**) exists: terminology consistency
 - **UI/UX** — use [UI-UX-REVIEW-CHECKLIST.md](checklists/UI-UX-REVIEW-CHECKLIST.md) when UI changed: usability, responsiveness, accessibility, interaction quality
 
 #### Security Review
@@ -77,7 +81,9 @@ Categorize findings as:
 
 Also flag obsolete files, unmotivated complexity, and cleanup candidates.
 
-Generate a markdown report:
+Generate a markdown report unless `--inline-findings` is present. When `--inline-findings` is present, return the same content inline in concise structured form instead of writing a file.
+
+Standard report format:
 
 ```markdown
 # Review Report - [Date]

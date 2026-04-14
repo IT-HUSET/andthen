@@ -1,10 +1,10 @@
 # Post-Completion Guide
 
-Use this reference for STATE.md and learnings-file updates after successful execution.
+Use this reference for updates to the `State` document and the project's `Learnings` document as defined in the **Project Document Index**.
 
 ## Shared Rules
-- Update `STATE.md` only if it already exists.
-- Update `LEARNINGS.md` or `implementation-notes.md` only if the file exists, unless the calling skill explicitly says otherwise.
+- Update the `State` document (see **Project Document Index**) only if it already exists.
+- Update the `Learnings` document (see **Project Document Index**) or `implementation-notes.md` only if the file exists, unless the calling skill explicitly says otherwise.
 - Organize learnings by topic, not chronology.
 - Keep entries brief (1-2 sentences each). Record traps, domain knowledge, procedural knowledge, and error patterns that would still surprise a competent developer with repo access.
 - **Error pattern classification**: Note whether an error is deterministic (bad schema, wrong type → conclude immediately) or infrastructure (timeout, rate limit → log, conclude only when pattern emerges).
@@ -14,33 +14,33 @@ Use this reference for STATE.md and learnings-file updates after successful exec
 ## Plan Runs
 Applies to `exec-plan` and `exec-plan-team`.
 
-### STATE.md
+### `State` Document (see **Project Document Index**)
 - Set phase to the completed or current phase.
 - Set status to `On Track` when all required checks passed, otherwise `At Risk`.
 - Clear completed stories from Active Stories by marking them `Done`.
 - Add a session continuity note summarizing what completed, what remains, and what the next session needs.
 
-### Learnings
+### `Learnings` (see **Project Document Index**)
 - Capture cross-story insights in addition to the shared learnings categories.
-- Do not create a new learnings file if none exists.
+- Do not create a new `Learnings` document if none exists in the location defined by the **Project Document Index**.
 
 ## Story Runs
 Applies to `exec-spec`.
 
-### STATE.md
+### `State` Document (see **Project Document Index**)
 - For plan-originated stories, mark the active story `Done`.
 - Add a short completion note for the story.
 
-### Learnings
+### `Learnings` (see **Project Document Index**)
 - Capture story-level traps, domain knowledge, procedural knowledge, and error patterns.
-- Do not create a new learnings file if none exists.
+- Do not create a new `Learnings` document if none exists in the location defined by the **Project Document Index**.
 
 ## Quick Implement
 Applies to `quick-implement`.
 
-### STATE.md
-- Add only a lightweight session note when `STATE.md` exists.
+### `State` Document (see **Project Document Index**)
+- Add only a lightweight session note when the `State` document (see **Project Document Index**) exists.
 
-### Learnings
-- If a learnings file exists, append brief traps/gotchas there.
-- If no learnings file exists and there are noteworthy traps, add a `Learnings` section at the end of the original spec document.
+### `Learnings` (see **Project Document Index**)
+- If the `Learnings` document (see **Project Document Index**) exists, append brief traps/gotchas there.
+- If no `Learnings` document exists in the location defined by the **Project Document Index** and there are noteworthy traps, add a `Learnings` section at the end of the original spec document.

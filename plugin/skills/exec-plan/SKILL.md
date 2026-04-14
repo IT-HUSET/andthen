@@ -1,5 +1,5 @@
 ---
-description: Execute an entire implementation plan through a pipeline (spec-plan per phase, then exec-spec with configurable review mode)
+description: Use when the user wants to execute an implementation plan. Runs the AndThen plan pipeline (spec-plan per phase, then exec-spec with configurable review mode). Trigger on 'execute this plan', 'implement this plan', 'run the plan'.
 argument-hint: <path-to-plan-directory | --issue <number> | issue URL> [--review-mode per-story|none|full-plan]
 ---
 
@@ -38,7 +38,7 @@ Make sure `PLAN_SOURCE` is provided – otherwise **STOP** and ask.
 
 **Review mode guidance**: `per-story` (default) is recommended for most plans — it catches issues at the story level where they are cheapest to fix and prevents issue accumulation across stories. Use `none` only for time-critical execution where you accept the risk of deferred review. Use `full-plan` for small plans (4 or fewer stories) where per-story overhead exceeds the benefit.
 
-Specs are pre-generated before execution starts. `exec-spec`'s TV05 loop handles *implementation-level* issues (3-cycle cap); `exec-plan`'s review-gap + remediate-findings loop handles *integration and gap-level* issues.
+Specs are pre-generated before execution starts. `exec-spec`'s 1-pass remediation handles *implementation-level* issues; `exec-plan`'s review-gap + remediate-findings loop handles *integration and gap-level* issues.
 
 ### Orchestrator Role
 **You are the orchestrator.** Your job:
@@ -57,7 +57,7 @@ Specs are pre-generated before execution starts. `exec-spec`'s TV05 loop handles
 - Skipping spec-plan before executing a phase – all stories must have FIS before implementation starts
 - Running the wrong review behavior for the selected `REVIEW_MODE`
 - **Status updates dropped when context exhausted** – plan and FIS checkbox updates (Step 2c) are GATES blocking the next phase, not optional cleanup
-- Not updating STATE.md when phases transition or blockers are discovered
+- Not updating the `State` document (see **Project Document Index**) when phases transition or blockers are discovered
 - **Re-executing a composite FIS already implemented** – check the executed-FIS set before each story's pipeline
 - **Marking Done without verifying plan acceptance criteria** – always check plan criteria against implementation
 
@@ -71,7 +71,7 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`: `check-stubs.sh`, `check-wiring.s
 
 0. Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Incompatible typed artifacts → **STOP** and direct the user to the correct skill.
 
-1. **Load session state** – Read `STATE.md` (from Project Document Index, default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
+1. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
 
 2. Read `PLAN_DIR/plan.md`; if missing, **STOP** and recommend the `andthen:plan` skill first
 3. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
@@ -86,7 +86,7 @@ For each phase in the plan:
 
 #### 2a. Generate Specs for This Phase
 
-**Update project state** (if STATE.md exists): `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `andthen:ops update-state status "On Track"`.
+**Update project state** (if the `State` document exists; see **Project Document Index**): `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `andthen:ops update-state status "On Track"`.
 
 Invoke the `andthen:spec-plan` skill:
 ```
@@ -129,7 +129,7 @@ Important:
 - Follow existing codebase patterns
 - Status updates are REQUIRED – do not skip step 3
 - Do not run review-gap if review mode is none or full-plan
-- After completing, update active story status via andthen:ops if STATE.md exists
+- After completing, update active story status via andthen:ops if the `State` document exists (see **Project Document Index**)
 - Report back: success/failure, FIS path, any issues
 ```
 
@@ -144,7 +144,7 @@ Important:
 2. If the FIS narrowed scope, a scope note must exist in plan criteria; otherwise escalate to user
 3. **Verify spec compliance**: confirm that exec-spec's spec compliance spot-check (Step 4a.7) completed — check that FIS task checkboxes are marked and verification evidence exists. If evidence is missing or checkboxes are incomplete, flag the story for re-verification before marking Done
 
-Invoke the `andthen:ops` skill to update `plan.md`: Status → `Done`, FIS field, acceptance criteria, Story Catalog status. Use `andthen:ops update-fis {fis_path} all` to mark FIS checkboxes (catches context-exhaustion gaps). Update STATE.md: `andthen:ops update-state active-story {story_id} Done`.
+Invoke the `andthen:ops` skill to update `plan.md`: Status → `Done`, FIS field, acceptance criteria, Story Catalog status. Use `andthen:ops update-fis {fis_path} all` to mark FIS checkboxes (catches context-exhaustion gaps). Update the `State` document (see **Project Document Index**): `andthen:ops update-state active-story {story_id} Done`.
 
 After ops completes, **re-read plan.md and the FIS** to verify updates applied.
 
@@ -166,7 +166,7 @@ Phase 2 (Parallel, full-plan):   spec-plan → impl-S03 ────────
 ### Step 3: Final Review Stage
 
 - `per-story` – No extra step.
-- `none` – Skip; note manual review pending in completion summary and STATE.md session note.
+- `none` – Skip; note manual review pending in completion summary and the `State` document session note (see **Project Document Index**).
 - `full-plan` – `/andthen:review-gap {PLAN_DIR}/plan.md`; if FAIL, capture the report path and run `/andthen:remediate-findings {report_path}`; re-run review for up to 2 rounds, then escalate if issues persist.
 
 **Gate**: Required review for selected `REVIEW_MODE` complete
@@ -193,7 +193,7 @@ Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/referenc
 - **Final review fails** (`full-plan`) → remediate (max 2 review/remediation rounds); escalate if persist
 - **Dependent stories blocked** when predecessor fails
 - **>50% of a phase fails** → pause, notify user with failure summary
-- **Update STATE.md on failure**: `andthen:ops update-state status "At Risk"` or `"Blocked"`. Add blockers via `andthen:ops update-state blocker "{description}"`.
+- **Update the `State` document on failure** (see **Project Document Index**): `andthen:ops update-state status "At Risk"` or `"Blocked"`. Add blockers via `andthen:ops update-state blocker "{description}"`.
 
 
 ## COMPLETION
@@ -201,4 +201,4 @@ Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/referenc
 Print summary: stories completed, phases, `REVIEW_MODE`, review/verification results, path to updated `PLAN_DIR/plan.md`.
 
 ## Post-Completion
-Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Plan Runs` → `STATE.md` and `Learnings`).
+Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Plan Runs` → `State` Document and `Learnings`).

@@ -1,5 +1,5 @@
 ---
-description: Batch-create FIS specs for all stories in a plan with parallel sub-agents and cross-cutting review. Trigger on 'spec all stories', 'batch spec', 'pre-create specs'.
+description: Use when the user wants FIS specs created for every story in a plan. Batch-creates FIS specs with parallel sub-agents and cross-cutting review. Trigger on 'spec all stories', 'create FIS for every story', 'batch spec this plan', 'pre-create specs'.
 argument-hint: <path-to-plan-directory | --issue <number> | issue URL> [--stories S01,S03] [--phase N] [--max-parallel N] [--skip-review]
 ---
 
@@ -45,7 +45,7 @@ Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately and ask t
 - **Spec generation only** – no code changes, commits, or modifications during execution of this command
 - **Plan is source of truth** — story scope, acceptance criteria, and dependencies come from the plan
 - **Skip existing specs** – if a story already has a valid FIS (path in `**FIS**` field), skip it
-- **Read project learnings** – If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting
+- **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
 
 ### Orchestrator Role
 **You are the orchestrator.** Parse the plan, classify stories, spawn parallel sub-agents for STANDARD/COMPOSITE specs, write THIN specs directly, update plan.md after each sub-wave, and run cross-cutting review. You do NOT write STANDARD or COMPOSITE specs directly, write code, or let your context fill with spec content.
@@ -146,13 +146,13 @@ After the technical research, classify each story — **fully automatic**, no us
 
 #### THIN: Collected FIS
 
-All THIN stories in the current scope are collected into a **single** FIS file: `{PLAN_DIR}/thin-specs.md` (or `thin-specs-p{N}.md` when running with `--phase N`). The orchestrator writes this directly — no sub-agents needed. Use the standard FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`) and FIS authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`). Tag Success Criteria with source story IDs (e.g., `### S08: Story Name`) so acceptance gates can map criteria per story. Organize execution groups by story (tag each group with its source story ID) — same structure as COMPOSITE. Populate from plan story scope/criteria, Key Scenarios (if present), and technical research. Target: compact but complete.
+All THIN stories in the current scope are collected into a **single** FIS file: `{PLAN_DIR}/thin-specs.md` (or `thin-specs-p{N}.md` when running with `--phase N`). The orchestrator writes this directly — no sub-agents needed. Use the standard FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`) and FIS authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`). Tag Success Criteria with source story IDs (e.g., `### S08: Story Name`) so acceptance gates can map criteria per story. Keep implementation tasks for each source story contiguous and call out the source story ID in task context where needed. Populate from plan story scope/criteria, Key Scenarios (if present), and technical research. Target: compact but complete.
 
 After writing, update **ALL** THIN stories' **FIS** fields in plan.md to point to the thin-specs file and set **Status** to `Spec Ready`. The shared FIS path triggers existing shared-FIS dedup in exec-plan/exec-plan-team — exec-spec runs once, remaining stories skip to acceptance gate.
 
 #### COMPOSITE: Multi-Story FIS
 
-For COMPOSITE groups, one sub-agent covers all stories. Use concatenated IDs for the FIS output path: `{PLAN_DIR}/s01-s02-{feature-name}.md`. All constituent stories' **FIS** fields point to the same file; all get **Status** `Spec Ready`. Tag Success Criteria with source story IDs and organize execution groups by story (tag each group with its source story ID) — this enables per-story acceptance gate verification.
+For COMPOSITE groups, one sub-agent covers all stories. Use concatenated IDs for the FIS output path: `{PLAN_DIR}/s01-s02-{feature-name}.md`. All constituent stories' **FIS** fields point to the same file; all get **Status** `Spec Ready`. Tag Success Criteria with source story IDs and keep implementation tasks for each source story contiguous — this enables per-story acceptance gate verification without extra execution-group metadata.
 
 **Summary output**: Print classification results — counts per tier, which stories grouped into composites, which are thin, which are standard.
 
@@ -181,7 +181,7 @@ Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) for all sp
 **COMPOSITE sub-agent** — provide:
 - All constituent stories (ID, name, scope, acceptance criteria, Key Scenarios if present)
 - Same references as STANDARD
-- Instructions: read technical research; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to any constituent story flows into FIS success criteria unchanged; generate ONE FIS covering all stories with execution groups organized by story (tag each group with its source story ID); **reference** technical research from FIS — do not duplicate codebase analysis or API details into the spec; run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
+- Instructions: read technical research; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to any constituent story flows into FIS success criteria unchanged; generate ONE FIS covering all stories with implementation tasks kept contiguous by story where that improves traceability; **reference** technical research from FIS — do not duplicate codebase analysis or API details into the spec; run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
 
 #### Wait, Collect, and Update Plan
 

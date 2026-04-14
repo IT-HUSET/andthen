@@ -1,6 +1,6 @@
 interface:
   display_name: "AndThen - Design System"
-  short_description: "Create design tokens and component styles"
+  short_description: "Create a design system or style guide"
   default_prompt: "Create a design system with tokens, component styles, and documentation from feature requirements. Feature requirements: "
 
 policy:

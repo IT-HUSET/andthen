@@ -1,5 +1,5 @@
 ---
-description: Create high visual quality Excalidraw diagrams that communicate with clarity and intuition. Produces educational, visually rich diagrams where structure and design do the explaining.
+description: Create high visual quality Excalidraw diagrams that communicate with clarity and intuition. Produces educational, visually rich diagrams where structure and design do the explaining. Trigger on 'draw this architecture', 'make a workflow diagram', 'create an Excalidraw diagram'.
 argument-hint: "<topic-or-source> [output-dir]"
 ---
 

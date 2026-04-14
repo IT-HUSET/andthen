@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Review Doc"
-  short_description: "Review docs for completeness and accuracy"
-  default_prompt: "Review document for completeness, clarity, edge cases, and technical accuracy. Produce findings report with readiness assessment. Document: "
+  short_description: "Specialist document review"
+  default_prompt: "Review a spec, PRD, plan, or other document for completeness, clarity, edge cases, and technical accuracy. Use this when the target is clearly a document rather than a general review request. Document: "
 
 policy:
   allow_implicit_invocation: true

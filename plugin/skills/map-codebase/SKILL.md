@@ -1,5 +1,5 @@
 ---
-description: Analyze an existing codebase to produce structured documentation and discover implicit requirements. Trigger on 'map codebase', 'analyze the project', 'what does this repo do'.
+description: Analyze an existing codebase to produce structured documentation and discover implicit requirements. Trigger on 'map codebase', 'map this repo', 'analyze the project', 'understand this codebase', 'what does this repo do'.
 argument-hint: "[output directory (defaults to docs/)]"
 ---
 
@@ -20,7 +20,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 ## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
-- **Read project learnings** – If `LEARNINGS.md` exists (check Project Document Index for location), read it before starting
+- **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
 - **Read-only analysis** – No code changes, commits, or modifications
 - **Delegate heavily** – Spawn parallel sub-agents for codebase analysis
 - **Structured output** – All documents follow templates from `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`
@@ -54,11 +54,11 @@ Spawn parallel sub-agents _(if supported by your coding agent)_. Use a fast/ligh
 
 #### 2a. Stack Analysis (sub-agent)
 Analyze and document languages/versions, frameworks and libraries (with versions from lock files), infrastructure, external services, build tools and CI/CD.
-Output: `OUTPUT_DIR/STACK.md`
+Output: the `Stack` document (see **Project Document Index**; default: `OUTPUT_DIR/STACK.md`)
 
 #### 2b. Architecture Analysis (sub-agent)
 Analyze and document system design and component boundaries, key modules and responsibilities, data flow, entry points (routes, CLI, event handlers), and integration points with external systems. If monorepo: document sub-project boundaries and inter-project relationships.
-Output: `OUTPUT_DIR/ARCHITECTURE.md`
+Output: the `Architecture` document (see **Project Document Index**; default: `OUTPUT_DIR/ARCHITECTURE.md`)
 
 #### 2c. Conventions Analysis (sub-agent)
 Analyze and document naming conventions, file organization patterns, error handling, logging, testing patterns, and code style (formatting, imports, exports).
@@ -66,11 +66,11 @@ Output: a `## Conventions` section to be appended to the project's `CLAUDE.md`
 
 #### 2d. Testing Overview (sub-agent)
 Analyze test framework(s), test directory structure, coverage patterns, test helpers/fixtures, and integration/E2E setup.
-Output: included in ARCHITECTURE.md under a "Testing" section
+Output: included in the `Architecture` document (see **Project Document Index**) under a "Testing" section
 
 #### 2e. Key Development Commands Discovery (sub-agent)
 Discover commands by scanning `package.json` scripts, `Makefile`, `Taskfile.yml`, `justfile`, `deno.json`, `Cargo.toml` aliases, CI/CD configs, and README files. If monorepo: organize commands per sub-project and identify root-level orchestration commands.
-Output: `docs/KEY_DEVELOPMENT_COMMANDS.md` (or location from Project Document Index), using the template from `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`
+Output: the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`), using the template from `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`
 
 **Gate**: All analysis sub-agents complete
 

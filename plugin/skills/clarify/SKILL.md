@@ -1,5 +1,5 @@
 ---
-description: Clarify requirements through systematic discovery of gaps, edge cases, and scope boundaries. Trigger on 'clarify', 'what are the requirements', 'discover requirements'.
+description: Clarify requirements through systematic discovery of gaps, edge cases, and scope boundaries. Trigger on 'clarify this', 'clarify requirements', 'what are the requirements', 'discover requirements'.
 argument-hint: "[Requirements source - description, file path, or --issue <number>]"
 ---
 
@@ -130,7 +130,7 @@ Fix any issues found before finalizing.
 If the project involves significant domain complexity (business rules, multiple bounded contexts, domain-specific terminology):
 1. Extract candidate terms from requirements: entities, actions, states, rules, relationships
 2. Identify synonym clusters and ambiguous terms
-3. Create or update `UBIQUITOUS_LANGUAGE.md` with initial glossary grouped by domain cluster
+3. Create or update the `Ubiquitous Language` document (see **Project Document Index**) with an initial glossary grouped by domain cluster
 
 > **Skip** for simple projects (CRUD apps, utilities, scripts) or when domain language is obvious.
 
@@ -216,7 +216,7 @@ Generate markdown document:
 Store report in: `OUTPUT_DIR/<feature-name>/requirements-clarification.md`
 - If from GitHub issue: use `issue-{number}-{feature-name}/` as the output subdirectory name (e.g. `docs/specs/issue-42-data-export/requirements-clarification.md`). Include issue reference in the document header.
 
-If domain language extraction was performed, also store: `docs/UBIQUITOUS_LANGUAGE.md` _(or as configured in **Project Document Index**)_
+If domain language extraction was performed, also store it in the `Ubiquitous Language` document location from the **Project Document Index** (default: `docs/UBIQUITOUS_LANGUAGE.md`)
 
 When complete, print the report's **relative path from the project root**.
 

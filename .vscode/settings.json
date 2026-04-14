@@ -1,3 +1,9 @@
 {
-  "window.title": "AndThen${separator}${activeEditorShort}"
+  "window.title": "AndThen${separator}${activeEditorShort}",
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#b10e65",
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveBackground": "#8f0b51",
+    "titleBar.inactiveForeground": "#e5e5e5"    
+  }
 }

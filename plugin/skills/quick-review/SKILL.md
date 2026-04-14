@@ -1,5 +1,5 @@
 ---
-description: Quick in-conversation review of recent changes using a fresh-context sub-agent for adversarial critique. Use mid-conversation to sanity-check work before moving on.
+description: Quick in-conversation review of recent changes using a fresh-context sub-agent for adversarial critique. Use mid-conversation to sanity-check work before moving on. Trigger on 'quick review this', 'sanity-check this', 'give this a quick pass'.
 user-invocable: true
 argument-hint: "[optional focus or scope]"
 ---
@@ -8,7 +8,7 @@ argument-hint: "[optional focus or scope]"
 
 Lightweight, ad-hoc review of recent work in the current conversation. Spawns a fresh-context sub-agent to critique what was just done — catching errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
 
-**For thorough reviews, use the dedicated skills:** `andthen:review-code`, `andthen:review-doc`, `andthen:review-gap`, or `andthen:review-council`.
+**For thorough reviews, start with:** `andthen:review`. Use `andthen:review-council` when you explicitly want multi-perspective adversarial review.
 
 
 ## VARIABLES

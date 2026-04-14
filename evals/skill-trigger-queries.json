@@ -1,0 +1,247 @@
+[
+  {
+    "skill": "clarify",
+    "should_trigger": true,
+    "query": "Clarify this feature idea: admins should be able to freeze an account without deleting its data."
+  },
+  {
+    "skill": "clarify",
+    "should_trigger": true,
+    "query": "What are the requirements for a customer self-serve cancellation flow?"
+  },
+  {
+    "skill": "clarify",
+    "should_trigger": true,
+    "query": "Discover requirements for a weekly finance summary email pulled from three systems."
+  },
+  {
+    "skill": "clarify",
+    "should_trigger": true,
+    "query": "This is still vague. Help me clarify scope, edge cases, and constraints before we plan it."
+  },
+  {
+    "skill": "clarify",
+    "should_trigger": false,
+    "query": "Create a FIS for this feature: users can export invoices to CSV."
+  },
+  {
+    "skill": "clarify",
+    "should_trigger": false,
+    "query": "Break this feature into stories and create a PRD plus implementation plan."
+  },
+  {
+    "skill": "clarify",
+    "should_trigger": false,
+    "query": "Implement this FIS: docs/specs/invoice-export/invoice-export.md"
+  },
+  {
+    "skill": "clarify",
+    "should_trigger": false,
+    "query": "Review the current implementation against the PRD and tell me what gaps remain."
+  },
+
+  {
+    "skill": "spec",
+    "should_trigger": true,
+    "query": "Create a spec for this: support CSV export from the invoices table with date filtering."
+  },
+  {
+    "skill": "spec",
+    "should_trigger": true,
+    "query": "Create a FIS for this feature from the requirements in docs/specs/invoice-export/."
+  },
+  {
+    "skill": "spec",
+    "should_trigger": true,
+    "query": "Write a FIS for story S03 of docs/specs/billing-dashboard/plan.md."
+  },
+  {
+    "skill": "spec",
+    "should_trigger": true,
+    "query": "Specify this feature so an implementation agent can execute it cleanly."
+  },
+  {
+    "skill": "spec",
+    "should_trigger": false,
+    "query": "Clarify the requirements for invoice export before we write anything."
+  },
+  {
+    "skill": "spec",
+    "should_trigger": false,
+    "query": "Create a PRD and break this billing work into stories."
+  },
+  {
+    "skill": "spec",
+    "should_trigger": false,
+    "query": "Execute this spec from docs/specs/invoice-export/invoice-export.md."
+  },
+  {
+    "skill": "spec",
+    "should_trigger": false,
+    "query": "Spec all stories in docs/specs/billing-dashboard/ so every story gets a FIS."
+  },
+
+  {
+    "skill": "plan",
+    "should_trigger": true,
+    "query": "Create a plan for this feature and break it into stories."
+  },
+  {
+    "skill": "plan",
+    "should_trigger": true,
+    "query": "Create a PRD and implementation plan for a customer-facing billing portal."
+  },
+  {
+    "skill": "plan",
+    "should_trigger": true,
+    "query": "Plan this feature from docs/specs/customer-portal/requirements-clarification.md."
+  },
+  {
+    "skill": "plan",
+    "should_trigger": true,
+    "query": "I need this broken into milestones, dependencies, and stories, not implemented yet."
+  },
+  {
+    "skill": "plan",
+    "should_trigger": false,
+    "query": "Clarify the requirements first. We are not ready for a PRD or plan."
+  },
+  {
+    "skill": "plan",
+    "should_trigger": false,
+    "query": "Create a spec for story S02 of docs/specs/customer-portal/plan.md."
+  },
+  {
+    "skill": "plan",
+    "should_trigger": false,
+    "query": "Run this implementation plan and execute all the stories."
+  },
+  {
+    "skill": "plan",
+    "should_trigger": false,
+    "query": "Review the implementation against the plan and PRD."
+  },
+
+  {
+    "skill": "exec-spec",
+    "should_trigger": true,
+    "query": "Execute this spec: docs/specs/invoice-export/invoice-export.md"
+  },
+  {
+    "skill": "exec-spec",
+    "should_trigger": true,
+    "query": "Implement this FIS from docs/specs/billing-dashboard/s03-export.md."
+  },
+  {
+    "skill": "exec-spec",
+    "should_trigger": true,
+    "query": "Build from spec and follow the FIS exactly."
+  },
+  {
+    "skill": "exec-spec",
+    "should_trigger": true,
+    "query": "Take issue 142 as the typed FIS artifact and implement it."
+  },
+  {
+    "skill": "exec-spec",
+    "should_trigger": false,
+    "query": "Create a FIS for this export feature before we start coding."
+  },
+  {
+    "skill": "exec-spec",
+    "should_trigger": false,
+    "query": "Create a plan for the billing portal rollout."
+  },
+  {
+    "skill": "exec-spec",
+    "should_trigger": false,
+    "query": "Run the entire implementation plan for docs/specs/billing-dashboard/."
+  },
+  {
+    "skill": "exec-spec",
+    "should_trigger": false,
+    "query": "Compare the current implementation to the spec and tell me what gaps remain."
+  },
+
+  {
+    "skill": "review",
+    "should_trigger": true,
+    "query": "Review these current changes and tell me what matters."
+  },
+  {
+    "skill": "review",
+    "should_trigger": true,
+    "query": "Review this plan before implementation and flag gaps or unclear requirements."
+  },
+  {
+    "skill": "review",
+    "should_trigger": true,
+    "query": "Review this implementation and choose the right review mode for the PRD mismatch question."
+  },
+  {
+    "skill": "review",
+    "should_trigger": true,
+    "query": "Audit this PR and use the right review mode automatically."
+  },
+  {
+    "skill": "review",
+    "should_trigger": false,
+    "query": "Do a strict gap analysis against the spec for invoice export."
+  },
+  {
+    "skill": "review",
+    "should_trigger": false,
+    "query": "Review this code only for security issues."
+  },
+  {
+    "skill": "review",
+    "should_trigger": false,
+    "query": "Review this spec document only before implementation."
+  },
+  {
+    "skill": "review",
+    "should_trigger": false,
+    "query": "Run a multi-reviewer council review on these changes."
+  },
+
+  {
+    "skill": "review-gap",
+    "should_trigger": true,
+    "query": "Do a gap analysis against the spec for invoice export."
+  },
+  {
+    "skill": "review-gap",
+    "should_trigger": true,
+    "query": "Review the current implementation against the PRD and tell me what is missing."
+  },
+  {
+    "skill": "review-gap",
+    "should_trigger": true,
+    "query": "Compare implementation to the plan in docs/specs/billing-dashboard/ and produce a remediation report."
+  },
+  {
+    "skill": "review-gap",
+    "should_trigger": true,
+    "query": "Check whether the code actually matches the FIS we executed."
+  },
+  {
+    "skill": "review-gap",
+    "should_trigger": false,
+    "query": "Review this spec for completeness before implementation starts."
+  },
+  {
+    "skill": "review-gap",
+    "should_trigger": false,
+    "query": "Create a spec for story S05 of docs/specs/billing-dashboard/plan.md."
+  },
+  {
+    "skill": "review-gap",
+    "should_trigger": false,
+    "query": "Execute this spec and implement the code."
+  },
+  {
+    "skill": "review-gap",
+    "should_trigger": false,
+    "query": "Address these review findings from the last gap review."
+  }
+]

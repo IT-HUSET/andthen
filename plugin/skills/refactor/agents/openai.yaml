@@ -1,6 +1,6 @@
 interface:
   display_name: "AndThen - Refactor"
-  short_description: "Code improvement and simplification"
+  short_description: "Refactor or clean up code"
   default_prompt: "Systematically improve and simplify code for clarity, consistency, and maintainability. Scope: "
 
 policy:

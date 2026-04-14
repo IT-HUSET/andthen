@@ -136,7 +136,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 | Command | Description | Model | Effort | Rationale |
 |---------|-------------|-------|--------|-----------|
 | `/spec` | Clarify requirements + create Feature Implementation Spec (FIS) | `opus` | `high` | Reasoning-heavy: edge cases, constraints, cross-cutting concerns |
-| `/exec-spec` | Execute a FIS – orchestrated implementation with validation | `opusplan` | `medium`–`high` | Opus plans subtasks, Sonnet executes code. Medium for straightforward specs, high for complex ones |
+| `/exec-spec` | Execute a FIS – direct implementation with validation | `opusplan` | `medium`–`high` | One agent keeps deep implementation context, while advisory/review sub-agents stay narrow. Medium for straightforward specs, high for complex ones |
 | `/exec-plan` | Execute full plan with configurable review mode | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
 | `/quick-implement` | Quick path for small features/fixes | `sonnet` | `medium` | Small scope, speed matters |
 | `/remediate-findings` | Apply validated review findings and update workflow status | `sonnet` | `medium`–`high` | Must distinguish stale vs valid findings, keep scope tight, and re-validate |
@@ -168,13 +168,13 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 
 ### Commands via Other Agents (Codex CLI, etc.)
 
-Skills are agent-agnostic – the same files work across all agents. Recommendations for Codex CLI assume you ran `./scripts/install-skills.sh`, which exports skills as `andthen-*/`:
+Skills are agent-agnostic – the same files work across all agents. Recommendations for Codex CLI assume you ran `./scripts/install-skills.sh`, which exports skills as `andthen-*/` and installs the matching Codex custom agents:
 
 | Skill | Description | Model | Effort | Rationale |
 |-------|-------------|-------|--------|-----------|
 | `andthen-clarify` | Requirements discovery from vague ideas | `gpt-5.4` | `medium` | Analytical, not deeply complex |
 | `andthen-spec` | Clarify requirements + create FIS | `gpt-5.4` | `high` | Reasoning-heavy, completeness critical |
-| `andthen-exec-spec` | Execute a FIS | `gpt-5.4` | `medium`–`high` | Medium for straightforward, high for complex specs |
+| `andthen-exec-spec` | Execute a FIS | `gpt-5.4` | `medium`–`high` | Direct execution keeps continuity for implementation; advisory/review sub-agents stay available for narrow tasks and fresh-context validation |
 | `andthen-review-gap` | Gap analysis + code review | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical |
 | `andthen-remediate-findings` | Implement validated review findings | `gpt-5.4` | `medium`–`high` | Requires bounded remediation, re-validation, and status bookkeeping |
 | `andthen-design-system` | Design system tokens + style guide | `gpt-5.4` | `medium` | Pattern-following |

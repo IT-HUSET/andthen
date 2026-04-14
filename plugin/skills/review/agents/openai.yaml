@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Review"
+  short_description: "Smart review router for code, docs, or requirements fit"
+  default_prompt: "Review the target, determine the right review mode, and route to code review, document review, gap analysis, and optional council escalation as needed. Review target: "
+
+policy:
+  allow_implicit_invocation: true

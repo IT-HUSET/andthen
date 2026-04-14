@@ -42,7 +42,7 @@ Skills read the **user's project** `CLAUDE.md` (not this repo's) for two key int
 
 ### Skill Anatomy
 Each skill lives in `plugin/skills/<name>/` and contains:
-- `SKILL.md` – the skill prompt (with frontmatter: `description`, `argument-hint`, and optional `user-invocable`, `context`, `agent`)
+- `SKILL.md` – the skill prompt (with frontmatter: `description`, `argument-hint`, and optional `user-invocable`, `context`, `agent`). The `description` is also a routing surface: front-load the primary use case, prefer a `Use when...` framing, include 2-4 natural trigger phrases and AndThen-native terms users actually say (`spec`, `FIS`, `PRD`, `plan`, `gap analysis`, etc.), and keep it concise enough that key terms survive truncation.
 - `agents/openai.yaml` – OpenAI/Codex agent metadata for cross-agent portability
 - Optional subdirectories for templates, checklists, or references
 

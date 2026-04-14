@@ -64,7 +64,7 @@ source_issue_number: 42
 - `fis-bundle` — FIS primary; include `technical-research.md` when present; if the FIS originated from a plan story, include `plan.md` and populate `plan_path` / `story_ids`
 - `triage-plan` — investigation / fix plan primary
 - `triage-completion` — completion summary with verification evidence primary
-- `gap-review`, `code-review`, `architecture-review`, `doc-review`, `council-review` — review reports; the report file is the primary artifact
+- `review`, `gap-review`, `code-review`, `architecture-review`, `doc-review`, `council-review` — review reports; the report file is the primary artifact
 
 Add narrower types only when a downstream consumer needs distinct behavior.
 
