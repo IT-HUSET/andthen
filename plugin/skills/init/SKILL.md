@@ -149,7 +149,7 @@ Wait for user response, then execute confirmed actions:
 - **Missing documents**: Generate from templates, pre-fill where possible
 - **Missing guidelines**: Copy from plugin
 - **Missing sections**: Add to CLAUDE.md at the appropriate location
-- **map-codebase**: Run `andthen:map-codebase` skill; skip creating ARCHITECTURE.md and STACK.md from templates since map-codebase produces them from actual analysis
+- **map-codebase**: Run `andthen:map-codebase` skill; skip creating the `Architecture` and `Stack` documents from templates since map-codebase produces them from actual analysis
 
 **Gate**: All selected gaps filled
 
@@ -167,7 +167,7 @@ Recommended approach:
 Run map-codebase first? (recommended for codebases with 20+ files)
 ```
 
-Wait for response. If yes: run the `andthen:map-codebase` skill, then proceed with Step 2a using generated documents as foundation (skip ARCHITECTURE.md and STACK.md from templates). If no: proceed directly to Step 2a.
+Wait for response. If yes: run the `andthen:map-codebase` skill, then proceed with Step 2a using generated documents as foundation (skip the `Architecture` and `Stack` documents from templates). If no: proceed directly to Step 2a.
 
 **Gate**: Brownfield analysis complete (or skipped), proceed to project setup
 

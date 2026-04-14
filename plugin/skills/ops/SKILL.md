@@ -70,7 +70,7 @@ After any update, set `Last Updated` to current timestamp.
 - **Blockers**: remove entries that are no longer relevant (e.g. the blocking condition has been resolved, the related story is `Done`, or the blocker is older than 14 days with no recent activity)
 - **Recent Decisions**: keep only the **last 10** entries; graduate older items to ADRs if warranted
 - **Session Continuity Notes**: keep only the **last 5** entries; older entries are trimmed. Notes from completed milestones that have been captured elsewhere (CHANGELOG, Recently Completed) should be removed.
-- **Overall size**: STATE.md should stay under ~60 lines. If it exceeds this after other maintenance rules, trim the oldest/longest entries first. This file is a snapshot of _current_ state, not a history log.
+- **Overall size**: the `State` document should stay under ~60 lines. If it exceeds this after other maintenance rules, trim the oldest/longest entries first. This file is a snapshot of _current_ state, not a history log.
 
 Format for the `State` document (see **Project Document Index**; matches `templates/project-state-templates.md`):
 ```markdown

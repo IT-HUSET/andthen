@@ -46,7 +46,17 @@ Determine what the user wants reviewed, in priority order:
 3. Current pending changes (`git diff --stat`, `git diff --name-only`) when no target is provided
 4. Neighboring artifacts that clarify intent: plan/FIS/PRD/spec docs, changed implementation files, related issue/PR context
 
-If the input is a typed review artifact (`*-review`), stop and direct the user to `andthen:remediate-findings`.
+Apply explicit mode flags during discovery, not only during later classification:
+- `--doc-only`: when no explicit target is provided, restrict discovery to changed document artifacts (spec/FIS/PRD/plan/ADR/design/prompt/docs) and ignore changed implementation files as primary review targets; if no document targets are found, stop and report that doc-only review has no matching scope
+- `--code-only`: when no explicit target is provided, restrict discovery to changed implementation/config/test files and ignore changed docs as primary review targets; if no implementation targets are found, stop and report that code-only review has no matching scope
+- `--gap-only`: when no explicit target is provided, resolve both a requirements baseline and an implementation target from the current changes plus neighboring artifacts; if either side cannot be resolved, stop and report that the missing side is required for gap review
+
+When no explicit target is provided and no mode flag narrows the scope, build the target map from the dirty worktree by separating:
+- changed document artifacts
+- changed implementation artifacts
+- nearby requirements artifacts that may serve as baselines
+
+Do not let nearby requirements artifacts silently redefine the user's request. Use them to clarify context, not to override explicit review intent.
 
 Build a concise target map:
 - **Review target**
@@ -63,18 +73,22 @@ Choose one of these modes:
 - **Code**: implementation, config, tests, or current code changes
 - **Doc**: spec, FIS, PRD, plan, ADR, design doc, prompt, or other written artifact
 - **Gap**: requirements baseline plus implementation target, where the real question is “does this implementation satisfy the requirements?”
-- **Mixed**: both requirements/design docs and implementation changed, but the right comparison mode is not yet obvious
+- **Mixed**: both document artifacts and implementation artifacts are independently in scope and each needs its own review lens; this mode dispatches to `Doc + Code`, not to `Gap`
+
+`Mixed` is a final classification, not a temporary placeholder. Once selected, keep it through stack selection and synthesis unless you explicitly reclassify the review as **Gap** because the user's actual question is requirements-vs-implementation fit.
 
 Routing heuristics:
+- Explicit mode flags override inference
+- If the user explicitly asks whether implementation matches a spec, plan, PRD, issue, or requirements baseline, use **Gap**
+- If the user explicitly asks for PR review, code review, change review, or an implementation audit, prefer **Code** unless they also clearly ask for requirements-fit validation
 - If only docs changed, default to **Doc**
 - If the target is a spec/FIS/PRD/plan path and no implementation target is explicit, default to **Doc**
 - If only implementation changed, default to **Code**
-- If there is a clear requirements baseline plus implementation scope, default to **Gap**
+- If there is a clear requirements baseline plus implementation scope and the user's core question is requirements fit, default to **Gap**
 - If both docs and code changed:
-  - Use **Gap** when the docs define or revise the expected implementation behavior
-  - Use **Doc + Code** when the doc itself needs readiness review and the implementation needs independent review
-
-Explicit mode flags override inference.
+  - Use **Gap** when the docs are acting as the requirements baseline for the implementation and the core question is whether the implementation matches them
+  - Use **Mixed** when the docs themselves need readiness review and the implementation also needs independent code review
+- The mere presence of neighboring PRD/FIS/plan/spec artifacts is not enough to force **Gap**. Nearby requirements docs provide context; they become the primary lens only when the user's question is actually requirements-vs-implementation fit
 
 **Gate**: Review mode is selected and justified
 
@@ -84,7 +98,13 @@ Run the minimum correct stack:
 - **Code** → `andthen:review-code`
 - **Doc** → `andthen:review-doc`
 - **Gap** → `andthen:review-gap`
-- **Mixed** → either `andthen:review-gap` alone, or `andthen:review-doc` + `andthen:review-code`
+- **Mixed** → `andthen:review-doc` + `andthen:review-code`
+
+Mixed-mode rule:
+- Use **Mixed** only when there are two independent review surfaces: document readiness and implementation quality
+- Do **not** use **Mixed** as a synonym for uncertainty between `Doc` and `Gap`
+- If the real question is “does this implementation satisfy the requirements?”, classify as **Gap** instead of **Mixed**
+- Once **Mixed** is selected, keep it as the review mode through execution and final reporting; do not collapse it later into vague wording like “gap or split review”
 
 Escalate with `andthen:review-council` when:
 - the selected review surface is **Code**, **Gap**, or **Mixed** with implementation changes
@@ -141,3 +161,4 @@ For GitHub publishing:
 - If the final review mode is clearly doc-only, code-only, or gap-only, mention that mode prominently in the report summary so downstream remediation can interpret the findings correctly
 
 For mixed reviews, avoid duplicate findings. Merge overlaps and make the strongest framing the canonical one.
+For **Mixed** reviews, keep document-readiness findings and implementation-quality findings in distinct subsections under the same final result so the user can see which issues came from `review-doc` versus `review-code`.

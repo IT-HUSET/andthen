@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.11.1] – 2026-04-14
+
+### Fixed
+- **Project Document Index wording drift in workflow skills** (`spec-plan`, `exec-spec`, `ops`, `init`) – removed stale hardcoded document-name references (`LEARNINGS.md`, `STATE.md`, `ARCHITECTURE.md`, `STACK.md`) where those prompts should refer to the `Learnings`, `State`, `Architecture`, and `Stack` documents via the **Project Document Index**
+- **`spec-plan` project-context discovery drift** (`spec-plan`) – Step 1.5 now reads the `Learnings` document using the same Project Document Index contract as the rest of the workflow, avoiding a stale direct filename reference during batch spec generation
+- **`review` routing ambiguity** (`review`) – explicit mode flags now constrain target discovery, explicit code-review intent no longer gets silently upgraded to gap review just because nearby spec artifacts exist, and `Mixed` is now a stable `Doc + Code` dispatch mode instead of a fuzzy fallback
+
 ## [0.11.0] – 2026-04-14
 
 ### Added

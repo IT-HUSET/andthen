@@ -64,7 +64,7 @@ Usage rules:
 - **Delegating implementation to advisory sub-agents** – this recreates the context-loss and serial overhead the skill is designed to avoid
 - **Status updates dropped when context exhausted** – update FIS task checkboxes immediately during implementation; plan and FIS updates in Step 5 are GATES
 - **FIS references get stale if spec was updated** – always re-read the FIS
-- **Not signaling active-story status to STATE.md when called in a plan context** – set "In Progress" at start
+- **Not signaling active-story status to the `State` document when called in a plan context** – read the location from the **Project Document Index** and set "In Progress" at start
 - **Treating spec size or difficulty as permission to narrow scope** – exec-spec executes the FIS it was given; if the spec should have been split, that is an upstream spec-quality problem, not a license to land a subset and stop
 
 
@@ -98,7 +98,7 @@ Usage rules:
 6. Build a quick codebase overview once at the start (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files/tasks the FIS actually touches
 7. If the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When practical, confirm they fail before implementation. If the test harness is still unclear after one bounded pass, note the skip and continue.
 8. If the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
-9. **Update project state** (if STATE.md exists and the FIS originated from a plan): restore story context from `STORY_IDS`. For a single-story FIS, use that story directly. For a composite/shared FIS, mark the active work as the composite/story set rather than inventing a single story ID.
+9. **Update project state** (if the `State` document exists in the location defined by the **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_IDS`. For a single-story FIS, use that story directly. For a composite/shared FIS, mark the active work as the composite/story set rather than inventing a single story ID.
 10. Initialize working notes you will maintain during the run:
    - Per-task status
    - `changed-files`
