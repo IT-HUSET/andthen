@@ -53,20 +53,7 @@ Every finding must follow this format:
 Example:
 > This codebase has a healthy layered structure with clear package boundaries, but the core utility package sits deep in the Zone of Pain (D=0.95). Found 2 CRITICAL, 3 HIGH, 5 MEDIUM findings. The most urgent issue is a 4-node dependency cycle between config, channel, task, and events packages. Extracting interfaces from the core package would resolve 4 of the 10 findings.
 
-### 2. How to Read This Report
-
-Add a compact reader legend before the detailed analysis. Keep it short and explain only terms actually used in the report.
-
-Recommended contents:
-- **Metric legend**: `Ca` = inbound dependents, `Ce` = outbound dependencies, `I` = instability (`0` stable, `1` volatile), `A` = abstractness, `D` = distance from the ideal "main sequence" (`0` best, `>0.3` worth attention). If graph-level metrics appear, define `CCD` (cumulative component dependency), `ACD` (average component dependency), and `NCCD` (normalized cumulative component dependency).
-- **Finding-field legend**: if findings use `C4 Level`, explain the scale in one line: `Context` = system landscape, `Container` = deployable/runtime building blocks, `Component` = internal module/service slice, `Code` = file/class/function level.
-- **Principle legend**: expand any package principles you use such as `ADP` (Acyclic Dependencies Principle), `SDP` (Stable Dependencies Principle), and `SAP` (Stable Abstractions Principle).
-- **Zone legend**: explain labels like `Zone of Pain` and `Zone of Uselessness` in one line each when they appear.
-- **Connascence legend**: if findings use `Co*` shorthand, explain the static progression `CoN`/`CoT`/`CoM`/`CoP`/`CoA` and the stronger dynamic forms `CoE`/`CoTm`/`CoV`/`CoI`; dynamic cross-boundary connascence is materially riskier.
-
-Prefer one short paragraph plus a compact table or 4-6 bullets. Do not turn this into a tutorial.
-
-### 3. Metrics Dashboard
+### 2. Metrics Dashboard
 
 Per-package table:
 
@@ -79,20 +66,20 @@ Per-package table:
 
 Include graph-level metrics if available: CCD, ACD, NCCD.
 
-### 4. Findings
+### 3. Findings
 Sorted by severity (CRITICAL first), then by dimension. Use the finding structure above for each.
 
-### 5. Dependency Graph
+### 4. Dependency Graph
 Text description of the condensed DAG (SCCs collapsed). Note:
 - Direction of all edges
 - Which packages are leaves (I ~ 1)
 - Which packages are foundations (I ~ 0)
 - Any cycles (highlight in findings)
 
-### 6. Decomposition Recommendations
+### 5. Decomposition Recommendations
 If applicable — modules that should be split or merged, based on findings. Reference the specific findings that drive each recommendation.
 
-### 7. Proposed Fitness Functions
+### 6. Proposed Fitness Functions
 The primary actionable output. For each:
 - Name
 - What it checks
@@ -113,4 +100,3 @@ These rules prevent vague, noisy output that erodes trust:
 4. **Separate detection from explanation**: Detection is metric-based and objective. Explanation is contextual and qualitative. Label which is which.
 5. **Avoid false positives**: If a metric is borderline, report as INFO with context, not as HIGH. Noisy reviews get ignored.
 6. **Framework attribution**: Every recommendation cites the principle driving it. "Per SAP (Martin)..." not just "you should add interfaces."
-7. **Optimize for an informed non-specialist reader**: define jargon in the report legend or on first use. Do not assume the reader already knows connascence, C4 shorthand, or package/graph metric abbreviations.
