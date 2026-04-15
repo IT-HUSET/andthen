@@ -38,7 +38,7 @@ PLAN_SOURCE: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately and ask the user to provide the path to the plan directory or the typed GitHub plan artifact.
+Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately with a missing-input error that states the plan directory or typed GitHub plan artifact is required.
 
 ### Core Rules
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
@@ -64,8 +64,8 @@ Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately and ask t
 
 ### Step 1: Parse Plan
 
-1. Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Incompatible typed artifacts → **STOP** and direct the user to the correct downstream skill.
-2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and recommend the `andthen:plan` skill first.
+1. Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Incompatible typed artifacts → **STOP** and exit with the correct downstream skill.
+2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and report that a valid plan artifact is required upstream (typically produced by `andthen:plan`).
 3. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, wave assignments, dependency graph
 4. Apply filters (STORY_FILTER, PHASE_FILTER); skip stories with existing FIS (check `**FIS**` field in plan.md — if file exists on disk, skip)
 5. Build wave-ordered execution plan; set MAX_PARALLEL (default 5, max 10)
@@ -87,7 +87,7 @@ Before spawning any spec sub-agents, do **all discovery and research work once**
 
 **Sub-agent 4: External Research** _(only if stories reference external APIs/libraries needing documentation lookup)_ — For each external resource: look up current docs (use the `andthen:documentation-lookup` agent), identify relevant patterns and known gotchas. Output: consolidated reference with one section per resource.
 
-**Consolidation**: After all sub-agents complete, save to `{PLAN_DIR}/technical-research.md`:
+**Consolidation**: After all sub-agents complete, save to `{PLAN_DIR}/.technical-research.md`:
 
 ```markdown
 # Technical Research: {Plan Name}
@@ -108,9 +108,9 @@ Generated: {date}
 {Sub-agent 4 output, or "No external research needed"}
 ```
 
-If a `technical-research.md` already exists (e.g. from `andthen:plan`), merge new sections into it rather than overwriting — the plan-level findings may still be relevant.
+If a `.technical-research.md` already exists (e.g. from `andthen:plan`), merge new sections into it rather than overwriting — the plan-level findings may still be relevant.
 
-**Gate**: Technical research saved to `{PLAN_DIR}/technical-research.md`, covers all stories in scope
+**Gate**: Technical research saved to `{PLAN_DIR}/.technical-research.md`, covers all stories in scope
 
 
 ### Step 1.6: Story Classification & Grouping
@@ -175,7 +175,7 @@ Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) for all sp
 
 **STANDARD sub-agent** — provide:
 - Story ID, name, scope, acceptance criteria, Key Scenarios (if present), dependencies
-- References: FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`), authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`), technical research (`{PLAN_DIR}/technical-research.md`)
+- References: FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`), authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`), technical research (`{PLAN_DIR}/.technical-research.md`)
 - Instructions: read technical research for context and shared decisions; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to this story flows into FIS success criteria unchanged; read FIS template and guidelines (including Technical Research Separation section); generate FIS that **references** the technical research rather than inlining its content; run Plan-Spec Alignment Check and Self-Check from guidelines; save to `{PLAN_DIR}/{story-name}.md`; report back success/failure, FIS path, confidence score
 
 **COMPOSITE sub-agent** — provide:
@@ -300,6 +300,6 @@ After completion, suggest:
 ## FAILURE HANDLING
 
 - **Individual spec failure** → log and continue. Report in summary.
-- **>50% of specs fail** → pause and notify user with failure details.
+- **>50% of specs fail** → pause this run and return a failure summary with the blocking details.
 - **Cross-cutting review sub-agent fails** → warn user that cross-cutting review was skipped; specs are usable but unvalidated for inter-story consistency.
 - **Fix step fails** → report unfixed issues to user. Specs are usable but may have inter-story inconsistencies that surface during execution.

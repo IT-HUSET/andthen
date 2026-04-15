@@ -14,7 +14,7 @@ FIS_SOURCE: $ARGUMENTS
 ## INSTRUCTIONS
 
 ### Core Rules
-- **Make sure `FIS_SOURCE` is provided** – otherwise **STOP** immediately and ask for it.
+- **Make sure `FIS_SOURCE` is provided** – otherwise **STOP** immediately with a missing-input error that states a local FIS path or typed GitHub FIS artifact is required.
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** in CLAUDE.md / AGENTS.md before starting.
 - **Complete Implementation**: 100% completion required — partial completion is never an acceptable outcome for this skill.
 - **FIS is source of truth** – follow it exactly
@@ -83,7 +83,7 @@ Usage rules:
    - If matching canonical local file paths already exist in the workspace, switch `FIS_FILE_PATH` / `PLAN_FILE_PATH` to those real files and treat the extracted directory as a read-only mirror
    - If `plan_path` is present but no embedded or local `PLAN_FILE_PATH` can actually be resolved, **STOP** — plan-backed FIS execution cannot update source plan state without the plan file
    - Otherwise set `FIS_SOURCE_MODE = github-artifact`
-   - If the GitHub artifact is typed but incompatible (`plan-bundle`, `triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and direct the user to the matching workflow skill
+   - If the GitHub artifact is typed but incompatible (`plan-bundle`, `triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and exit with the matching workflow skill
    - If the GitHub issue is untyped, **STOP** — `exec-spec` requires a local FIS path or a typed GitHub FIS artifact
 2. Recover enough source metadata to finish the run cleanly: `FIS_SOURCE_MODE`, `FIS_CANONICAL_PATH`, optional `PLAN_FILE_PATH`, and optional `STORY_IDS`
 
@@ -92,7 +92,7 @@ Usage rules:
 ### Step 2: Read and Prepare
 1. Read the full FIS at _`FIS_FILE_PATH`_
 2. Understand the sections that define execution: Success Criteria, Scenarios, Scope & Boundaries, Architecture Decision, Technical Overview, Implementation Plan, Testing Strategy, Validation, and Final Validation Checklist
-3. **Read Technical Research** – if the FIS references a `technical-research.md`, read it before making code changes. Treat findings as leads to verify, not facts to trust.
+3. **Read Technical Research** – if the FIS references a `.technical-research.md`, read it before making code changes. Treat findings as leads to verify, not facts to trust.
 4. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant
 5. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
 6. Build a quick codebase overview once at the start (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files/tasks the FIS actually touches
@@ -175,7 +175,7 @@ The extracted `.agent_temp/github-artifacts/...` directory is only a working mir
 - If the canonical local FIS / plan paths exist in the workspace, verify all final updates landed there
 - Otherwise update the source GitHub issue to the latest typed `fis-bundle`, including:
   - Updated FIS contents
-  - Updated `technical-research.md` when present
+  - Updated `.technical-research.md` when present
   - Updated `plan.md` when this was a plan-backed FIS
   - `fis_path`, `plan_path`, and `story_ids` metadata reflecting the final state
 

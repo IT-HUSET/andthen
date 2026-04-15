@@ -46,8 +46,8 @@ When `ADDITIONAL_CONTEXT` is a directory path or a plan file, discover the full 
 **GitHub issue or URL** — fetch the body and inspect the typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` before treating it as prose:
 - `artifact_type: plan-bundle` — extract embedded files to `.agent_temp/github-artifacts/{github-id}-plan-bundle/` and continue as a directory / plan input so sibling PRD and FIS discovery still works
 - `artifact_type: fis-bundle` — extract embedded files to `.agent_temp/github-artifacts/{github-id}-fis-bundle/` and continue as a specific FIS input
-- Any `*-review` artifact — **STOP** and direct the user to `andthen:remediate-findings`
-- Any other typed artifact — **STOP** and direct the user to the matching workflow skill. Do not infer compatibility from prose content
+- Any `*-review` artifact — **STOP** and exit with the correct downstream path: `andthen:remediate-findings`
+- Any other typed artifact — **STOP** and exit with the matching workflow skill. Do not infer compatibility from prose content
 - Untyped issue or URL — use as-is without further discovery
 
 **Directory path** — search the directory (and its parent, for cases where a subdirectory like `fis/` is given) for:

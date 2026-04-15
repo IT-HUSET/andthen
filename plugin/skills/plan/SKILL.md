@@ -6,7 +6,7 @@ argument-hint: "[Specs directory or requirements source] | --issue <number> [--t
 # Create PRD & Implementation Plan
 
 
-Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If prior artifacts exist (e.g., `requirements-clarification.md` from `andthen:clarify` or a draft PRD), uses them as the basis for PRD creation without re-doing discovery. If nothing exists, runs full requirements discovery to create a PRD first.
+Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If prior artifacts exist (e.g., `requirements-clarification.md` from `andthen:clarify` or a draft PRD), uses them as the basis for PRD creation without re-doing discovery. If nothing exists, performs headless requirements synthesis to create a PRD first. Use `andthen:clarify` only when the user explicitly wants interactive discovery or when the input is too ambiguous to support any defensible plan.
 
 Stories are scoped and sequenced but NOT fully specified - generate detailed specs later via `andthen:spec` (manual per-story flow) or `andthen:spec-plan` (batch generation for `exec-plan`).
 
@@ -40,7 +40,7 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 
 ## INSTRUCTIONS
 
-- **Make sure `INPUT` is provided** - otherwise **STOP** immediately and ask user for input
+- **Make sure `INPUT` is provided** - otherwise **STOP** immediately with a missing-input error that states requirements input or a source artifact is required
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
@@ -49,7 +49,8 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 - **No over-engineering** - Minimum stories to cover requirements
 - **Progressive implementation** - Organize into logical phases (examples provided are templates, adapt to project)
 - **Deferred specification** - Detailed specs come later via `andthen:spec` or `andthen:spec-plan`
-- **Interactive when discovering requirements** - Interview user iteratively; don't assume answers. After asking questions, **STOP and WAIT** for user responses before proceeding
+- **Headless-first planning** - Unless the user explicitly asked for interactive discovery, continue to completion without pausing for routine clarification. Make reasonable assumptions, document them explicitly, and surface unresolved questions in the output artifacts instead of blocking.
+- **Stop only on true contract failures** - Missing required input, incompatible typed artifacts, or ambiguity so severe that no defensible PRD/plan can be produced are valid stop conditions. Ordinary requirement gaps are not.
 - **Focus on "what" not "how"** - Requirements, not implementation details
 - **Be specific** - Replace vague terms with measurable criteria
 - **Document decisions** - Record rationale, trade-offs, alternatives considered
@@ -71,7 +72,7 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 1. **Parse INPUT** - Determine type:
    - **`--issue` flag present** (or INPUT refers to a GitHub issue): Extract issue number from INPUT, use `gh issue view <number>` to fetch issue details (title, body, labels, comments), then inspect the body for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`.
      - If `artifact_type: plan-bundle`, extract embedded files preserving their repo-relative paths; treat the extracted directory as `INPUT` and proceed as if the user had provided the local plan directory directly.
-     - If the issue contains another typed workflow artifact (`fis-bundle`, `triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and direct the user to the matching downstream skill instead of re-planning from the artifact body.
+     - If the issue contains another typed workflow artifact (`fis-bundle`, `triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and exit with the matching downstream skill instead of re-planning from the artifact body.
      - Otherwise use the issue content as requirements input. Store issue number for reference in generated plan. → proceed to Step 1b
    - **Directory with PRD**: `INPUT` is a directory containing `prd.md` → proceed to Step 2
    - **Directory with prior artifacts**: `INPUT` is a directory containing `requirements-clarification.md` (from `andthen:clarify`) and/or a draft PRD (`prd-draft.md`), but no finalized `prd.md` → proceed to Step 1c
@@ -90,29 +91,34 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 
 4. **If no PRD and no prior artifacts** (requirements source provided):
    - Validate prerequisites: requirements should be reasonably refined (not raw ideas)
-   - If input is too vague, recommend running the `andthen:clarify` skill first
+   - If input is broad but directionally usable, infer the smallest coherent MVP, document assumptions and unresolved questions explicitly, and continue
+   - If input is too vague to identify a coherent feature boundary, **STOP** and report the minimum missing contract needed to produce a defensible PRD/plan. Mention `andthen:clarify` as the interactive fallback.
    - Initial gap analysis – document what's explicitly stated, assumed/implied, and missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope)
-   - Proceed to Step 1b (Requirements Discovery)
+   - Proceed to Step 1b (Requirements Synthesis)
 
 **Gate**: Input validated
 
 
-### 1b. Requirements Discovery & PRD Creation _(skip if PRD already exists)_
+### 1b. Requirements Synthesis & PRD Creation _(skip if PRD already exists)_
 
-#### Requirements Discovery Interview
+#### Headless Requirements Synthesis
 
-Follow the same interview approach as `andthen:clarify` Phase 2 (targeted questions, **STOP and WAIT** for user responses, do not infer answers). Focus on gaps identified in Step 1a — cover areas relevant to planning: users & personas, core workflows, data model, integrations, constraints, NFRs, success metrics. Iterate until no major gaps remain.
+Cover the same areas as `andthen:clarify` Phase 2, but default to synthesis rather than interview: users & personas, core workflows, data model, integrations, constraints, NFRs, and success metrics. Fill ordinary gaps using explicit assumptions grounded in the source material, codebase patterns, adjacent artifacts, and standard product conventions.
 
-> **CRITICAL**: After presenting questions, you must stop your response and wait for user input. Use the `AskUserQuestion` tool if available in your environment. Do not proceed past this section until the user has answered your questions and you've confirmed no major gaps remain.
+When a gap materially affects scope or prioritization and the evidence is weak, choose the most conservative MVP assumption that still allows a coherent plan. Record it in `prd.md` under `Constraints & Assumptions` and in the `Decisions Log` with alternatives considered. Do not pause the run for routine clarification.
 
-**Gate**: All critical questions answered, no blocking ambiguities
+If the input is so ambiguous that multiple incompatible plans are equally plausible and none can be justified from the available evidence, **STOP** and report the smallest missing decisions required. Use `andthen:clarify` only as an explicit fallback for that case.
+
+**Gate**: PRD is specific enough for planning; major assumptions and unresolved questions are documented explicitly
 
 
 #### Generate PRD Document
 
-Structure the PRD from interview responses and save as `OUTPUT_DIR/<feature-name>/prd.md`. Apply MoSCoW prioritization (Must/Should/Could/Won't) and P0/P1/P2 levels to features.
+Structure the PRD from the synthesized requirements and save as `OUTPUT_DIR/<feature-name>/prd.md`. Apply MoSCoW prioritization (Must/Should/Could/Won't) and P0/P1/P2 levels to features.
 
 Use the PRD template at [`templates/prd-template.md`](templates/prd-template.md) as the baseline shape. Keep the required sections, adapt optional subsections to the project, and preserve concrete decisions from discovery rather than generalizing them away.
+
+When running headlessly, do not leave important ambiguity implicit. Capture it as an explicit assumption, dependency, or deferred decision in the PRD so downstream skills inherit a usable contract.
 
 #### PRD Validation
 - [ ] Problem statement with measurable impact
@@ -135,9 +141,9 @@ Optional: Invoke the `andthen:review --doc-only` skill to validate the PRD befor
 Use existing artifacts (`requirements-clarification.md` from `andthen:clarify` and/or `prd-draft.md`) as the primary basis for creating the PRD. This path avoids duplicating discovery work already completed.
 
 - Map existing content against the PRD template (see Step 1b); use [`templates/prd-template.md`](templates/prd-template.md) as the target structure and only ask focused follow-up questions for genuinely missing sections
-- If significant gaps remain, conduct a focused interview covering only the missing areas – ask 3-5 questions at a time, **STOP and WAIT for responses**.
-  > **CRITICAL**: Do NOT re-ask questions already answered in the existing artifacts. Only ask about genuinely missing information.
-- **Extract technical details**: If the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), extract these into `{OUTPUT_DIR}/technical-research.md` rather than carrying them into the PRD. The PRD should focus on *what* to build; technical details are preserved for downstream skills.
+- If significant gaps remain, fill only the missing areas using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents. Do NOT re-ask questions already answered in the existing artifacts, and do not pause the run for routine clarification.
+- If the artifacts are too ambiguous to support any defensible PRD shape, **STOP** and report the minimum missing decisions required. Mention `andthen:clarify` only as the interactive fallback for that case.
+- **Extract technical details**: If the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), extract these into `{OUTPUT_DIR}/.technical-research.md` rather than carrying them into the PRD. The PRD should focus on *what* to build; technical details are preserved for downstream skills.
 - Structure and generate the PRD following the same template as Step 1b. Preserve decisions, rationale, and specific details from existing artifacts – do not paraphrase or generalize away specifics.
 - Apply same Prioritization → PRD Validation steps as Step 1b.
 
@@ -152,7 +158,7 @@ Delegate codebase exploration to a sub-agent _(if supported)_ to keep context le
 
 Synthesize into a unified understanding of: all PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), natural implementation boundaries, feature dependencies, and complexity/risk areas.
 
-**Technical research**: If codebase exploration surfaces substantial technical findings (architecture patterns, framework constraints, integration details, existing conventions) that would be useful during spec creation or execution, save them to `{OUTPUT_DIR}/technical-research.md` (append to existing content if the file was already created in Step 1c). This keeps the PRD and plan free of implementation details while preserving research for downstream skills (`andthen:spec`, `andthen:spec-plan`). Skip this if findings are minimal — not every plan needs a technical research document.
+**Technical research**: If codebase exploration surfaces substantial technical findings (architecture patterns, framework constraints, integration details, existing conventions) that would be useful during spec creation or execution, save them to `{OUTPUT_DIR}/.technical-research.md` (append to existing content if the file was already created in Step 1c). This keeps the PRD and plan free of implementation details while preserving research for downstream skills (`andthen:spec`, `andthen:spec-plan`). Skip this if findings are minimal — not every plan needs a technical research document.
 
 **Gate**: Feature mapping complete
 
@@ -246,7 +252,7 @@ For each story, define:
 - **Provenance** _(if carried forward)_: `Carried from {milestone}: {original-story-id}` — required when a story has no corresponding PRD feature
 - **Asset refs**: Relevant wireframes, ADRs, design system sections
 
-**Do NOT include in stories** (these are deferred to `andthen:spec`; save to `technical-research.md` if discovered during analysis):
+**Do NOT include in stories** (these are deferred to `andthen:spec`; save to `.technical-research.md` if discovered during analysis):
 - Technical approach, patterns, or library choices
 - File paths, line numbers, or code specifics
 - Implementation gotchas or constraints with workarounds
@@ -305,7 +311,7 @@ Optional: Invoke the `andthen:review --doc-only` skill to validate the plan for 
 OUTPUT_DIR/
 ├── prd.md                # Product Requirements Document (if created)
 ├── plan.md               # Implementation plan
-└── technical-research.md # Technical findings from codebase analysis (if substantial)
+└── .technical-research.md # Technical findings from codebase analysis (if substantial)
 ```
 
 - If from GitHub issue: use `issue-{number}-{feature-name}/` as the output subdirectory name (e.g. `docs/specs/issue-42-user-dashboard/plan.md`). Include issue reference in the PRD and plan document headers.
@@ -318,7 +324,7 @@ If PUBLISH_ISSUE is `true`:
    - `artifact_type`: `plan-bundle`
    - Title: `[Plan] {project-name}: Implementation Plan`
    - Primary file: `plan.md`
-   - Companion files: `prd.md`; include `technical-research.md` when it exists
+   - Companion files: `prd.md`; include `.technical-research.md` when it exists
    - Labels: `plan`, `andthen-artifact`
 2. Print the issue URL and the local primary path (`plan.md`)
 

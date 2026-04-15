@@ -28,7 +28,7 @@ REPORT_SOURCE: $ARGUMENTS
 ## INSTRUCTIONS
 
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
-- Make sure `REPORT_SOURCE` is provided; otherwise stop and ask for it.
+- Make sure `REPORT_SOURCE` is provided; otherwise stop with a missing-input error that states a review report source is required.
 - Treat the review report as an input contract, not unquestionable truth. Re-validate findings against the current workspace before editing artifacts.
 - Fix validated findings with the smallest coherent patch set that resolves them.
 - Avoid scope creep. Do not "clean up nearby code" or rewrite nearby docs unless it is required to resolve a finding or prevent a regression.
@@ -57,14 +57,14 @@ REPORT_SOURCE: $ARGUMENTS
      - Accept `review`, `gap-review`, `code-review`, `architecture-review`, `doc-review`, or `council-review`
      - Extract the embedded primary report and any companion files to `.agent_temp/github-artifacts/{github-id}-{artifact_type}/`
      - Use the typed metadata to recover `report_path`, `plan_path`, `fis_path`, `story_ids`, `requirements_baseline`, and `implementation_targets`
-     - If the GitHub artifact is typed but not a review report, **STOP** and ask for the actual review artifact instead
+     - If the GitHub artifact is typed but not a review report, **STOP** with an invalid-input error that states an actual review artifact is required
 2. Extract:
    - Review type (`review-gap`, `review-code`, `review-doc`, or other)
    - Report verdict (PASS/FAIL) when present
    - Findings, severity, remediation recommendations, and reviewed scope
    - Referenced implementation targets, requirements baseline, FIS path, `plan.md`, and story IDs when available
-3. If the input URL does not contain the actual review report content or a valid typed GitHub review artifact, stop and ask for the report itself instead of guessing from an issue or PR shell page.
-4. If the report has no actionable findings, stop and say so.
+3. If the input URL does not contain the actual review report content or a valid typed GitHub review artifact, stop with an invalid-input error that states the report itself is required. Do not guess from an issue or PR shell page.
+4. If the report has no actionable findings, stop and return that there are no actionable findings.
 
 **Gate**: Actionable findings and the remediation target are explicit
 

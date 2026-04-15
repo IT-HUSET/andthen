@@ -23,7 +23,7 @@ REVIEW_MODE: from `--review-mode` flag (`per-story`, `none`, or `full-plan`; def
 
 ## INSTRUCTIONS
 
-Make sure `PLAN_SOURCE` is provided – otherwise **STOP** and ask.
+Make sure `PLAN_SOURCE` is provided – otherwise **STOP** with a missing-input error that states the plan directory or typed plan artifact is required.
 
 ### Core Rules
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** in CLAUDE.md / AGENTS.md before starting.
@@ -69,11 +69,11 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`: `check-stubs.sh`, `check-wiring.s
 
 ### Step 1: Parse Plan
 
-0. Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Incompatible typed artifacts → **STOP** and direct the user to the correct skill.
+0. Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Incompatible typed artifacts → **STOP** and exit with the correct skill.
 
 1. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
 
-2. Read `PLAN_DIR/plan.md`; if missing, **STOP** and recommend the `andthen:plan` skill first
+2. Read `PLAN_DIR/plan.md`; if missing, **STOP** and report that a valid plan artifact is required upstream (typically produced by `andthen:plan`)
 3. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
 4. Build execution plan respecting phase ordering and dependency chains
 
@@ -192,7 +192,7 @@ Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/referenc
 - **Story pipeline fails** → attempt remediation (max 2 review/remediation rounds when `per-story`; otherwise use the `andthen:build-troubleshooter` agent or escalate)
 - **Final review fails** (`full-plan`) → remediate (max 2 review/remediation rounds); escalate if persist
 - **Dependent stories blocked** when predecessor fails
-- **>50% of a phase fails** → pause, notify user with failure summary
+- **>50% of a phase fails** → pause this run and return a failure summary
 - **Update the `State` document on failure** (see **Project Document Index**): `andthen:ops update-state status "At Risk"` or `"Blocked"`. Add blockers via `andthen:ops update-state blocker "{description}"`.
 
 

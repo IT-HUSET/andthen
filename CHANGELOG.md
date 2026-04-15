@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.11.2] – 2026-04-15
+
+### Changed
+- **`plan` now defaults to headless requirements synthesis** (`plan`) – replaced the interactive discovery interview path with headless-first PRD/plan synthesis that proceeds with explicit assumptions and only stops on true contract failures or irreducible ambiguity
+- **Non-interactive workflow stop gates now use fail-fast contract wording** (`spec`, `spec-plan`, `exec-spec`, `exec-plan`, `exec-plan-team`, `triage`, `review-gap`, `remediate-findings`, `design-system`, `wireframes`, `excalidraw-diagram`) – normalized prompt language away from conversational “ask/recommend/direct user” phrasing toward explicit missing-input, invalid-input, and downstream-routing exits suitable for headless execution
+- **Technical research companion files are hidden again** (`plan`, `spec`, `spec-plan`, `exec-spec`, templates, artifact round-trip docs, FIS authoring guidelines`) – renamed the documented companion artifact from `technical-research.md` to `.technical-research.md` to make it easier to ignore by default while still keeping it available for execution context when needed
+- **`architecture-review` reports now explain their shorthand inline** (`architecture-review`) – added a required `How to Read This Report` legend for review, decompose, and fitness outputs so package and graph metrics, package-principle acronyms, C4 labels, zone labels, and connascence abbreviations are explained in the report instead of assuming prior architecture-review knowledge
+
 ## [0.11.1] – 2026-04-14
 
 ### Fixed

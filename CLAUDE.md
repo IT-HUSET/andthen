@@ -62,6 +62,7 @@ Modern frontier models understand *why* things matter. Skills should express **i
 - **Right altitude**: Use heuristics and principles, not step-by-step prescriptions. If a frontier model would naturally do something, don't instruct it. Be specific about counter-intuitive behaviors, cross-skill integration contracts, and named failure modes. Be general about standard engineering practices.
 - **Named principles over unnamed rules**: A named principle (Chesterton's Fence, Prove-It Pattern, Proof-of-Work, Stop-the-Line) gives the model a conceptual anchor for *when* and *why* the principle applies. An unnamed rule is just a constraint to follow or ignore.
 - **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens — it prevents the model from rationalizing its way past the step.
+- **Headless by default**: Skills should run to completion without waiting for another user turn unless they are explicitly interactive by nature (for example `clarify` or `init`) or blocked by a real contract failure. Prefer explicit assumptions, conservative defaults, and documented open questions over `STOP and WAIT` patterns in execution-oriented skills.
 
 
 ---

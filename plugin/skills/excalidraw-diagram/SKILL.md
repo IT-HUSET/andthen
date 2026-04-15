@@ -14,7 +14,7 @@ TOPIC: $1 (required – what to visualize: inline description, file path, URL, o
 OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 
 ### Variable Validation
-- If `TOPIC` is empty, **STOP** and ask the user what to visualize
+- If `TOPIC` is empty, **STOP** with a missing-input error that states the visualization topic is required
 - Create `OUTPUT_DIR` if it does not exist
 - Resolve a stable output name before writing files
 

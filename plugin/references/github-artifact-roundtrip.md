@@ -20,7 +20,7 @@ source_skill: andthen:plan
 canonical_local_primary: docs/specs/my-feature/plan.md
 canonical_local_companions:
   - docs/specs/my-feature/prd.md
-  - docs/specs/my-feature/technical-research.md
+  - docs/specs/my-feature/.technical-research.md
 plan_path: docs/specs/my-feature/plan.md
 fis_path:
 report_path:
@@ -60,8 +60,8 @@ source_issue_number: 42
 - Keep `## Human Summary` concise; the embedded files are the source of truth.
 
 ## Standard Artifact Types
-- `plan-bundle` — `plan.md` primary; include sibling `prd.md`; include `technical-research.md` when present; when resuming after spec generation or execution, also include any FIS files referenced by `plan.md` that downstream steps now depend on
-- `fis-bundle` — FIS primary; include `technical-research.md` when present; if the FIS originated from a plan story, include `plan.md` and populate `plan_path` / `story_ids`
+- `plan-bundle` — `plan.md` primary; include sibling `prd.md`; include `.technical-research.md` when present; when resuming after spec generation or execution, also include any FIS files referenced by `plan.md` that downstream steps now depend on
+- `fis-bundle` — FIS primary; include `.technical-research.md` when present; if the FIS originated from a plan story, include `plan.md` and populate `plan_path` / `story_ids`
 - `triage-plan` — investigation / fix plan primary
 - `triage-completion` — completion summary with verification evidence primary
 - `review`, `gap-review`, `code-review`, `architecture-review`, `doc-review`, `council-review` — review reports; the report file is the primary artifact
@@ -113,7 +113,7 @@ After resolution, the calling skill has `PLAN_DIR`, `PLAN_FILE_PATH`, `PLAN_SOUR
 Apply when `PLAN_SOURCE_MODE = github-artifact` — both incrementally (after each plan/FIS status update) and as a final gate before the skill finishes.
 
 - If the declared canonical local plan/FIS paths exist in the workspace, verify all updated files landed there
-- Otherwise update `SOURCE_ISSUE` to the latest typed `plan-bundle`, including the updated `plan.md`, `prd.md`, `technical-research.md` when present, and every FIS file referenced by `plan.md` that now exists
+- Otherwise update `SOURCE_ISSUE` to the latest typed `plan-bundle`, including the updated `plan.md`, `prd.md`, `.technical-research.md` when present, and every FIS file referenced by `plan.md` that now exists
 - Never finish with the extracted mirror as the only updated copy
 
 ## Direct URLs

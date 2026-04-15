@@ -36,7 +36,7 @@ OUTPUT_DIR: ${3:-docs/design-system} _(or as configured in **Project Document In
 ### Phase 1: Input Analysis
 
 **1.1 Validate Inputs**
-- Verify _`REQUIREMENTS`_ is provided - if not, **STOP** and ask user
+- Verify _`REQUIREMENTS`_ is provided - if not, **STOP** with a missing-input error that states requirements are required
 - If _`CONCEPT_DIR`_ provided, verify it exists and catalog contents (mockups, brand guidelines, existing design system)
 
 **1.2 Extract Requirements**

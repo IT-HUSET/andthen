@@ -25,10 +25,14 @@ ARGUMENTS: $ARGUMENTS
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `references/code-review-calibration.md`.
 - Read project learnings if they exist.
 - Exclude generated, vendored, and lockfile noise.
+- Run applicable project verification commands that strengthen review signal when they are discoverable and safe to run read-only: linting, static analysis, type checks, and formatter/compile sanity checks where relevant.
+- When invoked standalone, treat those checks as part of the review evidence. When invoked by an orchestrator that already ran them, reuse fresh results when available instead of rerunning broad project checks unnecessarily.
+- Report which verification commands were run, which were skipped, and why. Do not claim a clean review if a critical available check failed or could not be interpreted.
 - When the review touches browser state, AI/agent flows, logs, stack traces, error output, scraped content, tool results, or other external-data flows, apply `${CLAUDE_PLUGIN_ROOT}/references/trust-boundaries.md`.
 
 ## GOTCHAS
 - Over-reporting nits
+- Treating review as eyeballing only when cheap high-signal project checks are available
 - Forgetting Semgrep when it is available
 - Reviewing generated output instead of human-authored code
 
@@ -50,9 +54,12 @@ If sub-agents are unavailable, run the same lenses sequentially.
 ### 1. Scope
 Determine scope from conversation context, explicit paths, PR number, or current pending changes. Build a quick codebase overview, identify affected files, choose the applicable review lenses, and verify external technical claims against authoritative sources when needed.
 
+Identify the project checks relevant to the review scope by inspecting the repo's existing automation surfaces first: package scripts, Make targets, Justfiles, CI workflows, language-native config files, or documented contributor commands. Prefer the narrowest commands that still give trustworthy signal for the changed scope.
+
 **Gate**: Scope and applicable review lenses are clear
 
 ### 2. Review
+- **Verification evidence** — run the applicable project linting, static-analysis, type-checking, and formatter/compile sanity commands when available. Record pass/fail/skip status and treat failures as review inputs, not as optional background noise.
 - **Code quality** — use [CODE-REVIEW-CHECKLIST.md](checklists/CODE-REVIEW-CHECKLIST.md): correctness, edge cases, readability, naming, maintainability, performance, duplication
 - **Architecture** — use [ARCHITECTURAL-REVIEW-CHECKLIST.md](checklists/ARCHITECTURAL-REVIEW-CHECKLIST.md): pattern adherence, coupling/cohesion, CUPID, DDD where relevant, resilience/performance trade-offs
 - **Domain language** — use [DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md](checklists/DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md) when the `Ubiquitous Language` document (see **Project Document Index**) exists: terminology consistency
@@ -109,6 +116,10 @@ Standard report format:
 - Architecture patterns: [Assessment]
 - Security best practices: [Assessment]
 - [UI/UX if applicable]: [Assessment]
+
+## Verification Evidence
+- Commands run: [with result]
+- Commands skipped/unavailable: [with reason]
 
 ## Next Steps
 1. [Prioritized action items]

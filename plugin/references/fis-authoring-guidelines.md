@@ -25,7 +25,7 @@ Shared authoring guidelines for generating Feature Implementation Specifications
 
 ## Technical Research Separation
 
-Technical research that supports the FIS but doesn't require intent review belongs in a **Technical Research** companion document (`technical-research.md`) stored alongside the FIS. This keeps the FIS reviewable for intent correctness while preserving implementation-enabling details for the executing agent.
+Technical research that supports the FIS but doesn't require intent review belongs in a **Technical Research** companion document (`.technical-research.md`) stored alongside the FIS. This keeps the FIS reviewable for intent correctness while preserving implementation-enabling details for the executing agent.
 
 ### What stays in the FIS (needs human intent review)
 - Success criteria, scenarios, scope decisions
@@ -44,7 +44,7 @@ Technical research that supports the FIS but doesn't require intent review belon
 
 **Guiding principle**: If a reviewer needs to validate *"are we building the right thing?"* → FIS. If the detail helps the executing agent *"build the thing right"* → Technical Research.
 
-When writing the FIS, reference the technical research rather than inlining findings. Example: `See [Technical Research](./technical-research.md#architecture-analysis) for detailed trade-off analysis`.
+When writing the FIS, reference the technical research rather than inlining findings. Example: `See [Technical Research](./.technical-research.md#architecture-analysis) for detailed trade-off analysis`.
 
 ### Verification during execution
 

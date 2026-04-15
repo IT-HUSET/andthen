@@ -30,11 +30,11 @@ Omit `CODE_DIR` for single-repo projects; provide it when plan/specs live in a d
 
 ## INSTRUCTIONS
 
-Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately and ask the user to provide the path to the plan directory or the typed GitHub plan artifact.
+Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately with a missing-input error that states the plan directory or typed GitHub plan artifact is required.
 
 ### Resolve PLAN_SOURCE
 
-Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` (run before `Resolve CODE_DIR`). Incompatible typed artifacts → **STOP** and direct the user to the correct skill.
+Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` (run before `Resolve CODE_DIR`). Incompatible typed artifacts → **STOP** and exit with the correct skill.
 
 ### Resolve CODE_DIR
 
@@ -104,7 +104,7 @@ If Agent Team tools are NOT available:
 ### Step 2: Parse Plan
 
 1. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract active stories, blockers, and current phase.
-2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and recommend the `andthen:plan` skill first.
+2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and report that a valid plan artifact is required upstream (typically produced by `andthen:plan`).
 3. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, wave assignments (W1, W2, W3…)
 4. Build execution plan respecting phase ordering and dependency chains.
 
@@ -395,7 +395,7 @@ Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/referenc
 - **Agent reports failure** → spawn an on-demand Troubleshooter (`andthen:build-troubleshooter` agent) with a `fix-{story_id}` task → shut down after resolution → escalate to user if troubleshooter also fails
 - **Final plan review fails** (`full-plan`) → remediate then re-validate (max 2 review/remediation rounds). Escalate to user if issues persist.
 - **Dependent stories stay blocked** when a predecessor fails
-- **If >50% of a phase fails** → pause execution, notify user with failure summary
+- **If >50% of a phase fails** → pause execution and return a failure summary
 - **Update the `State` document on failure** (if it exists; see **Project Document Index**): `andthen:ops update-state status "At Risk"` (or `"Blocked"` for critical failures); add blockers via `andthen:ops update-state blocker "{description}"`
 
 

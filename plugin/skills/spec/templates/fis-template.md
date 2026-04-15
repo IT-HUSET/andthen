@@ -5,7 +5,7 @@
 {{1-2 sentences: what needs to be built and why}}
 
 {{If technical research was produced during spec creation, include this reference line. Remove if no research doc exists.}}
-> **Technical Research**: [technical-research.md](./technical-research.md) _(codebase patterns, architecture analysis, API research)_
+> **Technical Research**: [.technical-research.md](./.technical-research.md) _(codebase patterns, architecture analysis, API research)_
 
 
 ## Success Criteria (Must Be TRUE)
