@@ -46,6 +46,7 @@ ARGUMENTS: $ARGUMENTS
 - **Progressive improvement**: support the "frozen rules" pattern — snapshot current violation count, fail CI only on regressions.
 - **Multi-scale awareness**: tag findings by C4 level (Context / Container / Component / Code).
 - **Connascence-aware coupling**: classify coupling by connascence type, not just edge count. High Ca with all-CoN connections is manageable; low Ce with CoI connections is dangerous.
+- **Reader-oriented reports**: assume the reader may not know architecture-review shorthand. Include a brief `How to Read This Report` legend near the top of every report, define only the terms actually used, and expand acronyms on first prose mention.
 
 ## GOTCHAS
 
@@ -213,26 +214,29 @@ Format findings per `references/review-output.md`.
 
 **Review mode** report must include:
 1. Executive Summary (3-5 sentences)
-2. Metrics Dashboard (per-package table)
-3. Findings sorted by severity
-4. Dependency graph description (condensed DAG)
-5. Proposed fitness functions
+2. How to Read This Report (compact legend for metrics, graph metrics, C4 levels, principles, zones, and connascence terms used in the report)
+3. Metrics Dashboard (per-package table)
+4. Findings sorted by severity
+5. Dependency graph description (condensed DAG)
+6. Proposed fitness functions
 
 **Decompose mode** report must include:
 1. Executive Summary
-2. Boundary map with coupling points
-3. Driver scores (disintegration + integration)
-4. Connascence analysis at boundary
-5. Consumer waste analysis (if applicable)
-6. Recommendation with confidence level and decomposition triggers
+2. How to Read This Report (compact legend for decomposition drivers, connascence terms, and any abbreviations used)
+3. Boundary map with coupling points
+4. Driver scores (disintegration + integration)
+5. Connascence analysis at boundary
+6. Consumer waste analysis (if applicable)
+7. Recommendation with confidence level and decomposition triggers
 
-**Advise mode**: Structured answer with framework attribution, trade-offs, and counter-arguments.
+**Advise mode**: Structured answer with framework attribution, trade-offs, and counter-arguments. Expand acronyms and briefly explain named frameworks if they are not standard for the expected audience.
 
 **Fitness mode** report must include:
 1. Current governance coverage assessment
-2. ADR gap analysis
-3. Proposed fitness functions by governance level
-4. Prioritized implementation roadmap
+2. How to Read This Report (compact legend for ADR, governance levels, and any architecture shorthand used)
+3. ADR gap analysis
+4. Proposed fitness functions by governance level
+5. Prioritized implementation roadmap
 
 **Report output conventions**: Follow `${CLAUDE_PLUGIN_ROOT}/references/report-output-conventions.md` with:
 - **Report suffix**: `architecture-review`
