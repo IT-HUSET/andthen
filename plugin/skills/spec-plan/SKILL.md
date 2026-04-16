@@ -10,7 +10,7 @@ Batch-create Feature Implementation Specifications (FIS) for all stories in an i
 
 Can be used:
 - **Standalone** – pre-create and review all specs before execution (enables human review gate)
-- **Delegated** – called by `andthen:exec-plan` or `andthen:exec-plan-team` to handle their spec-generation phase
+- **Delegated** – called by `andthen:exec-plan` to handle their spec-generation phase
 
 
 ## VARIABLES
@@ -76,7 +76,7 @@ Require `PLAN_SOURCE`. Stop if missing.
 
 ### Step 1.5: Technical Research (One-Time Upfront Discovery)
 
-Before spawning any spec sub-agents, do **all discovery and research work once** via up to 4 parallel sub-agents. This eliminates redundant codebase scanning, guideline reading, and architecture analysis each spec sub-agent would otherwise do independently.
+Before spawning any spec sub-agents, do **all discovery and research work once** via up to 3 parallel sub-agents. This eliminates redundant codebase scanning, guideline reading, and architecture analysis each spec sub-agent would otherwise do independently.
 
 **Sub-agent 1: Project Context** — Read CLAUDE.md guidelines; scan codebase structure (`tree -d`, `git ls-files | head -250`); identify conventions (naming, file organization, test patterns, abstractions); read the `Learnings` document (see **Project Document Index**) if it exists; identify tech stack and key framework versions. Output: dense summary of tech stack, conventions, key patterns, relevant guidelines, learnings.
 
@@ -84,7 +84,7 @@ Before spawning any spec sub-agents, do **all discovery and research work once**
 
 **Sub-agent 3: Shared Architectural Decisions** — For each pair of dependent stories: identify the interface/contract between them (API shape, data types, naming, error handling); document the shared decision so both specs can reference it. Also identify: naming conventions that must be consistent, shared abstractions multiple stories will create/consume, API patterns that must be uniform. If a PRD exists (`{PLAN_DIR}/prd.md`), also extract **binding PRD constraints**: requirements that specify explicit capabilities (e.g., "must support remote hosts"), protocol details, security requirements, or user-facing behaviors. These constraints must flow unchanged into FIS success criteria — they are not subject to architectural trade-offs or scope narrowing by individual stories. Output: numbered list of shared decisions with rationale, specific enough to reference in FIS success criteria; plus a separate "Binding PRD Constraints" section listing constraints with source feature IDs.
 
-**Sub-agent 4: External Research** _(only if stories reference external APIs/libraries needing documentation lookup)_ — For each external resource: look up current docs (use the `andthen:documentation-lookup` agent), identify relevant patterns and known gotchas. Output: consolidated reference with one section per resource.
+External research (API docs, library lookups) is deferred to individual spec sub-agents that need it — most stories don't reference external APIs, and the ones that do can delegate to the `andthen:documentation-lookup` agent from within their sub-agent prompt.
 
 **Consolidation**: After all sub-agents complete, save to `{PLAN_DIR}/.technical-research.md`:
 
@@ -102,12 +102,9 @@ Generated: {date}
 
 ## Shared Architectural Decisions
 {Sub-agent 3 output}
-
-## External Research
-{Sub-agent 4 output, or "No external research needed"}
 ```
 
-If a `.technical-research.md` already exists (e.g. from `andthen:plan`), merge new sections into it rather than overwriting — the plan-level findings may still be relevant.
+If a `.technical-research.md` already exists (e.g. from a prior run), merge new sections into it rather than overwriting.
 
 **Gate**: Technical research saved to `{PLAN_DIR}/.technical-research.md`, covers all stories in scope
 
@@ -143,7 +140,7 @@ After the technical research, classify each story — **fully automatic**, no us
 
 All THIN stories in the current scope are collected into a **single** FIS file: `{PLAN_DIR}/thin-specs.md` (or `thin-specs-p{N}.md` when running with `--phase N`). The orchestrator writes this directly — no sub-agents needed. Use the standard FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`) and FIS authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`). Tag Success Criteria with source story IDs (e.g., `### S08: Story Name`) so acceptance gates can map criteria per story. Keep implementation tasks for each source story contiguous and call out the source story ID in task context where needed. Populate from plan story scope/criteria, Key Scenarios (if present), and technical research. Target: compact but complete.
 
-After writing, update **ALL** THIN stories' **FIS** fields in plan.md to point to the thin-specs file and set **Status** to `Spec Ready`. The shared FIS path triggers existing shared-FIS dedup in exec-plan/exec-plan-team — exec-spec runs once, remaining stories skip to acceptance gate.
+After writing, update **ALL** THIN stories' **FIS** fields in plan.md to point to the thin-specs file and set **Status** to `Spec Ready`. The shared FIS path triggers existing shared-FIS dedup in exec-plan — exec-spec runs once, remaining stories skip to acceptance gate.
 
 #### COMPOSITE: Multi-Story FIS
 
@@ -171,12 +168,12 @@ Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) for all sp
 **STANDARD sub-agent** — provide:
 - Story ID, name, scope, acceptance criteria, Key Scenarios (if present), dependencies
 - References: FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`), authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`), technical research (`{PLAN_DIR}/.technical-research.md`)
-- Instructions: read technical research for context and shared decisions; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to this story flows into FIS success criteria unchanged; read FIS template and guidelines (including Technical Research Separation section); generate FIS that **references** the technical research rather than inlining its content; run Plan-Spec Alignment Check and Self-Check from guidelines; save to `{PLAN_DIR}/{story-name}.md`; report back success/failure, FIS path, confidence score
+- Instructions: read technical research for context and shared decisions; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to this story flows into FIS success criteria unchanged; read FIS template and guidelines (including Technical Research Separation section); generate FIS that **references** the technical research rather than inlining its content; if the story references external APIs/libraries not covered by the technical research, delegate lookup to the `andthen:documentation-lookup` agent; run Plan-Spec Alignment Check and Self-Check from guidelines; save to `{PLAN_DIR}/{story-name}.md`; report back success/failure, FIS path, confidence score
 
 **COMPOSITE sub-agent** — provide:
 - All constituent stories (ID, name, scope, acceptance criteria, Key Scenarios if present)
 - Same references as STANDARD
-- Instructions: read technical research; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to any constituent story flows into FIS success criteria unchanged; generate ONE FIS covering all stories with implementation tasks kept contiguous by story where that improves traceability; **reference** technical research from FIS — do not duplicate codebase analysis or API details into the spec; run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
+- Instructions: read technical research; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to any constituent story flows into FIS success criteria unchanged; generate ONE FIS covering all stories with implementation tasks kept contiguous by story where that improves traceability; **reference** technical research from FIS — do not duplicate codebase analysis or API details into the spec; if stories reference external APIs/libraries not covered by the technical research, delegate lookup to the `andthen:documentation-lookup` agent; run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
 
 #### Wait, Collect, and Update Plan
 
@@ -234,7 +231,7 @@ If the review found CRITICAL or HIGH severity issues, apply fixes to resolve int
 
 **When running standalone**: present the review report and proposed fixes to the user; ask for confirmation before modifying FIS files.
 
-**When delegated** (by exec-plan or exec-plan-team): apply fixes automatically; report fixes back to calling orchestrator.
+**When delegated** (by exec-plan): apply fixes automatically; report fixes back to calling orchestrator.
 
 **Gate**: All CRITICAL and HIGH issues resolved, FIS files updated
 

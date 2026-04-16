@@ -1,8 +1,8 @@
 ---
-description: Use when you explicitly want document review for a spec, PRD, plan, or similar artifact rather than the general `review` router. Reviews documentation for clarity, edge cases, and technical accuracy. Trigger on 'review this spec', 'review this PRD', 'review this plan'.
+description: Reviews documentation (specs, PRDs, plans) for clarity, edge cases, and technical accuracy. Internal delegate of `andthen:review` – not directly user-invocable.
+user-invocable: false
 context: fork
 agent: general-purpose
-user-invocable: true
 argument-hint: "[document path or focus] [--inline-findings]"
 ---
 

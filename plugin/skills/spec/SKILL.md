@@ -67,28 +67,28 @@ Compatible types: none (spec creates new specs from untyped issues). Redirects: 
 
 **If ARGUMENTS is a directory with `requirements-clarification.md`** (from `andthen:clarify`): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes, and any explicit non-goals / deferred items as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
-**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates.
+**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates. If a plan-scoped `.technical-research.md` exists in the plan directory (from `andthen:spec-plan` — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce Steps 1 and 2 research accordingly.
 
 **Otherwise**: use inline description or file reference as the feature request.
 
 
 ### 1. Priming and Project Understanding
 
-Analyse the codebase to understand project structure, relevant files and similar patterns. Use `tree -d` and `git ls-files | head -250` for overview. Use the `Explore` agent _(if supported)_ for deeper context.
+If a **plan-scoped** `.technical-research.md` exists (created by `andthen:spec-plan` — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce this step to a quick verification that the project structure matches the research. Otherwise, analyse the codebase to understand project structure, relevant files and similar patterns. Use `tree -d` and `git ls-files | head -250` for overview. Use the `Explore` agent _(if supported)_ for deeper context.
 
 
 ### 2. Feature Research and Design
 
-Fully understand the feature request. Identify any ambiguities. Research only what's needed:
+If a plan-scoped `.technical-research.md` exists with relevant coverage, skip research categories it already addresses. Only research what's genuinely missing:
 
-- **Codebase research**: similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Delegate to the `andthen:solution-architect` agent _(if supported)_.
+- **Codebase research** _(skip if technical research covers file maps and patterns for this story)_: similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Delegate to the `andthen:solution-architect` agent _(if supported)_.
 - **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to the `andthen:research-specialist` or `andthen:documentation-lookup` agent _(if supported)_.
-- **Architecture trade-offs** _(if no ADR in ARGUMENTS)_: analyze 1-3 approaches, document risks. Delegate to the `andthen:solution-architect` agent _(if supported)_.
+- **Architecture trade-offs** _(skip if technical research covers shared decisions relevant to this story AND no story-internal trade-offs exist; also skip if ADR in ARGUMENTS)_: analyze 1-3 approaches, document risks. Delegate to the `andthen:solution-architect` agent _(if supported)_.
 - **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Delegate to the `andthen:ui-ux-designer` agent _(if supported)_.
 
 **Save research findings** (if substantial) to `.technical-research.md` in the FIS output directory — a hidden companion document that keeps the FIS lean and reviewable. The FIS references this document; the executing agent reads it alongside the FIS for implementation context. See the [Technical Research Separation](../../references/fis-authoring-guidelines.md#technical-research-separation) guidelines for what belongs in the research doc vs the FIS. Skip this if findings are minimal — not every spec needs a technical research document.
 
-If an existing `.technical-research.md` already exists (e.g. from `andthen:spec-plan` or `andthen:plan`), append story-specific findings under a `## {Story Name}` heading rather than overwriting.
+If an existing `.technical-research.md` already exists, append story-specific findings under a `## {Story Name}` heading rather than overwriting.
 
 Only stop for ambiguity when it blocks a defensible specification. In that case, return the minimum missing decisions required rather than pausing for routine clarification.
 
@@ -155,7 +155,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
 - Plan story input: save FIS in plan directory as `{story-name}.md`
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
-- **Technical research**: save as `.technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and a plan-level `.technical-research.md` already exists, append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
+- **Technical research**: save as `.technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and `.technical-research.md` already exists (from `andthen:spec-plan`), append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
 - **Update source plan** – if this spec was created for a plan story:
   - Set the story's **FIS** field to the generated FIS file path
   - Set the story's **Status** field to `Spec Ready`

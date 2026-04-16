@@ -1,5 +1,5 @@
 ---
-description: Unified review entrypoint that inspects the current changes or given input, then routes to code review, document review, gap analysis, and optional council escalation. Trigger on 'review this', 'review these changes', 'review this PR', 'audit this', 'does this match the spec'.
+description: "The default review command – start here for all reviews. Inspects target and routes to code review, document review, gap analysis, or council escalation as needed. Trigger on 'review this', 'review these changes', 'review this PR', 'review this spec', 'review this PRD', 'audit this', 'does this match the spec'."
 user-invocable: true
 argument-hint: "[target/files/PR/spec path] [--deep] [--council] [--code-only] [--doc-only] [--gap-only] [--to-issue] [--to-pr <number>]"
 ---
@@ -8,7 +8,7 @@ argument-hint: "[target/files/PR/spec path] [--deep] [--council] [--code-only] [
 
 Unified review entrypoint. Determine what is actually being reviewed, run the minimum correct review stack, and produce one consolidated result.
 
-Use this as the default review skill. Reach for `andthen:review-code`, `andthen:review-doc`, or `andthen:review-gap` only when you explicitly need that specialist path.
+Use this as the default review skill. It delegates internally to `andthen:review-code`, `andthen:review-doc`, or `andthen:review-gap` based on the review surface.
 
 ## VARIABLES
 ARGUMENTS: $ARGUMENTS
@@ -78,6 +78,7 @@ Choose one of these modes:
 Routing heuristics:
 - Explicit mode flags override inference
 - If the user explicitly asks whether implementation matches a spec, plan, PRD, issue, or requirements baseline, use **Gap**
+- If the user says "review implementation of [doc]" or similar phrasing where a requirements document is the object of "implementation of", treat [doc] as the requirements baseline and route to **Gap** – the intent is requirements-fit validation, not a document review
 - If the user explicitly asks for PR review, code review, change review, or an implementation audit, prefer **Code** unless they also clearly ask for requirements-fit validation
 - If only docs changed, default to **Doc**
 - If the target is a spec/FIS/PRD/plan path and no implementation target is explicit, default to **Doc**

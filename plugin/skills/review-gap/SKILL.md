@@ -1,5 +1,6 @@
 ---
-description: "Use when you explicitly want requirements-vs-implementation review rather than the general `review` router: compare the current implementation against a spec, PRD, or plan and produce remediation guidance. Trigger on 'gap analysis', 'review against the spec', 'compare implementation to the plan', 'compare implementation to the PRD'."
+description: "Compare implementation against a spec, PRD, or plan and produce remediation guidance. Internal delegate of `andthen:review` – not directly user-invocable."
+user-invocable: false
 argument-hint: "[Requirements baseline: plan/spec/PRD/issue/directory/URL] [--inline-findings] [--to-issue] [--to-pr <number>]"
 ---
 

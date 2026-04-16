@@ -134,7 +134,7 @@ Use existing artifacts (`requirements-clarification.md` from `andthen:clarify` a
 - Map existing content against the PRD template (see Step 1b); use [`templates/prd-template.md`](templates/prd-template.md) as the target structure and only ask focused follow-up questions for genuinely missing sections
 - If significant gaps remain, fill only the missing areas using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents. Do not re-ask questions already answered in the existing artifacts, and do not pause for routine clarification.
 - If the artifacts are too ambiguous to support any defensible PRD shape, stop and report the minimum missing decisions required. Mention `andthen:clarify` as the interactive fallback.
-- **Extract technical details**: If the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), extract these into `{OUTPUT_DIR}/.technical-research.md` rather than carrying them into the PRD. The PRD should focus on *what* to build; technical details are preserved for downstream skills.
+- **Extract technical details**: If the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), keep them out of the PRD. The PRD should focus on *what* to build. Note any significant technical constraints in the PRD's `Constraints & Assumptions` section; deep technical research is deferred to `andthen:spec-plan` or `andthen:spec`.
 - Structure and generate the PRD following the same template as Step 1b. Preserve decisions, rationale, and specific details from existing artifacts – do not paraphrase or generalize away specifics.
 - Apply same Prioritization → PRD Validation steps as Step 1b.
 
@@ -145,11 +145,11 @@ Use existing artifacts (`requirements-clarification.md` from `andthen:clarify` a
 
 > Verify `prd.md` exists in OUTPUT_DIR before proceeding. If only a draft or clarification artifact exists, go back to Step 1c.
 
-Delegate codebase exploration to a sub-agent _(if supported)_ to keep context lean. Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists – use current phase, active stories, and blockers to inform story priorities. Reference the `Ubiquitous Language` document (see **Project Document Index**) if it exists; use canonical terms in story names and acceptance criteria.
+Scan codebase structure (use a sub-agent if supported) to identify natural implementation boundaries, feature groupings, and dependency relationships — enough to inform story breakdown. Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists – use current phase, active stories, and blockers to inform story priorities. Reference the `Ubiquitous Language` document (see **Project Document Index**) if it exists; use canonical terms in story names and acceptance criteria.
 
 Synthesize into a unified understanding of: all PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), natural implementation boundaries, feature dependencies, and complexity/risk areas.
 
-**Technical research**: If codebase exploration surfaces substantial technical findings (architecture patterns, framework constraints, integration details, existing conventions) that would be useful during spec creation or execution, save them to `{OUTPUT_DIR}/.technical-research.md` (append to existing content if the file was already created in Step 1c). This keeps the PRD and plan free of implementation details while preserving research for downstream skills (`andthen:spec`, `andthen:spec-plan`). Skip this if findings are minimal — not every plan needs a technical research document.
+Do not save `.technical-research.md` here — deep technical research (architecture patterns, framework constraints, file maps, shared decisions) is done by `andthen:spec-plan` or `andthen:spec` downstream, where it directly informs spec creation.
 
 **Gate**: Feature mapping complete
 
@@ -199,7 +199,7 @@ For each story, define:
 - **Risk**: Low/Medium/High with brief note if Medium+
 - Include `Provenance` for carried-forward stories, `Key Scenarios` for behavioral seeds, and `Asset refs` for design references – only when applicable.
 
-**Do not include in stories** (deferred to `andthen:spec`; save to `.technical-research.md` if discovered):
+**Do not include in stories** (deferred to `andthen:spec`):
 - Technical approach, patterns, or library choices
 - File paths, line numbers, or code specifics
 - Implementation gotchas or constraints with workarounds
@@ -257,8 +257,7 @@ Optional: Invoke the `andthen:review --doc-only` skill to validate the plan for 
 ```
 OUTPUT_DIR/
 ├── prd.md                # Product Requirements Document (if created)
-├── plan.md               # Implementation plan
-└── .technical-research.md # Technical findings from codebase analysis (if substantial)
+└── plan.md               # Implementation plan
 ```
 
 - If from GitHub issue: use `issue-{number}-{feature-name}/` as the output subdirectory name (e.g. `docs/specs/issue-42-user-dashboard/plan.md`). Include issue reference in the PRD and plan document headers.
@@ -271,7 +270,7 @@ If PUBLISH_ISSUE is `true`:
    - `artifact_type`: `plan-bundle`
    - Title: `[Plan] {project-name}: Implementation Plan`
    - Primary file: `plan.md`
-   - Companion files: `prd.md`; include `.technical-research.md` when it exists
+   - Companion files: `prd.md`
    - Labels: `plan`, `andthen-artifact`
 2. Print the issue URL and the local primary path (`plan.md`)
 

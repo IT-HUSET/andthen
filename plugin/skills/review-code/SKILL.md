@@ -1,6 +1,6 @@
 ---
-description: Perform implementation-focused review covering code quality, security, architecture, and UI/UX. Use when you explicitly want code review rather than the general `review` router. Trigger on 'review this code', 'review this PR', 'audit these changes'.
-user-invocable: true
+description: Perform implementation-focused review covering code quality, security, architecture, and UI/UX. Internal delegate of `andthen:review` – not directly user-invocable.
+user-invocable: false
 argument-hint: "[scope/files] [--inline-findings] [--to-issue] [--to-pr <number>]"
 ---
 

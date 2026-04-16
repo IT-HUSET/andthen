@@ -32,7 +32,7 @@ See [`templates/CLAUDE.template.md`](../templates/CLAUDE.template.md) for a star
 
 ### Agent Teams (Optional, Claude Code only)
 
-The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
+`exec-plan --team` and `review-council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. Without `--team`, both skills use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -47,7 +47,7 @@ The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent 
 
 Every skill works standalone — no pipeline required. Use them individually for everyday tasks, or compose them into structured workflows for larger efforts. See the [full documentation](../README.md#key-concepts) for detailed workflow diagrams and artifact flow.
 
-**Session management**: The context-intensive skills — `exec-spec`, `spec-plan`, `exec-plan`/`exec-plan-team`, `review-council`/`review-council-team` — perform best when started in a **clean session**. Pipeline predecessor skills (`clarify`, `plan`, `spec`) will suggest when to start fresh. Standalone skills like `triage`, `quick-review`, and `refactor` are lightweight and run well mid-conversation.
+**Session management**: The context-intensive skills — `exec-spec`, `spec-plan`, `exec-plan`, `review-council` — perform best when started in a **clean session**. Pipeline predecessor skills (`clarify`, `plan`, `spec`) will suggest when to start fresh. Standalone skills like `triage`, `quick-review`, and `refactor` are lightweight and run well mid-conversation.
 
 ## Skills
 
@@ -84,7 +84,7 @@ These compose into structured workflows — from requirements through implementa
 | `exec-spec` | Execute a FIS – direct implementation with validation |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown (supports `--issue`) |
 | `spec-plan` | Batch-create all FIS specs for a plan (parallel + cross-cutting review) |
-| `exec-plan` | Execute plan – spec-plan per phase, then sub-agent pipeline with `--review-mode per-story|none|full-plan` |
+| `exec-plan` | Execute plan – spec-plan per phase, then exec-spec + quick-review per story, final review-gap. Use `--team` for Agent Teams |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
 | `wireframes` | Generate HTML wireframes for UI planning |
@@ -92,12 +92,7 @@ These compose into structured workflows — from requirements through implementa
 
 Specialist review skills remain available for explicit or internal use: `review-code`, `review-doc`, and `review-gap`. The recommended user-facing entrypoint is `review`.
 
-### Agent Teams Variants (Claude Code only)
-
-| Skill | Purpose |
-|-------|---------|
-| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination and configurable review mode |
-| `review-council-team` | Multi-perspective review with real-time Agent Teams debate |
+> Both `exec-plan` and `review-council` auto-detect Agent Teams and use them when available. Use `--team` to force Agent Teams mode.
 
 ## Agents
 
@@ -192,8 +187,8 @@ Specialist review skills remain available for explicit or internal use: `review-
 # - Frontend UI → UX/Accessibility, Frontend Specialist, etc.
 # - Always includes Devil's Advocate + Synthesis Challenger
 
-# OR use Agent Teams variant for real-time debate (Claude Code only)
-/andthen:review-council-team
+# OR force Agent Teams for real-time debate (Claude Code only)
+/andthen:review-council --team
 ```
 
 ### Feature Workflow (single feature)
@@ -245,19 +240,10 @@ Specialist review skills remain available for explicit or internal use: `review-
 # Or resume from a typed GitHub plan artifact:
 /andthen:exec-plan --issue 456
 
-# 4a-alt. Single full-plan review after all stories
-/andthen:exec-plan docs/specs/dashboard/ --review-mode full-plan
-
-# 4a-alt. Skip automated review; review manually after execution
-/andthen:exec-plan docs/specs/dashboard/ --review-mode none
-
-# 4b. OR use Agent Teams variant for enhanced parallelism (Claude Code only)
-/andthen:exec-plan-team docs/specs/dashboard/
-# Or resume from the typed GitHub plan artifact:
-/andthen:exec-plan-team --issue 456
-# Same review modes also work here:
-# /andthen:exec-plan-team docs/specs/dashboard/ --review-mode full-plan
-# /andthen:exec-plan-team docs/specs/dashboard/ --review-mode none
+# 4b. OR use Agent Teams for enhanced parallelism (Claude Code only)
+/andthen:exec-plan docs/specs/dashboard/ --team
+# Or with worktree isolation for parallel execution:
+/andthen:exec-plan docs/specs/dashboard/ --team --worktree
 
 # 4c. OR manually: batch-create all specs, then execute per story
 /andthen:spec-plan docs/specs/dashboard/
@@ -268,7 +254,7 @@ Specialist review skills remain available for explicit or internal use: `review-
 /andthen:remediate-findings <path-to-review-report>   # when review reports actionable gaps
 # ... repeat exec-spec + review (+ remediation when needed) for each story in per-story mode
 
-# 5. Final review (single-feature workflow, or manual review after `--review-mode none`)
+# 5. Final review (single-feature workflow, or manual review after exec-plan)
 /andthen:review --gap-only
 ```
 
