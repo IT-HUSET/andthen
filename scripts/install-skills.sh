@@ -19,8 +19,6 @@ Options:
 
 Notes:
   - All skills are exported as directories named <prefix><skill-name>/
-  - Agent Teams skills (exec-plan-team, review-council-team) are excluded
-    since they require Claude Code
   - Shared references, helper scripts, and shared templates are exported
     alongside skills
   - Codex agents are installed as <prefix><agent-name>.toml and rewritten to
@@ -138,10 +136,6 @@ skills_count=0
 for dir in "$repo_root/plugin/skills"/*; do
   [ -d "$dir" ] || continue
   name=$(basename "$dir")
-
-  # Agent Teams skills require Claude Code – skip for other agents
-  [ "$name" = "exec-plan-team" ] && continue
-  [ "$name" = "review-council-team" ] && continue
 
   case "$name" in
     "$prefix"*)

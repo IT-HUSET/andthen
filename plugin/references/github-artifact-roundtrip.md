@@ -76,12 +76,8 @@ Add narrower types only when a downstream consumer needs distinct behavior.
 - If the posting command does not return a direct comment URL, resolve it immediately via follow-up GitHub lookup and print that URL before completion
 
 ## Consumption Rules
-- For GitHub issue / PR comment inputs, inspect the body for the typed envelope **before** treating the text as ordinary prose
-- If the envelope exists, validate `schema` and `artifact_type` first
-- If compatible, extract each embedded file verbatim into `.agent_temp/github-artifacts/{github-id}-{artifact_type}/`, preserving the repo-relative paths from the `### File:` headings. Use `canonical_local_primary` to choose the primary extracted file
-- If typed but incompatible with the current skill, stop and tell the user which artifact type or skill is expected
-- If the current skill requires a specific workflow artifact (plan, FIS, review report), do **not** guess from an untyped GitHub shell page or free-form issue body. Stop and ask for the typed artifact or the local file instead
-- Requirements-oriented skills may still consume untyped issues as raw requirements input when that is already part of their normal contract
+
+Routing and extraction logic for GitHub inputs is defined in the shared reference `resolve-github-input.md`. Skills that accept `--issue` or GitHub URLs load that reference and provide their compatible types, redirect targets, and untyped-input rules inline.
 
 ## Continuation Rules
 - An extracted `.agent_temp/github-artifacts/...` directory is a **working mirror**, not canonical state

@@ -13,7 +13,7 @@ AndThen brings spec-driven development to AI coding agents – lightweight, open
 > [!NOTE]
 > **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal.
 
-**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` and `exec-plan-team` available when you want that manual flow orchestrated for you. Under the hood, `review` routes to the right specialist review (`review-code`, `review-doc`, or `review-gap`) for the actual target. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
+**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` available when you want that flow orchestrated for you (add `--team` for Agent Teams parallelism). Under the hood, `review` routes to the right specialist review (`review-code`, `review-doc`, or `review-gap`) for the actual target. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
 
 Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** – falling back to direct execution when sub-agents aren't available.
 
@@ -103,20 +103,14 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 │   optional pre-work (see above)                                     │
 │     │                                                               │
 │     ▼                                                               │
-│  [plan] ───→ [exec-plan] / [exec-plan-team]                         │
+│  [plan] ───→ [exec-plan]                                            │
 │               │                                                     │
-│               ├── [spec-plan]                                       │
+│               ├── [spec-plan] (per phase)                           │
 │               │                                                     │
-│               ├── then repeat per story: [exec-spec]                │
+│               ├── per story: [exec-spec] → [quick-review]           │
 │               │                                                     │
-│               ├── per-story review mode:                            │
-│               │      [review] → [remediate-findings] if needed      │
-│               │                                                     │
-│               ├── full-plan review mode:                            │
-│               │      after all stories:                             │
-│               │      [review] → [remediate-findings] if needed      │
-│               │                                                     │
-│               └── none review mode: manual review after execution   │
+│               └── after all stories:                                │
+│                    [review-gap] → [remediate-findings] if needed    │
 └─────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -132,7 +126,7 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 - **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue – you know what to do and it's under ~3 files
 - **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review`): Single feature with real complexity – multiple files, non-obvious requirements, needs a blueprint
 - **Manual plan workflow** (`clarify` → `plan` → `spec-plan` or per-story `spec` → `exec-spec`): Multiple features, MVP, or a new project where you want explicit control story by story, with optional per-story or final review/remediation
-- **Automated plan workflow** (`clarify` → `plan` → `exec-plan` / `exec-plan-team`): The same underlying plan flow, with `spec-plan` plus implementation orchestrated for you and configurable review behavior
+- **Automated plan workflow** (`clarify` → `plan` → `exec-plan`): The same underlying plan flow, with `spec-plan` plus implementation orchestrated for you. Use `--team` for Agent Teams parallelism
 
 In both plan workflows, the per-story execution step is handled by `exec-spec`.
 
@@ -180,7 +174,7 @@ Skills use capability detection and work without the plugin infrastructure. Use 
 ./scripts/install-skills.sh --no-codex-agents
 ```
 
-This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-spec/`, `andthen-review/`). Plugin reference docs, shared templates, and helper scripts are also copied. By default, the installer also copies the Codex TOML agents into `~/.codex/agents/` and rewrites them to point at the installed shared references path. Agent Teams skills (`exec-plan-team`, `review-council-team`) are excluded since they require Claude Code.
+This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-spec/`, `andthen-review/`). Plugin reference docs, shared templates, and helper scripts are also copied. By default, the installer also copies the Codex TOML agents into `~/.codex/agents/` and rewrites them to point at the installed shared references path.
 
 Invoke with `/andthen:<skill>` in Claude Code, or `$andthen-<skill>` in Codex and other agents.
 
@@ -208,7 +202,7 @@ See [`templates/CLAUDE.template.md`](templates/CLAUDE.template.md) for a starter
 
 ### Agent Teams (Optional, Claude Code only)
 
-The `-team` skill variants (`exec-plan-team`, `review-council-team`) use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. The portable versions (`exec-plan`, `review-council`) work across all agents using sub-agents with sequential fallback. To enable Agent Teams:
+`exec-plan --team` and `review-council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. Without `--team`, both skills use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -301,21 +295,15 @@ docs/specs/data-export/plan.md
 /andthen:review --gap-only docs/specs/data-export/plan.md
 /andthen:remediate-findings <path-to-review-report>   # if needed after final review
 
-# Multi-feature (default per-story review, automated):
+# Multi-feature (automated):
 /andthen:exec-plan docs/specs/data-export/
 # Or resume from a typed GitHub plan artifact:
 /andthen:exec-plan --issue 456
 
-# Multi-feature (single full-plan review after all stories, automated):
-/andthen:exec-plan docs/specs/data-export/ --review-mode full-plan
-
-# Multi-feature (skip automated review; you review manually after execution):
-/andthen:exec-plan docs/specs/data-export/ --review-mode none
-
-# Claude Code Agent Teams variant:
-/andthen:exec-plan-team docs/specs/data-export/ --review-mode full-plan
-# Or resume from the typed GitHub plan artifact:
-/andthen:exec-plan-team --issue 456 --review-mode full-plan
+# Claude Code Agent Teams for enhanced parallelism:
+/andthen:exec-plan docs/specs/data-export/ --team
+# Or with worktree isolation for parallel execution:
+/andthen:exec-plan docs/specs/data-export/ --team --worktree
 ```
 
 **Step 4: Review**
@@ -328,10 +316,7 @@ docs/specs/data-export/plan.md
 /andthen:review --gap-only <path-to-plan-or-fis>
 ```
 
-For `exec-plan` and `exec-plan-team`, this depends on `--review-mode`:
-- `per-story` – handled automatically during plan execution
-- `full-plan` – handled automatically once at the end
-- `none` – run manually after execution if you want AndThen to review the completed plan
+`exec-plan` runs `quick-review` per story automatically, then a final `review-gap` on the whole plan. For manual review of individual stories, use `review --gap-only` on the FIS path.
 
 `review` is the default review entrypoint. It routes to `review-gap` when the question is whether implementation matches requirements, to `review-doc` for document readiness, and to `review-code` for implementation-only review.
 
@@ -339,7 +324,6 @@ When `spec`, `plan`, `review`, `review-gap`, or `review-code` publish to GitHub,
 - `/andthen:exec-spec --issue <fis-issue-number>`
 - `/andthen:spec-plan --issue <plan-issue-number>`
 - `/andthen:exec-plan --issue <plan-issue-number>`
-- `/andthen:exec-plan-team --issue <plan-issue-number>`
 - `/andthen:remediate-findings <review-issue-url-or-pr-comment-url>`
 
 **Step 5: Remediate Findings** *(when review returns actionable gaps)*
@@ -413,7 +397,7 @@ These compose into structured workflows — from requirements through implementa
 | `exec-spec` | Execute a FIS – direct implementation with validation |
 | `plan` | Requirements discovery + PRD creation (if needed) + story breakdown (supports `--issue`) |
 | `spec-plan` | Batch-create all FIS specs for a plan (parallel + cross-cutting review) |
-| `exec-plan` | Execute plan – spec-plan per phase, then sub-agent pipeline with `--review-mode per-story|none|full-plan` |
+| `exec-plan` | Execute plan – spec-plan per phase, then exec-spec + quick-review per story, final review-gap. Use `--team` for Agent Teams |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
 | `wireframes` | Generate HTML wireframes for UI planning |
@@ -421,12 +405,7 @@ These compose into structured workflows — from requirements through implementa
 
 Specialist review skills remain available for explicit or internal use: `review-code`, `review-doc`, and `review-gap`. The recommended user-facing entrypoint is `review`.
 
-### Agent Teams Variants (Claude Code only)
-
-| Skill | Purpose |
-|-------|---------|
-| `exec-plan-team` | Execute plan via Agent Team pipeline with inter-agent coordination and configurable review mode |
-| `review-council-team` | Multi-perspective review with real-time Agent Teams debate |
+> Both `exec-plan` and `review-council` auto-detect Agent Teams and use them when available. Use `--team` to force Agent Teams mode.
 
 
 ## Agents

@@ -27,8 +27,7 @@ REPORT_SOURCE: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-- Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
-- Make sure `REPORT_SOURCE` is provided; otherwise stop with a missing-input error that states a review report source is required.
+- Require `REPORT_SOURCE`. Stop if missing.
 - Treat the review report as an input contract, not unquestionable truth. Re-validate findings against the current workspace before editing artifacts.
 - Fix validated findings with the smallest coherent patch set that resolves them.
 - Avoid scope creep. Do not "clean up nearby code" or rewrite nearby docs unless it is required to resolve a finding or prevent a regression.
@@ -53,11 +52,8 @@ REPORT_SOURCE: $ARGUMENTS
 
 1. Resolve `REPORT_SOURCE`:
    - Local report path or direct raw report URL: read the report content directly
-   - GitHub issue URL or PR comment URL: fetch the body and inspect the typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`
-     - Accept `review`, `gap-review`, `code-review`, `architecture-review`, `doc-review`, or `council-review`
-     - Extract the embedded primary report and any companion files to `.agent_temp/github-artifacts/{github-id}-{artifact_type}/`
-     - Use the typed metadata to recover `report_path`, `plan_path`, `fis_path`, `story_ids`, `requirements_baseline`, and `implementation_targets`
-     - If the GitHub artifact is typed but not a review report, **STOP** with an invalid-input error that states an actual review artifact is required
+   - GitHub issue URL or PR comment URL: follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
+     Compatible types: `review`, `gap-review`, `code-review`, `architecture-review`, `doc-review`, `council-review` — extract the embedded primary report and any companion files; use the typed metadata to recover `report_path`, `plan_path`, `fis_path`, `story_ids`, `requirements_baseline`, and `implementation_targets`. Redirects: any non-review typed artifact → stop with invalid-input error. Untyped: fall through to step 3 validation below.
 2. Extract:
    - Review type (`review-gap`, `review-code`, `review-doc`, or other)
    - Report verdict (PASS/FAIL) when present
@@ -104,25 +100,20 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
 1. Implement fixes by logical area and artifact type.
 2. Add or update tests when an implementation finding requires proof-of-work.
 3. Run targeted verification after each fix group:
-   - Implementation fixes: tests, linting, type checks, builds, or targeted runtime checks as appropriate
-   - Document fixes: verify terminology, cross-references, linked paths, commands/examples, version-sensitive claims, and consistency with the current source of truth
-   - Workflow artifact fixes: verify templates, status semantics, and cross-document consistency
-4. Run final validation in parallel when supported:
-   - Tests, linting, type checks, or builds when implementation changed
-   - `andthen:review-gap` on the touched scope when the source report is a gap review or when the remediation changes requirements-vs-implementation alignment
-   - `andthen:review-doc` on the touched scope when specs, PRDs, plans, ADRs, user guides, or reference docs changed
-   - `andthen:review-code` on the touched scope when implementation changed
-   - Visual validation when UI changed
-5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state one of: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), or `DEFERRED` (intentionally left open per severity policy, with justification). This is the primary close-the-loop validation — it proves each finding was addressed without the cost of a full re-review.
-6. If both implementation and document artifacts changed, make sure the final state is consistent across them rather than validating each surface in isolation.
-7. Repeat the remediation loop until all required findings are resolved or explicitly deferred, or escalate after 2 cycles.
+   - Implementation fixes: tests, linting, type checks, builds
+   - Document fixes: verify terminology, cross-references, linked paths, commands/examples, consistency with source of truth
+   - Workflow artifact fixes: verify templates, status semantics, cross-document consistency
+4. Run `andthen:quick-review` on the touched scope. This replaces the heavyweight re-review sub-agents – one lightweight pass is sufficient for targeted fixes.
+5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), or `DEFERRED` (per severity policy, with justification). This is the primary close-the-loop validation.
+6. If both implementation and document artifacts changed, verify consistency across them.
+7. If Critical/High findings remain after one remediation pass, escalate to the user rather than looping.
 
-**Gate**: Every Critical/High finding is RESOLVED with evidence, Medium/Low findings are RESOLVED or DEFERRED with justification, the appropriate re-review (`review-gap`, `review-code`, `review-doc`, or the applicable combination) on the touched scope is clean, and no new regressions or contradictions are introduced
+**Gate**: Every Critical/High finding is RESOLVED with evidence, Medium/Low findings are RESOLVED or DEFERRED with justification, quick-review on touched scope is clean, no new regressions
 
 
 ### Phase 5: Update Workflow State
 
-The findings re-check and appropriate re-review results from Phase 4 are the evidence needed to update state. When all required findings are resolved and verification is clean, update state now — do not defer to "a future run" merely because the originating review was not re-run.
+The findings re-check and quick-review results from Phase 4 are the evidence needed to update state. When all required findings are resolved and verification is clean, update state now.
 
 If the report is tied to a story or FIS and remediation passed validation:
 - Use `andthen:ops update-fis {fis_path} all` when the FIS work is substantively complete and evidence exists
@@ -146,5 +137,5 @@ If the report is a full-plan or workspace-wide review:
 Report:
 - Findings re-check table (each finding → RESOLVED / PARTIALLY RESOLVED / UNRESOLVED with evidence)
 - Findings intentionally left open and why
-- Verification results (tests, lints, builds, review-code, review-doc, or other targeted checks as applicable)
+- Verification results (tests, lints, builds, quick-review)
 - Which workflow artifacts were updated

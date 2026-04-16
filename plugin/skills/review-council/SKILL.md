@@ -1,6 +1,6 @@
 ---
-description: Multi-perspective code review with adversarial debate to validate findings. Trigger on 'council review', 'adversarial review', 'multi-reviewer', 'multiple reviewers'.
-argument-hint: "[Optional - specific files, PR number, or focus area]"
+description: Multi-perspective code review with adversarial debate to validate findings. Supports Agent Teams (real-time debate) and sub-agents (sequential fallback). Trigger on 'council review', 'adversarial review', 'multi-reviewer', 'multiple reviewers', 'team review'.
+argument-hint: "[Optional - specific files, PR number, or focus area] [--team]"
 ---
 
 # Review Council
@@ -8,12 +8,17 @@ argument-hint: "[Optional - specific files, PR number, or focus area]"
 
 Multi-perspective code review where specialized reviewers challenge each other's findings through adversarial debate, producing validated, high-confidence issues.
 
-Uses **parallel sub-agents** _(if supported by your coding agent)_ for concurrent reviews, otherwise executes sequentially.
+Supports two execution modes:
+- **Agent Teams** – real-time inter-agent debate when Agent Teams are available (or forced with `--team`)
+- **Sub-agents** – parallel sub-agents with sequential debate phases (portable fallback)
 
 
 ## VARIABLES
 
 ARGUMENTS: $ARGUMENTS
+
+### Optional Flags
+- `--team` → force Agent Teams execution mode; error if unavailable
 
 
 ## INSTRUCTIONS
@@ -27,11 +32,20 @@ ARGUMENTS: $ARGUMENTS
 - Selecting too many reviewers (>7) dilutes debate quality – 5 is the sweet spot for most reviews
 - Devil's Advocate challenge phase gets skipped under context pressure – it's the most valuable phase
 - Reviewers agreeing too easily – if no findings survive challenge, the review was too shallow
+- Falling back gracefully when Agent Teams is unavailable and `--team` was not explicitly requested
 
 
 ## WORKFLOW
 
-### 1. Analyze Review Scope
+### 1. Determine Execution Mode
+
+Check whether Agent Teams are available by verifying that team creation tools exist (e.g. `TeamCreate`).
+
+- **Agent Teams available** (or `--team` flag) → use Agent Teams mode (Step 4a)
+- **Agent Teams unavailable, no `--team` flag** → use sub-agent mode (Step 4b)
+- **Agent Teams unavailable, `--team` flag present** → inform user it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` and exit
+
+### 2. Analyze Review Scope
 
 Gather context:
 - If PR number: `gh pr diff <number>` + `gh pr view <number>`
@@ -40,7 +54,7 @@ Gather context:
 
 Categorize: product feature, backend, frontend, database, infrastructure, refactoring, or bug fix.
 
-### 2. Select Council Members
+### 3. Select Council Members
 
 Choose 5-7 reviewers from `${CLAUDE_PLUGIN_ROOT}/references/reviewer-roster.md` based on scope analysis.
 Start from the closest selection example in that reference, then adapt to the actual review surface.
@@ -48,9 +62,80 @@ Always include **Devil's Advocate** and **Synthesis Challenger**.
 
 **Gate:** 5-7 reviewers selected (always include Devil's Advocate + Synthesis Challenger)
 
-### 3. Phase 1 – Specialist Reviews
+### 4a. Execute Reviews – Agent Teams Mode
+
+**Use this path when Agent Teams are available (Step 1).**
+
+**IMPORTANT – Use Agent Teams, NOT regular sub-agents.**
+Reviewers must be spawned into the team (with `team_name` and `name`) so they share a task list and can debate in real time. Regular sub-agents are isolated and cannot communicate.
+
+**Workflow:**
+1. Create the team (e.g., name: `"review-council"`)
+2. Create tasks for each review phase (specialist reviews, debate, synthesis)
+3. Spawn each reviewer into the team (`team_name: "review-council"`, `name: "<reviewer>"`)
+4. Track task assignments and completion
+5. Use inter-agent messaging to coordinate debate and findings exchange
+6. Send shutdown requests when done
+7. Delete the team to clean up resources
+
+**Reviewer spawn template:**
+```
+Review Council for: {SCOPE}
+Team: review-council (use the shared task list and inter-agent messaging to coordinate)
+
+Your role: {reviewer name and focus areas from `${CLAUDE_PLUGIN_ROOT}/references/reviewer-roster.md`}
+
+Review process (two-phase validation):
+
+PHASE 1 - Initial Review & Debate:
+Each specialist reviewer should:
+- Analyze the code through their specialized lens
+- Report findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
+- Provide specific file:line references
+- Use the `andthen:review-code` skill for the review (if unavailable, perform the review directly)
+
+Devil's Advocate should:
+- Challenge ALL findings from specialist reviewers
+- Question assumptions and severity ratings; force validation through debate
+- Engage in back-and-forth (max 2-3 rounds per finding)
+- If no consensus after 3 rounds, mark finding as "disputed"
+
+PHASE 2 - Synthesis Review:
+After all Phase 1 debates complete, Synthesis Challenger should:
+- Review ALL validated findings holistically
+- Question severity consistency, merged issues, missed patterns, false positives
+- Act as quality gate — only findings surviving both phases get reported
+
+Final output: Unified report showing findings validated through BOTH phases.
+```
+
+**Phase 1 – Initial Review & Debate:**
+- Wait for all specialist reviewers to complete initial analysis
+- Ensure Devil's Advocate challenges each finding (max 2-3 debate rounds)
+- Track findings as: validated, withdrawn, or disputed
+
+**Gate:** All Phase 1 debates resolved
+
+**Phase 2 – Synthesis Review:**
+- Synthesis Challenger reviews holistically after all Phase 1 debates complete
+- May reclassify, merge, or split findings based on overall context
+
+**Gate:** Synthesis Challenger completes final validation
+
+**Clean up:**
+1. Send shutdown requests to each council reviewer
+2. Wait for shutdown confirmations
+3. Delete the team to remove team and task files
+
+Then proceed to **Step 5. Synthesize Report**.
+
+### 4b. Execute Reviews – Sub-Agent Mode
+
+**Use this path when Agent Teams are unavailable (Step 1).**
 
 Run specialist reviews using **parallel sub-agents** _(if supported; otherwise execute sequentially)_.
+
+**Phase 1 – Specialist Reviews:**
 
 Spawn one sub-agent per specialist reviewer (excluding Devil's Advocate and Synthesis Challenger). Each sub-agent receives:
 
@@ -78,7 +163,7 @@ Output format per finding:
 
 **Gate:** All specialist reviews complete, findings collected
 
-### 4. Phase 2 – Devil's Advocate Challenge
+**Phase 2 – Devil's Advocate Challenge:**
 
 Spawn a **sub-agent** as the Devil's Advocate.
 Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Devil's Advocate`) with:
@@ -92,7 +177,7 @@ Apply the Devil's Advocate's verdicts to the findings list.
 
 **Gate:** All findings challenged, verdicts applied
 
-### 5. Phase 3 – Synthesis Review
+**Phase 3 – Synthesis Review:**
 
 Spawn a **sub-agent** as the Synthesis Challenger.
 Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Synthesis Challenger`) with:
@@ -104,7 +189,7 @@ Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Synthesis Chal
 
 **Gate:** Synthesis Challenger completes final validation
 
-### 6. Synthesize Report
+### 5. Synthesize Report
 
 Compile findings into unified report:
 

@@ -30,11 +30,10 @@ ARGUMENTS: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-- **Make sure `ARGUMENTS` is provided** – otherwise **STOP** immediately with a missing-input error that states the feature requirements or source artifact are required.
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
-- **Spec generation only** - No code changes, commits, or modifications during execution of this command
-- **Remember**: Agents executing the FIS only get the context you provide. Include all necessary documentation, examples, and references.
-- **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting to avoid known traps and error patterns
+- Require `ARGUMENTS`. Stop if missing.
+- **Spec generation only** — no code changes, commits, or modifications.
+- Agents executing the FIS only get the context you provide. Include all necessary documentation, examples, and references.
+- Read the `Learnings` document (see **Project Document Index**) before starting, if it exists.
 
 
 ## GOTCHAS
@@ -63,36 +62,33 @@ You are the orchestrator: parse input, delegate codebase analysis and research t
 
 ### 0. Parse Input & Get Requirements
 
-**If `--issue` flag present**: use `gh issue view <number>` to fetch issue details, then inspect the body for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`.
-- If `artifact_type: fis-bundle`, **STOP** — the spec already exists. Exit with the correct downstream path: `andthen:exec-spec`, `andthen:review`, or the local FIS path. Do not regenerate it.
-- If `artifact_type: plan-bundle`, **STOP** — the issue contains a plan, not a single-feature request. Exit with the correct downstream path: `story {story_id} of <path-to-plan.md>`, `andthen:spec-plan`, or `andthen:exec-plan`.
-- If the issue contains another typed workflow artifact (`triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and exit with the matching downstream skill.
-- Otherwise use the issue as the feature request and store the issue number for FIS reference.
+**If `--issue` flag present**: follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
+Compatible types: none (spec creates new specs from untyped issues). Redirects: `fis-bundle` → stop, spec already exists — direct to `andthen:exec-spec`, `andthen:review`, or the local FIS path; `plan-bundle` → stop, direct to `story {story_id} of <path-to-plan.md>`, `andthen:spec-plan`, or `andthen:exec-plan`; `triage-plan` / `triage-completion` / any `*-review` → stop with matching downstream skill. Untyped: use the issue as the feature request and store the issue number for FIS reference.
 
 **If ARGUMENTS is a directory with `requirements-clarification.md`** (from `andthen:clarify`): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes, and any explicit non-goals / deferred items as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
-**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates.
+**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates. If a plan-scoped `.technical-research.md` exists in the plan directory (from `andthen:spec-plan` — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce Steps 1 and 2 research accordingly.
 
 **Otherwise**: use inline description or file reference as the feature request.
 
 
 ### 1. Priming and Project Understanding
 
-Analyse the codebase to understand project structure, relevant files and similar patterns. Use `tree -d` and `git ls-files | head -250` for overview. Use the `Explore` agent _(if supported)_ for deeper context.
+If a **plan-scoped** `.technical-research.md` exists (created by `andthen:spec-plan` — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce this step to a quick verification that the project structure matches the research. Otherwise, analyse the codebase to understand project structure, relevant files and similar patterns. Use `tree -d` and `git ls-files | head -250` for overview. Use the `Explore` agent _(if supported)_ for deeper context.
 
 
 ### 2. Feature Research and Design
 
-Fully understand the feature request. Identify any ambiguities. Research only what's needed:
+If a plan-scoped `.technical-research.md` exists with relevant coverage, skip research categories it already addresses. Only research what's genuinely missing:
 
-- **Codebase research**: similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Delegate to the `andthen:solution-architect` agent _(if supported)_.
+- **Codebase research** _(skip if technical research covers file maps and patterns for this story)_: similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Delegate to the `andthen:solution-architect` agent _(if supported)_.
 - **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to the `andthen:research-specialist` or `andthen:documentation-lookup` agent _(if supported)_.
-- **Architecture trade-offs** _(if no ADR in ARGUMENTS)_: analyze 1-3 approaches, document risks. Delegate to the `andthen:solution-architect` agent _(if supported)_.
+- **Architecture trade-offs** _(skip if technical research covers shared decisions relevant to this story AND no story-internal trade-offs exist; also skip if ADR in ARGUMENTS)_: analyze 1-3 approaches, document risks. Delegate to the `andthen:solution-architect` agent _(if supported)_.
 - **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Delegate to the `andthen:ui-ux-designer` agent _(if supported)_.
 
 **Save research findings** (if substantial) to `.technical-research.md` in the FIS output directory — a hidden companion document that keeps the FIS lean and reviewable. The FIS references this document; the executing agent reads it alongside the FIS for implementation context. See the [Technical Research Separation](../../references/fis-authoring-guidelines.md#technical-research-separation) guidelines for what belongs in the research doc vs the FIS. Skip this if findings are minimal — not every spec needs a technical research document.
 
-If an existing `.technical-research.md` already exists (e.g. from `andthen:spec-plan` or `andthen:plan`), append story-specific findings under a `## {Story Name}` heading rather than overwriting.
+If an existing `.technical-research.md` already exists, append story-specific findings under a `## {Story Name}` heading rather than overwriting.
 
 Only stop for ambiguity when it blocks a defensible specification. In that case, return the minimum missing decisions required rather than pausing for routine clarification.
 
@@ -113,7 +109,7 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 - `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions
 
 #### Generate from Template
-**IMPORTANT**: Use the `Plan` agent _(if supported by your coding agent)_ to generate the FIS — it provides structured authoring support.
+Use the `Plan` agent _(if supported)_ to generate the FIS — it provides structured authoring support.
 
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
 [`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](../../references/fis-authoring-guidelines.md).
@@ -149,8 +145,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
   9. Treat the result as a **plan bundle** whose downstream path is `andthen:exec-plan`, not `andthen:exec-spec`.
 - If the draft is oversized **and the input is `story {story_id} of {path-to-plan.md}`**:
   - Do **not** silently fan one plan story out into multiple FIS files.
-  - **STOP** and report that the story itself needs upstream plan decomposition before spec generation can complete cleanly. Exit without generating a partial or oversized FIS.
-  - Do not save an oversized single FIS just to satisfy the command.
+  - Stop and report that the story needs upstream plan decomposition before spec generation can complete. Do not save an oversized single FIS.
 
 
 ## OUTPUT
@@ -160,7 +155,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
 - Plan story input: save FIS in plan directory as `{story-name}.md`
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
-- **Technical research**: save as `.technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and a plan-level `.technical-research.md` already exists, append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
+- **Technical research**: save as `.technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and `.technical-research.md` already exists (from `andthen:spec-plan`), append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
 - **Update source plan** – if this spec was created for a plan story:
   - Set the story's **FIS** field to the generated FIS file path
   - Set the story's **Status** field to `Spec Ready`
@@ -202,12 +197,9 @@ Print the issue URL and the local primary path (the generated FIS or `plan.md`, 
 
 After completion, suggest:
 
-1. **Single-FIS mode**: Run `andthen:exec-spec` to implement the FIS
-   Example: `/andthen:exec-spec <path-to-fis>` (or `$andthen:exec-spec ...`)
-2. **Oversize pivot mode**: Run `andthen:exec-plan` to execute the generated plan bundle
-   Example: `/andthen:exec-plan <path-to-plan-directory>` (or `$andthen:exec-plan ...`)
-3. **Review first**: Run `andthen:review --doc-only` on the primary artifact before implementation
-   Example: `/andthen:review --doc-only <path-to-fis-or-plan>` (or `$andthen:review --doc-only ...`)
+1. **Single-FIS mode**: Run `andthen:exec-spec` to implement the FIS.
+2. **Oversize pivot mode**: Run `andthen:exec-plan` to execute the generated plan bundle.
+3. **Review first**: Run `andthen:review --doc-only` on the primary artifact before implementation.
 
 > **Session tip**: `exec-spec` is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
 

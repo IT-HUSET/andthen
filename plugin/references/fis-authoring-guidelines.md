@@ -5,22 +5,8 @@ Shared authoring guidelines for generating Feature Implementation Specifications
 
 ## FIS Authoring Principles
 
-> The FIS is an executable specification optimized for AI agents — concise, actionable, reference-heavy.
->
-> **Core Principles:**
-> 1. **Intent over Implementation**: Describe outcomes, goals and context, not exact code changes — the executing agent decides *how*
-> 2. **References over Content**: Link to docs, code (file:line), and research — don't inline them
-> 3. **Patterns by Reference**: Point to existing code patterns (file:line) rather than reproducing them
-> 4. **Decisions, not Explanations**: State the decision, not lengthy rationale
-> 5. **Information Dense**: Keywords and patterns from the codebase, minimal prose
->
-> **DON'Ts:**
-> - No code snippets longer than 5 lines — reference existing patterns instead
-> - No inline documentation excerpts — link to the source
-> - No verbose prose or explanations — be terse and actionable
-> - No repeating information available elsewhere — reference it
-> - No describing code changes or file creation steps — describe outcomes and goals
-> - No file tree listings or "Outline of New/Changed Files" — the executing agent discovers structure from the codebase
+> FIS is an executable spec: intent over implementation, references over content, decisions not explanations.
+> No code snippets >5 lines, no inline docs, no verbose prose, no file trees — reference existing patterns and describe outcomes.
 
 
 ## Technical Research Separation
@@ -59,25 +45,17 @@ A research finding that doesn't match reality is a signal to investigate, not to
 
 ## Scenarios and Proof-of-Work
 
-Scenarios are the bridge between requirements and tests. Borrowed from BDD's core insight: a well-written scenario IS both the requirement and the test specification — no translation gap, no drift between "what we want" and "how we verify it."
+Each scenario: one behavior, concrete Given/When/Then using actual codebase identifiers. Cover happy path first, then edge cases, then at least one error case. 3-7 scenarios is the sweet spot. If you can't write the **Then** clause, surface it as ambiguity.
 
-**Writing effective scenarios:**
-- Each scenario should illustrate one behavior concretely. The **Given** makes preconditions explicit (what must already be true), the **When** names the trigger (what happens), and the **Then** states observable outcomes (what must be true after).
-- Use actual codebase identifiers (method names, event names, status values, domain terms) — not abstract descriptions. This is ubiquitous language in action.
-- Cover the happy path first, then edge cases (boundaries, empty states, concurrent access), then at least one error/failure case. 3-7 scenarios is the sweet spot.
-- If you can't write the **Then** clause, you don't understand the requirement yet — surface this as ambiguity rather than inventing an answer.
+**Negative-path checklist** — after drafting scenarios, review for these three categories. Add one scenario per uncovered category (the riskiest gap), not one per parameter. The 3-7 target still applies.
 
-**Negative-path checklist** — after drafting scenarios, review for these three categories of missing coverage. Don't add a scenario per parameter — look for the *riskiest* gap in each category and add one scenario if the category is completely uncovered. The 3-7 scenario target still applies.
+- **Omitted optional inputs**: null/absent case producing a fragile default (empty string instead of null, zero instead of absent)?
+- **No-match cases**: selectors, filters, or lookups where "nothing matches" falls through to an unintended default?
+- **Rejection paths**: external integration points where unmatched/invalid input should be explicitly ignored or rejected?
 
-- **Omitted optional inputs**: Are there optional parameters where the null/absent case could produce a fragile default (empty string instead of null, zero instead of absent)? One scenario covering the most representative omitted-input case is sufficient.
-- **No-match cases**: Are there selectors, filters, or lookups where "nothing matches" could fall through to an unintended default? A `firstWhere` with an `orElse` fallback that silently proceeds is a bug if the intent is ignore/reject.
-- **Rejection paths**: Are there external integration points (webhooks, API calls) where unmatched/invalid input should be explicitly ignored or rejected? One scenario covering the reject/ignore path is sufficient.
+**Proof-of-Work**: Every Success Criterion must have a proof path — at least one scenario (behavioral) or task Verify line (structural). The FIS locks down what proof is required; exec-spec produces and verifies it. Testing Strategy maps scenarios to task IDs so proof is produced incrementally, not deferred.
 
-**Proof-of-Work principle** (after Tegmark & Omohundro's asymmetry insight — verification is cheaper than generation): every claim of completion must come with verifiable evidence. An agent that *claims* "task done" is a trust problem; an agent that produces checkable artifacts is an engineering problem. Proof takes many forms — passing tests for behavioral scenarios, green Verify-line checks for task outcomes, clean stub detection for substantive implementation, visual validation for UI, build/type/lint pass for structural correctness.
-
-**Proof is defined at spec time, executed at implementation time.** The FIS locks down what proof is required; exec-spec produces and verifies it. Every Success Criterion must have a proof path: at least one scenario (for behavioral criteria) or a task Verify line (for structural criteria). The Testing Strategy maps scenarios to task IDs so proof is produced incrementally as tasks land, not deferred to the end. A criterion with no defined proof path is a spec gap, not an implementation decision.
-
-**Traceability**: Scenarios form a chain across the workflow. Plan stories may include **Key Scenarios** — one-line behavioral seeds (happy path, edge case, error). During spec, these seeds are elaborated into full Given/When/Then scenarios. During execution, scenarios become test cases (proof-of-work). If a plan story has Key Scenarios, every seed should map to at least one FIS scenario — don't silently drop seeds.
+**Traceability**: Plan stories may include **Key Scenarios** (one-line behavioral seeds). During spec, seeds are elaborated into full scenarios. Every plan Key Scenario seed must map to at least one FIS scenario — don't silently drop seeds.
 
 ## Execution Contract
 
@@ -142,20 +120,15 @@ Before finalizing, cross-check each plan acceptance criterion against the FIS:
 ## Self-Check
 
 Quick sanity check before saving:
-- [ ] FIS follows template structure
-- [ ] All tasks are atomic and have file:line references where relevant
-- [ ] Tasks are ordered coherently, and any dependency on an earlier task is stated explicitly
-- [ ] ADR clearly states the decision
-- [ ] Scenarios cover happy path, edge cases, and at least one error case; all plan Key Scenario seeds mapped (if from a plan story)
-- [ ] Negative-path checklist applied: omitted optional inputs, no-match selectors/filters, and rejection paths for external integrations all covered by scenarios
+- [ ] FIS follows template structure; ADR clearly states the decision
+- [ ] All tasks are atomic, ordered coherently, with file:line references and explicit cross-task dependencies
+- [ ] Scenarios cover happy path, edge cases, and at least one error case; negative-path checklist applied; all plan Key Scenario seeds mapped (if from a plan story)
 - [ ] Every Success Criterion has a proof path — at least one scenario (behavioral) or task Verify line (structural)
-- [ ] **Scope-consistency**: every item listed in "In Scope" is exercised by at least one scenario (for behavioral items) or task with a Verify line (for structural items) — items with no coverage are either phantom features (remove from scope) or underspecified (add a scenario or task)
-- [ ] **What We're NOT Doing** section is specific: each exclusion is intentional, justified, and does not silently narrow a Success Criterion
-- [ ] **Output format completeness**: if `--json`, structured output, or machine-readable format is a Success Criterion, at least one scenario's **Then** clause specifies the output shape (key fields, structure) — not just "returns JSON"
-- [ ] No over-specification — if a section feels padded, trim it
-- [ ] No item in "What We're NOT Doing" blocks or contradicts a Success Criterion — for each exclusion, trace the data/flag path from requirement to runtime behavior; if the exclusion blocks a necessary intermediate step, either remove the exclusion or escalate
-- [ ] No code snippets longer than 5 lines — describe outcomes and reference patterns instead
-- [ ] **Size check**: FIS is still execution-sized. As a rule of thumb, most strong specs stay in the 100-300 line range; if this draft is pushing past roughly ~400 lines or >12 tasks, split it upstream instead of asking `exec-spec` to recover downstream. Use a spec-time pivot only for standalone feature requests, not for an existing single plan story.
+- [ ] **Scope-consistency**: every "In Scope" item is exercised by a scenario or task Verify line; items with no coverage are phantom features (remove) or underspecified (add coverage)
+- [ ] **What We're NOT Doing** is specific, intentional, and no exclusion blocks or contradicts a Success Criterion
+- [ ] **Output format completeness**: if structured output is a Success Criterion, at least one scenario **Then** clause specifies the output shape — not just "returns JSON"
+- [ ] No over-specification, no code snippets >5 lines — describe outcomes and reference patterns
+- [ ] **Size check**: 100-300 lines is the sweet spot; >400 lines or >12 tasks means split upstream. Spec-time pivot only for standalone requests, not existing plan stories.
 
 ### Confidence Check
 Rate your FIS 1-10 for single-pass implementation success:

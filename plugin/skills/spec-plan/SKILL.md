@@ -10,7 +10,7 @@ Batch-create Feature Implementation Specifications (FIS) for all stories in an i
 
 Can be used:
 - **Standalone** – pre-create and review all specs before execution (enables human review gate)
-- **Delegated** – called by `andthen:exec-plan` or `andthen:exec-plan-team` to handle their spec-generation phase
+- **Delegated** – called by `andthen:exec-plan` to handle their spec-generation phase
 
 
 ## VARIABLES
@@ -38,17 +38,16 @@ PLAN_SOURCE: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately with a missing-input error that states the plan directory or typed GitHub plan artifact is required.
+Require `PLAN_SOURCE`. Stop if missing.
 
 ### Core Rules
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
-- **Spec generation only** – no code changes, commits, or modifications during execution of this command
-- **Plan is source of truth** — story scope, acceptance criteria, and dependencies come from the plan
-- **Skip existing specs** – if a story already has a valid FIS (path in `**FIS**` field), skip it
-- **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
+- **Spec generation only** — no code changes, commits, or modifications.
+- Plan is source of truth — story scope, acceptance criteria, and dependencies come from the plan.
+- Skip stories that already have a valid FIS (path in `**FIS**` field).
+- Read the `Learnings` document (see **Project Document Index**) before starting, if it exists.
 
 ### Orchestrator Role
-**You are the orchestrator.** Parse the plan, classify stories, spawn parallel sub-agents for STANDARD/COMPOSITE specs, write THIN specs directly, update plan.md after each sub-wave, and run cross-cutting review. You do NOT write STANDARD or COMPOSITE specs directly, write code, or let your context fill with spec content.
+**You are the orchestrator.** Parse the plan, classify stories, spawn parallel sub-agents for STANDARD/COMPOSITE specs, write THIN specs directly, update plan.md after each sub-wave, and run cross-cutting review. Do not write STANDARD or COMPOSITE specs directly, write code, or let your context fill with spec content.
 
 
 ## GOTCHAS
@@ -57,15 +56,15 @@ Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately with a mi
 - Over-parallelizing – more than 10 concurrent sub-agents causes I/O contention and degraded spec quality
 - Skipping cross-cutting review — individual specs can't detect overlapping scope, inconsistent ADRs, or missing integration seams
 - **Technical research becomes stale if plan changes** — re-run Step 1.5 before generating new specs after plan edits
-- **Status updates get dropped when context is exhausted** — plan.md FIS field updates are GATES, not optional cleanup. Update immediately after each sub-wave
+- **Status updates get dropped when context is exhausted** — plan.md FIS field updates are gates. Update immediately after each sub-wave
 
 
 ## WORKFLOW
 
 ### Step 1: Parse Plan
 
-1. Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Incompatible typed artifacts → **STOP** and exit with the correct downstream skill.
-2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and report that a valid plan artifact is required upstream (typically produced by `andthen:plan`).
+1. Resolve `PLAN_SOURCE`: if `--issue` or GitHub URL, follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`. Compatible types: `plan-bundle` — extract per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. All other typed artifacts → stop and exit with the correct downstream skill. Untyped → stop — this skill requires a typed plan artifact.
+2. Read `PLAN_DIR/plan.md`. If missing, stop — a valid plan artifact is required upstream (typically from `andthen:plan`).
 3. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, wave assignments, dependency graph
 4. Apply filters (STORY_FILTER, PHASE_FILTER); skip stories with existing FIS (check `**FIS**` field in plan.md — if file exists on disk, skip)
 5. Build wave-ordered execution plan; set MAX_PARALLEL (default 5, max 10)
@@ -77,7 +76,7 @@ Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately with a mi
 
 ### Step 1.5: Technical Research (One-Time Upfront Discovery)
 
-Before spawning any spec sub-agents, do **all discovery and research work once** via up to 4 parallel sub-agents. This eliminates redundant codebase scanning, guideline reading, and architecture analysis each spec sub-agent would otherwise do independently.
+Before spawning any spec sub-agents, do **all discovery and research work once** via up to 3 parallel sub-agents. This eliminates redundant codebase scanning, guideline reading, and architecture analysis each spec sub-agent would otherwise do independently.
 
 **Sub-agent 1: Project Context** — Read CLAUDE.md guidelines; scan codebase structure (`tree -d`, `git ls-files | head -250`); identify conventions (naming, file organization, test patterns, abstractions); read the `Learnings` document (see **Project Document Index**) if it exists; identify tech stack and key framework versions. Output: dense summary of tech stack, conventions, key patterns, relevant guidelines, learnings.
 
@@ -85,7 +84,7 @@ Before spawning any spec sub-agents, do **all discovery and research work once**
 
 **Sub-agent 3: Shared Architectural Decisions** — For each pair of dependent stories: identify the interface/contract between them (API shape, data types, naming, error handling); document the shared decision so both specs can reference it. Also identify: naming conventions that must be consistent, shared abstractions multiple stories will create/consume, API patterns that must be uniform. If a PRD exists (`{PLAN_DIR}/prd.md`), also extract **binding PRD constraints**: requirements that specify explicit capabilities (e.g., "must support remote hosts"), protocol details, security requirements, or user-facing behaviors. These constraints must flow unchanged into FIS success criteria — they are not subject to architectural trade-offs or scope narrowing by individual stories. Output: numbered list of shared decisions with rationale, specific enough to reference in FIS success criteria; plus a separate "Binding PRD Constraints" section listing constraints with source feature IDs.
 
-**Sub-agent 4: External Research** _(only if stories reference external APIs/libraries needing documentation lookup)_ — For each external resource: look up current docs (use the `andthen:documentation-lookup` agent), identify relevant patterns and known gotchas. Output: consolidated reference with one section per resource.
+External research (API docs, library lookups) is deferred to individual spec sub-agents that need it — most stories don't reference external APIs, and the ones that do can delegate to the `andthen:documentation-lookup` agent from within their sub-agent prompt.
 
 **Consolidation**: After all sub-agents complete, save to `{PLAN_DIR}/.technical-research.md`:
 
@@ -103,12 +102,9 @@ Generated: {date}
 
 ## Shared Architectural Decisions
 {Sub-agent 3 output}
-
-## External Research
-{Sub-agent 4 output, or "No external research needed"}
 ```
 
-If a `.technical-research.md` already exists (e.g. from `andthen:plan`), merge new sections into it rather than overwriting — the plan-level findings may still be relevant.
+If a `.technical-research.md` already exists (e.g. from a prior run), merge new sections into it rather than overwriting.
 
 **Gate**: Technical research saved to `{PLAN_DIR}/.technical-research.md`, covers all stories in scope
 
@@ -120,16 +116,12 @@ After the technical research, classify each story — **fully automatic**, no us
 #### Classification Criteria
 
 **THIN** — ALL conditions must be true:
-- 2 or fewer acceptance criteria in the plan
-- Scope description is 3 sentences or shorter
-- Touches 3 or fewer files (per technical research file map)
-- Story has no entries in the technical research's "Shared Architectural Decisions" section
+- ≤2 acceptance criteria in the plan
+- ≤3 affected files (per technical research file map)
 
 **COMPOSITE** — ANY condition triggers grouping:
-- **Linear dependency chain with shared files**: Stories form a chain (S01→S02 or longer) AND the technical research shows they share implementation files (exclude config/boilerplate like `package.json`, `tsconfig.json`, barrel index files)
-- **Producer-consumer pair**: Technical research "Shared Architectural Decisions" lists an interface where Story A is the sole producer and Story B is the sole consumer
-- **Same module/directory**: Stories primarily affect the same directory or module (per technical research file map), even without explicit dependencies
-- **Phase cohesion**: All stories in a phase of ≤4 stories that share an architectural layer or concern
+- Stories share implementation files (per technical research file map, excluding config/boilerplate like `package.json`, `tsconfig.json`, barrel index files)
+- Stories form a direct dependency chain (S01→S02 or longer)
 - **Maximum 5 stories per composite group** — split larger groups into multiple composites (split by dependency sub-chains, then by file overlap)
 
 > **Precedence**: COMPOSITE > THIN > STANDARD. If a THIN-qualifying story participates in any COMPOSITE group, it joins the composite — not thin-specs.md. Classification uses data from the technical research (file maps, shared decisions), not subjective judgment. If the technical research doesn't provide clear signals, classify as STANDARD. Prefer COMPOSITE over STANDARD when grouping signals exist — fewer, richer FIS files produce better implementation coherence than many thin ones.
@@ -148,7 +140,7 @@ After the technical research, classify each story — **fully automatic**, no us
 
 All THIN stories in the current scope are collected into a **single** FIS file: `{PLAN_DIR}/thin-specs.md` (or `thin-specs-p{N}.md` when running with `--phase N`). The orchestrator writes this directly — no sub-agents needed. Use the standard FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`) and FIS authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`). Tag Success Criteria with source story IDs (e.g., `### S08: Story Name`) so acceptance gates can map criteria per story. Keep implementation tasks for each source story contiguous and call out the source story ID in task context where needed. Populate from plan story scope/criteria, Key Scenarios (if present), and technical research. Target: compact but complete.
 
-After writing, update **ALL** THIN stories' **FIS** fields in plan.md to point to the thin-specs file and set **Status** to `Spec Ready`. The shared FIS path triggers existing shared-FIS dedup in exec-plan/exec-plan-team — exec-spec runs once, remaining stories skip to acceptance gate.
+After writing, update **ALL** THIN stories' **FIS** fields in plan.md to point to the thin-specs file and set **Status** to `Spec Ready`. The shared FIS path triggers existing shared-FIS dedup in exec-plan — exec-spec runs once, remaining stories skip to acceptance gate.
 
 #### COMPOSITE: Multi-Story FIS
 
@@ -176,18 +168,18 @@ Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) for all sp
 **STANDARD sub-agent** — provide:
 - Story ID, name, scope, acceptance criteria, Key Scenarios (if present), dependencies
 - References: FIS template (`${CLAUDE_PLUGIN_ROOT}/skills/spec/templates/fis-template.md`), authoring guidelines (`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`), technical research (`{PLAN_DIR}/.technical-research.md`)
-- Instructions: read technical research for context and shared decisions; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to this story flows into FIS success criteria unchanged; read FIS template and guidelines (including Technical Research Separation section); generate FIS that **references** the technical research rather than inlining its content; run Plan-Spec Alignment Check and Self-Check from guidelines; save to `{PLAN_DIR}/{story-name}.md`; report back success/failure, FIS path, confidence score
+- Instructions: read technical research for context and shared decisions; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to this story flows into FIS success criteria unchanged; read FIS template and guidelines (including Technical Research Separation section); generate FIS that **references** the technical research rather than inlining its content; if the story references external APIs/libraries not covered by the technical research, delegate lookup to the `andthen:documentation-lookup` agent; run Plan-Spec Alignment Check and Self-Check from guidelines; save to `{PLAN_DIR}/{story-name}.md`; report back success/failure, FIS path, confidence score
 
 **COMPOSITE sub-agent** — provide:
 - All constituent stories (ID, name, scope, acceptance criteria, Key Scenarios if present)
 - Same references as STANDARD
-- Instructions: read technical research; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to any constituent story flows into FIS success criteria unchanged; generate ONE FIS covering all stories with implementation tasks kept contiguous by story where that improves traceability; **reference** technical research from FIS — do not duplicate codebase analysis or API details into the spec; run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
+- Instructions: read technical research; **check the "Binding PRD Constraints" section** (if present) and ensure each constraint that applies to any constituent story flows into FIS success criteria unchanged; generate ONE FIS covering all stories with implementation tasks kept contiguous by story where that improves traceability; **reference** technical research from FIS — do not duplicate codebase analysis or API details into the spec; if stories reference external APIs/libraries not covered by the technical research, delegate lookup to the `andthen:documentation-lookup` agent; run Plan-Spec Alignment Check for EACH story; run Self-Check; save to `{PLAN_DIR}/{composite-filename}.md`; report back success/failure, FIS path, confidence score
 
 #### Wait, Collect, and Update Plan
 
 Wait for all sub-agents in the current sub-wave to complete. Log any failures (continue with remaining stories — don't block the wave). Immediately after each sub-wave:
 
-**REQUIRED GATE** — update plan.md for each successfully generated FIS:
+**Gate** — update plan.md for each successfully generated FIS:
 - Set `**FIS**` field to the generated spec path
 - Set `**Status**` field to `Spec Ready` (if not already `In Progress` or `Done`)
 - COMPOSITE: set ALL constituent stories' fields
@@ -239,7 +231,7 @@ If the review found CRITICAL or HIGH severity issues, apply fixes to resolve int
 
 **When running standalone**: present the review report and proposed fixes to the user; ask for confirmation before modifying FIS files.
 
-**When delegated** (by exec-plan or exec-plan-team): apply fixes automatically; report fixes back to calling orchestrator.
+**When delegated** (by exec-plan): apply fixes automatically; report fixes back to calling orchestrator.
 
 **Gate**: All CRITICAL and HIGH issues resolved, FIS files updated
 
@@ -289,10 +281,8 @@ Ready for execution.
 
 After completion, suggest:
 
-1. **Execute the plan** _(clean session)_: Run the `andthen:exec-plan` skill to implement all stories
-   Example: `/andthen:exec-plan <plan-directory>` (or `$andthen:exec-plan ...`)
-2. **Execute manually, story by story** _(clean session)_: Run `andthen:exec-spec` per story for more control
-   Example: `/andthen:exec-spec <path-to-fis>` (or `$andthen:exec-spec ...`)
+1. **Execute the plan** _(clean session)_: Run `andthen:exec-plan` to implement all stories.
+2. **Execute manually, story by story** _(clean session)_: Run `andthen:exec-spec` per story for more control.
 
 > **Session tip**: `spec-plan` itself is context-intensive. Start a **clean session** before running `exec-plan` or `exec-spec` — don't chain directly from this session.
 

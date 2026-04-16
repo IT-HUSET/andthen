@@ -27,7 +27,7 @@ ARGUMENTS: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** in CLAUDE.md / AGENTS.md before starting.
+- Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - **Autonomously and iteratively** implement with comprehensive verification
 - **Iterate** until all requirements met, no defects remain, all reviews pass
 - Use GitHub CLI (`gh`) for GitHub operations
@@ -98,7 +98,7 @@ Run in parallel _(if supported; otherwise sequentially)_:
 
 **Gate**: All validations pass – builds correctly, tests pass, no review issues, no regressions.
 
-Include verification evidence per `${CLAUDE_PLUGIN_ROOT}/references/verification-evidence.md`: **Build**, **Tests**, **Linting/types**; add **Visual validation** when UI changed, **Runtime** when app was started or flow exercised.
+Include verification evidence: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts); add **Visual validation** when UI changed, **Runtime** when app was started or flow exercised.
 
 
 ### Phase 3: Completion (conditional)
@@ -114,4 +114,4 @@ Include verification evidence per `${CLAUDE_PLUGIN_ROOT}/references/verification
 
 
 ## Post-Completion
-Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Quick Implement` → `State` Document and `Learnings`).
+If the `State` document (see **Project Document Index**) exists, add a lightweight session note. If the `Learnings` document exists, append brief traps/gotchas. If no `Learnings` document exists and there are noteworthy traps, add a `Learnings` section at the end of the original spec document.

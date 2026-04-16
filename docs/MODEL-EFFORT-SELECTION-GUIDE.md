@@ -137,7 +137,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 |---------|-------------|-------|--------|-----------|
 | `/spec` | Clarify requirements + create Feature Implementation Spec (FIS) | `opus` | `high` | Reasoning-heavy: edge cases, constraints, cross-cutting concerns |
 | `/exec-spec` | Execute a FIS – direct implementation with validation | `opusplan` | `medium`–`high` | One agent keeps deep implementation context, while advisory/review sub-agents stay narrow. Medium for straightforward specs, high for complex ones |
-| `/exec-plan` | Execute full plan with configurable review mode | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
+| `/exec-plan` | Execute full plan (spec-plan → exec-spec → quick-review per story, final review-gap) | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
 | `/quick-implement` | Quick path for small features/fixes | `sonnet` | `medium` | Small scope, speed matters |
 | `/remediate-findings` | Apply validated review findings and update workflow status | `sonnet` | `medium`–`high` | Must distinguish stale vs valid findings, keep scope tight, and re-validate |
 | `/refactor` | Code improvement and simplification | `sonnet` | `medium`–`high` | Medium for localized, high for cross-file |

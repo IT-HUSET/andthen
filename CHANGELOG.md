@@ -6,6 +6,32 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.12.0] – 2026-04-16
+
+### Changed
+- **Redundant review layers eliminated across core flows** (`review-gap`, `remediate-findings`) – `review-gap` no longer delegates to `review-code` (exec-spec already runs it), and `remediate-findings` uses `quick-review` instead of spawning up to 3 heavyweight review sub-agents
+- **`exec-plan` simplified to fixed pipeline** (`exec-plan`) – removed `--review-mode` parameter and conditional branching; each story now runs `exec-spec` → `quick-review`, with a single `review-gap` on the whole plan at the end
+- **GitHub artifact routing factored into shared reference** (`resolve-github-input.md`, `clarify`, `spec`, `exec-spec`, `review-gap`, `remediate-findings`, `plan`, `spec-plan`, `exec-plan`) – extracted GitHub input resolution logic from 8 skills into a single shared reference, reducing per-skill prompt weight and ensuring consistent routing
+- **Adversarial challenge made conditional** (`review-gap`, `review-doc`) – full adversarial challenge now triggers only when any finding is Critical or total findings exceed 5; otherwise applies inline severity calibration
+- **`exec-spec` completion steps consolidated** (`exec-spec`) – merged Steps 5b (Update FIS/Plan), 5c (Update State), and 5d (Continuation Sync) into a single combined gate step, reducing 5 substeps to 3
+- **Small references inlined and deleted** (`exec-spec`, `exec-plan`, `quick-implement`) – `verification-evidence.md` and `post-completion-guide.md` inlined into consuming skills and removed
+- **`spec-plan` classification simplified** (`spec-plan`) – THIN/COMPOSITE classification reduced from 9+ conditions to 2 criteria each
+- **`plan` skill trimmed** (`plan`) – reduced from 356 to 298 lines by condensing goal-backward analysis, story metadata, design space analysis, and wave assignment sections
+- **Language trimming applied across workflow skills** (`clarify`, `spec`, `exec-spec`, `exec-plan`, `plan`, `spec-plan`, `review-gap`, `remediate-findings`, `review`, `review-code`, `review-doc`, `quick-review`, `quick-implement`) – replaced emphatic MUST/NEVER/CRITICAL patterns with balanced direct language, removed filler prose, and consolidated redundant mixed-mode guidance in `review`
+- **"Read Workflow Rules" instruction normalized** (`quick-implement`) – replaced verbose form with the shortened cross-agent-safe form used by other review/secondary skills
+- **`fis-authoring-guidelines.md` trimmed** (`fis-authoring-guidelines.md`) – principles block condensed, self-check reduced, philosophical framing removed
+- **`github-artifact-roundtrip.md` consumption logic factored out** (`github-artifact-roundtrip.md`) – routing/extraction rules moved to `resolve-github-input.md`; roundtrip doc now focuses on publishing and continuation sync
+- **Research responsibility clarified across plan → spec-plan → spec** (`plan`, `spec-plan`, `spec`) – `plan` no longer creates `.technical-research.md` (lightweight scan for story boundaries only); `spec-plan` reduced from 4 to 3 upfront research sub-agents (external API research deferred to individual spec sub-agents that need it); `spec` now structurally skips research steps when plan-scoped `.technical-research.md` exists upstream
+- **`exec-plan` and `exec-plan-team` merged into single `exec-plan` skill** (`exec-plan`) – Agent Teams mode available via `--team` flag with auto-detection; `--worktree` for parallel execution in team mode; team section written at higher altitude instead of verbatim prompt templates; shared final review/verification steps
+- **`review-council` and `review-council-team` merged into single `review-council` skill** (`review-council`) – Agent Teams mode available via `--team` flag with auto-detection; shared preamble and forked execution paths
+- **Review skills consolidated to fewer user-facing entry points** (`review`, `review-code`, `review-doc`, `review-gap`) – `review-code`, `review-doc`, and `review-gap` demoted to internal delegates (`user-invocable: false`); `review` router description updated to emphasize it as the single entry point for all review types; added "review implementation of [doc]" routing heuristic to correctly route to gap review
+
+### Removed
+- **`plugin/references/verification-evidence.md`** – content inlined into consuming skills
+- **`plugin/references/post-completion-guide.md`** – content inlined into consuming skills
+- **`plugin/skills/exec-plan-team/`** – merged into `exec-plan` with `--team` flag
+- **`plugin/skills/review-council-team/`** – merged into `review-council` with `--team` flag
+
 ## [0.11.2] – 2026-04-15
 
 ### Changed

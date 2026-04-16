@@ -1,6 +1,6 @@
 ---
-description: Perform implementation-focused review covering code quality, security, architecture, and UI/UX. Use when you explicitly want code review rather than the general `review` router. Trigger on 'review this code', 'review this PR', 'audit these changes'.
-user-invocable: true
+description: Perform implementation-focused review covering code quality, security, architecture, and UI/UX. Internal delegate of `andthen:review` – not directly user-invocable.
+user-invocable: false
 argument-hint: "[scope/files] [--inline-findings] [--to-issue] [--to-pr <number>]"
 ---
 
@@ -20,7 +20,7 @@ ARGUMENTS: $ARGUMENTS
 
 ## INSTRUCTIONS
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
-- Analysis only. Do not modify code.
+- Read-only analysis. Do not modify code.
 - If `--inline-findings` is present, do not write a report file. Return findings inline to the parent skill instead.
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `references/code-review-calibration.md`.
 - Read project learnings if they exist.

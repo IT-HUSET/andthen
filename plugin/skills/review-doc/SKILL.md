@@ -1,8 +1,8 @@
 ---
-description: Use when you explicitly want document review for a spec, PRD, plan, or similar artifact rather than the general `review` router. Reviews documentation for clarity, edge cases, and technical accuracy. Trigger on 'review this spec', 'review this PRD', 'review this plan'.
+description: Reviews documentation (specs, PRDs, plans) for clarity, edge cases, and technical accuracy. Internal delegate of `andthen:review` – not directly user-invocable.
+user-invocable: false
 context: fork
 agent: general-purpose
-user-invocable: true
 argument-hint: "[document path or focus] [--inline-findings]"
 ---
 
@@ -16,7 +16,7 @@ Most users should start with `andthen:review`. Use this skill directly when you 
 SPEC_PATH_OR_FOCUS: $ARGUMENTS
 
 ## INSTRUCTIONS
-- Make sure `SPEC_PATH_OR_FOCUS` is provided; otherwise stop and ask for it.
+- Require `SPEC_PATH_OR_FOCUS`. Stop if missing.
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - Read-only review. Do not modify the reviewed document.
 - If `--inline-findings` is present, do not write a report file. Return findings inline to the parent skill instead.
@@ -50,16 +50,15 @@ If the document is a FIS, verify it still follows the `andthen:spec` structure.
 **Gate**: Findings identified across all relevant dimensions
 
 ### 3. Adversarial Challenge
-Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Generic Findings-Challenger Template`) with:
+
+Run the full adversarial challenge only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples, adjust severity, and withdraw findings that don't hold up. Add one line: "Applied inline severity calibration (adversarial challenge skipped: no Critical findings and ≤5 total)."
+
+**Full challenge** (when triggered): Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Generic Findings-Challenger Template`) with:
 - **Role**: `Adversarial Challenger reviewing document review findings`
 - **Shared calibration**: `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`
 - **Skill calibration**: `${CLAUDE_PLUGIN_ROOT}/skills/review-doc/references/doc-review-calibration.md`
-- **Context block**: `The document being reviewed is a {document type} for a {project description and scale}. Document under review: {path to document}. Project scale/stage context: {from discovery}.`
-- **Questions**:
-  1. `Is this a real gap, or irrelevant given the project's scale, stage, and goals?`
-  2. `Is the severity proportional to the document's purpose and audience?`
-  3. `Is this addressed elsewhere in the document or project context?`
-  4. `Would this actually mislead or block implementation?`
+- **Context block**: `Document type, path, project scale/stage context from discovery.`
+- **Questions**: Is this a real gap given project scale? Is severity proportional? Is it addressed elsewhere? Would it mislead or block implementation?
 - **Verdicts**: `VALIDATED`, `DOWNGRADED`, `WITHDRAWN`
 - **Findings payload**: `{all findings}`
 
