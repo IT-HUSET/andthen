@@ -20,7 +20,7 @@ ARGUMENTS: $ARGUMENTS
 
 ## INSTRUCTIONS
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
-- Analysis only. Do not modify code.
+- Read-only analysis. Do not modify code.
 - If `--inline-findings` is present, do not write a report file. Return findings inline to the parent skill instead.
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `references/code-review-calibration.md`.
 - Read project learnings if they exist.

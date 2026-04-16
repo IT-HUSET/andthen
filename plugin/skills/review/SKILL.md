@@ -25,9 +25,9 @@ ARGUMENTS: $ARGUMENTS
 ## INSTRUCTIONS
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - Read-only analysis. Do not modify the reviewed artifacts.
-- Default to the minimum sufficient review stack. More reviewers and more review types are only better when they improve signal.
-- Own the final synthesis. If you delegate to specialist review skills, gather their results and present one clear conclusion rather than dumping disconnected outputs.
-- Preserve clean boundaries: `review-code` for implementation, `review-doc` for requirements/design artifacts, `review-gap` for implementation-vs-requirements comparison, `review-council` for high-assurance adversarial validation.
+- Default to the minimum sufficient review stack.
+- Own the final synthesis — gather delegated results into one clear conclusion.
+- Boundaries: `review-code` for implementation, `review-doc` for requirements/design artifacts, `review-gap` for implementation-vs-requirements comparison, `review-council` for high-assurance adversarial validation.
 
 ## GOTCHAS
 - Treating all review requests as code review
@@ -56,7 +56,7 @@ When no explicit target is provided and no mode flag narrows the scope, build th
 - changed implementation artifacts
 - nearby requirements artifacts that may serve as baselines
 
-Do not let nearby requirements artifacts silently redefine the user's request. Use them to clarify context, not to override explicit review intent.
+Use nearby requirements artifacts to clarify context, not to override explicit review intent.
 
 Build a concise target map:
 - **Review target**
@@ -74,8 +74,6 @@ Choose one of these modes:
 - **Doc**: spec, FIS, PRD, plan, ADR, design doc, prompt, or other written artifact
 - **Gap**: requirements baseline plus implementation target, where the real question is “does this implementation satisfy the requirements?”
 - **Mixed**: both document artifacts and implementation artifacts are independently in scope and each needs its own review lens; this mode dispatches to `Doc + Code`, not to `Gap`
-
-`Mixed` is a final classification, not a temporary placeholder. Once selected, keep it through stack selection and synthesis unless you explicitly reclassify the review as **Gap** because the user's actual question is requirements-vs-implementation fit.
 
 Routing heuristics:
 - Explicit mode flags override inference
@@ -100,11 +98,7 @@ Run the minimum correct stack:
 - **Gap** → `andthen:review-gap`
 - **Mixed** → `andthen:review-doc` + `andthen:review-code`
 
-Mixed-mode rule:
-- Use **Mixed** only when there are two independent review surfaces: document readiness and implementation quality
-- Do **not** use **Mixed** as a synonym for uncertainty between `Doc` and `Gap`
-- If the real question is “does this implementation satisfy the requirements?”, classify as **Gap** instead of **Mixed**
-- Once **Mixed** is selected, keep it as the review mode through execution and final reporting; do not collapse it later into vague wording like “gap or split review”
+Use **Mixed** only when there are two independent review surfaces (document readiness + implementation quality), not as uncertainty between `Doc` and `Gap`. Once selected, keep it through execution and reporting.
 
 Escalate with `andthen:review-council` when:
 - the selected review surface is **Code**, **Gap**, or **Mixed** with implementation changes
@@ -113,7 +107,7 @@ Escalate with `andthen:review-council` when:
 - the primary review finds severe or ambiguous issues that would benefit from adversarial challenge
 - the user explicitly wants a high-confidence or multi-perspective review
 
-Do **not** route doc-only review requests to `review-council`. If the user asks for `--council` on a doc-only review, explain that `review-council` is implementation-focused and continue with `review-doc` unless the user explicitly broadens the scope to include implementation.
+`review-council` is implementation-focused — skip it for doc-only reviews even if `--council` is present.
 
 When delegating:
 - Instruct `review-code` and `review-doc` to return findings inline and skip separate report-file output
@@ -160,5 +154,4 @@ For GitHub publishing:
 - Populate metadata with `report_path`, `plan_path`, `fis_path`, `requirements_baseline`, and `implementation_targets` when known
 - If the final review mode is clearly doc-only, code-only, or gap-only, mention that mode prominently in the report summary so downstream remediation can interpret the findings correctly
 
-For mixed reviews, avoid duplicate findings. Merge overlaps and make the strongest framing the canonical one.
-For **Mixed** reviews, keep document-readiness findings and implementation-quality findings in distinct subsections under the same final result so the user can see which issues came from `review-doc` versus `review-code`.
+For **Mixed** reviews, keep `review-doc` and `review-code` findings in distinct subsections. Merge overlapping findings and use the strongest framing as canonical.

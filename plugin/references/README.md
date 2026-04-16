@@ -14,10 +14,8 @@ Use this index to find the right reference quickly.
 ## Execution Discipline
 
 - `anti-rationalization.md`: counterweight for scope creep and skipped proof
-- `post-completion-guide.md`: when and how to update State and Learnings
 - `structured-output-protocols.md`: named patterns for ambiguity and scope boundaries
 - `trust-boundaries.md`: how to treat instructions vs evidence from different sources
-- `verification-evidence.md`: what evidence to report after running checks
 - `verification-patterns.md`: how to design meaningful proof, especially in specs and reviews
 
 ## Discovery, Spec, and Workflow Artifacts
@@ -26,6 +24,7 @@ Use this index to find the right reference quickly.
 - `discovery-interview-techniques.md`: deeper questioning when requirements are vague
 - `fis-authoring-guidelines.md`: shared FIS authoring rules
 - `github-artifact-roundtrip.md`: typed GitHub artifact publishing and resume conventions
+- `resolve-github-input.md`: shared GitHub artifact input resolution procedure for skills
 
 ## Specialist Methodologies
 

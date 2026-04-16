@@ -32,18 +32,17 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 
 ## INSTRUCTIONS
 
-- **Make sure `INPUT` is provided** - otherwise **STOP** immediately and ask user for input
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
-- **Interactive process** - Ask questions iteratively; don't assume answers. After asking questions, **STOP and WAIT** for user responses before proceeding
-- **Be thorough** - Challenge assumptions, find edge cases, identify ambiguities
-- **Stay focused** - Clarify requirements, don't design solutions
+- Require `INPUT`. Stop if missing.
+- **Interactive process** — ask questions iteratively; do not assume answers. After asking questions, stop and wait for user responses before proceeding.
+- Challenge assumptions, find edge cases, identify ambiguities.
+- Clarify requirements, do not design solutions.
 
 ### Requirements vs. Implementation Boundary
 Clarify operates at the **requirements level** — decisions that users, stakeholders, or product owners care about. Technical choices that only developers evaluate (architecture patterns, library choices, data storage strategies, internal API design, code organization) belong downstream in `andthen:spec` or `andthen:trade-off`. Explore only user-facing behavior, product scope, workflow, content architecture, and access control models.
 
 
 ## GOTCHAS
-- Agent answers its own questions instead of waiting for user input – STOP and WAIT is critical
+- Agent answers its own questions instead of waiting for user input
 - Scope creep: expanding beyond the original request
 - Jumping to solution design instead of requirement discovery
 - Drifting into implementation-level decisions during design space decomposition (see boundary above)
@@ -54,13 +53,8 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
 ### 1. Parse and Assess Input
 
 1. **Parse INPUT** - Determine type: inline description, file path, `--issue`, or URL
-   - If `--issue` flag present (or INPUT refers to a GitHub issue): use `gh issue view <number>` to fetch issue details (title, body, labels, comments). Inspect the body for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
-     - `plan-bundle` → **STOP** — direct user to `andthen:exec-plan`, `andthen:spec-plan`, or `andthen:plan`
-     - `fis-bundle` → **STOP** — direct user to `andthen:exec-spec`
-     - `triage-plan` → **STOP** — direct user to `andthen:quick-implement` or `andthen:triage`
-     - `triage-completion` → **STOP** — this is a completed triage report, not actionable requirements
-     - Any `*-review` report → **STOP** — direct user to `andthen:remediate-findings`
-     - Otherwise use issue content as requirements input. Store issue number for reference in output.
+   - If `--issue` flag present (or INPUT refers to a GitHub issue): follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
+     Compatible types: none (clarify works from untyped issues as raw requirements input). Redirects: `plan-bundle` → `andthen:exec-plan` / `andthen:spec-plan` / `andthen:plan`; `fis-bundle` → `andthen:exec-spec`; `triage-plan` → `andthen:quick-implement` / `andthen:triage`; `triage-completion` → STOP (completed report, not actionable requirements); any `*-review` → `andthen:remediate-findings`. Untyped: use issue content as requirements input. Store issue number for reference in output.
    - If file path: Read and extract requirements
    - If URL: Fetch and extract requirements
    - If description: Use directly
@@ -87,9 +81,9 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
 
 ### 2. Discovery Interview
 
-Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then **STOP and WAIT for the user's response** before continuing. Do NOT assume or infer answers — you MUST receive actual answers from the user. Iterate until no major gaps remain.
+Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then stop and wait for the user's response before continuing. Do not assume or infer answers — you need actual answers from the user. Iterate until no major gaps remain.
 
-> **CRITICAL**: After presenting questions, stop your response and wait for user input. Use the `AskUserQuestion` tool if available in your environment. Do not proceed to Step 3 until the user has answered and you've confirmed no major gaps remain.
+> After presenting questions, stop your response and wait for user input. Use the `AskUserQuestion` tool if available. Do not proceed to Step 3 until the user has answered and no major gaps remain.
 
 Cover these areas when relevant: scope & boundaries (in/out of scope, MVP, deferrals); users & flows (roles, happy path, alternate paths, UI involvement); edge cases & errors (invalid input, failures, boundary conditions); success criteria (acceptance criteria, metrics, test/validation approach); dependencies & constraints (external systems, technical constraints, timeline).
 
@@ -224,9 +218,9 @@ When complete, print the report's **relative path from the project root**.
 ## FOLLOW-UP ACTIONS
 
 After completion, ask user if they'd like to:
-1. **Create feature spec** – for single features: `/andthen:spec <output-directory>` (or `$andthen:spec` for Codex CLI). The spec skill will pick up `requirements-clarification.md` from the output directory and use the clarified requirements as input.
-2. **Proceed to planning** – for multi-feature / MVP scope: `/andthen:plan <output-directory>` (or `$andthen:plan`). The plan skill will pick up `requirements-clarification.md` and use it as the basis for PRD creation.
-3. Review specific areas in more depth
-4. Share with stakeholders for validation
+1. **Create feature spec** – run `andthen:spec` on the output directory to generate a FIS from the clarified requirements.
+2. **Proceed to planning** – run `andthen:plan` on the output directory for multi-feature / MVP scope.
+3. Review specific areas in more depth.
+4. Share with stakeholders for validation.
 
 > **Session tip**: `spec` and `plan` can run in this session. But the heavier skills that follow them — `exec-spec`, `spec-plan`, `exec-plan` — are context-intensive and perform best in a **clean session**.

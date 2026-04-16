@@ -30,11 +30,11 @@ Omit `CODE_DIR` for single-repo projects; provide it when plan/specs live in a d
 
 ## INSTRUCTIONS
 
-Make sure `PLAN_SOURCE` is provided – otherwise **STOP** immediately with a missing-input error that states the plan directory or typed GitHub plan artifact is required.
+Require `PLAN_SOURCE`. Stop if missing.
 
 ### Resolve PLAN_SOURCE
 
-Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` (run before `Resolve CODE_DIR`). Incompatible typed artifacts → **STOP** and exit with the correct skill.
+Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` (run before `Resolve CODE_DIR`). Incompatible typed artifacts → stop and exit with the correct skill.
 
 ### Resolve CODE_DIR
 
@@ -59,22 +59,21 @@ Resolve `PLAN_SOURCE` per the **Resolve Plan-Bundle Input** procedure in `${CLAU
 - Never create branches, worktrees, or commits in the plan repo
 
 ### Core Rules
-- Read **Workflow Rules, Guardrails and Guidelines** from CLAUDE.md before starting
 - Plan is source of truth – follow phase ordering, dependencies, and parallel markers exactly
 - Pre-generate specs via the `andthen:spec-plan` skill per phase before starting the Agent Team
 - **Review mode**: `per-story` → `review-gap` after each merged story; FAIL triggers `remediate-findings`. `none` → skip. `full-plan` → one final `review-gap` on `PLAN_DIR/plan.md` after all stories merged; FAIL triggers `remediate-findings`
 - **Worktree isolation** (`USE_WORKTREE = false` by default) – stories run sequentially on `{BASE_BRANCH}`. `USE_WORKTREE = true` (via `--worktree`) → implementers call `EnterWorktree` per task in `CODE_DIR` for parallel execution
 - **Pre-assign all tasks** – no self-claiming; orchestrator assigns every task at creation time
 
-**You are the orchestrator.** Parse the plan; delegate spec generation; size and create the team with pre-assigned tasks; merge waves; handle failures; run final review and verification. Do NOT write implementation code or skip final verification.
+**You are the orchestrator.** Parse the plan; delegate spec generation; size and create the team with pre-assigned tasks; merge waves; handle failures; run final review and verification. Do not write implementation code or skip final verification.
 
 
 ## GOTCHAS
-- **Do NOT use `isolation: "worktree"` with `team_name`** – Claude Code bug ([#33045](https://github.com/anthropics/claude-code/issues/33045)) silently ignores isolation for team agents; instruct implementers to call `EnterWorktree` themselves
+- **Do not use `isolation: "worktree"` with `team_name`** – Claude Code bug ([#33045](https://github.com/anthropics/claude-code/issues/33045)) silently ignores isolation for team agents; instruct implementers to call `EnterWorktree` themselves
 - **Multi-repo worktree pollution** – if `CODE_DIR` is not set and plan/code live in different repos, agents create worktrees in the plan repo. Always set `CODE_DIR` for multi-repo workspaces; verify agents are in `CODE_DIR` before `EnterWorktree`
 - **Merge/cleanup commands must target CODE_DIR** – all `git merge`, `git checkout`, `git branch`, `git worktree remove` must use `git -C {CODE_DIR}`, not the orchestrator's CWD
 - **Creating separate worktrees for composite-FIS stories** – stories sharing one FIS must share one worktree and one impl task; separate worktrees cause duplicate implementation and merge conflicts
-- **Status updates get dropped on context exhaustion** – plan and FIS checkbox updates (Step 6e) are GATES that block the next phase; update immediately after each story, never as a batch at the end
+- **Status updates get dropped on context exhaustion** – plan and FIS checkbox updates (Step 6e) are gates that block the next phase; update immediately after each story
 - **Wave N+1 worktrees must be created AFTER Wave N merges complete** – branching from pre-merge `{BASE_BRANCH}` causes guaranteed conflicts
 - **Wave N+1 merge must wait for Wave N reviews** (`per-story`) – reviews may fix code on `{BASE_BRANCH}`, so the merge target must be stable before merging. W(N+1) *impl* can overlap with W(N) reviews (worktrees are isolated), but the *merge* cannot
 - **Only the orchestrator writes to the `State` document** (see **Project Document Index**) – implementers and reviewers must NOT update it (avoids race conditions with parallel agents)
@@ -104,7 +103,7 @@ If Agent Team tools are NOT available:
 ### Step 2: Parse Plan
 
 1. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract active stories, blockers, and current phase.
-2. Read `PLAN_DIR/plan.md`. If missing, **STOP** and report that a valid plan artifact is required upstream (typically produced by `andthen:plan`).
+2. Read `PLAN_DIR/plan.md`. If missing, stop — a valid plan artifact is required upstream (typically from `andthen:plan`).
 3. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, wave assignments (W1, W2, W3…)
 4. Build execution plan respecting phase ordering and dependency chains.
 
@@ -139,7 +138,7 @@ Before setting up the Agent Team, pre-generate all FIS documents for the current
 
 ### Step 5: Create Team and Spawn Agents
 
-**IMPORTANT – Use Agent Teams, NOT regular sub-agents.** Teammates must be spawned into the team (with `team_name` and `name`) so they share a task list and can message each other. Create team `"plan-pipeline"`, spawn teammates with a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar), create pipeline tasks per phase (Step 6), coordinate via inter-agent messaging, then send shutdown requests and delete the team when done.
+Use Agent Teams, not regular sub-agents. Teammates must be spawned into the team (with `team_name` and `name`) so they share a task list and can message each other. Create team `"plan-pipeline"`, spawn teammates with a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar), create pipeline tasks per phase (Step 6), coordinate via inter-agent messaging, then send shutdown requests and delete the team when done.
 
 **Roles**: Implementer (all stories), Reviewer (`per-story` mode only), Troubleshooter (on-demand via the `andthen:build-troubleshooter` agent — NOT spawned upfront; only when an agent escalates).
 
@@ -156,8 +155,8 @@ Code repo: {CODE_DIR}
 Review mode: {REVIEW_MODE}
 Worktree isolation: {ENABLED if USE_WORKTREE=true, DISABLED (work directly on {BASE_BRANCH}) if USE_WORKTREE=false}
 
-CRITICAL ROLE CONSTRAINT: You are an Implementer. ONLY work on tasks prefixed
-with impl-* that are assigned to you (owner = your name). NEVER claim or work
+Role constraint: You are an Implementer. Only work on tasks prefixed
+with impl-* that are assigned to you (owner = your name). Do not claim or work
 on review-* tasks or unassigned tasks.
 
 Your workflow (loop until no assigned tasks remain):
@@ -178,12 +177,11 @@ Your workflow (loop until no assigned tasks remain):
 4. If no tasks assigned to you, notify orchestrator via message
 
 Rules:
-- ONLY work on tasks assigned to you (owner = your name)
-- CWD MUST be {CODE_DIR} before any work
+- Only work on tasks assigned to you (owner = your name)
+- CWD must be {CODE_DIR} before any work
 - [USE_WORKTREE=true] EnterWorktree BEFORE impl; commit and ExitWorktree(keep) AFTER
 - [USE_WORKTREE=false] No EnterWorktree; stories run sequentially on {BASE_BRANCH}
-- FIS status updates (step 2f) are REQUIRED; FIS paths are absolute
-- Read Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
+- FIS status updates (step 2f) are required; FIS paths are absolute
 - Escalate unresolvable issues to orchestrator via message
 ```
 
@@ -196,8 +194,8 @@ Code repo: {CODE_DIR}
 Review mode: {REVIEW_MODE}
 Worktree isolation: {ENABLED (you review on {BASE_BRANCH} after wave merge) if USE_WORKTREE=true, DISABLED (review implementer's commits directly on {BASE_BRANCH}) if USE_WORKTREE=false}
 
-CRITICAL ROLE CONSTRAINT: You are a Reviewer. ONLY work on tasks prefixed
-with review-* that are assigned to you (owner = your name). NEVER claim or
+Role constraint: You are a Reviewer. Only work on tasks prefixed
+with review-* that are assigned to you (owner = your name). Do not claim or
 work on impl-* tasks or unassigned tasks.
 
 Your workflow (loop until no assigned tasks remain):
@@ -213,11 +211,10 @@ Your workflow (loop until no assigned tasks remain):
 4. If no tasks assigned to you, notify orchestrator via message
 
 Rules:
-- ONLY work on tasks assigned to you (owner = your name)
-- CWD MUST be {CODE_DIR}; FIS paths are absolute
+- Only work on tasks assigned to you (owner = your name)
+- CWD must be {CODE_DIR}; FIS paths are absolute
 - [USE_WORKTREE=true] Tasks unblocked by orchestrator AFTER wave merge
 - [USE_WORKTREE=false] Tasks unblocked after corresponding impl-*; you are on the critical path
-- Read Workflow Rules, Guardrails and Guidelines in CLAUDE.md before starting
 - Escalate unresolvable issues to orchestrator via message
 ```
 
@@ -248,7 +245,7 @@ For each story in the current phase, create tasks with **pre-assigned owners**.
 
 **Pre-assignment rules:**
 - Round-robin distribute `impl-*` across implementers; `review-*` across reviewers
-- **Never assign impl and review of the same story to the same agent** (prevents self-review)
+- Do not assign impl and review of the same story to the same agent (prevents self-review)
 - Set `owner` field via TaskUpdate immediately after task creation
 
 **Dependencies:**
@@ -283,7 +280,7 @@ After ALL `impl-*` tasks in the current wave are complete:
 
 #### 6d. Monitor and Report Progress
 
-**You must print progress updates to the user throughout execution.** The user cannot see agent activity — you are their only window into what's happening.
+Print progress updates to the user throughout execution. The user cannot see agent activity — you are their only window into what's happening.
 
 **Print updates when:**
 - A task is created or assigned → `"📋 Created {task_id} → assigned to {agent_name}"`
@@ -297,14 +294,14 @@ After ALL `impl-*` tasks in the current wave are complete:
 
 **Polling loop:** Check the task list for completion. Between polls, handle incoming agent messages (failures, escalations, status updates) and print them. When all `impl-*` in a wave complete → run wave merge (Step 6c) if `USE_WORKTREE = true`, else proceed. When all `review-*` complete → advance to next wave/phase. `none`/`full-plan` → advance after merge (or impl if no `--worktree`).
 
-#### 6e. Update Plan and FIS Status (REQUIRED GATE)
+#### 6e. Update Plan and FIS Status (**Gate**)
 
-**CRITICAL – do this immediately after each story completes its required stages, not as a batch at the end.**
+Do this immediately after each story completes its required stages, not as a batch at the end.
 
 **Plan Acceptance Gate** (verify before marking Done):
 1. Is each acceptance criterion in the plan demonstrably satisfied?
 2. If the FIS narrowed scope, is the scope note present in the plan story's acceptance criteria?
-3. If any criterion is unmet and no scope note explains it → do NOT mark Done → escalate to the user
+3. If any criterion is unmet and no scope note explains it → do not mark Done → escalate to the user
 4. For composite FIS: verify ALL constituent stories
 
 Then invoke the `andthen:ops` skill to update `plan.md`:
@@ -364,7 +361,7 @@ Phase 2: spec-plan --phase 2, full-plan review:
 1. Run build – verify it succeeds
 2. Run tests – verify all pass
 3. Review overall integration across stories
-4. Include verification evidence per `${CLAUDE_PLUGIN_ROOT}/references/verification-evidence.md`: Build, Tests, Linting/types
+4. Include verification evidence: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts)
 
 **Gate**: Build, tests, and integration verification all pass
 
@@ -406,11 +403,11 @@ When all phases are complete, print a summary: stories completed, total phases, 
 
 ## Post-Completion: Update Project State
 
-After all phases complete (or if execution is interrupted/paused), follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Plan Runs` → `State` Document) for `State` document updates as defined in the **Project Document Index**.
+After all phases complete (or if execution is interrupted/paused), update the `State` document (see **Project Document Index**) if it exists: set phase to the completed or current phase, set status to `On Track` when all checks passed (otherwise `At Risk`), clear completed stories from Active Stories, and add a session continuity note.
 
 ## Post-Completion: Update Project Learnings
 
-After all phases complete, follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Plan Runs` → `Learnings`) for `Learnings`-file updates.
+If the `Learnings` document (see **Project Document Index**) exists, capture cross-story insights, traps, domain knowledge, and error patterns. Organize by topic. Keep entries brief (1-2 sentences). Do not create a new `Learnings` document if none exists.
 
 
 ## FALLBACK: NO AGENT TEAMS

@@ -30,11 +30,10 @@ ARGUMENTS: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-- **Make sure `ARGUMENTS` is provided** – otherwise **STOP** immediately with a missing-input error that states the feature requirements or source artifact are required.
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
-- **Spec generation only** - No code changes, commits, or modifications during execution of this command
-- **Remember**: Agents executing the FIS only get the context you provide. Include all necessary documentation, examples, and references.
-- **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting to avoid known traps and error patterns
+- Require `ARGUMENTS`. Stop if missing.
+- **Spec generation only** — no code changes, commits, or modifications.
+- Agents executing the FIS only get the context you provide. Include all necessary documentation, examples, and references.
+- Read the `Learnings` document (see **Project Document Index**) before starting, if it exists.
 
 
 ## GOTCHAS
@@ -63,11 +62,8 @@ You are the orchestrator: parse input, delegate codebase analysis and research t
 
 ### 0. Parse Input & Get Requirements
 
-**If `--issue` flag present**: use `gh issue view <number>` to fetch issue details, then inspect the body for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`.
-- If `artifact_type: fis-bundle`, **STOP** — the spec already exists. Exit with the correct downstream path: `andthen:exec-spec`, `andthen:review`, or the local FIS path. Do not regenerate it.
-- If `artifact_type: plan-bundle`, **STOP** — the issue contains a plan, not a single-feature request. Exit with the correct downstream path: `story {story_id} of <path-to-plan.md>`, `andthen:spec-plan`, or `andthen:exec-plan`.
-- If the issue contains another typed workflow artifact (`triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and exit with the matching downstream skill.
-- Otherwise use the issue as the feature request and store the issue number for FIS reference.
+**If `--issue` flag present**: follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
+Compatible types: none (spec creates new specs from untyped issues). Redirects: `fis-bundle` → stop, spec already exists — direct to `andthen:exec-spec`, `andthen:review`, or the local FIS path; `plan-bundle` → stop, direct to `story {story_id} of <path-to-plan.md>`, `andthen:spec-plan`, or `andthen:exec-plan`; `triage-plan` / `triage-completion` / any `*-review` → stop with matching downstream skill. Untyped: use the issue as the feature request and store the issue number for FIS reference.
 
 **If ARGUMENTS is a directory with `requirements-clarification.md`** (from `andthen:clarify`): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes, and any explicit non-goals / deferred items as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
@@ -113,7 +109,7 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 - `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions
 
 #### Generate from Template
-**IMPORTANT**: Use the `Plan` agent _(if supported by your coding agent)_ to generate the FIS — it provides structured authoring support.
+Use the `Plan` agent _(if supported)_ to generate the FIS — it provides structured authoring support.
 
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
 [`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](../../references/fis-authoring-guidelines.md).
@@ -149,8 +145,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
   9. Treat the result as a **plan bundle** whose downstream path is `andthen:exec-plan`, not `andthen:exec-spec`.
 - If the draft is oversized **and the input is `story {story_id} of {path-to-plan.md}`**:
   - Do **not** silently fan one plan story out into multiple FIS files.
-  - **STOP** and report that the story itself needs upstream plan decomposition before spec generation can complete cleanly. Exit without generating a partial or oversized FIS.
-  - Do not save an oversized single FIS just to satisfy the command.
+  - Stop and report that the story needs upstream plan decomposition before spec generation can complete. Do not save an oversized single FIS.
 
 
 ## OUTPUT
@@ -202,12 +197,9 @@ Print the issue URL and the local primary path (the generated FIS or `plan.md`, 
 
 After completion, suggest:
 
-1. **Single-FIS mode**: Run `andthen:exec-spec` to implement the FIS
-   Example: `/andthen:exec-spec <path-to-fis>` (or `$andthen:exec-spec ...`)
-2. **Oversize pivot mode**: Run `andthen:exec-plan` to execute the generated plan bundle
-   Example: `/andthen:exec-plan <path-to-plan-directory>` (or `$andthen:exec-plan ...`)
-3. **Review first**: Run `andthen:review --doc-only` on the primary artifact before implementation
-   Example: `/andthen:review --doc-only <path-to-fis-or-plan>` (or `$andthen:review --doc-only ...`)
+1. **Single-FIS mode**: Run `andthen:exec-spec` to implement the FIS.
+2. **Oversize pivot mode**: Run `andthen:exec-plan` to execute the generated plan bundle.
+3. **Review first**: Run `andthen:review --doc-only` on the primary artifact before implementation.
 
 > **Session tip**: `exec-spec` is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
 

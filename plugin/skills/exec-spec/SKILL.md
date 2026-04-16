@@ -14,12 +14,11 @@ FIS_SOURCE: $ARGUMENTS
 ## INSTRUCTIONS
 
 ### Core Rules
-- **Make sure `FIS_SOURCE` is provided** – otherwise **STOP** immediately with a missing-input error that states a local FIS path or typed GitHub FIS artifact is required.
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** in CLAUDE.md / AGENTS.md before starting.
-- **Complete Implementation**: 100% completion required — partial completion is never an acceptable outcome for this skill.
-- **FIS is source of truth** – follow it exactly
-- **Persistence required**: do not give up because the FIS is long, cross-cutting, or inconvenient; persist until the full FIS is complete or a real external blocker makes completion impossible
-- **Direct execution**: implement the code yourself. Sub-agents are for advisory work, fresh-context review, and validation — not for delegating the implementation
+- Require `FIS_SOURCE`. Stop if missing.
+- **Complete implementation** — 100% completion required; partial completion is not acceptable.
+- **FIS is source of truth** — follow it exactly.
+- Persist until the full FIS is complete or a real external blocker makes completion impossible.
+- **Direct execution** — implement the code yourself. Sub-agents are for advisory work, review, and validation only.
 - If you catch yourself rationalizing away test scaffolding, verification gates, or status updates, load `${CLAUDE_PLUGIN_ROOT}/references/anti-rationalization.md`.
 
 ### Executor Role
@@ -34,7 +33,7 @@ FIS_SOURCE: $ARGUMENTS
 - Run validation, triage findings, and fix must-fix issues directly in one remediation pass
 - Ensure all status updates and gates complete before finishing
 
-**You do NOT:** delegate coding to advisory agents, batch status updates until the end, silently narrow scope, or skip final gates.
+Do not: delegate coding to advisory agents, batch status updates until the end, silently narrow scope, or skip final gates.
 
 ### Helper Scripts
 Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`:
@@ -61,8 +60,8 @@ Usage rules:
 
 
 ## GOTCHAS
-- **Delegating implementation to advisory sub-agents** – this recreates the context-loss and serial overhead the skill is designed to avoid
-- **Status updates dropped when context exhausted** – update FIS task checkboxes immediately during implementation; plan and FIS updates in Step 5 are GATES
+- **Delegating implementation to advisory sub-agents** – recreates the context-loss and serial overhead the skill is designed to avoid
+- **Status updates dropped when context exhausted** – update FIS task checkboxes immediately; plan and FIS updates in Step 5 are gates
 - **FIS references get stale if spec was updated** – always re-read the FIS
 - **Not signaling active-story status to the `State` document when called in a plan context** – read the location from the **Project Document Index** and set "In Progress" at start
 - **Treating spec size or difficulty as permission to narrow scope** – exec-spec executes the FIS it was given; if the spec should have been split, that is an upstream spec-quality problem, not a license to land a subset and stop
@@ -73,18 +72,16 @@ Usage rules:
 ### Step 1: Resolve FIS Source
 1. Resolve `FIS_SOURCE` to a local `FIS_FILE_PATH`:
    - Local file path: use it directly
-   - `--issue <number>` or GitHub issue URL: fetch the issue body and inspect the typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. Require `artifact_type: fis-bundle`; extract all embedded files preserving their repo-relative paths; set `FIS_FILE_PATH` from `canonical_local_primary`
-   - If `canonical_local_primary` is missing, ambiguous, or does not match an extracted file, **STOP**
+   - `--issue <number>` or GitHub issue URL: follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
+     Compatible types: `fis-bundle` — extract and set `FIS_FILE_PATH` from `canonical_local_primary`. Redirects: `plan-bundle` → `andthen:exec-plan` / `andthen:spec-plan`; `triage-plan` / `triage-completion` / any `*-review` → stop with matching downstream skill. Untyped: stop — `exec-spec` requires a local FIS path or a typed GitHub FIS artifact.
+   - If `canonical_local_primary` is missing, ambiguous, or does not match an extracted file, stop.
    - Recover metadata from the envelope:
      - `FIS_CANONICAL_PATH` = `fis_path` when present, otherwise `canonical_local_primary`
      - `PLAN_FILE_PATH` = `plan_path` when present; if it refers to an embedded companion file, use the extracted copy
      - `STORY_IDS` = `story_ids`
-   - If the envelope says the FIS originated from a plan (`plan_path` present) but omits `story_ids`, **STOP** — plan-backed FIS execution needs that context for plan/state updates
-   - If matching canonical local file paths already exist in the workspace, switch `FIS_FILE_PATH` / `PLAN_FILE_PATH` to those real files and treat the extracted directory as a read-only mirror
-   - If `plan_path` is present but no embedded or local `PLAN_FILE_PATH` can actually be resolved, **STOP** — plan-backed FIS execution cannot update source plan state without the plan file
+   - If the envelope says the FIS originated from a plan (`plan_path` present) but omits `story_ids`, stop — plan-backed FIS execution needs that context for plan/state updates.
+   - If `plan_path` is present but no embedded or local `PLAN_FILE_PATH` can actually be resolved, stop — plan-backed FIS execution cannot update source plan state without the plan file.
    - Otherwise set `FIS_SOURCE_MODE = github-artifact`
-   - If the GitHub artifact is typed but incompatible (`plan-bundle`, `triage-plan`, `triage-completion`, or any `*-review` report), **STOP** and exit with the matching workflow skill
-   - If the GitHub issue is untyped, **STOP** — `exec-spec` requires a local FIS path or a typed GitHub FIS artifact
 2. Recover enough source metadata to finish the run cleanly: `FIS_SOURCE_MODE`, `FIS_CANONICAL_PATH`, optional `PLAN_FILE_PATH`, and optional `STORY_IDS`
 
 **Gate**: canonical FIS path resolved and any plan/artifact metadata captured
@@ -150,45 +147,24 @@ Steps 4b and 4c can run in parallel _(if supported)_.
 4. **No second loop** — if required failures or CRITICAL/HIGH findings remain after one remediation pass, escalate to the user with a summary of unresolved issues and stop the run
 
 ### Step 5: Complete
-All substeps below are REQUIRED gates when Step 4 passes.
+All substeps below are gates — complete them before finishing.
 
-#### 5a. Verify Implementation
-1. Verify ALL success criteria in FIS are met
-2. Verify ALL task checkboxes marked complete; mark any missed now
+#### 5a. Verify Completion
+Lightweight gate – uses Step 4a results, does not re-run checks:
+1. Verify all success criteria met
+2. Verify all task checkboxes marked (catch any missed from Step 3)
 3. Verify Final Validation Checklist items satisfied
-4. **Substantive check**: `rg "TODO|FIXME|placeholder|not.implemented" <changed-files>` — must be clean
-5. **Wiring check**: each new file/component is imported or referenced by at least one other file
-6. Include verification evidence per `${CLAUDE_PLUGIN_ROOT}/references/verification-evidence.md`: **Build**, **Tests**, **Linting/types**; add **Visual validation** and **Runtime** for UI/runtime stories
-7. **Spec compliance confirmation**: verify the Step 4a spot-check passed and no required spec detail remains mismatched
+4. Collect verification evidence from Step 4a: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts); add **Visual validation** and **Runtime** for UI/runtime stories
 
-#### 5b. Update FIS Status (REQUIRED GATE)
-Mark completed task, success-criteria, and Final Validation Checklist checkboxes in the FIS document. Task checkboxes should already be current from Step 3; this gate catches anything missed.
+#### 5b. Update FIS, Source Plan, and Project State
+Update FIS status, source plan (if applicable), and project state via `andthen:ops`. For plan-backed FIS: set each covered story Status to `Done`, set FIS field path, check off acceptance criteria, and mark the story `Done` in the `State` document (see **Project Document Index**) with a short completion note. For composite/shared FIS, update all constituent stories in `STORY_IDS`. Re-read to verify updates applied.
 
-#### 5c. Update Source Plan (REQUIRED GATE – if FIS from a plan)
-Use restored `PLAN_FILE_PATH` + `STORY_IDS`. Invoke the `andthen:ops` skill to update the source plan: set each covered story Status to `Done`, set the FIS field path, check off acceptance criteria, and update the Story Catalog table. For composite/shared FIS, update **all** constituent stories listed in `STORY_IDS`. After ops completes, **re-read plan and FIS files** to verify updates applied (`ops` runs in fork context and modifications may not be visible in your current state).
+If `FIS_SOURCE_MODE = github-artifact`, apply the continuation sync from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` before finishing.
 
-#### 5d. Update Project State (if the `State` document exists; see **Project Document Index**)
-Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Story Runs` → `State` Document).
-
-#### 5e. Canonical Continuation Sync _(if `FIS_SOURCE_MODE = github-artifact`)_
-The extracted `.agent_temp/github-artifacts/...` directory is only a working mirror. Before finishing:
-- If the canonical local FIS / plan paths exist in the workspace, verify all final updates landed there
-- Otherwise update the source GitHub issue to the latest typed `fis-bundle`, including:
-  - Updated FIS contents
-  - Updated `.technical-research.md` when present
-  - Updated `plan.md` when this was a plan-backed FIS
-  - `fis_path`, `plan_path`, and `story_ids` metadata reflecting the final state
-
-Do not finish with the temp mirror as the only updated copy.
-
-#### 5f. Completion Report
-Report back with:
-- Per-task status
-- Files created/modified
-- Verification evidence
-- Any unresolved low-priority issues or `NOTICED BUT NOT TOUCHING` items
+#### 5c. Completion Report
+Report: per-task status, files created/modified, verification evidence, any unresolved low-priority issues or `NOTICED BUT NOT TOUCHING` items.
 
 ## Post-Completion
-Follow `${CLAUDE_PLUGIN_ROOT}/references/post-completion-guide.md` (`Story Runs` → `Learnings`) for `Learnings`-file updates. Do not create a new `Learnings` document from exec-spec unless one already exists in the location defined by the **Project Document Index**.
+If the `Learnings` document (see **Project Document Index**) exists, capture story-level traps, domain knowledge, procedural knowledge, and error patterns. Organize by topic, not chronology. Keep entries brief (1-2 sentences). Do not create a new `Learnings` document unless one already exists.
 
-> FIS checkbox/status updates and plan updates are handled in Step 5 – they are REQUIRED GATES, not post-completion tasks.
+> FIS checkbox/status updates and plan updates are handled in Step 5 — they are gates, not post-completion tasks.

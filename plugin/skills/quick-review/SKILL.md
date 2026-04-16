@@ -19,10 +19,10 @@ FOCUS: $ARGUMENTS
 ## INSTRUCTIONS
 
 - This is a **mid-conversation checkpoint**, not a formal review. Keep it fast and focused.
-- **Read-only analysis.** Do not modify any files.
-- The sub-agent must review in a **fresh context** to avoid confirmation bias from the work just done.
-- Apply the anti-leniency principle: if the sub-agent identifies a problem, it IS a problem. Do not rationalize issues away.
-- Output findings inline in the conversation — no separate report file.
+- Read-only analysis. Do not modify any files.
+- The sub-agent reviews in a **fresh context** to avoid confirmation bias.
+- Anti-leniency: if the sub-agent identifies a problem, it is a problem. Do not rationalize issues away.
+- Output findings inline — no separate report file.
 
 
 ## GOTCHAS

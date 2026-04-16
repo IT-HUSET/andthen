@@ -18,12 +18,11 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
 - `--to-pr <number>` → PUBLISH_PR
 
 ## INSTRUCTIONS
-- Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - Read-only analysis. The only file you write is the report.
 - If `--inline-findings` is present, do not write a report file. Return findings plus verdict inline to the parent skill instead.
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `${CLAUDE_PLUGIN_ROOT}/skills/review-code/references/code-review-calibration.md`.
 - Default to workspace-wide resolution when requirements and implementation may live in different repos.
-- Delegate implementation code review to a sub-agent using `andthen:review-code` when available. Instruct the sub-agent to return findings inline — do **not** let it write a separate report file. This skill produces the single consolidated report.
+
 
 ## GOTCHAS
 - Reviewing the wrong implementation target
@@ -43,12 +42,8 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
 #### Requirements Discovery
 When `ADDITIONAL_CONTEXT` is a directory path or a plan file, discover the full requirements baseline rather than treating the single input as the only source.
 
-**GitHub issue or URL** — fetch the body and inspect the typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` before treating it as prose:
-- `artifact_type: plan-bundle` — extract embedded files to `.agent_temp/github-artifacts/{github-id}-plan-bundle/` and continue as a directory / plan input so sibling PRD and FIS discovery still works
-- `artifact_type: fis-bundle` — extract embedded files to `.agent_temp/github-artifacts/{github-id}-fis-bundle/` and continue as a specific FIS input
-- Any `*-review` artifact — **STOP** and exit with the correct downstream path: `andthen:remediate-findings`
-- Any other typed artifact — **STOP** and exit with the matching workflow skill. Do not infer compatibility from prose content
-- Untyped issue or URL — use as-is without further discovery
+**GitHub issue or URL** — follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
+Compatible types: `plan-bundle` — extract and continue as a directory / plan input so sibling PRD and FIS discovery still works; `fis-bundle` — extract and continue as a specific FIS input. Redirects: any `*-review` → `andthen:remediate-findings`; any other typed artifact → stop with matching skill. Untyped: use as-is without further discovery.
 
 **Directory path** — search the directory (and its parent, for cases where a subdirectory like `fis/` is given) for:
 - `plan.md` — the implementation plan with story breakdown
@@ -86,11 +81,15 @@ Map the current implementation state:
 **Gate**: Implementation state is understood
 
 ### 3. Quality Review
-Review solution quality and gather evidence:
-- Run project checks that matter here: static analysis, linting, type checks, tests when applicable
-- Scan for stubs/placeholders
-- Delegate comprehensive code review to `andthen:review-code` sub-agent — instruct it to skip report file output and return findings inline
+Run project checks and gather evidence directly – do not delegate to `review-code` (the prior pipeline step already ran code review):
+- Run applicable build/package checks
+- Run applicable test suites
+- Run static analysis, linting, type checks
+- `check-stubs.sh <changed-files>` – scan for incomplete implementations
+- `check-wiring.sh <changed-files>` – verify new files are imported/referenced
 - Check substance and wiring using `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`
+
+Focus on requirements-vs-implementation alignment, which is this skill's unique value.
 
 **Gate**: Quality review complete
 
@@ -108,18 +107,16 @@ Record gaps in these categories:
 If it adds value, reflect on architectural trade-offs, simpler alternatives, process failures, and recurring knowledge gaps.
 
 ### 6. Adversarial Challenge
-Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Generic Findings-Challenger Template`) with:
+
+Run the full adversarial challenge only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples, adjust severity, and withdraw findings that don't hold up. Add one line: "Applied inline severity calibration (adversarial challenge skipped: no Critical findings and ≤5 total)."
+
+**Full challenge** (when triggered): Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Generic Findings-Challenger Template`) with:
 - **Role**: `Adversarial Challenger reviewing gap analysis findings`
 - **Shared calibration**: `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`
 - **Skill calibration**: `${CLAUDE_PLUGIN_ROOT}/skills/review-code/references/code-review-calibration.md`
 - **Context block**: `Review target context: {implementation target paths from Step 0}`
-- **Questions**:
-  1. `Is this a real gap, or acceptable in context?`
-  2. `Is the severity justified per the calibration examples?`
-  3. `Could there be an existing mitigation the reviewer missed?`
-  4. `Would a senior engineer on this codebase flag this in review?`
+- **Questions**: Is this a real gap? Is severity justified? Could there be an existing mitigation? Would a senior engineer flag this?
 - **Verdicts**: `VALIDATED`, `DOWNGRADED`, `WITHDRAWN`
-- **Optional extra rules**: `Normalize review-code severities as CRITICAL -> Critical, HIGH -> High, SUGGESTIONS -> Medium.`
 - **Findings payload**: `{all findings from quality review, gap analysis, and optional retrospective}`
 
 Apply verdicts before scoring.
