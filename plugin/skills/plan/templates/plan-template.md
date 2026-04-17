@@ -109,12 +109,12 @@ W3: S05
 
 1. Execute Phase 1 stories sequentially, then move wave by wave.
 2. For each story ready to implement:
-   - Run the `andthen:spec` skill using the story scope from this plan.
+   - Invoke the `andthen:spec` skill using the story scope from this plan.
    - Update the story `**FIS**` field with the generated spec path and set `**Status**` to `Spec Ready`.
-   - Run `andthen:exec-spec` on the generated FIS.
+   - Invoke the `andthen:exec-spec` skill on the generated FIS.
    - When implementation starts, set `**Status**` to `In Progress`.
    - After implementation and review, check off completed acceptance criteria and set `**Status**` to `Done`.
 3. Stories marked `[P]` may run in parallel after dependencies are satisfied.
-4. After the plan is complete, run `andthen:review --gap-only` against `plan.md`.
+4. After the plan is complete, invoke the `andthen:review` skill with `--gap-only` against `plan.md`.
 
-> **Status tracking**: Keep the Story Catalog table and the Phase Breakdown story sections in sync. `andthen:exec-plan` and `andthen:ops` rely on these fields for progress tracking.
+> **Status tracking**: Keep the Story Catalog table and the Phase Breakdown story sections in sync. The `andthen:exec-plan` skill and the `andthen:ops` skill rely on these fields for progress tracking.

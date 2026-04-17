@@ -27,7 +27,40 @@ Core artifacts are the **Feature Implementation Specification (FIS)** for single
 
 ## Skill Invocation
 
-Skills are invoked as `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`). Agents use the same `andthen:<name>` namespace. When skills are exported for other agents via `scripts/install-skills.sh`, references are rewritten to the portable `andthen-` prefix (hyphen, not dot – required for Codex CLI `$` sigil parser compatibility).
+Skills are invoked as `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`). Agents share the `andthen:` *string prefix* but are **not** `/andthen:` invokable — they are spawned via the Task tool with `subagent_type: "andthen:<name>"`. When skills are exported for other agents via `scripts/install-skills.sh`, references are rewritten to the portable `andthen-` prefix (hyphen, not dot – required for Codex CLI `$` sigil parser compatibility). Specifically: `/andthen:<name>` rewrites to `$andthen-<name>` (sigil + separator swap) and bare `andthen:<name>` rewrites to `andthen-<name>`.
+
+### Skills vs Agents — Invariant
+
+**This is a load-bearing distinction. Violating it causes the Task tool to fail with "Agent type not found".**
+
+Skills and agents share the `andthen:` namespace but have different invocation mechanisms and are not interchangeable:
+
+- **Agents** (`plugin/agents/*.md`, 7 total: `build-troubleshooter`, `documentation-lookup`, `qa-test-engineer`, `research-specialist`, `solution-architect`, `ui-ux-designer`, `visual-validation-specialist`) — valid `subagent_type` values for the Task tool. Spawned as real sub-agents.
+- **Skills** (`plugin/skills/*/`) — invoked via `/andthen:<name>` slash command or the Skill tool. **Not valid `subagent_type` values.**
+
+When a skill needs a fresh context (e.g. independent review), the pattern is: spawn a `general-purpose` sub-agent whose prompt runs the `/andthen:<name>` slash command. Never pass a skill name as `subagent_type`.
+
+### Wording Convention (mandatory when authoring or refactoring skill prompts)
+
+Every `andthen:<name>` reference in a skill prompt, reference doc, or CLAUDE.md must have the type noun **adjacent** to the name:
+- "the `andthen:<name>` **skill**" / "invoke the `andthen:<name>` skill" / "run the `andthen:<name>` skill"
+- "the `andthen:<name>` **agent**" / "delegate to the `andthen:<name>` agent" / "spawn the `andthen:<name>` agent"
+
+Named antipattern: **"Spawn `andthen:<skill-name>` sub-agent"**. This phrasing primes agents to pass skill names as `subagent_type`, which fails. It caused a real regression (see commit history around 0.12.x). Prefer "invoke the `andthen:<name>` skill" for in-context work, or "spawn a `general-purpose` sub-agent and have it run `/andthen:<name>`" when fresh context is genuinely needed.
+
+Exceptions (convention does not apply):
+- Bare `/andthen:<name>` invocation lines in code blocks and user-facing examples — the `/` sigil carries the meaning
+- YAML/JSON schema values and metadata fields (e.g. `source_skill: andthen:plan`) — data tokens, not prose references
+- Frontmatter fields like `agent: general-purpose` — runtime contract, not a reference
+- Compact arrow-notation routing/redirect maps where a single parenthetical type qualifier covers all entries (e.g. `Redirects (all **skills**): fis-bundle → andthen:exec-spec / andthen:spec; ...`) — individual per-name tags would make the map unreadable; the leading qualifier suffices
+
+When refactoring AndThen itself, any change that touches `andthen:*` references must preserve this convention. Audit command (covers every directory where the convention applies):
+
+```sh
+rg 'andthen:[a-z-]+' CLAUDE.md plugin/skills/ plugin/references/ plugin/agents/ templates/ docs/
+```
+
+For every hit, confirm it is either (a) a bare invocation in a code block/example, (b) a schema value / frontmatter field, or (c) has the type noun ("skill" / "agent") adjacent.
 
 
 ---
@@ -116,8 +149,8 @@ When bumping the version, **always** update all three:
 
 ### Context7 MCP - Library and Framework Documentation Lookup (https://github.com/upstash/context7)
 Context7 MCP pulls up-to-date, version-specific documentation and code examples straight from the source.
-**Only** use Context7 MCP via the _`andthen:documentation-lookup`_ sub-agent for documentation retrieval tasks.
+**Only** use Context7 MCP via the _`andthen:documentation-lookup`_ agent for documentation retrieval tasks.
 
 ### Fetch (https://github.com/modelcontextprotocol/servers/tree/main/src/fetch)
 Retrieves and processes content from web pages, converting HTML to markdown for easier consumption.
-**Only** use Fetch MCP via the _`andthen:documentation-lookup`_ sub-agent for documentation retrieval tasks.
+**Only** use Fetch MCP via the _`andthen:documentation-lookup`_ agent for documentation retrieval tasks.

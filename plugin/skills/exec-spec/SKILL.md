@@ -44,12 +44,14 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`:
 ### Proactive Sub-Agents
 Spawn narrow background sub-agents when they materially improve a coding decision and you can keep implementing while they run. Their output is advisory; the FIS remains the contract.
 
-- `andthen:documentation-lookup` – use for unfamiliar APIs, library/framework behavior, migration details, or version-specific questions. This is the required path for documentation lookup; run it as a separate background sub-task.
-- `andthen:solution-architect` – use for unresolved architectural trade-offs or integration-pattern ambiguity not settled by the FIS
-- `andthen:ui-ux-designer` – use for UI layout, interaction, accessibility, or responsive-pattern advice when the FIS needs a design contract
-- `andthen:build-troubleshooter` – use for non-trivial build failures, dependency conflicts, or cascading test failures
-- `andthen:research-specialist` – use for external best-practice research or context not available in the codebase
-- `andthen:qa-test-engineer` – use for complex test strategy or unfamiliar test-harness patterns
+These are **agents** (valid `subagent_type` values for the Task tool):
+
+- the `andthen:documentation-lookup` agent – use for unfamiliar APIs, library/framework behavior, migration details, or version-specific questions. This is the required path for documentation lookup; run it as a separate background sub-task.
+- the `andthen:solution-architect` agent – use for unresolved architectural trade-offs or integration-pattern ambiguity not settled by the FIS
+- the `andthen:ui-ux-designer` agent – use for UI layout, interaction, accessibility, or responsive-pattern advice when the FIS needs a design contract
+- the `andthen:build-troubleshooter` agent – use for non-trivial build failures, dependency conflicts, or cascading test failures
+- the `andthen:research-specialist` agent – use for external best-practice research or context not available in the codebase
+- the `andthen:qa-test-engineer` agent – use for complex test strategy or unfamiliar test-harness patterns
 
 Usage rules:
 - Prefer multiple narrow questions over one broad prompt
@@ -73,7 +75,7 @@ Usage rules:
 1. Resolve `FIS_SOURCE` to a local `FIS_FILE_PATH`:
    - Local file path: use it directly
    - `--issue <number>` or GitHub issue URL: follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
-     Compatible types: `fis-bundle` — extract and set `FIS_FILE_PATH` from `canonical_local_primary`. Redirects: `plan-bundle` → `andthen:exec-plan` / `andthen:spec-plan`; `triage-plan` / `triage-completion` / any `*-review` → stop with matching downstream skill. Untyped: stop — `exec-spec` requires a local FIS path or a typed GitHub FIS artifact.
+     Compatible types: `fis-bundle` — extract and set `FIS_FILE_PATH` from `canonical_local_primary`. Redirects: `plan-bundle` → the `andthen:exec-plan` / `andthen:spec-plan` skill; `triage-plan` / `triage-completion` / any `*-review` → stop with matching downstream skill. Untyped: stop — the `andthen:exec-spec` skill requires a local FIS path or a typed GitHub FIS artifact.
    - If `canonical_local_primary` is missing, ambiguous, or does not match an extracted file, stop.
    - Recover metadata from the envelope:
      - `FIS_CANONICAL_PATH` = `fis_path` when present, otherwise `canonical_local_primary`
@@ -132,18 +134,18 @@ Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues — int
 5. **Wiring check**: `check-wiring.sh <changed-files>` — each new file referenced by at least one other
 6. **Spec compliance spot-check**: extract prescriptive details from the FIS (output format strings, column name lists, file paths for new artifacts, exact error messages, UI elements like buttons/controls) and grep/verify each against the implementation — any mismatch is a remediation input
 
-#### 4b. Code Review (mandatory sub-agent)
-Spawn `andthen:review-code` sub-agent for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation).
+#### 4b. Code Review (mandatory fresh-context review)
+Run the `andthen:review-code` **skill** for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a `general-purpose` sub-agent whose prompt runs `/andthen:review-code`. Do not pass `andthen:review-code` as `subagent_type` — it is a skill, not an agent type.
 
 #### 4c. Visual Validation (if UI)
-Spawn `andthen:visual-validation-specialist` sub-agent _(if supported)_ per any Visual Validation Workflow defined in CLAUDE.md.
+Spawn the `andthen:visual-validation-specialist` **agent** (a real `subagent_type` for the Task tool — unlike the `andthen:review-code` skill in 4b) _(if supported)_ per any Visual Validation Workflow defined in CLAUDE.md.
 
 Steps 4b and 4c can run in parallel _(if supported)_.
 
 #### 4d. Remediation (1 pass max)
 1. **Collect failures and findings** — combine required failures from 4a with findings from 4b/4c. A failed build/test/lint/stub/wiring check is a remediation input even if review-code does not flag it separately.
 2. **Triage** — direct-check failures and CRITICAL/HIGH findings must fix; MEDIUM should fix; LOW optional (review-code mapping: CRITICAL→CRITICAL, HIGH→HIGH, SUGGESTIONS→MEDIUM)
-3. **Fix + re-check once** — fix all must-fix items directly, then re-run the failed or affected validation checks once. If remediation touched any `review-code` finding, re-run `andthen:review-code` on the touched scope before proceeding. If remediation touched any visual-validation finding, re-run the applicable visual validation on the touched scope before proceeding.
+3. **Fix + re-check once** — fix all must-fix items directly, then re-run the failed or affected validation checks once. If remediation touched any `review-code` finding, re-run the `andthen:review-code` skill on the touched scope before proceeding. If remediation touched any visual-validation finding, re-run the applicable visual validation on the touched scope before proceeding.
 4. **No second loop** — if required failures or CRITICAL/HIGH findings remain after one remediation pass, escalate to the user with a summary of unresolved issues and stop the run
 
 ### Step 5: Complete
@@ -157,7 +159,7 @@ Lightweight gate – uses Step 4a results, does not re-run checks:
 4. Collect verification evidence from Step 4a: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts); add **Visual validation** and **Runtime** for UI/runtime stories
 
 #### 5b. Update FIS, Source Plan, and Project State
-Update FIS status, source plan (if applicable), and project state via `andthen:ops`. For plan-backed FIS: set each covered story Status to `Done`, set FIS field path, check off acceptance criteria, and mark the story `Done` in the `State` document (see **Project Document Index**) with a short completion note. For composite/shared FIS, update all constituent stories in `STORY_IDS`. Re-read to verify updates applied.
+Update FIS status, source plan (if applicable), and project state via the `andthen:ops` skill. For plan-backed FIS: set each covered story Status to `Done`, set FIS field path, check off acceptance criteria, and mark the story `Done` in the `State` document (see **Project Document Index**) with a short completion note. For composite/shared FIS, update all constituent stories in `STORY_IDS`. Re-read to verify updates applied.
 
 If `FIS_SOURCE_MODE = github-artifact`, apply the continuation sync from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` before finishing.
 

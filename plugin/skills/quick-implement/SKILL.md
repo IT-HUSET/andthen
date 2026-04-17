@@ -7,7 +7,7 @@ argument-hint: <spec> | --issue <number>
 
 Fast implementation path for small features, bug fixes, or GitHub issues. Bypasses FIS workflow for quick turnaround while maintaining verification quality.
 
-**For larger features, use the full workflow:** `andthen:clarify` → `andthen:spec` → `andthen:exec-spec`
+**For larger features, use the full workflow:** the `andthen:clarify` skill → the `andthen:spec` skill → the `andthen:exec-spec` skill.
 
 
 ## VARIABLES
@@ -50,7 +50,7 @@ ARGUMENTS: $ARGUMENTS
 1. Extract issue number and fetch with `gh issue view <number>`
 2. If the issue body contains a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
    - `artifact_type: triage-plan` is compatible — use the embedded plan as the implementation scope
-   - Any `*-review` artifact is **not** compatible — stop and direct the user to `andthen:remediate-findings`
+   - Any `*-review` artifact is **not** compatible — stop and direct the user to the `andthen:remediate-findings` skill
    - `plan-bundle`, `fis-bundle`, and `triage-completion` are **not** compatible — stop and direct the user to the appropriate plan / spec / triage workflow
 3. Set `CREATE_PR=true` (unless `--no-pr` specified)
 4. Create feature branch following project conventions

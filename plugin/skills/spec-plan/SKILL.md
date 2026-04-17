@@ -6,11 +6,11 @@ argument-hint: <path-to-plan-directory | --issue <number> | issue URL> [--storie
 # Batch-Generate Specs for Plan
 
 
-Batch-create Feature Implementation Specifications (FIS) for all stories in an implementation plan (from `andthen:plan`). Runs **parallel sub-agents** (one per story) in wave-ordered batches, then performs a **cross-cutting review** to catch inter-story inconsistencies.
+Batch-create Feature Implementation Specifications (FIS) for all stories in an implementation plan (from the `andthen:plan` skill). Runs **parallel sub-agents** (one per story) in wave-ordered batches, then performs a **cross-cutting review** to catch inter-story inconsistencies.
 
 Can be used:
 - **Standalone** – pre-create and review all specs before execution (enables human review gate)
-- **Delegated** – called by `andthen:exec-plan` to handle their spec-generation phase
+- **Delegated** – called by the `andthen:exec-plan` skill to handle their spec-generation phase
 
 
 ## VARIABLES
@@ -64,7 +64,7 @@ Require `PLAN_SOURCE`. Stop if missing.
 ### Step 1: Parse Plan
 
 1. Resolve `PLAN_SOURCE`: if `--issue` or GitHub URL, follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`. Compatible types: `plan-bundle` — extract per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. All other typed artifacts → stop and exit with the correct downstream skill. Untyped → stop — this skill requires a typed plan artifact.
-2. Read `PLAN_DIR/plan.md`. If missing, stop — a valid plan artifact is required upstream (typically from `andthen:plan`).
+2. Read `PLAN_DIR/plan.md`. If missing, stop — a valid plan artifact is required upstream (typically from the `andthen:plan` skill).
 3. Extract: stories (ID, name, scope, acceptance criteria, dependencies), phases, wave assignments, dependency graph
 4. Apply filters (STORY_FILTER, PHASE_FILTER); skip stories with existing FIS (check `**FIS**` field in plan.md — if file exists on disk, skip)
 5. Build wave-ordered execution plan; set MAX_PARALLEL (default 5, max 10)
@@ -163,7 +163,7 @@ Batch into sub-waves if story count exceeds MAX_PARALLEL.
 
 #### Sub-Agent Prompts
 
-Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) for all spec sub-agents. Use `/andthen:spec` (or `$andthen:spec` for Codex CLI) prefix when invoking spec for individual stories outside the batch flow.
+Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) for all spec sub-agents. Use `/andthen:spec` (or `$andthen-spec` for Codex CLI) prefix when invoking the `andthen:spec` skill for individual stories outside the batch flow.
 
 **STANDARD sub-agent** — provide:
 - Story ID, name, scope, acceptance criteria, Key Scenarios (if present), dependencies
@@ -281,10 +281,10 @@ Ready for execution.
 
 After completion, suggest:
 
-1. **Execute the plan** _(clean session)_: Run `andthen:exec-plan` to implement all stories.
-2. **Execute manually, story by story** _(clean session)_: Run `andthen:exec-spec` per story for more control.
+1. **Execute the plan** _(clean session)_: Invoke the `andthen:exec-plan` skill to implement all stories.
+2. **Execute manually, story by story** _(clean session)_: Invoke the `andthen:exec-spec` skill per story for more control.
 
-> **Session tip**: `spec-plan` itself is context-intensive. Start a **clean session** before running `exec-plan` or `exec-spec` — don't chain directly from this session.
+> **Session tip**: The `andthen:spec-plan` skill itself is context-intensive. Start a **clean session** before running the `andthen:exec-plan` skill or the `andthen:exec-spec` skill — don't chain directly from this session.
 
 
 ## FAILURE HANDLING

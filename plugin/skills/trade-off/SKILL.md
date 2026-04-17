@@ -77,7 +77,7 @@ Ask the user to confirm the options and the weighted criteria before deep resear
 Use this only when the design space is still fuzzy or heavily contested.
 
 1. Pick 3+ contrasting constraint lenses.
-2. Spawn parallel `andthen:solution-architect` agent instances, one per lens.
+2. Spawn parallel instances of the `andthen:solution-architect` agent, one per lens.
 3. Have each agent fully commit to its lens and return an interface sketch, what the design hides/exposes, trade-offs, and where it breaks down.
 4. Synthesize the results in prose: convergences, tensions, and which design dimensions are most sensitive to constraints.
 

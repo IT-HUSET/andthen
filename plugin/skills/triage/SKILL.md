@@ -50,8 +50,8 @@ You orchestrate the workflow:
 1. If `SCOPE` is a GitHub issue URL or `--issue <number>` is used, fetch the issue body and inspect for a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
    - `triage-plan` → compatible; use the embedded fix plan as scope for the investigation/fix run
    - `triage-completion` → **STOP** — the triage is already complete. Return the completion summary and exit.
-   - `plan-bundle`, `fis-bundle` → **STOP** — exit with the correct downstream path: `andthen:exec-plan` / `andthen:exec-spec`
-   - Any `*-review` report → **STOP** — exit with the correct downstream path: `andthen:remediate-findings`
+   - `plan-bundle`, `fis-bundle` → **STOP** — exit with the correct downstream **skill**: `andthen:exec-plan` / `andthen:exec-spec`
+   - Any `*-review` report → **STOP** — exit with the correct downstream **skill**: `andthen:remediate-findings`
    - Untyped issue → use issue content as the scope description
 2. Inspect the current implementation state, uncommitted changes, and recent evolution.
 3. Understand the project structure and the scope implied by `SCOPE`.
@@ -134,7 +134,7 @@ Run the relevant top-level checks:
 - Critical user flows
 - Security/performance validation where relevant
 
-Use parallel specialist agents when available, including the `andthen:build-troubleshooter`, `andthen:qa-test-engineer`, `andthen:solution-architect`, and `andthen:ui-ux-designer` agents, and the `andthen:review-code` skill.
+Use parallel specialist **agents** when available (the `andthen:build-troubleshooter`, `andthen:qa-test-engineer`, `andthen:solution-architect`, and `andthen:ui-ux-designer` agents) together with the `andthen:review-code` **skill**.
 
 If the `State` document exists (see **Project Document Index**):
 - Remove resolved blockers

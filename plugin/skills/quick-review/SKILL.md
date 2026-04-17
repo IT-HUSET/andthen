@@ -8,7 +8,7 @@ argument-hint: "[optional focus or scope]"
 
 Lightweight, ad-hoc review of recent work in the current conversation. Spawns a fresh-context sub-agent to critique what was just done — catching errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
 
-**For thorough reviews, start with:** `andthen:review`. Use `andthen:review-council` when you explicitly want multi-perspective adversarial review.
+**For thorough reviews, start with** the `andthen:review` **skill**. Use the `andthen:review-council` **skill** when you explicitly want multi-perspective adversarial review.
 
 
 ## VARIABLES
@@ -18,7 +18,7 @@ FOCUS: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-- This is a **mid-conversation checkpoint**, not a formal review. Keep it fast and focused.
+- This is a **lightweight mid-conversation review** – a fast, focused checkpoint scoped to recent changes rather than a full formal pass.
 - Read-only analysis. Do not modify any files.
 - The sub-agent reviews in a **fresh context** to avoid confirmation bias.
 - Anti-leniency: if the sub-agent identifies a problem, it is a problem. Do not rationalize issues away.

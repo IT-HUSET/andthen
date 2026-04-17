@@ -1,5 +1,5 @@
 ---
-description: Reviews documentation (specs, PRDs, plans) for clarity, edge cases, and technical accuracy. Internal delegate of `andthen:review` – not directly user-invocable.
+description: Reviews documentation (specs, PRDs, plans) for clarity, edge cases, and technical accuracy. Internal delegate of the `andthen:review` skill – not directly user-invocable.
 user-invocable: false
 context: fork
 agent: general-purpose
@@ -10,7 +10,7 @@ argument-hint: "[document path or focus] [--inline-findings]"
 
 Thoroughly review specifications, implementation plans, PRDs, technical designs, or other requirement documents to determine whether they are complete, clear, proportionate, and ready for implementation.
 
-Most users should start with `andthen:review`. Use this skill directly when you already know the target is a document.
+Most users should start with the `andthen:review` skill. Use this skill directly when you already know the target is a document.
 
 ## VARIABLES
 SPEC_PATH_OR_FOCUS: $ARGUMENTS
@@ -45,7 +45,7 @@ Review the document through these lenses and record only issues relevant to the 
 - **Scope and architecture**: explicit in/out-of-scope boundaries, phase boundaries, architecture soundness, and signs of disproportionate complexity
 - **Stakeholder fit**: user needs, success criteria, UX/error-state coverage
 
-If the document is a FIS, verify it still follows the `andthen:spec` structure.
+If the document is a FIS, verify it still follows the structure produced by the `andthen:spec` skill.
 
 **Gate**: Findings identified across all relevant dimensions
 

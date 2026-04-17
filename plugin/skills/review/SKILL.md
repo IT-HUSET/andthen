@@ -8,7 +8,7 @@ argument-hint: "[target/files/PR/spec path] [--deep] [--council] [--code-only] [
 
 Unified review entrypoint. Determine what is actually being reviewed, run the minimum correct review stack, and produce one consolidated result.
 
-Use this as the default review skill. It delegates internally to `andthen:review-code`, `andthen:review-doc`, or `andthen:review-gap` based on the review surface.
+Use this as the default review skill. Based on the review surface, it delegates internally to the `andthen:review-code` skill, the `andthen:review-doc` skill, or the `andthen:review-gap` skill (invoked via `/andthen:<name>` or the Skill tool — these are skill names, not agent types).
 
 ## VARIABLES
 ARGUMENTS: $ARGUMENTS
@@ -27,7 +27,8 @@ ARGUMENTS: $ARGUMENTS
 - Read-only analysis. Do not modify the reviewed artifacts.
 - Default to the minimum sufficient review stack.
 - Own the final synthesis — gather delegated results into one clear conclusion.
-- Boundaries: `review-code` for implementation, `review-doc` for requirements/design artifacts, `review-gap` for implementation-vs-requirements comparison, `review-council` for high-assurance adversarial validation.
+- Boundaries: the `andthen:review-code` skill for implementation, the `andthen:review-doc` skill for requirements/design artifacts, the `andthen:review-gap` skill for implementation-vs-requirements comparison, and the `andthen:review-council` skill for high-assurance adversarial validation.
+- All `andthen:review-*` delegates are **skills**, not agents. Invoke them via `/andthen:<name>` or the Skill tool. Do not pass their names as `subagent_type` to the Task tool.
 
 ## GOTCHAS
 - Treating all review requests as code review
@@ -93,39 +94,40 @@ Routing heuristics:
 
 ### 3. Select the Review Stack
 
-Run the minimum correct stack:
-- **Code** → `andthen:review-code`
-- **Doc** → `andthen:review-doc`
-- **Gap** → `andthen:review-gap`
-- **Mixed** → `andthen:review-doc` + `andthen:review-code`
+Run the minimum correct stack (each entry is a **skill**, invoked via `/andthen:<name>` or the Skill tool):
+- **Code** → the `andthen:review-code` skill
+- **Doc** → the `andthen:review-doc` skill
+- **Gap** → the `andthen:review-gap` skill
+- **Mixed** → the `andthen:review-doc` skill + the `andthen:review-code` skill
 
 Use **Mixed** only when there are two independent review surfaces (document readiness + implementation quality), not as uncertainty between `Doc` and `Gap`. Once selected, keep it through execution and reporting.
 
-Escalate with `andthen:review-council` when:
+Escalate with the `andthen:review-council` skill when:
 - the selected review surface is **Code**, **Gap**, or **Mixed** with implementation changes
 - `--council` is present
 - `--deep` is present and the change is broad, risky, or cross-cutting
 - the primary review finds severe or ambiguous issues that would benefit from adversarial challenge
 - the user explicitly wants a high-confidence or multi-perspective review
 
-`review-council` is implementation-focused — skip it for doc-only reviews even if `--council` is present.
+The `andthen:review-council` skill is implementation-focused — skip it for doc-only reviews even if `--council` is present.
 
 When delegating:
-- Instruct `review-code` and `review-doc` to return findings inline and skip separate report-file output
-- Instruct `review-gap` to return inline findings plus PASS/FAIL verdict when used as a delegated sub-review
+- Invoke each delegate as a **skill** (`/andthen:<name>` or the Skill tool). If a fresh context is warranted, spawn a `general-purpose` sub-agent whose prompt runs the `/andthen:<name>` slash command — never pass the skill name as `subagent_type`.
+- Instruct the `andthen:review-code` skill and the `andthen:review-doc` skill to return findings inline and skip separate report-file output
+- Instruct the `andthen:review-gap` skill to return inline findings plus PASS/FAIL verdict when used as a delegated sub-review
 - Keep file-writing and GitHub publishing on this skill. Delegated specialists return findings inline; this skill owns the final report or final inline output.
 
 **Gate**: Review stack is proportional to the review surface
 
 ### 4. Execute Delegated Reviews
 
-Run the selected specialist reviews, using sub-agents when supported.
+Run the selected specialist review **skills**. Each delegate is invoked via `/andthen:<name>` or the Skill tool. If fresh-context isolation is needed, spawn a `general-purpose` sub-agent and have its prompt run the `/andthen:<name>` slash command — never pass a skill name as `subagent_type`.
 
 Delegation guidance:
-- `review-code`: implementation-focused findings only
-- `review-doc`: document readiness findings only
-- `review-gap`: requirements-vs-implementation findings, verdict, and remediation priorities
-- `review-council`: challenge and validate implementation-facing findings; do not use it as a generic router
+- The `andthen:review-code` skill: implementation-focused findings only
+- The `andthen:review-doc` skill: document readiness findings only
+- The `andthen:review-gap` skill: requirements-vs-implementation findings, verdict, and remediation priorities
+- The `andthen:review-council` skill: challenge and validate implementation-facing findings; do not use it as a generic router
 
 If a delegated review cannot run, fall back to direct analysis using the same lens and note the fallback.
 
@@ -138,8 +140,8 @@ Produce one final review output. Include:
 - **Review mode used**: Code / Doc / Gap / Mixed
 - **Review stack run**
 - **Findings by severity**
-- **Gap verdict** when `review-gap` ran
-- **Escalation result** when `review-council` ran
+- **Gap verdict** when the `andthen:review-gap` skill ran
+- **Escalation result** when the `andthen:review-council` skill ran
 - **Recommended next action**
 
 Output conventions:
@@ -155,4 +157,4 @@ For GitHub publishing:
 - Populate metadata with `report_path`, `plan_path`, `fis_path`, `requirements_baseline`, and `implementation_targets` when known
 - If the final review mode is clearly doc-only, code-only, or gap-only, mention that mode prominently in the report summary so downstream remediation can interpret the findings correctly
 
-For **Mixed** reviews, keep `review-doc` and `review-code` findings in distinct subsections. Merge overlapping findings and use the strongest framing as canonical.
+For **Mixed** reviews, keep findings from the `andthen:review-doc` skill and the `andthen:review-code` skill in distinct subsections. Merge overlapping findings and use the strongest framing as canonical.

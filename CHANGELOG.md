@@ -6,6 +6,22 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.12.1] – 2026-04-17
+
+### Fixed
+- **Skills-as-agents regression eliminated** (CLAUDE.md, and 19 skill prompts including `review`, `exec-spec`, `plan`, `spec`, and `spec-plan`) – skill names were being passed as `subagent_type` to the Task tool, triggering "Agent type not found" errors. Reworded every `andthen:<name>` reference across skill prompts, references, and templates so the type noun ("skill" or "agent") sits adjacent to the name; purged the "Spawn `andthen:<skill>` sub-agent" antipattern
+- **Install-script slash-command translation** (`scripts/install-skills.sh`) – added anchored rewrite rule so `/andthen:<name>` invocations correctly become `$andthen-<name>` for Codex/portable agents while preserving path separators, markdown links, and URLs containing `/andthen:` substrings
+
+### Added
+- **Skills vs Agents invariant** (CLAUDE.md) – new guardrail section names the authoritative agent/skill lists, the "Spawn `andthen:<skill>` sub-agent" antipattern, the mandatory wording convention (type noun adjacent to each `andthen:<name>` reference), and an audit command for future refactorings
+- **`architecture-review` multi-mode chains** (`architecture-review`) – `--mode` now accepts a comma-separated list (e.g. `--mode review,fitness` or `--mode review,decompose,fitness`); chained modes execute in declared order, share computed metrics, dependency graph, connascence, and findings without recomputation, and produce a single combined report with merged Executive Summary and legend. Skill description updated to surface the four modes and chaining capability
+
+### Changed
+- **`quick-review` instruction reworded** (`quick-review`) – clarified positioning as a "lightweight mid-conversation review" scoped to recent changes, rather than framing it primarily as "not a formal review"
+
+
+---
+
 ## [0.12.0] – 2026-04-16
 
 ### Changed

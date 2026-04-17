@@ -38,7 +38,7 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 - Clarify requirements, do not design solutions.
 
 ### Requirements vs. Implementation Boundary
-Clarify operates at the **requirements level** — decisions that users, stakeholders, or product owners care about. Technical choices that only developers evaluate (architecture patterns, library choices, data storage strategies, internal API design, code organization) belong downstream in `andthen:spec` or `andthen:trade-off`. Explore only user-facing behavior, product scope, workflow, content architecture, and access control models.
+Clarify operates at the **requirements level** — decisions that users, stakeholders, or product owners care about. Technical choices that only developers evaluate (architecture patterns, library choices, data storage strategies, internal API design, code organization) belong downstream in the `andthen:spec` skill or the `andthen:trade-off` skill. Explore only user-facing behavior, product scope, workflow, content architecture, and access control models.
 
 
 ## GOTCHAS
@@ -54,7 +54,7 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
 
 1. **Parse INPUT** - Determine type: inline description, file path, `--issue`, or URL
    - If `--issue` flag present (or INPUT refers to a GitHub issue): follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
-     Compatible types: none (clarify works from untyped issues as raw requirements input). Redirects: `plan-bundle` → `andthen:exec-plan` / `andthen:spec-plan` / `andthen:plan`; `fis-bundle` → `andthen:exec-spec`; `triage-plan` → `andthen:quick-implement` / `andthen:triage`; `triage-completion` → STOP (completed report, not actionable requirements); any `*-review` → `andthen:remediate-findings`. Untyped: use issue content as requirements input. Store issue number for reference in output.
+     Compatible types: none (clarify works from untyped issues as raw requirements input). Redirects (all **skills**): `plan-bundle` → `andthen:exec-plan` / `andthen:spec-plan` / `andthen:plan`; `fis-bundle` → `andthen:exec-spec`; `triage-plan` → `andthen:quick-implement` / `andthen:triage`; `triage-completion` → STOP (completed report, not actionable requirements); any `*-review` → `andthen:remediate-findings`. Untyped: use issue content as requirements input. Store issue number for reference in output.
    - If file path: Read and extract requirements
    - If URL: Fetch and extract requirements
    - If description: Use directly
@@ -71,7 +71,7 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
    - Assess cross-consistency: evaluate pairwise compatibility between options, marking incompatible or conditional pairings with rationale
    - Use the decomposition to generate targeted questions — each unresolved dimension is a question to ask
 
-   > **Scope guard**: Only decompose dimensions where the *user or stakeholder* would recognize the options as meaningfully different. If a dimension is purely technical (caching strategy, API protocol, DB engine), flag it as a downstream concern for `andthen:spec` or `andthen:trade-off` — do not decompose it here.
+   > **Scope guard**: Only decompose dimensions where the *user or stakeholder* would recognize the options as meaningfully different. If a dimension is purely technical (caching strategy, API protocol, DB engine), flag it as a downstream concern for the `andthen:spec` skill or the `andthen:trade-off` skill — do not decompose it here.
 
    Include the decomposition in the requirements output so downstream skills can reference resolved decisions.
    _Skip this step for simple features with no meaningful design alternatives._
@@ -181,7 +181,7 @@ Generate markdown document:
 | Dimension | Choice | Rationale |
 
 ### Open Design Questions
-- [Dimensions needing further analysis via `andthen:trade-off`]
+- [Dimensions needing further analysis via the `andthen:trade-off` skill]
 
 ## Edge Cases
 | Scenario | Expected Behavior |
@@ -218,8 +218,8 @@ When complete, print the report's **relative path from the project root**.
 ## FOLLOW-UP ACTIONS
 
 After completion, ask user if they'd like to:
-1. **Create feature spec** – run `andthen:spec` on the output directory to generate a FIS from the clarified requirements.
-2. **Proceed to planning** – run `andthen:plan` on the output directory for multi-feature / MVP scope.
+1. **Create feature spec** – invoke the `andthen:spec` skill on the output directory to generate a FIS from the clarified requirements.
+2. **Proceed to planning** – invoke the `andthen:plan` skill on the output directory for multi-feature / MVP scope.
 3. Review specific areas in more depth.
 4. Share with stakeholders for validation.
 

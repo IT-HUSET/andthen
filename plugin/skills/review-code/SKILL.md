@@ -1,5 +1,5 @@
 ---
-description: Perform implementation-focused review covering code quality, security, architecture, and UI/UX. Internal delegate of `andthen:review` – not directly user-invocable.
+description: Perform implementation-focused review covering code quality, security, architecture, and UI/UX. Internal delegate of the `andthen:review` skill – not directly user-invocable.
 user-invocable: false
 argument-hint: "[scope/files] [--inline-findings] [--to-issue] [--to-pr <number>]"
 ---
@@ -8,13 +8,13 @@ argument-hint: "[scope/files] [--inline-findings] [--to-issue] [--to-pr <number>
 
 Comprehensive code review covering correctness, security, architecture, maintainability, and UI/UX where relevant.
 
-Most users should start with `andthen:review`. Use this skill directly when you already know the target is implementation/code.
+Most users should start with the `andthen:review` skill. Use this skill directly when you already know the target is implementation/code.
 
 ## VARIABLES
 ARGUMENTS: $ARGUMENTS
 
 ### Optional Output Flags
-- `--inline-findings` → return findings inline and skip report-file output (for delegated use by `andthen:review` or other orchestration skills)
+- `--inline-findings` → return findings inline and skip report-file output (for delegated use by the `andthen:review` skill or other orchestration skills)
 - `--to-issue` → PUBLISH_ISSUE
 - `--to-pr <number>` → PUBLISH_PR
 

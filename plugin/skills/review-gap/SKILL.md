@@ -1,5 +1,5 @@
 ---
-description: "Compare implementation against a spec, PRD, or plan and produce remediation guidance. Internal delegate of `andthen:review` – not directly user-invocable."
+description: "Compare implementation against a spec, PRD, or plan and produce remediation guidance. Internal delegate of the `andthen:review` skill – not directly user-invocable."
 user-invocable: false
 argument-hint: "[Requirements baseline: plan/spec/PRD/issue/directory/URL] [--inline-findings] [--to-issue] [--to-pr <number>]"
 ---
@@ -8,13 +8,13 @@ argument-hint: "[Requirements baseline: plan/spec/PRD/issue/directory/URL] [--in
 
 Compare the current implementation in the workspace against requirements, then produce a remediation-focused report. The target is always the implementation, not the requirements document itself.
 
-Most users should start with `andthen:review`. Use this skill directly when the question is explicitly whether an implementation matches its requirements baseline.
+Most users should start with the `andthen:review` skill. Use this skill directly when the question is explicitly whether an implementation matches its requirements baseline.
 
 ## VARIABLES
 ADDITIONAL_CONTEXT: $ARGUMENTS
 
 ### Optional Output Flags
-- `--inline-findings` → return findings and PASS/FAIL verdict inline and skip report-file output (for delegated use by `andthen:review`)
+- `--inline-findings` → return findings and PASS/FAIL verdict inline and skip report-file output (for delegated use by the `andthen:review` skill)
 - `--to-issue` → PUBLISH_ISSUE
 - `--to-pr <number>` → PUBLISH_PR
 
@@ -44,7 +44,7 @@ ADDITIONAL_CONTEXT: $ARGUMENTS
 When `ADDITIONAL_CONTEXT` is a directory path or a plan file, discover the full requirements baseline rather than treating the single input as the only source.
 
 **GitHub issue or URL** — follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
-Compatible types: `plan-bundle` — extract and continue as a directory / plan input so sibling PRD and FIS discovery still works; `fis-bundle` — extract and continue as a specific FIS input. Redirects: any `*-review` → `andthen:remediate-findings`; any other typed artifact → stop with matching skill. Untyped: use as-is without further discovery.
+Compatible types: `plan-bundle` — extract and continue as a directory / plan input so sibling PRD and FIS discovery still works; `fis-bundle` — extract and continue as a specific FIS input. Redirects: any `*-review` → the `andthen:remediate-findings` skill; any other typed artifact → stop with matching skill. Untyped: use as-is without further discovery.
 
 **Directory path** — search the directory (and its parent, for cases where a subdirectory like `fis/` is given) for:
 - `plan.md` — the implementation plan with story breakdown

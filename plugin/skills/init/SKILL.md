@@ -78,10 +78,10 @@ Planning (when ready):
   [ ] `Product Backlog` document               – see **Project Document Index**; default: docs/PRODUCT-BACKLOG.md – Product backlog with REQ-IDs
   [ ] `Roadmap` document                       – see **Project Document Index**; default: docs/ROADMAP.md – Phase structure with success criteria
 
-Architecture (or generate later via andthen:map-codebase):
+Architecture (or generate later via the `andthen:map-codebase` skill):
   [ ] `Architecture` document                  – see **Project Document Index**; default: docs/ARCHITECTURE.md – System architecture overview
 
-Domain (or generate later via andthen:ubiquitous-language):
+Domain (or generate later via the `andthen:ubiquitous-language` skill):
   [ ] `Ubiquitous Language` document           – see **Project Document Index**; default: docs/UBIQUITOUS_LANGUAGE.md – Domain glossary
 
 Which would you like to create? (e.g. "Learnings, Stack" or "all core" or "none for now")
@@ -141,7 +141,7 @@ Would you like to:
 If the `Architecture` document, the `Stack` document, or a Conventions section in CLAUDE.md are missing and the codebase has 20+ files, also suggest:
 ```
 Missing architecture/stack/conventions documentation detected.
-Run andthen:map-codebase to auto-generate from codebase analysis? (recommended)
+Run the `andthen:map-codebase` skill to auto-generate from codebase analysis? (recommended)
 ```
 
 Wait for user response, then execute confirmed actions:
@@ -149,7 +149,7 @@ Wait for user response, then execute confirmed actions:
 - **Missing documents**: Generate from templates, pre-fill where possible
 - **Missing guidelines**: Copy from plugin
 - **Missing sections**: Add to CLAUDE.md at the appropriate location
-- **map-codebase**: Run `andthen:map-codebase` skill; skip creating the `Architecture` and `Stack` documents from templates since map-codebase produces them from actual analysis
+- **map-codebase**: Invoke the `andthen:map-codebase` skill; skip creating the `Architecture` and `Stack` documents from templates since map-codebase produces them from actual analysis
 
 **Gate**: All selected gaps filled
 
@@ -161,13 +161,13 @@ Inform the user:
 Existing codebase detected without AndThen workflow structure.
 
 Recommended approach:
-1. Run andthen:map-codebase to auto-generate the `Architecture` document and the `Stack` document (see **Project Document Index**) plus conventions for CLAUDE.md
+1. Invoke the `andthen:map-codebase` skill to auto-generate the `Architecture` document and the `Stack` document (see **Project Document Index**) plus conventions for CLAUDE.md
 2. Then set up CLAUDE.md and remaining structure
 
-Run map-codebase first? (recommended for codebases with 20+ files)
+Invoke the `andthen:map-codebase` skill first? (recommended for codebases with 20+ files)
 ```
 
-Wait for response. If yes: run the `andthen:map-codebase` skill, then proceed with Step 2a using generated documents as foundation (skip the `Architecture` and `Stack` documents from templates). If no: proceed directly to Step 2a.
+Wait for response. If yes: invoke the `andthen:map-codebase` skill, then proceed with Step 2a using generated documents as foundation (skip the `Architecture` and `Stack` documents from templates). If no: proceed directly to Step 2a.
 
 **Gate**: Brownfield analysis complete (or skipped), proceed to project setup
 

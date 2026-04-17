@@ -154,7 +154,17 @@ for dir in "$repo_root/plugin/skills"/*; do
       # Repo-relative reference paths → installed sibling paths
       sed -i.bak "s|plugin/references/|../${prefix}references/|g" "$md"
       rm -f "$md.bak"
-      # Plugin namespace (andthen:) → portable prefix (andthen-)
+      # Claude Code slash-command invocation (/andthen:X) → Codex sigil form ($andthen-X)
+      # Must run before the generic andthen: → andthen- rule so the sigil swap is preserved.
+      # Anchored on backtick, whitespace, or line-start so path segments, markdown links,
+      # and URLs with a "/andthen:" substring are not mangled.
+      sed -i.bak "s|\`/andthen:|\`\$${prefix}|g" "$md"
+      rm -f "$md.bak"
+      sed -i.bak "s|^/andthen:|\$${prefix}|g" "$md"
+      rm -f "$md.bak"
+      sed -i.bak "s|\([[:space:]]\)/andthen:|\1\$${prefix}|g" "$md"
+      rm -f "$md.bak"
+      # Plugin namespace (andthen:) → portable prefix (andthen-) for all remaining references
       sed -i.bak "s|andthen:|${prefix}|g" "$md"
       rm -f "$md.bak"
       # Plugin-root paths → installed sibling paths
@@ -193,6 +203,14 @@ if [ -d "$repo_root/plugin/references" ]; then
   # Apply the same path and namespace rewrites to reference docs
   if [ "$dry_run" -eq 0 ]; then
     find "$refs_dir" -name '*.md' -type f | while IFS= read -r md; do
+      # Claude Code slash-command invocation (/andthen:X) → Codex sigil form ($andthen-X)
+      # Anchored (see skills loop above for rationale).
+      sed -i.bak "s|\`/andthen:|\`\$${prefix}|g" "$md"
+      rm -f "$md.bak"
+      sed -i.bak "s|^/andthen:|\$${prefix}|g" "$md"
+      rm -f "$md.bak"
+      sed -i.bak "s|\([[:space:]]\)/andthen:|\1\$${prefix}|g" "$md"
+      rm -f "$md.bak"
       sed -i.bak "s|andthen:|${prefix}|g" "$md"
       rm -f "$md.bak"
       sed -i.bak "s|\${CLAUDE_PLUGIN_ROOT}/references/|../${prefix}references/|g" "$md"
@@ -226,6 +244,14 @@ if [ -d "$repo_root/templates" ]; then
 
   if [ "$dry_run" -eq 0 ]; then
     find "$templates_dir" -name '*.md' -type f | while IFS= read -r md; do
+      # Claude Code slash-command invocation (/andthen:X) → Codex sigil form ($andthen-X)
+      # Anchored (see skills loop above for rationale).
+      sed -i.bak "s|\`/andthen:|\`\$${prefix}|g" "$md"
+      rm -f "$md.bak"
+      sed -i.bak "s|^/andthen:|\$${prefix}|g" "$md"
+      rm -f "$md.bak"
+      sed -i.bak "s|\([[:space:]]\)/andthen:|\1\$${prefix}|g" "$md"
+      rm -f "$md.bak"
       sed -i.bak "s|andthen:|${prefix}|g" "$md"
       rm -f "$md.bak"
       sed -i.bak "s|\${CLAUDE_PLUGIN_ROOT}/scripts/|../${prefix}scripts/|g" "$md"

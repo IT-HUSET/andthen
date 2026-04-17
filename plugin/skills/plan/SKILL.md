@@ -8,7 +8,7 @@ argument-hint: "[Specs directory or requirements source] | --issue <number> [--t
 
 Transform requirements into lightweight implementation plan with story breakdown. If a PRD already exists, starts from that. If prior artifacts exist (e.g., `requirements-clarification.md` from `andthen:clarify` or a draft PRD), uses them as the basis for PRD creation without re-doing discovery. If nothing exists, performs headless requirements synthesis to create a PRD first. Use `andthen:clarify` only when the user explicitly wants interactive discovery or when the input is too ambiguous to support any defensible plan.
 
-Stories are scoped and sequenced but NOT fully specified - generate detailed specs later via `andthen:spec` (manual per-story flow) or `andthen:spec-plan` (batch generation for `exec-plan`).
+Stories are scoped and sequenced but NOT fully specified - generate detailed specs later via the `andthen:spec` skill (manual per-story flow) or the `andthen:spec-plan` skill (batch generation for `exec-plan`).
 
 **Philosophy**: Detailed specs decay quickly. This command creates just enough structure to sequence work and track progress, while deferring detailed specification to implementation time.
 
@@ -43,7 +43,7 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 - Require `INPUT`. Stop if missing.
 - Delegate research and exploration to sub-agents _(if supported)_.
 - Stories define scope, not implementation details. Minimum stories to cover requirements.
-- Organize into logical phases; detailed specs come later via `andthen:spec` or `andthen:spec-plan`.
+- Organize into logical phases; detailed specs come later via the `andthen:spec` skill or the `andthen:spec-plan` skill.
 - **Headless-first** — continue to completion without pausing for routine clarification. Make reasonable assumptions, document them, and surface unresolved questions in the output.
 - Stop only on true contract failures (missing input, incompatible artifacts, or ambiguity so severe no defensible plan can be produced).
 - Focus on "what" not "how". Replace vague terms with measurable criteria. Record rationale and trade-offs.
@@ -64,9 +64,9 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 
 1. **Parse INPUT** - Determine type:
    - **`--issue` flag present** (or INPUT refers to a GitHub issue): follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
-     Compatible types: `plan-bundle` — extract and treat as `INPUT` directory. Redirects: `fis-bundle` → `andthen:exec-spec` / `andthen:spec`; `triage-plan` / `triage-completion` / any `*-review` → stop with matching downstream skill. Untyped: use issue content as requirements input; store issue number for reference. → proceed to Step 1b
+     Compatible types: `plan-bundle` — extract and treat as `INPUT` directory. Redirects (all **skills**): `fis-bundle` → `andthen:exec-spec` / `andthen:spec`; `triage-plan` / `triage-completion` / any `*-review` → stop with matching downstream skill. Untyped: use issue content as requirements input; store issue number for reference. → proceed to Step 1b
    - **Directory with PRD**: `INPUT` is a directory containing `prd.md` → proceed to Step 2
-   - **Directory with prior artifacts**: `INPUT` is a directory containing `requirements-clarification.md` (from `andthen:clarify`) and/or a draft PRD (`prd-draft.md`), but no finalized `prd.md` → proceed to Step 1c
+   - **Directory with prior artifacts**: `INPUT` is a directory containing `requirements-clarification.md` (from the `andthen:clarify` skill) and/or a draft PRD (`prd-draft.md`), but no finalized `prd.md` → proceed to Step 1c
    - **File path**: Read file. If it is a prior artifact (`prd-draft.md` or `requirements-clarification.md`) → proceed to Step 1c. Otherwise → proceed to Step 1b
    - **URL**: Fetch and extract requirements → proceed to Step 1b
    - **Inline description**: Use directly → proceed to Step 1b
@@ -83,7 +83,7 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 4. **If no PRD and no prior artifacts** (requirements source provided):
    - Validate prerequisites: requirements should be reasonably refined (not raw ideas)
    - If input is broad but directionally usable, infer the smallest coherent MVP, document assumptions and unresolved questions explicitly, and continue
-   - If input is too vague to identify a coherent feature boundary, stop and report the minimum missing contract needed. Mention `andthen:clarify` as the interactive fallback.
+   - If input is too vague to identify a coherent feature boundary, stop and report the minimum missing contract needed. Mention the `andthen:clarify` skill as the interactive fallback.
    - Initial gap analysis – document what's explicitly stated, assumed/implied, and missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope)
    - Proceed to Step 1b (Requirements Synthesis)
 
@@ -94,11 +94,11 @@ OUTPUT_DIR: `INPUT` (if directory), or parent directory of `INPUT` (if file is a
 
 #### Headless Requirements Synthesis
 
-Cover the same areas as `andthen:clarify` Phase 2, but default to synthesis rather than interview: users & personas, core workflows, data model, integrations, constraints, NFRs, and success metrics. Fill ordinary gaps using explicit assumptions grounded in the source material, codebase patterns, adjacent artifacts, and standard product conventions.
+Cover the same areas as the `andthen:clarify` skill Phase 2, but default to synthesis rather than interview: users & personas, core workflows, data model, integrations, constraints, NFRs, and success metrics. Fill ordinary gaps using explicit assumptions grounded in the source material, codebase patterns, adjacent artifacts, and standard product conventions.
 
 When a gap materially affects scope or prioritization and the evidence is weak, choose the most conservative MVP assumption that still allows a coherent plan. Record it in `prd.md` under `Constraints & Assumptions` and in the `Decisions Log` with alternatives considered. Do not pause the run for routine clarification.
 
-If the input is so ambiguous that multiple incompatible plans are equally plausible and none can be justified, stop and report the smallest missing decisions required. Use `andthen:clarify` only as an explicit fallback.
+If the input is so ambiguous that multiple incompatible plans are equally plausible and none can be justified, stop and report the smallest missing decisions required. Use the `andthen:clarify` skill only as an explicit fallback.
 
 **Gate**: PRD is specific enough for planning; major assumptions and unresolved questions are documented explicitly
 
@@ -129,12 +129,12 @@ Optional: Invoke the `andthen:review --doc-only` skill to validate the PRD befor
 
 ### 1c. PRD Creation from Existing Artifacts _(skip if PRD already exists or no prior artifacts found)_
 
-Use existing artifacts (`requirements-clarification.md` from `andthen:clarify` and/or `prd-draft.md`) as the primary basis for creating the PRD. This path avoids duplicating discovery work already completed.
+Use existing artifacts (`requirements-clarification.md` from the `andthen:clarify` skill and/or `prd-draft.md`) as the primary basis for creating the PRD. This path avoids duplicating discovery work already completed.
 
 - Map existing content against the PRD template (see Step 1b); use [`templates/prd-template.md`](templates/prd-template.md) as the target structure and only ask focused follow-up questions for genuinely missing sections
 - If significant gaps remain, fill only the missing areas using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents. Do not re-ask questions already answered in the existing artifacts, and do not pause for routine clarification.
-- If the artifacts are too ambiguous to support any defensible PRD shape, stop and report the minimum missing decisions required. Mention `andthen:clarify` as the interactive fallback.
-- **Extract technical details**: If the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), keep them out of the PRD. The PRD should focus on *what* to build. Note any significant technical constraints in the PRD's `Constraints & Assumptions` section; deep technical research is deferred to `andthen:spec-plan` or `andthen:spec`.
+- If the artifacts are too ambiguous to support any defensible PRD shape, stop and report the minimum missing decisions required. Mention the `andthen:clarify` skill as the interactive fallback.
+- **Extract technical details**: If the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), keep them out of the PRD. The PRD should focus on *what* to build. Note any significant technical constraints in the PRD's `Constraints & Assumptions` section; deep technical research is deferred to the `andthen:spec-plan` skill or the `andthen:spec` skill.
 - Structure and generate the PRD following the same template as Step 1b. Preserve decisions, rationale, and specific details from existing artifacts – do not paraphrase or generalize away specifics.
 - Apply same Prioritization → PRD Validation steps as Step 1b.
 
@@ -149,7 +149,7 @@ Scan codebase structure (use a sub-agent if supported) to identify natural imple
 
 Synthesize into a unified understanding of: all PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), natural implementation boundaries, feature dependencies, and complexity/risk areas.
 
-Do not save `.technical-research.md` here — deep technical research (architecture patterns, framework constraints, file maps, shared decisions) is done by `andthen:spec-plan` or `andthen:spec` downstream, where it directly informs spec creation.
+Do not save `.technical-research.md` here — deep technical research (architecture patterns, framework constraints, file maps, shared decisions) is done by the `andthen:spec-plan` skill or the `andthen:spec` skill downstream, where it directly informs spec creation.
 
 **Gate**: Feature mapping complete
 
@@ -189,8 +189,8 @@ For each story, define:
 - **ID**: Sequential identifier (S01, S02, etc.)
 - **Name**: Brief descriptive name
 - **Status**: Tracking field – initially `Pending` (updated to `Spec Ready` / `In Progress` / `Done` during execution)
-- **FIS**: Reference to generated spec – initially `–` (updated to file path when `andthen:spec` creates the FIS). Multiple stories may reference the same FIS path when grouped into a composite specification by `andthen:spec-plan`
-- **Scope**: 2-4 sentences – what's included and excluded (no implementation approach – that's for `andthen:spec`)
+- **FIS**: Reference to generated spec – initially `–` (updated to file path when the `andthen:spec` skill creates the FIS). Multiple stories may reference the same FIS path when grouped into a composite specification by the `andthen:spec-plan` skill
+- **Scope**: 2-4 sentences – what's included and excluded (no implementation approach – that's for the `andthen:spec` skill)
 - **Acceptance criteria**: 3-6 testable outcomes – the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
 - **Dependencies**: Other story IDs that must complete first
 - **Phase**: Which implementation phase
@@ -199,7 +199,7 @@ For each story, define:
 - **Risk**: Low/Medium/High with brief note if Medium+
 - Include `Provenance` for carried-forward stories, `Key Scenarios` for behavioral seeds, and `Asset refs` for design references – only when applicable.
 
-**Do not include in stories** (deferred to `andthen:spec`):
+**Do not include in stories** (deferred to the `andthen:spec` skill):
 - Technical approach, patterns, or library choices
 - File paths, line numbers, or code specifics
 - Implementation gotchas or constraints with workarounds
@@ -227,9 +227,9 @@ Keep these invariants from the template:
 
 #### Initialize Project State (if the `State` document exists; see **Project Document Index**)
 If the `State` document exists (path from **Project Document Index**), update it to reflect the new plan:
-- Use `andthen:ops update-state phase "Phase 1: {first_phase_name}"`
-- Use `andthen:ops update-state status "On Track"`
-- Use `andthen:ops update-state note "Plan created: {plan_name} ({N} stories, {M} phases)"`
+- Use the `andthen:ops` skill: `update-state phase "Phase 1: {first_phase_name}"`
+- Use the `andthen:ops` skill: `update-state status "On Track"`
+- Use the `andthen:ops` skill: `update-state note "Plan created: {plan_name} ({N} stories, {M} phases)"`
 
 If the `State` document does not exist (see **Project Document Index**), do not create it – suggest it in follow-up actions instead.
 
@@ -279,12 +279,12 @@ If PUBLISH_ISSUE is `true`:
 
 After completion, suggest the following next steps. **Recommend starting a clean session** for the context-intensive skills (`spec-plan`, `exec-plan`) — they perform best with a fresh context window.
 
-1. **Start with first story**: Run `andthen:spec` for story S01.
-2. **Create wireframes** (if UI work): Run `andthen:wireframes` on the PRD.
-3. **Review plan**: Run `andthen:review --doc-only` on `plan.md`.
-4. **Batch-generate specs** _(clean session)_: Run `andthen:spec-plan` to pre-create all FIS before execution.
-5. **Execute the full plan** _(clean session)_: Run `andthen:exec-plan` to spec and implement all stories.
-6. **Initialize project state** (if not already tracking): Create the `State` document via `andthen:init` or manually from `templates/project-state-templates.md`.
+1. **Start with first story**: Invoke the `andthen:spec` skill for story S01.
+2. **Create wireframes** (if UI work): Invoke the `andthen:wireframes` skill on the PRD.
+3. **Review plan**: Invoke the `andthen:review` skill with `--doc-only` on `plan.md`.
+4. **Batch-generate specs** _(clean session)_: Invoke the `andthen:spec-plan` skill to pre-create all FIS before execution.
+5. **Execute the full plan** _(clean session)_: Invoke the `andthen:exec-plan` skill to spec and implement all stories.
+6. **Initialize project state** (if not already tracking): Create the `State` document via the `andthen:init` skill or manually from `templates/project-state-templates.md`.
 
 
 ---

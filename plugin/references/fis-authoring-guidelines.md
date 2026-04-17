@@ -138,4 +138,4 @@ Rate your FIS 1-10 for single-pass implementation success:
 
 **If score <7**: Revise or ask for user clarification.
 
-**If score <7 AND FIS exceeds size thresholds**: the feature is likely too large for a single spec. Recommend `andthen:plan` for story decomposition before proceeding.
+**If score <7 AND FIS exceeds size thresholds**: the feature is likely too large for a single spec. Recommend the `andthen:plan` skill for story decomposition before proceeding.

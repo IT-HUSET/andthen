@@ -6,7 +6,7 @@ argument-hint: <path-to-plan-directory | --issue <number> | issue URL> [path-to-
 # Execute Plan
 
 
-Execute ALL stories in an implementation plan (from `andthen:plan`) through a fixed pipeline: **spec-plan (per phase) → exec-spec → quick-review** per story, then one **review-gap** on the whole plan.
+Execute ALL stories in an implementation plan (from the `andthen:plan` skill) through a fixed pipeline: **spec-plan (per phase) → exec-spec → quick-review** per story, then one **review-gap** on the whole plan.
 
 Supports two execution modes:
 - **Sub-agents** (default) – parallel sub-agents per wave, sequential fallback when unavailable
@@ -41,7 +41,7 @@ Require `PLAN_SOURCE`. Stop if missing.
 ### Core Rules
 - **Complete implementation**: all stories in plan must be implemented
 - **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly
-- **Pre-generate specs**: invoke `andthen:spec-plan` per phase before executing stories
+- **Pre-generate specs**: invoke the `andthen:spec-plan` skill per phase before executing stories
 - **Fixed pipeline per story**: `exec-spec` → `quick-review`. One final `review-gap` on the whole plan after all stories.
 - **Status updates are gates** – plan.md and FIS checkpoint updates must happen immediately after each story, not batched
 
@@ -79,7 +79,7 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`: `check-stubs.sh`, `check-wiring.s
 
 2. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
 
-3. Read `PLAN_DIR/plan.md`. If missing, stop — a valid plan artifact is required upstream (typically from `andthen:plan`).
+3. Read `PLAN_DIR/plan.md`. If missing, stop — a valid plan artifact is required upstream (typically from the `andthen:plan` skill).
 4. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
 5. Build execution plan respecting phase ordering and dependency chains
 
@@ -103,9 +103,9 @@ For each phase in the plan:
 
 #### 3a. Generate Specs for This Phase
 
-**Update project state** (if the `State` document exists; see **Project Document Index**): `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `andthen:ops update-state status "On Track"`.
+**Update project state** (if the `State` document exists; see **Project Document Index**): invoke the `andthen:ops` skill with `update-state phase "{Phase N}: {phase_name}"` and `update-state status "On Track"`.
 
-Invoke `andthen:spec-plan`:
+Invoke the `andthen:spec-plan` skill:
 ```
 /andthen:spec-plan {PLAN_DIR} --phase {N}
 ```
@@ -142,7 +142,7 @@ Status updates are required. Report back: success/failure, FIS path, any issues.
 
 Do this immediately after each story's pipeline — not as a batch.
 
-Invoke `andthen:ops` to update `plan.md`: Status → `Done`, FIS field, acceptance criteria, Story Catalog status. Use `andthen:ops update-fis {fis_path} all` to mark FIS checkboxes. Update the `State` document (see **Project Document Index**): `andthen:ops update-state active-story {story_id} Done`.
+Invoke the `andthen:ops` skill to update `plan.md`: Status → `Done`, FIS field, acceptance criteria, Story Catalog status. Use `andthen:ops update-fis {fis_path} all` to mark FIS checkboxes. Update the `State` document (see **Project Document Index**) via the `andthen:ops` skill: `update-state active-story {story_id} Done`.
 
 After ops completes, **re-read plan.md and the FIS** to verify updates applied.
 
@@ -218,11 +218,11 @@ Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/referenc
 
 ## FAILURE HANDLING
 
-- **Story pipeline fails** → use `andthen:build-troubleshooter` agent or escalate
+- **Story pipeline fails** → use the `andthen:build-troubleshooter` agent or escalate
 - **Final review fails** → remediate once; escalate if issues persist
 - **Dependent stories blocked** when predecessor fails
 - **>50% of a phase fails** → pause this run and return a failure summary
-- **Update the `State` document on failure** (see **Project Document Index**): `andthen:ops update-state status "At Risk"` or `"Blocked"`
+- **Update the `State` document on failure** (see **Project Document Index**) via the `andthen:ops` skill: `update-state status "At Risk"` or `"Blocked"`
 
 ### Multi-Repo Rules _(team mode, when CODE_DIR ≠ PLAN_DIR's git root)_
 - All git operations target `CODE_DIR` – never the plan repo

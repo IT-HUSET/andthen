@@ -103,7 +103,7 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
    - Implementation fixes: tests, linting, type checks, builds
    - Document fixes: verify terminology, cross-references, linked paths, commands/examples, consistency with source of truth
    - Workflow artifact fixes: verify templates, status semantics, cross-document consistency
-4. Run `andthen:quick-review` on the touched scope. This replaces the heavyweight re-review sub-agents – one lightweight pass is sufficient for targeted fixes.
+4. Invoke the `andthen:quick-review` skill on the touched scope. This replaces the heavyweight re-review sub-agents – one lightweight pass is sufficient for targeted fixes.
 5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), or `DEFERRED` (per severity policy, with justification). This is the primary close-the-loop validation.
 6. If both implementation and document artifacts changed, verify consistency across them.
 7. If Critical/High findings remain after one remediation pass, escalate to the user rather than looping.
@@ -116,8 +116,8 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
 The findings re-check and quick-review results from Phase 4 are the evidence needed to update state. When all required findings are resolved and verification is clean, update state now.
 
 If the report is tied to a story or FIS and remediation passed validation:
-- Use `andthen:ops update-fis {fis_path} all` when the FIS work is substantively complete and evidence exists
-- Use `andthen:ops update-plan {plan_path} {story_id} Done` only after confirming plan acceptance criteria are satisfied
+- Use the `andthen:ops` skill: `update-fis {fis_path} all` when the FIS work is substantively complete and evidence exists
+- Use the `andthen:ops` skill: `update-plan {plan_path} {story_id} Done` only after confirming plan acceptance criteria are satisfied
 - Update the `State` document (see **Project Document Index**) through the `andthen:ops` skill when it exists and the story is now complete
 - Re-read the updated artifacts to verify the status changes applied
 

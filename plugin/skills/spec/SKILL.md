@@ -55,7 +55,7 @@ ARGUMENTS: $ARGUMENTS
 
 ## ORCHESTRATOR ROLE _(if supported by your coding agent)_
 
-You are the orchestrator: parse input, delegate codebase analysis and research to sub-agents, then author the FIS from their findings. Delegate codebase analysis to the `andthen:solution-architect` agent; research to the `andthen:documentation-lookup` or `andthen:research-specialist` agent. Write the FIS yourself to keep it coherent.
+You are the orchestrator: parse input, delegate codebase analysis and research to sub-agents, then author the FIS from their findings. Delegate codebase analysis to the `andthen:solution-architect` agent; research to the `andthen:documentation-lookup` agent or the `andthen:research-specialist` agent. Write the FIS yourself to keep it coherent.
 
 
 ## WORKFLOW
@@ -63,18 +63,18 @@ You are the orchestrator: parse input, delegate codebase analysis and research t
 ### 0. Parse Input & Get Requirements
 
 **If `--issue` flag present**: follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
-Compatible types: none (spec creates new specs from untyped issues). Redirects: `fis-bundle` → stop, spec already exists — direct to `andthen:exec-spec`, `andthen:review`, or the local FIS path; `plan-bundle` → stop, direct to `story {story_id} of <path-to-plan.md>`, `andthen:spec-plan`, or `andthen:exec-plan`; `triage-plan` / `triage-completion` / any `*-review` → stop with matching downstream skill. Untyped: use the issue as the feature request and store the issue number for FIS reference.
+Compatible types: none (spec creates new specs from untyped issues). Redirects (all **skills**): `fis-bundle` → stop, spec already exists — direct to `andthen:exec-spec`, `andthen:review`, or the local FIS path; `plan-bundle` → stop, direct to `story {story_id} of <path-to-plan.md>`, `andthen:spec-plan`, or `andthen:exec-plan`; `triage-plan` / `triage-completion` / any `*-review` → stop with matching downstream skill. Untyped: use the issue as the feature request and store the issue number for FIS reference.
 
-**If ARGUMENTS is a directory with `requirements-clarification.md`** (from `andthen:clarify`): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes, and any explicit non-goals / deferred items as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
+**If ARGUMENTS is a directory with `requirements-clarification.md`** (from the `andthen:clarify` skill): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes, and any explicit non-goals / deferred items as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
-**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates. If a plan-scoped `.technical-research.md` exists in the plan directory (from `andthen:spec-plan` — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce Steps 1 and 2 research accordingly.
+**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates. If a plan-scoped `.technical-research.md` exists in the plan directory (from the `andthen:spec-plan` skill — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce Steps 1 and 2 research accordingly.
 
 **Otherwise**: use inline description or file reference as the feature request.
 
 
 ### 1. Priming and Project Understanding
 
-If a **plan-scoped** `.technical-research.md` exists (created by `andthen:spec-plan` — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce this step to a quick verification that the project structure matches the research. Otherwise, analyse the codebase to understand project structure, relevant files and similar patterns. Use `tree -d` and `git ls-files | head -250` for overview. Use the `Explore` agent _(if supported)_ for deeper context.
+If a **plan-scoped** `.technical-research.md` exists (created by the `andthen:spec-plan` skill — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce this step to a quick verification that the project structure matches the research. Otherwise, analyse the codebase to understand project structure, relevant files and similar patterns. Use `tree -d` and `git ls-files | head -250` for overview. Use the `Explore` agent _(if supported)_ for deeper context.
 
 
 ### 2. Feature Research and Design
@@ -82,7 +82,7 @@ If a **plan-scoped** `.technical-research.md` exists (created by `andthen:spec-p
 If a plan-scoped `.technical-research.md` exists with relevant coverage, skip research categories it already addresses. Only research what's genuinely missing:
 
 - **Codebase research** _(skip if technical research covers file maps and patterns for this story)_: similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Delegate to the `andthen:solution-architect` agent _(if supported)_.
-- **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to the `andthen:research-specialist` or `andthen:documentation-lookup` agent _(if supported)_.
+- **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to the `andthen:research-specialist` agent or the `andthen:documentation-lookup` agent _(if supported)_.
 - **Architecture trade-offs** _(skip if technical research covers shared decisions relevant to this story AND no story-internal trade-offs exist; also skip if ADR in ARGUMENTS)_: analyze 1-3 approaches, document risks. Delegate to the `andthen:solution-architect` agent _(if supported)_.
 - **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Delegate to the `andthen:ui-ux-designer` agent _(if supported)_.
 
@@ -125,7 +125,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
 - If the draft is oversized **and the input is a standalone feature request / issue / clarification directory**:
   1. Do **not** save the giant single FIS as the primary artifact.
   2. Create a small `plan.md` in the output directory with 2-5 focused stories in execution order.
-  3. Generate that `plan.md` using the `andthen:plan` template at `${CLAUDE_PLUGIN_ROOT}/skills/plan/templates/plan-template.md`. Treat the template as an operational contract, not loose guidance.
+  3. Generate that `plan.md` using the `andthen:plan` skill's template at `${CLAUDE_PLUGIN_ROOT}/skills/plan/templates/plan-template.md`. Treat the template as an operational contract, not loose guidance.
   4. Preserve the plan template invariants because downstream skills parse them directly:
      - keep the heading names and overall document shape stable
      - keep the Story Catalog columns exactly `ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS`
@@ -142,7 +142,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
      - save with a stable story-scoped filename such as `s01-{story-name}.md`
      - keep the spec execution-sized; if a child FIS would still be oversized, split the story further in `plan.md` before saving specs
   8. Update the generated `plan.md` immediately after each child FIS is written so that every story points at its child FIS path and has `Status: Spec Ready`.
-  9. Treat the result as a **plan bundle** whose downstream path is `andthen:exec-plan`, not `andthen:exec-spec`.
+  9. Treat the result as a **plan bundle** whose downstream path is the `andthen:exec-plan` skill, not the `andthen:exec-spec` skill.
 - If the draft is oversized **and the input is `story {story_id} of {path-to-plan.md}`**:
   - Do **not** silently fan one plan story out into multiple FIS files.
   - Stop and report that the story needs upstream plan decomposition before spec generation can complete. Do not save an oversized single FIS.
@@ -155,7 +155,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
 - Plan story input: save FIS in plan directory as `{story-name}.md`
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
-- **Technical research**: save as `.technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and `.technical-research.md` already exists (from `andthen:spec-plan`), append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
+- **Technical research**: save as `.technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and `.technical-research.md` already exists (from the `andthen:spec-plan` skill), append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
 - **Update source plan** – if this spec was created for a plan story:
   - Set the story's **FIS** field to the generated FIS file path
   - Set the story's **Status** field to `Spec Ready`
@@ -167,7 +167,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
 - Do **not** use THIN/COMPOSITE/shared-FIS grouping in oversize pivot mode; this mode is a straightforward one-story-per-FIS decomposition
 - Save or reuse `.technical-research.md` beside the plan bundle
 - Update `plan.md` so each generated story references its child FIS path and has `Status` = `Spec Ready`
-- The downstream execution path is `andthen:exec-plan`
+- The downstream execution path is the `andthen:exec-plan` skill
 - Do **not** use oversize pivot mode for `story {story_id} of {path-to-plan.md}` input; that case must escalate for upstream plan decomposition instead
 
 ### Publish to GitHub _(if --to-issue)_
@@ -197,11 +197,11 @@ Print the issue URL and the local primary path (the generated FIS or `plan.md`, 
 
 After completion, suggest:
 
-1. **Single-FIS mode**: Run `andthen:exec-spec` to implement the FIS.
-2. **Oversize pivot mode**: Run `andthen:exec-plan` to execute the generated plan bundle.
-3. **Review first**: Run `andthen:review --doc-only` on the primary artifact before implementation.
+1. **Single-FIS mode**: Invoke the `andthen:exec-spec` skill to implement the FIS.
+2. **Oversize pivot mode**: Invoke the `andthen:exec-plan` skill to execute the generated plan bundle.
+3. **Review first**: Invoke the `andthen:review` skill with `--doc-only` on the primary artifact before implementation.
 
-> **Session tip**: `exec-spec` is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
+> **Session tip**: The `andthen:exec-spec` skill is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
 
 
 ---

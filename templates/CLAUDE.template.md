@@ -114,11 +114,11 @@ _Always fully read and understand this file before doing any work:_ @docs/rules/
 
 ### Context7 MCP - Library and Framework Documentation Lookup (https://github.com/upstash/context7)
 Context7 MCP pulls up-to-date, version-specific documentation and code examples straight from the source.
-**Only** use Context7 MCP via the _`andthen:documentation-lookup`_ sub-agent for documentation retrieval tasks.
+**Only** use Context7 MCP via the _`andthen:documentation-lookup`_ agent for documentation retrieval tasks.
 
 ### Fetch (https://github.com/modelcontextprotocol/servers/tree/main/src/fetch)
 Retrieves and processes content from web pages, converting HTML to markdown for easier consumption.
-**Only** use Fetch MCP via the _`andthen:documentation-lookup`_ sub-agent for documentation retrieval tasks.
+**Only** use Fetch MCP via the _`andthen:documentation-lookup`_ agent for documentation retrieval tasks.
 
 ### Code Analysis and Style (Analysis, Linting and Formatting)
 

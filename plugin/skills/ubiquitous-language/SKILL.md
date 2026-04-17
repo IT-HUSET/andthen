@@ -143,5 +143,5 @@ Save to the `Ubiquitous Language` document location from the **Project Document 
 When complete, print the output path and suggest:
 1. Review the glossary for accuracy with domain experts
 2. Run the `andthen:ubiquitous-language` skill periodically to keep it current:
-   `/andthen:ubiquitous-language --update` (or `$andthen:ubiquitous-language --update`)
+   `/andthen:ubiquitous-language --update` (or `$andthen-ubiquitous-language --update` for Codex CLI)
 3. Run the `andthen:review-code` skill to check code against the glossary
