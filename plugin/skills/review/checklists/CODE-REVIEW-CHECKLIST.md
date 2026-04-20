@@ -56,7 +56,8 @@ Concise, actionable checklist for thorough code reviews.
 - [ ] Test coverage adequate (critical paths, edge cases)
 - [ ] Tests pass and are meaningful
 - [ ] Tests are maintainable and readable
-- [ ] Mock/stub usage appropriate
+- [ ] Mocks/stubs confined to system edges (filesystem, network, clock, randomness); domain objects and the unit under test are not mocked
+- [ ] Each test would fail if the asserted production behavior were removed; fixtures capture real outputs rather than substitute for the production computation
 
 ### Documentation
 - [ ] Public APIs documented

@@ -6,6 +6,18 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.13.1] – 2026-04-20
+
+### Fixed
+- **Agent/skill confusion around `andthen:quick-review`** – the skill's own description led with "fresh-context sub-agent" and the `andthen:remediate-findings` call site sat next to "heavyweight re-review sub-agents", which primed callers (especially when `remediate-findings` itself ran inside a sub-agent) to pass `andthen:quick-review` as `subagent_type` to the Task tool and fail with "Agent type not found". Reframed the skill description and opening, added an explicit "this is a skill, not an agent type — do not pass as `subagent_type`" guardrail, and rewrote the `remediate-findings` step-4 invocation to mirror the defensive pattern already used in `exec-spec/SKILL.md:135,138`.
+
+### Changed
+- **Testing discipline tightened in verification gates** – `andthen:exec-spec` Step 4a gains a new "Tautology check" (the unit under test must be imported and called without being replaced by a mock; assertions must reference its return value or an observable effect, not mock call arguments; fixtures must not substitute for the production computation). The code-review checklist replaces the generic "Mock/stub usage appropriate" item with two sharper checks: mocks/stubs confined to system edges, and each test would fail if the asserted production behavior were removed.
+- **Removed changelog framing from prompt artifacts** – per the "no historical-change notes in skill prompts, references, or templates" principle, dropped the `Replaces/evolves the narrower "implementation-notes.md" concept.` tail from the LEARNINGS.md blockquote in both `init/templates/project-state-templates.md` and `map-codebase/templates/project-state-templates.md`, and removed the "replaces the heavyweight re-review sub-agents" comparative from `remediate-findings/SKILL.md:93`.
+
+
+---
+
 ## [0.13.0] – 2026-04-20
 
 ### Added

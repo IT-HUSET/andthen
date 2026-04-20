@@ -1,12 +1,14 @@
 ---
-description: Quick in-conversation review of recent changes using a fresh-context sub-agent for adversarial critique. Use mid-conversation to sanity-check work before moving on. Trigger on 'quick review this', 'sanity-check this', 'give this a quick pass'.
+description: Quick in-conversation skill for adversarial review of recent changes in fresh context. Use mid-conversation to sanity-check work before moving on. Trigger on 'quick review this', 'sanity-check this', 'give this a quick pass'.
 user-invocable: true
 argument-hint: "[optional focus or scope] [--fix]"
 ---
 
 # Quick Review
 
-Lightweight, ad-hoc review of recent work in the current conversation. Spawns a fresh-context sub-agent to critique what was just done — catching errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
+Lightweight, ad-hoc review of recent work in the current conversation. Internally delegates the critique to a fresh-context sub-agent to catch errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
+
+`andthen:quick-review` is a **skill**, not an agent type. Invoke it via `/andthen:quick-review` or the Skill tool — do not pass it as `subagent_type`.
 
 **For thorough reviews, start with** the `andthen:review` **skill**. Pass `--council` when you explicitly want multi-perspective adversarial review.
 

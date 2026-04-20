@@ -90,7 +90,7 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
    - Implementation fixes: tests, linting, type checks, builds
    - Document fixes: verify terminology, cross-references, linked paths, commands/examples, consistency with source of truth
    - Workflow artifact fixes: verify templates, status semantics, cross-document consistency
-4. Invoke the `andthen:quick-review` skill on the touched scope. This replaces the heavyweight re-review sub-agents – one lightweight pass is sufficient for targeted fixes.
+4. Invoke the `andthen:quick-review` skill on the touched scope (via `/andthen:quick-review` or the Skill tool — not as `subagent_type`).
 5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), or `DEFERRED` (per severity policy, with justification). This is the primary close-the-loop validation.
 6. If both implementation and document artifacts changed, verify consistency across them.
 7. If Critical/High findings remain after one remediation pass, escalate to the user rather than looping.

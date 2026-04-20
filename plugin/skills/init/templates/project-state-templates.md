@@ -148,7 +148,7 @@ Status: On Track | At Risk | Blocked
 
 ## LEARNINGS.md
 
-> Accumulated project knowledge – traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically. Replaces/evolves the narrower "implementation-notes.md" concept.
+> Accumulated project knowledge – traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically.
 
 ```markdown
 # Project Learnings
