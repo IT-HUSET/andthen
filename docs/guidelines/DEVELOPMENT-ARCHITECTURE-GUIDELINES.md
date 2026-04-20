@@ -61,7 +61,7 @@ When researching APIs, libraries, or frameworks, prioritize sources in this orde
 UI features require visual validation — code review alone is insufficient:
 - Capture screenshots across target devices and orientations
 - Verify touch targets, theme consistency, and responsive behavior
-- Use the `ui-ux-designer` agent (validation mode) for systematic checks
+- Use the `ui-ux-design` skill (review mode) for systematic checks
 
 
 ## Critical Prohibitions

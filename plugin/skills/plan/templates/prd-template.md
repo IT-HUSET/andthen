@@ -1,3 +1,7 @@
+---
+source: plugin/skills/prd/templates/prd-template.md
+---
+
 # Product Requirements Document Template
 
 > Use this template as the baseline shape for `prd.md`.

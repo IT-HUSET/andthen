@@ -10,15 +10,14 @@ This file provides guidance to AI coding agents when working with code in this p
 
 AndThen is an opinionated workflow system for AI coding agents. It provides structured skills that guide development through disciplined pipelines – from requirements discovery through implementation to review. See `plugin/README.md` for the full workflow overview and skill reference.
 
-Core artifacts are the **Feature Implementation Specification (FIS)** for single features and the **PRD + Implementation Plan** (story breakdown) for multi-feature work. Detailed FIS specs are created just-in-time per story during plan execution.
+Core artifacts are the **Feature Implementation Specification (FIS)** for single features and the **PRD + Plan Bundle** (story breakdown + FIS for every story + shared technical research) for multi-feature work. The `andthen:prd` skill produces the PRD; the `andthen:plan` skill consumes that PRD and produces the plan bundle in one pass; the `andthen:exec-plan` skill consumes the bundle as-is.
 
 **Structure:**
-- `plugin/` – Claude Code plugin (skills, agents, references)
+- `plugin/` – Claude Code plugin (skills and agents). Each skill is fully self-contained with its own `references/`, `templates/`, and `scripts/` where needed — no cross-skill or plugin-root paths are used inside skill files.
 - `hooks/` – Claude Code hooks (blocked commands, notification scripts)
 - `scripts/` – Installation and setup scripts
 - `docs/` – Guidelines and reference documentation used by workflow skills
 - `docs/temp/research/` – Research outputs (worktree strategies, skill analysis, etc.)
-- `templates/` – Starter templates for user projects
 - `skills` → symlink to `plugin/skills/` (for Codex/agent discovery)
 
 
@@ -27,40 +26,21 @@ Core artifacts are the **Feature Implementation Specification (FIS)** for single
 
 ## Skill Invocation
 
-Skills are invoked as `/andthen:<skill>` (e.g. `/andthen:spec`, `/andthen:plan`). Agents share the `andthen:` *string prefix* but are **not** `/andthen:` invokable — they are spawned via the Task tool with `subagent_type: "andthen:<name>"`. When skills are exported for other agents via `scripts/install-skills.sh`, references are rewritten to the portable `andthen-` prefix (hyphen, not dot – required for Codex CLI `$` sigil parser compatibility). Specifically: `/andthen:<name>` rewrites to `$andthen-<name>` (sigil + separator swap) and bare `andthen:<name>` rewrites to `andthen-<name>`.
+Skills invoke as `/andthen:<name>` or via the Skill tool. Agents invoke via the Task tool with `subagent_type: "andthen:<name>"`. Both share the `andthen:` prefix but are **not** interchangeable — passing a skill name as `subagent_type` fails with "Agent type not found". The 3 valid agents live in `plugin/agents/`: `documentation-lookup`, `research-specialist`, `visual-validation-specialist`. All other AndThen capabilities (architecture, UI/UX, testing, triage, etc.) are **skills** — invoke via `/andthen:<name>` or via the Skill tool. Skills marked `context: fork` in their frontmatter (e.g. `ops`) auto-isolate in a sub-context when invoked; other skills that need fresh context are run by spawning a `general-purpose` sub-agent whose prompt runs `/andthen:<name>`.
 
-### Skills vs Agents — Invariant
+**Naming convention**: skills are named for the *activity* (`architecture`, `ui-ux-design`, `testing`, `triage`); agents are named for the *persona* (`research-specialist`, `documentation-lookup`, `visual-validation-specialist`). Activity-nouns belong in `plugin/skills/`, persona-nouns in `plugin/agents/`.
 
-**This is a load-bearing distinction. Violating it causes the Task tool to fail with "Agent type not found".**
+**Codex agents are generated at install time** from `plugin/agents/*.md` by `scripts/generate-codex-agents.sh`, invoked by `scripts/install-skills.sh`. Claude Code agent files are the source of truth; Codex TOMLs are not committed.
 
-Skills and agents share the `andthen:` namespace but have different invocation mechanisms and are not interchangeable:
+`scripts/install-skills.sh` rewrites references for portability: `/andthen:<name>` → `$andthen-<name>` and bare `andthen:<name>` → `andthen-<name>` (hyphen required for Codex CLI `$` sigil parser).
 
-- **Agents** (`plugin/agents/*.md`, 7 total: `build-troubleshooter`, `documentation-lookup`, `qa-test-engineer`, `research-specialist`, `solution-architect`, `ui-ux-designer`, `visual-validation-specialist`) — valid `subagent_type` values for the Task tool. Spawned as real sub-agents.
-- **Skills** (`plugin/skills/*/`) — invoked via `/andthen:<name>` slash command or the Skill tool. **Not valid `subagent_type` values.**
+### Wording Convention
 
-When a skill needs a fresh context (e.g. independent review), the pattern is: spawn a `general-purpose` sub-agent whose prompt runs the `/andthen:<name>` slash command. Never pass a skill name as `subagent_type`.
+Every `andthen:<name>` reference in prose (skill prompts, references, this file) must have the type noun **adjacent**: "the `andthen:<name>` **skill**" or "the `andthen:<name>` **agent**". The named antipattern **"Spawn `andthen:<skill-name>` sub-agent"** primes agents to pass skill names as `subagent_type` and caused a real regression (0.12.x) — prefer "invoke the `andthen:<name>` skill" or "spawn a `general-purpose` sub-agent and have it run `/andthen:<name>`".
 
-### Wording Convention (mandatory when authoring or refactoring skill prompts)
+Exceptions: bare `/andthen:<name>` in code blocks, schema/frontmatter data values, and compact routing maps where a leading parenthetical qualifier covers all entries.
 
-Every `andthen:<name>` reference in a skill prompt, reference doc, or CLAUDE.md must have the type noun **adjacent** to the name:
-- "the `andthen:<name>` **skill**" / "invoke the `andthen:<name>` skill" / "run the `andthen:<name>` skill"
-- "the `andthen:<name>` **agent**" / "delegate to the `andthen:<name>` agent" / "spawn the `andthen:<name>` agent"
-
-Named antipattern: **"Spawn `andthen:<skill-name>` sub-agent"**. This phrasing primes agents to pass skill names as `subagent_type`, which fails. It caused a real regression (see commit history around 0.12.x). Prefer "invoke the `andthen:<name>` skill" for in-context work, or "spawn a `general-purpose` sub-agent and have it run `/andthen:<name>`" when fresh context is genuinely needed.
-
-Exceptions (convention does not apply):
-- Bare `/andthen:<name>` invocation lines in code blocks and user-facing examples — the `/` sigil carries the meaning
-- YAML/JSON schema values and metadata fields (e.g. `source_skill: andthen:plan`) — data tokens, not prose references
-- Frontmatter fields like `agent: general-purpose` — runtime contract, not a reference
-- Compact arrow-notation routing/redirect maps where a single parenthetical type qualifier covers all entries (e.g. `Redirects (all **skills**): fis-bundle → andthen:exec-spec / andthen:spec; ...`) — individual per-name tags would make the map unreadable; the leading qualifier suffices
-
-When refactoring AndThen itself, any change that touches `andthen:*` references must preserve this convention. Audit command (covers every directory where the convention applies):
-
-```sh
-rg 'andthen:[a-z-]+' CLAUDE.md plugin/skills/ plugin/references/ plugin/agents/ templates/ docs/
-```
-
-For every hit, confirm it is either (a) a bare invocation in a code block/example, (b) a schema value / frontmatter field, or (c) has the type noun ("skill" / "agent") adjacent.
+Audit: `rg 'andthen:[a-z-]+' CLAUDE.md plugin/ docs/`
 
 
 ---
@@ -70,7 +50,7 @@ For every hit, confirm it is either (a) a bare invocation in a code block/exampl
 
 ### Project Context Discovery
 Skills read the **user's project** `CLAUDE.md` (not this repo's) for two key integration points:
-- **Project Document Index** – a table mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `templates/CLAUDE.template.md` for the table format
+- **Project Document Index** – a table mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `plugin/skills/init/templates/CLAUDE.template.md` for the table format
 - **Workflow Rules, Guardrails and Guidelines** – behavioral rules and development standards that skills load before starting work (e.g. rules files, development/architecture/UI guidelines)
 
 ### Skill Anatomy
@@ -79,8 +59,51 @@ Each skill lives in `plugin/skills/<name>/` and contains:
 - `agents/openai.yaml` – OpenAI/Codex agent metadata for cross-agent portability
 - Optional subdirectories for templates, checklists, or references
 
-### Shared References
-`plugin/references/` contains reusable reference documents loaded by multiple skills (e.g. `design-tree.md` used by `clarify`, `plan`, and `trade-off`). When skills are exported via `scripts/install-skills.sh`, reference paths are rewritten to resolve correctly outside this repo.
+### Self-Contained Skills — Asset Ownership
+
+Skills are fully self-contained: each skill owns its `references/`, `templates/`, and `scripts/` locally. There is **no** `plugin/references/` or `plugin/scripts/` directory, and skill files never reach into sibling skills (no `../<other-skill>/...` paths).
+
+When the same asset is useful in more than one skill, it is **duplicated**. Markdown duplicates carry a YAML frontmatter `source:` pointer naming the canonical owner:
+
+```yaml
+---
+source: plugin/skills/<owner-skill>/<subdir>/<file>.md
+---
+```
+
+Script duplicates (`.sh`) do not support frontmatter; their ownership is tracked only in the table below.
+
+Edits land in the canonical source first; consumers pull in or diverge as their needs evolve. No sync script, no CI check — accept drift and reconcile ad hoc.
+
+**References (`references/`)**
+
+| File | Owner | Also in |
+|---|---|---|
+| adversarial-challenge.md | review | architecture |
+| design-tree.md | architecture | clarify |
+| execution-discipline.md | exec-plan | exec-spec |
+| farley-framework.md | architecture | testing |
+| fis-authoring-guidelines.md | spec | plan, review |
+| review-calibration.md | review | architecture |
+| trust-boundaries.md | review | e2e-test, triage |
+
+**Templates (`templates/`)**
+
+| File | Owner | Also in |
+|---|---|---|
+| fis-template.md | spec | plan |
+| plan-template.md | plan | spec |
+| prd-template.md | prd | plan |
+| CLAUDE.template.md | init | — |
+| project-state-templates.md | init | map-codebase |
+
+**Scripts (`scripts/`)**
+
+| File | Canonical source | Also in |
+|---|---|---|
+| run-security-scan.sh | review | — |
+
+**Contract-critical fields** (severity labels, verdict strings, report section names, script CLI contracts) must stay aligned across copies. Guidance content is allowed to diverge.
 
 
 ---
@@ -96,6 +119,7 @@ Modern frontier models understand *why* things matter. Skills should express **i
 - **Named principles over unnamed rules**: A named principle (Chesterton's Fence, Prove-It Pattern, Proof-of-Work, Stop-the-Line) gives the model a conceptual anchor for *when* and *why* the principle applies. An unnamed rule is just a constraint to follow or ignore.
 - **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens — it prevents the model from rationalizing its way past the step.
 - **Headless by default**: Skills should run to completion without waiting for another user turn unless they are explicitly interactive by nature (for example `clarify` or `init`) or blocked by a real contract failure. Prefer explicit assumptions, conservative defaults, and documented open questions over `STOP and WAIT` patterns in execution-oriented skills.
+- **Brevity and clear language**: Always keep skills pragmatic, concise and actionable. Avoid jargon, verbosity, and complex sentence structures. Use simple, direct language to convey instructions and principles. 
 
 
 ---

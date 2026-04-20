@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - UI/UX Design"
+  short_description: "UI/UX research, design systems, wireframes, and design validation"
+  default_prompt: "UI/UX work — research, design system, wireframes, or review. Inputs or scope: "
+
+policy:
+  allow_implicit_invocation: true

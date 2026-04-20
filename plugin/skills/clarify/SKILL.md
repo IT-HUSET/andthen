@@ -21,15 +21,6 @@ _Output directory for clarified requirements:_
 OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Document Index**)_
 
 
-## USAGE
-
-```
-/clarify "Users need to export data in multiple formats"  # From inline description
-/clarify @docs/feature-request.md                         # From requirements file
-/clarify --issue 42                                       # From GitHub issue
-```
-
-
 ## INSTRUCTIONS
 
 - Require `INPUT`. Stop if missing.
@@ -38,7 +29,7 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 - Clarify requirements, do not design solutions.
 
 ### Requirements vs. Implementation Boundary
-Clarify operates at the **requirements level** — decisions that users, stakeholders, or product owners care about. Technical choices that only developers evaluate (architecture patterns, library choices, data storage strategies, internal API design, code organization) belong downstream in the `andthen:spec` skill or the `andthen:trade-off` skill. Explore only user-facing behavior, product scope, workflow, content architecture, and access control models.
+Clarify operates at the **requirements level** — decisions that users, stakeholders, or product owners care about. Technical choices that only developers evaluate (architecture patterns, library choices, data storage strategies, internal API design, code organization) belong downstream in the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`). Explore only user-facing behavior, product scope, workflow, content architecture, and access control models.
 
 
 ## GOTCHAS
@@ -53,8 +44,7 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
 ### 1. Parse and Assess Input
 
 1. **Parse INPUT** - Determine type: inline description, file path, `--issue`, or URL
-   - If `--issue` flag present (or INPUT refers to a GitHub issue): follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
-     Compatible types: none (clarify works from untyped issues as raw requirements input). Redirects (all **skills**): `plan-bundle` → `andthen:exec-plan` / `andthen:spec-plan` / `andthen:plan`; `fis-bundle` → `andthen:exec-spec`; `triage-plan` → `andthen:quick-implement` / `andthen:triage`; `triage-completion` → STOP (completed report, not actionable requirements); any `*-review` → `andthen:remediate-findings`. Untyped: use issue content as requirements input. Store issue number for reference in output.
+   - If `--issue <number>` flag present (or INPUT is a GitHub issue URL): fetch the body with `gh issue view <number>` and use its content as raw requirements input. Store the issue number for reference in the output header.
    - If file path: Read and extract requirements
    - If URL: Fetch and extract requirements
    - If description: Use directly
@@ -63,7 +53,7 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
 
 3. **Gap identification** - List gaps in: functional requirements, user flows, edge cases, success criteria, scope boundaries
 
-4. **Design space decomposition** _(see `plugin/references/design-tree.md`)_
+4. **Design space decomposition** _(see `references/design-tree.md`)_
 
    When the feature involves **user-visible or product-level** design decisions with multiple viable approaches, decompose the solution space into independent dimensions:
    - Identify independent dimensions of choice at the requirements level (navigation model, data display, auth method, interaction pattern) – these are peers, not a hierarchy
@@ -71,7 +61,7 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
    - Assess cross-consistency: evaluate pairwise compatibility between options, marking incompatible or conditional pairings with rationale
    - Use the decomposition to generate targeted questions — each unresolved dimension is a question to ask
 
-   > **Scope guard**: Only decompose dimensions where the *user or stakeholder* would recognize the options as meaningfully different. If a dimension is purely technical (caching strategy, API protocol, DB engine), flag it as a downstream concern for the `andthen:spec` skill or the `andthen:trade-off` skill — do not decompose it here.
+   > **Scope guard**: Only decompose dimensions where the *user or stakeholder* would recognize the options as meaningfully different. If a dimension is purely technical (caching strategy, API protocol, DB engine), flag it as a downstream concern for the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`) — do not decompose it here.
 
    Include the decomposition in the requirements output so downstream skills can reference resolved decisions.
    _Skip this step for simple features with no meaningful design alternatives._
@@ -87,7 +77,7 @@ Ask targeted questions based on identified gaps and unresolved design dimensions
 
 Cover these areas when relevant: scope & boundaries (in/out of scope, MVP, deferrals); users & flows (roles, happy path, alternate paths, UI involvement); edge cases & errors (invalid input, failures, boundary conditions); success criteria (acceptance criteria, metrics, test/validation approach); dependencies & constraints (external systems, technical constraints, timeline).
 
-When answers are surface-level, vague, or contradictory, use probing techniques from `plugin/references/discovery-interview-techniques.md`.
+When answers are surface-level, vague, or contradictory, use probing techniques from `references/discovery-interview-techniques.md`.
 
 **Gate**: All critical questions answered, no blocking ambiguities
 
@@ -181,7 +171,7 @@ Generate markdown document:
 | Dimension | Choice | Rationale |
 
 ### Open Design Questions
-- [Dimensions needing further analysis via the `andthen:trade-off` skill]
+- [Dimensions needing further analysis via the `andthen:architecture` skill (`--mode trade-off`)]
 
 ## Edge Cases
 | Scenario | Expected Behavior |
@@ -219,8 +209,9 @@ When complete, print the report's **relative path from the project root**.
 
 After completion, ask user if they'd like to:
 1. **Create feature spec** – invoke the `andthen:spec` skill on the output directory to generate a FIS from the clarified requirements.
-2. **Proceed to planning** – invoke the `andthen:plan` skill on the output directory for multi-feature / MVP scope.
-3. Review specific areas in more depth.
-4. Share with stakeholders for validation.
+2. **Create a PRD** – invoke the `andthen:prd` skill on the output directory before planning a multi-feature effort.
+3. **Proceed to planning** – invoke the `andthen:prd` skill, then the `andthen:plan` skill on the output directory for multi-feature / MVP scope.
+4. Review specific areas in more depth.
+5. Share with stakeholders for validation.
 
-> **Session tip**: `spec` and `plan` can run in this session. But the heavier skills that follow them — `exec-spec`, `spec-plan`, `exec-plan` — are context-intensive and perform best in a **clean session**.
+> **Session tip**: `spec`, `prd`, and `plan` can run in this session. But the heavier skills that follow them — `exec-spec`, `exec-plan` — are context-intensive and perform best in a **clean session**. `plan` also benefits from a clean session when generating the full FIS bundle.

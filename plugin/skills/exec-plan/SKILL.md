@@ -1,12 +1,14 @@
 ---
-description: Use when the user wants to execute an implementation plan. Runs the AndThen plan pipeline (spec-plan per phase, then exec-spec + quick-review per story, final review-gap). Supports Agent Teams (--team) and sub-agents (portable fallback). Trigger on 'execute this plan', 'implement this plan', 'run the plan', 'execute with agents', 'run as team'.
-argument-hint: <path-to-plan-directory | --issue <number> | issue URL> [path-to-code-repo] [--team] [--worktree]
+description: Use when the user wants to execute a fully-specced implementation plan bundle. Runs a fixed pipeline per story (exec-spec + quick-review) and a final gap review on the whole plan. Requires a plan bundle where every story already has a FIS. Supports Agent Teams (--team) and sub-agents (portable fallback). Trigger on 'execute this plan', 'implement this plan', 'run the plan', 'execute with agents', 'run as team'.
+argument-hint: <path-to-plan-directory> [path-to-code-repo] [--team] [--worktree]
 ---
 
 # Execute Plan
 
 
-Execute ALL stories in an implementation plan (from the `andthen:plan` skill) through a fixed pipeline: **spec-plan (per phase) → exec-spec → quick-review** per story, then one **review-gap** on the whole plan.
+Execute ALL stories in a fully-specced plan bundle (from the `andthen:plan` skill) through a fixed pipeline: **exec-spec → quick-review** per story, then one final gap review (`review --mode gap`) on the whole plan.
+
+**Requires a fully-specced plan bundle** — every story in `plan.md` must already have a FIS. If any story's `**FIS**` field is `–` or points at a non-existent file, stop and redirect to the `andthen:plan` skill to complete spec generation (`andthen:plan` is resumable — it only fills missing FIS). If no `prd.md` exists upstream, the full chain is `andthen:prd → andthen:plan → andthen:exec-plan`; `andthen:plan` will redirect to `andthen:prd` itself when its input lacks a PRD.
 
 Supports two execution modes:
 - **Sub-agents** (default) – parallel sub-agents per wave, sequential fallback when unavailable
@@ -15,7 +17,7 @@ Supports two execution modes:
 
 ## VARIABLES
 
-PLAN_SOURCE: $ARGUMENTS
+PLAN_DIR: $ARGUMENTS
 CODE_DIR: second positional argument _(optional – for multi-repo setups where plan and code live in different repos)_
 
 ### Optional Flags
@@ -23,54 +25,39 @@ CODE_DIR: second positional argument _(optional – for multi-repo setups where 
 - `--worktree` → USE_WORKTREE: enable isolated git worktrees for parallel execution (team mode only; default: `false`)
 
 
-## USAGE
-
-```
-/exec-plan path/to/plan                       # Sub-agent mode (default)
-/exec-plan --issue 123                        # From GitHub issue
-/exec-plan path/to/plan --team                # Force Agent Teams
-/exec-plan path/to/plan --team --worktree     # Team + parallel worktrees
-/exec-plan path/to/plan path/to/code --team   # Multi-repo setup
-```
-
-
 ## INSTRUCTIONS
 
-Require `PLAN_SOURCE`. Stop if missing.
+Require `PLAN_DIR`. Stop if missing.
 
 ### Core Rules
 - **Complete implementation**: all stories in plan must be implemented
 - **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly
-- **Pre-generate specs**: invoke the `andthen:spec-plan` skill per phase before executing stories
-- **Fixed pipeline per story**: `exec-spec` → `quick-review`. One final `review-gap` on the whole plan after all stories.
-- **Status updates are gates** – plan.md and FIS checkpoint updates must happen immediately after each story, not batched
+- **Plan must be fully specced** – every story's `**FIS**` field must point at an existing file. Fail fast otherwise; redirect to the `andthen:plan` skill
+- **Fixed pipeline per story**: `exec-spec` → `quick-review`, then one final `review --mode gap` on the whole plan
+- **Execution discipline and authoritative status writes** — see `references/execution-discipline.md` (Stop-the-Line, objective-vs-subjective finding policy, authoritative-writes ownership). `exec-spec` Step 5b is the per-story status write; sub-agents and teammates do not additionally call `andthen:ops update-*`. The orchestrator writes cross-story state and repair writes only.
 
 ### Orchestrator Role
-**You are the orchestrator.** Parse the plan, invoke spec-plan per phase, execute the per-story pipeline, track progress, update the plan as stories complete, handle failures, and run final verification.
+**You are the orchestrator.** Parse the plan, run the per-story pipeline, verify each story's `exec-spec` writes landed, handle phase transitions, manage failures, run final verification.
 
-Do not: write implementation code directly, let context bloat, or skip final verification.
+**Delegate story code to `exec-spec`** (sub-agent, teammate, or sequential fallback). If a delegated story returns partial or non-green, take over locally, repair, re-verify, continue — reporting broken state is not completion.
+
+Do not: generate specs (that's `andthen:plan`), let context bloat, or skip final verification.
 
 
 ## GOTCHAS
 - Executing stories out of wave order when dependencies exist
-- Skipping spec-plan before executing a phase
+- Accepting a plan bundle with missing FIS and trying to synthesize specs ad-hoc — stop and redirect to the `andthen:plan` skill instead
 - **Status updates dropped when context exhausted** – plan and FIS checkpoint updates are gates that block the next phase
 - Not updating the `State` document (see **Project Document Index**) when phases transition or blockers are discovered
 - **Re-executing a composite FIS already implemented** – check the executed-FIS set before each story's pipeline
 - **Marking Done without verifying plan acceptance criteria**
 - **(Team mode)** Do not use `isolation: "worktree"` with `team_name` – Claude Code bug ([#33045](https://github.com/anthropics/claude-code/issues/33045)); instruct implementers to call `EnterWorktree` themselves
 - **(Team mode, worktree)** Wave N+1 worktrees must be created AFTER Wave N merges complete
-- **(Team mode)** Only the orchestrator writes to the `State` document (avoids race conditions)
-
-### Helper Scripts
-Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`: `check-stubs.sh`, `check-wiring.sh`, `verify-implementation.sh`.
 
 
 ## WORKFLOW
 
 ### Step 1: Parse Plan
-
-0. Resolve `PLAN_SOURCE`: if `--issue` or GitHub URL, follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`. Compatible types: `plan-bundle` — extract per the **Resolve Plan-Bundle Input** procedure in `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`. All other typed artifacts → stop and exit with the correct skill. Untyped → stop — this skill requires a typed plan artifact.
 
 1. **Resolve CODE_DIR** _(skip if `--team` not set and no second positional arg)_:
    - If provided: verify git repository, resolve to absolute path
@@ -81,9 +68,10 @@ Available in `${CLAUDE_PLUGIN_ROOT}/scripts/`: `check-stubs.sh`, `check-wiring.s
 
 3. Read `PLAN_DIR/plan.md`. If missing, stop — a valid plan artifact is required upstream (typically from the `andthen:plan` skill).
 4. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
-5. Build execution plan respecting phase ordering and dependency chains
+5. **Verify bundle is fully specced**: every story's `**FIS**` field must point at an existing file. If any story has `**FIS**: –` or references a non-existent file, stop and print: `Plan bundle is not fully specced — run /andthen:plan {PLAN_DIR} to fill missing FIS (plan is resumable and only regenerates missing specs).` Do not proceed.
+6. Build execution plan respecting phase ordering and dependency chains
 
-**Gate**: Plan parsed and phases identified
+**Gate**: Plan parsed, bundle verified fully specced, phases identified
 
 
 ### Step 2: Determine Execution Mode
@@ -101,17 +89,13 @@ Check whether Agent Teams are available by verifying that team creation tools ex
 
 For each phase in the plan:
 
-#### 3a. Generate Specs for This Phase
+#### 3a. Phase Transition
 
 **Update project state** (if the `State` document exists; see **Project Document Index**): invoke the `andthen:ops` skill with `update-state phase "{Phase N}: {phase_name}"` and `update-state status "On Track"`.
 
-Invoke the `andthen:spec-plan` skill:
-```
-/andthen:spec-plan {PLAN_DIR} --phase {N}
-```
-After `spec-plan` completes, re-read `plan.md` to pick up updated FIS paths.
+The bundle is already fully specced (verified in Step 1, item 5). Re-read `plan.md` if any status updates from a prior phase may have landed during execution.
 
-**Gate**: All stories in current phase have FIS documents
+**Gate**: Phase context loaded, `plan.md` current
 
 #### 3b. Execute Story Pipelines
 
@@ -121,34 +105,62 @@ After `spec-plan` completes, re-read `plan.md` to pick up updated FIS paths.
 1. **Implement**: `/andthen:exec-spec {fis_path}`
 2. **Review**: `/andthen:quick-review` on the story's changes
 
-**Wave-based execution**: Execute W1 stories in parallel (via sub-agents if supported), then W2, etc. If sub-agents not available, execute stories sequentially.
+**Wave-based execution**: W1 in parallel (via sub-agents if supported), then W2, etc. Fall back to sequential in-orchestrator execution if sub-agents are unavailable or delegated execution stalls / returns partial / non-green.
 
-**Sub-agent prompt** for parallel story execution:
+**Sub-agent prompt**:
 ```
-Implement story {story_id}: {story_name}
+Story {story_id}: {story_name}
 Plan: {PLAN_DIR}/plan.md | FIS: {fis_path}
 
 1. /andthen:exec-spec {fis_path}
-2. /andthen:quick-review (on changes from step 1)
-3. Update status: /andthen:ops update-fis {fis_path} all
-   /andthen:ops update-plan {PLAN_DIR}/plan.md {story_id} Done
+2. /andthen:quick-review on the changes
 
-Status updates are required. Report back: success/failure, FIS path, any issues.
+Run `/andthen:exec-spec` — its Step 5b writes this story's status.
+Do NOT call /andthen:ops update-plan, update-fis, or update-state
+*beyond* what exec-spec does internally. (Suppressing exec-spec's
+own Step 5b writes is also wrong.)
+
+Report:
+- Step results (success/failure), files changed
+- `exec-spec` Step 4a numbers (build, tests, lint/type-check)
+- Any issues, incomplete work, or non-green state — be explicit
 ```
 
 **Model assignment**: Use a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar).
 
-#### 3c. Update Plan and FIS Status (**Gate**)
+#### 3c. Verify Green, Confirm Writes Landed (**Gate**)
 
-Do this immediately after each story's pipeline — not as a batch.
+Run immediately after each story — not as a batch. Worker self-reports do not count.
 
-Invoke the `andthen:ops` skill to update `plan.md`: Status → `Done`, FIS field, acceptance criteria, Story Catalog status. Use `andthen:ops update-fis {fis_path} all` to mark FIS checkboxes. Update the `State` document (see **Project Document Index**) via the `andthen:ops` skill: `update-state active-story {story_id} Done`.
+**Green gate**:
+- Build / compile clean for affected packages
+- Targeted tests pass (full suite runs in Step 5)
+- Lint / type-check clean for touched files
+- No broken intermediate state (partial migration, half-refactored call sites, dead imports)
 
-After ops completes, **re-read plan.md and the FIS** to verify updates applied.
+Fail → story stays `In Progress`. Apply Stop-the-Line per `execution-discipline.md`: repair locally, re-delegate (template below), or invoke the `andthen:triage` skill. Iterate until green.
 
-If `PLAN_SOURCE_MODE = github-artifact`, apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` now.
+Pass → **re-read `plan.md` and the FIS** to confirm `exec-spec` Step 5b's writes landed (story row `Done`, FIS field, acceptance checkboxes, `State` active-story `Done`). Missing → call the matching `andthen:ops update-*` once to repair. Outside this repair path and Post-Completion bookkeeping, the orchestrator does not write story-level status.
 
-**Gate**: All stories in current phase completed, verified, and plan.md + FIS checkboxes updated
+**Re-delegation template** (remediation via sub-agent):
+```
+Remediate story {story_id} — prior attempt non-green.
+Plan: {PLAN_DIR}/plan.md | FIS: {fis_path}
+
+Failure list:
+- {failure 1}
+- {failure 2}
+
+Fix forward on the existing tree. Target the listed failures, then re-run
+`exec-spec` Step 4a verification (build, tests, lint/type-check).
+
+`exec-spec` wrote status in the prior attempt — do NOT call
+/andthen:ops update-* beyond what exec-spec does internally.
+
+Report: failures resolved, verification numbers, new issues (if any).
+```
+
+**Gate**: All stories in current phase verified green and their plan.md + FIS writes confirmed (or repaired)
 
 **Gate**: All phases complete.
 
@@ -157,16 +169,17 @@ If `PLAN_SOURCE_MODE = github-artifact`, apply the **Plan-Bundle Continuation Sy
 
 > **This step replaces Step 3 when `--team` is active.** Steps 4–6 are shared.
 
-For each phase: run spec-plan (same as Step 3a), then create and manage the Agent Team pipeline.
+For each phase: update project state (same as Step 3a), then create and manage the Agent Team pipeline. The bundle is already fully specced — no per-phase spec generation step.
 
 #### Team Setup
 
 Create team `"plan-pipeline"` with pre-assigned tasks. Size: 1 implementer (≤4 stories), 2 (5–10), 3 (11+). Add 1–2 reviewers for `quick-review` tasks. Use a capable coding model for all teammates.
 
 **Implementer prompt** – include in each implementer's system prompt:
-- Role constraint: only work on assigned `impl-*` tasks
-- Per-task workflow: `cd {CODE_DIR}` → (if worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}` → commit → (if worktree: `ExitWorktree(keep)`) → `/andthen:ops update-fis {fis_path} all` → mark task done
-- FIS paths are absolute; status updates are required; escalate unresolvable issues to orchestrator
+- Only work on assigned `impl-*` tasks
+- Per task: `cd {CODE_DIR}` → (worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}` → commit → (worktree: `ExitWorktree(keep)`) → mark done; report `exec-spec` Step 4a numbers (build, tests, lint/type-check)
+- `exec-spec` Step 5b writes status. Do NOT call `andthen:ops update-plan`, `update-fis`, or `update-state` *beyond* what `exec-spec` does internally (and do not suppress its Step 5b writes)
+- Absolute FIS paths; escalate unresolvable issues
 
 **Reviewer prompt** – include in each reviewer's system prompt:
 - Role constraint: only work on assigned `review-*` tasks
@@ -189,7 +202,15 @@ After all `impl-*` in the current wave complete: sequentially merge each worktre
 
 #### Status Updates (**Gate**)
 
-Same as Step 3c. Additionally verify Plan Acceptance Gate before marking Done: each acceptance criterion demonstrably satisfied, scope notes present when FIS narrowed scope. For composite FIS: verify ALL constituent stories. Move to next phase only after current phase fully complete.
+Same verification discipline as Step 3c (green gate → confirm `exec-spec` writes landed → repair missing writes if needed). Additionally verify Plan Acceptance Gate before accepting Done: each acceptance criterion demonstrably satisfied, scope notes present when FIS narrowed scope. For composite FIS: verify ALL constituent stories. Move to next phase only after current phase fully complete.
+
+**Green-gate timing**:
+- **Worktree** — per-worktree build/tests pre-merge; orchestrator gate on `BASE_BRANCH` post-merge. Stop-the-Line on `BASE_BRANCH`, not inside a worktree.
+- **No worktree** — gate after each `impl-*`, before the matching `review-*` unblocks.
+
+**Take-over topology** (orchestrator repair):
+- **Worktree, pre-merge** — enter the live worktree (`EnterWorktree` if implementer exited), fix, re-verify, commit, then merge.
+- **Worktree post-merge** or **no worktree** — repair on `BASE_BRANCH` in orchestrator's CWD.
 
 #### Monitoring
 
@@ -202,9 +223,30 @@ After all phases: clean up remaining worktrees (`git worktree prune`), shutdown 
 
 ### Step 4: Final Review
 
-Run `/andthen:review-gap {PLAN_DIR}/plan.md` on the whole plan. If FAIL, run `/andthen:remediate-findings {report_path}`. Escalate if issues persist after one remediation pass.
+Spawn a `general-purpose` sub-agent whose prompt runs the `andthen:review` skill in `--mode gap` on the whole plan. Fresh context is load-bearing here — by this step the orchestrator has watched every story get built and is biased by construction context. A sub-agent sees only the plan and the final code, which is what the gap verdict should reflect.
 
-**Gate**: Final review-gap complete
+**Model**: Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar). Gap review runs inline in the sub-agent's own context (per `lens-gap.md` — the gap lens does not delegate), so the sub-agent's model IS the reviewing model. Whole-plan gap review is cross-cutting (story interactions, acceptance-criteria coverage, requirements drift) rather than routine pattern-matching, which justifies the stronger tier over the sonnet default.
+
+Resolve `PLAN_DIR` and `CODE_DIR` to absolute paths (`PLAN_DIR_ABS`, `CODE_DIR_ABS`) before substituting into the prompt — relative paths break in multi-repo setups where the sub-agent's CWD may match neither repo.
+
+**Sub-agent prompt**:
+```
+Run /andthen:review --mode gap {PLAN_DIR_ABS}/plan.md on the whole plan.
+
+Implementation lives in: {CODE_DIR_ABS}
+
+Do NOT pass --inline-findings — the final gap gate must write a report file so remediate-findings can consume it.
+
+Report back:
+1. The verdict (PASS/FAIL) from the canonical gap verdict table
+2. The absolute path to the written report file
+```
+
+Verify the sub-agent returned both a verdict and a path that resolves to a readable file. If either is missing, report the failure and stop — do not silently retry; the downstream remediation step depends on a valid report artifact.
+
+If the verdict is FAIL, invoke the `andthen:remediate-findings` skill: `/andthen:remediate-findings {absolute_report_path}`. Remediation runs in the orchestrator (not a sub-agent) because it modifies code and must coordinate with orchestrator-owned state (`plan.md`, FIS checkboxes, `State` document). Known limitation: the orchestrator carries construction bias from having watched every story get built. Scope remediation narrowly to the gap report findings — do not re-evaluate or re-litigate decisions. If bias still leaks in, a later `exec-plan` run's fresh-context gap review is the intended second net. Escalate if issues persist after one remediation pass.
+
+**Gate**: Final gap review complete
 
 ### Step 5: Final Verification
 
@@ -212,14 +254,11 @@ Run build, run tests, review cross-story integration. Include verification evide
 
 **Gate**: Build, tests, integration pass
 
-### Step 6: Canonical Continuation Sync _(if `PLAN_SOURCE_MODE = github-artifact`)_
-Apply the **Plan-Bundle Continuation Sync** from `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md` as the final gate.
-
-
 ## FAILURE HANDLING
 
-- **Story pipeline fails** → use the `andthen:build-troubleshooter` agent or escalate
-- **Final review fails** → remediate once; escalate if issues persist
+- **Story pipeline fails / non-green** → Stop-the-Line per `execution-discipline.md`. Iterate until green. A broken refactor is work to finish, not a blocker.
+- **Escalate only on real external blockers** (see `execution-discipline.md`).
+- **Final review fails** → one remediation pass (subjective-finding policy); escalate if issues persist
 - **Dependent stories blocked** when predecessor fails
 - **>50% of a phase fails** → pause this run and return a failure summary
 - **Update the `State` document on failure** (see **Project Document Index**) via the `andthen:ops` skill: `update-state status "At Risk"` or `"Blocked"`

@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Plan"
-  short_description: "Create a PRD and implementation plan with stories"
-  default_prompt: "Create a PRD and implementation plan with story breakdown. Discover requirements if no PRD exists, or build on prior artifacts. Requirements source: "
+  short_description: "Create an implementation plan with FIS specs for every story"
+  default_prompt: "Create an implementation plan with story breakdown and FIS specs for every story. Requires an existing prd.md in the input directory. Plan directory: "
 
 policy:
   allow_implicit_invocation: true

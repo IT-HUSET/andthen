@@ -13,16 +13,6 @@ Systematic code improvement – simplification, refactoring, and cleanup. The go
 ARGUMENTS: $ARGUMENTS
 
 
-## USAGE
-
-```
-/refactor <description of what to improve>    # Targeted refactoring by description
-/refactor --path src/api/                     # Refactor specific path
-/refactor --path src/utils.ts                 # Refactor specific file
-/refactor                                     # Refactor recently changed code
-```
-
-
 ## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
@@ -30,7 +20,11 @@ ARGUMENTS: $ARGUMENTS
 - **No scope creep** – only refactor what's specified
 - **Tests must pass** before and after refactoring
 - Match the codebase's existing conventions and style – read the project guidelines before making style judgments
-- If cleanup starts widening in scope or you feel tempted to smuggle unrelated fixes into the refactor, load `${CLAUDE_PLUGIN_ROOT}/references/anti-rationalization.md`.
+- **Anti-rationalization** — if cleanup starts widening or you're tempted to smuggle unrelated fixes, reject these common rationalizations:
+  - "I'll just fix this adjacent issue too" — scope creep hides regressions and muddies diffs.
+  - "This behavior change is obviously safe" — refactors preserve behavior exactly; behavior changes are a separate commit.
+  - "Tests can come later" — a green baseline before and after is the refactor's only safety net.
+  - "Three clever lines beat six clear ones" — readability is the goal; compactness is not.
 
 ### Refactoring Philosophy
 
@@ -101,7 +95,7 @@ Execute improvements from the prioritized list:
 Run in **parallel sub-agents** _(if supported; otherwise sequentially)_:
 
 1. **Tests**: Run full test suite – all tests must pass
-2. **Code review**: Invoke the `andthen:review-code` skill to verify improvements and catch regressions
+2. **Code review**: Invoke the `andthen:review` skill with `--mode code` to verify improvements and catch regressions
 3. **Linting/types**: Run static analysis, confirm no new issues
 
 **If failures:** fix issues and re-verify before completing.

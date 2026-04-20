@@ -23,7 +23,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 - **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
 - **Read-only analysis** – No code changes, commits, or modifications
 - **Delegate heavily** – Spawn parallel sub-agents for codebase analysis
-- **Structured output** – All documents follow templates from `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`
+- **Structured output** – All documents follow templates from `templates/project-state-templates.md`
 - **Discovery, not invention** – Document what exists, don't prescribe what should exist
 
 
@@ -70,7 +70,7 @@ Output: included in the `Architecture` document (see **Project Document Index**)
 
 #### 2e. Key Development Commands Discovery (sub-agent)
 Discover commands by scanning `package.json` scripts, `Makefile`, `Taskfile.yml`, `justfile`, `deno.json`, `Cargo.toml` aliases, CI/CD configs, and README files. If monorepo: organize commands per sub-project and identify root-level orchestration commands.
-Output: the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`), using the template from `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`
+Output: the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`), using the template from `templates/project-state-templates.md`
 
 **Gate**: All analysis sub-agents complete
 

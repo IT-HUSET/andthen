@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - PRD"
+  short_description: "Create a Product Requirements Document from requirements"
+  default_prompt: "Create a Product Requirements Document from the provided requirements source (clarified requirements, draft PRD, file, URL, inline description, or GitHub issue). Requirements source: "
+
+policy:
+  allow_implicit_invocation: true

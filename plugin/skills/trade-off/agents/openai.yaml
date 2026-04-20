@@ -1,7 +1,0 @@
-interface:
-  display_name: "AndThen - Trade-off"
-  short_description: "Compare technical options or write an ADR"
-  default_prompt: "Research technical options and perform systematic trade-off analysis. Deliver evidence-based recommendation. Topic: "
-
-policy:
-  allow_implicit_invocation: true

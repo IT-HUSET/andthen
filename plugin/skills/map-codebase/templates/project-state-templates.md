@@ -1,0 +1,307 @@
+---
+source: plugin/skills/init/templates/project-state-templates.md
+---
+
+# Project State Document Templates
+
+Lightweight starter templates for the supplementary project documents referenced in the **Project Document Index** of `CLAUDE.md`. Each template provides structure and brief guidance – fill in what applies, remove what doesn't.
+
+---
+
+## STATE.md
+
+> Cross-session state tracking — a snapshot of _current_ state, not a history log. Keep under ~60 lines so agents can consume it quickly.
+
+```markdown
+# Project State
+
+Last Updated: YYYY-MM-DD HH:MM
+
+## Current Phase
+<!-- Active phase/milestone name and one-line status -->
+
+Phase: ...
+Status: On Track | At Risk | Blocked
+
+## Active Stories
+<!-- Only currently in-progress work. Remove completed stories — they go to Recently Completed. -->
+
+| Story | Status | FIS | Notes |
+|-------|--------|-----|-------|
+| ...   | ...    | ... | ...   |
+
+## Recently Completed
+<!-- Last 2 milestones only, one line each. Older milestones belong in CHANGELOG.md.
+     If more exist, add a trailing line: "Previous: 0.3, 0.2, 0.1" -->
+
+- **{version}** ({date}): {one-line summary}
+
+## Blockers
+<!-- Anything preventing progress. Remove resolved blockers and those older than ~14 days with no activity. -->
+
+- ...
+
+## Recent Decisions
+<!-- Key decisions made in the last 1-2 sessions. Keep max ~10. Move older items to ADRs. -->
+
+- ...
+
+## Session Continuity Notes
+<!-- Context the next session needs to pick up where this one left off. Keep max ~5.
+     Remove notes from milestones already captured in Recently Completed or CHANGELOG. -->
+
+- ...
+```
+
+---
+
+## PRODUCT-BACKLOG.md
+
+> Product backlog with unique IDs for traceability.
+
+```markdown
+# Product Backlog
+
+## Validated
+<!-- Requirements confirmed and accepted for implementation. -->
+
+| REQ-ID  | Description | Priority | Stories | Status    |
+|---------|-------------|----------|---------|-----------|
+| REQ-001 | ...         | Must     | ...     | Planned   |
+
+## Active (Under Discussion)
+<!-- Requirements being refined or awaiting validation. -->
+
+| REQ-ID  | Description | Priority | Open Questions |
+|---------|-------------|----------|----------------|
+| REQ-0XX | ...         | ...      | ...            |
+
+## Out of Scope
+<!-- Explicitly excluded requirements – useful to prevent scope creep. -->
+
+- ...
+```
+
+---
+
+## ROADMAP.md
+
+> Phase structure with success criteria and milestone grouping.
+
+```markdown
+# Roadmap
+
+## Phase 1: [Name]
+<!-- Goal: one-sentence purpose of this phase -->
+
+**Success Criteria:**
+- [ ] ...
+
+**Milestones:**
+| Milestone | Target | Status |
+|-----------|--------|--------|
+| ...       | ...    | ...    |
+
+## Phase 2: [Name]
+<!-- Repeat structure as needed -->
+
+## Future / Backlog
+<!-- Items acknowledged but not yet scheduled -->
+
+- ...
+```
+
+---
+
+## ARCHITECTURE.md
+
+> System architecture overview – enough for an agent to understand component boundaries and data flow.
+
+```markdown
+# Architecture
+
+## System Overview
+<!-- One paragraph describing the system at a high level. -->
+
+## Key Components
+<!-- List major components/modules and their responsibilities. -->
+
+| Component | Responsibility | Key Files/Dirs |
+|-----------|---------------|----------------|
+| ...       | ...           | ...            |
+
+## Data Flow
+<!-- Describe how data moves through the system. A simple numbered list or diagram reference. -->
+
+1. ...
+
+## Integration Points
+<!-- External services, APIs, databases the system depends on. -->
+
+| Service | Purpose | Config Location |
+|---------|---------|-----------------|
+| ...     | ...     | ...             |
+
+## Key Constraints
+<!-- Architectural decisions or constraints that shape the system. Reference ADRs if available. -->
+
+- ...
+```
+
+---
+
+## LEARNINGS.md
+
+> Accumulated project knowledge – traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically. Replaces/evolves the narrower "implementation-notes.md" concept.
+
+```markdown
+# Project Learnings
+
+<!-- Organize by topic. Entries should be brief (1-2 sentences).
+     The bar: "Would a competent developer with code and git access still get bitten?"
+     Actively maintain: merge overlapping entries, remove stale knowledge, split large sections. -->
+
+## [Topic Area 1]
+<!-- e.g. "Language Traps", "Framework Patterns", "API Quirks", "Deployment", etc. -->
+
+- **[Trap/insight]**: [Description] _(context/version)_
+
+## [Topic Area 2]
+
+- ...
+
+## Error Patterns
+<!-- Log recurring errors. Deterministic errors (bad schema, wrong type) → conclude immediately.
+     Infrastructure errors (timeout, rate limit) → log, no conclusion until pattern emerges.
+     Conclusions graduate into the relevant topic section above. -->
+
+| Error | Type | Conclusion |
+|-------|------|------------|
+| ...   | Deterministic / Infrastructure | ... |
+
+## Process & Tooling
+<!-- Non-code knowledge: deploy steps, test prerequisites, CI quirks, agent workflow patterns. -->
+
+- ...
+```
+
+---
+
+## STACK.md
+
+> Technology stack documentation with versions.
+
+```markdown
+# Technology Stack
+
+## Languages
+| Language | Version | Notes |
+|----------|---------|-------|
+| ...      | ...     | ...   |
+
+## Frameworks & Libraries
+| Name | Version | Purpose |
+|------|---------|---------|
+| ...  | ...     | ...     |
+
+## Infrastructure
+| Service  | Purpose | Notes |
+|----------|---------|-------|
+| ...      | ...     | ...   |
+
+## External Services
+| Service | Purpose | Docs |
+|---------|---------|------|
+| ...     | ...     | ...  |
+
+## Dev Tools
+| Tool | Purpose | Config |
+|------|---------|--------|
+| ...  | ...     | ...    |
+```
+
+---
+
+## KEY_DEVELOPMENT_COMMANDS.md
+
+> Key commands for development, running, testing, deployment, and code quality. Offloads this from CLAUDE.md to keep it focused on structure and context. For monorepos, organize commands per sub-project.
+
+```markdown
+# Key Development Commands
+
+<!-- Keep commands up to date as the project evolves.
+     For monorepos: add a section per sub-project with its own commands. -->
+
+## Running the Application
+<!-- List commands to start the application in development mode. -->
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Start development server |
+
+Application URL: `TODO` <!-- e.g. http://localhost:3000 -->
+
+## Code Quality (Formatting, Linting, Type Checking)
+<!-- Commands to run after each task to ensure code quality. -->
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Format code |
+| `TODO`  | Lint and type-check |
+
+## Testing
+<!-- Commands to run tests – unit, integration, E2E. -->
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Run all tests |
+| `TODO`  | Run a specific test file |
+
+## Build & Deployment
+<!-- Commands for building and deploying the application. -->
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Production build |
+| `TODO`  | Deploy |
+
+## Visual Validation
+<!-- Remove this section if not applicable. -->
+| Command / Tool | Description |
+|----------------|-------------|
+| `TODO`         | Launch app for manual testing |
+| `TODO`         | Capture screenshot |
+
+<!-- For monorepos, add per-sub-project sections below:
+
+## [sub-project-name] (e.g. apps/frontend)
+| Command | Description |
+|---------|-------------|
+| `TODO`  | Start dev server |
+| `TODO`  | Run tests |
+| `TODO`  | Lint |
+-->
+```
+
+---
+
+## UBIQUITOUS_LANGUAGE.md
+
+```markdown
+# Ubiquitous Language
+
+> Domain glossary for [Project Name]. Canonical terms for use in code, documentation, and team communication.
+>
+> **Usage**: Use these exact terms in code (class names, variables, functions), documentation, and discussion. Avoid synonyms listed in the "Avoid" column.
+
+## [Domain Cluster Name]
+
+| Term | Definition | Avoid (synonyms) | Bounded Context |
+|------|-----------|-------------------|-----------------|
+| | | | |
+
+## Overloaded Terms
+
+| Term | Context A | Meaning A | Context B | Meaning B |
+|------|-----------|-----------|-----------|-----------|
+| | | | | |
+
+## Changelog
+- [date]: Initial extraction
+```

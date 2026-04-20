@@ -12,8 +12,7 @@ Current query coverage focuses on the core workflow boundaries:
 - `spec`
 - `plan`
 - `exec-spec`
-- `review`
-- `review-gap`
+- `review` (including `--mode gap` / `--mode code` / `--mode doc`)
 
 These skills are the most likely to be confused with each other, and they carry the most value from precise routing.
 
@@ -61,7 +60,7 @@ The negative cases matter as much as the positive ones. For example:
 
 - `spec` should not fire on "execute this FIS"
 - `plan` should not fire on "create a spec for story S02"
-- `review-gap` should not fire on "review this spec before implementation"
+- `review` should route to `--mode doc`, not `--mode gap`, on "review this spec before implementation" (no implementation exists yet)
 
 ## When To Extend It
 

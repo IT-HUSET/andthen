@@ -205,42 +205,37 @@
   },
 
   {
-    "skill": "review-gap",
+    "skill": "review",
     "should_trigger": true,
     "query": "Do a gap analysis against the spec for invoice export."
   },
   {
-    "skill": "review-gap",
+    "skill": "review",
     "should_trigger": true,
     "query": "Review the current implementation against the PRD and tell me what is missing."
   },
   {
-    "skill": "review-gap",
+    "skill": "review",
     "should_trigger": true,
     "query": "Compare implementation to the plan in docs/specs/billing-dashboard/ and produce a remediation report."
   },
   {
-    "skill": "review-gap",
+    "skill": "review",
     "should_trigger": true,
     "query": "Check whether the code actually matches the FIS we executed."
   },
   {
-    "skill": "review-gap",
-    "should_trigger": false,
-    "query": "Review this spec for completeness before implementation starts."
-  },
-  {
-    "skill": "review-gap",
+    "skill": "review",
     "should_trigger": false,
     "query": "Create a spec for story S05 of docs/specs/billing-dashboard/plan.md."
   },
   {
-    "skill": "review-gap",
+    "skill": "review",
     "should_trigger": false,
     "query": "Execute this spec and implement the code."
   },
   {
-    "skill": "review-gap",
+    "skill": "review",
     "should_trigger": false,
     "query": "Address these review findings from the last gap review."
   }

@@ -1,25 +1,29 @@
 ---
 description: Quick in-conversation review of recent changes using a fresh-context sub-agent for adversarial critique. Use mid-conversation to sanity-check work before moving on. Trigger on 'quick review this', 'sanity-check this', 'give this a quick pass'.
 user-invocable: true
-argument-hint: "[optional focus or scope]"
+argument-hint: "[optional focus or scope] [--fix]"
 ---
 
 # Quick Review
 
 Lightweight, ad-hoc review of recent work in the current conversation. Spawns a fresh-context sub-agent to critique what was just done — catching errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
 
-**For thorough reviews, start with** the `andthen:review` **skill**. Use the `andthen:review-council` **skill** when you explicitly want multi-perspective adversarial review.
+**For thorough reviews, start with** the `andthen:review` **skill**. Pass `--council` when you explicitly want multi-perspective adversarial review.
 
 
 ## VARIABLES
 
-FOCUS: $ARGUMENTS
+FOCUS: $ARGUMENTS (strip any leading flag tokens like `--fix` before interpreting as focus)
+
+
+### Optional Flags
+- `--fix` → after evaluating findings, apply the **accepted** ones directly (skip the "offer to fix" prompt). Dismissed findings stay dismissed — the Accept/Dismiss step in Phase 4 remains the guardrail. If zero findings are accepted, report that plainly and stop — nothing to fix.
 
 
 ## INSTRUCTIONS
 
 - This is a **lightweight mid-conversation review** – a fast, focused checkpoint scoped to recent changes rather than a full formal pass.
-- Read-only analysis. Do not modify any files.
+- The **review** sub-agent is read-only. Only the outer skill may edit files, and only in Phase 4 when `--fix` is set.
 - The sub-agent reviews in a **fresh context** to avoid confirmation bias.
 - Anti-leniency: if the sub-agent identifies a problem, it is a problem. Do not rationalize issues away.
 - Output findings inline — no separate report file.
@@ -107,6 +111,9 @@ Review the sub-agent's findings. For each:
 - **Accept**: the finding is valid and actionable
 - **Dismiss**: the finding is based on a misunderstanding of the context (explain briefly why)
 
-Present accepted findings to the user as a concise inline list. If there are actionable issues, offer to fix them. If no significant issues were found, state that clearly and move on.
+Present accepted findings to the user as a concise inline list.
+
+- **Without `--fix`**: if there are actionable issues, offer to fix them. If no significant issues were found, state that clearly and move on.
+- **With `--fix`**: apply the accepted findings directly with minimal, surgical edits — one coherent patch set, no scope creep, no "nearby cleanup". Then re-run the minimum verification that proves the fixes hold (type-check, relevant tests, or targeted re-read). Report what changed in one tight line per fix.
 
 Do not produce a report file. Do not add a summary preamble. Keep it tight.

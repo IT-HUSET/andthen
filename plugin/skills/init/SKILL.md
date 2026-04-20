@@ -54,7 +54,7 @@ Classify into one of three paths:
 
 Ask the user for basic project context (or accept from `PROJECT_NAME`): project name, brief description, primary tech stack (if not auto-detected).
 
-Generate `CLAUDE.md` using `${CLAUDE_PLUGIN_ROOT}/../templates/CLAUDE.template.md` as the base. Fill in the Project Overview section; keep the Project Document Index and Workflow Rules sections intact; remove TODO comments from filled sections.
+Generate `CLAUDE.md` using `templates/CLAUDE.template.md` as the base. Fill in the Project Overview section; keep the Project Document Index and Workflow Rules sections intact; remove TODO comments from filled sections.
 
 Create base directory structure:
 ```
@@ -108,7 +108,7 @@ Create per-sub-project CLAUDE.md files? (recommended)
 
 > **CRITICAL**: Present all the above options together and **STOP and WAIT** for user response before creating any files.
 
-For each confirmed document type, generate the file from templates in `${CLAUDE_PLUGIN_ROOT}/../templates/project-state-templates.md`, using the location from the **Project Document Index** or the default path above. Pre-fill what's auto-detectable (e.g., the `Stack` document from package config).
+For each confirmed document type, generate the file from templates in `templates/project-state-templates.md`, using the location from the **Project Document Index** or the default path above. Pre-fill what's auto-detectable (e.g., the `Stack` document from package config).
 
 For each confirmed sub-project CLAUDE.md, generate a lightweight file (under ~40 lines) containing: sub-project name and description, key development commands (inline table), and any conventions that differ from root. Also update the root `Key Dev Commands` document (see **Project Document Index**) if created to include per-sub-project sections.
 

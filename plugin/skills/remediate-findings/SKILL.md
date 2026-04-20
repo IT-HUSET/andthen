@@ -1,7 +1,7 @@
 ---
 description: Use when the user wants review findings or review comments addressed. Implements actionable findings from a review report with minimal, guideline-aligned fixes across code, specs, plans, PRDs, and documentation, then re-validates the result and updates plan/FIS status. Trigger on 'address these review findings', 'fix review comments', 'remediate findings'.
 user-invocable: true
-argument-hint: <review-report-path | report URL | GitHub issue/comment URL>
+argument-hint: <review-report-path | report URL>
 ---
 
 # Remediate Findings
@@ -12,17 +12,6 @@ Implement validated findings from a review report. The goal is to clear real iss
 ## VARIABLES
 
 REPORT_SOURCE: $ARGUMENTS
-
-
-## USAGE
-
-```bash
-/remediate-findings docs/specs/feature/feature-gap-review-codex-2026-04-10.md
-/remediate-findings https://example.com/reviews/feature-gap-review.md
-/remediate-findings https://github.com/org/repo/wiki/feature-gap-review
-/remediate-findings https://github.com/org/repo/issues/123
-/remediate-findings https://github.com/org/repo/pull/456#issuecomment-789
-```
 
 
 ## INSTRUCTIONS
@@ -50,17 +39,15 @@ REPORT_SOURCE: $ARGUMENTS
 
 ### Phase 1: Resolve Report and Targets
 
-1. Resolve `REPORT_SOURCE`:
-   - Local report path or direct raw report URL: read the report content directly
-   - GitHub issue URL or PR comment URL: follow `${CLAUDE_PLUGIN_ROOT}/references/resolve-github-input.md`.
-     Compatible types: `review`, `gap-review`, `code-review`, `architecture-review`, `doc-review`, `council-review` — extract the embedded primary report and any companion files; use the typed metadata to recover `report_path`, `plan_path`, `fis_path`, `story_ids`, `requirements_baseline`, and `implementation_targets`. Redirects: any non-review typed artifact → stop with invalid-input error. Untyped: fall through to step 3 validation below.
-2. Extract:
-   - Review type (`review-gap`, `review-code`, `review-doc`, or other)
+1. Resolve `REPORT_SOURCE` to readable report content:
+   - Local report path or direct raw report URL: read it directly
+   - Any other input shape (issue page, PR shell URL, generic link): stop with an invalid-input error stating that the actual report content is required
+2. Extract from the report body:
+   - Review mode (`gap`, `code`, `doc`, `mixed`, `architecture`, `council`) — read from the report's mode line or the report filename suffix (e.g. `-gap-review.md` → `gap`)
    - Report verdict (PASS/FAIL) when present
    - Findings, severity, remediation recommendations, and reviewed scope
-   - Referenced implementation targets, requirements baseline, FIS path, `plan.md`, and story IDs when available
-3. If the input URL does not contain the actual review report content or a valid typed GitHub review artifact, stop with an invalid-input error that states the report itself is required. Do not guess from an issue or PR shell page.
-4. If the report has no actionable findings, stop and return that there are no actionable findings.
+   - Referenced implementation targets, requirements baseline, FIS path, `plan.md`, and story IDs when the report names them
+3. If the report has no actionable findings, stop and return that there are no actionable findings.
 
 **Gate**: Actionable findings and the remediation target are explicit
 

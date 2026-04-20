@@ -19,15 +19,6 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 - Resolve a stable output name before writing files
 
 
-## USAGE
-
-```bash
-/excalidraw-diagram "How webhook ingestion works"
-/excalidraw-diagram @docs/architecture.md docs/diagrams/
-/excalidraw-diagram "OpenAI realtime event flow" docs/diagrams/
-```
-
-
 ## INSTRUCTIONS
 
 - **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
@@ -41,7 +32,7 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 - **Build section-by-section** – do not attempt a non-trivial diagram in one giant JSON pass
 - **Mandatory render loop** – after generating JSON, you MUST render via agent-browser, view the screenshot, and fix issues in a loop until it's right
 - **agent-browser required** – the render-and-validate loop uses `agent-browser`. If not installed, tell the user to run `npm install -g agent-browser && agent-browser install`
-- **Design refinement and final QC** – Phase 4 combines design review (via the `andthen:ui-ux-designer` agent if available) and visual validation (via the `andthen:visual-validation-specialist` agent if available). Fall back to self-evaluation using the criteria in Phase 4 if sub-agents are not supported
+- **Design refinement and final QC** – Phase 4 combines design review (via the `andthen:ui-ux-design` skill in `review` mode) and visual validation (via the `andthen:visual-validation-specialist` agent if available). Fall back to self-evaluation using the criteria in Phase 4 if sub-agents are not supported
 
 
 ## GOTCHAS
@@ -194,7 +185,7 @@ If the user needs a standard `.excalidraw` file without `label` shortcuts: run `
 Independent review of design quality and final QC. This phase separates creation from judgment.
 
 #### 4.1 Design Quality Review
-Launch the `andthen:ui-ux-designer` agent _(if supported; otherwise self-evaluate)_ with the rendered PNG, resolved style guide, and TOPIC. Review mode only – evaluate, don't redesign. Check: composition and visual weight balance; hierarchy (hero → primary → secondary); color harmony and style guide compliance; hero element has 200px+ breathing room; eye path follows intended narrative; each major concept uses a distinct visual pattern.
+Invoke the `andthen:ui-ux-design` skill with `--mode review` _(if supported; otherwise self-evaluate)_, passing the rendered PNG, resolved style guide, and TOPIC. Evaluate, don't redesign. Check: composition and visual weight balance; hierarchy (hero → primary → secondary); color harmony and style guide compliance; hero element has 200px+ breathing room; eye path follows intended narrative; each major concept uses a distinct visual pattern.
 
 #### 4.2 Visual Validation (Final QC)
 Launch the `andthen:visual-validation-specialist` agent _(if supported; otherwise self-validate)_ with the latest PNG, resolved style guide, and TOPIC description. Check: text overflow/overlap/clipping; arrow misrouting or dangling connections; all text legible (>= 16px body, >= 20px titles); colors/fills/strokes match style guide; no large voids or overcrowded regions.

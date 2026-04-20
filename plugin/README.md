@@ -28,11 +28,11 @@ Skills reference your project's `CLAUDE.md` for two things:
 - **Project Document Index** – tells skills where to write output (specs, plans, etc.)
 - **Workflow Rules, Guardrails and Guidelines** – behavioral rules and development standards
 
-See [`templates/CLAUDE.template.md`](../templates/CLAUDE.template.md) for a starter template.
+See [`plugin/skills/init/templates/CLAUDE.template.md`](skills/init/templates/CLAUDE.template.md) for a starter template.
 
 ### Agent Teams (Optional, Claude Code only)
 
-`exec-plan --team` and `review-council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. Without `--team`, both skills use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
+`exec-plan --team` and `review --council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. Without `--team`, both use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -47,7 +47,7 @@ See [`templates/CLAUDE.template.md`](../templates/CLAUDE.template.md) for a star
 
 Every skill works standalone — no pipeline required. Use them individually for everyday tasks, or compose them into structured workflows for larger efforts. See the [full documentation](../README.md#key-concepts) for detailed workflow diagrams and artifact flow.
 
-**Session management**: The context-intensive skills — `exec-spec`, `spec-plan`, `exec-plan`, `review-council` — perform best when started in a **clean session**. Pipeline predecessor skills (`clarify`, `plan`, `spec`) will suggest when to start fresh. Standalone skills like `triage`, `quick-review`, and `refactor` are lightweight and run well mid-conversation.
+**Session management**: The context-intensive skills — `exec-spec`, `plan` (full FIS generation), `exec-plan`, `review --council` — perform best when started in a **clean session**. Pipeline predecessor skills (`clarify`, `prd`, `spec`) will suggest when to start fresh. Standalone skills like `triage`, `quick-review`, and `refactor` are lightweight and run well mid-conversation.
 
 ## Skills
 
@@ -60,14 +60,14 @@ Use these individually for everyday development — no setup, no pipeline, no pr
 | Skill | Purpose |
 |-------|---------|
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
-| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
+| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub → auto-PR) |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |
-| `review` | Smart review entrypoint that routes to code, doc, or gap review as needed |
+| `review` | Smart review entrypoint: routes to code, doc, gap, mixed, or multi-perspective council review (`--council`) |
 | `refactor` | Code improvement and simplification |
-| `trade-off` | Architecture decision research with evidence-based recommendations |
-| `architecture-review` | Deep quantitative architecture review – metrics, connascence, decomposition, fitness functions |
-| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
+| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, and fitness functions (modes: `review`, `decompose`, `advise`, `fitness`, `trade-off`) |
+| `ui-ux-design` | UI/UX work — research, design systems, wireframes, and design review (modes: `research`, `design-system`, `wireframes`, `review`) |
 | `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
+| `testing` | Test strategy, coverage, authoring, and test-first / red-green-refactor discipline (Prove-It for bugfixes) |
 | `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
 | `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
 | `e2e-test` | End-to-end browser testing for web applications |
@@ -79,32 +79,28 @@ These compose into structured workflows — from requirements through implementa
 | Skill | Purpose |
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
-| `clarify` | Requirements discovery – from vague idea to structured requirements (supports `--issue`) |
-| `spec` | Generate Feature Implementation Specification from requirements (supports `--issue`) |
+| `clarify` | Requirements discovery – from vague idea to structured requirements (supports `--issue` for GitHub input) |
+| `prd` | Create a Product Requirements Document from requirements (supports `--issue` for GitHub input, `--to-issue` for publishing) |
+| `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS – direct implementation with validation |
-| `plan` | Requirements discovery + PRD creation (if needed) + story breakdown (supports `--issue`) |
-| `spec-plan` | Batch-create all FIS specs for a plan (parallel + cross-cutting review) |
-| `exec-plan` | Execute plan – spec-plan per phase, then exec-spec + quick-review per story, final review-gap. Use `--team` for Agent Teams |
+| `plan` | Full plan bundle: story breakdown + FIS for every story + technical research + cross-cutting review. Requires `prd.md` input (`--skip-specs` for cheap planning pass) |
+| `exec-plan` | Execute a fully-specced plan bundle – exec-spec + quick-review per story, final gap review. Use `--team` for Agent Teams |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
-| `wireframes` | Generate HTML wireframes for UI planning |
-| `design-system` | Create design tokens and component styles |
 
-Specialist review skills remain available for explicit or internal use: `review-code`, `review-doc`, and `review-gap`. The recommended user-facing entrypoint is `review`.
-
-> Both `exec-plan` and `review-council` auto-detect Agent Teams and use them when available. Use `--team` to force Agent Teams mode.
+> Both `exec-plan` and `review --council` auto-detect Agent Teams and use them when available. Use `--team` to force Agent Teams mode.
 
 ## Agents
 
 | Agent | Purpose |
 |-------|---------|
 | `research-specialist` | Web research and synthesis |
-| `solution-architect` | Architecture design and technical decisions |
-| `qa-test-engineer` | Test coverage and validation |
 | `documentation-lookup` | External documentation retrieval |
-| `build-troubleshooter` | Build/test failure diagnosis |
-| `ui-ux-designer` | UI/UX design and prototyping |
 | `visual-validation-specialist` | Visual validation workflow |
+
+Architecture and UI/UX design used to live as agents (`solution-architect`, `ui-ux-designer`); they are now **skills** — use `/andthen:architecture` and `/andthen:ui-ux-design`. Build/test diagnosis used to be a separate `build-troubleshooter` agent; its capability is now folded into the existing `/andthen:triage` skill.
+
+Codex agent files are generated from these Claude agent files at install time by `scripts/generate-codex-agents.sh` (invoked by `scripts/install-skills.sh`) — they are not committed to the repo.
 
 ## Usage Examples
 
@@ -123,19 +119,19 @@ Specialist review skills remain available for explicit or internal use: `review-
 # Review current changes, a PR, or a spec/plan
 /andthen:review
 /andthen:review --pr 42
-/andthen:review --doc-only docs/specs/my-feature/plan.md
+/andthen:review --mode doc docs/specs/my-feature/plan.md
 
 # Refactor messy code
 /andthen:refactor src/utils/
 
-# Evaluate architectural options
-/andthen:trade-off "caching strategy for API responses"
+# Trade-off analysis — evaluate architectural options, compare alternatives, write an ADR
+/andthen:architecture "caching strategy for API responses" --mode trade-off
 
 # Architecture health check
-/andthen:architecture-review src/
+/andthen:architecture src/
 
 # Multi-perspective review with adversarial debate
-/andthen:review-council
+/andthen:review --council
 
 # Understand a new codebase
 /andthen:map-codebase
@@ -147,39 +143,42 @@ Specialist review skills remain available for explicit or internal use: `review-
 /andthen:excalidraw-diagram "data pipeline architecture"
 ```
 
-#### Architecture Review Modes
+#### Architecture Modes
 
 ```bash
-# Interactive — presents modes and asks what you want to analyze
-/andthen:architecture-review
+# Interactive — presents modes and asks what you want to do
+/andthen:architecture
 
 # Full architecture health assessment
-/andthen:architecture-review src/
+/andthen:architecture src/ --mode review
 
 # Evaluate a split/merge decision
-/andthen:architecture-review src/core --mode decompose
+/andthen:architecture src/core --mode decompose
 
 # Propose fitness functions for architectural governance
-/andthen:architecture-review --mode fitness
+/andthen:architecture --mode fitness
 
-# Get framework-grounded guidance on an architecture question
-/andthen:architecture-review "should I use event sourcing for the order domain" --mode advise
+# Design/advisory guidance grounded in CUPID, DDD, and architectural frameworks
+/andthen:architecture "should I use event sourcing for the order domain" --mode advise
 
-# Supports multi-step sessions — after any analysis, continue with
-# another mode (e.g. review → decompose a finding → propose fitness functions)
+# Trade-off analysis — compare options with weighted criteria, produce an evidence-based recommendation or ADR
+/andthen:architecture "SQL vs document DB for the events store" --mode trade-off
+
+# Supports multi-step sessions — after any run, continue with another mode
+# (e.g. advise → trade-off → formal ADR, or review → decompose → fitness)
 ```
 
 #### Multi-Perspective Review
 
 ```bash
 # Adaptive review - analyzes scope and selects 5-7 relevant reviewers
-/andthen:review-council
+/andthen:review --council
 
 # Review specific PR with council
-/andthen:review-council --pr 123
+/andthen:review --council --to-pr 123
 
 # Focus on specific aspect
-/andthen:review-council "security"
+/andthen:review --council "security"
 
 # Reviewers auto-selected based on changes:
 # - Product features → Product Manager, Requirements Analyst, etc.
@@ -188,7 +187,7 @@ Specialist review skills remain available for explicit or internal use: `review-
 # - Always includes Devil's Advocate + Synthesis Challenger
 
 # OR force Agent Teams for real-time debate (Claude Code only)
-/andthen:review-council --team
+/andthen:review --council --team
 ```
 
 ### Feature Workflow (single feature)
@@ -201,22 +200,15 @@ Specialist review skills remain available for explicit or internal use: `review-
 
 # 2. Generate implementation spec (picks up clarified requirements automatically)
 /andthen:spec docs/specs/data-export/
-# Optional GitHub-first handoff:
-/andthen:spec docs/specs/data-export/ --to-issue
 
 # 3. Execute the spec (path printed by spec)
 /andthen:exec-spec <path-to-fis>
-# Or resume from a typed GitHub FIS artifact:
-/andthen:exec-spec --issue 123
 
 # 4. Final review (against requirements)
-/andthen:review --gap-only <path-to-fis>
+/andthen:review --mode gap <path-to-fis>
 
 # 5. If the review reports actionable findings:
 /andthen:remediate-findings <path-to-review-report>
-# Or directly from a typed GitHub review artifact:
-/andthen:remediate-findings https://github.com/org/repo/issues/789
-/andthen:remediate-findings https://github.com/org/repo/pull/456#issuecomment-123
 ```
 
 ### Plan Workflow (MVP / multi-feature)
@@ -226,39 +218,38 @@ Specialist review skills remain available for explicit or internal use: `review-
 /andthen:clarify "dashboard for analytics"
 
 # 2. Optional: create design assets
-/andthen:wireframes
-/andthen:design-system
+/andthen:ui-ux-design --mode wireframes
+/andthen:ui-ux-design --mode design-system
 
-# 3. Generate plan (includes PRD creation if needed + story breakdown)
+# 3a. Create the PRD
+/andthen:prd docs/specs/dashboard/
+/andthen:prd --issue 42            # read from a GitHub issue
+/andthen:prd docs/specs/dashboard/ --to-issue   # publish PRD to a GitHub issue for stakeholder review
+
+# 3b. Create the full plan bundle (story breakdown + FIS for every story)
 /andthen:plan docs/specs/dashboard/
-/andthen:plan --issue 42   # or directly from a GitHub issue
-# Optional GitHub-first handoff:
-/andthen:plan docs/specs/dashboard/ --to-issue
+# Cheap planning pass (plan.md only, skip FIS generation):
+/andthen:plan docs/specs/dashboard/ --skip-specs
 
 # 4a. Execute all stories via pipeline (default per-story review)
 /andthen:exec-plan docs/specs/dashboard/
-# Or resume from a typed GitHub plan artifact:
-/andthen:exec-plan --issue 456
 
 # 4b. OR use Agent Teams for enhanced parallelism (Claude Code only)
 /andthen:exec-plan docs/specs/dashboard/ --team
 # Or with worktree isolation for parallel execution:
 /andthen:exec-plan docs/specs/dashboard/ --team --worktree
 
-# 4c. OR manually: batch-create all specs, then execute per story
-/andthen:spec-plan docs/specs/dashboard/
-# Or resume from the typed GitHub plan artifact:
-/andthen:spec-plan --issue 456
+# 4c. OR execute story by story manually (plan already produced FIS for every story):
 /andthen:exec-spec docs/specs/dashboard/s01-project-setup.md
-/andthen:review --gap-only docs/specs/dashboard/s01-project-setup.md
+/andthen:review --mode gap docs/specs/dashboard/s01-project-setup.md
 /andthen:remediate-findings <path-to-review-report>   # when review reports actionable gaps
 # ... repeat exec-spec + review (+ remediation when needed) for each story in per-story mode
 
 # 5. Final review (single-feature workflow, or manual review after exec-plan)
-/andthen:review --gap-only
+/andthen:review --mode gap
 ```
 
-`--to-issue` / `--to-pr` outputs are typed AndThen artifacts, so downstream skills can continue directly from GitHub instead of requiring local file paths.
+**GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --to-pr` and `architecture --to-pr` post reports as PR comments. Everything else is local — use a branch + PR as the transport.
 
 ## License
 

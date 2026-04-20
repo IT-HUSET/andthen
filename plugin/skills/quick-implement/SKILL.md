@@ -1,28 +1,16 @@
 ---
-description: Quick implementation path for small features or fixes with verification. Trigger on 'quick fix this', 'implement this quickly', 'make this small change'.
-argument-hint: <spec> | --issue <number>
+description: Quick implementation path for small features or fixes with verification. Bypasses the FIS workflow — for larger features, use the `andthen:clarify` → `andthen:spec` → `andthen:exec-spec` chain instead. Trigger on 'quick fix this', 'implement this quickly', 'make this small change'.
+argument-hint: "<spec> [--pr] | --issue <number> [--no-pr]"
 ---
 
 # Quick Implement with Verification
 
 Fast implementation path for small features, bug fixes, or GitHub issues. Bypasses FIS workflow for quick turnaround while maintaining verification quality.
 
-**For larger features, use the full workflow:** the `andthen:clarify` skill → the `andthen:spec` skill → the `andthen:exec-spec` skill.
-
 
 ## VARIABLES
 
 ARGUMENTS: $ARGUMENTS
-
-
-## USAGE
-
-```
-/quick-implement <feature description>        # Implement from inline spec
-/quick-implement --issue 123                  # Implement from GitHub issue (auto-PR)
-/quick-implement --issue 123 --no-pr          # From issue, skip PR creation
-/quick-implement <spec> --pr                  # Inline spec + create PR
-```
 
 
 ## INSTRUCTIONS
@@ -31,13 +19,22 @@ ARGUMENTS: $ARGUMENTS
 - **Autonomously and iteratively** implement with comprehensive verification
 - **Iterate** until all requirements met, no defects remain, all reviews pass
 - Use GitHub CLI (`gh`) for GitHub operations
-- If you feel tempted to skip tests, defer verification, or widen scope, load `${CLAUDE_PLUGIN_ROOT}/references/anti-rationalization.md`.
+- **PR behavior**: `--issue` auto-creates a PR (opt out with `--no-pr`); inline spec does not create a PR (opt in with `--pr`)
+- **Anti-rationalization** — if you feel tempted to skip tests, defer verification, or widen scope, reject these common rationalizations:
+  - "This is too small for tests" — small work still needs verification; a short proof is enough, none is not.
+  - "I'll just fix this adjacent issue too" — scope creep hides regressions and muddies diffs.
+  - "I'll verify after the next change" — verification is cheapest before more work builds on a bad assumption.
+  - "I'll report this complete with a caveat" — broken is not Done. Finish it or surface a real blocker.
 
 
 ## GOTCHAS
 - Skipping verification after implementation – always run tests/build
 - Scope creep: implementing more than was asked
-- Use structured output protocols (`${CLAUDE_PLUGIN_ROOT}/references/structured-output-protocols.md`) when encountering ambiguity or undefined requirements
+- When stuck, emit named output blocks instead of guessing:
+  - `CONFUSION:` — ambiguity + labeled options + `-> Which approach?`
+  - `NOTICED BUT NOT TOUCHING:` — out-of-scope observations + `-> Want me to create tasks?`
+  - `MISSING REQUIREMENT:` — undefined behavior + labeled options + `-> Which behavior?`
+  Each is a labeled block with concrete choices and an arrow-prompt for the user.
 
 
 ## WORKFLOW
@@ -47,12 +44,9 @@ ARGUMENTS: $ARGUMENTS
 #### 1.1. Parse Input & Get Requirements
 
 **If `--issue` flag present:**
-1. Extract issue number and fetch with `gh issue view <number>`
-2. If the issue body contains a typed envelope per `${CLAUDE_PLUGIN_ROOT}/references/github-artifact-roundtrip.md`:
-   - `artifact_type: triage-plan` is compatible — use the embedded plan as the implementation scope
-   - Any `*-review` artifact is **not** compatible — stop and direct the user to the `andthen:remediate-findings` skill
-   - `plan-bundle`, `fis-bundle`, and `triage-completion` are **not** compatible — stop and direct the user to the appropriate plan / spec / triage workflow
-3. Set `CREATE_PR=true` (unless `--no-pr` specified)
+1. Extract the issue number and fetch the body with `gh issue view <number>`. Use the body content as the implementation scope — a raw bug report, a structured fix plan from `triage --to-issue`, or anything in between, all read as prose.
+2. **Scope guard**: if the body describes a multi-story plan, a PRD, a full FIS, or anything else plainly beyond a small fix, stop and direct the user to the right skill (`andthen:plan` + `andthen:exec-plan` for multi-feature, `andthen:spec` + `andthen:exec-spec` for a single larger feature, `andthen:remediate-findings` for a review report).
+3. Set `CREATE_PR=true` (unless `--no-pr` specified). PR will reference the issue with `Closes #<number>`.
 4. Create feature branch following project conventions
 
 **Otherwise:** use inline spec from arguments; set `CREATE_PR=true` only if `--pr` flag present.
@@ -76,13 +70,13 @@ Execute: Implementation → Verification → Evaluation. Repeat until all requir
 - Write tests first where applicable, otherwise alongside implementation
 - Write code following existing codebase patterns and project guidelines
 - Use **sub-agents** _(if supported)_ for independent tasks
-- Delegate build issues to the `andthen:build-troubleshooter` agent _(if supported)_
+- Delegate build or configuration issues to the `andthen:triage` skill _(if supported)_
 
 #### Step 2: Verification
 
 Run in parallel _(if supported; otherwise sequentially)_:
 
-**2.1. Code & Architecture Review** – Invoke the `andthen:review-code` skill for static analysis, linting, type checking, code quality, security, architecture.
+**2.1. Code & Architecture Review** – Invoke the `andthen:review` skill with `--mode code` for static analysis, linting, type checking, code quality, security, architecture.
 
 **2.2. Run Tests** – Execute all tests with project-specific commands.
 

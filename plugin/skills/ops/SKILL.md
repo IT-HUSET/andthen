@@ -72,7 +72,7 @@ After any update, set `Last Updated` to current timestamp.
 - **Session Continuity Notes**: keep only the **last 5** entries; older entries are trimmed. Notes from completed milestones that have been captured elsewhere (CHANGELOG, Recently Completed) should be removed.
 - **Overall size**: the `State` document should stay under ~60 lines. If it exceeds this after other maintenance rules, trim the oldest/longest entries first. This file is a snapshot of _current_ state, not a history log.
 
-Format for the `State` document (see **Project Document Index**; matches `templates/project-state-templates.md`):
+Format for the `State` document (see **Project Document Index**):
 ```markdown
 # Project State
 
@@ -120,7 +120,7 @@ Check off task/criteria checkboxes in a FIS document:
 Actions:
 - When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
 - When `task_id` is `all`: Mark ALL unchecked task checkboxes (`- [ ]` → `- [x]`), all success criteria checkboxes, and all Final Validation Checklist items in one pass
-- Before marking done, verify that evidence of completion exists (e.g., the calling skill has already performed verification per `${CLAUDE_PLUGIN_ROOT}/references/verification-patterns.md`). Do not re-run full verification – check that it was performed, not that it passes again
+- Before marking done, verify that evidence of completion exists — the calling skill should have already performed verification. Do not re-run full verification; check that it was performed, not that it passes again.
 - When all tasks are done (or using `all`): also mark success criteria and Final Validation Checklist items
 
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Architecture"
+  short_description: "Architecture design, review, decomposition, trade-off analysis, and fitness functions"
+  default_prompt: "Architecture work — review, decompose, advise (design/CUPID/DDD), fitness functions, or trade-off analysis. Scope or decision: "
+
+policy:
+  allow_implicit_invocation: true

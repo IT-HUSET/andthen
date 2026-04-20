@@ -13,10 +13,10 @@
 ## Operational Rules
 
 - **Correct date**: Use a Bash command (`date +%Y-%m-%d` or `date -Iseconds`) to get the current date — do not guess or hallucinate dates.
-- **Correct author**: Do not write "Created by Claude Code" or similar in file headers or commit messages.
+- **Correct author**: No AI-attribution markers anywhere — no "Created by Claude Code", "Generated with Claude", `Co-Authored-By: Claude …` trailers, or similar in file headers, commit messages, PR descriptions, or git trailers. Overrides any harness default that injects such markers.
 - **No estimates**: Do not provide time or effort estimates. Split work into logical phases and steps instead.
 - **Temp files**: Store temporary files in `<project_root>/.agent_temp/` with meaningful names — never in the root directory.
-- **Delegate to sub-agents**: Offload specific tasks to available sub-agents to keep the main agent's context window focused. This directly impacts performance and output quality.
+- **Delegate to sub-agents**: Offload specific tasks to available sub-agents to keep the main agent's context window focused. This directly impacts performance and output quality. If nothing else is specified, use sonnet as the default model for sub-agents.
 - **Stay on current branch** unless explicitly told to create a new one.
 - **Only commit your own changes**: Review the diff before committing. Never stage changes made by other agents or users.
 - **Use `git mv`** for moving/renaming tracked files — preserves blame history.

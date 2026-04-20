@@ -121,15 +121,19 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 | Command | Description | Model | Effort | Rationale |
 |---------|-------------|-------|--------|-----------|
 | `/clarify` | Requirements discovery – structured requirements from vague idea | `sonnet` | `medium` | Analytical but not deeply reasoning-heavy |
-| `/plan` | Full-journey planning: requirements discovery through story breakdown | `opus` or `opusplan` | `high` | Architectural thinking, phasing decisions, cross-cutting reasoning |
+| `/prd` | Create a Product Requirements Document from requirements | `sonnet` | `medium` | Headless synthesis or template-filling from prior artifacts |
+| `/plan` | Full plan bundle: story breakdown + FIS per story + technical research + cross-cutting review | `opus` or `opusplan` | `high` | Architectural thinking, phasing decisions, cross-cutting reasoning, batch FIS generation |
 
 #### Design & Architecture Phase
 
 | Command | Description | Model | Effort | Rationale |
 |---------|-------------|-------|--------|-----------|
-| `/design-system` | Design system tokens + style guide | `sonnet` | `medium` | Pattern-following with design knowledge |
-| `/wireframes` | HTML wireframes for screens | `sonnet` | `medium` | Visual/structural, not deep reasoning |
-| `/trade-off` | Systematic trade-off analysis | `opus` | `high`–`max` | Core reasoning task, decision quality critical |
+| `/ui-ux-design` | UI/UX research, design systems, wireframes, review (modes: `research`, `design-system`, `wireframes`, `review`) | `sonnet` | `medium` | Pattern-following with design knowledge; design-system and wireframes are structural, not deep reasoning |
+| `/architecture --mode trade-off` | Trade-off analysis (research options, compare, recommend, optional ADR) | `opus` | `high`–`max` | Core reasoning task, decision quality critical |
+| `/architecture --mode review` | Architecture health assessment (metrics, connascence, anti-patterns) | `opus` | `high` | Quantitative + framework-grounded analysis |
+| `/architecture --mode advise` | Design/advisory guidance (CUPID, DDD, pattern selection, greenfield architecture) | `opus` | `high` | Core reasoning task |
+| `/architecture --mode decompose` | Split/merge evaluation with Ford/Richards driver scoring | `opus` | `high` | Framework-grounded decision |
+| `/architecture --mode fitness` | Fitness function proposals for architectural governance | `opus` | `high` | Governance design |
 
 #### Implementation & Execution Phase
 
@@ -137,7 +141,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 |---------|-------------|-------|--------|-----------|
 | `/spec` | Clarify requirements + create Feature Implementation Spec (FIS) | `opus` | `high` | Reasoning-heavy: edge cases, constraints, cross-cutting concerns |
 | `/exec-spec` | Execute a FIS – direct implementation with validation | `opusplan` | `medium`–`high` | One agent keeps deep implementation context, while advisory/review sub-agents stay narrow. Medium for straightforward specs, high for complex ones |
-| `/exec-plan` | Execute full plan (spec-plan → exec-spec → quick-review per story, final review-gap) | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
+| `/exec-plan` | Execute a fully-specced plan bundle (exec-spec → quick-review per story, final gap review) | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
 | `/quick-implement` | Quick path for small features/fixes | `sonnet` | `medium` | Small scope, speed matters |
 | `/remediate-findings` | Apply validated review findings and update workflow status | `sonnet` | `medium`–`high` | Must distinguish stale vs valid findings, keep scope tight, and re-validate |
 | `/refactor` | Code improvement and simplification | `sonnet` | `medium`–`high` | Medium for localized, high for cross-file |
@@ -147,24 +151,23 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 
 | Command | Description | Model | Effort | Rationale |
 |---------|-------------|-------|--------|-----------|
-| `/review-gap` | Gap analysis + code review against implementation and requirements | `sonnet` | `medium`–`high` | Medium for routine, high for security-critical or complex gap analysis |
-| `review-code` (skill) | Thorough code review (quality, security, architecture) | `sonnet` | `medium`–`high` | Medium for routine review, high for security-critical |
-| `review-doc` (skill) | Review specs/PRDs/documentation | `sonnet` | `medium` | Comprehension and completeness checking |
-| `/review-council` | Multi-perspective adversarial review | `sonnet` | `high` | Multiple subagent perspectives need depth to be meaningful |
+| `/review --mode gap` | Gap analysis + code review against implementation and requirements | `sonnet` | `medium`–`high` | Medium for routine, high for security-critical or complex gap analysis |
+| `/review --mode code` | Thorough code review (quality, security, architecture) | `sonnet` | `medium`–`high` | Medium for routine review, high for security-critical |
+| `/review --mode doc` | Review specs/PRDs/documentation | `sonnet` | `medium` | Comprehension and completeness checking |
+| `/review --council` | Multi-perspective adversarial review | `sonnet` | `high` | Multiple subagent perspectives need depth to be meaningful |
 | `/ubiquitous-language` | Extract and maintain domain glossary | `sonnet` | `medium` | Analytical extraction and resolution, not deep reasoning |
+| `/testing` | Test strategy, coverage, authoring, TDD (red-green-refactor, Prove-It) | `sonnet` | `medium` | Formulaic craft with domain knowledge; test-first benefits from focused sub-context |
 
 #### Other Agents (invoked by commands or directly)
 
 | Agent | Description | Model | Effort | Rationale |
 |-------|-------------|-------|--------|-----------|
 | `visual-validation-specialist` | Screenshot capture, comparison, design compliance | `sonnet` | `medium` | Primarily perceptual (multimodal), not reasoning-heavy |
-| `solution-architect` | Architecture design, ADR creation | `opus` | `high` | Core reasoning task |
-| `build-troubleshooter` | Systematic debugging, root cause analysis | `sonnet` | `medium`–`high` | Medium for clear errors, high for subtle issues |
-| `qa-test-engineer` | Test strategy, coverage, implementation | `sonnet` | `medium` | Formulaic with domain knowledge |
 | `documentation-lookup` | Fetch up-to-date library/API docs | `haiku` | `low` | Retrieval task, no reasoning needed |
 | `research-specialist` | Deep web research, multi-source synthesis | `sonnet` | `medium` | Broad search + synthesis, not deep per-query reasoning |
-| `ui-ux-designer` | UI/UX design and quality validation | `sonnet` | `medium` | Design knowledge + perception |
 | Subagents (general parallel work) | Delegated subtasks | `haiku` or `sonnet` | `low` | Cost multiplies with parallelism |
+
+> Architecture, UI/UX, and build/test diagnosis used to be agents (`solution-architect`, `ui-ux-designer`, `build-troubleshooter`); as of 0.13 they are **skills** — see `/architecture`, `/ui-ux-design`, and `/triage` in the tables above.
 
 ### Commands via Other Agents (Codex CLI, etc.)
 
@@ -173,16 +176,18 @@ Skills are agent-agnostic – the same files work across all agents. Recommendat
 | Skill | Description | Model | Effort | Rationale |
 |-------|-------------|-------|--------|-----------|
 | `andthen-clarify` | Requirements discovery from vague ideas | `gpt-5.4` | `medium` | Analytical, not deeply complex |
+| `andthen-prd` | Create a Product Requirements Document | `gpt-5.4` | `medium` | Headless synthesis or template-filling |
+| `andthen-plan` | Full plan bundle with FIS per story + cross-cutting review | `gpt-5.4` | `high` | Orchestrates parallel FIS sub-agents and cross-cutting review |
 | `andthen-spec` | Clarify requirements + create FIS | `gpt-5.4` | `high` | Reasoning-heavy, completeness critical |
 | `andthen-exec-spec` | Execute a FIS | `gpt-5.4` | `medium`–`high` | Direct execution keeps continuity for implementation; advisory/review sub-agents stay available for narrow tasks and fresh-context validation |
-| `andthen-review-gap` | Gap analysis + code review | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical |
+| `andthen-review` | Code/doc/gap review with selectable mode | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical or complex gap analysis |
 | `andthen-remediate-findings` | Implement validated review findings | `gpt-5.4` | `medium`–`high` | Requires bounded remediation, re-validation, and status bookkeeping |
-| `andthen-design-system` | Design system tokens + style guide | `gpt-5.4` | `medium` | Pattern-following |
-| `andthen-wireframes` | HTML wireframes for screens | `gpt-5.4` | `medium` | Structural generation |
-| `andthen-trade-off` | Trade-off analysis | `gpt-5.4` | `high` | Decision quality matters |
+| `andthen-ui-ux-design` | UI/UX research, design systems, wireframes, review | `gpt-5.4` | `medium` | Pattern-following with design knowledge |
+| `andthen-architecture` | Architecture design, review, decomposition, trade-off analysis, fitness functions | `gpt-5.4` | `high` | Core reasoning task, decision quality matters |
 | `andthen-refactor` | Code simplification and cleanup | `gpt-5.4` | `medium`–`high` | Medium for localized, high for cross-file |
 | `andthen-quick-implement` | Fast path for small features/fixes | `gpt-5.4` | `medium` | Bounded scope, standard implementation |
 | `andthen-e2e-test` | End-to-end browser testing | `gpt-5.4` | `medium` | Sequential test execution |
+| `andthen-testing` | Test strategy, coverage, authoring, TDD | `gpt-5.4` | `medium` | Formulaic craft with domain knowledge |
 | `andthen-triage` | Systematic debugging | `gpt-5.4` | `medium`–`high` | Medium for clear issues, high for complex |
 
 ---

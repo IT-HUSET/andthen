@@ -7,13 +7,43 @@
 </p>
 
 > "I have a feature idea" → *and then?* → **clarify** → *and then?* → **spec** → *and then?* → **exec-spec** → *and then?* → **review** → **ship it.**
+>
+> Bigger scope? → **clarify** → **prd** → **plan** → **exec-plan** → **review** → **ship it.**
 
 AndThen brings spec-driven development to AI coding agents – lightweight, open, and adoptable piece by piece. The core idea: write a spec before you code, then let the agent execute it autonomously. The pipeline produces a **Feature Implementation Specification (FIS)** as its central artifact – a structured blueprint that turns requirements into reliable, verifiable implementations.
 
 > [!NOTE]
 > **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal.
 
-**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` available when you want that flow orchestrated for you (add `--team` for Agent Teams parallelism). Under the hood, `review` routes to the right specialist review (`review-code`, `review-doc`, or `review-gap`) for the actual target. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
+> [!WARNING]
+> **BREAKING CHANGES in 0.13.0** – the skill surface is being reshaped in two coupled passes, shipped together so the churn lands in one release:
+>
+> **Plan side** — three clear altitudes: product (`prd`), implementation/story plan (`plan`), execution (`exec-plan`).
+> - **New**: `/andthen:prd` – creates the PRD (extracted from today's `plan`).
+> - **Changed**: `/andthen:plan` now requires an existing `prd.md` and produces the **full plan bundle** (`plan.md` + all FIS + `.technical-research.md`) in one run. It absorbs the work `spec-plan` used to do.
+> - **Removed**: `/andthen:spec-plan` – merged into `/andthen:plan`.
+> - **Changed**: `/andthen:exec-plan` no longer generates specs. It requires a fully-specced plan bundle as input.
+>
+> **Review side** — one user-facing review skill, modes instead of separate delegates.
+> - **Removed**: `/andthen:review-code`, `/andthen:review-doc`, `/andthen:review-gap` – absorbed into `/andthen:review` as internal modes.
+> - **Changed**: flag rename on `/andthen:review` – `--code-only` / `--doc-only` / `--gap-only` → `--mode code|doc|gap|mixed`.
+> - **Changed**: unified severity scale across review modes – `SUGGESTIONS` bucket normalised to `LOW`. Gap mode's PASS/FAIL verdict contract is preserved exactly.
+>
+> **Migration:**
+>
+> | Before | After |
+> |---|---|
+> | `/andthen:plan <requirements>` | `/andthen:prd <requirements>` &nbsp;→&nbsp; `/andthen:plan <dir-with-prd>` |
+> | `/andthen:spec-plan <plan-dir>` | `/andthen:plan <plan-dir>` (re-run fills missing FIS) |
+> | `/andthen:exec-plan <plan-dir>` (auto-generated specs per phase) | `/andthen:plan <plan-dir>` &nbsp;→&nbsp; `/andthen:exec-plan <plan-dir>` |
+> | `/andthen:review --code-only <target>` | `/andthen:review --mode code <target>` |
+> | `/andthen:review --doc-only <target>` | `/andthen:review --mode doc <target>` |
+> | `/andthen:review --gap-only <target>` | `/andthen:review --mode gap <target>` |
+> | `/andthen:review-code`, `/andthen:review-doc`, `/andthen:review-gap` | `/andthen:review --mode code|doc|gap` |
+>
+> Use `/andthen:plan --skip-specs` if you want the old "plan structure only, defer FIS" behaviour. See [CHANGELOG.md](CHANGELOG.md) for full details.
+
+**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` available when you want that flow orchestrated for you (add `--team` for Agent Teams parallelism). `review` runs a single lens per call (code, doc, gap, or mixed) selected automatically or via `--mode`. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
 
 Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** – falling back to direct execution when sub-agents aren't available.
 
@@ -43,9 +73,9 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 ┌─────────────────────────────────────────────────────────────────────┐
 │  FEATURE WORKFLOW (single feature)                                  │
 │                                                                     │
-│  ┌──────────── optional pre-work ──────────────┐                    │
-│  │ wireframes · design-system · trade-off      │                    │
-│  └─────────────────────┬───────────────────────┘                    │
+│  ┌──────────── optional pre-work ─────────────────┐                 │
+│  │ ui-ux-design · architecture (trade-off mode)   │                 │
+│  └─────────────────────┬──────────────────────────┘                 │
 │                        │                                            │
 │                        ▼                                            │
 │                    [clarify] (optional)                             │
@@ -72,24 +102,26 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 ┌─────────────────────────────────────────────────────────────────────┐
 │  PLAN WORKFLOW (manual story-by-story loop)                         │
 │                                                                     │
-│  ┌──────────── optional pre-work ──────────────┐                    │
-│  │ wireframes · design-system · trade-off      │                    │
-│  └─────────────────────┬───────────────────────┘                    │
+│  ┌──────────── optional pre-work ─────────────────┐                 │
+│  │ ui-ux-design · architecture (trade-off mode)   │                 │
+│  └─────────────────────┬──────────────────────────┘                 │
 │                        │                                            │
 │                        ▼                                            │
 │              [clarify] (optional)                                   │
 │                        │                                            │
 │                        │ requirements-clarification.md              │
 │                        ▼                                            │
+│                      [prd]                                          │
+│                        │                                            │
+│                        │ prd.md                                     │
+│                        ▼                                            │
 │                     [plan] ────→ [review] (optional)                │
 │                        │                                            │
-│                        │ prd.md + plan.md (stories)                 │
+│                        │ plan.md + FIS per story + research         │
 │                        ▼                                            │
-│      [spec-plan] or per-story [spec]                                │
-│                        │                                            │
-│                        └──→ per story: [exec-spec]                  │
-│                                 └──→ optional [review]              │
-│                        │                └──→ [remediate-findings]   │
+│                per story: [exec-spec]                               │
+│                        │    └──→ optional [review]                  │
+│                        │         └──→ [remediate-findings]          │
 │                        ▼                                            │
 │                     optional final [review]                         │
 │                              └──→ [remediate-findings]              │
@@ -103,14 +135,13 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 │   optional pre-work (see above)                                     │
 │     │                                                               │
 │     ▼                                                               │
-│  [plan] ───→ [exec-plan]                                            │
-│               │                                                     │
-│               ├── [spec-plan] (per phase)                           │
-│               │                                                     │
-│               ├── per story: [exec-spec] → [quick-review]           │
-│               │                                                     │
-│               └── after all stories:                                │
-│                    [review-gap] → [remediate-findings] if needed    │
+│  [prd] ───→ [plan] ───→ [exec-plan]                                 │
+│                            │                                        │
+│                            ├── per story: [exec-spec] → [review]    │
+│                            │                                        │
+│                            └── after all stories:                   │
+│                                 [review --mode gap]                 │
+│                                  └──→ [remediate-findings] if needed│
 └─────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -125,10 +156,10 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 **When to use which:**
 - **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue – you know what to do and it's under ~3 files
 - **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review`): Single feature with real complexity – multiple files, non-obvious requirements, needs a blueprint
-- **Manual plan workflow** (`clarify` → `plan` → `spec-plan` or per-story `spec` → `exec-spec`): Multiple features, MVP, or a new project where you want explicit control story by story, with optional per-story or final review/remediation
-- **Automated plan workflow** (`clarify` → `plan` → `exec-plan`): The same underlying plan flow, with `spec-plan` plus implementation orchestrated for you. Use `--team` for Agent Teams parallelism
+- **Manual plan workflow** (`clarify` → `prd` → `plan` → per-story `exec-spec`): Multiple features, MVP, or a new project where you want explicit control story by story. `plan` produces the full bundle (`plan.md` + FIS per story + technical research); you drive execution story by story with optional per-story or final review/remediation
+- **Automated plan workflow** (`clarify` → `prd` → `plan` → `exec-plan`): The same bundle, with implementation orchestrated for you. Use `--team` for Agent Teams parallelism
 
-In both plan workflows, the per-story execution step is handled by `exec-spec`.
+In both plan workflows, the per-story execution step is handled by `exec-spec`. `plan --skip-specs` is available when you want a cheap planning pass that defers FIS generation.
 
 Not sure? Start with `quick-implement`. If it feels too complex, switch to the feature workflow. See [Getting Started](#getting-started) for a full walkthrough.
 
@@ -174,7 +205,7 @@ Skills use capability detection and work without the plugin infrastructure. Use 
 ./scripts/install-skills.sh --no-codex-agents
 ```
 
-This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-spec/`, `andthen-review/`). Plugin reference docs, shared templates, and helper scripts are also copied. By default, the installer also copies the Codex TOML agents into `~/.codex/agents/` and rewrites them to point at the installed shared references path.
+This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-prd/`, `andthen-spec/`, `andthen-plan/`, `andthen-review/`). Plugin reference docs, shared templates, and helper scripts are also copied. By default, the installer also copies the Codex TOML agents into `~/.codex/agents/` and rewrites them to point at the installed shared references path.
 
 Invoke with `/andthen:<skill>` in Claude Code, or `$andthen-<skill>` in Codex and other agents.
 
@@ -196,13 +227,13 @@ This is the single entry point for all project types – new, partial setups, an
 **1. Project Document Index** – tells skills where to write output (specs, plans, etc.)
 **2. Workflow Rules, Guardrails and Guidelines** – behavioral rules and development standards
 
-See [`templates/CLAUDE.template.md`](templates/CLAUDE.template.md) for a starter template.
+See [`plugin/skills/init/templates/CLAUDE.template.md`](plugin/skills/init/templates/CLAUDE.template.md) for a starter template.
 
-**Optional project docs** – The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these are in [`templates/project-state-templates.md`](templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
+**Optional project docs** – The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these live in [`plugin/skills/init/templates/project-state-templates.md`](plugin/skills/init/templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
 
 ### Agent Teams (Optional, Claude Code only)
 
-`exec-plan --team` and `review-council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. Without `--team`, both skills use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
+`exec-plan --team` and `review --council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. Without `--team`, both use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -254,21 +285,28 @@ This reads your clarified requirements, analyzes the codebase, and produces a **
 docs/specs/data-export/data-export.md
 ```
 
-**Step 2b: Or create a plan** *(multi-feature / MVP)*
+**Step 2b: Or create a plan bundle** *(multi-feature / MVP)*
 
 ```bash
+# Step 2b-i: Create the PRD (extracts/synthesizes product requirements)
+/andthen:prd docs/specs/data-export/
+/andthen:prd --issue 42   # or directly from a GitHub issue
+
+# Step 2b-ii: Create the full plan bundle (plan.md + FIS per story + research)
 /andthen:plan docs/specs/data-export/
-# Or directly from a GitHub issue:
-/andthen:plan --issue 42
+# Cheap planning pass (plan.md only, defer FIS generation):
+/andthen:plan docs/specs/data-export/ --skip-specs
 # Optional GitHub-first handoff:
 /andthen:plan docs/specs/data-export/ --to-issue
 ```
 
-This picks up `requirements-clarification.md` automatically (or fetches the GitHub issue), creates a PRD (filling any remaining gaps with a brief targeted interview), and breaks it into sequenced stories with phases and dependencies.
+`prd` picks up `requirements-clarification.md` or a draft PRD automatically; `plan` requires `prd.md` and breaks the PRD into sequenced stories with phases and dependencies, plus batch-generates FIS for every story and runs a cross-cutting review.
 
 ```
 docs/specs/data-export/prd.md
 docs/specs/data-export/plan.md
+docs/specs/data-export/.technical-research.md
+docs/specs/data-export/s01-*.md   (FIS per story)
 ```
 
 **Step 3: Execute**
@@ -279,20 +317,14 @@ docs/specs/data-export/plan.md
 # Or resume from a typed GitHub FIS artifact:
 /andthen:exec-spec --issue 123
 
-# Multi-feature (manual story-by-story loop):
-# Option A: generate all story specs up front
-/andthen:spec-plan docs/specs/data-export/
-# Or resume from a typed GitHub plan artifact:
-/andthen:spec-plan --issue 456
-# Option B: generate one story spec at a time
-# /andthen:spec docs/specs/data-export/s01-story-name.md
+# Multi-feature (manual story-by-story loop — bundle already has FIS per story):
 /andthen:exec-spec docs/specs/data-export/s01-story-name.md
 # Optional per-story review:
-/andthen:review --gap-only docs/specs/data-export/s01-story-name.md
+/andthen:review --mode gap docs/specs/data-export/s01-story-name.md
 /andthen:remediate-findings <path-to-review-report>   # if review reports actionable gaps
 # ...repeat for each story in plan order
 # Optional final plan-level review:
-/andthen:review --gap-only docs/specs/data-export/plan.md
+/andthen:review --mode gap docs/specs/data-export/plan.md
 /andthen:remediate-findings <path-to-review-report>   # if needed after final review
 
 # Multi-feature (automated):
@@ -310,19 +342,19 @@ docs/specs/data-export/plan.md
 
 ```bash
 # Single feature:
-/andthen:review --gap-only <path-to-fis>
+/andthen:review --mode gap <path-to-fis>
 
 # Manual per-story or final multi-feature review:
-/andthen:review --gap-only <path-to-plan-or-fis>
+/andthen:review --mode gap <path-to-plan-or-fis>
 ```
 
-`exec-plan` runs `quick-review` per story automatically, then a final `review-gap` on the whole plan. For manual review of individual stories, use `review --gap-only` on the FIS path.
+`exec-plan` runs `quick-review` per story automatically, then a final gap review (`review --mode gap`) on the whole plan. For manual review of individual stories, use `review --mode gap` on the FIS path.
 
-`review` is the default review entrypoint. It routes to `review-gap` when the question is whether implementation matches requirements, to `review-doc` for document readiness, and to `review-code` for implementation-only review.
+`review` is the default review entrypoint. It runs in code / doc / gap / mixed modes (auto-detected or selected via `--mode`) to answer the right question for the target: code review, document readiness, or requirements-vs-implementation fit.
 
-When `spec`, `plan`, `review`, `review-gap`, or `review-code` publish to GitHub, the issue / PR comment is a **typed AndThen artifact**. That means you can continue from GitHub directly:
+When `spec`, `plan`, or `review` publish to GitHub, the issue / PR comment is a **typed AndThen artifact**. That means you can continue from GitHub directly:
 - `/andthen:exec-spec --issue <fis-issue-number>`
-- `/andthen:spec-plan --issue <plan-issue-number>`
+- `/andthen:plan --issue <plan-issue-number>` (re-runs plan, filling any missing FIS)
 - `/andthen:exec-plan --issue <plan-issue-number>`
 - `/andthen:remediate-findings <review-issue-url-or-pr-comment-url>`
 
@@ -350,16 +382,16 @@ This re-validates the findings against the current workspace, applies the smalle
 
 **Rule of thumb:** If you can't list 3 concrete acceptance criteria for the feature, run `clarify` first.
 
-### `clarify` vs. `plan`'s Built-in Discovery
+### `clarify` vs. `prd`'s Built-in Discovery
 
-Both `clarify` and `plan` can do requirements discovery. The difference:
+Both `clarify` and `prd` can do requirements discovery. The difference:
 
-- **`clarify`** does deep, thorough discovery – design space decomposition, domain language extraction, detailed edge case analysis. It produces a standalone requirements document.
-- **`plan`** has a lighter built-in discovery (Step 1b) for when you skip `clarify`. It focuses on getting enough information to create a PRD and break it into stories, but won't go as deep on edge cases or design alternatives.
+- **`clarify`** does deep, thorough discovery – design space decomposition, domain language extraction, detailed edge case analysis. It's interactive and produces a standalone requirements document.
+- **`prd`** does headless synthesis when no prior artifact exists. It focuses on getting enough information to produce a defensible PRD, but won't go as deep on edge cases or design alternatives as `clarify`.
 
-**Use `clarify` first when:** The problem space is genuinely unclear, you're exploring multiple design directions, or the domain is complex. `plan` will pick up the output and skip its own discovery.
+**Use `clarify` first when:** The problem space is genuinely unclear, you're exploring multiple design directions, or the domain is complex. `prd` will pick up the clarified output and skip its own synthesis.
 
-**Skip `clarify` and let `plan` handle it when:** You have a reasonable understanding of what you want – maybe not perfectly documented, but you could explain it in a few paragraphs. `plan`'s lighter discovery will fill the gaps.
+**Skip `clarify` and let `prd` handle it when:** You have a reasonable understanding of what you want – maybe not perfectly documented, but you could explain it in a few paragraphs. `prd`'s headless synthesis will fill the gaps with explicit assumptions.
 
 
 ## Skills
@@ -375,15 +407,15 @@ Use these individually for everyday development — no setup, no pipeline, no pr
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub) |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |
-| `review` | Smart review entrypoint that routes to code, doc, or gap review as needed |
+| `review` | Smart review entrypoint: routes to code, doc, gap, mixed, or multi-perspective council review (`--council`) |
 | `refactor` | Code improvement and simplification |
-| `trade-off` | Architecture decision research with evidence-based recommendations |
-| `architecture-review` | Deep quantitative architecture review – metrics, connascence, decomposition, fitness functions |
-| `review-council` | Multi-perspective review (5-7 reviewers + adversarial debate) |
+| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions (modes: `review`, `decompose`, `advise`, `fitness`, `trade-off`) |
+| `ui-ux-design` | UI/UX work — research, design systems, wireframes, design review (modes: `research`, `design-system`, `wireframes`, `review`) |
 | `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
 | `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
 | `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
 | `e2e-test` | End-to-end browser testing for web applications |
+| `testing` | Test strategy, coverage, authoring, and test-first / red-green-refactor discipline (Prove-It for bugfixes) |
 
 ### Pipeline Skills
 
@@ -393,19 +425,15 @@ These compose into structured workflows — from requirements through implementa
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Requirements discovery – from vague idea to structured requirements (supports `--issue`) |
+| `prd` | Create a Product Requirements Document from requirements (supports `--issue`) |
 | `spec` | Generate Feature Implementation Specification from requirements (supports `--issue`) |
 | `exec-spec` | Execute a FIS – direct implementation with validation |
-| `plan` | Requirements discovery + PRD creation (if needed) + story breakdown (supports `--issue`) |
-| `spec-plan` | Batch-create all FIS specs for a plan (parallel + cross-cutting review) |
-| `exec-plan` | Execute plan – spec-plan per phase, then exec-spec + quick-review per story, final review-gap. Use `--team` for Agent Teams |
+| `plan` | Full plan bundle: story breakdown + FIS for every story + technical research + cross-cutting review. Requires `prd.md` input (supports `--issue`, `--skip-specs`) |
+| `exec-plan` | Execute a fully-specced plan bundle – exec-spec + quick-review per story, final gap review. Use `--team` for Agent Teams |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
-| `wireframes` | Generate HTML wireframes for UI planning |
-| `design-system` | Create design tokens and component styles |
 
-Specialist review skills remain available for explicit or internal use: `review-code`, `review-doc`, and `review-gap`. The recommended user-facing entrypoint is `review`.
-
-> Both `exec-plan` and `review-council` auto-detect Agent Teams and use them when available. Use `--team` to force Agent Teams mode.
+> Both `exec-plan` and `review --council` auto-detect Agent Teams and use them when available. Use `--team` to force Agent Teams mode.
 
 
 ## Agents
@@ -415,12 +443,12 @@ Specialized sub-agents used internally by skills:
 | Agent | Purpose |
 |-------|---------|
 | `research-specialist` | Web research and synthesis |
-| `solution-architect` | Architecture design and technical decisions |
-| `qa-test-engineer` | Test coverage and validation |
 | `documentation-lookup` | External documentation retrieval |
-| `build-troubleshooter` | Build/test failure diagnosis |
-| `ui-ux-designer` | UI/UX design and prototyping |
 | `visual-validation-specialist` | Visual validation workflow |
+
+Architecture design and UI/UX design used to live as agents (`solution-architect`, `ui-ux-designer`); they are now **skills** — `/andthen:architecture` and `/andthen:ui-ux-design`. Build/test diagnosis used to be a `build-troubleshooter` agent; its capability is now folded into the existing `/andthen:triage` skill. These capabilities don't need fresh context; they need methodology applied to current work.
+
+Codex agent files are generated at install time from `plugin/agents/*.md` by `scripts/generate-codex-agents.sh` (invoked by `scripts/install-skills.sh`).
 
 
 ## Docs
@@ -442,13 +470,9 @@ Simplified starting points – copy into your project and adapt to your needs. W
 |----------|---------|
 | `MODEL-EFFORT-SELECTION-GUIDE.md` | Model and thinking effort selection guide |
 
-### Reference (`plugin/references/`)
+### Starter Templates (`plugin/skills/init/templates/`)
 
-| Document | Purpose |
-|----------|---------|
-| `verification-patterns.md` | Stub detection, wiring checks, and the Nyquist verification principle |
-
-### Templates (`templates/`)
+Canonical user-facing starter templates (owned by the `init` skill — see ownership table in `CLAUDE.md`).
 
 | Document | Purpose |
 |----------|---------|
