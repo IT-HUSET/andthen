@@ -6,6 +6,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.13.2] – 2026-04-20
+
+### Fixed
+- **Deprecated Excalidraw font IDs in `andthen:excalidraw-diagram`** – `style-guide.md` and `element-format.md` instructed the agent to emit `fontFamily: 1` (Virgil), `2` (Helvetica), and `3` (Cascadia) on text and labeled-shape elements. All three are flagged `deprecated: true` in Excalidraw's `packages/common/src/font-metadata.ts` and persist a deprecated-font marker into generated scenes. Updated both references to the current non-deprecated IDs: `5` (Excalifont – hand-drawn default), `6` (Nunito – clean sans-serif), `8` (Comic Shanns – the only non-deprecated ID that `getGenericFontFamilyFallback` routes to the monospace CSS fallback). Added a new Font Family IDs table to `element-format.md` and an explicit "do not use 1/2/3" callout to `style-guide.md`. Updated all prose mentions of "Virgil/Helvetica/Cascadia" and the three aesthetic preset tables (Hand-drawn Blueprint, Warm Industrial, Clean Technical) accordingly.
+- **Phantom preset name in the Complete Example caption** (`element-format.md:194`) – the caption called the bronze-hachure + warm-parchment example "the default 'Schematic Warmth' style", but `style-guide.md` defines only three presets (Hand-drawn Blueprint, Warm Industrial, Clean Technical) and the actual default is Hand-drawn Blueprint (pastel palette, white canvas). Rewrote the caption to correctly identify the example as a **Warm Industrial** illustration and point readers to `style-guide.md` for the default palette. JSON unchanged – it's a valid bronze-zone + green-accent example on the warm-parchment preset.
+
+
+---
+
 ## [0.13.1] – 2026-04-20
 
 ### Fixed

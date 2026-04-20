@@ -158,6 +158,18 @@ Connect arrows to shapes using `startBinding` and `endBinding`:
 
 NEVER use fontSize below 14 – it becomes unreadable.
 
+### Font Family IDs
+
+Text and label elements carry a numeric `fontFamily`. Use the current, non-deprecated IDs:
+
+| `fontFamily` | Font | Use |
+|--------------|------|-----|
+| `5` | Excalifont | Hand-drawn default (replaces legacy `1` Virgil) |
+| `6` | Nunito | Clean sans-serif (replaces legacy `2` Helvetica) |
+| `8` | Comic Shanns | Monospace / code (replaces legacy `3` Cascadia) |
+
+Never emit `1`, `2`, or `3` – those IDs are flagged `deprecated` in Excalidraw's `font-metadata.ts` and persist a deprecated-font marker into the scene. See `style-guide.md` for typography choices.
+
 ### Element Sizes
 
 - Minimum shape size: **120x60** for labeled rectangles/ellipses
@@ -179,7 +191,7 @@ NEVER use fontSize below 14 – it becomes unreadable.
 
 ## Complete Example: Two Connected Labeled Boxes
 
-Uses the default "Schematic Warmth" style – bronze hachure for the primary shape, green solid for success, warm parchment canvas.
+Illustrates a bronze zone family + green accent on the **Warm Industrial** preset (warm parchment canvas). For the default **Hand-drawn Blueprint** preset, swap the canvas to `#ffffff` and use one of the zone families from the style guide – see `style-guide.md` for the full palette.
 
 ```json
 {

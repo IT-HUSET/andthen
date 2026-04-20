@@ -4,7 +4,7 @@
 
 **To customize for your project**: Copy this file to your project (e.g. `docs/design/diagram-style-guide.md`), modify it to match your brand, and add a `Diagram Style Guide` row to the **Project Document Index** in your CLAUDE.md pointing to the copy.
 
-**Aesthetic: Hand-drawn Blueprint** – clean white canvas, pastel-tinted shapes with confident strokes, and spatial zones that group by color family. Shapes use light shade[1] fills with strong shade[4] strokes. The hand-drawn Virgil font and `roughness: 1` give warmth. Zones use the lightest shade[0] tints as subtle spatial grouping. The result feels like a skilled architect's whiteboard sketch – organized, colorful but cohesive, approachable. Dark mode is a well-supported alternative (Section 9).
+**Aesthetic: Hand-drawn Blueprint** – clean white canvas, pastel-tinted shapes with confident strokes, and spatial zones that group by color family. Shapes use light shade[1] fills with strong shade[4] strokes. The hand-drawn Excalifont and `roughness: 1` give warmth. Zones use the lightest shade[0] tints as subtle spatial grouping. The result feels like a skilled architect's whiteboard sketch – organized, colorful but cohesive, approachable. Dark mode is a well-supported alternative (Section 9).
 
 **All colors come from the standard Excalidraw picker palette** (Open Color + Radix Bronze). Users can customize diagrams using the built-in color picker.
 
@@ -155,9 +155,11 @@ Default arrows use `#343a40` (gray[4]) – dark, neutral, receding.
 
 | `fontFamily` | Font | When to use |
 |--------------|------|-------------|
-| `1` | Hand-drawn (Virgil) | **Default.** Warm, human, distinctive. Pairs naturally with `roughness: 1`. |
-| `2` | Normal (Helvetica) | Clean technical diagrams when hand-drawn is too informal |
-| `3` | Code (monospace) | Code snippets, technical values inside evidence artifacts |
+| `5` | Hand-drawn (Excalifont) | **Default.** Warm, human, distinctive. Pairs naturally with `roughness: 1`. |
+| `6` | Normal (Nunito) | Clean technical diagrams when hand-drawn is too informal |
+| `8` | Code (Comic Shanns – monospace) | Code snippets, technical values inside evidence artifacts |
+
+**Do not use** `1` (Virgil), `2` (Helvetica), or `3` (Cascadia) – Excalidraw flags all three as `deprecated` in `font-metadata.ts`. They still load for backward compatibility but new exports must use the IDs above.
 
 ### Font Size Hierarchy
 
@@ -237,7 +239,7 @@ roundness:       { "type": 3 }
 
 ### Zone Labels
 
-Place the zone title as free-floating text inside the top-left of the zone. Use the zone family's **stroke color** (shade[4]) and `fontSize: 20`–`24`, `fontFamily: 1` (Virgil). Example: "File-Based Storage" in `#1971c2` (blue[4]) inside a blue zone.
+Place the zone title as free-floating text inside the top-left of the zone. Use the zone family's **stroke color** (shade[4]) and `fontSize: 20`–`24`, `fontFamily: 5` (Excalifont). Example: "File-Based Storage" in `#1971c2` (blue[4]) inside a blue zone.
 
 ---
 
@@ -270,7 +272,7 @@ Sharp corners (no `roundness`), clean edges (`roughness: 0`), bold border.
 | Types | `#4dabf7` (blue[2]) |
 | Comments | `#868e96` (gray[3]) |
 
-All evidence text: `fontFamily: 3` (monospace), `fontSize: 14`.
+All evidence text: `fontFamily: 8` (Comic Shanns – Excalidraw's current monospace), `fontSize: 14`.
 
 ---
 
@@ -344,7 +346,7 @@ Title: `#e9ecef` · Zone headings: zone's bright stroke (shade[2]) · Body: `#ce
 
 4. **Accents break the pattern with purpose.** An orange "Config" shape inside a blue zone stands out immediately as "different category." The color contrast communicates without needing a label.
 
-5. **Hand-drawn warmth (roughness 1 + Virgil font).** The handwriting and slight wobble make diagrams feel like a skilled architect's whiteboard sketch – approachable and human.
+5. **Hand-drawn warmth (roughness 1 + Excalifont).** The handwriting and slight wobble make diagrams feel like a skilled architect's whiteboard sketch – approachable and human.
 
 6. **Legends earn colored arrows.** Colored arrows are powerful but require discipline. If you use them, include a legend at the bottom. Max 3 arrow types.
 
@@ -365,13 +367,13 @@ This style guide defaults to the **Hand-drawn Blueprint** aesthetic. To use a di
 
 ### Preset 1: Hand-drawn Blueprint (Default)
 
-The current default – no changes needed. Clean white canvas, pastel-tinted shapes with confident strokes, Virgil handwriting font. Feels like a skilled architect's whiteboard sketch.
+The current default – no changes needed. Clean white canvas, pastel-tinted shapes with confident strokes, Excalifont handwriting. Feels like a skilled architect's whiteboard sketch.
 
 | Setting | Value |
 |---------|-------|
 | `viewBackgroundColor` | `#ffffff` (white) |
 | `roughness` | `1` (hand-drawn warmth) |
-| `fontFamily` | `1` (Virgil – hand-drawn) |
+| `fontFamily` | `5` (Excalifont – hand-drawn) |
 | `fillStyle` | `"solid"` (default), `"hachure"` for accumulated state |
 | Zone fills | Shade[0] at `opacity: 50` |
 | Shape fills | Shade[1] (pastel) |
@@ -385,7 +387,7 @@ Inspired by engineering schematics on aged paper. Warm parchment background, des
 |---------|-------------------|
 | `viewBackgroundColor` | `#ffffff` → `#faf8f5` (warm parchment) |
 | `roughness` | `1` (keep hand-drawn) |
-| `fontFamily` | `1` (keep Virgil) |
+| `fontFamily` | `5` (keep Excalifont) |
 | Shape fills | Shade[1] → desaturated warm variants (reduce saturation ~20%, shift hue toward warm) |
 | Shape strokes | Keep shade[4] (strokes carry the color identity) |
 | Zone fills | Shade[0] → warm-shifted tints (e.g. blue zone: `#eef3f8` instead of `#e7f5ff`) |
@@ -400,18 +402,18 @@ Inspired by engineering schematics on aged paper. Warm parchment background, des
 
 ### Preset 3: Clean Technical
 
-Precise, formal, presentation-ready. No hand-drawn wobble, Helvetica font, solid fills only. The "polished PDF" look.
+Precise, formal, presentation-ready. No hand-drawn wobble, Nunito font, solid fills only. The "polished PDF" look.
 
 | Setting | Default → Override |
 |---------|-------------------|
 | `viewBackgroundColor` | `#ffffff` (keep white) |
 | `roughness` | `1` → `0` (crisp, no wobble – all elements) |
-| `fontFamily` | `1` → `2` (Helvetica – clean, technical) |
+| `fontFamily` | `5` → `6` (Nunito – clean, technical) |
 | `fillStyle` | No `"hachure"` anywhere – `"solid"` for everything |
 | `strokeWidth` | Standard `2` → `1` for shapes, `2` for primary flow only |
 | Zone `roughness` | Already `0` (no change) |
 | Zone `opacity` | `50` → `30` (very subtle – zones are hints, not regions) |
-| Evidence artifacts | Keep `roughness: 0`, use `fontFamily: 3` (monospace) |
+| Evidence artifacts | Keep `roughness: 0`, use `fontFamily: 8` (Comic Shanns – monospace) |
 | `roundness` | Keep `{ "type": 3 }` – rounded corners complement clean lines |
 
 **Personality**: Precise, corporate, restrained. Good for technical documentation, presentations, and formal architecture diagrams.
