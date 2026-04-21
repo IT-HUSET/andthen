@@ -111,7 +111,7 @@ wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 List implementation tasks in execution order. A later task may depend on a type, interface, or component established by an earlier task; state that dependency explicitly in the later task's context line.
 
 > **Vertical slice ordering**: First tasks should produce a thin but working end-to-end path. Later tasks widen the slice.
-> **Size discipline**: Most strong FIS files stay in the 100-300 line range. If a draft is pushing past roughly ~400 lines or >12 implementation tasks, split it at spec time rather than expecting `exec-spec` to recover later.
+> **Size discipline**: Most strong FIS files stay in the 150-450 line range. If a draft is pushing past roughly ~600 lines or >18 implementation tasks, split it at spec time rather than expecting `exec-spec` to recover later.
 
 ### Implementation Tasks
 

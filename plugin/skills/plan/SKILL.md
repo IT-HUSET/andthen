@@ -6,7 +6,9 @@ argument-hint: "<path-to-directory-with-prd.md> [--skip-specs] [--stories S01,S0
 # Create Implementation Plan Bundle
 
 
-Transform a Product Requirements Document (`prd.md`) into a complete implementation plan bundle: `plan.md` with story breakdown **plus** batch-generated Feature Implementation Specifications (FIS) for every story **plus** shared `.technical-research.md`. Runs story classification, parallel FIS sub-agents, and a cross-cutting review in one flow.
+Transform a Product Requirements Document (`prd.md`) into a complete implementation plan bundle: `plan.md` with story breakdown **plus** batch-generated Feature Implementation Specifications (FIS) — one per story — **plus** shared `.technical-research.md`. Runs story breakdown with a consolidation pass, parallel FIS sub-agents, and a cross-cutting review in one flow.
+
+**Invariant**: one story → one FIS. The Story Catalog `FIS` column is a unique-key column; no two stories share a FIS path.
 
 **`prd.md` is a required input** — if the input directory has no `prd.md`, the skill fails fast and redirects to the `andthen:prd` skill. PRD synthesis is not this skill's job.
 
@@ -44,7 +46,7 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 
 ### Orchestrator Role
 
-**You are the orchestrator.** Parse the PRD, break it into stories, write `plan.md`, run technical research, classify stories, spawn parallel sub-agents for STANDARD/COMPOSITE specs, write THIN specs directly, update `plan.md` after each sub-wave, and run the cross-cutting review. Do not write STANDARD or COMPOSITE specs directly, write implementation code, or let your context fill with spec content.
+**You are the orchestrator.** Parse the PRD, break stories down (with a consolidation pass for the 1:1 story↔FIS invariant), write `plan.md`, run technical research, spawn one parallel sub-agent per story to generate FIS files, update `plan.md` after each sub-wave, and run the cross-cutting review. Do not write specs directly, write implementation code, or let your context fill with spec content.
 
 
 ## GOTCHAS
@@ -52,7 +54,7 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 - Wave assignments get ignored during execution – explicitly mark dependencies between stories
 - Not reading the `State` document (see **Project Document Index**) before planning – misses context about current phase, active blockers, and recent decisions that should inform story priorities
 - **Carried-forward stories without PRD coverage** – use the **Provenance** field; a story with no PRD feature and no provenance is a traceability gap
-- **Inconsistent FIS path naming** – when composite stories share a FIS, the FIS filename must use the lowest story ID as prefix and include all constituent IDs (e.g., `s01-s02-s03-feature-name.md`). Do not re-assign story-to-FIS mapping after initial assignment — downstream agents and reviewers rely on ID-based file discovery
+- **Skipping the Consolidation Pass** – two stories with shared implementation surface produce two specs that drift. Merge them at the story level in Step 3 instead
 - Spawning specs for stories with unresolved spec-time dependencies before the producing story's spec completes — check the technical research for pre-resolved decisions; if covered, parallelization is safe
 - Not updating `plan.md` FIS fields after spec generation — downstream skills check this field to skip already-specced stories
 - Over-parallelizing – more than 10 concurrent sub-agents causes I/O contention and degraded spec quality
@@ -121,7 +123,7 @@ For each story, define:
 - **ID**: Sequential identifier (S01, S02, etc.)
 - **Name**: Brief descriptive name
 - **Status**: Tracking field — initially `Pending` (updated to `Spec Ready` / `In Progress` / `Done` during execution)
-- **FIS**: Reference to generated spec — initially `–` (updated to file path after FIS generation in Step 6). Multiple stories may reference the same FIS path when grouped into a composite specification
+- **FIS**: Reference to generated spec — initially `–` (updated to file path after FIS generation in Step 6). Exactly one FIS per story; FIS paths are unique across the Story Catalog
 - **Scope**: 2-4 sentences — what's included and excluded (no implementation approach — that's for the per-story FIS)
 - **Acceptance criteria**: 3-6 testable outcomes — the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
 - **Dependencies**: Other story IDs that must complete first
@@ -137,7 +139,19 @@ For each story, define:
 - Implementation gotchas or constraints with workarounds
 - Full technical design or pseudocode
 
-**Gate**: All stories defined
+#### Consolidation Pass
+
+Before finalizing the Story Catalog, sweep the draft stories and **merge any set (pair or larger)** where any of these hold:
+
+- **Shared implementation surface** — the stories would touch substantially the same files or modules. Separate FIS would duplicate shared architectural context and drift.
+- **Tight dependency chain** — `A → B` (or `A → B → C`) where downstream stories have no independent demo value without the upstream (e.g., "define API endpoint" + "wire endpoint to handler" + "surface endpoint in UI" for the same feature).
+- **Trivially small set** — each story in the set would produce a barely-populated FIS (small surface, few acceptance criteria — well below the 3-6 guideline in Story Definition) and they share a primary concern.
+
+Run pairwise, then iterate to a fixed point so a 3-way or larger merge composes naturally from successive pair-merges. Merge by union: combine acceptance criteria, reconcile scope into a single coherent vertical slice, renumber if needed. The merged story is still one demoable outcome, just broader. If a merged story becomes too large for a single FIS, the `andthen:spec` skill's oversize pivot handles that during generation — do not pre-split here.
+
+> **Why this matters**: the plan↔FIS join is a single-column contract (the `FIS` field). Keeping it 1:1 means downstream skills (`exec-plan`, `exec-spec`, `ops`) never need to reason about shared or composite specs, and plan.md is unambiguous at a glance. Two stories wanting to share a spec is a signal they were one story.
+
+**Gate**: All stories defined; no two stories intended to share a FIS path
 
 
 ### 4. Create Plan Document
@@ -153,7 +167,7 @@ Keep these invariants from the template:
 - Each story defines `**Status**`, `**FIS**`, `**Phase**`, `**Wave**`, `**Dependencies**`, `**Parallel**`, `**Risk**`, `**Scope**`, `**Acceptance Criteria**`, and `**Asset refs**`
 - `**Key Scenarios**` stays optional and seeds later FIS scenario generation
 - `**Provenance**` is required for stories with no direct PRD feature coverage
-- Composite/shared FIS mappings remain stable once assigned
+- Every row's `**FIS**` path is unique across the catalog (1:1 story↔FIS invariant)
 
 #### Self-Check (plan.md)
 - [ ] All PRD features have corresponding stories
@@ -216,84 +230,51 @@ If a `.technical-research.md` already exists (e.g. from a prior run), merge new 
 **Gate**: Technical research saved to `{OUTPUT_DIR}/.technical-research.md`, covers all stories in scope
 
 
-### 6. Story Classification & Parallel FIS Creation
+### 6. Parallel FIS Creation
 
-#### 6a. Classification
+Apply filters (`STORY_FILTER`, `PHASE_FILTER`); skip stories whose `**FIS**` field already points at a file that exists on disk. Remaining in-scope stories each get one sub-agent producing one FIS.
 
-Classify each story — **fully automatic**, no user confirmation needed. Apply filters (`STORY_FILTER`, `PHASE_FILTER`); skip stories whose `**FIS**` field already points at a file that exists on disk.
+#### Wave Ordering
 
-**THIN** — ALL conditions must be true:
-- ≤2 acceptance criteria in the plan
-- ≤3 affected files (per technical research file map)
+The technical research pre-resolves most inter-story architectural decisions. Default: all in-scope stories launch in parallel (up to `MAX_PARALLEL`, default 5, max 10). Exception: hold back a story if its spec depends on a decision the technical research could not pre-resolve — wait for the producing story's spec to complete first. Fallback: if the technical research is incomplete or unavailable, use strict wave ordering (W1 complete → W2). Batch into sub-waves if story count exceeds `MAX_PARALLEL`.
 
-**COMPOSITE** — ANY condition triggers grouping:
-- Stories share implementation files (per technical research file map, excluding config/boilerplate like `package.json`, `tsconfig.json`, barrel index files)
-- Stories form a direct dependency chain (S01→S02 or longer)
-- **Maximum 5 stories per composite group** — split larger groups into multiple composites (split by dependency sub-chains, then by file overlap)
+#### Sub-Agent Prompts
 
-> **Precedence**: COMPOSITE > THIN > STANDARD. If a THIN-qualifying story participates in any COMPOSITE group, it joins the composite — not `thin-specs.md`. Classification uses data from the technical research (file maps, shared decisions), not subjective judgment. If the technical research doesn't provide clear signals, classify as STANDARD. Prefer COMPOSITE over STANDARD when grouping signals exist — fewer, richer FIS files produce better implementation coherence than many thin ones.
+Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar). These sub-agents do **not** invoke `/andthen:spec`; they are ad-hoc sub-agents with FIS-authoring instructions inlined below, because the batch flow has already pre-computed the shared technical research the per-spec skill would otherwise redo.
 
-**STANDARD** — everything else (the default).
-
-| Classification | Spec Strategy |
-|----------------|---------------|
-| THIN | Orchestrator collects all THIN stories into one FIS — no sub-agent needed |
-| COMPOSITE | One spec sub-agent writes one FIS covering the entire group |
-| STANDARD | One spec sub-agent per story, with technical research pre-loaded |
-
-#### 6b. THIN: Collected FIS
-
-All THIN stories in the current scope are collected into a **single** FIS file: `{OUTPUT_DIR}/thin-specs.md` (or `thin-specs-p{N}.md` when running with `--phase N`). The orchestrator writes this directly — no sub-agents needed. Use the standard FIS template (`templates/fis-template.md`) and FIS authoring guidelines (`references/fis-authoring-guidelines.md`). Tag Success Criteria with source story IDs (e.g., `### S08: Story Name`) so acceptance gates can map criteria per story. Keep implementation tasks for each source story contiguous and call out the source story ID in task context where needed. Populate from plan story scope/criteria, Key Scenarios (if present), and technical research. Target: compact but complete.
-
-After writing, update **ALL** THIN stories' `**FIS**` fields in `plan.md` to point to the thin-specs file and set `**Status**` to `Spec Ready`. The shared FIS path triggers existing shared-FIS dedup in `exec-plan` — `exec-spec` runs once, remaining stories skip to acceptance gate.
-
-#### 6c. COMPOSITE and STANDARD: Parallel Spec Creation
-
-> **THIN stories are already handled** — Step 6b wrote their FIS directly. This step only handles STANDARD and COMPOSITE stories.
-
-**Wave Ordering** — The technical research pre-resolves most inter-story architectural decisions. Default: all remaining STANDARD and COMPOSITE stories launch in parallel (up to `MAX_PARALLEL`, default 5, max 10). Exception: hold back a story if its spec depends on a decision the technical research could not pre-resolve — wait for the producing story's spec to complete first. Fallback: if the technical research is incomplete or unavailable, use strict wave ordering (W1 complete → W2). Batch into sub-waves if story count exceeds `MAX_PARALLEL`.
-
-**Sub-Agent Prompts** — Use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) for all spec sub-agents. These sub-agents do **not** invoke `/andthen:spec`; they are ad-hoc sub-agents with FIS-authoring instructions inlined below, because the batch flow has already pre-computed the shared technical research the per-spec skill would otherwise redo.
-
-**Shared references** (provide to both STANDARD and COMPOSITE sub-agents):
+**Shared references** (provided to every sub-agent):
 - FIS template: `templates/fis-template.md`
 - Authoring guidelines: `references/fis-authoring-guidelines.md`
 - Technical research: `{OUTPUT_DIR}/.technical-research.md`
 
 **Shared authoring rules** — read the technical research for shared decisions and file maps; **reference** it from the FIS rather than inlining its content (enforce the Technical Research Separation rule from the guidelines); honour every entry in the "Binding PRD Constraints" section — each applicable constraint flows into FIS success criteria unchanged; delegate external API/library lookups the technical research does not cover to the `andthen:documentation-lookup` agent; always run Plan-Spec Alignment Check, Reverse Coverage Check (**plan-level sources only** — sub-agents do not have `prd.md` in context; PRD-level reverse coverage is handled in Step 7), and Self-Check from the guidelines; report back success/failure, FIS path, confidence score, and any `PHANTOM_SCOPE` findings from Reverse Coverage.
 
-**STANDARD sub-agent** — story-specific inputs:
+**Per-story inputs** (one sub-agent per story):
 - Story ID, name, scope, acceptance criteria, Key Scenarios (if present), dependencies
-- Output path: `{OUTPUT_DIR}/{story-name}.md`
+- Output path: `{OUTPUT_DIR}/s{NN}-{story-name}.md` (e.g. `s01-user-auth.md`)
 
-**COMPOSITE sub-agent** — group-specific inputs:
-- All constituent stories (ID, name, scope, acceptance criteria, Key Scenarios if present)
-- Produce ONE FIS covering all stories; keep implementation tasks grouped by story where that improves traceability
-- Run Plan-Spec Alignment Check once per constituent story and Reverse Coverage Check across the combined Success Criteria
-- Output path: `{OUTPUT_DIR}/{composite-filename}.md` using concatenated IDs (e.g. `s01-s02-{feature-name}.md`)
+> **Size signal**: if a draft FIS would exceed the oversize thresholds in `references/fis-authoring-guidelines.md`, the story was too broad — the sub-agent reports back and the orchestrator revisits Step 3 for that story rather than pre-splitting here.
 
-**Wait, Collect, and Update Plan** — Wait for all sub-agents in the current sub-wave to complete. Log any failures (continue with remaining stories — don't block the wave). Immediately after each sub-wave:
+#### Wait, Collect, and Update Plan
+
+Wait for all sub-agents in the current sub-wave to complete. Log any failures (continue with remaining stories — don't block the wave). Immediately after each sub-wave:
 
 **Gate** — update `plan.md` for each successfully generated FIS:
-- Set `**FIS**` field to the generated spec path
+- Set `**FIS**` field to the generated spec path (unique per row — enforces the 1:1 invariant)
 - Set `**Status**` field to `Spec Ready` (if not already `In Progress` or `Done`)
-- COMPOSITE: set ALL constituent stories' fields
 
 #### Spec Flow Example
 
 ```
-10-story plan → After Step 6a classification:
-  THIN: S07, S08, S10 → 1 file (thin-specs.md, written in Step 6b)
-  COMPOSITE: [S01+S02], [S04+S05+S06] → 2 files (one sub-agent each)
-  STANDARD: S03, S09 → 2 files (one sub-agent each)
-  Total: 5 FIS files instead of 10
+8-story plan (after Step 3 Consolidation Pass) → 8 FIS files
 
-Step 6c (MAX_PARALLEL=4):
-  Sub-wave 1: spec-[S01+S02], spec-[S04+S05+S06], spec-S03, spec-S09 (parallel)
-  → Update plan.md FIS fields (S01+S02 share composite, S04+S05+S06 share composite)
+Step 6 (MAX_PARALLEL=4):
+  Sub-wave 1: spec-S01, spec-S02, spec-S03, spec-S04 (parallel)
+  Sub-wave 2: spec-S05, spec-S06, spec-S07, spec-S08 (parallel)
+  → Update plan.md FIS fields after each sub-wave
 ```
 
-**Gate**: All specs complete, all `plan.md` FIS fields updated
+**Gate**: All specs complete, all `plan.md` FIS fields updated (each path unique)
 
 
 ### 7. Cross-Cutting Review & Fixes
@@ -339,9 +320,7 @@ OUTPUT_DIR/
 ├── prd.md                 # Product Requirements Document (carried in, not modified)
 ├── plan.md                # Implementation plan with story catalog
 ├── .technical-research.md # Shared technical research (hidden companion)
-├── thin-specs.md          # Collected THIN-story FIS (if any THIN stories)
-├── s01-s02-*.md           # COMPOSITE FIS files (one per group)
-└── s0N-*.md               # STANDARD FIS files (one per story)
+└── s0N-*.md               # FIS files — one per story, one story per FIS
 ```
 
 - With `--skip-specs`: only `plan.md` is produced (plus unchanged `prd.md`).
@@ -353,8 +332,8 @@ When complete, print the output's **relative path from the project root**.
 
 Print a summary:
 - **plan.md**: path
-- **FIS files created**: count, with classification breakdown (THIN / COMPOSITE / STANDARD)
-- **Stories specced**: count and list with FIS paths (show shared paths)
+- **FIS files created**: count (one per in-scope story)
+- **Stories specced**: count and list with FIS paths
 - **Stories skipped**: (already had FIS)
 - **Stories failed**: (if any, with error details)
 - **Cross-cutting review**: findings count by severity, readiness assessment

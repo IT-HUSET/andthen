@@ -66,7 +66,7 @@ Include the template's **Execution Contract** section near the bottom of the Imp
    - Strong: `Verify: traces list output includes columns IN_TOKENS, OUT_TOKENS, CACHE_R, CACHE_W`
 
    Rule of thumb: if you prescribed a specific format, column name, file path, or string in the FIS — put it in the Verify line verbatim.
-6. Most good FIS files land in the 100-300 line range. Once a draft starts pushing past roughly ~400 lines or more than ~12 tasks, that is a strong signal that this is no longer one execution-sized spec. For standalone feature requests, prefer a spec-time decomposition pivot into a small plan bundle plus child FIS files. For `story {story_id} of plan.md` inputs, do **not** fan one plan story out into multiple child specs — decompose the plan upstream instead.
+6. Most good FIS files land in the 150-450 line range. Once a draft starts pushing past roughly ~600 lines or more than ~18 tasks, that is a strong signal that this is no longer one execution-sized spec. For standalone feature requests, prefer a spec-time decomposition pivot into a small plan bundle plus child FIS files. For `story {story_id} of plan.md` inputs, do **not** fan one plan story out into multiple child specs — decompose the plan upstream instead.
 7. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
 8. Make **What We're NOT Doing** explicit: 3-5 specific exclusions or deferrals with reasons. Use it to preserve scope boundaries across sessions, not as filler.
 9. Include the **Execution Contract** section from the template. Keep it consistent unless the feature truly needs extra execution-specific constraints.
@@ -112,7 +112,7 @@ Do not finalize a FIS with Success Criteria the upstream contract doesn't justif
 
 Quick sanity check before saving:
 - [ ] **Template structure**: FIS follows the template; ADR states the decision; no over-specification or code snippets >5 lines
-- [ ] **Size check**: 100-300 lines is the sweet spot; >400 lines or >12 tasks means split upstream (spec-time pivot for standalone requests only)
+- [ ] **Size check**: 150-450 lines is the sweet spot; >600 lines or >18 tasks means split upstream (spec-time pivot for standalone requests only)
 - [ ] **Scope-consistency**: every "In Scope" item is exercised by a scenario or Verify line; `What We're NOT Doing` is specific and never contradicts a Success Criterion
 - [ ] **Coverage**: every Success Criterion has a proof path (scenario or Verify line); scenarios cover happy path, edge cases, one error case; negative-path checklist applied; plan Key Scenario seeds all mapped (if plan-derived); output shapes specified when structured output is a Success Criterion
 

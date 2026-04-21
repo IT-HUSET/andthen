@@ -49,7 +49,6 @@ Do not: generate specs (that's `andthen:plan`), let context bloat, or skip final
 - Accepting a plan bundle with missing FIS and trying to synthesize specs ad-hoc — stop and redirect to the `andthen:plan` skill instead
 - **Status updates dropped when context exhausted** – plan and FIS checkpoint updates are gates that block the next phase
 - Not updating the `State` document (see **Project Document Index**) when phases transition or blockers are discovered
-- **Re-executing a composite FIS already implemented** – check the executed-FIS set before each story's pipeline
 - **Marking Done without verifying plan acceptance criteria**
 - **(Team mode)** Do not use `isolation: "worktree"` with `team_name` – Claude Code bug ([#33045](https://github.com/anthropics/claude-code/issues/33045)); instruct implementers to call `EnterWorktree` themselves
 - **(Team mode, worktree)** Wave N+1 worktrees must be created AFTER Wave N merges complete
@@ -99,9 +98,7 @@ The bundle is already fully specced (verified in Step 1, item 5). Re-read `plan.
 
 #### 3b. Execute Story Pipelines
 
-**Shared-FIS Dedup**: If this story's FIS path has already been executed by a prior story (composite or collected thin-specs FIS), skip exec-spec and quick-review. Still run status update and mark `Done`. Track executed FIS paths in a set.
-
-**Per-story pipeline**:
+**Per-story pipeline** (one FIS per story, so each story gets its own exec-spec + quick-review run):
 1. **Implement**: `/andthen:exec-spec {fis_path}`
 2. **Review**: `/andthen:quick-review` on the story's changes
 
@@ -188,9 +185,7 @@ Create team `"plan-pipeline"` with pre-assigned tasks. Size: 1 implementer (≤4
 
 #### Task Management
 
-**Shared-FIS Dedup**: One impl task per unique FIS path; constituent stories share it.
-
-**Task naming**: `impl-{story_id}` / `review-{story_id}`. Composite: `impl-{S01-S02}`. Round-robin assign; do not self-assign impl and review of the same story to the same agent.
+**Task naming**: `impl-{story_id}` / `review-{story_id}` (one impl task per story, one review task per story — each story has its own FIS). Round-robin assign; do not self-assign impl and review of the same story to the same agent.
 
 **Dependencies** (sequential, `USE_WORKTREE=false`): each `impl-*` blocked by previous `review-*`. Parallel markers ignored.
 
@@ -202,7 +197,7 @@ After all `impl-*` in the current wave complete: sequentially merge each worktre
 
 #### Status Updates (**Gate**)
 
-Same verification discipline as Step 3c (green gate → confirm `exec-spec` writes landed → repair missing writes if needed). Additionally verify Plan Acceptance Gate before accepting Done: each acceptance criterion demonstrably satisfied, scope notes present when FIS narrowed scope. For composite FIS: verify ALL constituent stories. Move to next phase only after current phase fully complete.
+Same verification discipline as Step 3c (green gate → confirm `exec-spec` writes landed → repair missing writes if needed). Additionally verify Plan Acceptance Gate before accepting Done: each acceptance criterion demonstrably satisfied, scope notes present when FIS narrowed scope. Move to next phase only after current phase fully complete.
 
 **Green-gate timing**:
 - **Worktree** — per-worktree build/tests pre-merge; orchestrator gate on `BASE_BRANCH` post-merge. Stop-the-Line on `BASE_BRANCH`, not inside a worktree.

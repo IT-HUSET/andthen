@@ -29,7 +29,9 @@ source: plugin/skills/plan/templates/plan-template.md
 |----|------|-------|------|--------------|----------|------|--------|-----|
 | S01 | [Name] | Foundation | W1 | - | No | Low | Pending | – |
 | S02 | [Name] | Core | W2 | S01 | [P] | Medium | Pending | `docs/specs/my-feature/s02-feature.md` |
-| S03 | [Name] | Core | W2 | S01 | [P] | Medium | Pending | `docs/specs/my-feature/s02-s03-shared-capability.md` |
+| S03 | [Name] | Core | W2 | S01 | [P] | Medium | Pending | `docs/specs/my-feature/s03-other-feature.md` |
+
+> **Invariant**: each row's `FIS` path is unique — one story maps to exactly one FIS. Stories that would share a spec should have been merged in Step 3's Consolidation Pass.
 
 
 ## Phase Breakdown
@@ -58,7 +60,7 @@ _[Sequential execution or short rationale for this phase]_
 
 #### [P] S02: [Parallel Story Name]
 **Status**: Pending
-**FIS**: `docs/specs/my-feature/s02-s03-shared-capability.md`
+**FIS**: `docs/specs/my-feature/s02-feature.md`
 **Phase**: Phase 1: [Phase Name]
 **Wave**: W2
 **Dependencies**: S01
@@ -72,19 +74,17 @@ _[Sequential execution or short rationale for this phase]_
 
 #### S03: [Carried-Forward Story Example]
 **Status**: Pending
-**FIS**: `docs/specs/my-feature/s02-s03-shared-capability.md`
+**FIS**: `docs/specs/my-feature/s03-other-feature.md`
 **Phase**: Phase 1: [Phase Name]
 **Wave**: W2
 **Dependencies**: S01
 **Parallel**: [P]
 **Risk**: Medium - [brief concern]
-**Provenance**: Carried from 0.16.3: S13
+**Provenance**: Carried from previous plan: S13
 **Scope**: [Describe the carried-forward scope clearly; only include `**Provenance**` when no PRD feature directly covers this story]
 **Acceptance Criteria**:
 - [ ] [Observable outcome]
 **Asset refs**: [Relevant asset refs]
-
-> **Composite FIS note**: When multiple tightly coupled stories share one FIS, point each story's `**FIS**` field to the same spec path. Composite FIS filenames must use the lowest story ID as prefix and include all constituent IDs (for example `s01-s02-s03-feature-name.md`).
 
 
 ## Dependency Graph

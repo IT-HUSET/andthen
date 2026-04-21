@@ -37,7 +37,7 @@ ARGUMENTS: $ARGUMENTS
 
 **Scenarios that describe implementation, not behavior** – scenarios should use Given/When/Then to describe observable outcomes from the user's or system's perspective, not internal code steps. Bad: "Given a new AuthService class, When login() is called...". Good: "Given valid credentials, When the user submits login, Then a session token is returned."
 
-**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Most strong FIS files land in the 100-300 line range. If the first-pass draft is pushing past roughly ~400 lines or >12 tasks, pivot at spec time into a small plan bundle with multiple child FIS files instead of leaving the problem for `exec-spec`.
+**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Most strong FIS files land in the 150-450 line range. If the first-pass draft is pushing past roughly ~600 lines or >18 tasks, pivot at spec time into a small plan bundle with multiple child FIS files instead of leaving the problem for `exec-spec`.
 
 **Generic "What We're NOT Doing" section** – use it to record real non-goals or deferrals with reasons, not filler bullets.
 
@@ -106,7 +106,7 @@ Use the template in the **Appendix** below. Then read and follow the FIS authori
 
 After drafting the first-pass FIS, assess whether it is still execution-sized.
 
-- Oversize signals: the draft is pushing past roughly ~400 lines, exceeds ~12 implementation tasks, spans multiple major execution phases that would likely be executed independently, or feels like a small plan disguised as one spec.
+- Oversize signals: the draft is pushing past roughly ~600 lines, exceeds ~18 implementation tasks, spans multiple major execution phases that would likely be executed independently, or feels like a small plan disguised as one spec.
 - If the draft is still execution-sized, save the single FIS normally.
 - If the draft is oversized **and the input is a standalone feature request / issue / clarification directory**:
   1. Do **not** save the giant single FIS as the primary artifact.
@@ -119,7 +119,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
      - for each story, include `**Status**`, `**FIS**`, `**Phase**`, `**Wave**`, `**Dependencies**`, `**Parallel**`, `**Risk**`, `**Scope**`, `**Acceptance Criteria**`, and `**Asset refs**`
      - keep `**Key Scenarios**` optional, but include them when behavioral seeds are useful for downstream FIS generation
      - include `**Provenance**` when a story has no direct PRD feature coverage
-  5. Use the oversize pivot as a **simple one-story-per-FIS breakdown**. Do **not** run THIN/COMPOSITE/shared-FIS classification here and do **not** emit `thin-specs.md`.
+  5. Use the oversize pivot as a **simple one-story-per-FIS breakdown**.
   6. Generate exactly one child FIS per story in the same directory, reusing the shared `.technical-research.md` when present.
   7. For each child FIS:
      - use the standard FIS template in the Appendix below and the FIS authoring guidelines
@@ -150,7 +150,6 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
 - Save `plan.md` in the output directory as the primary artifact
 - Generate `plan.md` from `templates/plan-template.md` and preserve its required headings, Story Catalog columns, and story metadata labels
 - Save exactly one child FIS per story in the same directory (prefer stable names like `s01-{story-name}.md`)
-- Do **not** use THIN/COMPOSITE/shared-FIS grouping in oversize pivot mode; this mode is a straightforward one-story-per-FIS decomposition
 - Save or reuse `.technical-research.md` beside the plan bundle
 - Update `plan.md` so each generated story references its child FIS path and has `Status` = `Spec Ready`
 - The downstream execution path is the `andthen:exec-plan` skill

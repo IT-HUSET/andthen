@@ -77,10 +77,10 @@ Usage rules:
 
 ### Step 1: Resolve FIS and Story Context
 1. Require a local `FIS_FILE_PATH`. Stop if the argument is missing or does not resolve to a readable file.
-2. Extract story context from the FIS itself (header field like `**Story ID(s)**: S01, S02` or the filename prefix for plan-backed specs such as `s01-s02-feature-name.md`) into `STORY_IDS`. For single-feature specs not derived from a plan, leave `STORY_IDS` empty.
+2. Extract story context from the FIS filename prefix for plan-backed specs (e.g. `s01-feature-name.md` → `S01`) into `STORY_ID`. For single-feature specs not derived from a plan, leave `STORY_ID` empty.
 3. If the FIS references a source `plan.md` (`**Plan**:` field or a sibling `plan.md` in the same directory), record it as `PLAN_FILE_PATH` for Step 5b updates.
 
-**Gate**: `FIS_FILE_PATH` exists; `STORY_IDS` and `PLAN_FILE_PATH` captured when the FIS is plan-backed
+**Gate**: `FIS_FILE_PATH` exists; `STORY_ID` and `PLAN_FILE_PATH` captured when the FIS is plan-backed
 
 ### Step 2: Read and Prepare
 1. Read the full FIS at _`FIS_FILE_PATH`_
@@ -91,7 +91,7 @@ Usage rules:
 6. Build a quick codebase overview once at the start (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files/tasks the FIS actually touches
 7. If the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When practical, confirm they fail before implementation. If the test harness is still unclear after one bounded pass, note the skip and continue.
 8. If the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
-9. **Update project state** (if the `State` document exists in the location defined by the **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_IDS`. For a single-story FIS, use that story directly. For a composite/shared FIS, mark the active work as the composite/story set rather than inventing a single story ID.
+9. **Update project state** (if the `State` document exists in the location defined by the **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
 10. Initialize working notes you will maintain during the run:
    - Per-task status
    - `changed-files`
@@ -159,7 +159,7 @@ Lightweight gate – uses Step 4a results, does not re-run checks:
 4. Collect verification evidence from Step 4a: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts); add **Visual validation** and **Runtime** for UI/runtime stories
 
 #### 5b. Update FIS, Source Plan, and Project State
-Update FIS status, source plan (if applicable), and project state via the `andthen:ops` skill. For plan-backed FIS: set each covered story Status to `Done`, set FIS field path, check off acceptance criteria, and mark the story `Done` in the `State` document (see **Project Document Index**) with a short completion note. For composite/shared FIS, update all constituent stories in `STORY_IDS`. Re-read to verify updates applied.
+Update FIS status, source plan (if applicable), and project state via the `andthen:ops` skill. For plan-backed FIS: set the story's Status to `Done`, set the FIS field path, check off acceptance criteria, and mark the story `Done` in the `State` document (see **Project Document Index**) with a short completion note. Re-read to verify updates applied.
 
 
 #### 5c. Completion Report

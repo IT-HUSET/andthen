@@ -6,6 +6,19 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.14.0] – 2026-04-21
+
+### Changed
+- **1:1 story↔FIS invariant in `andthen:plan`** – removed THIN and COMPOSITE classification tiers; every story now maps to exactly one FIS file and no two stories share a FIS path. Step 3 Story Breakdown gained a **Consolidation Pass** that merges stories at breakdown time when they share an implementation surface, form a tight dependency chain (where the downstream story has no independent demo value), or would both produce trivially small FIS with a shared primary concern. Rationale: the plan↔FIS join is a single-column contract; keeping it unique-key eliminates a recurring class of consistency bugs ("stories not corresponding to FIS files") and lets downstream skills drop their shared-spec branching logic. Files updated: `plan/SKILL.md` (Step 6 collapsed from three sub-sections to one, composite/thin paths removed from Orchestrator Role, GOTCHAS, OUTPUT tree, Spec Flow Example, and COMPLETION summary), `plan/templates/plan-template.md` (composite-sharing example replaced; new 1:1 invariant callout).
+- **`andthen:exec-plan` simplified** – deleted the Shared-FIS Dedup mechanism in both solo mode (Step 3b) and team mode (Task Management). `impl-*` / `review-*` task naming dropped the composite form; each story now gets its own exec-spec + quick-review run. Removed the "re-executing a composite FIS already implemented" gotcha.
+- **`andthen:exec-spec` simplified** – `STORY_IDS` (list) collapsed to `STORY_ID` (single) for plan-backed specs. Dropped the composite-vs-single branches in Step 2 project-state setup and Step 5b completion updates.
+- **`andthen:spec` oversize-pivot disclaimers removed** – the "do not run THIN/COMPOSITE/shared-FIS classification" caveats are no longer needed since that classification no longer exists. Oversize pivot mode remains unchanged (straightforward one-story-per-FIS decomposition).
+- **FIS size thresholds raised** – sweet spot `100-300` → `150-450` lines; oversize pivot trigger `>400 lines or >12 tasks` → `>600 lines or >18 tasks`. Rationale: consolidated stories (from the plan's Consolidation Pass) legitimately land where the old thresholds triggered pivots. Updated in `spec/SKILL.md:40,109`, all three copies of `fis-authoring-guidelines.md` (canonical in `spec`, dupes in `plan` and `review`), and both copies of `fis-template.md` (canonical in `spec`, dupe in `plan`).
+- **`init/templates/CLAUDE.template.md` Project Document Index** – removed `composite s0N-s0M-*.md` and `thin-specs.md` from the spec directory description; the pattern is now just `s01-*.md`, `s02-*.md`, …
+
+
+---
+
 ## [0.13.2] – 2026-04-20
 
 ### Fixed
