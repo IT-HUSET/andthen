@@ -63,6 +63,7 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 - Recommending decomposition without scoring integration drivers alongside disintegration drivers
 - Inflating severity for borderline metrics — report as INFO with context, not HIGH
 - For `advise`/`trade-off`: recommending from popularity or novelty instead of fit for this project
+- Applying the Ousterhout module-design lens (`references/ousterhout-modules.md`) at Container or Context level — it is a Component/Code lens for in-process module and API design only, not for service decomposition
 
 ## WORKFLOW
 

@@ -4,7 +4,7 @@ Design or refactor guidance for architectural questions, greenfield systems, ser
 
 Optimize for sound decisions, clear boundaries, and guidance a team can implement and operate.
 
-**Supporting references** (load on demand based on the question): `anti-patterns.md`, `package-principles.md`, `connascence.md`, `fitness-functions.md`, `decomposition.md`, `farley-framework.md`.
+**Supporting references** (load on demand based on the question): `anti-patterns.md`, `package-principles.md`, `connascence.md`, `fitness-functions.md`, `decomposition.md`, `farley-framework.md`, `ousterhout-modules.md` (for in-process module, class, and API design questions), `ddd.md` (for bounded contexts, aggregates, domain events, Event Storming, and Hexagonal/CQRS/Event Sourcing in a DDD setting).
 
 ## Decision-Making Process
 
@@ -114,62 +114,40 @@ Use CUPID to compare options, identify weak properties, give the team shared voc
 
 ## Domain-Driven Design
 
-Use DDD to reduce accidental complexity, sharpen boundaries, and create a shared language between business and technical teams.
+Use DDD to sharpen boundaries and create shared language between business and engineering. **Strategic** design picks bounded contexts and their relationships; **tactical** design shapes the model inside one.
 
-### Strategic Patterns
+**Quick reference:**
 
-**Bounded Contexts**
-- each context should have a clear business purpose
-- terms should be consistent within the context
-- boundaries often align with team structure and ownership
-- each context should own its model and schema when possible
-- context size should remain manageable by one team
+| Building block | Purpose |
+|---|---|
+| **Entity** | Identity persists over time; mutable |
+| **Value Object** | Defined by attributes; immutable; prefer when lifecycle doesn't matter |
+| **Aggregate** | Consistency boundary; one transaction = one aggregate |
+| **Domain Event** | Past-tense fact published inside the bounded context |
+| **Domain Service** | Stateless business logic with no natural entity home; contains branching business rules |
+| **Application Service** | Orchestrates a use case (load aggregate → invoke domain op → persist); no branching business rules |
+| **Repository** | Collection-like interface over aggregate roots only |
 
-**Context Mapping** — design context relationships explicitly:
-- Shared Kernel: shared code or model, used sparingly
-- Customer/Supplier: downstream depends on upstream
-- Conformist: downstream adopts upstream's model
-- Anti-Corruption Layer: translate between incompatible models
-- Open Host Service: stable API for multiple consumers
-- Published Language: shared integration language or format
+**Assessment questions** — Strategic: are bounded contexts clearly defined, appropriately sized, and owned by at most one team? Does the context map reflect real relationships? Is investment proportionate across core / supporting / generic? Tactical: do aggregates enforce true invariants (not navigational convenience)? Are domain events distinguished from integration events? Is business logic kept in domain objects rather than drifting into application services? Is the ubiquitous language visible in code?
 
-**Core vs Supporting vs Generic**
-- invest most in the core domain
-- keep supporting subdomains fit for purpose
-- avoid over-engineering generic subdomains; prefer off-the-shelf where sensible
+**For full depth — four aggregate design rules, domain vs. integration events, the 9-pattern context-mapping catalog with selection guidance, Event Storming, Bounded Context Canvas, Hexagonal as the bounded-context skeleton, CQRS/Event Sourcing decision criteria, domain vs. application service distinction, module layout, and DDD anti-patterns — load `ddd.md`.** Cross-link to the `andthen:ubiquitous-language` skill for glossary operationalization and `andthen:clarify` for Event Storming.
 
-### Tactical Building Blocks
+## Ousterhout Module-Design Lens
 
-| Block | Identity | Mutability | Purpose |
-|-------|----------|------------|---------|
-| **Entity** | Unique ID | Mutable | Object whose identity persists over time |
-| **Value Object** | By value | Immutable | Object defined by attributes, not identity |
-| **Aggregate** | Root ID | Via root only | Consistency boundary and transaction unit |
-| **Domain Service** | - | Stateless | Business operation that does not naturally belong to one entity |
-| **Domain Event** | - | Immutable | Fact that something important happened |
-| **Repository** | - | - | Collection-like interface for aggregate access |
+For questions about **in-process** module, class, or public-API design (not service boundaries), load `ousterhout-modules.md` and apply its heuristics alongside CUPID and DDD:
 
-### DDD Integration with Modern Architecture
+- **Deep vs. shallow modules** — prefer a small interface over a powerful implementation; beware "classitis" (many trivial modules each with near-equivalent interface and implementation complexity).
+- **Information leakage** — each non-trivial design decision (format, protocol, data layout, algorithm) should be reflected in exactly one interface.
+- **Different layer, different abstraction** — a layer that only forwards calls with the same parameters is not earning its existence.
+- **Pull complexity downward** — when complexity must live somewhere, keep it in the implementation; a simpler interface is worth a more complex implementation.
+- **Define errors out of existence** — prefer abstractions that make error cases disappear over abstractions that require handling them, when the "no-op" case is legitimate state (not a masked fault).
+- **Design it twice** — for any non-trivial new API, require a genuinely different alternative considered and rejected with reason.
 
-**Microservices + DDD**: align service boundaries with bounded contexts; let each service own its model and data; use domain events for inter-service communication when decoupling matters; use anti-corruption layers at external or legacy boundaries.
+**Reconciling with CUPID Unix Philosophy**: "prefer fewer, deeper modules" does not contradict "do one thing well." Unix Philosophy is about focused *scope*, not small *size* — `grep` does one thing and is a deep module. Use CUPID to check whether the module has a single coherent purpose; use Ousterhout to check whether its interface is simpler than its implementation. Both must hold.
 
-**Event-Driven + DDD**: let domain events drive behavior where the domain supports it; use event sourcing only when the audit trail and temporal model justify the cost; use CQRS when read and write models differ materially; use sagas or process managers for long-running coordination.
+**Boundary with Speculative Generality**: Ousterhout's "general-purpose interfaces" means *slightly* more general than one caller, not speculative. When only one consumer exists and no second is visible, the Speculative Generality anti-pattern (`anti-patterns.md`) wins.
 
-**Clean Architecture + DDD**: keep DDD building blocks in the domain layer; let the application layer orchestrate domain operations; keep infrastructure concerns at the edge; preserve the dependency rule so the domain stays clean.
-
-### DDD Anti-Patterns
-
-- **Anemic Domain Model**: domain objects contain only data; move business logic into entities or value objects
-- **Leaky Abstraction**: technical concerns pollute domain concepts; restore clean boundaries and dependency inversion
-- **Context Explosion**: too many tiny contexts; start broader and split only when real forces justify it
-- **Generic Subdomains as Core**: over-investment in undifferentiating areas; prefer simpler or off-the-shelf solutions
-- **Big Ball of Mud**: no clear domain boundaries; define explicit contexts and dependency rules
-
-### DDD Assessment Questions
-
-Strategic: are bounded contexts clearly defined and appropriately sized? Does the context map reflect actual business relationships? Is investment proportionate across core, supporting, and generic subdomains? Do team boundaries reinforce the context boundaries?
-
-Tactical: are domain concepts clearly expressed in the model? Do aggregates enforce business invariants correctly? Is the ubiquitous language used consistently? Are domain events capturing meaningful business occurrences? Is business logic kept in domain objects rather than drifting into application services?
+This lens is **complementary** to CUPID and DDD, not a replacement: apply it to within-service design, not to service decomposition. For altitude and limits, see `ousterhout-modules.md`.
 
 ## Modern Architecture Patterns
 

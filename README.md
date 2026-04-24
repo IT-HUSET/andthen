@@ -16,32 +16,7 @@ AndThen brings spec-driven development to AI coding agents – lightweight, open
 > **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal.
 
 > [!WARNING]
-> **BREAKING CHANGES in 0.13.0** – the skill surface is being reshaped in two coupled passes, shipped together so the churn lands in one release:
->
-> **Plan side** — three clear altitudes: product (`prd`), implementation/story plan (`plan`), execution (`exec-plan`).
-> - **New**: `/andthen:prd` – creates the PRD (extracted from today's `plan`).
-> - **Changed**: `/andthen:plan` now requires an existing `prd.md` and produces the **full plan bundle** (`plan.md` + all FIS + `.technical-research.md`) in one run. It absorbs the work `spec-plan` used to do.
-> - **Removed**: `/andthen:spec-plan` – merged into `/andthen:plan`.
-> - **Changed**: `/andthen:exec-plan` no longer generates specs. It requires a fully-specced plan bundle as input.
->
-> **Review side** — one user-facing review skill, modes instead of separate delegates.
-> - **Removed**: `/andthen:review-code`, `/andthen:review-doc`, `/andthen:review-gap` – absorbed into `/andthen:review` as internal modes.
-> - **Changed**: flag rename on `/andthen:review` – `--code-only` / `--doc-only` / `--gap-only` → `--mode code|doc|gap|mixed`.
-> - **Changed**: unified severity scale across review modes – `SUGGESTIONS` bucket normalised to `LOW`. Gap mode's PASS/FAIL verdict contract is preserved exactly.
->
-> **Migration:**
->
-> | Before | After |
-> |---|---|
-> | `/andthen:plan <requirements>` | `/andthen:prd <requirements>` &nbsp;→&nbsp; `/andthen:plan <dir-with-prd>` |
-> | `/andthen:spec-plan <plan-dir>` | `/andthen:plan <plan-dir>` (re-run fills missing FIS) |
-> | `/andthen:exec-plan <plan-dir>` (auto-generated specs per phase) | `/andthen:plan <plan-dir>` &nbsp;→&nbsp; `/andthen:exec-plan <plan-dir>` |
-> | `/andthen:review --code-only <target>` | `/andthen:review --mode code <target>` |
-> | `/andthen:review --doc-only <target>` | `/andthen:review --mode doc <target>` |
-> | `/andthen:review --gap-only <target>` | `/andthen:review --mode gap <target>` |
-> | `/andthen:review-code`, `/andthen:review-doc`, `/andthen:review-gap` | `/andthen:review --mode code|doc|gap` |
->
-> Use `/andthen:plan --skip-specs` if you want the old "plan structure only, defer FIS" behaviour. See [CHANGELOG.md](CHANGELOG.md) for full details.
+> **Recent breaking changes.** 0.13.0 reshaped the plan and review skill surface; 0.14.0 made `plan` strictly 1:1 with FIS. See [Breaking Changes](plugin/README.md#breaking-changes) in the plugin README for migration tables, or [CHANGELOG.md](CHANGELOG.md) for full notes.
 
 **Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` available when you want that flow orchestrated for you (add `--team` for Agent Teams parallelism). `review` runs a single lens per call (code, doc, gap, or mixed) selected automatically or via `--mode`. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
 

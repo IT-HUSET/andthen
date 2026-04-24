@@ -135,9 +135,9 @@ Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues — int
 Run the `andthen:review` **skill** with `--mode code` for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a `general-purpose` sub-agent whose prompt runs `/andthen:review --mode code`. Do not pass `andthen:review` as `subagent_type` — it is a skill, not an agent type.
 
 #### 4c. Visual Validation (if UI)
-Spawn the `andthen:visual-validation-specialist` **agent** (a real `subagent_type` for the Task tool — unlike the `andthen:review` skill in 4b) _(if supported)_ per any Visual Validation Workflow defined in CLAUDE.md.
+Spawn the `andthen:visual-validation-specialist` **agent** per any Visual Validation Workflow defined in CLAUDE.md.
 
-Steps 4b and 4c can run in parallel _(if supported)_.
+Steps 4b and 4c can run in parallel.
 
 #### 4d. Remediation
 

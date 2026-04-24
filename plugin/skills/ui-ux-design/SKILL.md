@@ -30,7 +30,7 @@ ARGUMENTS: $ARGUMENTS
 - **Favor simplicity** — recommend simplest solution (KISS, YAGNI, DRY). Start minimal; add only what's needed.
 - **Intentional visual direction** — avoid generic AI aesthetics and default stacks. Choose typography with character. Use color intentionally with a dominant direction and clear accents.
 - **Platform-agnostic canonical reference** — design tokens, wireframes, and style decisions serve as the canonical reference for ALL target platforms (web, mobile, desktop). Platform-specific implementation happens downstream.
-- **Delegate to sub-agents** _(if supported by your coding agent)_ for parallel research, wireframe creation, or visual validation.
+- **Delegate to sub-agents** for parallel research, wireframe creation, or visual validation.
 
 ## GOTCHAS
 

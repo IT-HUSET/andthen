@@ -73,19 +73,71 @@ Focus on requirements-vs-implementation alignment — the unique value of this l
 
 ## 4. Gap Analysis
 
-Record gaps in these categories:
-- **Functionality**
-- **Integration**
-- **Requirement mismatches**
-- **Consistency**
-- **Domain language** when the `Ubiquitous Language` document (see **Project Document Index**) exists
-- **Holistic sanity check**
-- **Verification depth**: substance, wiring, and failing verification signals
+Compare requirements to the implementation and record gaps in the categories below. Each category targets a distinct failure mode — skipping categories silently narrows the review. For every finding, note the affected file(s) and the specific requirement or expectation it violates.
+
+- **Functionality gaps** — missing or incomplete features, unfulfilled acceptance criteria, absent error handling, unhandled edge cases, weak input validation, missing user-facing feedback for failure paths.
+
+- **Integration gaps** — missing or broken integration points (API endpoints, database migrations, configuration, feature flags, jobs, workers, CLI entry points). Incomplete data flows between modules, broken or stale dependencies, contract mismatches at module boundaries, missing wiring for new components into the system.
+
+- **Requirement mismatches** — behavior or logic that does not match what the requirements specify. Incorrect defaults, inverted conditions, misinterpreted acceptance criteria. Unmet non-functional requirements: performance, security, accessibility, internationalization, observability, compatibility.
+
+- **Consistency gaps** — deviations from existing codebase patterns, conventions, and architecture. Documentation gaps (README, inline docs, user-facing copy). Test coverage gaps at the levels the project expects (unit, integration, end-to-end).
+
+- **Domain language gaps** — terminology drift between requirements and implementation: the same concept named differently, terms leaking across bounded contexts, or new domain concepts introduced without glossary entries. _Skip when no `Ubiquitous Language` document exists (see **Project Document Index**)._
+
+- **Holistic sanity check** — zoom out and ask whether the implementation makes sense end-to-end. Does it actually achieve the user-facing outcome, not just the technical checklist? Any hidden assumptions, tech debt, or architectural drift introduced? Would a reasonable user or operator be surprised by how it behaves?
+
+- **Verification depth — substance and wiring** — beyond "does the file exist," check:
+  - Are implementations substantive? (No stubs, placeholders, silently-empty handlers, `pass`, `TODO`, `NotImplementedError`.)
+  - Are new components wired into the system? (Imported, routed, called, rendered, migrated, registered.)
+  - Do verification commands actually pass? (Build, tests, type check, lint.)
+  - Cross-reference `verification-patterns.md` for the substance/wiring rubric.
 
 
-## 5. Optional Retrospective
+## 5. Behavioral Dry-Run Walkthrough
 
-If it adds value, reflect on architectural trade-offs, simpler alternatives, process failures, and recurring knowledge gaps.
+Methodically simulate how the implementation actually runs against each requirement, one path at a time. This surfaces issues that mechanical file-vs-spec comparison misses: latent state bugs, incorrect logic, fragile assumptions, missing defensive behavior, and requirements filled in by guessing.
+
+Walk through the work — do not skim it. For each significant requirement, feature flow, or user-visible behavior the implementation claims to satisfy, perform the following passes and record every concern as a finding. Feed those findings back into the Step 4 categories (or add an explicit **Behavioral** subcategory) before running the adversarial challenge.
+
+### Trace execution
+
+- Identify the entry point that satisfies the requirement: handler, command, route, event, scheduled job, CLI, migration, UI action.
+- Walk the control flow step by step. Mentally execute each branch — do not jump to the happy path.
+- Track the shape, source, and trust level of data at each step (user input, external service response, database row, derived state).
+
+### Check conditions and invariants
+
+- **Preconditions** — what must be true before each function or block runs? Are those conditions guaranteed by the caller, enforced on entry, or silently assumed?
+- **Postconditions** — what state or output does the code promise after it runs? Is that promise delivered on every path, including early returns and exceptions?
+- **Invariants** — what must remain true throughout the operation (transactional consistency, ordering, uniqueness, referential integrity, UI state)? Any path that could violate them?
+- **Idempotency and re-entry** — is it safe to retry, replay, or run concurrently if the requirement implies that?
+
+### Stress the unhappy paths
+
+- What does each external call do when it fails, times out, returns an error, returns partial or malformed data, or returns stale data?
+- Which errors are caught, which are propagated, which are swallowed? Are failures observable (logs, metrics, traces, user-facing feedback)?
+- What happens under concurrent access, retries, partial writes, network partitions, duplicate events, out-of-order delivery?
+- What about empty, null, zero, negative, oversized, Unicode, mixed-case, or otherwise-boundary inputs?
+- What is the rollback / cleanup story when an operation fails halfway?
+
+### Test the assumptions
+
+- Which behaviors depend on an assumption about upstream, downstream, or environment state that the requirements did not pin down? List the assumption explicitly.
+- Where did the implementer fill a requirements gap with a guess? Is the guess defensible? Is it documented (comment, ADR, commit message) or invisible?
+- Is there logic that only works because of an unrelated implementation detail elsewhere (implicit coupling, load-bearing side effects)?
+- Are there places where the requirements themselves are ambiguous or contradictory — and the implementation picked one reading without flagging it?
+
+### Sanity-check the design
+
+- Does the end-to-end flow actually achieve the user-facing outcome, or only the technical acceptance checklist?
+- Are there operations that look correct locally but compose incorrectly (e.g. correct individual queries that together violate an invariant)?
+- Are failure modes survivable — does a single external dependency outage degrade gracefully or cascade?
+- Could the same requirement be met with meaningfully less code, fewer abstractions, or fewer failure surfaces? If so, the complexity itself is a finding.
+
+### Record and route
+
+Every concern from the walkthrough is a finding. Each finding must carry: location, the requirement or invariant it threatens, the path or input that triggers it, and the observable impact. Merge into the Step 4 categories so they are scored and challenged alongside the mechanical gap findings.
 
 
 ## 6. Adversarial Challenge
@@ -99,7 +151,7 @@ Run the full adversarial challenge only when any finding is Critical OR total fi
 - **Context block**: `Review target context: {implementation target paths from Step 0}`
 - **Questions**: Is this a real gap? Is severity justified? Could there be an existing mitigation? Would a senior engineer flag this?
 - **Verdicts**: `VALIDATED`, `DOWNGRADED`, `WITHDRAWN`
-- **Findings payload**: `{all findings from quality review, gap analysis, and optional retrospective}`
+- **Findings payload**: `{all findings from quality review, gap analysis, and behavioral dry-run walkthrough}`
 
 Apply verdicts before scoring.
 
@@ -155,8 +207,8 @@ overview, verdict table, high-level findings, challenge stats
 
 ## Gap Analysis Results
 
-## Retrospective & Reflection
-(when used)
+## Behavioral Dry-Run Findings
+(issues surfaced by the Step 5 walkthrough that are not already covered above — logic flaws, unstated assumptions, unhappy-path and edge-case gaps, fragile composition)
 
 ## Remediation Plan
 Critical / High / Medium / Low, dependencies, sequencing, acceptance criteria

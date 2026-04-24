@@ -85,14 +85,14 @@ Produce a prioritized list of improvements. Ask user for confirmation before pro
 
 Execute improvements from the prioritized list:
 - Work file-by-file or by logical unit
-- For independent changes, use **parallel sub-agents** _(if supported)_
+- For independent changes, use **parallel sub-agents**
 - Verify each change preserves existing behavior
 - Keep individual changes small and verifiable – don't batch unrelated improvements
 
 
 ### Phase 4: Verification
 
-Run in **parallel sub-agents** _(if supported; otherwise sequentially)_:
+Run in **parallel sub-agents**:
 
 1. **Tests**: Run full test suite – all tests must pass
 2. **Code review**: Invoke the `andthen:review` skill with `--mode code` to verify improvements and catch regressions

@@ -47,7 +47,7 @@ ARGUMENTS: $ARGUMENTS
 - Documentation (README, PRD, specs, architecture docs)
 - Test descriptions (often reveal intended behavior in domain terms)
 
-Use Explore sub-agent _(if supported by your coding agent)_ for large codebases.
+Use Explore (or general-purpose) sub-agent for large codebases.
 
 **1.3** If SCOPE is provided, focus exploration on that area.
 

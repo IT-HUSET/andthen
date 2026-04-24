@@ -43,7 +43,7 @@ ARGUMENTS: `$ARGUMENTS`
   - `NOTICED BUT NOT TOUCHING:` — out-of-scope observations + `-> Want me to create tasks?`
   - `MISSING REQUIREMENT:` — undefined behavior + labeled options + `-> Which behavior?`
 
-## ORCHESTRATOR ROLE _(if supported by your coding agent)_
+## ORCHESTRATOR ROLE
 
 You orchestrate the workflow:
 - Delegate issue detection and fix implementation to sub-agents when helpful

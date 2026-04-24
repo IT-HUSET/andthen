@@ -15,7 +15,7 @@ Transform feature requirements into simple HTML wireframes that capture key layo
 - **Wireframes only** — no design system creation (use the `design-system` mode for that)
 - **Simple, grayscale layouts** — focus on structure, not visual polish
 - **100% page coverage** — every page/screen in requirements MUST have a wireframe
-- **Delegate to sub-agents** _(if supported)_ for parallel wireframe creation
+- **Delegate to sub-agents** for parallel wireframe creation
 - **Browser automation required** for visual validation (Playwright MCP or Chrome DevTools MCP; falls back to manual if unavailable)
 
 ## Phase 1: Requirements Analysis
@@ -64,10 +64,10 @@ Create basic, grayscale HTML layouts showing major sections and placement, key c
 
 **CRITICAL**: Create wireframes in parallel for efficiency.
 
-For each page in the inventory, spawn a general-purpose sub-agent _(if supported by your coding agent)_ and have it run this skill with `--mode wireframes` scoped to a single page, given:
+For each page in the inventory, spawn a general-purpose sub-agent and have it run this skill with `--mode wireframes` scoped to a single page, given:
 - Reference to base HTML template (the structure from 2.1), page name and purpose, key content/sections, navigation context, responsive requirements
 
-**Execute multiple agents simultaneously** _(if supported; otherwise execute sequentially)_ — each handles a single page.
+**Execute multiple agents simultaneously** — each handles a single page.
 
 **Naming convention**: `[page-name].html` (e.g., `home.html`, `dashboard.html`, `user-profile.html`)
 

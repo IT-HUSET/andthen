@@ -29,7 +29,7 @@
     import {
       exportToSvg,
       convertToExcalidrawElements
-    } from "https://esm.sh/@excalidraw/excalidraw?bundle";
+    } from "https://esm.sh/@excalidraw/excalidraw";
 
     let convertedElements = null;
     let lastAppState = null;
@@ -139,6 +139,254 @@
         window.__renderComplete = true;
         window.__renderError = err.message;
         return { success: false, error: err.message };
+      }
+    };
+
+    /**
+     * Analyze the rendered diagram for common layout defects.
+     * Returns structured findings the skill can act on in its render loop.
+     *
+     *   { ok, criticalCount, majorCount, minorCount, findings: { critical, major, minor } }
+     *
+     * Checks:
+     *   CRITICAL – shape overlaps (badges excluded), text-over-shape
+     *   MAJOR    – font < 14px (badges allow 12), uniform-grid within a zone,
+     *              tight spacing (< 20px), no clear hero
+     *   MINOR    – off-grid coordinates, label-may-clip, missing primary-flow arrow
+     *
+     * Zone detection: low-opacity shape OR covers ≥ 15% of the canvas bbox.
+     * Badge detection: small shape (≤ 100 × 32) using the signal palette (red/yellow/green).
+     */
+    window.lintLayout = function() {
+      if (!convertedElements) {
+        return { ok: false, error: "No diagram rendered yet – call renderDiagram first" };
+      }
+
+      const findings = { critical: [], major: [], minor: [] };
+      const push = (sev, type, message, extra = {}) =>
+        findings[sev].push({ type, message, ...extra });
+
+      const shapes = convertedElements.filter(e =>
+        ["rectangle", "ellipse", "diamond"].includes(e.type) && !e.isDeleted
+      );
+      const texts = convertedElements.filter(e => e.type === "text" && !e.isDeleted);
+      const arrows = convertedElements.filter(e => e.type === "arrow" && !e.isDeleted);
+
+      // Canvas bbox (used for zone detection by area)
+      const canvasBbox = bboxOfAll(convertedElements);
+      const canvasArea = Math.max(1, canvasBbox.width * canvasBbox.height);
+
+      // Signal palette (per style-guide.md §1 Signal Colors) — badges use these fills
+      const SIGNAL_FILLS = new Set([
+        "#ffc9c9", "#ffec99", "#b2f2bb",  // light signal fills
+        "#e03131", "#f08c00", "#2f9e44"   // stroke variants if used as fill
+      ]);
+      const isBadge = (s) =>
+        s.type === "rectangle" &&
+        s.width <= 100 && s.height <= 32 &&
+        SIGNAL_FILLS.has((s.backgroundColor || "").toLowerCase());
+
+      // Zone classification is two-phase:
+      //   1. Explicit zones: opacity < 100 (style-guide default)
+      //   2. Implicit zones: large shape (area ≥ 15% of canvas) that *contains*
+      //      ≥ 3 other shapes — catches the case where a user forgot opacity:50.
+      // An "almost-covering" shape with no children is NOT a zone (e.g. a large
+      // hero element) and must remain subject to overlap checks.
+      const zones = shapes.filter(s => (s.opacity ?? 100) < 100);
+      const nonZoneCandidates = shapes.filter(s => !zones.includes(s));
+      for (const s of nonZoneCandidates) {
+        if (s.width * s.height < canvasArea * 0.15) continue;
+        const contained = nonZoneCandidates.filter(x => x !== s && contains(s, x));
+        if (contained.length >= 3) zones.push(s);
+      }
+      const fgShapes = shapes.filter(s => !zones.includes(s));
+      const badges = fgShapes.filter(isBadge);
+      const nonBadgeFg = fgShapes.filter(s => !isBadge(s));
+
+      // ---- 1. Overlap detection (non-badge foreground shapes only) ------
+      for (let i = 0; i < nonBadgeFg.length; i++) {
+        for (let j = i + 1; j < nonBadgeFg.length; j++) {
+          if (bboxOverlap(nonBadgeFg[i], nonBadgeFg[j])) {
+            push("critical", "overlap",
+              `Shapes "${nonBadgeFg[i].id}" and "${nonBadgeFg[j].id}" overlap`,
+              { ids: [nonBadgeFg[i].id, nonBadgeFg[j].id] });
+          }
+        }
+      }
+
+      // ---- 2. Text overlapping non-badge foreground shapes --------------
+      for (const t of texts) {
+        if (t.containerId) continue; // bound label – skip
+        for (const s of nonBadgeFg) {
+          if (bboxOverlap(t, s)) {
+            push("critical", "text_over_shape",
+              `Text "${truncate(t.text)}" overlaps shape "${s.id}"`,
+              { textId: t.id, shapeId: s.id });
+          }
+        }
+      }
+
+      // ---- 3. Font-size minimums (badge labels allow 12, everything else 14)
+      const badgeTextIds = new Set(badges.flatMap(b => (b.boundElements || []).filter(x => x.type === "text").map(x => x.id)));
+      for (const t of texts) {
+        const min = badgeTextIds.has(t.id) ? 12 : 14;
+        if ((t.fontSize ?? 16) < min) {
+          push("major", "small_font",
+            `Text "${truncate(t.text)}" fontSize ${t.fontSize} < ${min} (${min === 12 ? "badge min" : "unreadable"})`,
+            { id: t.id, fontSize: t.fontSize, minimum: min });
+        }
+      }
+
+      // ---- 4. Uniform-grid antipattern (per-zone + global threshold) ----
+      // Group non-badge fg shapes by the zone that contains them (or "__root__").
+      const shapeZone = (s) => {
+        for (const z of zones) if (contains(z, s)) return z.id;
+        return "__root__";
+      };
+      const sigsPerZone = new Map(); // zoneId -> (sig -> ids)
+      for (const s of nonBadgeFg) {
+        const z = shapeZone(s);
+        const sig = `${s.type}|${s.width}x${s.height}|${s.backgroundColor}`;
+        if (!sigsPerZone.has(z)) sigsPerZone.set(z, new Map());
+        const inner = sigsPerZone.get(z);
+        inner.set(sig, (inner.get(sig) || []).concat(s.id));
+      }
+      for (const [zoneId, sigs] of sigsPerZone) {
+        for (const [sig, ids] of sigs) {
+          if (ids.length >= 6) {
+            push("major", "uniform_grid",
+              `${ids.length} shapes in zone "${zoneId}" share signature "${sig}" — break with an anchor, alternating row heights, or an evidence artifact`,
+              { zone: zoneId, signature: sig, count: ids.length, ids });
+          }
+        }
+      }
+
+      // ---- 5. Tight spacing between non-badge foreground shapes ---------
+      for (let i = 0; i < nonBadgeFg.length; i++) {
+        for (let j = i + 1; j < nonBadgeFg.length; j++) {
+          const gap = shapeGap(nonBadgeFg[i], nonBadgeFg[j]);
+          if (gap > 0 && gap < 20) {
+            push("major", "tight_spacing",
+              `Gap of ${gap}px between "${nonBadgeFg[i].id}" and "${nonBadgeFg[j].id}" (min 20)`,
+              { ids: [nonBadgeFg[i].id, nonBadgeFg[j].id], gap });
+          }
+        }
+      }
+
+      // ---- 6. Label clipping estimate -----------------------------------
+      for (const s of nonBadgeFg) {
+        const boundText = getBoundText(s);
+        if (!boundText) continue;
+        const label = boundText.text || "";
+        const fontSize = boundText.fontSize ?? 16;
+        // charW per font: Excalifont/Nunito ≈ 0.55, Comic Shanns mono ≈ 0.63
+        const charW = fontSize * ((boundText.fontFamily === 8) ? 0.63 : 0.55);
+        const estW = label.length * charW;
+        let needW;
+        if (s.type === "rectangle") needW = estW + 16;
+        else if (s.type === "ellipse") needW = estW * 1.41 + 22;
+        else if (s.type === "diamond") needW = estW * 2 + 32;
+        else needW = estW + 16;
+        if (s.width < needW * 0.9) {
+          push("minor", "label_may_clip",
+            `${s.type} "${s.id}" (${s.width}×${s.height}) may clip label "${truncate(label)}" (needs ~${Math.ceil(needW)}px wide)`,
+            { id: s.id, currentWidth: s.width, estimatedNeed: Math.ceil(needW) });
+        }
+      }
+
+      // ---- 7. Hero presence check ---------------------------------------
+      if (nonBadgeFg.length >= 6) {
+        const areas = nonBadgeFg.map(s => s.width * s.height);
+        const maxA = Math.max(...areas);
+        const avgA = areas.reduce((a, b) => a + b, 0) / areas.length || 1;
+        const ratio = maxA / avgA;
+        if (ratio < 2.0) {
+          push("major", "no_hero",
+            `No clear hero — largest shape is only ${ratio.toFixed(1)}× the average area (expected ≥ 2.0×). Upsize the single most important shape to ~320×160.`,
+            { ratio: +ratio.toFixed(2) });
+        }
+      }
+
+      // ---- 8. Off-grid coordinates (user-authored elements only) --------
+      // Auto-generated nanoid IDs are exactly 21 chars with [A-Za-z0-9_-].
+      const looksLikeNanoid = (id) =>
+        typeof id === "string" && id.length === 21 && /^[A-Za-z0-9_-]+$/.test(id);
+      const userAuthored = (e) => !e.containerId && !looksLikeNanoid(e.id);
+      const offGrid = [];
+      for (const s of [...fgShapes, ...zones]) {
+        if (!userAuthored(s)) continue;
+        if (s.x % 20 || s.y % 20 || s.width % 20 || s.height % 20) {
+          offGrid.push(s.id);
+        }
+      }
+      if (offGrid.length > 0) {
+        push("minor", "off_grid",
+          `${offGrid.length} elements have x/y/width/height not on the 20px grid (ids: ${offGrid.slice(0, 5).join(", ")}${offGrid.length > 5 ? ", …" : ""})`,
+          { ids: offGrid });
+      }
+
+      // ---- 9. Primary-flow arrow presence (optional heuristic) ----------
+      if (arrows.length >= 3) {
+        const bold = arrows.filter(a => (a.strokeWidth ?? 2) >= 3);
+        if (bold.length === 0) {
+          push("minor", "no_primary_flow",
+            "No bold arrow (strokeWidth ≥ 3) found. Consider marking the main happy-path arrow as primary flow for hierarchy.");
+        }
+      }
+
+      return {
+        ok: findings.critical.length === 0 && findings.major.length === 0,
+        criticalCount: findings.critical.length,
+        majorCount: findings.major.length,
+        minorCount: findings.minor.length,
+        findings
+      };
+
+      // ---- helpers -------------------------------------------------------
+      function bboxOverlap(a, b) {
+        return !(
+          a.x + a.width  <= b.x ||
+          b.x + b.width  <= a.x ||
+          a.y + a.height <= b.y ||
+          b.y + b.height <= a.y
+        );
+      }
+      function contains(outer, inner) {
+        return (
+          inner.x >= outer.x &&
+          inner.y >= outer.y &&
+          inner.x + inner.width <= outer.x + outer.width &&
+          inner.y + inner.height <= outer.y + outer.height
+        );
+      }
+      function bboxOfAll(els) {
+        if (!els.length) return { x: 0, y: 0, width: 0, height: 0 };
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const e of els) {
+          if (typeof e.x !== "number") continue;
+          minX = Math.min(minX, e.x);
+          minY = Math.min(minY, e.y);
+          maxX = Math.max(maxX, e.x + (e.width || 0));
+          maxY = Math.max(maxY, e.y + (e.height || 0));
+        }
+        if (!Number.isFinite(minX)) return { x: 0, y: 0, width: 0, height: 0 };
+        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+      }
+      function shapeGap(a, b) {
+        const dx = Math.max(0, b.x - (a.x + a.width), a.x - (b.x + b.width));
+        const dy = Math.max(0, b.y - (a.y + a.height), a.y - (b.y + b.height));
+        if (dx === 0 && dy === 0) return 0; // overlap (already reported above)
+        return Math.round(Math.max(dx, dy));
+      }
+      function getBoundText(shape) {
+        if (!shape.boundElements) return null;
+        const textRef = shape.boundElements.find(b => b.type === "text");
+        if (!textRef) return null;
+        return convertedElements.find(e => e.id === textRef.id);
+      }
+      function truncate(s, n = 28) {
+        if (!s) return "";
+        return s.length > n ? s.slice(0, n) + "…" : s;
       }
     };
 

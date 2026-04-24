@@ -130,17 +130,18 @@ Packages that form a dependency cycle — cannot be independently compiled, test
 
 ## Leaky Abstraction
 
-Callers depend on implementation details rather than the declared interface.
+Callers depend on implementation details rather than the declared interface, **or** the same internal design decision is reflected in more than one interface (Ousterhout's _information leakage_, APoSD Ch. 5).
 
 **Symptoms**:
 - Callers import internal/`src/` types from another package
 - Callers cast to implementation classes
 - Callers depend on behavior that's an implementation artifact (result ordering, side effects)
 - Callers access fields or methods not part of the declared API
+- A single design decision (file format, protocol detail, data layout, algorithm choice) shows up in the shape of multiple module interfaces — so changing it forces coordinated API changes
 
-**Fix**: Narrow the public API surface. Move implementation types to `src/`-only access. Add missing methods to the interface so callers don't need to bypass it.
+**Fix**: Narrow the public API surface. Move implementation types to `src/`-only access. Add missing methods to the interface so callers don't need to bypass it. For shape-level leakage, relocate the decision so exactly one module's interface reflects it.
 
-**Review question**: If the implementation changed (different algorithm, data structure, library), what would break in callers?
+**Review question**: If the implementation (or the leaked decision) changed, how many interfaces would have to change with it? More than one ⇒ leakage.
 
 ---
 
@@ -188,3 +189,53 @@ Dependencies added because a class is available, not because the dependency is a
 **Fix**: Evaluate whether the convenience dependency creates an SDP violation. If so, extract the shared type into a leaf package or duplicate the small utility.
 
 **Review question**: Does this dependency make sense architecturally, or was it added for convenience?
+
+---
+
+## Shallow Module
+
+A module whose interface is about as complex as its implementation — it adds a boundary to cross without abstracting meaningfully (Ousterhout, APoSD Ch. 4).
+
+**Symptoms**:
+- Interface parameters mirror implementation details (one parameter per internal step, field, or branch)
+- Callers must read the implementation to use the module safely
+- Decomposing an existing module produced N helpers whose signatures together carry as much information as the original body
+- "Classitis" — many small classes/methods each doing a single trivial operation with non-trivial plumbing
+
+**Fix**: Collapse shallow modules into a deeper one that hides more; or widen the implementation behind the existing interface until the abstraction earns its depth. Prefer fewer, deeper modules over many small ones when cohesion allows.
+
+**Review question**: Could a caller use this correctly without reading its implementation? If no, the module is shallow (or the interface is underspecified).
+
+**Cross-check**: Do not collapse if it would violate CCP/SRP or re-create a god module. Depth is bounded above by cohesion.
+
+---
+
+## Pass-Through Method / Layer
+
+A method, class, or layer that forwards to another with the same (or near-identical) parameters, adding no abstraction or meaningful work (Ousterhout, APoSD Ch. 7 — _different layer, different abstraction_).
+
+**Symptoms**:
+- Wrapper methods that just call a delegate with the same arguments
+- Facade classes whose methods match the underlying service 1:1
+- Layer whose every public call is a thin forward to the layer below, with identical types crossing the boundary
+
+**Fix**: Remove the layer, or give it a distinct abstraction (aggregation, translation, policy, caching, authorization — something the caller would actually ask for). If nothing qualifies, the layer is not earning its existence.
+
+**Review question**: What abstraction does this layer introduce that the layer below does not already provide? If the answer is "none," delete it.
+
+---
+
+## Temporal Decomposition
+
+Modules split by the **order operations occur at runtime** rather than by the knowledge they encapsulate (Ousterhout, APoSD Ch. 5).
+
+**Symptoms**:
+- Modules named for pipeline stages: `Reader`, `Parser`, `Validator`, `Processor`, `Writer`
+- Multiple modules each hold partial knowledge of the same format, protocol, or data shape
+- Changes to that shared concept require coordinated edits across the sequence
+
+**Fix**: Re-decompose by knowledge ownership. Group code that shares knowledge of the same external contract (format, protocol, schema) into one module, even if that module spans multiple execution stages internally.
+
+**Review question**: If the file format (or protocol, or schema) changed, how many of these modules would need edits? More than one ⇒ temporal decomposition masking shared knowledge.
+
+**When acceptable**: True pipeline / stream architectures (compilers, ETL, stream processors) where each stage owns a **distinct abstraction** and communicates through a typed intermediate form. The signal is that each stage's knowledge is disjoint, not shared — a parser that emits AST nodes the next stage consumes is legitimate; a parser that the next stage re-parses or re-interprets is not.

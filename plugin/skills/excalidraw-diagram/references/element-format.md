@@ -172,9 +172,49 @@ Never emit `1`, `2`, or `3` – those IDs are flagged `deprecated` in Excalidraw
 
 ### Element Sizes
 
-- Minimum shape size: **120x60** for labeled rectangles/ellipses
-- Leave **20-30px gaps** between elements minimum
+- Minimum shape size: **120×60** for labeled rectangles (smaller for markers/badges only)
+- Leave **20–40px gaps** between related elements, **60–80px** between unrelated elements
 - Prefer fewer, larger elements over many tiny ones
+- **Snap all `x`, `y`, `width`, `height` values to multiples of 20** (Excalidraw's default grid). Off-grid values produce an "almost aligned" look that reads as sloppy.
+- For size cascade (hero / primary / secondary / marker), see `style-guide.md` § Size Cascade
+
+### Label Auto-Sizing (CRITICAL)
+
+When you attach `label: { text: "..." }` to a shape, Excalidraw computes a minimum container size from the text bounds, and `redrawTextBoundingBox` **silently expands the container at render time** if the supplied width is too small. This is the top cause of "boxes that end up all the same size" and of text overflowing or going missing.
+
+**Internal padding**: `BOUND_TEXT_PADDING = 8px` per side (16px total).
+
+**Minimum dimensions to fit a label** (where `W` and `H` are the measured text bounds):
+
+| Shape | Min width | Min height | Scaling note |
+|-------|-----------|------------|--------------|
+| **Rectangle** | `W + 16` | `H + 16` | Baseline – tightest fit |
+| **Ellipse** | `≈ (W + 16) × √2` | `≈ (H + 16) × √2` | Inscribed rectangle geometry – needs **~1.4×** a rectangle |
+| **Diamond** | `2 × (W + 16)` | `2 × (H + 16)` | Rhombus geometry – needs **~2×** a rectangle |
+| **Arrow (labeled)** | `W + 128` | — | Very generous padding |
+
+**Implication**: do **not** use identical widths for a rectangle and an ellipse that hold the same label. The ellipse will look crammed or force text to overflow.
+
+### Text Metrics (for pre-sizing)
+
+Approximate character widths per font at common sizes. Use to estimate `W` before picking a container size. Add 20% padding on top of the estimate for safety.
+
+| `fontFamily` | Font | `fontSize 16` | `fontSize 18` | `fontSize 24` |
+|--------------|------|---------------|---------------|---------------|
+| `5` | Excalifont | ~9px/char | ~10px/char | ~13px/char |
+| `6` | Nunito | ~8px/char | ~9px/char | ~12px/char |
+| `8` | Comic Shanns (mono) | ~10px/char | ~11px/char | ~14px/char |
+
+**Quick sizing examples** (fontFamily 5, fontSize 18, 14-character label):
+- Rectangle: `W ≈ 140`, min width `156`, **practical 220×60**
+- Ellipse: needs `≈ 1.4× rect`, **practical 260×80**
+- Diamond: needs `≈ 2× rect`, **practical 340×120**
+
+### When to Specify Width/Height vs. Auto-Size
+
+- **Specify** explicitly for every non-marker shape. This is how hierarchy is preserved – the size cascade (hero / primary / secondary) only works if you pick the numbers.
+- **Auto-size** (omit `width`/`height`) only for marker dots, signal badges, and throwaway shapes where the label's natural size is fine.
+- **Over-size rather than under-size.** If you're unsure the label fits, add 20–40px of slack. Excalidraw will silently grow under-sized containers, collapsing your hierarchy back toward uniformity.
 
 ### Canvas & Padding
 

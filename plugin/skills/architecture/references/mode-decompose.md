@@ -2,7 +2,7 @@
 
 Evaluate a specific split or merge decision using Ford/Richards driver scoring and connascence analysis.
 
-**Supporting references**: `decomposition.md`, `connascence.md`, `package-principles.md`, `anti-patterns.md`.
+**Supporting references**: `decomposition.md`, `connascence.md`, `package-principles.md`, `anti-patterns.md`, `ddd.md` (load when the boundary in question is a bounded context, or when the integration relationship between two existing contexts needs a context-mapping pattern choice).
 
 ## Step 1 — Map the Boundary
 

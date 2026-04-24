@@ -42,9 +42,11 @@ ARGUMENTS: $ARGUMENTS
 **Generic "What We're NOT Doing" section** – use it to record real non-goals or deferrals with reasons, not filler bullets.
 
 
-## ORCHESTRATOR ROLE _(if supported by your coding agent)_
+## ORCHESTRATOR ROLE
 
-You are the orchestrator: parse input, delegate codebase analysis and research to sub-agents, then author the FIS from their findings. Delegate codebase analysis and architecture framing to the `andthen:architecture` skill (`--mode advise`); research to the `andthen:documentation-lookup` agent or the `andthen:research-specialist` agent; UI design input to the `andthen:ui-ux-design` skill. Write the FIS yourself to keep it coherent.
+You are the orchestrator: parse input, gather codebase analysis and research, then author the FIS from the findings. 
+To protect the main context window, prefer running research tasks inside a spawned sub-agent (named or `general-purpose`). 
+Always write the FIS yourself to keep it coherent.
 
 
 ## WORKFLOW
@@ -60,17 +62,22 @@ You are the orchestrator: parse input, delegate codebase analysis and research t
 
 ### 1. Priming and Project Understanding
 
-If a **plan-scoped** `.technical-research.md` exists (created by the `andthen:plan` skill — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce this step to a quick verification that the project structure matches the research. Otherwise, analyse the codebase to understand project structure, relevant files and similar patterns. Use `tree -d` and `git ls-files | head -250` for overview. Use the `Explore` agent _(if supported)_ for deeper context.
+If a **plan-scoped** `.technical-research.md` exists (created by the `andthen:plan` skill — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce this step to a quick verification that the project structure matches the research. Otherwise, analyse the codebase to understand project structure, relevant files and similar patterns. Use `tree -d` and `git ls-files | head -250` for overview. Spawn a `general-purpose` sub-agent for deeper context when the scan is broad.
 
 
 ### 2. Feature Research and Design
 
 If a plan-scoped `.technical-research.md` exists with relevant coverage, skip research categories it already addresses. Only research what's genuinely missing:
 
-- **Codebase research** _(skip if technical research covers file maps and patterns for this story)_: similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Delegate to the `andthen:architecture` skill (`--mode advise`) _(if supported)_.
-- **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to the `andthen:research-specialist` agent or the `andthen:documentation-lookup` agent _(if supported)_.
-- **Architecture trade-offs** _(skip if technical research covers shared decisions relevant to this story AND no story-internal trade-offs exist; also skip if ADR in ARGUMENTS)_: analyze 1-3 approaches, document risks. Delegate to the `andthen:architecture` skill (`--mode trade-off` or `--mode advise`) _(if supported)_.
-- **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Delegate to the `andthen:ui-ux-design` skill (`--mode research` or `--mode wireframes`) _(if supported)_.
+- **Codebase research** _(skip if technical research covers file maps and patterns for this story)_: locate similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Use `rg`/`tree`/file reads directly.
+
+- **Solution architecture** _(skip if technical research already frames the solution for this story)_: frame how the feature fits the existing architecture — module boundaries, integration points, component responsibilities, data flow, test seams. Worth doing for most code changes, not just novel ones. Invoke the `andthen:architecture` skill (`--mode advise`) in a spawned `general-purpose` sub-agent.
+
+- **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to the `andthen:documentation-lookup` agent or the `andthen:research-specialist` agent.
+
+- **Architecture trade-offs** _(often unnecessary — skip unless the story has 1-3 genuinely competing approaches with non-trivial risk or cost differences; also skip if technical research covers shared decisions or an ADR is in ARGUMENTS)_: analyse the candidate approaches, document risks, pick one with rationale. Invoke the `andthen:architecture` skill (`--mode trade-off`) in a spawned `general-purpose` sub-agent.
+
+- **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Invoke the `andthen:ui-ux-design` skill (`--mode research` or `--mode wireframes`) in a spawned `general-purpose` sub-agent.
 
 **Save research findings** (if substantial) to `.technical-research.md` in the FIS output directory — a hidden companion document that keeps the FIS lean and reviewable. The FIS references this document; the executing agent reads it alongside the FIS for implementation context. See the [Technical Research Separation](references/fis-authoring-guidelines.md#technical-research-separation) guidelines for what belongs in the research doc vs the FIS. Skip this if findings are minimal — not every spec needs a technical research document.
 
@@ -95,8 +102,6 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 - `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions
 
 #### Generate from Template
-Use the `Plan` agent _(if supported)_ to generate the FIS — it provides structured authoring support.
-
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
 [`references/fis-authoring-guidelines.md`](references/fis-authoring-guidelines.md).
 

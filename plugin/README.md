@@ -251,6 +251,37 @@ Codex agent files are generated from these Claude agent files at install time by
 
 **GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --to-pr` and `architecture --to-pr` post reports as PR comments. Everything else is local — use a branch + PR as the transport.
 
+## Breaking Changes
+
+See [CHANGELOG.md](../CHANGELOG.md) for full release notes.
+
+### 0.14.0 — `plan` is 1:1 with FIS
+
+- Removed THIN / COMPOSITE story tiers. Every story now maps to exactly one FIS file; no two stories share a FIS path.
+- `exec-plan` and `exec-spec` dropped composite / shared-FIS handling. Re-run `/andthen:plan <dir>` on legacy bundles — the Consolidation Pass merges candidates at breakdown time.
+- FIS size sweet spot raised to `150–450` lines; oversize-pivot trigger raised to `>600 lines or >18 tasks`.
+
+### 0.13.0 — plan altitudes and unified review
+
+**Plan side** — three altitudes: `prd` (product), `plan` (stories + FIS bundle), `exec-plan` (execution).
+
+| Before | After |
+|---|---|
+| `/andthen:plan <requirements>` | `/andthen:prd <requirements>` → `/andthen:plan <dir-with-prd>` |
+| `/andthen:spec-plan <plan-dir>` | `/andthen:plan <plan-dir>` (re-run fills missing FIS) |
+| `/andthen:exec-plan <plan-dir>` (auto-spec per phase) | `/andthen:plan <plan-dir>` → `/andthen:exec-plan <plan-dir>` |
+
+Use `/andthen:plan --skip-specs` for the old "plan structure only, defer FIS" behaviour.
+
+**Review side** — one user-facing skill with modes instead of separate delegates.
+
+| Before | After |
+|---|---|
+| `/andthen:review-code`, `/andthen:review-doc`, `/andthen:review-gap` | `/andthen:review --mode code\|doc\|gap` |
+| `/andthen:review --code-only` / `--doc-only` / `--gap-only` | `/andthen:review --mode code\|doc\|gap` |
+
+Severity scale unified: `SUGGESTIONS` → `LOW`. Gap-mode PASS/FAIL verdict contract preserved.
+
 ## License
 
 MIT

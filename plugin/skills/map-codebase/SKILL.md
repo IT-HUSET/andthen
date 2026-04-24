@@ -48,7 +48,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 
 ### 2. Parallel Analysis
 
-Spawn parallel sub-agents _(if supported by your coding agent)_. Use a fast/lightweight model (`model: "haiku"`, `gpt-5.4-mini`, or similar) for scanning agents and a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar) for synthesis.
+Spawn parallel sub-agents. Use a fast/lightweight model (`model: "haiku"`, `gpt-5.4-mini`, or similar) for scanning agents and a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar) for synthesis.
 
 **Monorepo note** (apply to all sub-agents when `IS_MONOREPO = true`): organize findings with clear sub-project boundaries. Document shared aspects once; only call out per-sub-project specifics where they differ.
 

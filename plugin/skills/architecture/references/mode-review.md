@@ -2,7 +2,7 @@
 
 Full architecture health assessment using quantitative metrics, connascence taxonomy, and established package principles.
 
-**Supporting references** (load as needed): `connascence.md`, `package-principles.md`, `anti-patterns.md`, `review-output.md`.
+**Supporting references** (load as needed): `connascence.md`, `package-principles.md`, `anti-patterns.md`, `ousterhout-modules.md` (for Component/Code-level module and API review), `review-output.md`.
 
 ## Step 1 — Discover Structure
 
@@ -34,7 +34,14 @@ Flag any dynamic connascence (CoE, CoTm, CoV, CoI) crossing a package boundary �
 
 ## Step 5 — Anti-Pattern Scan
 
-Check for patterns in `anti-patterns.md`: entity trap, distributed monolith, god module, leaky abstractions, speculative generality.
+Check for patterns in `anti-patterns.md`: entity trap, distributed monolith, god module, leaky abstractions, speculative generality, shallow module, pass-through method/layer, temporal decomposition.
+
+## Step 6 — API Obviousness Check _(Component / Code level, opt-in)_
+
+**Run only when** the scope explicitly targets in-process module or public API design (e.g. a single module, a library package, or an API review). **Skip** for full-project reviews, container-level scope, or service-decomposition scope — Ousterhout's lens does not apply there, and Step 5 already covers shallow-module, pass-through, and temporal-decomposition anti-patterns at the package level.
+
+For each public API surface in scope:
+- **Obviousness test** — Can a caller use this module correctly without reading its implementation? If no, the interface leaks. Per Ousterhout (APoSD Ch. 18). Tag findings at C4 **Component** or **Code** level. See `ousterhout-modules.md` for the remaining heuristics when they are useful as supplementary evidence.
 
 ## Report Contents
 

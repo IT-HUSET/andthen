@@ -54,7 +54,7 @@ ARGUMENTS: $ARGUMENTS
 #### 1.2. Analyze & Plan
 
 1. Understand requirements and scope – interpret as *what* to implement, not *how*
-2. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview; use Explore agent for complex exploration
+2. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview; use Explore (or general-purpose) agent for complex exploration
 3. Read relevant documentation (use the `andthen:documentation-lookup` agent as needed)
 4. Break down into manageable tasks and track them
 
@@ -69,12 +69,12 @@ Execute: Implementation → Verification → Evaluation. Repeat until all requir
 
 - Write tests first where applicable, otherwise alongside implementation
 - Write code following existing codebase patterns and project guidelines
-- Use **sub-agents** _(if supported)_ for independent tasks
-- Delegate build or configuration issues to the `andthen:triage` skill _(if supported)_
+- Use **sub-agents** for independent tasks to protect the main context window
+- Invoke the `andthen:triage` skill for build or configuration issues
 
 #### Step 2: Verification
 
-Run in parallel _(if supported; otherwise sequentially)_:
+Run in parallel:
 
 **2.1. Code & Architecture Review** – Invoke the `andthen:review` skill with `--mode code` for static analysis, linting, type checking, code quality, security, architecture.
 

@@ -1,7 +1,37 @@
 # Changelog
 
-All notable changes to **AndThen** are documented here.
+All notable changes to **AndThen** are documented here, in a brief and concise format.
 Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+
+
+---
+
+## [0.14.1] – 2026-04-24
+
+### Added
+- **DDD reference in `andthen:architecture`** – new `references/ddd.md` covering strategic (subdomains, bounded contexts, 9-pattern context map, team topology) and tactical DDD (aggregate rules, entities/VOs, domain vs integration events, application vs domain service, factories, repositories), plus Hexagonal/CQRS/Event Sourcing, Event Storming, Bounded Context Canvas, Functional DDD, and three new anti-patterns (False Invariant Aggregates, Leaky Integration Events, Model-Code Gap). Lazy-loaded from `advise` and `decompose` modes.
+- **Ousterhout module-design lens in `andthen:architecture`** – new `references/ousterhout-modules.md` covering deep vs shallow modules, information leakage, pass-through methods, pull-complexity-downward, define-errors-out-of-existence, temporal decomposition, and an 8-test review checklist. Opt-in Step 6 in `mode-review.md` at Component/Code scope only.
+- **Three Ousterhout-derived anti-patterns** in `architecture/references/anti-patterns.md` – **Shallow Module**, **Pass-Through Method / Layer**, and **Temporal Decomposition**, each with symptoms, fix, review question, and false-positive boundary. Existing **Leaky Abstraction** extended to cover shape-level information leakage.
+- **Composition Playbook for `andthen:excalidraw-diagram`** – new `references/composition-playbook.md` with five archetype recipes (Pipeline, Architecture, Taxonomy, Lifecycle, Comparison) keyed to concrete XY positions, zone plans, size cascades, and anti-checks.
+- **`window.lintLayout()` in the Excalidraw render template** – automated layout linter returning CRITICAL/MAJOR/MINOR findings (overlaps, text-over-shape, uniform grids, font < 14, tight spacing, missing hero, off-grid coords, missing primary-flow arrow). Integrated into the render loop and re-checked after each fix.
+- **AndThen skills overview diagram** – `docs/diagrams/andthen-skills-overview.excalidraw` plus rendered PNG.
+
+### Changed
+- **`architecture` advise-mode DDD section trimmed** – `mode-advise.md` DDD block replaced by a building-blocks quick-reference table + assessment questions with a pointer to `ddd.md`. Added **Application Service** row and fixed prior conflation of domain events with integration events.
+- **`architecture` decompose-mode context-map catalog expanded** – `decomposition.md` context-mapping table: 6 → 9 patterns (**Partnership**, **Separate Ways**, **Big Ball of Mud**), added **Team relationship** column and selection-trigger guidance. Pattern/coupling/team-relationship columns kept byte-synced with `ddd.md`.
+- **`andthen:review` council mode extracted** – the ~140 lines of council orchestration moved from `SKILL.md` into a new `references/council-mode.md` (lazy-loaded on `--council`). `SKILL.md` 325 → 185 lines; non-council reviews no longer load council content. Auto-escalation triggers kept in `SKILL.md` so the load decision doesn't require reading the reference first.
+- **`andthen:review` gap-lens Step 5 behavioral dry-run walkthrough** – replaces the one-line "Optional Retrospective" stub. Five mandatory passes per requirement: trace execution, check pre/post/invariants, stress unhappy paths, test assumptions, sanity-check the design. Findings merge into Step 4 categories — Step 6 adversarial challenge and scoring unchanged.
+- **`andthen:review` gap-lens Step 4 Gap Analysis restored** – reverses the v0.10.0 compression that reduced each of the seven gap categories to a single word. Each category now carries one concrete sentence with examples. PASS/FAIL verdict table untouched (downstream contract preserved).
+- **Mandatory Layout Contract in `andthen:excalidraw-diagram` Phase 1.5** – 10-line pre-JSON commitment covering narrative, archetype, axis, hero, size cascade, shape vocabulary, zone plan, canvas size, evidence artifacts, and rhythm breakers. Named as the primary fix for uniform-grid AI-generic output.
+- **Excalidraw render loop hardened** – dropped the `esm.sh?bundle` query (silent font-ID bug), switched to a 60s bash polling loop on `window.__moduleReady` (`wait --fn` timeout is not honoured empirically), and replaced manual viewport sizing with `AGENT_BROWSER_FULL=true` full-page screenshots.
+- **`style-guide.md` gains Size Cascade, Anti-Uniformity, Signal Badges, and Density Gradient sections** – authoritative `hero : primary : secondary ≈ 3 : 1.8 : 1` numbers, ban on 6+ shapes sharing `(type, width, height, color)`, pill-badge spec, and three-band density layout for XL/XXL canvases.
+- **`element-format.md` gains Label Auto-Sizing math and Text Metrics table** – per-shape minimum-width formulas (ellipse ≈ 1.4× rectangle, diamond ≈ 2×), `BOUND_TEXT_PADDING = 8px`, per-font character-width estimates at fontSize 16/18/24, and 20px grid-snap rule.
+- **`andthen:clarify` recommend-don't-decide loop** – Step 2 requires a best-guess answer with rationale per question, probing on load-bearing answers, and treats unaddressed recommendations as unanswered. New gotchas for "treating recommendation as confirmed" and "asking things already answerable from the codebase".
+- **`andthen:spec` research steps tightened** – Codebase research uses direct `rg`/`tree`/file reads; new **Solution architecture** step invokes `andthen:architecture --mode advise` in a sub-agent and is recommended for most code changes; architecture trade-offs reframed as optional unless 1–3 genuinely competing approaches exist.
+- **Breaking-changes docs consolidated in `plugin/README.md`** – root `README.md` now carries a one-line pointer; the detailed 0.13.0 migration tables moved to a new **Breaking Changes** section in `plugin/README.md`, extended with a 0.14.0 entry for the 1:1 story↔FIS invariant.
+
+### Removed
+- **Sub-agent capability hedges across 12 skills** – stripped `_(if supported)_` / `_(if supported by your coding agent)_` qualifiers from `exec-plan`, `exec-spec`, `map-codebase`, `plan`, `prd`, `quick-implement`, `refactor`, `spec`, `triage`, `ubiquitous-language`, `ui-ux-design` (+ `mode-design-system`, `mode-wireframes`), and `architecture/mode-trade-off`. Sub-agents are now assumed available; `general-purpose` is the portable fallback.
 
 
 ---

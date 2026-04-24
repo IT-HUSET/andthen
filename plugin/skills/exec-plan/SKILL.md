@@ -102,7 +102,7 @@ The bundle is already fully specced (verified in Step 1, item 5). Re-read `plan.
 1. **Implement**: `/andthen:exec-spec {fis_path}`
 2. **Review**: `/andthen:quick-review` on the story's changes
 
-**Wave-based execution**: W1 in parallel (via sub-agents if supported), then W2, etc. Fall back to sequential in-orchestrator execution if sub-agents are unavailable or delegated execution stalls / returns partial / non-green.
+**Wave-based execution**: W1 in parallel (via sub-agents), then W2, etc. Fall back to sequential in-orchestrator execution if sub-agents are unavailable or delegated execution stalls / returns partial / non-green.
 
 **Sub-agent prompt**:
 ```

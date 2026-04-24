@@ -210,6 +210,35 @@ Omit only on evidence artifact containers (sharp = "code editor pane") and diamo
 
 Zone backgrounds: `opacity: 50` (see Section 6).
 
+### Size Cascade (Non-Negotiable)
+
+Element size encodes importance. A diagram where every shape is the same size is an **unreadable grid**. Pick sizes from this cascade so that hero : primary : secondary ≈ **3 : 1.8 : 1**.
+
+| Role | W × H | Breathing room | Use for |
+|------|-------|----------------|---------|
+| **Hero** | `320 × 160` | ≥ 160px on all sides | The single most important element – one per diagram |
+| **Primary** | `180 × 90` | 40–60px | Zone-level nodes, primary flow participants |
+| **Secondary** | `120 × 60` | 20–40px | Supporting nodes, list items, leaves |
+| **Marker / Badge** | `12 × 12` to `80 × 28` | ≤ 20px | Timeline dots, signal badges, anchor points |
+| **Evidence artifact** | 1.2–1.8× widest neighbor; `min height 80` | 40–60px | Code snippets, data shapes – always darkest on canvas |
+
+**Rules**:
+1. **Exactly one hero.** Two heroes = no hero.
+2. **Squint test**: blur your eyes at 20% opacity – the hero must still dominate. If it doesn't, enlarge it or shrink the secondaries.
+3. **Never reuse the hero size** on another shape. Primary-sized shapes may repeat; secondary-sized shapes repeat freely.
+4. **Ellipses and diamonds need more room than rectangles for the same label** (ellipse ≈ 1.4×, diamond ≈ 2×). Up-size them from the cascade numbers. See `element-format.md` § Label Auto-Sizing.
+
+### Anti-Uniformity Rule
+
+**Never place 6+ shapes with identical `(type, width, height, backgroundColor)`.** This is the defining AI-aesthetic failure mode. Break uniform runs with ONE of:
+
+- A larger **anchor** shape (1.5× primary size) every 3–4 items
+- **Alternating row heights** (row 1: 90px, row 2: 60px) or a deliberate 60–80px gap at a conceptual boundary
+- An **evidence artifact** inserted mid-sequence
+- **Hachure fill** on every 3rd shape (adds texture variation inside one color family)
+
+Check yourself: if you just generated a 3×4 or 4×3 grid of same-size rectangles, you have failed. Go back and apply a rhythm breaker.
+
 ---
 
 ## 6. Section / Zone Backgrounds
@@ -327,7 +356,41 @@ Title: `#e9ecef` · Zone headings: zone's bright stroke (shade[2]) · Body: `#ce
 
 ---
 
-## 10. Design Principles
+## 10. Signal Badges (Status Without Shape Pollution)
+
+When a shape needs a status or category tag (ASYNC, DEPRECATED, NEW, CRITICAL, CONTEXT:FORK), attach a small badge rather than changing the shape's color – that preserves zone-color semantics.
+
+| Property | Value |
+|----------|-------|
+| Size | `60–100 × 24–28` (pill or tight rounded rect) |
+| Position | Top-right corner of parent, overlapping border by ~50% |
+| `backgroundColor` | Signal palette only (Red / Yellow / Green) |
+| `roundness` | `{ "type": 3 }` |
+| Text | `fontSize 12–14`, uppercase, 1–2 words |
+| `strokeWidth` | `1` |
+
+**Rules**: Badges are not arrow endpoints. Max 2 badge types per diagram. Max 20% of shapes get a badge – if more need one, the status belongs in a separate diagram layer.
+
+---
+
+## 11. Density Gradient (for XL / XXL canvases)
+
+On canvases ≥ 1200px wide, partition the canvas into three density bands so the eye knows where to start and where to drill into. Without this, a large diagram reads as a flat sea of boxes.
+
+| Band | Canvas area | Element density | Content |
+|------|-------------|-----------------|---------|
+| **Sparse** (entry side) | ~40% | ~20% of shapes | Hero, 1–2 zones, primary title, bold arrows |
+| **Medium** (center) | ~20% | ~40% of shapes | Primary flow, 8–12 nodes |
+| **Dense** (exit side) | ~40% | ~40% of shapes | Detail, leaf nodes, evidence artifacts |
+
+**Rules**:
+- Evidence artifacts always live in the Dense band.
+- Transition between bands is a 60–80px whitespace gap or a thin 1px divider – never a hard zone boundary.
+- Entry-side asymmetry: give **more** whitespace on the side the eye enters from (left/top for L→R flow). Entry-side padding ≈ 1.5× exit-side padding.
+
+---
+
+## 12. Design Principles
 
 ### The Zone-Color Rule
 
@@ -361,7 +424,7 @@ Title: `#e9ecef` · Zone headings: zone's bright stroke (shade[2]) · Body: `#ce
 
 ---
 
-## 11. Aesthetic Presets
+## 13. Aesthetic Presets
 
 This style guide defaults to the **Hand-drawn Blueprint** aesthetic. To use a different preset, override the settings listed below in your project's copy of this file. Everything not listed stays the same – presets only change the "mood," not the color system or layout rules.
 

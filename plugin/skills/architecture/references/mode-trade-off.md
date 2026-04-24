@@ -63,7 +63,7 @@ Skip this phase for simple technology choices or well-understood options.
 
 ## Step 3 — Parallel Deep Research
 
-For each option, launch a parallel sub-agent _(if supported)_ to investigate:
+For each option, launch a parallel sub-agent to investigate:
 - Core capabilities and hard limitations
 - Performance characteristics
 - Integration requirements and dependencies

@@ -29,7 +29,7 @@ OUTPUT_DIR: _(see resolution rules below)_
 ## INSTRUCTIONS
 
 - Require `INPUT`. Stop if missing.
-- Delegate research and exploration to sub-agents _(if supported)_.
+- Delegate research and exploration to sub-agents to protect the main context window.
 - **Headless-first** — continue to completion without pausing for routine clarification. Make reasonable assumptions, document them, and surface unresolved questions in the output.
 - Stop only on true contract failures (missing input, incompatible artifacts, or ambiguity so severe no defensible PRD can be produced).
 - Focus on "what" not "how". Replace vague terms with measurable criteria. Record rationale and trade-offs.

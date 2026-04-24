@@ -24,7 +24,8 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 ## INSTRUCTIONS
 
 - Require `INPUT`. Stop if missing.
-- **Interactive process** — ask questions iteratively; do not assume answers. After asking questions, stop and wait for user responses before proceeding.
+- **Interactive process** — ask questions iteratively and wait for user input before proceeding. Recommending an answer is allowed (see Step 2); treating it as confirmed without user input is not.
+- **Check before asking** — if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm.
 - Challenge assumptions, find edge cases, identify ambiguities.
 - Clarify requirements, do not design solutions.
 
@@ -34,6 +35,8 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
 
 ## GOTCHAS
 - Agent answers its own questions instead of waiting for user input
+- Treating a recommended answer as confirmed when the user hasn't addressed it
+- Asking the user things that are already answerable from the codebase or existing docs
 - Scope creep: expanding beyond the original request
 - Jumping to solution design instead of requirement discovery
 - Drifting into implementation-level decisions during design space decomposition (see boundary above)
@@ -71,15 +74,17 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
 
 ### 2. Discovery Interview
 
-Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then stop and wait for the user's response before continuing. Do not assume or infer answers — you need actual answers from the user. Iterate until no major gaps remain.
+Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then stop and wait for the user's response before continuing. Iterate until no major gaps remain.
+
+**Recommend, don't decide.** Offer a best-guess answer with a one-line rationale for each question so the user can ratify or redirect. If you have no defensible basis, ask open-ended instead of fabricating one. Wait for input either way — unaddressed recommendations are unanswered, not confirmed.
+
+**Probe before accepting load-bearing answers.** A confident-sounding answer can still be wrong. Apply the matching technique from `references/discovery-interview-techniques.md`: Five Whys (stated solution, not problem), Scenario Testing (abstract requirement), Extremes and Boundaries (fuzzy scope), Trade-off Forcing ("everything is important"), Laddering (too specific or too vague), Perspective Shift (happy-path fixation).
 
 > After presenting questions, stop your response and wait for user input. Use the `AskUserQuestion` tool if available. Do not proceed to Step 3 until the user has answered and no major gaps remain.
 
 Cover these areas when relevant: scope & boundaries (in/out of scope, MVP, deferrals); users & flows (roles, happy path, alternate paths, UI involvement); edge cases & errors (invalid input, failures, boundary conditions); success criteria (acceptance criteria, metrics, test/validation approach); dependencies & constraints (external systems, technical constraints, timeline).
 
-When answers are surface-level, vague, or contradictory, use probing techniques from `references/discovery-interview-techniques.md`.
-
-**Gate**: All critical questions answered, no blocking ambiguities
+**Gate**: All critical questions answered, no blocking ambiguities, unaddressed recommendations re-surfaced or moved to Open Questions
 
 
 ### 3. Consolidate Requirements

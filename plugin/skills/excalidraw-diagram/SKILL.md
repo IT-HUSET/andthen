@@ -25,27 +25,33 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
   - **Foundational Rules and Guardrails**
   - **Foundational Development Guidelines and Standards**
 - **Diagram generation only** – create the `.excalidraw` source and rendered PNG, not implementation code
-- **Resolve style guide first** – check the project's **Project Document Index** for a `Diagram Style Guide` entry; if absent, use `references/style-guide.md`
-- **Read the element format** – `references/element-format.md` defines supported element shapes, labels, bindings, and sizing rules
-- **Use `label` shorthand** – prefer the `label` property on shapes for auto-centered text instead of separate text elements. The render template handles conversion to full format
+- **Resolve references first** – read the style guide, element format, and composition playbook before writing a single shape:
+  1. Project's `Diagram Style Guide` (from the **Project Document Index**) if present, else `references/style-guide.md`
+  2. `references/element-format.md` – JSON shape, label auto-sizing math, font metrics
+  3. `references/composition-playbook.md` – archetype recipes (pipeline / architecture / taxonomy / lifecycle / comparison)
+- **Commit to a Layout Contract before JSON** – Phase 1.5 below. Skipping this is the #1 cause of flat, AI-generic results.
+- **Use `label` shorthand** – prefer the `label` property on shapes for auto-centered text instead of separate text elements. The render template handles conversion. **But always specify explicit `width` and `height`** – under-sizing lets Excalidraw silently grow the container and collapses your size cascade back toward uniformity.
 - **Technical diagrams must be grounded in reality** – use real API names, data shapes, events, and method signatures, not placeholders
 - **Build section-by-section** – do not attempt a non-trivial diagram in one giant JSON pass
-- **Mandatory render loop** – after generating JSON, you MUST render via agent-browser, view the screenshot, and fix issues in a loop until it's right
+- **Mandatory render loop with lint** – after generating JSON, you MUST render via agent-browser, run `window.lintLayout()`, view the screenshot, and iterate until critical and major findings are resolved
 - **agent-browser required** – the render-and-validate loop uses `agent-browser`. If not installed, tell the user to run `npm install -g agent-browser && agent-browser install`
 - **Design refinement and final QC** – Phase 4 combines design review (via the `andthen:ui-ux-design` skill in `review` mode) and visual validation (via the `andthen:visual-validation-specialist` agent if available). Fall back to self-evaluation using the criteria in Phase 4 if sub-agents are not supported
 
 
 ## GOTCHAS
 
-- **Text overflow** – Labels too long for containers. Widen the shape or shorten the text
-- **Arrow routing** – Arrows crossing through elements. Add intermediate waypoints in the `points` array
-- **Uniform boxes** – Using the same shape/size for everything destroys visual hierarchy
-- **Missing connections** – Position alone doesn't show relationships. Every relationship needs an arrow
-- **Too small text** – Minimum `fontSize: 16` for body, `20` for titles. Below 14 is unreadable
-- **JSON truncation** – Generating the entire diagram in one pass hits output token limits. Always build section-by-section for non-trivial diagrams
-- **Skipping the render loop** – JSON looks right but the visual result has overlaps, clipping, or spacing issues. Always render and inspect
-- **Forgetting `fillStyle: "solid"`** – Without it, `backgroundColor` won't show
-- **Emoji in text** – Emoji don't render in Excalidraw's font. Use shapes instead
+- **Uniform grid = AI-aesthetic failure** – 6+ shapes with identical `(type, width, height, backgroundColor)` is the defining generic look. Apply the Anti-Uniformity Rule from the style guide: anchor shape every 3–4 items, alternating row heights, or an evidence artifact insertion.
+- **Implied connections** – Phase headers sitting above their children, or two boxes near each other, communicate nothing. Every relationship needs an **explicit arrow** or a line+text tree structure.
+- **Ellipses/diamonds are hungry** – for the same label, an ellipse needs ~1.4× a rectangle and a diamond needs ~2×. Hard-coding identical widths produces clipping. See `element-format.md` § Label Auto-Sizing.
+- **Label shorthand silently resizes** – if your specified `width` is smaller than the label needs, `redrawTextBoundingBox` expands it at render time. Always over-size (the cascade numbers are floors, not ceilings).
+- **Arrow routing** – arrows crossing through elements. Add intermediate waypoints in the `points` array.
+- **Too small text** – minimum `fontSize: 16` for body, `20` for titles. Below 14 is unreadable. Scale up at XL/XXL canvas sizes.
+- **JSON truncation** – generating the entire diagram in one pass hits output token limits. Build section-by-section for non-trivial diagrams.
+- **Skipping the render loop** – JSON looks right but the visual result has overlaps, clipping, or spacing issues. Always render, run `lintLayout()`, and inspect the PNG.
+- **Forgetting `fillStyle: "solid"`** – without it, `backgroundColor` won't show.
+- **Emoji in text** – emoji don't render in Excalidraw's font. Use shapes instead.
+- **Off-grid coordinates** – snap all `x`, `y`, `width`, `height` to multiples of 20. Arbitrary values (x: 143, 287) produce an "almost aligned" look that reads as sloppy.
+- **ES-module readiness race** – on cold load, the `esm.sh` module graph for `@excalidraw/excalidraw` takes 30s+, which exceeds the 25s default `agent-browser wait` timeout. `AGENT_BROWSER_DEFAULT_TIMEOUT` and `--timeout` are **not honored by `wait --fn`** (verified empirically). Both `wait --text` and `wait --fn` do exit non-zero on timeout, so they fail loudly — but that's still a failure you have to work around. The working pattern is the bash polling loop in Phase 3.2. Also: `sleep 2` only appears to work because the module is cached from a prior session — do not assume it.
 
 
 ## WORKFLOW
@@ -73,15 +79,24 @@ Gather real data formats/schemas, method signatures, API endpoints, event names,
 #### 1.4 Map Concepts to Visual Patterns
 Use the Pattern Catalog (see Design Reference below). Each major concept gets a different pattern. Do not make every section look like the same card layout.
 
-#### 1.5 Plan the Layout
-Before writing JSON, decide:
-- The hero element (largest, most whitespace)
-- The reading direction: left→right, top→bottom, radial, or comparison
-- Section/zone boundaries
-- Which areas need overview vs detail artifacts
-- Target canvas size (see Canvas Sizing in Design Reference)
+#### 1.5 Layout Contract (MANDATORY)
 
-**Gate**: The diagram has a clear narrative, chosen depth, chosen patterns, and a planned layout
+**Write the contract down before opening JSON.** Skipping this step is the #1 cause of uniform-grid, AI-generic output. The contract is ~10 lines, not a document.
+
+Pick an archetype from `references/composition-playbook.md` (Pipeline, Architecture, Taxonomy, Lifecycle, Comparison, or a combination). Then commit, in plain text:
+
+1. **Narrative spine** – one sentence: "X enters, transforms through Y, exits as Z." Or "These are the kinds of X, here's what overlaps."
+2. **Archetype** – which playbook recipe you are adapting.
+3. **Directional axis** – left→right, top→bottom, radial, or none (taxonomy). Once chosen, 90% of primary arrows travel this axis.
+4. **Hero** – name the single most important element. Declare its size (`320×160`, used **once**) and its 160px breathing-room commitment.
+5. **Size cascade** – confirm `hero : primary : secondary ≈ 3 : 1.8 : 1` using concrete numbers (e.g., `320×160 / 180×90 / 120×60`). Ellipses and diamonds up-size from these per `element-format.md` § Label Auto-Sizing.
+6. **Shape vocabulary** – which Excalidraw shape types are in use and what each means (rectangle = service, ellipse = state, etc.). Max 4 types.
+7. **Zone plan** – 2–4 zones, each with a color family from the semantic overlay (Blue = core, Violet = AI/data, Teal = runtime, Bronze = external, etc.) and a `x/y/width/height` on the 20px grid.
+8. **Canvas size** – S/M/L/XL/XXL per `style-guide.md` § Canvas Sizing. Prefer 4:3.
+9. **Evidence artifacts** – count (technical diagrams: at least 1; ratio ~1 per 4–6 abstract nodes).
+10. **Rhythm breakers** – how you avoid a uniform grid for any category with ≥ 6 items (anchor upsize / alternating row heights / evidence insertion).
+
+**Gate**: The contract is written. The diagram has a clear narrative, chosen archetype, locked axis, named hero, committed size cascade, shape vocabulary, zone plan, canvas size, evidence artifact count, and anti-uniformity strategy.
 
 
 ### Phase 2: Generate JSON
@@ -89,10 +104,11 @@ Before writing JSON, decide:
 #### 2.1 Resolve References
 Read, in this order:
 1. Project-specific diagram style guide from the Document Index, if present
-2. Otherwise `references/style-guide.md`
-3. `references/element-format.md`
+2. Otherwise `references/style-guide.md` (colors, size cascade, signal badges, density gradient, anti-uniformity rule)
+3. `references/element-format.md` (JSON shape, label auto-sizing math, font metrics)
+4. `references/composition-playbook.md` (archetype recipes with concrete XY positions)
 
-These files are the source of truth for visual styling and JSON shape rules.
+These files are the source of truth for visual styling and JSON shape rules. Your Layout Contract from Phase 1.5 keyed off them; now you are executing it.
 
 #### 2.2 Create Base File
 Write the initial `.excalidraw` document to _`OUTPUT_DIR`_:
@@ -137,8 +153,15 @@ Resolve the absolute path to `references/render_template.html`.
 # 1. Open the render template
 agent-browser open "file://<absolute-path-to-skill>/references/render_template.html"
 
-# 2. Wait for the Excalidraw library to load from CDN
-agent-browser wait --text "Ready" --load networkidle
+# 2. Wait up to 60s for the Excalidraw ES-module graph to resolve from esm.sh.
+#    The template sets window.__moduleReady = true once ready. The default
+#    agent-browser wait timeout is 25s, a cold ESM load can take 30s+, and
+#    neither AGENT_BROWSER_DEFAULT_TIMEOUT nor any --timeout flag is honored
+#    by `wait --fn`. Poll the readiness flag directly:
+for i in $(seq 1 60); do
+  [[ "$(agent-browser eval 'String(window.__moduleReady)' 2>/dev/null)" == '"true"' ]] && break
+  sleep 1
+done
 
 # 3. Inject the diagram JSON and render
 #    Read the .excalidraw file content, then inject via eval
@@ -147,20 +170,33 @@ const data = <PASTE_OR_READ_DIAGRAM_JSON_HERE>;
 await window.renderDiagram(data);
 JSEOF
 
-# 4. Size the viewport to fit the diagram (tight crop, no excess whitespace)
-#    renderDiagram returns { width, height } – use those values
-agent-browser set viewport <width> <height>
-
-# 5. Screenshot the result
-agent-browser screenshot <OUTPUT_DIR>/<name>.png
+# 4. Screenshot the result. Use AGENT_BROWSER_FULL=true for a full-page capture
+#    at the diagram's native dimensions — no viewport sizing required.
+AGENT_BROWSER_FULL=true agent-browser screenshot <OUTPUT_DIR>/<name>.png
 ```
 
 The `renderDiagram` function validates the JSON before rendering. If validation fails, it returns `{ success: false, validationErrors: [...] }` with specific messages (e.g. missing `"type": "excalidraw"`, empty elements array). Fix the issues and re-inject.
 
-#### 3.3 View & Audit
-Use the **Read** tool on the PNG. Check against design vision (visual structure matches conceptual structure; each section uses intended pattern; hero elements dominant; evidence artifacts readable) and for visual defects (text overflow/overlap, arrows crossing or misrouted, ambiguous labels, uneven spacing, text too small to read, unbalanced composition).
+#### 3.3 Layout Lint (automated)
 
-#### 3.4 Fix & Re-render
+Before the visual audit, run the layout lint – it catches defects faster than the eye:
+
+```bash
+agent-browser eval "window.lintLayout()"
+```
+
+Returns `{ ok, criticalCount, majorCount, minorCount, findings: { critical, major, minor } }`. Severity policy:
+
+- **CRITICAL** (overlaps, text-over-shape) – fix before moving on
+- **MAJOR** (uniform-grid, font < 14, tight spacing < 20px, no clear hero) – fix; each is a quality regression
+- **MINOR** (off-grid coords, label-may-clip, no primary-flow arrow) – fix if straightforward
+
+If `ok === false`, edit the JSON and re-inject before looking at the PNG – the lint tells you exactly which element IDs to touch.
+
+#### 3.4 View & Audit
+Use the **Read** tool on the PNG. Check against design vision (visual structure matches conceptual structure; each section uses its planned pattern; hero dominates even at 20% zoom – the "squint test"; evidence artifacts readable) and for visual defects the lint cannot see (arrow misrouting, narrative-axis violations, unbalanced composition, ugly curves, color clashes).
+
+#### 3.5 Fix & Re-render
 Edit the JSON to fix issues, then re-inject and re-screenshot (agent-browser keeps the page open):
 
 ```bash
@@ -168,13 +204,12 @@ agent-browser eval --stdin <<'JSEOF'
 const data = <UPDATED_DIAGRAM_JSON>;
 await window.renderDiagram(data);
 JSEOF
-agent-browser set viewport <new-width> <new-height>
-agent-browser screenshot <OUTPUT_DIR>/<name>.png
+AGENT_BROWSER_FULL=true agent-browser screenshot <OUTPUT_DIR>/<name>.png
 ```
 
-Typically 2–4 iterations. Use the same re-render block in Phase 4 as needed.
+Typically 2–4 iterations. After each re-render, run `window.lintLayout()` again – the counts should monotonically decrease. Use the same re-render block in Phase 4 as needed.
 
-#### 3.5 Export Portable Version (Optional)
+#### 3.6 Export Portable Version (Optional)
 If the user needs a standard `.excalidraw` file without `label` shortcuts: run `agent-browser eval "window.getConvertedJSON()"` and save the result. Do NOT wrap in `JSON.stringify()` – `agent-browser eval` already JSON-encodes its return value.
 
 **Gate**: The PNG is readable, balanced, and free of obvious layout defects
@@ -185,14 +220,14 @@ If the user needs a standard `.excalidraw` file without `label` shortcuts: run `
 Independent review of design quality and final QC. This phase separates creation from judgment.
 
 #### 4.1 Design Quality Review
-Invoke the `andthen:ui-ux-design` skill with `--mode review` _(if supported; otherwise self-evaluate)_, passing the rendered PNG, resolved style guide, and TOPIC. Evaluate, don't redesign. Check: composition and visual weight balance; hierarchy (hero → primary → secondary); color harmony and style guide compliance; hero element has 200px+ breathing room; eye path follows intended narrative; each major concept uses a distinct visual pattern.
+Invoke the `andthen:ui-ux-design` skill with `--mode review`, passing the rendered PNG, resolved style guide, and TOPIC. Evaluate, don't redesign. Check: composition and visual weight balance; hierarchy (hero → primary → secondary); color harmony and style guide compliance; hero element has 160px+ breathing room; eye path follows intended narrative; each major concept uses a distinct visual pattern.
 
 #### 4.2 Visual Validation (Final QC)
-Launch the `andthen:visual-validation-specialist` agent _(if supported; otherwise self-validate)_ with the latest PNG, resolved style guide, and TOPIC description. Check: text overflow/overlap/clipping; arrow misrouting or dangling connections; all text legible (>= 16px body, >= 20px titles); colors/fills/strokes match style guide; no large voids or overcrowded regions.
+Launch the `andthen:visual-validation-specialist` agent with the latest PNG, resolved style guide, and TOPIC description. Check: text overflow/overlap/clipping; arrow misrouting or dangling connections; all text legible (>= 16px body, >= 20px titles); colors/fills/strokes match style guide; no large voids or overcrowded regions.
 
 #### 4.3 Remediation Loop
 1. **Triage** – P1/CRITICAL and P2/MAJOR issues MUST be fixed; minor issues fix if straightforward
-2. **Fix** – edit the `.excalidraw` JSON and re-render using the re-render block from Phase 3.4
+2. **Fix** – edit the `.excalidraw` JSON and re-render using the re-render block from Phase 3.5, then re-run `window.lintLayout()` to confirm no regressions
 3. **Verify** – view the updated PNG and re-validate if needed
 4. **Loop bound** – maximum 3 remediation cycles; if issues persist, escalate to the user
 
@@ -215,9 +250,12 @@ OUTPUT_DIR/
 
 ## QUALITY CHECKLIST
 
+- [ ] **Layout Contract written** (Phase 1.5) before JSON: narrative, archetype, axis, hero, size cascade, shape vocabulary, zone plan, canvas, evidence count, rhythm breakers
 - [ ] **Grounded in reality** (technical): Actual specs, API names, and data formats used – no generic placeholders
 - [ ] **Structure communicates**: Shape arrangement conveys meaning even with text removed; each major concept uses a different visual pattern from the catalog
-- [ ] **Render validated**: Rendered PNG inspected via agent-browser, no text overflow/overlap/misrouted arrows, all text legible
+- [ ] **Hero dominates**: Squint test passes – hero still identifiable at 20% opacity; size ratio hero:avg ≥ 2.0×
+- [ ] **No uniform grid**: No 6+ shapes share `(type, width, height, color)` – rhythm breakers applied
+- [ ] **Render validated**: `window.lintLayout()` returns zero CRITICAL and zero MAJOR findings; PNG inspected
 - [ ] **Design reviewed**: Composition balanced, hierarchy clear, style guide complied with, visual flow guides narrative
 - [ ] **Final QC passed**: No P1/P2 issues remaining; remediation bounded within 3 cycles
 
@@ -357,7 +395,7 @@ Each Excalidraw shape type carries a visual connotation. Use shape consistently 
 ### Spatial Hierarchy
 
 #### Scale Encodes Importance
-Element size signals significance: Hero (300×150, 200px+ breathing room), Primary (180×90), Secondary (120×60), Marker (60×40 or smaller for dots and minor details).
+Element size signals significance. See `style-guide.md` § Size Cascade for the authoritative numbers: Hero `320×160` (used once, 160px+ breathing room), Primary `180×90`, Secondary `120×60`, Marker `12×12` to `80×28`. Ratio hero : primary : secondary ≈ 3 : 1.8 : 1.
 
 #### Eye Flow
 Guide reading order with direction (left→right or top→bottom for sequences; radial for hub-and-spoke), explicit arrows (every relationship needs an arrow – proximity alone doesn't communicate connection), and whitespace (hero element gets the most breathing room; dense clusters signal "closely related").
@@ -382,4 +420,4 @@ Choose a target bounding box based on diagram complexity. Font readability degra
 
 ### Aesthetic Direction
 
-The style guide (`references/style-guide.md`) ships with three **aesthetic presets** (Section 11): **Hand-drawn Blueprint** (default – exploratory, whiteboard feel), **Warm Industrial** (technical with warmth), **Clean Technical** (formal presentations). Key defaults for Hand-drawn Blueprint: `roughness: 1` (use `0` for evidence artifacts and zones), `fillStyle: "solid"` (use `"hachure"` sparingly for caches/databases), `strokeWidth: 2` standard, `opacity: 100` for all foreground elements. Section 1 of the style guide maps concept types (AI/LLM, Data, Security, etc.) to color families for cross-diagram consistency.
+The style guide (`references/style-guide.md`) ships with three **aesthetic presets** (Section 13): **Hand-drawn Blueprint** (default – exploratory, whiteboard feel), **Warm Industrial** (technical with warmth), **Clean Technical** (formal presentations). Key defaults for Hand-drawn Blueprint: `roughness: 1` (use `0` for evidence artifacts and zones), `fillStyle: "solid"` (use `"hachure"` sparingly for caches/databases), `strokeWidth: 2` standard, `opacity: 100` for all foreground elements. Section 1 of the style guide maps concept types (AI/LLM, Data, Security, etc.) to color families for cross-diagram consistency.

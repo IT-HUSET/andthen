@@ -27,7 +27,7 @@ Transform feature requirements into a focused design system with essential visua
 
 Skip if `CONCEPT_DIR` contains sufficient design direction.
 
-Using parallel sub-agents _(if supported; otherwise sequential)_: research appropriate design patterns and UI conventions, accessibility-first patterns, similar products for inspiration (3-5), suitable foundation design systems or component libraries, and domain-specific best practices.
+Using parallel sub-agents: research appropriate design patterns and UI conventions, accessibility-first patterns, similar products for inspiration (3-5), suitable foundation design systems or component libraries, and domain-specific best practices.
 
 Save research to `<project_root>/.agent_temp/research/design/` only if substantial.
 
