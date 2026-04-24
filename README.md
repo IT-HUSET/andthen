@@ -136,6 +136,8 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 
 In both plan workflows, the per-story execution step is handled by `exec-spec`. `plan --skip-specs` is available when you want a cheap planning pass that defers FIS generation.
 
+**Headless orchestration:** the core pipeline skills (`prd`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`) and the supporting skills they call into (`architecture`, `ui-ux-design`, `triage`) accept `--auto` / `--headless` for external orchestrators. In this mode, skills do not ask follow-up questions or emit arrow-prompts; they make conservative assumptions, write assumptions/deferred decisions into artifacts, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt — it is deterministic), and stop with `BLOCKED:` on contract failures or unsafe actions. This is intended for systems that already provide deterministic orchestration, such as CI or external agent runners.
+
 Not sure? Start with `quick-implement`. If it feels too complex, switch to the feature workflow. See [Getting Started](#getting-started) for a full walkthrough.
 
 Both `exec-spec` and `quick-implement` use an internal **implement → verify → evaluate** cycle, repeating if needed. Verification includes code review, testing, and visual validation (when applicable).

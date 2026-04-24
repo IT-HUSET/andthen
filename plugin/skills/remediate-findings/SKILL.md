@@ -1,7 +1,7 @@
 ---
 description: Use when the user wants review findings or review comments addressed. Implements actionable findings from a review report with minimal, guideline-aligned fixes across code, specs, plans, PRDs, and documentation, then re-validates the result and updates plan/FIS status. Trigger on 'address these review findings', 'fix review comments', 'remediate findings'.
 user-invocable: true
-argument-hint: <review-report-path | report URL>
+argument-hint: "<review-report-path | report URL> [--auto|--headless]"
 ---
 
 # Remediate Findings
@@ -11,7 +11,10 @@ Implement validated findings from a review report. The goal is to clear real iss
 
 ## VARIABLES
 
-REPORT_SOURCE: $ARGUMENTS
+REPORT_SOURCE: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as the report path or URL)
+
+### Optional Flags
+- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
@@ -23,6 +26,7 @@ REPORT_SOURCE: $ARGUMENTS
 - Prefer explicit, local fixes over broad rewrites, reorganizations, helpers, or framework layers.
 - If external documentation is needed, use the `andthen:documentation-lookup` agent.
 - Invoke the `andthen:ops` skill for deterministic plan/FIS/STATE updates instead of hand-editing those artifacts.
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Re-validate and fix all in-policy findings, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and return deterministic status/verification output. Stop with `BLOCKED:` (listing the minimum missing decisions or unresolved findings with evidence) only when the report is invalid, an unsafe external action is required, or a finding requires a product/requirements decision with no defensible local fix.
 
 
 ## GOTCHAS
@@ -76,7 +80,7 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
 - Define the smallest change set that resolves the validated findings
 - Favor boring, readable fixes over clever or reusable abstractions
 - Choose the target artifact that actually owns the defect: code/config/tests for implementation problems, specs/plans/PRDs for requirements or design defects, and product/user docs for explanation, usage, or reference defects
-- If a finding reveals an unresolved product decision, missing requirement, or ambiguous source of truth rather than a defect in the reviewed artifacts, stop and escalate instead of forcing a speculative edit
+- If a finding reveals an unresolved product decision, missing requirement, or ambiguous source of truth rather than a defect in the reviewed artifacts, stop and escalate instead of forcing a speculative edit. In `AUTO_MODE`, return `BLOCKED:` with the minimum missing decision instead of asking the user.
 - Use parallel sub-agents only for independent fix groups
 
 **Gate**: Minimal remediation plan is clear and bounded
@@ -90,10 +94,10 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
    - Implementation fixes: tests, linting, type checks, builds
    - Document fixes: verify terminology, cross-references, linked paths, commands/examples, consistency with source of truth
    - Workflow artifact fixes: verify templates, status semantics, cross-document consistency
-4. Invoke the `andthen:quick-review` skill on the touched scope (via `/andthen:quick-review` or the Skill tool — not as `subagent_type`).
+4. Invoke the `andthen:quick-review` skill on the touched scope (via `/andthen:quick-review` or the Skill tool — not as `subagent_type`; append `--auto` when `AUTO_MODE=true`).
 5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), or `DEFERRED` (per severity policy, with justification). This is the primary close-the-loop validation.
 6. If both implementation and document artifacts changed, verify consistency across them.
-7. If Critical/High findings remain after one remediation pass, escalate to the user rather than looping.
+7. If Critical/High findings remain after one remediation pass, escalate rather than looping. In `AUTO_MODE`, return `BLOCKED:` with unresolved findings and verification evidence.
 
 **Gate**: Every Critical/High finding is RESOLVED with evidence, Medium/Low findings are RESOLVED or DEFERRED with justification, quick-review on touched scope is clean, no new regressions
 

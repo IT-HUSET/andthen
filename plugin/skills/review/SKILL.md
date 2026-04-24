@@ -1,7 +1,7 @@
 ---
 description: "The default review skill – start here for all reviews. Runs code, doc, gap, or mixed review, plus multi-perspective council mode via `--council`. Trigger on 'review this', 'review this PR/spec/PRD', 'audit this', 'does this match the spec', 'council review', 'adversarial review', 'multi-reviewer'."
 user-invocable: true
-argument-hint: "[target/files/PR/spec path] [--mode code|doc|gap|mixed] [--council] [--team] [--inline-findings] [--to-pr <number>] [--fix]"
+argument-hint: "[target/files/PR/spec path] [--mode code|doc|gap|mixed] [--council] [--team] [--inline-findings] [--to-pr <number>] [--fix] [--auto|--headless]"
 ---
 
 # Review
@@ -12,7 +12,7 @@ Code, document, gap, and mixed reviews all run inside this skill using lens-spec
 
 
 ## VARIABLES
-ARGUMENTS: $ARGUMENTS
+ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as target/path/PR/focus)
 
 ### Optional Mode Flags
 - `--mode code|doc|gap|mixed` → force the review lens. Absent → auto-detect per the routing heuristics in Step 2
@@ -21,6 +21,7 @@ ARGUMENTS: $ARGUMENTS
 - `--inline-findings` → return findings inline and skip report-file output. **Do not pass** when the caller depends on a report file (e.g. the `andthen:exec-plan` skill's final gap gate, which feeds the `andthen:remediate-findings` skill).
 - `--to-pr <number>` → post the consolidated report as a PR comment
 - `--fix` → after the report is written, hand it to the `andthen:remediate-findings` skill to address actionable findings. **Incompatible with `--inline-findings`** — reject up-front, before running any review work. When combined with `--to-pr <number>`, post the PR comment first (so the comment reflects the original findings), then run remediation.
+- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
@@ -34,6 +35,7 @@ ARGUMENTS: $ARGUMENTS
 - Use the unified severity scale and per-mode verdict definitions from `references/review-verdict.md`.
 - **Calibration-first**: Always load `references/review-calibration.md` (universal) plus the lens-specific calibration (cited by each lens reference) before categorising findings.
 - **Default output is a report file.** `--inline-findings` is the explicit opt-out; without it, always write the consolidated report to disk.
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Auto-detect the minimum correct lens when possible, write the normal report artifact, propagate `--auto` to nested `andthen:*` skill invocations that accept it (including the `andthen:remediate-findings` skill when `--fix` is set; the `andthen:ops` skill is exempt — it is deterministic), and return deterministic verdict/report-path output. Stop with `BLOCKED:` (listing the minimum missing input) only when the requested mode cannot resolve a required target/baseline, an external action is unsafe, or report publication fails.
 
 
 ## GOTCHAS
@@ -168,7 +170,7 @@ For **Council** reviews, use the report structure defined in `references/council
 
 ### 5. Remediate _(only when `--fix`)_
 
-Invoke the `andthen:remediate-findings` skill with the report path as its argument. Skip only when there is nothing actionable to remediate — a `gap` PASS verdict, or a clean report with no findings. In every other case (code / doc / mixed / council), hand the report over and let the remediation skill scope the fixes.
+Invoke the `andthen:remediate-findings` skill with the report path as its argument (append `--auto` when `AUTO_MODE=true`). Skip only when there is nothing actionable to remediate — a `gap` PASS verdict, or a clean report with no findings. In every other case (code / doc / mixed / council), hand the report over and let the remediation skill scope the fixes.
 
 Do not re-interpret findings or pre-filter by severity here. The `andthen:remediate-findings` skill owns the fix scoping — this step is pure delegation.
 
@@ -176,6 +178,8 @@ Do not re-interpret findings or pre-filter by severity here. The `andthen:remedi
 
 
 ## FOLLOW-UP ACTIONS
+
+Skip this section when `AUTO_MODE=true`; print only the verdict/readiness, the absolute report path, and the remediation result when `--fix` ran. The verdict + report path is the orchestrator's machine-readable signal — it owns the decision to invoke the `andthen:remediate-findings` skill on FAIL / `Needs Significant Rework` / `Not Ready` / CRITICAL outcomes when `--fix` was not passed.
 
 After the report, ask whether the user wants to:
 1. Update the reviewed artifact based on findings

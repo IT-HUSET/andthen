@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants a PRD. Creates a Product Requirements Document from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue. Trigger on 'create a PRD', 'write a PRD', 'draft a PRD', 'PRD from clarify output'.
-argument-hint: "[Specs directory or requirements source] | --issue <number> [--to-issue]"
+argument-hint: "[Specs directory or requirements source] | --issue <number> [--to-issue] [--auto|--headless]"
 ---
 
 # Create Product Requirements Document
@@ -16,7 +16,7 @@ Upstream of the `andthen:plan` skill. The PRD created here is the required input
 ## VARIABLES
 
 _Requirements source (**required**):_
-INPUT: $ARGUMENTS
+INPUT: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as the requirements source)
 
 _Output directory (derived from INPUT type — see **Output Path Semantics**):_
 OUTPUT_DIR: _(see resolution rules below)_
@@ -24,13 +24,15 @@ OUTPUT_DIR: _(see resolution rules below)_
 ### Optional Flags
 - `--issue <number>` → Fetch and use a GitHub issue as requirements input
 - `--to-issue` → PUBLISH_ISSUE: Publish PRD as a GitHub issue after saving locally
+- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
 
 - Require `INPUT`. Stop if missing.
 - Delegate research and exploration to sub-agents to protect the main context window.
-- **Headless-first** — continue to completion without pausing for routine clarification. Make reasonable assumptions, document them, and surface unresolved questions in the output.
+- **Headless-first** — continue to completion without pausing for routine clarification. Make reasonable assumptions, document them, and surface unresolved questions in the output. `--auto` / `--headless` is the strict form of this rule (see Automation mode below).
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next, not even once. Make the best conservative assumption that preserves a coherent PRD, write assumptions and deferred decisions into `prd.md`, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and return a deterministic completion summary for the orchestrator. Stop with `BLOCKED:` (listing the minimum missing inputs) only for missing input, incompatible artifacts, unsafe external actions, or ambiguity so severe no defensible PRD can be produced.
 - Stop only on true contract failures (missing input, incompatible artifacts, or ambiguity so severe no defensible PRD can be produced).
 - Focus on "what" not "how". Replace vague terms with measurable criteria. Record rationale and trade-offs.
 - Keep implementation-level details (architecture patterns, library choices, API protocol specifics, internal code organization) out of the PRD. Capture significant technical constraints in `Constraints & Assumptions`; defer deep technical research to the `andthen:plan` skill.
@@ -127,7 +129,7 @@ Self-check:
 - [ ] No conflicting requirements
 - [ ] **Problem-solution fit (bidirectional)**: every pain or desired outcome named on the **problem side** — in `Problem Definition` and in the "so that..." clauses of `Functional Requirements > User Stories` — has at least one feature, acceptance criterion, or metric on the **solution side** (a row in `Functional Requirements > Feature Specifications`, an item in `Executive Summary > Success Metrics`, a `Non-Functional Requirements` threshold, or a `Scope > In Scope` capability) that signals it's resolved; and every solution-side item traces back to such a pain or outcome. Fix: unaddressed problem → add a feature/metric or drop the problem element; orphan solution → drop it or amend `Problem Definition` / user-story rationale to justify (solutionism smell).
 
-Optional: Invoke the `andthen:review --mode doc` skill to validate the PRD before finalizing.
+Optional: Invoke the `andthen:review --mode doc` skill to validate the PRD before finalizing (append `--auto` when `AUTO_MODE=true`).
 
 **Gate**: Validation complete
 
@@ -153,6 +155,8 @@ If PUBLISH_ISSUE is `true`:
 
 
 ## FOLLOW-UP ACTIONS
+
+Skip this section when `AUTO_MODE=true`; print only the output path and completion summary.
 
 After completion, suggest the following next steps. **Recommend a clean session** for the context-intensive downstream skills.
 

@@ -6,6 +6,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.14.2] – 2026-04-24
+
+### Added
+- **`--auto` / `--headless` for core pipeline and supporting skills** – `prd`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`, `architecture`, `ui-ux-design`, and `triage` now expose an automation-safe mode for external orchestrators. In this mode skills avoid conversational prompts and arrow-prompts, make conservative assumptions, record deferred decisions in artifacts or summaries, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt — deterministic), and stop with `BLOCKED:` only on contract failures or unsafe actions.
+
+
+---
+
+
 ## [0.14.1] – 2026-04-24
 
 ### Added

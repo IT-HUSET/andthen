@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants to execute a fully-specced implementation plan bundle. Runs a fixed pipeline per story (exec-spec + quick-review) and a final gap review on the whole plan. Requires a plan bundle where every story already has a FIS. Supports Agent Teams (--team) and sub-agents (portable fallback). Trigger on 'execute this plan', 'implement this plan', 'run the plan', 'execute with agents', 'run as team'.
-argument-hint: <path-to-plan-directory> [path-to-code-repo] [--team] [--worktree]
+argument-hint: "<path-to-plan-directory> [path-to-code-repo] [--team] [--worktree] [--auto|--headless]"
 ---
 
 # Execute Plan
@@ -17,12 +17,13 @@ Supports two execution modes:
 
 ## VARIABLES
 
-PLAN_DIR: $ARGUMENTS
+PLAN_DIR: $ARGUMENTS first positional argument (strip any `--team`, `--worktree`, `--auto`, `--headless` flag tokens before interpreting the remainder as positional args)
 CODE_DIR: second positional argument _(optional – for multi-repo setups where plan and code live in different repos)_
 
 ### Optional Flags
 - `--team` → USE_TEAM: force Agent Teams mode; error if unavailable
 - `--worktree` → USE_WORKTREE: enable isolated git worktrees for parallel execution (team mode only; default: `false`)
+- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
@@ -34,6 +35,7 @@ Require `PLAN_DIR`. Stop if missing.
 - **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly
 - **Plan must be fully specced** – every story's `**FIS**` field must point at an existing file. Fail fast otherwise; redirect to the `andthen:plan` skill
 - **Fixed pipeline per story**: `exec-spec` → `quick-review`, then one final `review --mode gap` on the whole plan
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), suppress advisory prompts, and return deterministic status/artifact output for the external orchestrator. Stop with `BLOCKED:` (listing the minimum missing inputs, non-green gates that cannot be repaired within the policy, missing tools, or unsafe external actions) only for invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions, or real external blockers.
 - **Execution discipline and authoritative status writes** — see `references/execution-discipline.md` (Stop-the-Line, objective-vs-subjective finding policy, authoritative-writes ownership). `exec-spec` Step 5b is the per-story status write; sub-agents and teammates do not additionally call `andthen:ops update-*`. The orchestrator writes cross-story state and repair writes only.
 
 ### Orchestrator Role
@@ -78,8 +80,8 @@ Do not: generate specs (that's `andthen:plan`), let context bloat, or skip final
 Check whether Agent Teams are available by verifying that team creation tools exist (e.g. `TeamCreate`).
 
 - **`--team` AND available** → Team mode (Step 3T)
-- **`--team` AND unavailable** → inform user it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`; exit
-- **No `--team`** → Sub-agent mode (Step 3). Mention `--team` is available if the user wants team execution.
+- **`--team` AND unavailable** → stop. In default mode, inform the user it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`; in `AUTO_MODE`, emit `BLOCKED: Agent Teams unavailable (requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)` and exit.
+- **No `--team`** → Sub-agent mode (Step 3). Mention `--team` is available if the user wants team execution, unless `AUTO_MODE=true`.
 
 **Gate**: Execution mode determined
 
@@ -122,6 +124,8 @@ Report:
 - `exec-spec` Step 4a numbers (build, tests, lint/type-check)
 - Any issues, incomplete work, or non-green state — be explicit
 ```
+
+When `AUTO_MODE=true`, append `--auto` to both skill invocations in the sub-agent prompt.
 
 **Model assignment**: Use a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar).
 
@@ -172,15 +176,17 @@ For each phase: update project state (same as Step 3a), then create and manage t
 
 Create team `"plan-pipeline"` with pre-assigned tasks. Size: 1 implementer (≤4 stories), 2 (5–10), 3 (11+). Add 1–2 reviewers for `quick-review` tasks. Use a capable coding model for all teammates.
 
+Define `AUTO_SUFFIX = " --auto"` when `AUTO_MODE=true`, else `AUTO_SUFFIX = ""`. Substitute `{AUTO_SUFFIX}` literally into each teammate system prompt before creating the team — do not rely on teammates to evaluate `AUTO_MODE` themselves; they have no access to that variable.
+
 **Implementer prompt** – include in each implementer's system prompt:
 - Only work on assigned `impl-*` tasks
-- Per task: `cd {CODE_DIR}` → (worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}` → commit → (worktree: `ExitWorktree(keep)`) → mark done; report `exec-spec` Step 4a numbers (build, tests, lint/type-check)
+- Per task: `cd {CODE_DIR}` → (worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}` → commit → (worktree: `ExitWorktree(keep)`) → mark done; report `exec-spec` Step 4a numbers (build, tests, lint/type-check)
 - `exec-spec` Step 5b writes status. Do NOT call `andthen:ops update-plan`, `update-fis`, or `update-state` *beyond* what `exec-spec` does internally (and do not suppress its Step 5b writes)
 - Absolute FIS paths; escalate unresolvable issues
 
 **Reviewer prompt** – include in each reviewer's system prompt:
 - Role constraint: only work on assigned `review-*` tasks
-- Per-task workflow: `cd {CODE_DIR}` → `/andthen:quick-review` on the story's changes (code is on `{BASE_BRANCH}` after impl/merge) → mark task done
+- Per-task workflow: `cd {CODE_DIR}` → `/andthen:quick-review{AUTO_SUFFIX}` on the story's changes (code is on `{BASE_BRANCH}` after impl/merge) → mark task done
 - Escalate unresolvable issues to orchestrator
 
 #### Task Management
@@ -224,9 +230,11 @@ Spawn a `general-purpose` sub-agent whose prompt runs the `andthen:review` skill
 
 Resolve `PLAN_DIR` and `CODE_DIR` to absolute paths (`PLAN_DIR_ABS`, `CODE_DIR_ABS`) before substituting into the prompt — relative paths break in multi-repo setups where the sub-agent's CWD may match neither repo.
 
+Before composing the prompt, set `AUTO_SUFFIX = " --auto"` when `AUTO_MODE=true`, else `AUTO_SUFFIX = ""`. Substitute `{AUTO_SUFFIX}` literally into the prompt below.
+
 **Sub-agent prompt**:
 ```
-Run /andthen:review --mode gap {PLAN_DIR_ABS}/plan.md on the whole plan.
+Run /andthen:review --mode gap {PLAN_DIR_ABS}/plan.md{AUTO_SUFFIX} on the whole plan.
 
 Implementation lives in: {CODE_DIR_ABS}
 
@@ -237,9 +245,9 @@ Report back:
 2. The absolute path to the written report file
 ```
 
-Verify the sub-agent returned both a verdict and a path that resolves to a readable file. If either is missing, report the failure and stop — do not silently retry; the downstream remediation step depends on a valid report artifact.
+Verify the sub-agent returned both a verdict and a path that resolves to a readable file. If either is missing, stop — do not silently retry; the downstream remediation step depends on a valid report artifact. In `AUTO_MODE`, emit `BLOCKED: final gap review returned malformed output (missing verdict or report path)` before exiting.
 
-If the verdict is FAIL, invoke the `andthen:remediate-findings` skill: `/andthen:remediate-findings {absolute_report_path}`. Remediation runs in the orchestrator (not a sub-agent) because it modifies code and must coordinate with orchestrator-owned state (`plan.md`, FIS checkboxes, `State` document). Known limitation: the orchestrator carries construction bias from having watched every story get built. Scope remediation narrowly to the gap report findings — do not re-evaluate or re-litigate decisions. If bias still leaks in, a later `exec-plan` run's fresh-context gap review is the intended second net. Escalate if issues persist after one remediation pass.
+If the verdict is FAIL, invoke the `andthen:remediate-findings` skill: `/andthen:remediate-findings {absolute_report_path}` (append `--auto` when `AUTO_MODE=true`). Remediation runs in the orchestrator (not a sub-agent) because it modifies code and must coordinate with orchestrator-owned state (`plan.md`, FIS checkboxes, `State` document). Known limitation: the orchestrator carries construction bias from having watched every story get built. Scope remediation narrowly to the gap report findings — do not re-evaluate or re-litigate decisions. If bias still leaks in, a later `exec-plan` run's fresh-context gap review is the intended second net. Escalate if issues persist after one remediation pass.
 
 **Gate**: Final gap review complete
 

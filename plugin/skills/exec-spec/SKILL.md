@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants to execute or implement an existing spec or FIS. Implements code from a Feature Implementation Specification. Trigger on 'execute this spec', 'execute this FIS', 'implement this spec', 'implement this FIS', 'build from spec'.
-argument-hint: <path-to-fis>
+argument-hint: "<path-to-fis> [--auto|--headless]"
 ---
 
 # Execute Feature Implementation Specification
@@ -8,7 +8,10 @@ argument-hint: <path-to-fis>
 Execute a fully-defined FIS document as the **executor**. Implement the FIS directly, use sub-agents only for narrow advisory/review work, and complete all validation and status gates before finishing.
 
 ## VARIABLES
-FIS_FILE_PATH: $ARGUMENTS
+FIS_FILE_PATH: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as the FIS path)
+
+### Optional Flags
+- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
@@ -18,6 +21,7 @@ FIS_FILE_PATH: $ARGUMENTS
 - **Complete implementation** — 100% required. Reporting incomplete work with a caveat is **not** completion.
 - **FIS is source of truth** — follow it exactly.
 - **Execution discipline** — Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See `references/execution-discipline.md`.
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Resolve routine ambiguity with the most conservative FIS-preserving implementation, record assumptions in the completion report, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and stop with `BLOCKED:` (listing the minimum missing decisions) only for missing/unreadable FIS, unsafe external actions, or a FIS contradiction that makes no defensible implementation possible.
 - **Direct execution** — implement the code yourself. Sub-agents are for advisory work, review, and validation only.
 - **Anti-rationalization** — if you catch yourself skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate, reject these common rationalizations:
   - "I'll verify after the next group" — defects compound; verify before more work builds on a bad assumption.
@@ -116,6 +120,7 @@ Implementation rules:
   - `NOTICED BUT NOT TOUCHING:` — out-of-scope observations. List issues, ask `-> Want me to create tasks?`
   - `MISSING REQUIREMENT:` — a task assumes something absent. State what is undefined, list labeled options, ask `-> Which behavior?`
   Each is a labeled block with concrete choices and an arrow-prompt for the user.
+- In `AUTO_MODE`, do not use arrow prompts. Choose the safest FIS-preserving option and record it as an `ASSUMPTION`; if no safe option exists, stop with `BLOCKED:` and list the minimum missing decisions.
 - Spawn proactive sub-agents when the need arises, but keep ownership of the code changes locally
 - If `changed-files` becomes incomplete or ambiguous, derive it from the current worktree diff before Step 4
 
@@ -132,7 +137,7 @@ Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues — int
 7. **Tautology check**: for each test added or modified in `changed-files`, inspect the test source — the unit under test must be imported and called without being replaced by a mock/stub; assertions must reference its return value or an observable effect, not mock call arguments; fixtures must not substitute for the production computation (captured golden outputs are fine). A test that would still pass if the asserted behavior were removed is tautological and is a remediation input.
 
 #### 4b. Code Review (mandatory fresh-context review)
-Run the `andthen:review` **skill** with `--mode code` for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a `general-purpose` sub-agent whose prompt runs `/andthen:review --mode code`. Do not pass `andthen:review` as `subagent_type` — it is a skill, not an agent type.
+Run the `andthen:review` **skill** with `--mode code` for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a `general-purpose` sub-agent whose prompt runs `/andthen:review --mode code` (append `--auto` when `AUTO_MODE=true`). Do not pass `andthen:review` as `subagent_type` — it is a skill, not an agent type.
 
 #### 4c. Visual Validation (if UI)
 Spawn the `andthen:visual-validation-specialist` **agent** per any Visual Validation Workflow defined in CLAUDE.md.
@@ -145,8 +150,8 @@ Apply the Gate Classes policy from `references/execution-discipline.md`.
 
 1. **Collect** — combine required failures from 4a with findings from 4b/4c. A failed build/test/lint/stub/wiring check is a remediation input even if the code review does not flag it separately.
 2. **Triage** — severity scale: CRITICAL/HIGH must fix, MEDIUM should fix, LOW optional.
-3. **Objective red gates (4a)** — iterate until green, invoking the `andthen:triage` skill when iteration stalls.
-4. **Subjective findings (4b/4c)** — one pass on CRITICAL/HIGH, re-run the affected lens (`/andthen:review --mode code` or visual validation) on the touched scope; escalate if they persist.
+3. **Objective red gates (4a)** — iterate until green, invoking the `andthen:triage` skill when iteration stalls (append `--auto` when `AUTO_MODE=true`).
+4. **Subjective findings (4b/4c)** — one pass on CRITICAL/HIGH, re-run the affected lens (`/andthen:review --mode code` with `--auto` when `AUTO_MODE=true`, or visual validation) on the touched scope; escalate if they persist.
 
 ### Step 5: Complete
 All substeps below are gates — complete them before finishing.

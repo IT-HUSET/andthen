@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants an implementation plan with FIS specs for every story. Trigger on 'create a plan', 'break this into stories', 'plan this feature', 'spec all stories', 'batch spec this plan'. Produces the full plan bundle (`plan.md` + all FIS + `.technical-research.md`) from an existing `prd.md`, or `plan.md` alone with `--skip-specs`. Requires an existing `prd.md` in the input directory — redirect to `andthen:prd` if missing.
-argument-hint: "<path-to-directory-with-prd.md> [--skip-specs] [--stories S01,S03] [--phase N] [--max-parallel N] [--skip-review]"
+argument-hint: "<path-to-directory-with-prd.md> [--skip-specs] [--stories S01,S03] [--phase N] [--max-parallel N] [--skip-review] [--auto|--headless]"
 ---
 
 # Create Implementation Plan Bundle
@@ -18,7 +18,7 @@ Transform a Product Requirements Document (`prd.md`) into a complete implementat
 ## VARIABLES
 
 _Specs directory containing `prd.md` (**required**):_
-INPUT: $ARGUMENTS
+INPUT: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as the specs-directory path)
 
 _Output directory (defaults to input directory):_
 OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolved per the input contract below
@@ -29,6 +29,7 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 - `--phase N` → PHASE_FILTER: Only generate FIS for stories in phase N
 - `--max-parallel N` → MAX_PARALLEL: Concurrency cap per sub-wave (default 5, max 10)
 - `--skip-review` → SKIP_REVIEW: Skip the cross-cutting review step
+- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
@@ -37,7 +38,8 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 - Delegate research and exploration to sub-agents to protect the main context window.
 - Stories define scope, not implementation details. Minimum stories to cover requirements.
 - Organize stories into logical phases.
-- **Headless-first** — continue to completion without pausing for routine clarification. Make reasonable assumptions, document them, and surface unresolved questions in `plan.md`.
+- **Headless-first** — continue to completion without pausing for routine clarification. Make reasonable assumptions, document them, and surface unresolved questions in `plan.md`. `--auto` / `--headless` is the strict form of this rule (see Automation mode below).
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next, not even once. Make conservative planning/spec assumptions, record them in `plan.md` and/or the affected FIS, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and return a deterministic completion summary for the orchestrator. Stop with `BLOCKED:` (listing the minimum missing inputs) only for missing `prd.md`, incompatible artifacts, unsafe external actions, or ambiguity so severe no defensible plan can be produced.
 - Stop only on true contract failures: missing `prd.md` (redirect to the `andthen:prd` skill), incompatible artifacts, or ambiguity so severe no defensible plan can be produced.
 - Focus on "what" not "how" at the plan level; detailed implementation decisions live in per-story FIS files.
 - **Resume contract**: when re-running on a partially-specced directory, skip stories whose `**FIS**` field already points at an existing file. Re-running only fills gaps.
@@ -180,7 +182,7 @@ Keep these invariants from the template:
 - [ ] No missing functionality (cross-cutting concerns like auth, logging, error pages covered)
 - [ ] Not over-granular (combined where sensible)
 
-Optional: Invoke the `andthen:review --mode doc` skill on `plan.md` before continuing.
+Optional: Invoke the `andthen:review --mode doc` skill on `plan.md` before continuing (append `--auto` when `AUTO_MODE=true`).
 
 #### Initialize Project State (if the `State` document exists; see **Project Document Index**)
 If the `State` document exists, update it to reflect the new plan via the `andthen:ops` skill:
@@ -304,7 +306,7 @@ If the review found CRITICAL or HIGH severity issues, apply fixes to resolve int
 **Broken scenario chains (#11)** — pick one:
 - Add the missing scenario to the FIS whose story naturally owns that leg. Don't stretch an unrelated FIS.
 - If no story owns it, add a new story: re-enter Step 3 (Phase/Wave/Dependencies/Risk), update the Story Catalog, re-run technical research if files fall outside the existing map, then Step 6 for that story before execution.
-- If the gap is a missing upstream decision, treat as a contract failure (per INSTRUCTIONS): pause for user input, surface the minimum missing decision, and don't invent the answer.
+- If the gap is a missing upstream decision, treat as a contract failure (per INSTRUCTIONS): stop, surface the minimum missing decision, and don't invent the answer. In `AUTO_MODE`, return `BLOCKED:` with the missing decision for the external orchestrator.
 
 **Phantom-scope findings** (from sub-agent `PHANTOM_SCOPE` return summaries): sub-agents only saw plan-level sources, so first re-check each finding against `prd.md` — criteria that trace to a PRD outcome are **not** phantom scope (suppress). For confirmed phantom scope: remove the unsourced Success Criterion, or amend plan/PRD to justify it. Treat confirmed phantom scope as MEDIUM severity by default; upgrade to HIGH when it drives significant implementation work or introduces new dependencies.
 
@@ -342,6 +344,8 @@ Print a summary:
 
 
 ## FOLLOW-UP ACTIONS
+
+Skip this section when `AUTO_MODE=true`; print only the completion summary and artifact paths.
 
 After completion, suggest the following next steps. **Recommend starting a clean session** for the context-intensive downstream skill.
 

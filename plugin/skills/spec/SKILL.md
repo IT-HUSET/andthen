@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Creates an execution-sized FIS by default, or pivots to a small plan bundle with multiple FIS files when one spec would be too large. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
-argument-hint: <description> | @<requirements-file> | story <story-id> of <path-to-plan.md>
+argument-hint: "<description> | @<requirements-file> | story <story-id> of <path-to-plan.md> [--auto|--headless]"
 ---
 
 # Generate Feature Implementation Specification
@@ -11,7 +11,10 @@ Given a feature request, generate an execution-sized specification artifact: a s
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS
+ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as the description / `@file` / `story <id> of <plan>`)
+
+### Optional Flags
+- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
@@ -20,6 +23,7 @@ ARGUMENTS: $ARGUMENTS
 - **Spec generation only** — no code changes, commits, or modifications.
 - Agents executing the FIS only get the context you provide. Include all necessary documentation, examples, and references.
 - Read the `Learnings` document (see **Project Document Index**) before starting, if it exists.
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Make the best conservative requirement/spec assumption that yields an execution-sized FIS, document it in the FIS under assumptions, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and return deterministic artifact paths for the orchestrator. Stop with `BLOCKED:` (listing the minimum missing decisions) only for missing input, unreadable sources, incompatible artifacts, unsafe external actions, or ambiguity where no defensible FIS can be written.
 
 
 ## GOTCHAS
@@ -30,6 +34,8 @@ ARGUMENTS: $ARGUMENTS
 - `CONFUSION:` — ambiguity + labeled options + `-> Which approach?`
 - `NOTICED BUT NOT TOUCHING:` — out-of-scope observations + `-> Want me to create tasks?`
 - `MISSING REQUIREMENT:` — undefined behavior + labeled options + `-> Which behavior?`
+
+In `AUTO_MODE`, do not use arrow prompts. Choose the most conservative defensible option and record it as an assumption in the FIS; if no defensible option exists, stop with `BLOCKED:` and list the minimum missing decisions.
 
 **Describing code changes instead of outcomes** – tasks should state what must be TRUE when done, not what code to write. Bad: "Create lib/auth.ts with login() and logout()". Good: "Auth module with login/logout; follow pattern at lib/users.ts:10-30".
 
@@ -71,13 +77,13 @@ If a plan-scoped `.technical-research.md` exists with relevant coverage, skip re
 
 - **Codebase research** _(skip if technical research covers file maps and patterns for this story)_: locate similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Use `rg`/`tree`/file reads directly.
 
-- **Solution architecture** _(skip if technical research already frames the solution for this story)_: frame how the feature fits the existing architecture — module boundaries, integration points, component responsibilities, data flow, test seams. Worth doing for most code changes, not just novel ones. Invoke the `andthen:architecture` skill (`--mode advise`) in a spawned `general-purpose` sub-agent.
+- **Solution architecture** _(skip if technical research already frames the solution for this story)_: frame how the feature fits the existing architecture — module boundaries, integration points, component responsibilities, data flow, test seams. Worth doing for most code changes, not just novel ones. Invoke the `andthen:architecture` skill (`--mode advise`; append `--auto` when `AUTO_MODE=true`) in a spawned `general-purpose` sub-agent.
 
 - **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to the `andthen:documentation-lookup` agent or the `andthen:research-specialist` agent.
 
-- **Architecture trade-offs** _(often unnecessary — skip unless the story has 1-3 genuinely competing approaches with non-trivial risk or cost differences; also skip if technical research covers shared decisions or an ADR is in ARGUMENTS)_: analyse the candidate approaches, document risks, pick one with rationale. Invoke the `andthen:architecture` skill (`--mode trade-off`) in a spawned `general-purpose` sub-agent.
+- **Architecture trade-offs** _(often unnecessary — skip unless the story has 1-3 genuinely competing approaches with non-trivial risk or cost differences; also skip if technical research covers shared decisions or an ADR is in ARGUMENTS)_: analyse the candidate approaches, document risks, pick one with rationale. Invoke the `andthen:architecture` skill (`--mode trade-off`; append `--auto` when `AUTO_MODE=true`) in a spawned `general-purpose` sub-agent.
 
-- **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Invoke the `andthen:ui-ux-design` skill (`--mode research` or `--mode wireframes`) in a spawned `general-purpose` sub-agent.
+- **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Invoke the `andthen:ui-ux-design` skill (`--mode research` or `--mode wireframes`; append `--auto` when `AUTO_MODE=true`) in a spawned `general-purpose` sub-agent.
 
 **Save research findings** (if substantial) to `.technical-research.md` in the FIS output directory — a hidden companion document that keeps the FIS lean and reviewable. The FIS references this document; the executing agent reads it alongside the FIS for implementation context. See the [Technical Research Separation](references/fis-authoring-guidelines.md#technical-research-separation) guidelines for what belongs in the research doc vs the FIS. Skip this if findings are minimal — not every spec needs a technical research document.
 
@@ -105,7 +111,7 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
 [`references/fis-authoring-guidelines.md`](references/fis-authoring-guidelines.md).
 
-> **Optional**: Invoke the `andthen:review --mode doc` skill for thorough validation (recommended for large/complex features). This keeps pre-implementation FIS review on the document-review path.
+> **Optional**: Invoke the `andthen:review --mode doc` skill for thorough validation (recommended for large/complex features; append `--auto` when `AUTO_MODE=true`). This keeps pre-implementation FIS review on the document-review path.
 
 ### 4.5 Oversize Pivot
 
@@ -164,6 +170,8 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
 
 
 ## FOLLOW-UP ACTIONS
+
+Skip this section when `AUTO_MODE=true`; print only the generated artifact paths and downstream command shape.
 
 After completion, suggest:
 

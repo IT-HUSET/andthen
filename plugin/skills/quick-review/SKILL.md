@@ -1,7 +1,7 @@
 ---
 description: Quick in-conversation skill for adversarial review of recent changes in fresh context. Use mid-conversation to sanity-check work before moving on. Trigger on 'quick review this', 'sanity-check this', 'give this a quick pass'.
 user-invocable: true
-argument-hint: "[optional focus or scope] [--fix]"
+argument-hint: "[optional focus or scope] [--fix] [--auto|--headless]"
 ---
 
 # Quick Review
@@ -15,11 +15,12 @@ Lightweight, ad-hoc review of recent work in the current conversation. Internall
 
 ## VARIABLES
 
-FOCUS: $ARGUMENTS (strip any leading flag tokens like `--fix` before interpreting as focus)
+FOCUS: $ARGUMENTS (strip any leading flag tokens like `--fix`, `--auto`, or `--headless` before interpreting as focus)
 
 
 ### Optional Flags
 - `--fix` → after evaluating findings, apply the **accepted** ones directly (skip the "offer to fix" prompt). Dismissed findings stay dismissed — the Accept/Dismiss step in Phase 4 remains the guardrail. If zero findings are accepted, report that plainly and stop — nothing to fix.
+- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
@@ -29,6 +30,7 @@ FOCUS: $ARGUMENTS (strip any leading flag tokens like `--fix` before interpretin
 - The sub-agent reviews in a **fresh context** to avoid confirmation bias.
 - Anti-leniency: if the sub-agent identifies a problem, it is a problem. Do not rationalize issues away.
 - Output findings inline — no separate report file.
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. If `--fix` is present, apply accepted findings directly; otherwise remain read-only and return accepted findings for the orchestrator to decide on. Stop with `BLOCKED:` (listing what could not be resolved, e.g. no change set, unreadable target) only when the review scope cannot be resolved.
 
 
 ## GOTCHAS
@@ -115,7 +117,7 @@ Review the sub-agent's findings. For each:
 
 Present accepted findings to the user as a concise inline list.
 
-- **Without `--fix`**: if there are actionable issues, offer to fix them. If no significant issues were found, state that clearly and move on.
+- **Without `--fix`**: if there are actionable issues, offer to fix them unless `AUTO_MODE=true`. In `AUTO_MODE`, report the accepted findings and stop read-only so the orchestrator can decide whether to invoke a fixing step. If no significant issues were found, state that clearly and move on.
 - **With `--fix`**: apply the accepted findings directly with minimal, surgical edits — one coherent patch set, no scope creep, no "nearby cleanup". Then re-run the minimum verification that proves the fixes hold (type-check, relevant tests, or targeted re-read). Report what changed in one tight line per fix.
 
 Do not produce a report file. Do not add a summary preamble. Keep it tight.

@@ -1,7 +1,7 @@
 ---
 description: Use for UI/UX design work across the full lifecycle — research, design system creation, wireframing, and validation/review of implementations. Operates in four modes — `research`, `design-system`, `wireframes`, `review` — runnable singly or as a chain (e.g. `--mode design-system,wireframes`). Trigger on 'design this', 'create a design system', 'make a style guide', 'define design tokens', 'create wireframes', 'wireframe this feature', 'sketch the screens', 'review this UI', 'validate this UI', 'UX review'.
 user-invocable: true
-argument-hint: "[inputs/path] [--mode <mode>[,<mode>...]]"
+argument-hint: "[inputs/path] [--mode <mode>[,<mode>...]] [--auto|--headless]"
 ---
 
 # UI/UX Design
@@ -10,7 +10,10 @@ Comprehensive UI/UX skill — bridges user needs and business objectives. Create
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS
+ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as inputs/mode)
+
+### Optional Flags
+- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 ### Mode (auto-detected from arguments or explicit `--mode`)
 
@@ -26,6 +29,7 @@ ARGUMENTS: $ARGUMENTS
 ## INSTRUCTIONS
 
 - When `ARGUMENTS` is empty or ambiguous, start with guided setup (Phase 0). Do not pick a mode by default.
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Infer mode and inputs from the arguments via the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` listing the minimum missing inputs. Propagate `--auto` to nested `andthen:*` skill invocations that accept it.
 - Read the Workflow Rules, Guardrails, and relevant guidelines (UX/UI and Web Dev as applicable) before starting.
 - **Favor simplicity** — recommend simplest solution (KISS, YAGNI, DRY). Start minimal; add only what's needed.
 - **Intentional visual direction** — avoid generic AI aesthetics and default stacks. Choose typography with character. Use color intentionally with a dominant direction and clear accents.
@@ -42,6 +46,8 @@ ARGUMENTS: $ARGUMENTS
 ## WORKFLOW
 
 ### Phase 0: Guided Setup _(when ARGUMENTS is empty or ambiguous)_
+
+Skip this phase when `AUTO_MODE=true` — if mode and inputs cannot be inferred from the arguments, stop with `BLOCKED:` listing the minimum missing inputs instead of prompting.
 
 1. Present the available modes with one-line descriptions:
    - **research** — Understand users, flows, pain points, and the interface's job. Produces IA, journeys, and constraints.
@@ -73,6 +79,8 @@ For multi-mode chains, run each mode in declared order, carrying forward artifac
 Each mode reference declares its own output layout. For multi-mode chains, combine into a single session summary that points at each mode's artifacts.
 
 ## FOLLOW-UP ACTIONS
+
+Skip this section when `AUTO_MODE=true` — print only the mode summary and artifact paths.
 
 Offer:
 1. **Continue with another mode** — research → design-system → wireframes → review is the natural chain

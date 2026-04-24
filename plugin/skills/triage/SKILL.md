@@ -1,7 +1,7 @@
 ---
 description: "Investigate, diagnose, and fix issues — including build failures, configuration errors, runtime bugs, regressions, and test failures. Trigger on 'debug this', 'investigate this bug', 'what's broken', 'triage', 'fix this bug', 'fix the build', 'troubleshoot this build'. Flags: --plan-only, --to-issue."
 user-invocable: true
-argument-hint: "[Scope | --issue <number>] [--plan-only] [--to-issue]"
+argument-hint: "[Scope | --issue <number>] [--plan-only] [--to-issue] [--auto|--headless]"
 ---
 
 # Triage and Fix Implementation Issues
@@ -15,12 +15,14 @@ ARGUMENTS: `$ARGUMENTS`
 ### Parse Arguments
 - `--plan-only` or `--investigate` → `MODE=plan-only`
 - `--to-issue` → `PUBLISH_ISSUE=true`
-- Remaining text → `SCOPE`
+- `--auto` / `--headless` → `AUTO_MODE=true`: automation-safe execution with no conversational prompts
+- Remaining text (after stripping the flags above) → `SCOPE`
 - Default mode: `fix`
 
 ## INSTRUCTIONS
 
 - Read the project rules and relevant guidelines before starting.
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Resolve routine ambiguity by picking the most conservative fix-forward option and recording it as an assumption in the completion report or fix plan. Do not emit arrow-prompts — replace each `-> Which approach?` / `-> Want me to create tasks?` / `-> Which behavior?` with an explicit assumption or, when no safe option exists, stop with `BLOCKED:` listing the minimum missing decisions. Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic).
 - Troubleshoot systematically across build, runtime, tests, quality, config, and integration layers.
 - Apply the diagnostic methodology from `references/diagnostic.md` before applying fixes. It covers both runtime/regression triage and build/configuration failures.
 - Read the `Learnings` document and the `State` document (see **Project Document Index**) if they exist.
@@ -42,6 +44,7 @@ ARGUMENTS: `$ARGUMENTS`
   - `CONFUSION:` — ambiguity + labeled options + `-> Which approach?`
   - `NOTICED BUT NOT TOUCHING:` — out-of-scope observations + `-> Want me to create tasks?`
   - `MISSING REQUIREMENT:` — undefined behavior + labeled options + `-> Which behavior?`
+  - In `AUTO_MODE`, do not emit arrow prompts. Pick the most conservative defensible option and record it as an `ASSUMPTION:` in the completion report; if no defensible option exists, stop with `BLOCKED:` listing the minimum missing decisions.
 
 ## ORCHESTRATOR ROLE
 

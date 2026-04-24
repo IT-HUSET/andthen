@@ -49,6 +49,8 @@ Every skill works standalone — no pipeline required. Use them individually for
 
 **Session management**: The context-intensive skills — `exec-spec`, `plan` (full FIS generation), `exec-plan`, `review --council` — perform best when started in a **clean session**. Pipeline predecessor skills (`clarify`, `prd`, `spec`) will suggest when to start fresh. Standalone skills like `triage`, `quick-review`, and `refactor` are lightweight and run well mid-conversation.
 
+**Headless orchestration**: The core pipeline skills (`prd`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`) and the supporting skills they call (`architecture`, `ui-ux-design`, `triage`) accept `--auto` / `--headless`. In automation mode they do not ask follow-up questions or emit arrow-prompts, make conservative assumptions, record assumptions/deferred decisions in artifacts or summaries, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt — it is deterministic), and stop with `BLOCKED:` on contract failures or unsafe actions.
+
 ## Skills
 
 Invoke with `/andthen:<skill>` (e.g. `/andthen:triage`, `/andthen:spec`).

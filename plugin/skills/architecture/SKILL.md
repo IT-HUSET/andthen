@@ -1,7 +1,7 @@
 ---
 description: Use for architecture design, review, decomposition, trade-off analysis, ADRs, CUPID/DDD guidance, and fitness functions. Operates in five modes — `review`, `decompose`, `advise`, `fitness`, `trade-off` — runnable singly or as a chain (e.g. `--mode review,fitness`). Trigger on 'architecture review', 'design architecture', 'CUPID', 'DDD', 'bounded context', 'should we split this module', 'should we merge these packages', 'propose fitness functions', 'compare options', 'trade-off', 'write an ADR', 'which approach'.
 user-invocable: true
-argument-hint: "[scope/path] [--mode <mode>[,<mode>...]] [--to-pr <number>]"
+argument-hint: "[scope/path] [--mode <mode>[,<mode>...]] [--to-pr <number>] [--auto|--headless]"
 ---
 
 # Architecture
@@ -10,7 +10,7 @@ Architectural design, analysis, decomposition evaluation, trade-off research, an
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS
+ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as scope/mode/topic)
 
 ### Mode (auto-detected from arguments or explicit `--mode`)
 
@@ -26,6 +26,7 @@ ARGUMENTS: $ARGUMENTS
 
 ### Optional Output Flags
 - `--to-pr <number>` -> PUBLISH_PR: post the report as a plain PR comment
+- `--auto` / `--headless` -> AUTO_MODE: automation-safe execution with no conversational prompts
 
 ### Mode-Specific Flags
 
@@ -38,6 +39,7 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 ## INSTRUCTIONS
 
 - When `ARGUMENTS` is empty or ambiguous (no clear mode or scope), or when a declared chain is missing a required input for one of its modes (decompose boundary, advise question, trade-off topic), start with guided setup (see Phase 0). Do not assume a mode or run a full-project review by default.
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Infer mode and scope from the arguments using the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` and list the minimum missing decisions (mode, scope, decompose boundary, advise question, or trade-off topic). Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic).
 - When `--mode` declares multiple modes, treat them as a single declared chain: gather any required additional inputs up front before Phase 1 completes, and produce one combined report at the end.
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - Analysis and design only. Do not modify code.
@@ -68,6 +70,8 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 ## WORKFLOW
 
 ### Phase 0: Guided Setup _(when ARGUMENTS is empty or ambiguous)_
+
+Skip this phase when `AUTO_MODE=true` — if mode and scope cannot be inferred from the arguments, stop with `BLOCKED:` listing the minimum missing inputs instead of prompting.
 
 When invoked without clear mode and scope, guide the user interactively:
 
@@ -168,6 +172,8 @@ Typical chains:
 - **fitness** -> **review** (assess current state before proposing governance)
 
 ## FOLLOW-UP ACTIONS
+
+Skip this section when `AUTO_MODE=true` — print only the verdict/findings summary and the report path.
 
 After each analysis — including a combined report from a declared multi-mode chain — present findings and offer the actions below. After a chain, scope the "Continue with another mode" offer to modes not yet run in this session.
 
