@@ -37,6 +37,28 @@ Technical research that supports the FIS but doesn't require intent review belon
 When writing the FIS, reference the technical research rather than inlining findings. Example: `See [Technical Research](./.technical-research.md#architecture-analysis) for detailed trade-off analysis`.
 
 
+## Cross-Document References
+
+Every reference from a FIS to another document (PRD, plan, research, ADRs, guidelines, glossary) is a **trust boundary**: the intent behind that reference lives with the author, not the executor. Punting the resolution ("see plan.md") forces every downstream reader — exec-spec, review, remediate-findings, council reviewers — to re-discover what the author already knew. Precision at spec time eliminates that duplication.
+
+### Two-tier model
+
+- **Required Context** (load-bearing, inlined verbatim) — spans the executor *must* know to act on the FIS. Pulled from the source at spec time, inlined as a block in the FIS, pinned with `<!-- source: path#anchor -->` and `<!-- extracted: <commit-sha when source is in this repo; YYYY-MM-DD otherwise> -->` comments for audit. Prefer the commit SHA when available — it's a precise pointer; the date is the fallback for sources outside the repo or not yet committed. The inlined text is authoritative at execution time even if the source later drifts.
+- **Deeper Context** (optional, anchored pointers) — supplementary material available if the inlined Required Context leaves a gap. Each bullet is `path/to/source.md#heading-slug — one-line description`. Readers resolve on demand. Anchors are validated at authoring time; broken anchors found post-spec are a doc-review finding, not an execution blocker.
+
+### Authoring rules
+
+1. **Prefer anchors over line numbers.** `plan.md#story-3-error-handling` survives source edits; `plan.md:42-78` rots on the first line shift. When a source document lacks stable headings, favor adding `<a id="..."></a>` markers in the source over fragile line references.
+2. **Resolve at authoring time, not execution time.** Before emitting the FIS, walk every cross-doc reference, extract the span, and decide required vs deeper. A bare "see plan.md" without anchor or inlined content is not acceptable — the author saw the source, so the author names what matters.
+3. **Inline budget.** Per block: typically 30-100 lines, hard cap 200 lines (only when a single load-bearing span legitimately needs more). Total across all blocks: ≤ 250 lines, so the FIS stays inside the 200-500 line sweet spot with room for Scenarios and Tasks. When the per-block cap is hit, narrow the extraction and move overflow to Deeper Context; when the total budget would be breached by additional blocks, downgrade lower-priority blocks. The 200-line per-block cap and 250-line total are not additive — a FIS with two blocks at the per-block hard cap (400 lines) breaches the total and must be cut down.
+4. **Keep code and `.technical-research.md` out of Required Context.** `src/foo.ts:45-78` pattern pointers belong inside task descriptions or in `Code Patterns & External References`. Technical research stays as a referenced companion per Technical Research Separation above — do not inline spans from `.technical-research.md` into Required Context. Required/Deeper Context is reserved for upstream *intent* documents (PRD, plan, ADRs, guidelines, glossary).
+5. **Omit empty sections.** If a FIS has no load-bearing upstream spans to inline, omit the Required Context section entirely rather than leaving a stub. The same applies to Deeper Context — omit when there are no supplementary pointers worth surfacing. Standalone FIS with no PRD/plan upstream typically have neither section.
+
+### Why the inlined text is authoritative
+
+A FIS is a contract with the executor. If the author pulls text from `plan.md` at spec time, that's the intent the FIS is committing to — even if `plan.md` later changes. Drift between the pinned span and the current source is a *review* signal (the FIS may need re-spec'ing), not an *execution* failure. This matches how the existing FIS already treats technical research: a point-in-time snapshot, not a live join.
+
+
 ## Scenarios and Proof-of-Work
 
 Each scenario: one behavior, concrete Given/When/Then using actual codebase identifiers. Cover happy path first, then edge cases, then at least one error case. 3-7 scenarios is the sweet spot. If you can't write the **Then** clause, surface it as ambiguity.
@@ -70,7 +92,7 @@ Include the template's **Execution Contract** section near the bottom of the Imp
    - Strong: `Verify: traces list output includes columns IN_TOKENS, OUT_TOKENS, CACHE_R, CACHE_W`
 
    Rule of thumb: if you prescribed a specific format, column name, file path, or string in the FIS — put it in the Verify line verbatim.
-6. Most good FIS files land in the 150-450 line range. Once a draft starts pushing past roughly ~600 lines or more than ~18 tasks, that is a strong signal that this is no longer one execution-sized spec. For standalone feature requests, prefer a spec-time decomposition pivot into a small plan bundle plus child FIS files. For `story {story_id} of plan.md` inputs, do **not** fan one plan story out into multiple child specs — decompose the plan upstream instead.
+6. Most good FIS files land in the 200-500 line range. Once a draft starts pushing past roughly ~700 lines or more than ~18 tasks, that is a strong signal that this is no longer one execution-sized spec. For standalone feature requests, prefer a spec-time decomposition pivot into a small plan bundle plus child FIS files. For `story {story_id} of plan.md` inputs, do **not** fan one plan story out into multiple child specs — decompose the plan upstream instead.
 7. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
 8. Make **What We're NOT Doing** explicit: 3-5 specific exclusions or deferrals with reasons. Use it to preserve scope boundaries across sessions, not as filler.
 9. Include the **Execution Contract** section from the template. Keep it consistent unless the feature truly needs extra execution-specific constraints.
@@ -105,7 +127,7 @@ For each FIS Success Criterion, name the plan acceptance criterion, PRD outcome,
 
 **Resolution depends on mode:**
 
-- **Batch sub-agent mode** (from the `andthen:plan` skill) — binary: either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate at the cross-cutting review. Do not rationalize by adding scope notes. Do not edit `plan.md` or `prd.md`. Note: sub-agents only see plan-level sources, so a criterion legitimately sourced from the PRD may appear phantom — report it anyway and let the orchestrator filter against `prd.md`.
+- **Batch sub-agent mode** (from the `andthen:plan` skill) — sub-agents check Success Criteria against plan-level sources **plus the PRD proxy** (the technical research's "Binding PRD Constraints" section, which carries pre-validated PRD anchors and verbatim spans). A criterion that traces to either is sourced; only criteria with no plan-level *and* no PRD-proxy source are candidates for phantom-scope reporting. For each candidate, either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate — at Step 7's cross-cutting review the orchestrator filters once more against the full `prd.md` to catch any constraint missed by the proxy. Do not rationalize by adding scope notes. Do not edit `plan.md` or `prd.md`.
 - **Standalone mode**: (a) remove, or (b) raise with the user and — on approval — add a scope note documenting the proposed addition for plan/PRD amendment.
 - **Standalone with no plan or PRD at all**: accept the criterion only if it traces to a user- or business-observable outcome in the feature request. "Uses X library", "refactors Y" are phantom scope absent a user-facing reason.
 
@@ -116,7 +138,7 @@ Do not finalize a FIS with Success Criteria the upstream contract doesn't justif
 
 Quick sanity check before saving:
 - [ ] **Template structure**: FIS follows the template; ADR states the decision; no over-specification or code snippets >5 lines
-- [ ] **Size check**: 150-450 lines is the sweet spot; >600 lines or >18 tasks means split upstream (spec-time pivot for standalone requests only)
+- [ ] **Size check**: 200-500 lines is the sweet spot; >700 lines or >18 tasks means split upstream — spec-time pivot for standalone requests, escalate to plan decomposition for plan-story input
 - [ ] **Scope-consistency**: every "In Scope" item is exercised by a scenario or Verify line; `What We're NOT Doing` is specific and never contradicts a Success Criterion
 - [ ] **Coverage**: every Success Criterion has a proof path (scenario or Verify line); scenarios cover happy path, edge cases, one error case; negative-path checklist applied; plan Key Scenario seeds all mapped (if plan-derived); output shapes specified when structured output is a Success Criterion
 

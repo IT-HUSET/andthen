@@ -51,6 +51,26 @@ Use the unified severity scale from `review-verdict.md`: CRITICAL / HIGH / MEDIU
 **Readiness label**: `Ready` / `Needs Minor Updates` / `Needs Significant Rework` / `Not Ready` — per the verdict reference (doc-mode readiness scale preserved).
 
 
+## Downstream Routing
+
+After producing findings, classify the dominant pattern and name the right downstream skill in the report's **Recommended Next Action** section.
+
+**Document maturity signal** — distinguishes "draft" from "mature" via concrete markers, in priority order:
+1. PRD — always draft for routing purposes (its job is to be clarified into a plan/spec)
+2. Plan or FIS with a `Status:` field whose value is pre-execution (e.g. `draft`, `ready-for-review`, `ready-for-execution`) — draft until the value indicates execution has started or completed
+3. Plan with no story checkboxes ticked, or FIS with no implementation work landed in the codebase — draft
+4. Otherwise — mature
+
+**Pattern precedence** — a single document can match more than one pattern; apply the first that fires:
+1. **Requirement-gap cluster** — any "unanswered question / undefined behavior" finding (regardless of severity), OR ≥2 Completeness / Stakeholder Fit findings at MEDIUM or higher. Fires only on draft documents (per maturity signal). Route → the `andthen:clarify` skill. The answers don't exist yet; mechanical edits would paper over the gap. Phrase the recommendation concretely, naming both the gap areas and the doc path, e.g. *"Significant requirement gaps in <areas> in `<doc-path>` — run `andthen:clarify` against `<doc-path>` to resolve them before re-running spec/exec."*
+2. **Defect cluster** — clarity, technical accuracy, structural/anchor defects. Route → the `andthen:remediate-findings` skill (or let `--fix` invoke it). Fixes are mechanical edits to the doc.
+3. **Mature spec/FIS with requirement-fit concerns** — same triggers as the requirement-gap cluster but on a mature document. Route → the `andthen:remediate-findings` skill. Re-running the `andthen:clarify` skill on a near-final FIS produces churn; encode the concerns as targeted edits instead.
+
+**Interactivity contract** — this reference states which branch is interactive; the `SKILL.md` `FOLLOW-UP ACTIONS` step owns the gate. The clarify branch is interactive by nature (the `andthen:clarify` skill cannot run headless), so:
+- Under `AUTO_MODE=off`, the SKILL.md `FOLLOW-UP ACTIONS` step prompts the user to run the `andthen:clarify` skill inline against the listed gaps.
+- Under `AUTO_MODE=on`, the recommendation appears only in the report's **Recommended Next Action** — never prompt and never invoke the `andthen:clarify` skill automatically. The orchestrator decides.
+
+
 ## Report Sections
 
 ```markdown
@@ -78,6 +98,9 @@ Critical / High / Medium / Low
 
 ## Readiness Assessment
 Ready / Needs Minor Updates / Needs Significant Rework / Not Ready
+
+## Recommended Next Action
+One line. Name the specific skill (`andthen:clarify`, `andthen:remediate-findings`, or none), the doc path, and the trigger pattern. Do **not** duplicate the Prioritized Recommendations list — this section records the routing decision, not the findings. Per **Downstream Routing** above.
 ```
 
 

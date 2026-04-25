@@ -23,6 +23,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any `--auto` / `--headless` tokens before inter
 - **Execution discipline** — Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See `references/execution-discipline.md`.
 - **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Resolve routine ambiguity with the most conservative FIS-preserving implementation, record assumptions in the completion report, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and stop with `BLOCKED:` (listing the minimum missing decisions) only for missing/unreadable FIS, unsafe external actions, or a FIS contradiction that makes no defensible implementation possible.
 - **Direct execution** — implement the code yourself. Sub-agents are for advisory work, review, and validation only.
+- **Boy Scout in touch radius** — within files you modify, fix the obvious pre-existing issues you'd encounter anyway: lint/analyzer warnings, unused imports, dead code, typos, small co-located bugs. Defer only with a one-line reason in the completion report; never with the bare disclaimer "did not touch pre-existing errors". Do not expand into untouched files in the name of cleanup.
 - **Anti-rationalization** — if you catch yourself skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate, reject these common rationalizations:
   - "I'll verify after the next group" — defects compound; verify before more work builds on a bad assumption.
   - "This failing check is probably unrelated" — Stop-the-Line applies.
@@ -89,14 +90,15 @@ Usage rules:
 ### Step 2: Read and Prepare
 1. Read the full FIS at _`FIS_FILE_PATH`_
 2. Understand the sections that define execution: Success Criteria, Scenarios, Scope & Boundaries, Architecture Decision, Technical Overview, Implementation Plan, Testing Strategy, Validation, and Final Validation Checklist
-3. **Read Technical Research** – if the FIS references a `.technical-research.md`, read it before making code changes. Treat findings as leads to verify, not facts to trust.
-4. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant
-5. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
-6. Build a quick codebase overview once at the start (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files/tasks the FIS actually touches
-7. If the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When practical, confirm they fail before implementation. If the test harness is still unclear after one bounded pass, note the skip and continue.
-8. If the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
-9. **Update project state** (if the `State` document exists in the location defined by the **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
-10. Initialize working notes you will maintain during the run:
+3. **Process Required / Deeper Context** – the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution. Do not re-read their source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional — read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source (any reasonable check that confirms the slug or `<a id="...">` exists) and warn (do not stop) on broken anchors. **Legacy FIS fallback**: a FIS authored before these sections existed will have neither. Fall back to reading whatever upstream documents the FIS references through pre-existing structures: the old `## References & Constraints` heading and its `### Documentation & References` table (which used `file|doc|url|wire` rows), or prose mentions of plan/PRD/ADR. Resolve these references the same way as before this contract existed.
+4. **Read Technical Research** – if the FIS references a `.technical-research.md`, read it before making code changes. Treat findings as leads to verify, not facts to trust.
+5. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant
+6. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
+7. Build a quick codebase overview once at the start (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files/tasks the FIS actually touches
+8. If the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When practical, confirm they fail before implementation. If the test harness is still unclear after one bounded pass, note the skip and continue.
+9. If the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
+10. **Update project state** (if the `State` document exists in the location defined by the **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
+11. Initialize working notes you will maintain during the run:
    - Per-task status
    - `changed-files`
    - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, or `MISSING REQUIREMENT` items
@@ -130,7 +132,7 @@ Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues — int
 #### 4a. Direct Checks
 1. **Build**: run the project's applicable build/package checks; every available build step relevant to the feature must succeed
 2. **Tests**: run the applicable test suites; all relevant tests must pass (or pre-existing failures documented)
-3. **Lint/types**: run the applicable static analysis checks; no new violations
+3. **Lint/types**: run the applicable static analysis checks; no new violations, and pre-existing violations inside `changed-files` are fixed or deferred with a one-line reason (Boy Scout in touch radius — Core Rules)
 4. **Stub detection**: grep `changed-files` for incomplete-implementation markers (`TODO`, `FIXME`, `XXX`, `NotImplementedError`, language-appropriate `pass`/empty-body/`throw.*not implemented` patterns). Triage each hit — intentional (e.g. a `pass` in an abstract stub) vs. forgotten — and remediate the forgotten ones.
 5. **Wiring check**: for each new file in `changed-files`, confirm at least one other file imports or references it (language-appropriate import/require/include grep on the basename or module path). Isolated new files are a Stop-the-Line signal unless the FIS explicitly justifies them.
 6. **Spec compliance spot-check**: extract prescriptive details from the FIS (output format strings, column name lists, file paths for new artifacts, exact error messages, UI elements like buttons/controls) and grep/verify each against the implementation — any mismatch is a remediation input

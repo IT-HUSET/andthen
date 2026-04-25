@@ -30,7 +30,12 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 - Clarify requirements, do not design solutions.
 
 ### Requirements vs. Implementation Boundary
-Clarify operates at the **requirements level** — decisions that users, stakeholders, or product owners care about. Technical choices that only developers evaluate (architecture patterns, library choices, data storage strategies, internal API design, code organization) belong downstream in the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`). Explore only user-facing behavior, product scope, workflow, content architecture, and access control models.
+Clarify operates at the **requirements level** — decisions that users, stakeholders, or product owners care about. The test is **load-bearing-ness**, not topic: *would the answer change user-visible behavior, scope, or acceptance criteria?*
+
+- **In scope — load-bearing technical questions**: offline support; sync semantics (real-time vs eventual consistency); user-visible auth model (which IdP, SSO yes/no, MFA requirement); data residency or sovereignty; user-facing limits (file size, rate, retention); choice of externally-visible third-party providers (payment, identity, geolocation); platform or device targets that change what is possible.
+- **Out of scope — implementation-only choices**: library or framework selection; caching strategy; internal API shape and protocol; token format and session storage; code organization; DB engine; schema layout; deployment topology. These belong downstream in the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`).
+
+Litmus when the load-bearing test is unclear: *would a non-developer stakeholder care about the answer itself — not a downstream consequence of it?* Stakeholders care that pages feel fast, but that does not pull caching strategy into scope; the caring is about the consequence, not the choice.
 
 
 ## GOTCHAS
@@ -39,7 +44,7 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
 - Asking the user things that are already answerable from the codebase or existing docs
 - Scope creep: expanding beyond the original request
 - Jumping to solution design instead of requirement discovery
-- Drifting into implementation-level decisions during design space decomposition (see boundary above)
+- Decomposing implementation-only dimensions during design space decomposition (see boundary above) — note that load-bearing technical questions that shape user-visible behavior, scope, or acceptance criteria *are* fair game
 
 
 ## WORKFLOW
@@ -64,7 +69,7 @@ Clarify operates at the **requirements level** — decisions that users, stakeho
    - Assess cross-consistency: evaluate pairwise compatibility between options, marking incompatible or conditional pairings with rationale
    - Use the decomposition to generate targeted questions — each unresolved dimension is a question to ask
 
-   > **Scope guard**: Only decompose dimensions where the *user or stakeholder* would recognize the options as meaningfully different. If a dimension is purely technical (caching strategy, API protocol, DB engine), flag it as a downstream concern for the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`) — do not decompose it here.
+   > **Scope guard**: Decompose a dimension only if it passes the load-bearing test in *Requirements vs. Implementation Boundary* above. Implementation-only dimensions are flagged as downstream concerns for the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`) — do not decompose them here.
 
    Include the decomposition in the requirements output so downstream skills can reference resolved decisions.
    _Skip this step for simple features with no meaningful design alternatives._

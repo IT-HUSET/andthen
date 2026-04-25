@@ -8,6 +8,30 @@
 > **Technical Research**: [.technical-research.md](./.technical-research.md) _(codebase patterns, architecture analysis, API research)_
 
 
+## Required Context
+
+> Load-bearing spans from upstream documents (PRD, plan, ADRs, guidelines, glossary), **inlined verbatim at spec time**. The executor does NOT need to read the source documents to act on this content. Each block is source-pinned for audit; the inlined text is authoritative at execution time even if the source later drifts.
+>
+> Omit this section when there are no upstream documents the executor must know. Don't use it for code-pattern references (those stay inside tasks as `file:line` hints) or for `.technical-research.md` spans (that stays as a referenced companion). Budget: per block typically 30-100 lines (hard cap 200 only when a single span needs more); total across all blocks ≤ 250 lines. The two limits are not additive — two blocks at the per-block hard cap breach the total.
+
+{{Repeat blocks as needed. Keep each block focused: one decision, constraint, or contract per block.}}
+
+### From `{{path/to/source.md}}` — "{{Section or Anchor Name}}"
+<!-- source: {{path/to/source.md}}#{{heading-slug-or-id}} -->
+<!-- extracted: {{commit-sha when source is in this repo; YYYY-MM-DD otherwise}} -->
+> {{1–4 paragraphs inlined verbatim. Typical 30-100 lines per block; hard cap 200. Mind the 250-line total budget across all blocks — narrow extractions or move overflow to Deeper Context.}}
+
+
+## Deeper Context
+
+> Anchored pointers to source documents, for when the Required Context above is insufficient. Read on demand. Anchors are validated at authoring time; broken anchors found later are a doc-review finding, not an execution blocker.
+>
+> Omit this section when there are no supplementary pointers worth surfacing.
+
+- `{{path/to/source.md}}#{{heading-slug-or-id}}` — {{one-line description of what's there and when to read it}}
+- `{{path/to/source.md}}#{{heading-slug-or-id}}` — {{description}}
+
+
 ## Success Criteria (Must Be TRUE)
 > Each criterion must have a defined proof path — at least one Scenario (for behavioral criteria) or a task Verify line (for structural criteria). If you can't define how to prove it, the criterion is too vague.
 - [ ] {{Observable truth from user's perspective}}
@@ -88,19 +112,22 @@ _Keep this to 3-5 explicit non-goals or deferrals. Each item should name the exc
 {{How this integrates with existing systems or APIs}}
 
 
-## References & Constraints
+## Code Patterns & External References
 
-### Documentation & References
+> Code-pattern pointers (file:line), external URLs, and wireframes. Unlike `Required Context` / `Deeper Context`, these refer to *code and external resources* — the executor reads surrounding context, not just the named lines.
+>
+> **Allowed types**: `file` (code patterns), `url` (external docs), `wire` (wireframes/mockups). **Do not** add `doc` rows here for PRD/plan/research/ADR references — those belong in `Required Context` (inlined) or `Deeper Context` (anchored pointer) above.
+
 ```
 # type | path/url | why needed
 file   | src/components/Modal.tsx:45-78    | Pattern for dialog handling
 file   | src/api/users.ts:12-34            | API structure to follow
 url    | https://docs.example.com/auth     | OAuth flow reference
-doc    | docs/architecture/adr-001.md      | Auth architecture decision
 wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 ```
 
-### Constraints & Gotchas
+
+## Constraints & Gotchas
 - **Constraint**: {{Known limitation}} -- Workaround: {{specific solution}}
 - **Avoid**: {{Common mistake or anti-pattern}} -- Instead: {{correct approach}}
 - **Critical**: {{Framework/library limitation}} -- Must handle by: {{approach}}
@@ -111,7 +138,7 @@ wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 List implementation tasks in execution order. A later task may depend on a type, interface, or component established by an earlier task; state that dependency explicitly in the later task's context line.
 
 > **Vertical slice ordering**: First tasks should produce a thin but working end-to-end path. Later tasks widen the slice.
-> **Size discipline**: Most strong FIS files stay in the 150-450 line range. If a draft is pushing past roughly ~600 lines or >18 implementation tasks, split it at spec time rather than expecting `exec-spec` to recover later.
+> **Size discipline**: Most strong FIS files stay in the 200-500 line range. If a draft is pushing past roughly ~700 lines or >18 implementation tasks, split it at spec time rather than expecting `exec-spec` to recover later.
 
 ### Implementation Tasks
 

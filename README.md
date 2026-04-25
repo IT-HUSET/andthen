@@ -26,6 +26,10 @@ Works as a **Claude Code plugin** with full sub-agent orchestration, and skills 
 
 ## Key Concepts
 
+<p align="center">
+  <img src="assets/skills-overview.png" alt="AndThen" width="800">
+</p>
+
 ### Spec-Driven Development
 
 Most AI coding goes straight from idea to code. That works for small fixes, but complex features drift, miss requirements, and produce code that's hard to verify. Spec-driven development adds one step: *write a spec first, then implement against it*. The spec becomes the contract – what to build, how to verify it, and when it's done.

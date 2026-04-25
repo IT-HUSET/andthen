@@ -64,6 +64,8 @@ Categorize findings using the unified severity scale from `review-verdict.md`:
 
 Also flag obsolete files, unmotivated complexity, and cleanup candidates.
 
+**Pre-existing-issue calibration**: an "out of scope" or "did not touch pre-existing X" disclaimer applied to issues that sit *inside the changed files* is itself a finding (default MEDIUM; raise to HIGH for correctness/security). Issues in *unchanged* files remain out of scope.
+
 **Readiness label**: `Ready` / `Needs Fixes` / `Blocked` — per the verdict reference.
 
 

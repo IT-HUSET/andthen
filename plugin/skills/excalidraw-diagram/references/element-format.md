@@ -83,13 +83,14 @@ Add `label` to any shape for auto-centered text. No separate text element needed
 ### Standalone Text (titles, annotations only)
 
 ```json
-{ "type": "text", "id": "t1", "x": 150, "y": 138, "text": "Hello", "fontSize": 20 }
+{ "type": "text", "id": "t1", "x": 150, "y": 138, "text": "Hello", "fontSize": 20, "fontFamily": 5 }
 ```
 
 - `x` is the LEFT edge of the text
 - To center text at position cx: set `x = cx - estimatedWidth/2`
-- `estimatedWidth ≈ text.length × fontSize × 0.5`
+- `estimatedWidth ≈ text.length × fontSize × 0.5` (rough; see § Text Metrics for per-font rates)
 - Do NOT rely on `textAlign` or `width` for positioning – they only affect multi-line wrapping
+- **`width`/`height` may be omitted** – the render template's `getConvertedJSON` measures text via Canvas `measureText` with the actual Excalidraw font and patches dimensions into the portable file. If you skip the portable export and save the raw authored form, `app.excalidraw.com` will show clipped text that only fixes itself when the user clicks the element.
 
 ### Arrow
 

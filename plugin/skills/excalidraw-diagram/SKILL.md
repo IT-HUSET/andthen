@@ -31,6 +31,7 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
   3. `references/composition-playbook.md` – archetype recipes (pipeline / architecture / taxonomy / lifecycle / comparison)
 - **Commit to a Layout Contract before JSON** – Phase 1.5 below. Skipping this is the #1 cause of flat, AI-generic results.
 - **Use `label` shorthand** – prefer the `label` property on shapes for auto-centered text instead of separate text elements. The render template handles conversion. **But always specify explicit `width` and `height`** – under-sizing lets Excalidraw silently grow the container and collapses your size cascade back toward uniformity.
+- **Always save the portable (expanded) form** – the `label` shorthand is a render-time convenience, not an on-disk format. The final `.excalidraw` file must be written via `window.getConvertedJSON()` (Phase 5). Saving the shorthand form directly produces a file that opens as empty shapes in `app.excalidraw.com`.
 - **Technical diagrams must be grounded in reality** – use real API names, data shapes, events, and method signatures, not placeholders
 - **Build section-by-section** – do not attempt a non-trivial diagram in one giant JSON pass
 - **Mandatory render loop with lint** – after generating JSON, you MUST render via agent-browser, run `window.lintLayout()`, view the screenshot, and iterate until critical and major findings are resolved
@@ -44,6 +45,8 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 - **Implied connections** – Phase headers sitting above their children, or two boxes near each other, communicate nothing. Every relationship needs an **explicit arrow** or a line+text tree structure.
 - **Ellipses/diamonds are hungry** – for the same label, an ellipse needs ~1.4× a rectangle and a diamond needs ~2×. Hard-coding identical widths produces clipping. See `element-format.md` § Label Auto-Sizing.
 - **Label shorthand silently resizes** – if your specified `width` is smaller than the label needs, `redrawTextBoundingBox` expands it at render time. Always over-size (the cascade numbers are floors, not ceilings).
+- **Shorthand vs portable form** – the `label` shorthand only survives the render template's in-memory conversion. Writing a file with `label:` fields on shapes produces empty boxes in `app.excalidraw.com`. Always export via `window.getConvertedJSON()` before saving (Phase 5).
+- **Standalone text width/height** – text elements without `width`/`height` (or with undersized ones) open clipped in Excalidraw. The render template's `refreshTextDimensions` measures them via Canvas `measureText` with the actual Excalidraw font and patches dimensions during `getConvertedJSON`. You don't need to set them manually, but if you bypass the portable export, you'll see truncated titles/subtitles that only fix themselves when the user clicks the element.
 - **Arrow routing** – arrows crossing through elements. Add intermediate waypoints in the `points` array.
 - **Too small text** – minimum `fontSize: 16` for body, `20` for titles. Below 14 is unreadable. Scale up at XL/XXL canvas sizes.
 - **JSON truncation** – generating the entire diagram in one pass hits output token limits. Build section-by-section for non-trivial diagrams.
@@ -209,9 +212,6 @@ AGENT_BROWSER_FULL=true agent-browser screenshot <OUTPUT_DIR>/<name>.png
 
 Typically 2–4 iterations. After each re-render, run `window.lintLayout()` again – the counts should monotonically decrease. Use the same re-render block in Phase 4 as needed.
 
-#### 3.6 Export Portable Version (Optional)
-If the user needs a standard `.excalidraw` file without `label` shortcuts: run `agent-browser eval "window.getConvertedJSON()"` and save the result. Do NOT wrap in `JSON.stringify()` – `agent-browser eval` already JSON-encodes its return value.
-
 **Gate**: The PNG is readable, balanced, and free of obvious layout defects
 
 
@@ -234,16 +234,30 @@ Launch the `andthen:visual-validation-specialist` agent with the latest PNG, res
 **Gate**: Design quality reviewed, no P1/P2 issues remaining, diagram is production-ready
 
 
-### Phase 5: Output
+### Phase 5: Output (MANDATORY – Portable Save)
 
-Save `<name>.excalidraw` (source) and `<name>.png` (rendered screenshot) to `OUTPUT_DIR`.
+Save the **portable / expanded** form to `<name>.excalidraw`, plus the PNG. The file you wrote in Phase 2.2 used the `label` shorthand and (for standalone text) likely has missing/undersized `width`/`height`. Those defects are invisible in the render template but break the file for every other consumer — most notably `app.excalidraw.com`, which shows empty shapes and clipped text.
+
+Export the expanded form:
+
+```bash
+# getConvertedJSON expands labels to bound text elements and measures
+# standalone text dimensions via Canvas measureText with the actual
+# Excalidraw font. Overwrite the source .excalidraw file with this form.
+agent-browser eval "window.getConvertedJSON()" > <OUTPUT_DIR>/<name>.excalidraw
+```
+
+Do NOT wrap in `JSON.stringify()` – `agent-browser eval` already JSON-encodes its return value, and `getConvertedJSON` returns a plain object.
+
+**Verify** by opening the saved file in `app.excalidraw.com` (or visually inspect the JSON for `label:` on shapes — if any remain, the export failed and you saved the wrong form).
 
 
 ## OUTPUT
 
 ```
 OUTPUT_DIR/
-├── <name>.excalidraw    # Excalidraw JSON source
+├── <name>.excalidraw    # Portable Excalidraw JSON (label shorthands expanded,
+│                        # standalone text dimensions measured)
 └── <name>.png           # Rendered PNG screenshot
 ```
 
@@ -258,6 +272,7 @@ OUTPUT_DIR/
 - [ ] **Render validated**: `window.lintLayout()` returns zero CRITICAL and zero MAJOR findings; PNG inspected
 - [ ] **Design reviewed**: Composition balanced, hierarchy clear, style guide complied with, visual flow guides narrative
 - [ ] **Final QC passed**: No P1/P2 issues remaining; remediation bounded within 3 cycles
+- [ ] **Portable form saved**: Final `.excalidraw` written via `getConvertedJSON()` – opens in `app.excalidraw.com` with all labels and text visible and not clipped
 
 
 ## DESIGN REFERENCE

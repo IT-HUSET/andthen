@@ -6,6 +6,24 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.14.3] – 2026-04-24
+
+### Added
+- **`--claude-user` in `scripts/install-skills.sh`** – opt-in alternative install path that writes skills to `~/.claude/skills/andthen-*/` and agents to `~/.claude/agents/andthen-*.md` with `/andthen-<name>` slash-command invocation, giving naming parity with Codex for users who want one convention across both runtimes instead of the Claude Code plugin's `andthen:<name>` form. Warns when the `andthen` plugin is already installed, prefixes agent frontmatter `name:` so Task-tool resolution works, and fails loudly on malformed agent sources rather than silently installing a broken file.
+
+### Changed
+- **FIS cross-document reference precision** – Template gains `Required Context` (load-bearing spans inlined verbatim, source-pinned with `<!-- source: path#anchor -->` and `<!-- extracted: ... -->`) and `Deeper Context` (anchored pointers), replacing the old undifferentiated `Documentation & References` table for doc-type refs and forcing authoring-time resolution instead of vague "see plan.md" punts. Plan-batch per-story sub-agents inherit pre-validated PRD anchors via a curated "PRD proxy" in technical research; FIS size envelope raised to 200–500 lines (oversize >700) to accommodate inlining.
+- **Doc-review routes to `andthen:clarify` vs `andthen:remediate-findings`** – The `andthen:review` skill in `--mode doc` (and the doc sub-pass of `--mode mixed`) now classifies findings into a requirement-gap cluster (→ the `andthen:clarify` skill) or a defect cluster (→ the `andthen:remediate-findings` skill) via an explicit document-maturity signal and first-fires-wins pattern precedence, recording the routing decision in a new `Recommended Next Action` report section. Under `AUTO_MODE=off` the skill offers to invoke the `andthen:clarify` skill inline against the listed gaps; under `AUTO_MODE=on` the recommendation is report-only — the `andthen:clarify` skill is interactive by nature and never runs headless.
+- **`andthen:clarify` requirement-vs-implementation boundary made effect-based** – the boundary now passes the **load-bearing test** (does the answer change user-visible behavior, scope, or acceptance criteria?) instead of a categorical "technical = downstream" rule, letting questions like offline support, sync semantics, user-visible auth model, data residency, and externally-visible provider choice into scope while still deferring library/caching/internal-API/DB/deployment choices to the `andthen:spec` skill and the `andthen:architecture` skill (`--mode trade-off`). Scope guard and the `design-tree.md` "In `clarify`" bullet now defer to one canonical example list to prevent drift, and the non-developer-stakeholder litmus is repositioned as a tiebreaker qualified to "the answer itself, not a downstream consequence".
+- **Boy Scout in touch radius enforced across exec/review/remediate** – the `andthen:exec-spec` skill gains a Core Rule and a 4a lint/types gate requiring pre-existing violations inside `changed-files` to be fixed or deferred with a one-line reason, ending the bare "did not touch pre-existing errors" disclaimer. The `andthen:review` (`lens-code`) and `andthen:quick-review` skills now treat that disclaimer as a finding when the issue sits *inside the changed files* (default MEDIUM, HIGH for correctness/security); issues in unchanged files remain out of scope. The `andthen:remediate-findings` scope-creep rule is clarified to permit Boy Scout cleanup within files already being edited while still forbidding expansion into untouched files.
+
+### Fixed
+- **`excalidraw-diagram` portable export and text clipping** – saved `.excalidraw` files previously kept the `label:` shorthand and undersized standalone text widths, producing empty shapes and clipped titles when opened in `app.excalidraw.com`. Phase 3.6 promoted to mandatory Phase 5 step; render template now measures standalone text via Canvas `measureText` with the actual Excalidraw font and patches width/height during `getConvertedJSON`. Author no longer needs to hand-size text elements.
+
+
+---
+
+
 ## [0.14.2] – 2026-04-24
 
 ### Added

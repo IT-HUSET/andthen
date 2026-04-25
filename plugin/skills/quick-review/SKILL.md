@@ -83,6 +83,7 @@ or praise the work.
 - "Works on the happy path" is not a pass — check edge cases and error paths.
 - Do not hedge with "could be an issue" or "might cause problems" — be definitive.
 - Substance over surface: check that things are actually complete, not just present.
+- "Did not touch pre-existing X" inside files that were modified is a finding, not a disclaimer — flag it.
 
 ## Context
 {what was done and why — brief description of the task/goal}

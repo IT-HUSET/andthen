@@ -34,6 +34,76 @@
     let convertedElements = null;
     let lastAppState = null;
 
+    // Font family IDs → CSS font stacks. Excalidraw ships Excalifont and Comic
+    // Shanns as bundled web fonts; Nunito is loaded from Google Fonts by the
+    // library. We mirror those stacks so Canvas measureText produces widths
+    // that match the eventual rendered text.
+    const FONT_FAMILY_CSS = {
+      5: '"Excalifont", "Cascadia Code", sans-serif',
+      6: '"Nunito", sans-serif',
+      8: '"Comic Shanns", "Cascadia Code", monospace'
+    };
+
+    /**
+     * Set width/height on all text elements using Canvas measureText with the
+     * actual Excalidraw font, then re-center bound labels within their
+     * containers. Both standalone text and bound labels are affected: the
+     * library's own measurement under-reports Excalifont glyph widths, so
+     * persisted labels clip at load until the user clicks them to trigger a
+     * remeasure. We replicate that remeasure here.
+     *
+     * Must run AFTER Excalidraw has rendered once so the bundled fonts are
+     * loaded into document.fonts. We await document.fonts.ready first.
+     */
+    async function refreshTextDimensions(elements) {
+      if (document.fonts && document.fonts.ready) {
+        try { await document.fonts.ready; } catch (_) {}
+      }
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // id -> element for fast container lookup on bound labels
+      const byId = new Map();
+      for (const e of elements) {
+        if (e.id && !e.isDeleted) byId.set(e.id, e);
+      }
+
+      for (const e of elements) {
+        if (e.type !== "text" || e.isDeleted) continue;
+        const fontSize = e.fontSize || 20;
+        const fontFamily = e.fontFamily || 5;
+        const fontCSS = FONT_FAMILY_CSS[fontFamily] || FONT_FAMILY_CSS[5];
+        ctx.font = `${fontSize}px ${fontCSS}`;
+        const lines = String(e.text || "").split("\n");
+        let maxWidth = 0;
+        for (const line of lines) {
+          const w = ctx.measureText(line).width;
+          if (w > maxWidth) maxWidth = w;
+        }
+        // Hand-drawn fonts (Excalifont, fontFamily 5) have variable glyph
+        // widths that measureText slightly under-reports; pad accordingly.
+        const pad = fontFamily === 5 ? 8 : 4;
+        const newWidth = Math.ceil(maxWidth + pad);
+        const newHeight = Math.ceil(fontSize * 1.25 * lines.length);
+
+        // For bound labels, re-center within the container. Excalidraw
+        // renders bound text centered by default (textAlign/verticalAlign
+        // "center"/"middle"), and clicking a clipped label would do exactly
+        // this repositioning.
+        if (e.containerId) {
+          const container = byId.get(e.containerId);
+          if (container) {
+            e.x = container.x + (container.width - newWidth) / 2;
+            e.y = container.y + (container.height - newHeight) / 2;
+          }
+        }
+
+        e.width = newWidth;
+        e.height = newHeight;
+      }
+      return elements;
+    }
+
     /**
      * Validate Excalidraw JSON structure.
      * Returns { valid: true } or { valid: false, errors: string[] }
@@ -97,6 +167,12 @@
         if (hasLabels) {
           elements = convertToExcalidrawElements(elements);
         }
+
+        // Measure and fix dimensions on standalone text elements. Without this,
+        // Excalidraw persists whatever width/height the author supplied (often
+        // missing or undersized), and app.excalidraw.com renders text clipped
+        // to that bbox until the user clicks the element to trigger remeasure.
+        await refreshTextDimensions(elements);
 
         // Store for extraction
         convertedElements = elements;
@@ -391,11 +467,19 @@
     };
 
     /**
-     * Returns the full Excalidraw JSON with expanded elements (label shortcuts converted).
-     * Use this to save a portable .excalidraw file that opens directly in excalidraw.com.
+     * Returns the full Excalidraw JSON with expanded elements:
+     *   - `label` shorthands converted to bound text elements
+     *   - standalone text elements given measured width/height so
+     *     app.excalidraw.com renders them without clipping
+     *
+     * Use this to save the portable .excalidraw file. Must be called after
+     * renderDiagram so the font cache is warm and convertedElements is set.
      */
-    window.getConvertedJSON = function() {
+    window.getConvertedJSON = async function() {
       if (!convertedElements) return null;
+      // Re-measure defensively in case caller mutated elements between render
+      // and export. Idempotent: width/height are always recomputed from text.
+      await refreshTextDimensions(convertedElements);
       const bgColor = lastAppState?.viewBackgroundColor || "#ffffff";
       return {
         type: "excalidraw",

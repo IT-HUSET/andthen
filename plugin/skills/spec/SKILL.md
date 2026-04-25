@@ -43,7 +43,7 @@ In `AUTO_MODE`, do not use arrow prompts. Choose the most conservative defensibl
 
 **Scenarios that describe implementation, not behavior** – scenarios should use Given/When/Then to describe observable outcomes from the user's or system's perspective, not internal code steps. Bad: "Given a new AuthService class, When login() is called...". Good: "Given valid credentials, When the user submits login, Then a session token is returned."
 
-**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Most strong FIS files land in the 150-450 line range. If the first-pass draft is pushing past roughly ~600 lines or >18 tasks, pivot at spec time into a small plan bundle with multiple child FIS files instead of leaving the problem for `exec-spec`.
+**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Most strong FIS files land in the 200-500 line range. If the first-pass draft is pushing past roughly ~700 lines or >18 tasks, pivot at spec time into a small plan bundle with multiple child FIS files instead of leaving the problem for `exec-spec`.
 
 **Generic "What We're NOT Doing" section** – use it to record real non-goals or deferrals with reasons, not filler bullets.
 
@@ -101,11 +101,22 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 
 ### 4. Generate FIS
 
-#### Gather Context (as references, not inline content)
+#### Gather Context
 - Technical research from Step 2 (reference `.technical-research.md` — don't inline findings into the FIS)
 - ADRs and the `Architecture` document (see **Project Document Index**); file paths with line numbers for patterns to follow
 - UI wireframes/mockups; design system references; external documentation URLs
 - `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions
+
+#### Resolve Cross-Document References
+
+Walk every upstream document the spec depends on (PRD, plan, ADRs, project guidelines like `Ubiquitous Language` / coding standards / security rules, glossary) and resolve each reference into one of two tiers per the [Cross-Document References](references/fis-authoring-guidelines.md#cross-document-references) guideline (which carries the full rules, the inline budget, and the `.technical-research.md` exclusion):
+
+- **Required Context** — spans the executor *must* know. Extract verbatim, inline as a block in the FIS, pin with `<!-- source: path#anchor -->` and `<!-- extracted: <commit-sha when source is in this repo; YYYY-MM-DD otherwise> -->` comments. Per block: typically 30-100 lines (hard cap 200); total across all blocks ≤ 250 lines.
+- **Deeper Context** — optional supplementary pointers. Emit as `path#heading-slug — description` bullets. Validate each anchor resolves in its source document before finalizing.
+
+The walk is mandatory; the sections themselves are optional based on what's found. Omit Required Context entirely when no load-bearing upstream spans surface; omit Deeper Context when no supplementary pointers are worth surfacing. A truly standalone feature request with no PRD/plan/ADR/guideline upstream legitimately produces neither section — but only after the walk confirms there's nothing to inline or anchor.
+
+A bare "see plan.md" without an anchor or inlined content is not acceptable. The author saw the source; the author names what matters. Code-pattern `file:line` pointers stay inside task descriptions or the `Code Patterns & External References` section — they're not Required/Deeper Context material.
 
 #### Generate from Template
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
@@ -117,7 +128,7 @@ Use the template in the **Appendix** below. Then read and follow the FIS authori
 
 After drafting the first-pass FIS, assess whether it is still execution-sized.
 
-- Oversize signals: the draft is pushing past roughly ~600 lines, exceeds ~18 implementation tasks, spans multiple major execution phases that would likely be executed independently, or feels like a small plan disguised as one spec.
+- Oversize signals: the draft is pushing past roughly ~700 lines, exceeds ~18 implementation tasks, spans multiple major execution phases that would likely be executed independently, or feels like a small plan disguised as one spec.
 - If the draft is still execution-sized, save the single FIS normally.
 - If the draft is oversized **and the input is a standalone feature request / issue / clarification directory**:
   1. Do **not** save the giant single FIS as the primary artifact.

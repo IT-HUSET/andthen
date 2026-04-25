@@ -108,6 +108,7 @@ Cross-consistency notes:
 - Turn unresolved dimensions into discovery questions
 - Capture resolved dimensions as explicit decisions
 - Keep open dimensions visible instead of quietly choosing defaults
+- Decompose only **load-bearing** dimensions — those whose outcome shapes user-visible behavior, scope, or acceptance criteria. Defer implementation-only dimensions to `spec` or `architecture --mode trade-off`. The clarify skill's `Requirements vs. Implementation Boundary` section names the canonical examples on each side.
 
 ### In `trade-off`
 - Compare viable combinations, not imaginary "complete solutions"
