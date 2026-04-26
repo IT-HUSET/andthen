@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants to execute or implement an existing spec or FIS. Implements code from a Feature Implementation Specification. Trigger on 'execute this spec', 'execute this FIS', 'implement this spec', 'implement this FIS', 'build from spec'.
-argument-hint: "<path-to-fis> [--auto|--headless]"
+argument-hint: "<path-to-fis> [--auto|--headless] [--defer-shared-writes]"
 ---
 
 # Execute Feature Implementation Specification
@@ -8,10 +8,11 @@ argument-hint: "<path-to-fis> [--auto|--headless]"
 Execute a fully-defined FIS document as the **executor**. Implement the FIS directly, use sub-agents only for narrow advisory/review work, and complete all validation and status gates before finishing.
 
 ## VARIABLES
-FIS_FILE_PATH: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as the FIS path)
+FIS_FILE_PATH: $ARGUMENTS (strip any `--auto`, `--headless`, `--defer-shared-writes` tokens before interpreting the remainder as the FIS path)
 
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
+- `--defer-shared-writes` → DEFER_SHARED_WRITES: skip direct `plan.md` and `State` document writes (FIS writes still run); emit a `## Deferred Shared Writes (worktree mode)` audit block in the completion report instead. Set automatically by `andthen:exec-plan --team --worktree` to prevent concurrent worktree merges from colliding on shared files. Intended for orchestrated use — see Step 5b.5 for emission format and standalone-use details.
 
 
 ## INSTRUCTIONS
@@ -166,7 +167,40 @@ Lightweight gate – uses Step 4a results, does not re-run checks:
 4. Collect verification evidence from Step 4a: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts); add **Visual validation** and **Runtime** for UI/runtime stories
 
 #### 5b. Update FIS, Source Plan, and Project State
-Update FIS status, source plan (if applicable), and project state via the `andthen:ops` skill. For plan-backed FIS: set the story's Status to `Done`, set the FIS field path, check off acceptance criteria, and mark the story `Done` in the `State` document (see **Project Document Index**) with a short completion note. Re-read to verify updates applied.
+
+Status writes are gates, not bookkeeping. Run each substep in order, then verify before reporting completion. Do not collapse this into a single hand-wave invocation — the failure mode for this step is _silent partial execution at end of context_.
+
+1. **FIS** (always) — invoke the `andthen:ops` skill: `update-fis {FIS_FILE_PATH} all`. Marks task checkboxes, success criteria, and Final Validation Checklist items in one pass.
+
+2. **Source plan** (plan-backed FIS only; **skip if `DEFER_SHARED_WRITES=true`** — defer to orchestrator):
+   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done` — sets the story's Status field, Story Catalog row, and acceptance-criteria checkboxes.
+   - If the plan story row's FIS field is *unset* (empty / `–` / placeholder) or *stale* (path differs from `{FIS_FILE_PATH}` after path normalization): `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} fis "{FIS_FILE_PATH}"`.
+
+3. **State document** (if it exists per **Project Document Index**; **skip if `DEFER_SHARED_WRITES=true`** — defer to orchestrator):
+   - `andthen:ops update-state active-story {STORY_ID} Done` — removes the story from Active Stories.
+   - `andthen:ops update-state note "{one-line completion summary}"`.
+
+4. **Verify** — re-read each updated file:
+   - **FIS**: every task checkbox `[x]`; Final Validation Checklist `[x]`; success criteria `[x]`.
+   - **Plan** (if 5b.2 ran): story row `Done`; acceptance criteria `[x]`; FIS field set.
+   - **State** (if 5b.3 ran): story absent from Active Stories.
+   - Any miss → retry the matching `update-*` once. Persistent failure is Stop-the-Line — do not report completion on missing writes.
+
+5. **Deferred shared writes** — when `DEFER_SHARED_WRITES=true` (typically under `/andthen:exec-plan --team --worktree`), substeps 2 and 3 are deferred so concurrent stories in a wave do not conflict on `plan.md` / `State` document during merge. Skip those invocations and emit this **audit block** in the completion report:
+
+   ```
+   ## Deferred Shared Writes (worktree mode)
+   Story: {STORY_ID}
+   Plan: {PLAN_FILE_PATH}
+   FIS: {FIS_FILE_PATH}
+   Completion summary: {one-line completion summary}
+   ```
+
+   Substitute literal values before emitting. The block is an **audit record and summary source** — the orchestrator constructs the actual `andthen:ops update-*` invocations from these values plus its own knowledge of single-repo vs multi-repo layout, and applies them post-merge (see `andthen:exec-plan` Step 3T Merge Wave). Do not emit a list of `andthen:ops` lines as the consumption format; the orchestrator does not parse it that way.
+
+   Substeps 1 and 4's FIS verification still run in-worktree (FIS is story-local and merges cleanly).
+
+   **Standalone use** (no orchestrator above): the audit block tells the user what to apply. After committing FIS changes, the user runs the same writes the orchestrator would: `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done`; if the plan story row's FIS field is unset or stale, `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} fis "{FIS_FILE_PATH}"`; `andthen:ops update-state active-story {STORY_ID} Done`; and `andthen:ops update-state note "{one-line completion summary}"`. Standalone `--defer-shared-writes` is intended only for users who explicitly want this deferral; do not set it without one.
 
 
 #### 5c. Completion Report

@@ -6,6 +6,19 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.14.4] – 2026-04-26
+
+### Fixed
+- **Status writes no longer dropped under `andthen:exec-plan --team --worktree`** – previously each implementer wrote `plan.md` / `State` document status from inside its own worktree, which collided on every concurrent wave merge (table-row conflicts the merge-conflict taxonomy could not resolve). The `andthen:exec-spec` skill gains a `--defer-shared-writes` flag — set automatically by `andthen:exec-plan --team --worktree` — that skips direct `plan.md` and `State` document writes and emits a `## Deferred Shared Writes (worktree mode)` audit block in the completion report instead (Story / Plan / FIS / Completion summary fields). The orchestrator constructs the actual `andthen:ops update-*` invocations from values it already knows (`STORY_ID`, `FIS_FILE_PATH`, `PLAN_FILE_PATH`) plus the completion summary, and applies them post-merge — on `BASE_BRANCH` in single-repo, in `PLAN_DIR` in multi-repo (`PLAN_DIR ≠ CODE_DIR`). The audit block is summary source, not a parsed script; a missing block is recoverable, not Stop-the-Line. FIS writes still happen in-worktree (story-local, merges cleanly). Implementers are explicitly forbidden from staging or committing `plan.md` / `State` document inside the worktree branch (shadow commits would defeat the deferral). `andthen:exec-plan` Step 2 now fails fast when `--worktree` is set without `--team` (worktree isolation is a team-mode feature). `andthen:exec-spec --defer-shared-writes` standalone is documented as user-applies-manually.
+- **`andthen:exec-spec` Step 5b made prescriptive** – the dense single-paragraph status-write instruction is now five numbered substeps (FIS / Plan / State / Verify / Deferred shared writes) listing exact `andthen:ops update-*` invocations, so end-of-context "summarize and exit" no longer skips any of the four required writes.
+- **`andthen:exec-plan` worktree cleanup made concrete** – the per-merge `Clean up worktree and branch` step (Step 3T Merge Wave step 5) and the post-phases sentence previously hand-waved cleanup with a `git worktree prune` reference that only purges admin records. Per-merge cleanup now spells out `git worktree remove` + `git branch -D story-{task_id}` with porcelain-driven path resolution and a clean-status sanity check, since the implementer's session-scoped `ExitWorktree(keep)` cannot be reversed cross-session by the orchestrator. Post-phases adds a five-step **Final Worktree Teardown** (inventory `story-*`, classify merged vs unmerged via `merge-base --is-ancestor`, remove only merged ones — preserving unmerged work as the only artifact, then prune + verify); FAILURE HANDLING now mandates the same teardown on failure exits, ending the cross-run leftover accumulation.
+
+### Changed
+- **`andthen:exec-plan` Writes-Landed Checklist** – Step 3c's one-line "re-read plan.md and FIS to confirm" is replaced with a structured per-story checklist (FIS task/Final Validation/success criteria, plan story row, plan story section, `State` Active Stories) the orchestrator must tick before advancing; Step 3T references the same checklist with mode-conditional source-of-truth notes. Wave N+1 worktree creation is also gated on orchestrator-applied writes (deferred shared writes, repair writes, phase transitions) being committed to `BASE_BRANCH`, not just on Wave N merges completing.
+
+
+---
+
 ## [0.14.3] – 2026-04-24
 
 ### Added

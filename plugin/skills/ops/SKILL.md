@@ -103,14 +103,21 @@ Previous: {older milestone list, if any}
 ```
 
 #### Update Plan Status
-Update story status fields in `plan.md`:
+Update story status or FIS-field on a plan story row:
 
-**Usage**: `update-plan <plan_path> <story_id> <status>`
+**Usage**:
+- Set status: `update-plan <plan_path> <story_id> <status>`
+- Set FIS field: `update-plan <plan_path> <story_id> fis "<fis_path>"`
 
-Actions:
+Actions for status form:
 - Set story **Status** field: `Pending` → `Spec Ready` → `In Progress` → `Done`
 - Update Story Catalog table status column
 - When setting to `Done`: check off all acceptance criteria checkboxes
+
+Actions for `fis` form:
+- Set the `**FIS**` field on the story's section header to `<fis_path>`
+- Update the Story Catalog table FIS column to `<fis_path>`
+- No-op if the field already equals `<fis_path>` (path-normalized)
 
 #### Update FIS Checkboxes
 Check off task/criteria checkboxes in a FIS document:
