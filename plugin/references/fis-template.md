@@ -194,3 +194,10 @@ _Replace examples above with your actual tasks. Format: outcome + context line +
 - [ ] **All tasks** fully completed, verified, and checkboxes checked
 - [ ] **No regressions** or breaking changes introduced
 - [ ] **UI verified** to match requirements (if applicable)
+
+
+## Implementation Observations
+
+> _Managed by exec-spec post-implementation — append-only. Each execution run that produces observations adds a dated `### Run:` block recording out-of-scope items (`NOTICED BUT NOT TOUCHING`) and any AUTO_MODE assumptions. Available as a backlog for follow-up review/refactor work in this area. Spec authors: leave this section empty._
+
+_No observations recorded yet._

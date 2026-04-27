@@ -25,7 +25,7 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 
 - Require `INPUT`. Stop if missing.
 - **Interactive process** — ask questions iteratively and wait for user input before proceeding. Recommending an answer is allowed (see Step 2); treating it as confirmed without user input is not.
-- **Check before asking** — if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm.
+- **Check before asking** — if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm. *Exception:* a prior clarification doc is a baseline to amend (see Step 1 *Amendment check*), not a lookup that closes discovery.
 - Challenge assumptions, find edge cases, identify ambiguities.
 - Clarify requirements, do not design solutions.
 
@@ -41,7 +41,7 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 ## GOTCHAS
 - Agent answers its own questions instead of waiting for user input
 - Treating a recommended answer as confirmed when the user hasn't addressed it
-- Asking the user things that are already answerable from the codebase or existing docs
+- Asking the user things that are already answerable from the codebase or existing docs (except a prior clarification doc in amendment mode — that is a baseline to extend)
 - Scope creep: expanding beyond the original request
 - Jumping to solution design instead of requirement discovery
 - Decomposing implementation-only dimensions during design space decomposition (see boundary above) — note that load-bearing technical questions that shape user-visible behavior, scope, or acceptance criteria *are* fair game
@@ -52,12 +52,13 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 ### 1. Parse and Assess Input
 
 1. **Parse INPUT** - Determine type: inline description, file path, `--issue`, or URL
-   - If `--issue <number>` flag present (or INPUT is a GitHub issue URL): fetch the body with `gh issue view <number>` and use its content as raw requirements input. Store the issue number for reference in the output header.
+   - If `--issue <number>` flag present (or INPUT is a GitHub issue URL): fetch the body with `gh issue view <number>` and use its content as raw requirements input. Store the issue number for reference in the output header. On re-invocation against an existing `issue-{n}-*/` directory, the issue body becomes the delta and *Amendment check* below applies.
    - If file path: Read and extract requirements
    - If URL: Fetch and extract requirements
    - If description: Use directly
+   - **Amendment check** — derive a feature slug from INPUT, then check if `OUTPUT_DIR/<slug>/` (or a path in INPUT) contains a prior clarification doc — recognised by an `# Requirements Clarification:` H1 or a `Decisions Log` table, any filename, never a `prd.md` or FIS file. If yes, switch to **amendment mode**: existing doc = baseline, INPUT = delta. Re-run Step 2 *Discovery Interview* only for new or still-open gaps; Step 3 updates the baseline in place at its existing path. Multiple matches: prefer most-recently-modified. A prior doc is a baseline to extend, not an authority that closes discovery.
 
-2. **Initial assessment** - Document what's explicitly stated, what's assumed, what's missing
+2. **Initial assessment** - Document what's explicitly stated, what's assumed, what's missing (amendment mode: only what the delta adds, changes, or contradicts)
 
 3. **Gap identification** - List gaps in: functional requirements, user flows, edge cases, success criteria, scope boundaries
 
@@ -79,7 +80,7 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 
 ### 2. Discovery Interview
 
-Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then stop and wait for the user's response before continuing. Iterate until no major gaps remain.
+Ask targeted questions based on identified gaps and unresolved design dimensions. Ask 3-5 questions at a time, then stop and wait for the user's response before continuing. Iterate until no major gaps remain. **Amendment mode**: scope questions and the gate to delta-introduced gaps only — do not re-ask resolved baseline questions.
 
 **Recommend, don't decide.** Offer a best-guess answer with a one-line rationale for each question so the user can ratify or redirect. If you have no defensible basis, ask open-ended instead of fabricating one. Wait for input either way — unaddressed recommendations are unanswered, not confirmed.
 
@@ -94,7 +95,7 @@ Cover these areas when relevant: scope & boundaries (in/out of scope, MVP, defer
 
 ### 3. Consolidate Requirements
 
-Structure all findings into comprehensive requirements document:
+Structure all findings into comprehensive requirements document (amendment mode: preserve unchanged sections verbatim, add missing template sections only when the delta requires them):
 1. **Summary** - 2-3 sentences: what, who, core value
 2. **Scope definition** - In scope, out of scope, MVP boundary
 3. **Not Doing (for now)** - Explicit non-goals or deferred items with brief reasons
@@ -112,7 +113,7 @@ Structure all findings into comprehensive requirements document:
 
 ### 4. Validation
 
-Review consolidated requirements: all user flows have clear steps; design space decomposition constructed with decisions resolved or flagged; wireframes included if applicable; edge cases identified; scope boundaries explicit; **Not Doing** items specific and justified; success criteria specific and testable; no contradictions; dependencies documented; no vague undefined terms.
+Review consolidated requirements: all user flows have clear steps; design space decomposition constructed with decisions resolved or flagged; wireframes included if applicable; edge cases identified; scope boundaries explicit; **Not Doing** items specific and justified; success criteria specific and testable; no contradictions; dependencies documented; no vague undefined terms. In amendment mode, validate the *merged* document, not just the delta — contradictions between delta and untouched baseline must be caught here.
 
 Fix any issues found before finalizing.
 

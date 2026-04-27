@@ -24,7 +24,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or
 - **Execution discipline** — Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
 - **Direct execution** — implement the code yourself. Sub-agents are for advisory work, review, and validation only.
-- **Surgical scope; surface — don't fix** — every changed line should trace to a FIS task. Clean only orphans your own changes caused (an import you made unused, a helper your refactor stranded). Pre-existing issues outside that orphan radius — including lint/analyzer warnings, dead code, typos, and small co-located bugs *inside files you touch* — go into a `NOTICED BUT NOT TOUCHING` block in the completion report; do not fix inline. Boy Scout cleanup is reserved for review/refactor skills (the `andthen:review`, `andthen:quick-review`, `andthen:refactor`, and `andthen:architecture` skills), not exec-spec. See **Workflow Rules, Guardrails and Guidelines** in the project `CLAUDE.md`.
+- **Surgical scope; surface — don't fix** — every changed line should trace to a FIS task. Clean only orphans your own changes caused (an import you made unused, a helper your refactor stranded). Pre-existing issues outside that orphan radius — including lint/analyzer warnings, dead code, typos, and small co-located bugs *inside files you touch* — go into a `NOTICED BUT NOT TOUCHING` block in working notes during the run, are persisted to the FIS's `## Implementation Observations` section at completion (Step 5b), and are surfaced as a brief pointer (not a full duplicate) from the completion report; do not fix inline. Boy Scout cleanup is reserved for review/refactor skills (the `andthen:review`, `andthen:quick-review`, `andthen:refactor`, and `andthen:architecture` skills), not exec-spec. See **Workflow Rules, Guardrails and Guidelines** in the project `CLAUDE.md`.
 - **Anti-rationalization** — if you catch yourself skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate, reject these common rationalizations:
   - "I'll verify after the next group" — defects compound; verify before more work builds on a bad assumption.
   - "This failing check is probably unrelated" — Stop-the-Line applies.
@@ -110,7 +110,7 @@ On any failure: emit `BLOCKED: <FIS_FILE_PATH> missing: <comma-separated list of
 11. Initialize working notes you will maintain during the run:
    - Per-task status
    - `changed-files`
-   - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, or `MISSING REQUIREMENT` items
+   - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, `MISSING REQUIREMENT`, or AUTO_MODE `ASSUMPTION` items
 
 ### Step 3: Implement
 Implement the FIS yourself, task by task, in the order listed.
@@ -178,7 +178,9 @@ Lightweight gate – uses Step 4a results, does not re-run checks:
 
 Status writes are gates, not bookkeeping. Run each substep in order, then verify before reporting completion. Do not collapse this into a single hand-wave invocation — the failure mode for this step is _silent partial execution at end of context_.
 
-1. **FIS** (always) — invoke the `andthen:ops` skill: `update-fis {FIS_FILE_PATH} all`. Marks task checkboxes, success criteria, and Final Validation Checklist items in one pass.
+1. **FIS** (always) — invoke the `andthen:ops` skill:
+   - `update-fis {FIS_FILE_PATH} all` — Marks task checkboxes, success criteria, and Final Validation Checklist items in one pass.
+   - **Persist observations** (if any): if working notes contain `NOTICED BUT NOT TOUCHING` items or AUTO_MODE `ASSUMPTION` records, format them as a markdown body with `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)` subsections (each item one line, file:line if applicable), then invoke `update-fis {FIS_FILE_PATH} observations '{body}'`. Skip when both lists are empty. The ops skill appends a timestamped `### Run:` block to the FIS's `## Implementation Observations` section (creating the section if absent).
 
 2. **Source plan** (plan-backed FIS only; **skip if `DEFER_SHARED_WRITES=true`** — defer to orchestrator):
    - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done` — sets the story's Status field, Story Catalog row, and acceptance-criteria checkboxes.
@@ -189,7 +191,7 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
    - `andthen:ops update-state note "{one-line completion summary}"`.
 
 4. **Verify** — re-read each updated file:
-   - **FIS**: every task checkbox `[x]`; Final Validation Checklist `[x]`; success criteria `[x]`.
+   - **FIS**: every task checkbox `[x]`; Final Validation Checklist `[x]`; success criteria `[x]`. If observations were persisted, the `## Implementation Observations` section contains a new `### Run:` block dated to this run.
    - **Plan** (if 5b.2 ran): story row `Done`; acceptance criteria `[x]`; FIS field set.
    - **State** (if 5b.3 ran): story absent from Active Stories.
    - Any miss → retry the matching `update-*` once. Persistent failure is Stop-the-Line — do not report completion on missing writes.
@@ -212,7 +214,7 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
 
 
 #### 5c. Completion Report
-Report: per-task status, files created/modified, verification evidence, any unresolved low-priority issues or `NOTICED BUT NOT TOUCHING` items.
+Report: per-task status, files created/modified, verification evidence, and a brief summary of any persisted observations. Full `NOTICED BUT NOT TOUCHING` and `ASSUMPTIONS` details now live in the FIS's `## Implementation Observations` section (written in Step 5b.1) — reference the section, do not duplicate the full list in the report.
 
 ## Post-Completion
 If the `Learnings` document (see **Project Document Index**) exists, capture story-level traps, domain knowledge, procedural knowledge, and error patterns. Organize by topic, not chronology. Keep entries brief (1-2 sentences). Do not create a new `Learnings` document unless one already exists.

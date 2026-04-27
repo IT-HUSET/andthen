@@ -6,6 +6,16 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.15.2] – 2026-04-27
+
+### Added
+- **`## Implementation Observations` section in FIS** – `andthen:exec-spec` now persists `NOTICED BUT NOT TOUCHING` items and AUTO_MODE `ASSUMPTION` records to a new bottom section in the FIS at completion (Step 5b.1) instead of losing them with the conversational completion report. Append-only with a UTC-stamped `### Run:` block per execution; `andthen:ops` gains an `update-fis <fis_path> observations <body>` form with body-content guardrails (`####`-or-deeper headings only; no nested `##` or `### Run:`) and idempotent retry under exec-spec's retry-once protocol. FIS template grows the new section with a placeholder; Step 2.11 working-notes bucket extended to track `ASSUMPTION` items so AUTO_MODE persistence is wired end-to-end; Core Rules and Step 5c surface the section as a brief pointer rather than duplicating the list.
+
+### Fixed
+- **`andthen:clarify` re-invocation amends prior clarification docs instead of refusing them** – previously a second invocation hit the agent's "already answerable from existing docs" guard and stopped, citing the prior clarification as authoritative. Step 1 now detects a prior doc under the derived feature slug (positive markers: `# Requirements Clarification:` H1 or `Decisions Log` table; negative guard: never `prd.md` or FIS, any filename) and switches to **amendment mode** — existing doc = baseline, INPUT = delta — with no new flag. Steps 2/3/4 each gain an in-line amendment-mode branch (delta-scoped questions, in-place section preservation, merged-doc validation); INSTRUCTIONS *Check before asking* and the matching GOTCHA name the amendment exception so the regression cannot re-route through them. `--issue` re-invocations against an existing `issue-{n}-*/` directory compose with amendment.
+
+---
+
 ## [0.15.1] – 2026-04-27
 
 ### Added

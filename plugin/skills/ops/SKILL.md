@@ -123,16 +123,35 @@ Actions for `fis` form:
 - Update the Story Catalog table FIS column to `<fis_path>`
 - No-op if the field already equals `<fis_path>` (path-normalized)
 
-#### Update FIS Checkboxes
-Check off task/criteria checkboxes in a FIS document:
+#### Update FIS
+Mutate a FIS document — mark checkboxes or append implementation observations.
 
-**Usage**: `update-fis <fis_path> <task_id|all>`
+**Usage**:
+- Mark checkboxes: `update-fis <fis_path> <task_id|all>`
+- Append observations: `update-fis <fis_path> observations <markdown-body>`
 
-Actions:
+Actions for `<task_id|all>` form:
 - When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
 - When `task_id` is `all`: Mark ALL unchecked task checkboxes (`- [ ]` → `- [x]`), all success criteria checkboxes, and all Final Validation Checklist items in one pass
 - Before marking done, verify that evidence of completion exists — the calling skill should have already performed verification. Do not re-run full verification; check that it was performed, not that it passes again.
 - When all tasks are done (or using `all`): also mark success criteria and Final Validation Checklist items
+
+Actions for `observations` form:
+- `<markdown-body>` is freeform multi-line markdown passed verbatim — quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape.
+- Body constraints: the caller MUST format `<markdown-body>` using `####`-or-deeper headings only (typically `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)`). The body MUST NOT contain `## ` headings or another `### Run:` line — these would visually close the section and break the append protocol. Reject (no-op + `BLOCKED: invalid observations body`) if the body violates these constraints.
+- Locate the `## Implementation Observations` section. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
+- If the placeholder line `_No observations recorded yet._` is present, remove it (exact-string match only; no-op otherwise).
+- Resolve a timestamp: prefer `date -u +"%Y-%m-%d %H:%M UTC"` so all run blocks share a single timezone and ordering is unambiguous.
+- Normalize whitespace: ensure exactly one blank line precedes the new run block and the previous block ends with a trailing newline.
+- Append the new run block to the section:
+  ```
+  ### Run: {YYYY-MM-DD HH:MM UTC}
+
+  {markdown-body}
+  ```
+- No-op if `<markdown-body>` is empty or whitespace-only.
+- **Idempotent retry**: if the most recent existing `### Run:` block has identical `<markdown-body>` (whitespace-normalized) AND its timestamp is within 2 minutes of the resolved timestamp, no-op — the call is a retry of an already-applied write. This makes the operation safe under exec-spec's Step 5b.4 retry-once protocol.
+- Append-only otherwise: never rewrite or remove prior `### Run:` blocks.
 
 
 ### 2. Git Operations
