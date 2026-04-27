@@ -127,7 +127,7 @@ Codex agent files are generated from these Claude agent files at install time by
 /andthen:refactor src/utils/
 
 # Trade-off analysis — evaluate architectural options, compare alternatives, write an ADR
-/andthen:architecture "caching strategy for API responses" --mode trade-off
+/andthen:architecture --mode trade-off "caching strategy for API responses"
 
 # Architecture health check
 /andthen:architecture src/
@@ -152,19 +152,19 @@ Codex agent files are generated from these Claude agent files at install time by
 /andthen:architecture
 
 # Full architecture health assessment
-/andthen:architecture src/ --mode review
+/andthen:architecture --mode review src/
 
 # Evaluate a split/merge decision
-/andthen:architecture src/core --mode decompose
+/andthen:architecture --mode decompose src/core
 
 # Propose fitness functions for architectural governance
 /andthen:architecture --mode fitness
 
 # Design/advisory guidance grounded in CUPID, DDD, and architectural frameworks
-/andthen:architecture "should I use event sourcing for the order domain" --mode advise
+/andthen:architecture --mode advise "should I use event sourcing for the order domain"
 
 # Trade-off analysis — compare options with weighted criteria, produce an evidence-based recommendation or ADR
-/andthen:architecture "SQL vs document DB for the events store" --mode trade-off
+/andthen:architecture --mode trade-off "SQL vs document DB for the events store"
 
 # Supports multi-step sessions — after any run, continue with another mode
 # (e.g. advise → trade-off → formal ADR, or review → decompose → fitness)
@@ -226,20 +226,20 @@ Codex agent files are generated from these Claude agent files at install time by
 # 3a. Create the PRD
 /andthen:prd docs/specs/dashboard/
 /andthen:prd --issue 42            # read from a GitHub issue
-/andthen:prd docs/specs/dashboard/ --to-issue   # publish PRD to a GitHub issue for stakeholder review
+/andthen:prd --to-issue docs/specs/dashboard/   # publish PRD to a GitHub issue for stakeholder review
 
 # 3b. Create the full plan bundle (story breakdown + FIS for every story)
 /andthen:plan docs/specs/dashboard/
 # Cheap planning pass (plan.md only, skip FIS generation):
-/andthen:plan docs/specs/dashboard/ --skip-specs
+/andthen:plan --skip-specs docs/specs/dashboard/
 
 # 4a. Execute all stories via pipeline (default per-story review)
 /andthen:exec-plan docs/specs/dashboard/
 
 # 4b. OR use Agent Teams for enhanced parallelism (Claude Code only)
-/andthen:exec-plan docs/specs/dashboard/ --team
+/andthen:exec-plan --team docs/specs/dashboard/
 # Or with worktree isolation for parallel execution:
-/andthen:exec-plan docs/specs/dashboard/ --team --worktree
+/andthen:exec-plan --team --worktree docs/specs/dashboard/
 
 # 4c. OR execute story by story manually (plan already produced FIS for every story):
 /andthen:exec-spec docs/specs/dashboard/s01-project-setup.md

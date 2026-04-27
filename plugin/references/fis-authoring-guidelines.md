@@ -88,7 +88,7 @@ Include the template's **Execution Contract** section near the bottom of the Imp
    - Strong: `Verify: traces list output includes columns IN_TOKENS, OUT_TOKENS, CACHE_R, CACHE_W`
 
    Rule of thumb: if you prescribed a specific format, column name, file path, or string in the FIS — put it in the Verify line verbatim.
-6. Most good FIS files land in the 200-500 line range. Once a draft starts pushing past roughly ~700 lines or more than ~18 tasks, that is a strong signal that this is no longer one execution-sized spec. For standalone feature requests, prefer a spec-time decomposition pivot into a small plan bundle plus child FIS files. For `story {story_id} of plan.md` inputs, do **not** fan one plan story out into multiple child specs — decompose the plan upstream instead.
+6. Most good FIS files land in the 200-500 line range. Once a draft starts pushing past roughly ~700 lines or more than ~18 tasks, that is a strong signal that this is no longer one execution-sized spec. For standalone feature requests, do **not** save the oversized FIS — redirect the user to the `/andthen:prd → /andthen:plan → /andthen:exec-plan` chain so the work goes through proper PRD-backed planning. For `story {story_id} of plan.md` inputs, do **not** fan one plan story out into multiple child specs — escalate for upstream plan decomposition instead.
 7. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
 8. Make **What We're NOT Doing** explicit: 3-5 specific exclusions or deferrals with reasons. Use it to preserve scope boundaries across sessions, not as filler.
 9. Include the **Execution Contract** section from the template. Keep it consistent unless the feature truly needs extra execution-specific constraints.
@@ -123,7 +123,7 @@ For each FIS Success Criterion, name the plan acceptance criterion, PRD outcome,
 
 **Resolution depends on mode:**
 
-- **Batch sub-agent mode** (from the `andthen:plan` skill) — sub-agents check Success Criteria against plan-level sources **plus the PRD proxy** (the technical research's "Binding PRD Constraints" section, which carries pre-validated PRD anchors and verbatim spans). A criterion that traces to either is sourced; only criteria with no plan-level *and* no PRD-proxy source are candidates for phantom-scope reporting. For each candidate, either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate — at Step 7's cross-cutting review the orchestrator filters once more against the full `prd.md` to catch any constraint missed by the proxy. Do not rationalize by adding scope notes. Do not edit `plan.md` or `prd.md`.
+- **Batch sub-agent mode** (from the `andthen:plan` skill) — sub-agents check Success Criteria against plan-level sources **plus the binding-PRD-constraints extraction** in the technical research (verbatim text + heading anchor for each binding entry). A criterion that traces to either is sourced; only criteria with no plan-level *and* no extraction source are candidates for phantom-scope reporting. For each candidate, either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate — at Step 7's cross-cutting review the orchestrator filters once more against the full `prd.md` to catch any constraint missed by the extraction. Do not rationalize by adding scope notes. Do not edit `plan.md` or `prd.md`.
 - **Standalone mode**: (a) remove, or (b) raise with the user and — on approval — add a scope note documenting the proposed addition for plan/PRD amendment.
 - **Standalone with no plan or PRD at all**: accept the criterion only if it traces to a user- or business-observable outcome in the feature request. "Uses X library", "refactors Y" are phantom scope absent a user-facing reason.
 
@@ -134,7 +134,7 @@ Do not finalize a FIS with Success Criteria the upstream contract doesn't justif
 
 Quick sanity check before saving:
 - [ ] **Template structure**: FIS follows the template; ADR states the decision; no over-specification or code snippets >5 lines
-- [ ] **Size check**: 200-500 lines is the sweet spot; >700 lines or >18 tasks means split upstream — spec-time pivot for standalone requests, escalate to plan decomposition for plan-story input
+- [ ] **Size check**: applies the threshold from Key Generation Guidelines #6
 - [ ] **Scope-consistency**: every "In Scope" item is exercised by a scenario or Verify line; `What We're NOT Doing` is specific and never contradicts a Success Criterion
 - [ ] **Coverage**: every Success Criterion has a proof path (scenario or Verify line); scenarios cover happy path, edge cases, one error case; negative-path checklist applied; plan Key Scenario seeds all mapped (if plan-derived); output shapes specified when structured output is a Success Criterion
 

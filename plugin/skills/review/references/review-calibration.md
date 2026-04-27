@@ -5,6 +5,13 @@ Universal calibration principles for all review skills. Load this reference befo
 > **Purpose**: Checklists tell you *what* to look for; this reference shows *how rigorously* to look.
 > Models trend toward leniency — identifying real issues then rationalizing them away. This reference counteracts that bias.
 
+> **Two-direction adversarial review.** Red-Team finds; Findings Filter prunes. Both load, neither replaces the other, and the lens calibrations now triangulate instead of pulling toward leniency.
+
+**Directional split**:
+- `review-calibration.md` plus the lens-specific calibration assigns proportional severity.
+- `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` pushes the finding pass toward recall by attacking assumptions and unhappy paths.
+- `adversarial-challenge.md` runs the Findings Filter pass that prunes weak, duplicate, or unsupported findings after collection.
+
 **Domain-specific calibration** (load after this file):
 - Code/implementation and gap review: `code-review-calibration.md`
 - Document review (specs, plans, PRDs): `doc-review-calibration.md`

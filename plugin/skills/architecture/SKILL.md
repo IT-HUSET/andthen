@@ -1,7 +1,7 @@
 ---
 description: Use for architecture design, review, decomposition, trade-off analysis, ADRs, CUPID/DDD guidance, and fitness functions. Operates in five modes — `review`, `decompose`, `advise`, `fitness`, `trade-off` — runnable singly or as a chain (e.g. `--mode review,fitness`). Trigger on 'architecture review', 'design architecture', 'CUPID', 'DDD', 'bounded context', 'should we split this module', 'should we merge these packages', 'propose fitness functions', 'compare options', 'trade-off', 'write an ADR', 'which approach'.
 user-invocable: true
-argument-hint: "[scope/path] [--mode <mode>[,<mode>...]] [--to-pr <number>] [--auto|--headless]"
+argument-hint: "[--mode <mode>[,<mode>...]] [--to-pr <number>] [--auto|--headless] [scope/path]"
 ---
 
 # Architecture
@@ -10,7 +10,7 @@ Architectural design, analysis, decomposition evaluation, trade-off research, an
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as scope/mode/topic)
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--to-pr`, `--count`, `--output-dir`, `--auto`, or `--headless` before interpreting the remainder as scope/topic)
 
 ### Mode (auto-detected from arguments or explicit `--mode`)
 
@@ -120,10 +120,10 @@ Execute the selected mode by following its mode-reference file. For multi-mode i
 
 **Gate**: Mode work complete with evidence-based findings or an evidence-based recommendation
 
-### Phase 3: Adversarial Challenge
+### Phase 3: Findings Filter
 
-Use `references/adversarial-challenge.md` (`Generic Findings-Challenger Template`) with:
-- **Role**: `Adversarial Challenger reviewing architecture findings`
+Use `references/adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
+- **Role**: `Findings Filter reviewing architecture findings`
 - **Shared calibration**: `references/review-calibration.md`
 - **Skill calibration**: `references/architecture-calibration.md`
 - **Context block**: `The codebase/decision under review is a {project description and scale}. Primary language: {language or N/A}. Mode: {mode}. Scope: {scope}. Project stage: {from discovery}.` For multi-mode chains, render `{mode}` as the comma-separated list in declared order and tag each finding with the mode that produced it so the challenger applies the right reasoning to each.
@@ -137,7 +137,7 @@ Use `references/adversarial-challenge.md` (`Generic Findings-Challenger Template
 
 Apply verdicts before writing the final report.
 
-**Gate**: Findings challenged and filtered
+**Gate**: Findings filtered
 
 ### Phase 4: Report
 

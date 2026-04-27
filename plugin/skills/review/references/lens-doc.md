@@ -20,20 +20,29 @@ Review the document through these lenses and record only issues relevant to the 
 - **Scope and architecture**: explicit in/out-of-scope boundaries, phase boundaries, architecture soundness, and signs of disproportionate complexity
 - **Stakeholder fit**: user needs, success criteria, UX/error-state coverage
 
-If the document is a FIS, verify it still follows the structure and intent-first authoring rules from `fis-authoring-guidelines.md`.
+If the document is a FIS, verify it still follows the structure and intent-first authoring rules from [`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md).
+
+
+## Red-Team Sub-Lens (Always On)
+
+Run `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` against the document as an always-on sub-lens. Attack ambiguous requirements, missing unhappy paths, hidden implementation guesses, contradiction-prone terminology, and places where an implementer would have to infer behavior not stated in the artifact.
+
+Merge red-team findings into the normal document review findings before calibration and filtering. Do not treat Red-Team as a separate mode or an optional escalation.
 
 
 ## Calibration
 
-Calibrate severity with `review-calibration.md` (universal) and `doc-review-calibration.md` (doc-specific). Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
+Calibrate severity with `review-calibration.md` (universal) and `doc-review-calibration.md` (doc-specific). Load `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` while running the always-on Red-Team sub-lens; use the document-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
 
 
-## Adversarial Challenge
+## Findings Filter
 
-Run the full adversarial challenge only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples, adjust severity, and withdraw findings that don't hold up. Add one line: "Applied inline severity calibration (adversarial challenge skipped: no Critical findings and ≤5 total)."
+This pass cannot find new issues; that is the Red-Team Lens's job (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`).
 
-**Full challenge** (when triggered): Use `adversarial-challenge.md` (`Generic Findings-Challenger Template`) with:
-- **Role**: `Adversarial Challenger reviewing document review findings`
+Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples, adjust severity, and withdraw findings that don't hold up. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
+
+**Full filter** (when triggered): Use `adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
+- **Role**: `Findings Filter reviewing document review findings`
 - **Shared calibration**: `review-calibration.md`
 - **Skill calibration**: `doc-review-calibration.md`
 - **Context block**: `Document type, path, project scale/stage context from discovery.`
@@ -75,7 +84,7 @@ After producing findings, classify the dominant pattern and name the right downs
 
 ```markdown
 ## Executive Summary
-Overall assessment, high-level findings, challenge stats, key recommendations
+Overall assessment, high-level findings, Findings Filter stats, key recommendations
 
 ## Scope and Context
 

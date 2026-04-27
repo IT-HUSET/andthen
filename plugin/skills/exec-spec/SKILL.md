@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants to execute or implement an existing spec or FIS. Implements code from a Feature Implementation Specification. Trigger on 'execute this spec', 'execute this FIS', 'implement this spec', 'implement this FIS', 'build from spec'.
-argument-hint: "<path-to-fis> [--auto|--headless] [--defer-shared-writes]"
+argument-hint: "[--auto|--headless] [--defer-shared-writes] <path-to-fis>"
 ---
 
 # Execute Feature Implementation Specification
@@ -8,7 +8,7 @@ argument-hint: "<path-to-fis> [--auto|--headless] [--defer-shared-writes]"
 Execute a fully-defined FIS document as the **executor**. Implement the FIS directly, use sub-agents only for narrow advisory/review work, and complete all validation and status gates before finishing.
 
 ## VARIABLES
-FIS_FILE_PATH: $ARGUMENTS (strip any `--auto`, `--headless`, `--defer-shared-writes` tokens before interpreting the remainder as the FIS path)
+FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--defer-shared-writes` before interpreting the remainder as the FIS path)
 
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
@@ -21,8 +21,8 @@ FIS_FILE_PATH: $ARGUMENTS (strip any `--auto`, `--headless`, `--defer-shared-wri
 - Require `FIS_FILE_PATH`. Stop if missing.
 - **Complete implementation** — 100% required. Reporting incomplete work with a caveat is **not** completion.
 - **FIS is source of truth** — follow it exactly.
-- **Execution discipline** — Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See `references/execution-discipline.md`.
-- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Resolve routine ambiguity with the most conservative FIS-preserving implementation, record assumptions in the completion report, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and stop with `BLOCKED:` (listing the minimum missing decisions) only for missing/unreadable FIS, unsafe external actions, or a FIS contradiction that makes no defensible implementation possible.
+- **Execution discipline** — Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
+- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
 - **Direct execution** — implement the code yourself. Sub-agents are for advisory work, review, and validation only.
 - **Boy Scout in touch radius** — within files you modify, fix the obvious pre-existing issues you'd encounter anyway: lint/analyzer warnings, unused imports, dead code, typos, small co-located bugs. Defer only with a one-line reason in the completion report; never with the bare disclaimer "did not touch pre-existing errors". Do not expand into untouched files in the name of cleanup.
 - **Anti-rationalization** — if you catch yourself skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate, reject these common rationalizations:
@@ -76,22 +76,30 @@ Usage rules:
 - **FIS references get stale if spec was updated** – always re-read the FIS
 - **Not signaling active-story status to the `State` document when called in a plan context** – read the location from the **Project Document Index** and set "In Progress" at start
 - **Treating spec size or difficulty as permission to narrow scope** – exec-spec executes the FIS it was given; if the spec should have been split, that is an upstream spec-quality problem, not a license to land a subset and stop
-- **Giving up on a red gate and reporting it as completion** – red build/test/lint/Verify is Stop-the-Line work (Core Rules + Step 4d objective-gate policy), not a delivery caveat. The one-pass rule in 4d applies to subjective review findings, not to objective 4a checks.
 
 
 ## WORKFLOW
 
 ### Step 1: Resolve FIS and Story Context
 1. Require a local `FIS_FILE_PATH`. Stop if the argument is missing or does not resolve to a readable file.
-2. Extract story context from the FIS filename prefix for plan-backed specs (e.g. `s01-feature-name.md` → `S01`) into `STORY_ID`. For single-feature specs not derived from a plan, leave `STORY_ID` empty.
-3. If the FIS references a source `plan.md` (`**Plan**:` field or a sibling `plan.md` in the same directory), record it as `PLAN_FILE_PATH` for Step 5b updates.
+2. Read the FIS header (lines between the H1 and the first `## ` heading) and extract `STORY_ID` from `**Story-ID**:` and `PLAN_FILE_PATH` from `**Plan**:`. These provenance fields are the authoritative source.
+   - If either field is absent (0.14.x FIS without provenance): fall back to filename-prefix extraction (e.g. `s01-feature-name.md` → `S01`) and sibling-`plan.md` lookup. Emit to stdout: `WARN: FIS missing **Plan**:/**Story-ID**: provenance fields; using filename/sibling fallback (re-spec to upgrade)`. For single-feature specs not derived from a plan, leave `STORY_ID` empty.
+3. Record `PLAN_FILE_PATH` for Step 5b updates when the FIS is plan-backed.
 
 **Gate**: `FIS_FILE_PATH` exists; `STORY_ID` and `PLAN_FILE_PATH` captured when the FIS is plan-backed
 
 ### Step 2: Read and Prepare
+
 1. Read the full FIS at _`FIS_FILE_PATH`_
+
+**Structural integrity guard** — after reading the full FIS, verify it is well-formed before any destructive work. Apply the three conditions from [`${CLAUDE_PLUGIN_ROOT}/references/data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (FIS Structural Integrity Contract section):
+1. `## Success Criteria` heading exists and its span contains at least one `- [ ] ` line.
+2. `## Implementation Plan` heading exists and its span contains at least one task with a Verify line.
+3. `## Final Validation Checklist` heading exists.
+
+On any failure: emit `BLOCKED: <FIS_FILE_PATH> missing: <comma-separated list of failed sections>` and stop. Do not read upstream documents, do not enter Step 3.
 2. Understand the sections that define execution: Success Criteria, Scenarios, Scope & Boundaries, Architecture Decision, Technical Overview, Implementation Plan, Testing Strategy, Validation, and Final Validation Checklist
-3. **Process Required / Deeper Context** – the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution. Do not re-read their source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional — read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source (any reasonable check that confirms the slug or `<a id="...">` exists) and warn (do not stop) on broken anchors. **Legacy FIS fallback**: a FIS authored before these sections existed will have neither. Fall back to reading whatever upstream documents the FIS references through pre-existing structures: the old `## References & Constraints` heading and its `### Documentation & References` table (which used `file|doc|url|wire` rows), or prose mentions of plan/PRD/ADR. Resolve these references the same way as before this contract existed.
+3. **Process Required / Deeper Context** – the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution. Do not re-read their source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional — read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source (any reasonable check that confirms the slug or `<a id="...">` exists) and warn (do not stop) on broken anchors.
 4. **Read Technical Research** – if the FIS references a `.technical-research.md`, read it before making code changes. Treat findings as leads to verify, not facts to trust.
 5. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant
 6. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
@@ -110,7 +118,7 @@ Implement the FIS yourself, task by task, in the order listed.
 For each task:
 1. Implement the outcome described
 2. Run the task's **Verify** line before proceeding to the next task
-3. **If Verify fails**: remediate the current task before advancing (Stop-the-Line). Do not mark the task complete or advance while Verify is red. Raise `CONFUSION` / `MISSING REQUIREMENT` if the FIS itself is the problem.
+3. **If Verify fails**: remediate the current task before advancing. Do not mark the task complete or advance while Verify is red. Raise `CONFUSION` / `MISSING REQUIREMENT` if the FIS itself is the problem.
 4. For tasks with paired scenario tests, drive them red → green when practical
 5. Honor prescriptive details exactly: column names, format strings, error messages, file paths, UI control names, and similar contract-level details
 6. Update `changed-files`
@@ -140,7 +148,7 @@ Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues — int
 7. **Tautology check**: for each test added or modified in `changed-files`, inspect the test source — the unit under test must be imported and called without being replaced by a mock/stub; assertions must reference its return value or an observable effect, not mock call arguments; fixtures must not substitute for the production computation (captured golden outputs are fine). A test that would still pass if the asserted behavior were removed is tautological and is a remediation input.
 
 #### 4b. Code Review (mandatory fresh-context review)
-Run the `andthen:review` **skill** with `--mode code` for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a `general-purpose` sub-agent whose prompt runs `/andthen:review --mode code` (append `--auto` when `AUTO_MODE=true`). Do not pass `andthen:review` as `subagent_type` — it is a skill, not an agent type.
+Run the `andthen:review` **skill** with `--mode code` for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a `general-purpose` sub-agent whose prompt runs `/andthen:review --mode code`. Do not pass `andthen:review` as `subagent_type` — it is a skill, not an agent type.
 
 #### 4c. Visual Validation (if UI)
 Spawn the `andthen:visual-validation-specialist` **agent** per any Visual Validation Workflow defined in CLAUDE.md.
@@ -149,12 +157,12 @@ Steps 4b and 4c can run in parallel.
 
 #### 4d. Remediation
 
-Apply the Gate Classes policy from `references/execution-discipline.md`.
+Apply the Gate Classes policy from `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
 
 1. **Collect** — combine required failures from 4a with findings from 4b/4c. A failed build/test/lint/stub/wiring check is a remediation input even if the code review does not flag it separately.
 2. **Triage** — severity scale: CRITICAL/HIGH must fix, MEDIUM should fix, LOW optional.
-3. **Objective red gates (4a)** — iterate until green, invoking the `andthen:triage` skill when iteration stalls (append `--auto` when `AUTO_MODE=true`).
-4. **Subjective findings (4b/4c)** — one pass on CRITICAL/HIGH, re-run the affected lens (`/andthen:review --mode code` with `--auto` when `AUTO_MODE=true`, or visual validation) on the touched scope; escalate if they persist.
+3. **Objective red gates (4a)** — iterate until green, invoking the `andthen:triage` skill when iteration stalls.
+4. **Subjective findings (4b/4c)** — one pass on CRITICAL/HIGH, re-run the affected lens (`/andthen:review --mode code` or visual validation) on the touched scope; escalate if they persist.
 
 ### Step 5: Complete
 All substeps below are gates — complete them before finishing.

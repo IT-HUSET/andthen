@@ -61,9 +61,12 @@ Each skill lives in `plugin/skills/<name>/` and contains:
 
 ### Self-Contained Skills — Asset Ownership
 
-Skills are fully self-contained: each skill owns its `references/`, `templates/`, and `scripts/` locally. There is **no** `plugin/references/` or `plugin/scripts/` directory, and skill files never reach into sibling skills (no `../<other-skill>/...` paths).
+Skills are fully self-contained: each skill owns its `references/`, `templates/`, and `scripts/` locally. Skill files never reach into sibling skills (no `../<other-skill>/...` paths).
 
-When the same asset is useful in more than one skill, it is **duplicated**. Markdown duplicates carry a YAML frontmatter `source:` pointer naming the canonical owner:
+**Two categories of shared assets:**
+
+1. **Plugin-level shared assets** (`plugin/references/`) — 8 contract-load-bearing files consumed by multiple skills via `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md`. See `## Shared Plugin Assets` below.
+2. **Skill-level duplicates** — remaining shared assets duplicated into each consuming skill's `references/` or `templates/`. Markdown duplicates carry a YAML frontmatter `source:` pointer naming the canonical owner:
 
 ```yaml
 ---
@@ -75,25 +78,23 @@ Script duplicates (`.sh`) do not support frontmatter; their ownership is tracked
 
 Edits land in the canonical source first; consumers pull in or diverge as their needs evolve. No sync script, no CI check — accept drift and reconcile ad hoc.
 
-**References (`references/`)**
+**Promotion criterion** — a file belongs in tier (1) only when wording drift between copies would break a cross-skill contract (status strings, severity scales, FIS structural rules, automation `BLOCKED:` triggers — anything one skill produces and another consumes against). Craft guidance (calibration heuristics, taxonomies, framework prose) stays in tier (2) so each consumer can specialize. The plugin-shared tier costs install-time path rewriting and inlined-canonical propagation per target; pay it only where the contract demands it. Historical pendulum: a single shared `plugin/references/` was tried and retired in favor of pure self-containment, then partially reinstated for the contract-load-bearing subset — promote conservatively.
+
+**References (`references/`)** — skill-level duplicates only; canonical plugin-level shared references live at `plugin/references/` (see [Shared Plugin Assets](#shared-plugin-assets) below).
 
 | File | Owner | Also in |
 |---|---|---|
 | adversarial-challenge.md | review | architecture |
 | design-tree.md | architecture | clarify |
-| execution-discipline.md | exec-plan | exec-spec |
 | farley-framework.md | architecture | testing |
-| fis-authoring-guidelines.md | spec | plan, review |
 | review-calibration.md | review | architecture |
 | trust-boundaries.md | review | e2e-test, triage |
 
-**Templates (`templates/`)**
+**Templates (`templates/`)** — skill-level duplicates only
 
 | File | Owner | Also in |
 |---|---|---|
-| fis-template.md | spec | plan |
-| plan-template.md | plan | spec |
-| prd-template.md | prd | plan |
+| plan-template.md | plan | — |
 | CLAUDE.template.md | init | — |
 | project-state-templates.md | init | map-codebase |
 
@@ -104,6 +105,32 @@ Edits land in the canonical source first; consumers pull in or diverge as their 
 | run-security-scan.sh | review | — |
 
 **Contract-critical fields** (severity labels, verdict strings, report section names, script CLI contracts) must stay aligned across copies. Guidance content is allowed to diverge.
+
+
+### Shared Plugin Assets
+
+The 8 contract-load-bearing assets live at `plugin/references/` — a single canonical location shared across all consuming skills. These files carry **no** `source:` frontmatter; absence of `source:` is the unambiguous signal that a file is the canonical source.
+
+| Asset | Consumed by |
+|---|---|
+| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan |
+| `data-contract.md` | ops, exec-spec, exec-plan |
+| `execution-discipline.md` | exec-spec, exec-plan |
+| `fis-authoring-guidelines.md` | spec, plan, review |
+| `fis-template.md` | spec, plan |
+| `lens-adversarial.md` | review, quick-review, architecture |
+| `prd-template.md` | prd, plan |
+| `red-team-calibration.md` | review, quick-review |
+
+**Reference syntax** in skill prompts: `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` (strict braces form only; bare `$CLAUDE_PLUGIN_ROOT` is rejected by `install-skills.sh`).
+
+**Install-time propagation** (`scripts/install-skills.sh` per-target behavior):
+
+| Target | Behavior |
+|---|---|
+| Plugin install (Claude Code plugin tier) | No rewrite — `${CLAUDE_PLUGIN_ROOT}` resolves at runtime |
+| `--claude-user` (Claude Code user tier) | Inline canonical content into each skill's `references/`; rewrite path to local-relative form |
+| Default / Codex (`~/.agents/skills/`) | Inline canonical content into each skill's `references/`; rewrite path to local-relative form |
 
 
 ---

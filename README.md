@@ -256,8 +256,6 @@ You can also start directly from a GitHub issue:
 
 ```bash
 /andthen:spec docs/specs/data-export/
-# Optional GitHub-first handoff:
-/andthen:spec docs/specs/data-export/ --to-issue
 ```
 
 This reads your clarified requirements, analyzes the codebase, and produces a **Feature Implementation Specification (FIS)** – the blueprint for autonomous implementation. No code changes happen here.
@@ -276,9 +274,7 @@ docs/specs/data-export/data-export.md
 # Step 2b-ii: Create the full plan bundle (plan.md + FIS per story + research)
 /andthen:plan docs/specs/data-export/
 # Cheap planning pass (plan.md only, defer FIS generation):
-/andthen:plan docs/specs/data-export/ --skip-specs
-# Optional GitHub-first handoff:
-/andthen:plan docs/specs/data-export/ --to-issue
+/andthen:plan --skip-specs docs/specs/data-export/
 ```
 
 `prd` picks up `requirements-clarification.md` or a draft PRD automatically; `plan` requires `prd.md` and breaks the PRD into sequenced stories with phases and dependencies, plus batch-generates FIS for every story and runs a cross-cutting review.
@@ -295,8 +291,6 @@ docs/specs/data-export/s01-*.md   (FIS per story)
 ```bash
 # Single feature:
 /andthen:exec-spec docs/specs/data-export/data-export.md
-# Or resume from a typed GitHub FIS artifact:
-/andthen:exec-spec --issue 123
 
 # Multi-feature (manual story-by-story loop — bundle already has FIS per story):
 /andthen:exec-spec docs/specs/data-export/s01-story-name.md
@@ -310,13 +304,11 @@ docs/specs/data-export/s01-*.md   (FIS per story)
 
 # Multi-feature (automated):
 /andthen:exec-plan docs/specs/data-export/
-# Or resume from a typed GitHub plan artifact:
-/andthen:exec-plan --issue 456
 
 # Claude Code Agent Teams for enhanced parallelism:
-/andthen:exec-plan docs/specs/data-export/ --team
+/andthen:exec-plan --team docs/specs/data-export/
 # Or with worktree isolation for parallel execution:
-/andthen:exec-plan docs/specs/data-export/ --team --worktree
+/andthen:exec-plan --team --worktree docs/specs/data-export/
 ```
 
 **Step 4: Review**
@@ -333,10 +325,7 @@ docs/specs/data-export/s01-*.md   (FIS per story)
 
 `review` is the default review entrypoint. It runs in code / doc / gap / mixed modes (auto-detected or selected via `--mode`) to answer the right question for the target: code review, document readiness, or requirements-vs-implementation fit.
 
-When `spec`, `plan`, or `review` publish to GitHub, the issue / PR comment is a **typed AndThen artifact**. That means you can continue from GitHub directly:
-- `/andthen:exec-spec --issue <fis-issue-number>`
-- `/andthen:plan --issue <plan-issue-number>` (re-runs plan, filling any missing FIS)
-- `/andthen:exec-plan --issue <plan-issue-number>`
+Review reports published to GitHub (issue or PR comment) can be consumed directly by remediation:
 - `/andthen:remediate-findings <review-issue-url-or-pr-comment-url>`
 
 **Step 5: Remediate Findings** *(when review returns actionable gaps)*

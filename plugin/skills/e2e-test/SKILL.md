@@ -1,6 +1,7 @@
 ---
 description: End-to-end browser testing for web apps. Discover journeys, run interactive tests, validate responsive behavior. Trigger on 'test the app', 'test this app end to end', 'e2e test', 'browser test'.
 user-invocable: true
+argument-hint: "[routes/features/journeys to focus on]"
 ---
 
 # E2E Test Skill

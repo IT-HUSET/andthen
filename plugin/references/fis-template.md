@@ -1,5 +1,7 @@
 # Feature Implementation Specification Template
 
+**Plan**: <relative-posix-path-to-plan.md>
+**Story-ID**: <S##>
 
 ## Feature Overview and Goal
 {{1-2 sentences: what needs to be built and why}}
@@ -12,14 +14,14 @@
 
 > Load-bearing spans from upstream documents (PRD, plan, ADRs, guidelines, glossary), **inlined verbatim at spec time**. The executor does NOT need to read the source documents to act on this content. Each block is source-pinned for audit; the inlined text is authoritative at execution time even if the source later drifts.
 >
-> Omit this section when there are no upstream documents the executor must know. Don't use it for code-pattern references (those stay inside tasks as `file:line` hints) or for `.technical-research.md` spans (that stays as a referenced companion). Budget: per block typically 30-100 lines (hard cap 200 only when a single span needs more); total across all blocks ≤ 250 lines. The two limits are not additive — two blocks at the per-block hard cap breach the total.
+> Omit when no load-bearing upstream spans exist. See [Cross-Document References](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) for the inline budget, source-pin format, and `.technical-research.md` exclusion rule.
 
 {{Repeat blocks as needed. Keep each block focused: one decision, constraint, or contract per block.}}
 
 ### From `{{path/to/source.md}}` — "{{Section or Anchor Name}}"
 <!-- source: {{path/to/source.md}}#{{heading-slug-or-id}} -->
 <!-- extracted: {{commit-sha when source is in this repo; YYYY-MM-DD otherwise}} -->
-> {{1–4 paragraphs inlined verbatim. Typical 30-100 lines per block; hard cap 200. Mind the 250-line total budget across all blocks — narrow extractions or move overflow to Deeper Context.}}
+> {{Inlined verbatim span. Follow the inline budget in the Cross-Document References guideline.}}
 
 
 ## Deeper Context
@@ -138,7 +140,7 @@ wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 List implementation tasks in execution order. A later task may depend on a type, interface, or component established by an earlier task; state that dependency explicitly in the later task's context line.
 
 > **Vertical slice ordering**: First tasks should produce a thin but working end-to-end path. Later tasks widen the slice.
-> **Size discipline**: Most strong FIS files stay in the 200-500 line range. If a draft is pushing past roughly ~700 lines or >18 implementation tasks, split it at spec time rather than expecting `exec-spec` to recover later.
+> **Size discipline**: see FIS authoring guidelines, Key Generation Guidelines #6, for the 200-500 sweet spot and the oversize split signal.
 
 ### Implementation Tasks
 

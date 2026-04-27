@@ -1,7 +1,7 @@
 ---
 description: Use for UI/UX design work across the full lifecycle — research, design system creation, wireframing, and validation/review of implementations. Operates in four modes — `research`, `design-system`, `wireframes`, `review` — runnable singly or as a chain (e.g. `--mode design-system,wireframes`). Trigger on 'design this', 'create a design system', 'make a style guide', 'define design tokens', 'create wireframes', 'wireframe this feature', 'sketch the screens', 'review this UI', 'validate this UI', 'UX review'.
 user-invocable: true
-argument-hint: "[inputs/path] [--mode <mode>[,<mode>...]] [--auto|--headless]"
+argument-hint: "[--mode <mode>[,<mode>...]] [--auto|--headless] [inputs/path]"
 ---
 
 # UI/UX Design
@@ -10,7 +10,7 @@ Comprehensive UI/UX skill — bridges user needs and business objectives. Create
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as inputs/mode)
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--auto`, or `--headless` before interpreting the remainder as inputs/path)
 
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts

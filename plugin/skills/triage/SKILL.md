@@ -1,7 +1,7 @@
 ---
 description: "Investigate, diagnose, and fix issues — including build failures, configuration errors, runtime bugs, regressions, and test failures. Trigger on 'debug this', 'investigate this bug', 'what's broken', 'triage', 'fix this bug', 'fix the build', 'troubleshoot this build'. Flags: --plan-only, --to-issue."
 user-invocable: true
-argument-hint: "[Scope | --issue <number>] [--plan-only] [--to-issue] [--auto|--headless]"
+argument-hint: "[--plan-only] [--to-issue] [--auto|--headless] [scope | --issue <number>]"
 ---
 
 # Triage and Fix Implementation Issues
@@ -10,7 +10,7 @@ Investigate implementation issues, identify root causes, and either produce a fi
 
 ## VARIABLES
 
-ARGUMENTS: `$ARGUMENTS`
+ARGUMENTS: `$ARGUMENTS` (strip any flag tokens like `--plan-only`, `--investigate`, `--to-issue`, `--issue`, `--auto`, or `--headless` before interpreting the remainder as the scope)
 
 ### Parse Arguments
 - `--plan-only` or `--investigate` → `MODE=plan-only`

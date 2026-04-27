@@ -94,11 +94,13 @@ Compare requirements to the implementation and record gaps in the categories bel
   - Cross-reference `verification-patterns.md` for the substance/wiring rubric.
 
 
-## 5. Behavioral Dry-Run Walkthrough
+## 5. Red-Team Sub-Lens (Always On): Behavioral Dry-Run Walkthrough
+
+Use `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` for the posture of this walkthrough. The rubric below is the canonical gap-review Red-Team work.
 
 Methodically simulate how the implementation actually runs against each requirement, one path at a time. This surfaces issues that mechanical file-vs-spec comparison misses: latent state bugs, incorrect logic, fragile assumptions, missing defensive behavior, and requirements filled in by guessing.
 
-Walk through the work — do not skim it. For each significant requirement, feature flow, or user-visible behavior the implementation claims to satisfy, perform the following passes and record every concern as a finding. Feed those findings back into the Step 4 categories (or add an explicit **Behavioral** subcategory) before running the adversarial challenge.
+Walk through the work; do not skim it. For each significant requirement, feature flow, or user-visible behavior the implementation claims to satisfy, perform the following passes and record every concern as a finding. Feed those findings back into the Step 4 categories (or add an explicit **Behavioral** subcategory) before running the Findings Filter.
 
 ### Trace execution
 
@@ -137,15 +139,17 @@ Walk through the work — do not skim it. For each significant requirement, feat
 
 ### Record and route
 
-Every concern from the walkthrough is a finding. Each finding must carry: location, the requirement or invariant it threatens, the path or input that triggers it, and the observable impact. Merge into the Step 4 categories so they are scored and challenged alongside the mechanical gap findings.
+Every concern from the walkthrough is a finding. Each finding must carry: location, the requirement or invariant it threatens, the path or input that triggers it, and the observable impact. Merge into the Step 4 categories so they are scored and filtered alongside the mechanical gap findings.
 
 
-## 6. Adversarial Challenge
+## 6. Findings Filter
 
-Run the full adversarial challenge only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples, adjust severity, and withdraw findings that don't hold up. Add one line: "Applied inline severity calibration (adversarial challenge skipped: no Critical findings and ≤5 total)."
+This pass cannot find new issues; that is the Red-Team Lens's job (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`).
 
-**Full challenge** (when triggered): Use `adversarial-challenge.md` (`Generic Findings-Challenger Template`) with:
-- **Role**: `Adversarial Challenger reviewing gap analysis findings`
+Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples, adjust severity, and withdraw findings that don't hold up. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
+
+**Full filter** (when triggered): Use `adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
+- **Role**: `Findings Filter reviewing gap analysis findings`
 - **Shared calibration**: `review-calibration.md`
 - **Skill calibration**: `code-review-calibration.md`
 - **Context block**: `Review target context: {implementation target paths from Step 0}`
@@ -158,7 +162,7 @@ Apply verdicts before scoring.
 
 ## Calibration
 
-Calibrate severity with `review-calibration.md` (universal) and `code-review-calibration.md` (code-specific). Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
+Calibrate severity with `review-calibration.md` (universal) and `code-review-calibration.md` (code-specific). Load `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` while running the always-on Red-Team sub-lens; use the code-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
 
 
 ## 7. Dimensional Scoring & Verdict
@@ -195,7 +199,7 @@ Include this exact summary in the Executive Summary:
 
 ```markdown
 ## Executive Summary
-overview, verdict table, high-level findings, challenge stats
+overview, verdict table, high-level findings, Findings Filter stats
 
 ## Requirements Analysis
 

@@ -1,6 +1,6 @@
 ---
 description: Quick implementation path for small features or fixes with verification. Bypasses the FIS workflow — for larger features, use the `andthen:clarify` → `andthen:spec` → `andthen:exec-spec` chain instead. Trigger on 'quick fix this', 'implement this quickly', 'make this small change'.
-argument-hint: "<spec> [--pr] | --issue <number> [--no-pr]"
+argument-hint: "[--pr|--no-pr] <spec | --issue <number>>"
 ---
 
 # Quick Implement with Verification
@@ -10,7 +10,7 @@ Fast implementation path for small features, bug fixes, or GitHub issues. Bypass
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--pr`, `--no-pr`, or `--issue` before interpreting the remainder as the inline spec; `--pr`/`--no-pr` couple to input mode — see "PR behavior" under INSTRUCTIONS)
 
 
 ## INSTRUCTIONS

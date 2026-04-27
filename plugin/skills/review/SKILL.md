@@ -1,22 +1,22 @@
 ---
-description: "The default review skill – start here for all reviews. Runs code, doc, gap, or mixed review, plus multi-perspective council mode via `--council`. Trigger on 'review this', 'review this PR/spec/PRD', 'audit this', 'does this match the spec', 'council review', 'adversarial review', 'multi-reviewer'."
+description: "The default review skill - start here for all reviews. Runs code, doc, gap, or mixed review - single lens or `--mode a,b` chains - plus multi-perspective council mode via `--council`. Trigger on 'review this', 'review this PR/spec/PRD', 'audit this', 'does this match the spec', 'council review', 'adversarial review', 'red-team review', 'skeptic review', 'multi-reviewer'."
 user-invocable: true
-argument-hint: "[target/files/PR/spec path] [--mode code|doc|gap|mixed] [--council] [--team] [--inline-findings] [--to-pr <number>] [--fix] [--auto|--headless]"
+argument-hint: "[--mode <mode>[,<mode>...]] [--council] [--team] [--fix] [--inline-findings] [--to-pr <number>] [--auto|--headless] [target/files/PR/spec path]"
 ---
 
 # Review
 
 Unified review skill. Determine what is actually being reviewed, run the right lens inline, and produce one consolidated result.
 
-Code, document, gap, and mixed reviews all run inside this skill using lens-specific references. Multi-perspective **council mode** (5-7 specialized reviewers with adversarial debate) runs as an augmented code review when `--council` is passed or when scope/complexity warrants it.
+Code, document, gap, and mixed reviews all run inside this skill using lens-specific references. Single lens by default; `--mode` accepts a comma-separated list (e.g. `--mode doc,code,gap`) to chain lenses in declared order with shared context and one combined report. `mixed` auto-resolves to the subset of {code, doc, gap} the inputs warrant. Each primary lens includes the always-on Red-Team sub-lens; multi-perspective **council mode** (5-7 specialized reviewers with Red-Team plus findings-filter debate) augments the code lens when `--council` is passed or scope/complexity warrants it.
 
 
 ## VARIABLES
-ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as target/path/PR/focus)
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--council`, `--team`, `--fix`, `--inline-findings`, `--to-pr`, `--auto`, or `--headless` before interpreting the remainder as target/path/PR/focus)
 
 ### Optional Mode Flags
-- `--mode code|doc|gap|mixed` → force the review lens. Absent → auto-detect per the routing heuristics in Step 2
-- `--council` → run multi-perspective adversarial review (5–7 specialists with two-phase challenge). Implies `--mode code` unless another mode is explicitly combined. Detailed orchestration lives in `references/council-mode.md` — load it only when this flag is set (or when auto-escalation triggers). Auto-escalate when the scope spans multiple concerns (security, performance, architecture, UX), the surface is high-risk (auth, payments, data integrity), or the user asks for "multi-perspective" / "adversarial" / "thorough" review.
+- `--mode <mode>[,<mode>...]` → comma-separated list. Values: `code`, `doc`, `gap`, `mixed`. Single value runs that lens. Multiple values chain in declared order with shared context, producing one combined report. `mixed` auto-resolves (Step 2) and cannot be combined with explicit lenses. Absent → auto-detect per Step 2 routing.
+- `--council` -> multi-perspective red-team review (5-7 specialists, Findings Filter, synthesis). Augments the **code** lens only; in a chain, append `code` at the end if absent (deliberate exception to declared order). Detailed orchestration in `references/council-mode.md` - load only when this flag is set or auto-escalation triggers (multi-concern scope, high-risk surface like auth/payments/data, or explicit "multi-perspective" / "adversarial" / "red-team" / "skeptic" / "thorough" request).
 - `--team` → force Agent Teams execution for council (error if unavailable). See `references/council-mode.md` for fallback behavior.
 - `--inline-findings` → return findings inline and skip report-file output. **Do not pass** when the caller depends on a report file (e.g. the `andthen:exec-plan` skill's final gap gate, which feeds the `andthen:remediate-findings` skill).
 - `--to-pr <number>` → post the consolidated report as a PR comment
@@ -28,13 +28,14 @@ ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpret
 
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - The review itself is read-only. Do not modify the reviewed artifacts. Remediation only runs in Step 5 when `--fix` is set, and delegates editing to the `andthen:remediate-findings` skill.
-- Reject `--fix` combined with `--inline-findings` before doing any review work — remediation requires the report file.
-- Default to the minimum correct lens for the target.
-- One lens per call (except **Mixed**, which intentionally runs both doc and code lenses).
-- Load the lens-specific reference before running the lens — it carries the rubric, calibration pointers, and report format.
+- Reject `--fix` + `--inline-findings` up-front — remediation requires the report file.
+- Reject any chain containing `mixed` (e.g. `--mode mixed,gap`) up-front — `mixed` is a resolver, not a lens. Print the correction and stop.
+- Default to the minimum correct lens. Chain only when `--mode a,b` is explicit or `mixed` resolves to ≥2 lenses.
+- Load the lens reference(s) before running — each carries the rubric, calibration pointers, and report format. Chains load the deduplicated union.
+- Chains run in declared order with shared target map and findings — never re-classify or re-scan.
 - Use the unified severity scale and per-mode verdict definitions from `references/review-verdict.md`.
-- **Calibration-first**: Always load `references/review-calibration.md` (universal) plus the lens-specific calibration (cited by each lens reference) before categorising findings.
-- **FIS Required / Deeper Context handling** (when a FIS is in scope — gap, doc, or mixed modes): treat `Required Context` blocks as the authoritative upstream intent at review time — do not re-read their source documents just to reconfirm inlined content. For `Deeper Context` anchors that are load-bearing for a finding, verify the anchor resolves in the source and warn (do not stop) on broken anchors. If a reviewer notices that a `Required Context` block's content appears to no longer match the current source, that is a legitimate doc-review finding (MEDIUM by default — spec should be re-run against the updated source), not an execution blocker. **Legacy FIS fallback**: a FIS authored before these sections existed will have neither. Fall back to whatever upstream-reference structures the legacy FIS uses: the old `## References & Constraints` heading and its `### Documentation & References` table (rows typed `file|doc|url|wire`), or prose mentions. Don't flag the absence of Required/Deeper Context as a defect on legacy FIS files.
+- **Calibration-first**: Always load `references/review-calibration.md` (universal) plus the lens-specific calibration (cited by each lens reference) before categorising findings. The Red-Team sub-lens also loads `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md`; the Findings Filter uses `references/adversarial-challenge.md` after findings are collected.
+- **FIS Required / Deeper Context handling** (when a FIS is in scope — any lens set that includes `doc` or `gap`): treat `Required Context` blocks as the authoritative upstream intent at review time — do not re-read their source documents just to reconfirm inlined content. For `Deeper Context` anchors that are load-bearing for a finding, verify the anchor resolves in the source and warn (do not stop) on broken anchors. If a reviewer notices that a `Required Context` block's content appears to no longer match the current source, that is a legitimate doc-review finding (MEDIUM by default — spec should be re-run against the updated source), not an execution blocker. **Legacy FIS fallback**: a FIS authored before these sections existed will have neither. Fall back to whatever upstream-reference structures the legacy FIS uses: the old `## References & Constraints` heading and its `### Documentation & References` table (rows typed `file|doc|url|wire`), or prose mentions. Don't flag the absence of Required/Deeper Context as a defect on legacy FIS files.
 - **Default output is a report file.** `--inline-findings` is the explicit opt-out; without it, always write the consolidated report to disk.
 - **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Auto-detect the minimum correct lens when possible, write the normal report artifact, propagate `--auto` to nested `andthen:*` skill invocations that accept it (including the `andthen:remediate-findings` skill when `--fix` is set; the `andthen:ops` skill is exempt — it is deterministic), and return deterministic verdict/report-path output. Stop with `BLOCKED:` (listing the minimum missing input) only when the requested mode cannot resolve a required target/baseline, an external action is unsafe, or report publication fails.
 
@@ -42,11 +43,14 @@ ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpret
 ## GOTCHAS
 - Treating all review requests as code review
 - Running `--mode gap` without a real requirements baseline
-- Running `--mode mixed` when the real question is requirements fit — use `--mode gap` instead
+- Combining `mixed` with explicit lenses — rejected up-front; `mixed` is a resolver
+- Emitting a comma-separated mode token in the report — chains write `mixed` on the parseable line and the resolved chain on a separate `Resolved chain:` line
+- Re-classifying or re-scanning per lens in a chain — chains carry forward
 - Skipping the report file when `--inline-findings` was not passed — the default path always writes a file
 - Passing `--inline-findings` when the caller will consume a report file (breaks the `andthen:remediate-findings` skill)
 - Forgetting that the `andthen:remediate-findings` skill reads the canonical PASS/FAIL verdict block from gap reports — don't re-label, re-phrase, or re-order its columns
 - Loading council-mode content when `--council` was not passed — council orchestration is gated behind `references/council-mode.md` for a reason
+- Treating Red-Team as a top-level mode or optional flag: it is an always-on sub-lens inside code, doc, and gap
 
 
 ## WORKFLOW
@@ -59,11 +63,11 @@ Determine what the user wants reviewed, in priority order:
 3. Current pending changes (`git diff --stat`, `git diff --name-only`) when no target is provided
 4. Neighboring artifacts that clarify intent: plan/FIS/PRD/spec docs, changed implementation files, related issue/PR context
 
-Apply an explicit `--mode` flag during discovery, not only during later classification:
-- `--mode doc`: when no explicit target is provided, restrict discovery to changed document artifacts (spec/FIS/PRD/plan/ADR/design/prompt/docs) and ignore changed implementation files as primary review targets; if no document targets are found, stop and report that doc mode has no matching scope
-- `--mode code`: when no explicit target is provided, restrict discovery to changed implementation/config/test files and ignore changed docs as primary review targets; if no implementation targets are found, stop and report that code mode has no matching scope
-- `--mode gap`: when no explicit target is provided, resolve both a requirements baseline and an implementation target from the current changes plus neighboring artifacts; if either side cannot be resolved, stop and report that the missing side is required for gap review
-- `--mode mixed`: resolve both a document target (for the doc sub-pass) and an implementation target (for the code sub-pass); if either side cannot be resolved, stop and report the missing side
+Apply explicit `--mode` value(s) during discovery, not only during later classification. For a comma-separated list, apply the union of the per-lens discovery rules below — discovery stops with the missing-side error only if **none** of the declared lenses can resolve a target.
+- `doc`: when no explicit target is provided, include changed document artifacts (spec/FIS/PRD/plan/ADR/design/prompt/docs) in the target map; if no document targets are found and `doc` is the only declared lens, stop and report that doc mode has no matching scope
+- `code`: when no explicit target is provided, include changed implementation/config/test files in the target map; if no implementation targets are found and `code` is the only declared lens, stop and report that code mode has no matching scope
+- `gap`: when no explicit target is provided, resolve both a requirements baseline and an implementation target from the current changes plus neighboring artifacts; if either side cannot be resolved and `gap` is the only declared lens, stop and report that the missing side is required for gap review
+- `mixed`: discover changed docs, changed implementation, and candidate baselines; classify any explicit target path (doc vs. implementation) and merge with worktree discovery. Lens set resolves in Step 2. Stop with `BLOCKED: mixed has no scope` when no explicit target is given and the worktree has none of the three.
 
 When no explicit target is provided and no mode flag narrows the scope, build the target map from the dirty worktree by separating:
 - changed document artifacts
@@ -84,61 +88,75 @@ Build a concise target map:
 
 ### 2. Classify the Review Surface
 
-Choose one mode:
+Resolve the lens set for this run. The atomic lenses are:
 - **code**: implementation, config, tests, or current code changes
 - **doc**: spec, FIS, PRD, plan, ADR, design doc, prompt, or other written artifact
 - **gap**: requirements baseline plus implementation target, where the real question is "does this implementation satisfy the requirements?"
-- **mixed**: both document artifacts and implementation artifacts are independently in scope and each needs its own review lens; this dispatches to **doc + code**, not to **gap**
 
-Routing heuristics when `--mode` is absent:
-- If the user explicitly asks whether implementation matches a spec, plan, PRD, issue, or requirements baseline, use **gap**
-- If the user says "review implementation of [doc]" or similar phrasing where a requirements document is the object of "implementation of", treat [doc] as the requirements baseline and route to **gap** — the intent is requirements-fit validation, not a document review
-- If the user explicitly asks for PR review, code review, change review, or an implementation audit, prefer **code** unless they also clearly ask for requirements-fit validation
-- If only docs changed, default to **doc**
-- If the target is a spec/FIS/PRD/plan path and no implementation target is explicit, default to **doc**
-- If only implementation changed, default to **code**
-- If there is a clear requirements baseline plus implementation scope and the user's core question is requirements fit, default to **gap**
-- If both docs and code changed:
-  - Use **gap** when the docs are acting as the requirements baseline for the implementation and the core question is whether the implementation matches them
-  - Use **mixed** when the docs themselves need readiness review and the implementation also needs independent code review
-- The mere presence of neighboring PRD/FIS/plan/spec artifacts is not enough to force **gap**. Nearby requirements docs provide context; they become the primary lens only when the user's question is actually requirements-vs-implementation fit
+Resolution rules:
+- **Explicit single `--mode`** (`code` / `doc` / `gap`): use that lens.
+- **Explicit chain** (`--mode a,b[,c]`): use the declared lenses in declared order.
+- **Explicit `--mode mixed`**: auto-resolve to the subset of {doc, code, gap} that applies (see rules below). May yield a single lens or a chain.
+- **Absent `--mode`**: route via the heuristics below.
 
-**Gate**: Review mode is selected and justified
+Routing heuristics when `--mode` is absent. Apply in order; first match wins:
+1. **Compares implementation against a requirements baseline** (spec, PRD, plan, FIS, issue) — phrasings like "review implementation of X", "does X match Y?", "is this consistent with the spec?", "audit Y against its requirements" → **mixed**. The resolver below picks the lens set. For a strict gap-only check, the user must pass `--mode gap` explicitly.
+2. **Broad audit intent** ("review everything", "audit"), with both docs and code changed → suggest `--mode mixed` (interactive) or use **mixed** in `AUTO_MODE`.
+3. **PR / code / change review or implementation audit**, no baseline in scope → **code**.
+4. **Only implementation changed**, no baseline in scope → **code**.
+5. **Only docs changed**, or the target is a spec/FIS/PRD/plan path with no implementation in scope → **doc**.
+
+The mere presence of neighboring PRD/FIS/plan/spec artifacts is not enough to trigger rule 1. Nearby requirements docs provide context; they become a baseline only when the user's question is actually requirements-vs-implementation fit.
+
+`mixed` resolution rules (applied after Step 1 discovery). Include each lens when its condition holds; run the resulting set in the order `doc, code, gap`:
+- **doc** — when the target map has any doc artifact (explicit target or changed in worktree).
+- **code** — when there is implementation to review (explicit target or changed in worktree).
+- **gap** — when both a usable baseline and an implementation target exist. The explicit doc target may itself be the baseline.
+
+A "usable baseline" is a spec/FIS/PRD/plan that genuinely scopes the implementation under review — not just any nearby document. If only one lens applies, run as a single-lens call. When the baseline is in the changed-docs set, the gap lens uses the **post-change** version; the doc lens already covers doc-side defects, so don't double-count.
+
+**Gate**: Lens set is resolved (single lens or ordered chain) and justified
 
 
-### 3. Run the Selected Lens
+### 3. Run the Selected Lens(es)
 
-Load the lens reference for the selected mode and run the lens inline. The reference carries the rubric, dimensions, calibration pointers, and report format:
+Load the lens reference(s) for the resolved lens set and run each lens inline. References carry the rubric, dimensions, calibration pointers, and report format:
 
-| Mode | Lens reference |
-|------|----------------|
+| Lens | Reference |
+|------|-----------|
 | code | `references/lens-code.md` |
 | doc | `references/lens-doc.md` |
 | gap | `references/lens-gap.md` |
-| mixed | **doc sub-pass**: `lens-doc.md`; **code sub-pass**: `lens-code.md` (run both; see below) |
 
 Unified severity and verdict: `references/review-verdict.md` — CRITICAL / HIGH / MEDIUM / LOW; per-mode readiness/verdict rules defined there.
 
-**Mixed mode**: run the doc sub-pass first, then the code sub-pass. Keep findings in distinct subsections in the final report. Overall readiness = worst of the two sub-modes (per `review-verdict.md`).
+Each lens reference includes the always-on Red-Team sub-lens (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`) and its calibration (`${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md`). This is not a separate mode token.
 
-**Code mode** orchestration: when two or more lenses from `lens-code.md` apply (code quality, security, architecture, domain language, UI/UX) and sub-agents are supported, delegate one parallel reviewer per applicable lens. Otherwise run the lenses sequentially inline.
+**Single lens**: load its reference and run the lens.
 
-**Council mode** (`--council`): load `references/council-mode.md` and run the orchestration described there instead of standard code-mode orchestration. That reference owns reviewer selection, Agent Teams vs sub-agent execution paths, the two-phase adversarial debate, and the council-specific report structure.
+**Chain (multi-lens)**: load the deduplicated union of references upfront, then run each lens in declared order. Each lens reads the shared target map and the findings produced by earlier lenses; never re-classify artifacts or re-scan baselines a previous lens already processed. Keep per-lens findings in distinct subsections in the final report. Overall readiness = worst across all lenses run (per `references/review-verdict.md`).
 
-**Gate**: Primary lens complete
+**Code lens** orchestration: when two or more lenses from `lens-code.md` apply (code quality, security, architecture, domain language, UI/UX) and sub-agents are supported, delegate one parallel reviewer per applicable lens. Otherwise run the lenses sequentially inline.
+
+**Council mode** (`--council`): load `references/council-mode.md` and run its orchestration in place of standard code-lens orchestration. In a chain, council scopes to the code lens only (append `code` at end if absent — see `--council` flag); other lenses run normally. Council owns reviewer selection, Agent Teams vs sub-agent paths, the two-phase debate, and its report structure.
+
+**Gate**: All declared lenses complete
 
 
 ### 4. Synthesize One Final Result
 
 **Default path — write a consolidated markdown report file.** Use this deterministic suffix mapping (downstream skills parse the filename — do not vary):
 
-| Mode | Report suffix |
-|------|---------------|
-| code | `code-review` |
-| doc | `doc-review` |
-| gap | `gap-review` |
-| mixed | `review` |
-| code + `--council` | `council-review` |
+| Resolved lens set | Report suffix | Mode token (in body) |
+|---|---|---|
+| `code` only | `code-review` | `code` |
+| `doc` only | `doc-review` | `doc` |
+| `gap` only | `gap-review` | `gap` |
+| Any chain (2+ lenses) | `mixed-review` | `mixed` |
+| `code` (single) + `--council` | `council-review` | `council` |
+| Chain + `--council` | `mixed-review` | `mixed` (council fills the code-lens section) |
+
+The mode token (third column) is the canonical, parseable string downstream consumers read (e.g. `andthen:remediate-findings`). Chains keep `mixed` on that line and put the resolved chain (e.g. `doc,code,gap`) on a separate `Resolved chain:` line for humans.
 
 - **Filename**: `<review-target>-<suffix>-<agent>-<YYYY-MM-DD>.md` — on collision append `-2`, `-3`. `<agent>` is your agent short name (`claude`, `codex`, etc.; fall back to `agent`).
 - **Directory priority**:
@@ -147,31 +165,32 @@ Unified severity and verdict: `references/review-verdict.md` — CRITICAL / HIGH
   3. **Fallback** — `{AGENT_TEMP}/reviews/` (default `.agent_temp/reviews/`)
 - On completion, print the report's relative path from the project root.
 
-Only when `--inline-findings` is present: skip the file and return the same content inline, stating the mode(s) run.
+Only when `--inline-findings` is present: skip the file and return the same structured content inline — same shape, no file.
 
 Report/inline content must include:
 - **Scope**
-- **Review mode used**: code / doc / gap / mixed
+- **Review mode used**: the canonical token (`code`, `doc`, `gap`, `mixed`, or `council`) — exactly one, no comma list, no arrow. Parseable line.
+- **Resolved chain** (when token = `mixed`): ordered lens list, e.g. `doc,code,gap`. For `--mode mixed`, prefix with the resolution: `mixed → doc,code,gap`. Human-readable, not parsed.
 - **Findings by severity** using the unified scale (CRITICAL / HIGH / MEDIUM / LOW)
 - **Readiness / verdict** per `references/review-verdict.md`:
   - `code`: severity counts + readiness label (`Ready` / `Needs Fixes` / `Blocked`)
   - `doc`: readiness label (`Ready` / `Needs Minor Updates` / `Needs Significant Rework` / `Not Ready`)
   - `gap`: PASS/FAIL verdict table (byte-level compatible — reproduce the canonical block verbatim)
-  - `mixed`: per-sub-mode verdicts + overall readiness = worst of the two
+  - `mixed` (chain): per-lens verdicts in declared order + overall readiness = worst across lenses
 - **Recommended next action**
 
-For `--to-pr <number>`: post the report file's contents as a plain PR comment via `gh pr comment <number> --body-file <report-path>`. Print the direct comment URL returned (resolve via follow-up lookup if the command does not print one). The mode and any referenced `plan_path` / `fis_path` must be visible in the report body itself so downstream readers (including `andthen:remediate-findings` run against the local report path) can interpret the findings.
+For `--to-pr <number>`: post the report's contents as a PR comment via `gh pr comment <number> --body-file <report-path>`. Print the direct comment URL (resolve via follow-up lookup if the command does not print one). The mode token, resolved chain (when applicable), and any referenced `plan_path` / `fis_path` must be visible in the body so downstream readers (including `andthen:remediate-findings`) can interpret the findings.
 
-For **Mixed** reviews, keep findings from the doc and code sub-passes in distinct subsections. Merge overlapping findings and use the strongest framing as canonical.
+For **chains** (file or inline): one combined result — single header (Scope, mode token `mixed`, resolved chain, overall readiness), then per-lens sections in declared order. Merge overlapping findings (strongest framing wins) and tag each with its source lens. When the chain includes `gap`, the canonical PASS/FAIL block appears verbatim inside the gap section.
 
-For **Council** reviews, use the report structure defined in `references/council-mode.md` (§4 Report Structure) — only findings that survived both debate phases appear in the severity sections.
+For **Council**: use the report structure in `references/council-mode.md` (§4 Report Structure) — only findings that survived both debate phases appear in severity sections. In a chain, that structure fills the code-lens section.
 
 **Gate**: One consolidated result delivered
 
 
 ### 5. Remediate _(only when `--fix`)_
 
-Invoke the `andthen:remediate-findings` skill with the report path as its argument (append `--auto` when `AUTO_MODE=true`). Skip only when there is nothing actionable to remediate — a `gap` PASS verdict, or a clean report with no findings. In every other case (code / doc / mixed / council), hand the report over and let the remediation skill scope the fixes.
+Invoke the `andthen:remediate-findings` skill with the report path (append `--auto` when `AUTO_MODE=true`). Skip only when nothing is actionable — a single-lens `gap` PASS, or a clean report with no findings across any lens. Otherwise hand over the report; the remediation skill scopes the fixes.
 
 Do not re-interpret findings or pre-filter by severity here. The `andthen:remediate-findings` skill owns the fix scoping — this step is pure delegation.
 
@@ -187,5 +206,5 @@ After the report, ask whether the user wants to:
 2. Focus on a narrower area
 3. Proceed to implementation
 4. Escalate to stakeholders for offline resolution (decisions that need human owners outside this conversation)
-5. For **doc** mode (or the doc sub-pass of **mixed** mode) with a requirement-gap cluster on a PRD or draft spec/FIS (per `references/lens-doc.md` → Downstream Routing) — offer to run the `andthen:clarify` skill against the listed gaps. Fires even when `--fix` already ran in Step 5, since the `andthen:remediate-findings` skill cannot answer questions whose answers don't exist yet. Skip only when the dominant pattern is a defect cluster (route to the `andthen:remediate-findings` skill instead).
+5. When the lens set includes **doc** and the doc lens produced a requirement-gap cluster on a PRD or draft spec/FIS (per `references/lens-doc.md` → Downstream Routing) — offer to run the `andthen:clarify` skill against the listed gaps. Fires even when `--fix` already ran in Step 5, since the `andthen:remediate-findings` skill cannot answer questions whose answers don't exist yet. Skip only when the dominant pattern is a defect cluster (route to the `andthen:remediate-findings` skill instead).
 6. For FAIL / `Needs Significant Rework` / `Not Ready` / CRITICAL outcomes — run the `andthen:remediate-findings` skill with the report path or URL. Skip this prompt when `--fix` already ran remediation in Step 5.

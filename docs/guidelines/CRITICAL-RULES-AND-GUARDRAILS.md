@@ -23,3 +23,4 @@
 - **Do not reformat entire projects**: Only format code you are modifying. Format entire files or directories only upon explicit request.
 - **Do not use `git rebase --skip`** — it causes data loss. Ask the user for help with rebase conflicts instead.
 - **Don't use em dashes** in any text, use en dash (–) instead. 
+- **Code is source of truth, not comments**: To avoid documentation rot, keep code documentation/comments minimal and focused on rationale (why, not what). If comments are outdated or incorrect, fix or remove them — do not let them mislead. Always strive for self-explanatory and readable code that minimizes (or eliminates) the need for comments.

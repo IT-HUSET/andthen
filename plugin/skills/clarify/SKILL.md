@@ -1,6 +1,6 @@
 ---
 description: Clarify requirements through systematic discovery of gaps, edge cases, and scope boundaries. Trigger on 'clarify this', 'clarify requirements', 'what are the requirements', 'discover requirements'.
-argument-hint: "[Requirements source - description, file path, or --issue <number>]"
+argument-hint: "[requirements source: description or file path | --issue <number>]"
 ---
 
 # Clarify Requirements
@@ -12,7 +12,7 @@ Transform incomplete requirements into complete, actionable specifications throu
 ## VARIABLES
 
 _Requirements to clarify (**required**):_
-INPUT: $ARGUMENTS
+INPUT: $ARGUMENTS (strip any flag tokens like `--issue` before interpreting the remainder as the requirements source — description or file path)
 
 ### Optional Flags
 - `--issue <number>` → Fetch and use a GitHub issue as requirements input

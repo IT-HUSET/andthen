@@ -1,6 +1,6 @@
 ---
 description: "Use when you need test strategy, coverage assessment, test authoring, or test-first (red-green-refactor) discipline — including the Prove-It bugfix flow and FIS scenario → test mapping. Covers unit and integration levels; defer persistent end-to-end suites to the `andthen:e2e-test` skill. Trigger on 'write tests for this', 'cover this module', 'TDD this', 'test-first', 'red-green-refactor', 'prove it with a test', 'assess test coverage', 'improve coverage', 'test strategy for this'."
-argument-hint: "[target/scope] [--mode strategy|write|tdd|prove-it]"
+argument-hint: "[--mode strategy|write|tdd|prove-it] [target/scope]"
 user-invocable: true
 ---
 
@@ -11,7 +11,7 @@ Prove behavior with the smallest tests that prove it. Cover what matters, at the
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode` before interpreting the remainder as the target/scope)
 
 
 ## PHILOSOPHY

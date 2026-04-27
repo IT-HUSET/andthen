@@ -108,6 +108,147 @@ if [ "$install_claude_user" -eq 1 ]; then
   fi
 fi
 
+# ---------------------------------------------------------------------------
+# Canonical shared assets at plugin/references/ — consumed by multiple skills.
+# Inlined into each consuming skill's references/ at install time so the
+# installed bundle is self-contained (no ${CLAUDE_PLUGIN_ROOT} at runtime).
+# ---------------------------------------------------------------------------
+
+# Names of the contract-load-bearing canonical assets (filenames only).
+# Each must exist at plugin/references/<asset>.md and be consumed by ≥2 skills.
+_canonical_assets="automation-mode.md data-contract.md execution-discipline.md fis-authoring-guidelines.md fis-template.md lens-adversarial.md prd-template.md red-team-calibration.md"
+
+# Map of skill-name → space-separated list of canonical asset names it consumes.
+# Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
+_skill_assets_prd="automation-mode.md prd-template.md"
+_skill_assets_plan="automation-mode.md fis-authoring-guidelines.md fis-template.md prd-template.md"
+_skill_assets_spec="automation-mode.md fis-authoring-guidelines.md fis-template.md"
+_skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md"
+_skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md"
+_skill_assets_ops="data-contract.md"
+_skill_assets_review="fis-authoring-guidelines.md lens-adversarial.md red-team-calibration.md"
+_skill_assets_quick_review="lens-adversarial.md red-team-calibration.md"
+_skill_assets_architecture="lens-adversarial.md"
+
+# Resolve the list of canonical assets for a given skill base name.
+# Prints a space-separated list of asset filenames.
+_get_skill_assets() {
+  _gsa_name="$1"
+  case "$_gsa_name" in
+    prd)      printf '%s' "$_skill_assets_prd" ;;
+    plan)     printf '%s' "$_skill_assets_plan" ;;
+    spec)     printf '%s' "$_skill_assets_spec" ;;
+    exec-spec) printf '%s' "$_skill_assets_exec_spec" ;;
+    exec-plan) printf '%s' "$_skill_assets_exec_plan" ;;
+    ops)      printf '%s' "$_skill_assets_ops" ;;
+    review)   printf '%s' "$_skill_assets_review" ;;
+    quick-review) printf '%s' "$_skill_assets_quick_review" ;;
+    architecture) printf '%s' "$_skill_assets_architecture" ;;
+    *)        printf '' ;;
+  esac
+}
+
+# ---------------------------------------------------------------------------
+# Strict-syntax validation: reject bare $CLAUDE_PLUGIN_ROOT (no braces) in
+# plugin/skills/ and plugin/references/ before any copy. Only the braces
+# form ${CLAUDE_PLUGIN_ROOT} is accepted.
+# ---------------------------------------------------------------------------
+_validate_plugin_root_syntax() {
+  _vprs_found=0
+  _vprs_list=$(grep -rElZ '\$CLAUDE_PLUGIN_ROOT[^}]' \
+    "$repo_root/plugin/skills" \
+    "$repo_root/plugin/references" 2>/dev/null | tr '\0' '\n' || true)
+  if [ -n "$_vprs_list" ]; then
+    printf '%s\n' "$_vprs_list" | while IFS= read -r _vprs_file; do
+      [ -z "$_vprs_file" ] && continue
+      _vprs_line=$(grep -n '\$CLAUDE_PLUGIN_ROOT[^}]' "$_vprs_file" | head -1)
+      printf 'error: %s:%s uses bare $CLAUDE_PLUGIN_ROOT; only the braces form ${CLAUDE_PLUGIN_ROOT} is accepted\n' \
+        "$_vprs_file" "$_vprs_line" >&2
+    done
+    return 1
+  fi
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# Canonical-asset existence check: verify all canonical assets exist before
+# any copy starts. Missing canonical exits non-zero with a clear error.
+# ---------------------------------------------------------------------------
+_check_canonical_assets() {
+  _cca_refs_dir="$repo_root/plugin/references"
+  for _cca_asset in $_canonical_assets; do
+    if [ ! -f "$_cca_refs_dir/$_cca_asset" ]; then
+      printf 'error: %s/%s not found; cannot inline for consuming skills\n' \
+        "$_cca_refs_dir" "$_cca_asset" >&2
+      return 1
+    fi
+  done
+  return 0
+}
+
+# ---------------------------------------------------------------------------
+# inline_canonical_assets: copy canonical assets into a skill's references/.
+# Each consuming skill gets its relevant canonical assets as local files.
+# Canonicals carry no source: frontmatter, so this is a pure cp (no stripping).
+# Args: $1 = installed skill dir, $2 = skill base name (e.g. "prd")
+# ---------------------------------------------------------------------------
+inline_canonical_assets() {
+  _ica_dst="$1"
+  _ica_skill_name="$2"
+  _ica_assets=$(_get_skill_assets "$_ica_skill_name")
+  [ -z "$_ica_assets" ] && return 0
+  for _ica_asset in $_ica_assets; do
+    _ica_src="$repo_root/plugin/references/$_ica_asset"
+    if [ ! -f "$_ica_src" ]; then
+      printf 'error: %s not found; cannot inline for %s\n' "$_ica_src" "$_ica_dst" >&2
+      return 1
+    fi
+    if [ "$dry_run" -eq 1 ]; then
+      printf 'mkdir -p %s/references\n' "$_ica_dst"
+      printf 'cp %s %s/references/%s\n' "$_ica_src" "$_ica_dst" "$_ica_asset"
+    else
+      mkdir -p "$_ica_dst/references"
+      cp "$_ica_src" "$_ica_dst/references/$_ica_asset"
+    fi
+  done
+}
+
+# ---------------------------------------------------------------------------
+# rewrite_plugin_root_file: rewrite ${CLAUDE_PLUGIN_ROOT}/references/<asset>
+# to a local path that resolves correctly from the consumer file's location.
+#   - Files in <skill>/references/ (immediate children) → <asset>
+#     (bare filename, sibling-relative — unambiguous under both file-relative
+#     and skill-root-relative semantics).
+#   - All other files (skill root, and any other depth-1+ subdir like
+#     templates/, scripts/) → references/<asset> (skill-root-relative).
+# Today only skill-root and immediate-child references/ files contain such
+# references; if a future consumer file lives elsewhere (e.g.
+# <skill>/references/sub/foo.md or <skill>/templates/foo.md) and references
+# a canonical asset, this rewrite would need a depth-aware computation.
+# Called after namespace rewrite so the installed bundle has no plugin-root refs.
+# ---------------------------------------------------------------------------
+rewrite_plugin_root_file() {
+  _rprf_md="$1"
+  case "$(dirname "$_rprf_md")" in
+    */references)
+      sed -i.bak 's|\${CLAUDE_PLUGIN_ROOT}/references/||g' "$_rprf_md"
+      ;;
+    *)
+      sed -i.bak 's|\${CLAUDE_PLUGIN_ROOT}/references/|references/|g' "$_rprf_md"
+      ;;
+  esac
+  rm -f "$_rprf_md.bak"
+}
+
+rewrite_plugin_root_dir() {
+  _rprd_dir="$1"
+  _rprd_list=$(find "$_rprd_dir" -name '*.md' -type f)
+  [ -z "$_rprd_list" ] && return 0
+  printf '%s\n' "$_rprd_list" | while IFS= read -r _rprd_md; do
+    rewrite_plugin_root_file "$_rprd_md"
+  done
+}
+
 copy_dir_contents() {
   src="$1"
   dst="$2"
@@ -199,6 +340,10 @@ install_claude_agent() {
   rewrite_namespace_file "$dst" "/"
 }
 
+# Run strict-syntax and canonical-asset checks before any copy.
+_validate_plugin_root_syntax || exit 1
+_check_canonical_assets || exit 1
+
 skills_count=0
 claude_skills_count=0
 
@@ -217,8 +362,15 @@ for dir in "$repo_root/plugin/skills"/*; do
 
   # ~/.agents/skills install (Codex discovery) — rewrite with $ sigil form.
   copy_dir_contents "$dir" "$skills_dir/$target_name"
+  # Inline canonical assets for this skill, then rewrite ${CLAUDE_PLUGIN_ROOT} refs
+  # to local-relative form. inline_canonical_assets runs before rewrite_namespace_dir
+  # so the inlined files also get namespace-rewritten in the same pass.
   if [ "$dry_run" -eq 0 ]; then
+    inline_canonical_assets "$skills_dir/$target_name" "$name"
+    rewrite_plugin_root_dir "$skills_dir/$target_name"
     rewrite_namespace_dir "$skills_dir/$target_name" '$'
+  else
+    inline_canonical_assets "$skills_dir/$target_name" "$name"
   fi
   skills_count=$((skills_count + 1))
 
@@ -226,7 +378,11 @@ for dir in "$repo_root/plugin/skills"/*; do
   if [ "$install_claude_user" -eq 1 ]; then
     copy_dir_contents "$dir" "$claude_skills_dir/$target_name"
     if [ "$dry_run" -eq 0 ]; then
+      inline_canonical_assets "$claude_skills_dir/$target_name" "$name"
+      rewrite_plugin_root_dir "$claude_skills_dir/$target_name"
       rewrite_namespace_dir "$claude_skills_dir/$target_name" '/'
+    else
+      inline_canonical_assets "$claude_skills_dir/$target_name" "$name"
     fi
     claude_skills_count=$((claude_skills_count + 1))
   fi

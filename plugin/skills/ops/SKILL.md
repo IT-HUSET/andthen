@@ -3,6 +3,7 @@ description: "Deterministic operations: update STATE.md, plan status, FIS checkb
 context: fork
 agent: general-purpose
 user-invocable: true
+argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-fis, commit, branch, changelog, progress, stale)"
 ---
 
 # Deterministic Operations Skill
@@ -32,6 +33,9 @@ Reliable, template-driven operations for state management, git conventions, and 
 ### 1. State File Operations
 
 #### Read State
+
+**Usage**: `read-state`
+
 Parse the `State` document (path from **Project Document Index**, default: `docs/STATE.md`) and return a structured summary:
 - Current phase and status (On Track / At Risk / Blocked)
 - Active stories table (story, status, FIS, notes)
@@ -110,7 +114,7 @@ Update story status or FIS-field on a plan story row:
 - Set FIS field: `update-plan <plan_path> <story_id> fis "<fis_path>"`
 
 Actions for status form:
-- Set story **Status** field: `Pending` → `Spec Ready` → `In Progress` → `Done`
+- Set story **Status** field per the Status State Machine in [`${CLAUDE_PLUGIN_ROOT}/references/data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md). Forward transitions are skill-implicit; backward transitions (`Done → In Progress`, `In Progress → Spec Ready`) are valid only via explicit `update-plan` calls.
 - Update Story Catalog table status column
 - When setting to `Done`: check off all acceptance criteria checkboxes
 

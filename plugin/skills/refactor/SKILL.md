@@ -1,6 +1,6 @@
 ---
 description: Improve, simplify, and refactor code for clarity, consistency, and maintainability. Trigger on 'refactor this', 'clean this up', 'simplify this code'.
-argument-hint: <scope/description> | --path <dir/file>
+argument-hint: "<scope/description | --path <dir/file>>"
 ---
 
 # Refactor & Simplify Code
@@ -10,7 +10,7 @@ Systematic code improvement – simplification, refactoring, and cleanup. The go
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--path` before interpreting the remainder as the scope/description)
 
 
 ## INSTRUCTIONS

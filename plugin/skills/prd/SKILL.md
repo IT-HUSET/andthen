@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants a PRD. Creates a Product Requirements Document from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue. Trigger on 'create a PRD', 'write a PRD', 'draft a PRD', 'PRD from clarify output'.
-argument-hint: "[Specs directory or requirements source] | --issue <number> [--to-issue] [--auto|--headless]"
+argument-hint: "[--to-issue] [--auto|--headless] [specs directory or requirements source | --issue <number>]"
 ---
 
 # Create Product Requirements Document
@@ -16,7 +16,7 @@ Upstream of the `andthen:plan` skill. The PRD created here is the required input
 ## VARIABLES
 
 _Requirements source (**required**):_
-INPUT: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as the requirements source)
+INPUT: $ARGUMENTS (strip any flag tokens like `--issue`, `--to-issue`, `--auto`, or `--headless` before interpreting the remainder as the requirements source)
 
 _Output directory (derived from INPUT type — see **Output Path Semantics**):_
 OUTPUT_DIR: _(see resolution rules below)_
@@ -31,9 +31,7 @@ OUTPUT_DIR: _(see resolution rules below)_
 
 - Require `INPUT`. Stop if missing.
 - Delegate research and exploration to sub-agents to protect the main context window.
-- **Headless-first** — continue to completion without pausing for routine clarification. Make reasonable assumptions, document them, and surface unresolved questions in the output. `--auto` / `--headless` is the strict form of this rule (see Automation mode below).
-- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next, not even once. Make the best conservative assumption that preserves a coherent PRD, write assumptions and deferred decisions into `prd.md`, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and return a deterministic completion summary for the orchestrator. Stop with `BLOCKED:` (listing the minimum missing inputs) only for missing input, incompatible artifacts, unsafe external actions, or ambiguity so severe no defensible PRD can be produced.
-- Stop only on true contract failures (missing input, incompatible artifacts, or ambiguity so severe no defensible PRD can be produced).
+- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` triggers: missing input; ambiguity so severe two or more incompatible PRDs are equally plausible; unsafe external actions on `--to-issue`.
 - Focus on "what" not "how". Replace vague terms with measurable criteria. Record rationale and trade-offs.
 - Keep implementation-level details (architecture patterns, library choices, API protocol specifics, internal code organization) out of the PRD. Capture significant technical constraints in `Constraints & Assumptions`; defer deep technical research to the `andthen:plan` skill.
 
@@ -95,7 +93,7 @@ Initial gap analysis — document what's explicitly stated, what's assumed/impli
 
 Use existing artifacts (`requirements-clarification.md` from the `andthen:clarify` skill and/or `prd-draft.md`) as the primary basis for the PRD. This path avoids duplicating discovery work already completed.
 
-- Map existing content against the PRD template (see [`templates/prd-template.md`](templates/prd-template.md)); fill only the missing sections using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents.
+- Map existing content against the PRD template (see [`${CLAUDE_PLUGIN_ROOT}/references/prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md)); fill only the missing sections using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents.
 - Do not re-ask questions already answered in the existing artifacts; do not pause for routine clarification.
 - If the artifacts are too ambiguous to support any defensible PRD shape, stop and report the minimum missing decisions required. Mention the `andthen:clarify` skill as the interactive fallback.
 - **Extract technical details**: if the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), keep them out of the PRD. Note significant technical constraints in `Constraints & Assumptions`; defer deep technical research to the `andthen:plan` skill.
@@ -106,7 +104,7 @@ Use existing artifacts (`requirements-clarification.md` from the `andthen:clarif
 
 ### 4. Generate PRD Document
 
-Structure the PRD from the synthesized or mapped requirements using the template at [`templates/prd-template.md`](templates/prd-template.md). Keep the required sections, adapt optional subsections to the project, and preserve concrete decisions from discovery rather than generalizing them away. Apply MoSCoW prioritization (Must / Should / Could / Won't) and P0/P1/P2 levels to features.
+Structure the PRD from the synthesized or mapped requirements using the template at [`${CLAUDE_PLUGIN_ROOT}/references/prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md). Keep the required sections, adapt optional subsections to the project, and preserve concrete decisions from discovery rather than generalizing them away. Apply MoSCoW prioritization (Must / Should / Could / Won't) and P0/P1/P2 levels to features.
 
 When running headlessly, do not leave important ambiguity implicit. Capture it as an explicit assumption, dependency, or deferred decision in the PRD so downstream skills inherit a usable contract.
 
@@ -129,7 +127,7 @@ Self-check:
 - [ ] No conflicting requirements
 - [ ] **Problem-solution fit (bidirectional)**: every pain or desired outcome named on the **problem side** — in `Problem Definition` and in the "so that..." clauses of `Functional Requirements > User Stories` — has at least one feature, acceptance criterion, or metric on the **solution side** (a row in `Functional Requirements > Feature Specifications`, an item in `Executive Summary > Success Metrics`, a `Non-Functional Requirements` threshold, or a `Scope > In Scope` capability) that signals it's resolved; and every solution-side item traces back to such a pain or outcome. Fix: unaddressed problem → add a feature/metric or drop the problem element; orphan solution → drop it or amend `Problem Definition` / user-story rationale to justify (solutionism smell).
 
-Optional: Invoke the `andthen:review --mode doc` skill to validate the PRD before finalizing (append `--auto` when `AUTO_MODE=true`).
+Optional: Invoke the `andthen:review --mode doc` skill to validate the PRD before finalizing.
 
 **Gate**: Validation complete
 
@@ -170,4 +168,4 @@ After completion, suggest the following next steps. **Recommend a clean session*
 
 ## Appendix: Template
 
-**USE THE TEMPLATE**: [`templates/prd-template.md`](templates/prd-template.md)
+**USE THE TEMPLATE**: [`${CLAUDE_PLUGIN_ROOT}/references/prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md)

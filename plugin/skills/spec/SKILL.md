@@ -1,6 +1,6 @@
 ---
-description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Creates an execution-sized FIS by default, or pivots to a small plan bundle with multiple FIS files when one spec would be too large. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
-argument-hint: "<description> | @<requirements-file> | story <story-id> of <path-to-plan.md> [--auto|--headless]"
+description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Produces an execution-sized FIS; if the request turns out too large for a single FIS, redirects standalone inputs to the `andthen:prd → andthen:plan → andthen:exec-plan` chain and escalates plan-story inputs for upstream plan decomposition. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
+argument-hint: "[--auto|--headless] <description | @<requirements-file> | story <story-id> of <path-to-plan.md>>"
 ---
 
 # Generate Feature Implementation Specification
@@ -11,7 +11,7 @@ Given a feature request, generate an execution-sized specification artifact: a s
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpreting the remainder as the description / `@file` / `story <id> of <plan>`)
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` before interpreting the remainder as the description / `@file` / `story <id> of <plan>`)
 
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
@@ -23,7 +23,7 @@ ARGUMENTS: $ARGUMENTS (strip any `--auto` / `--headless` tokens before interpret
 - **Spec generation only** — no code changes, commits, or modifications.
 - Agents executing the FIS only get the context you provide. Include all necessary documentation, examples, and references.
 - Read the `Learnings` document (see **Project Document Index**) before starting, if it exists.
-- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Make the best conservative requirement/spec assumption that yields an execution-sized FIS, document it in the FIS under assumptions, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and return deterministic artifact paths for the orchestrator. Stop with `BLOCKED:` (listing the minimum missing decisions) only for missing input, unreadable sources, incompatible artifacts, unsafe external actions, or ambiguity where no defensible FIS can be written.
+- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Spec-specific `BLOCKED:` triggers: missing input, unreadable sources, incompatible artifacts, ambiguity where no defensible FIS can be written.
 
 
 ## GOTCHAS
@@ -43,7 +43,7 @@ In `AUTO_MODE`, do not use arrow prompts. Choose the most conservative defensibl
 
 **Scenarios that describe implementation, not behavior** – scenarios should use Given/When/Then to describe observable outcomes from the user's or system's perspective, not internal code steps. Bad: "Given a new AuthService class, When login() is called...". Good: "Given valid credentials, When the user submits login, Then a session token is returned."
 
-**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Most strong FIS files land in the 200-500 line range. If the first-pass draft is pushing past roughly ~700 lines or >18 tasks, pivot at spec time into a small plan bundle with multiple child FIS files instead of leaving the problem for `exec-spec`.
+**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Size threshold and oversize handling: see [`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) Key Generation Guidelines #6.
 
 **Generic "What We're NOT Doing" section** – use it to record real non-goals or deferrals with reasons, not filler bullets.
 
@@ -77,15 +77,15 @@ If a plan-scoped `.technical-research.md` exists with relevant coverage, skip re
 
 - **Codebase research** _(skip if technical research covers file maps and patterns for this story)_: locate similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Use `rg`/`tree`/file reads directly.
 
-- **Solution architecture** _(skip if technical research already frames the solution for this story)_: frame how the feature fits the existing architecture — module boundaries, integration points, component responsibilities, data flow, test seams. Worth doing for most code changes, not just novel ones. Invoke the `andthen:architecture` skill (`--mode advise`; append `--auto` when `AUTO_MODE=true`) in a spawned `general-purpose` sub-agent.
+- **Solution architecture** _(skip if technical research already frames the solution for this story)_: frame how the feature fits the existing architecture — module boundaries, integration points, component responsibilities, data flow, test seams. Worth doing for most code changes, not just novel ones. Invoke the `andthen:architecture` skill (`--mode advise`) in a spawned `general-purpose` sub-agent.
 
 - **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Delegate to the `andthen:documentation-lookup` agent or the `andthen:research-specialist` agent.
 
-- **Architecture trade-offs** _(often unnecessary — skip unless the story has 1-3 genuinely competing approaches with non-trivial risk or cost differences; also skip if technical research covers shared decisions or an ADR is in ARGUMENTS)_: analyse the candidate approaches, document risks, pick one with rationale. Invoke the `andthen:architecture` skill (`--mode trade-off`; append `--auto` when `AUTO_MODE=true`) in a spawned `general-purpose` sub-agent.
+- **Architecture trade-offs** _(often unnecessary — skip unless the story has 1-3 genuinely competing approaches with non-trivial risk or cost differences; also skip if technical research covers shared decisions or an ADR is in ARGUMENTS)_: analyse the candidate approaches, document risks, pick one with rationale. Invoke the `andthen:architecture` skill (`--mode trade-off`) in a spawned `general-purpose` sub-agent.
 
-- **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Invoke the `andthen:ui-ux-design` skill (`--mode research` or `--mode wireframes`; append `--auto` when `AUTO_MODE=true`) in a spawned `general-purpose` sub-agent.
+- **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Invoke the `andthen:ui-ux-design` skill (`--mode research` or `--mode wireframes`) in a spawned `general-purpose` sub-agent.
 
-**Save research findings** (if substantial) to `.technical-research.md` in the FIS output directory — a hidden companion document that keeps the FIS lean and reviewable. The FIS references this document; the executing agent reads it alongside the FIS for implementation context. See the [Technical Research Separation](references/fis-authoring-guidelines.md#technical-research-separation) guidelines for what belongs in the research doc vs the FIS. Skip this if findings are minimal — not every spec needs a technical research document.
+**Save research findings** (if substantial) to `.technical-research.md` in the FIS output directory — a hidden companion document that keeps the FIS lean and reviewable. The FIS references this document; the executing agent reads it alongside the FIS for implementation context. See the [Technical Research Separation](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#technical-research-separation) guidelines for what belongs in the research doc vs the FIS. Skip this if findings are minimal — not every spec needs a technical research document.
 
 If an existing `.technical-research.md` already exists, append story-specific findings under a `## {Story Name}` heading rather than overwriting.
 
@@ -109,10 +109,10 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 
 #### Resolve Cross-Document References
 
-Walk every upstream document the spec depends on (PRD, plan, ADRs, project guidelines like `Ubiquitous Language` / coding standards / security rules, glossary) and resolve each reference into one of two tiers per the [Cross-Document References](references/fis-authoring-guidelines.md#cross-document-references) guideline (which carries the full rules, the inline budget, and the `.technical-research.md` exclusion):
+Walk every upstream document the spec depends on (PRD, plan, ADRs, project guidelines like `Ubiquitous Language` / coding standards / security rules, glossary) and resolve each reference into one of two tiers per the [Cross-Document References](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) guideline (which carries the full rules, the inline budget, and the `.technical-research.md` exclusion):
 
-- **Required Context** — spans the executor *must* know. Extract verbatim, inline as a block in the FIS, pin with `<!-- source: path#anchor -->` and `<!-- extracted: <commit-sha when source is in this repo; YYYY-MM-DD otherwise> -->` comments. Per block: typically 30-100 lines (hard cap 200); total across all blocks ≤ 250 lines.
-- **Deeper Context** — optional supplementary pointers. Emit as `path#heading-slug — description` bullets. Validate each anchor resolves in its source document before finalizing.
+- **Required Context** — load-bearing spans inlined verbatim, source-pinned with `<!-- source: -->` and `<!-- extracted: -->` comments. See the [Cross-Document References](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) guideline for the inline budget, pin format, and `.technical-research.md` exclusion.
+- **Deeper Context** — supplementary anchored pointers. Validate each anchor resolves before finalizing.
 
 The walk is mandatory; the sections themselves are optional based on what's found. Omit Required Context entirely when no load-bearing upstream spans surface; omit Deeper Context when no supplementary pointers are worth surfacing. A truly standalone feature request with no PRD/plan/ADR/guideline upstream legitimately produces neither section — but only after the walk confirms there's nothing to inline or anchor.
 
@@ -120,47 +120,25 @@ A bare "see plan.md" without an anchor or inlined content is not acceptable. The
 
 #### Generate from Template
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
-[`references/fis-authoring-guidelines.md`](references/fis-authoring-guidelines.md).
+[`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md).
 
-> **Optional**: Invoke the `andthen:review --mode doc` skill for thorough validation (recommended for large/complex features; append `--auto` when `AUTO_MODE=true`). This keeps pre-implementation FIS review on the document-review path.
+> **Optional**: Invoke the `andthen:review --mode doc` skill for thorough validation (recommended for large/complex features). This keeps pre-implementation FIS review on the document-review path.
 
-### 4.5 Oversize Pivot
+### 4.5 Oversize Escalation
 
-After drafting the first-pass FIS, assess whether it is still execution-sized.
+After drafting the first-pass FIS, assess whether it is still execution-sized using the size threshold from the FIS authoring guidelines (Key Generation Guidelines #6: 200-500 sweet spot; >700 lines or >18 tasks → oversized).
 
-- Oversize signals: the draft is pushing past roughly ~700 lines, exceeds ~18 implementation tasks, spans multiple major execution phases that would likely be executed independently, or feels like a small plan disguised as one spec.
 - If the draft is still execution-sized, save the single FIS normally.
-- If the draft is oversized **and the input is a standalone feature request / issue / clarification directory**:
-  1. Do **not** save the giant single FIS as the primary artifact.
-  2. Create a small `plan.md` in the output directory with 2-5 focused stories in execution order.
-  3. Generate that `plan.md` using the `andthen:plan` skill's template at `templates/plan-template.md`. Treat the template as an operational contract, not loose guidance.
-  4. Preserve the plan template invariants because downstream skills parse them directly:
-     - keep the heading names and overall document shape stable
-     - keep the Story Catalog columns exactly `ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS`
-     - include the document references header blockquote at the top with actual relative links for `PRD`, `ADRs`, `Design System`, `Wireframes`, and `Technical Research` when those documents exist
-     - for each story, include `**Status**`, `**FIS**`, `**Phase**`, `**Wave**`, `**Dependencies**`, `**Parallel**`, `**Risk**`, `**Scope**`, `**Acceptance Criteria**`, and `**Asset refs**`
-     - keep `**Key Scenarios**` optional, but include them when behavioral seeds are useful for downstream FIS generation
-     - include `**Provenance**` when a story has no direct PRD feature coverage
-  5. Use the oversize pivot as a **simple one-story-per-FIS breakdown**.
-  6. Generate exactly one child FIS per story in the same directory, reusing the shared `.technical-research.md` when present.
-  7. For each child FIS:
-     - use the standard FIS template in the Appendix below and the FIS authoring guidelines
-     - derive the content from that story's `Scope`, `Acceptance Criteria`, and `Key Scenarios` in the generated `plan.md`
-     - reference the shared `.technical-research.md` from the FIS instead of copying codebase analysis or API research into each spec
-     - save with a stable story-scoped filename such as `s01-{story-name}.md`
-     - keep the spec execution-sized; if a child FIS would still be oversized, split the story further in `plan.md` before saving specs
-  8. Update the generated `plan.md` immediately after each child FIS is written so that every story points at its child FIS path and has `Status: Spec Ready`.
-  9. Treat the result as a **fully-specced plan bundle** whose downstream path is the `andthen:exec-plan` skill, not the `andthen:exec-spec` skill. Specs for every story are already included, so `exec-plan` can consume the bundle directly without an upstream `andthen:plan` pass.
-- If the draft is oversized **and the input is `story {story_id} of {path-to-plan.md}`**:
-  - Do **not** silently fan one plan story out into multiple FIS files.
-  - Stop and report that the story needs upstream plan decomposition before spec generation can complete. Do not save an oversized single FIS.
+- If the draft is oversized **and the input is a standalone feature request / issue / clarification directory**: stop. Do **not** save the oversized FIS. Instead, redirect to the multi-feature chain so the work goes through proper PRD-backed planning:
+  - Print: `Oversized for a single FIS — redirect to /andthen:prd <input> to start the prd → plan → exec-plan chain. The PRD skill accepts inline descriptions, files, URLs, GitHub issues, and clarification artifacts.`
+  - In `AUTO_MODE`, emit `BLOCKED:` with the same redirect message.
+- If the draft is oversized **and the input is `story {story_id} of {path-to-plan.md}`**: stop and report that the story needs upstream plan decomposition before spec generation can complete. Do not save an oversized single FIS, do not silently fan one plan story out into multiple FIS files.
 
 
 ## OUTPUT
 
-### Single-FIS Mode
 - Directory input (e.g. clarify output): save FIS inside as `{feature-name}.md`
-- Plan story input: save FIS in plan directory as `{story-name}.md`
+- Plan story input: save FIS in plan directory as `s{NN}-{name}.md` (two-digit zero-padded story number; `{name}` is a kebab-case slug derived from the story name). The FIS body must carry `**Plan**:` and `**Story-ID**:` between the H1 and `## Feature Overview and Goal`, populated from the source plan path and story ID.
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
 - **Technical research**: save as `.technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and `.technical-research.md` already exists (from the `andthen:plan` skill), append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
@@ -168,14 +146,7 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
   - Set the story's **FIS** field to the generated FIS file path
   - Set the story's **Status** field to `Spec Ready`
 
-### Oversize Pivot Mode
-- Save `plan.md` in the output directory as the primary artifact
-- Generate `plan.md` from `templates/plan-template.md` and preserve its required headings, Story Catalog columns, and story metadata labels
-- Save exactly one child FIS per story in the same directory (prefer stable names like `s01-{story-name}.md`)
-- Save or reuse `.technical-research.md` beside the plan bundle
-- Update `plan.md` so each generated story references its child FIS path and has `Status` = `Spec Ready`
-- The downstream execution path is the `andthen:exec-plan` skill
-- Do **not** use oversize pivot mode for `story {story_id} of {path-to-plan.md}` input; that case must escalate for upstream plan decomposition instead
+If the draft was oversized (Step 4.5 escalation), no FIS is saved — the redirect / `BLOCKED:` message is the output.
 
 ---
 
@@ -184,13 +155,17 @@ After drafting the first-pass FIS, assess whether it is still execution-sized.
 
 Skip this section when `AUTO_MODE=true`; print only the generated artifact paths and downstream command shape.
 
-After completion, suggest:
+**If a FIS was saved**, suggest:
 
-1. **Single-FIS mode**: Invoke the `andthen:exec-spec` skill to implement the FIS.
-2. **Oversize pivot mode**: Invoke the `andthen:exec-plan` skill to execute the generated plan bundle.
-3. **Review first**: Invoke the `andthen:review` skill with `--mode doc` on the primary artifact before implementation.
+1. **Implement the FIS**: Invoke the `andthen:exec-spec` skill.
+2. **Review first**: Invoke the `andthen:review` skill with `--mode doc` on the FIS before implementation.
 
 > **Session tip**: The `andthen:exec-spec` skill is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
+
+**If the run ended with the Step 4.5 oversize escalation** (no FIS saved):
+
+- **Standalone input**: invoke the `andthen:prd` skill on the same input to start the `prd → plan → exec-plan` chain.
+- **Plan-story input**: revisit the source plan and decompose the story before re-running this skill on the resulting smaller stories.
 
 
 ---
@@ -198,4 +173,4 @@ After completion, suggest:
 
 ## Appendix: FIS Template
 
-**USE THE TEMPLATE**: Read and use the template at [`templates/fis-template.md`](templates/fis-template.md) to generate the Feature Implementation Specification.
+**USE THE TEMPLATE**: Read and use the template at [`${CLAUDE_PLUGIN_ROOT}/references/fis-template.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-template.md) to generate the Feature Implementation Specification.

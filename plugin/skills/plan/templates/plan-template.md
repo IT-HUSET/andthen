@@ -107,14 +107,11 @@ W3: S05
 
 ## Execution Guide
 
-1. Execute Phase 1 stories sequentially, then move wave by wave.
-2. For each story ready to implement:
-   - Invoke the `andthen:spec` skill using the story scope from this plan.
-   - Update the story `**FIS**` field with the generated spec path and set `**Status**` to `Spec Ready`.
-   - Invoke the `andthen:exec-spec` skill on the generated FIS.
-   - When implementation starts, set `**Status**` to `In Progress`.
-   - After implementation and review, check off completed acceptance criteria and set `**Status**` to `Done`.
-3. Stories marked `[P]` may run in parallel after dependencies are satisfied.
-4. After the plan is complete, invoke the `andthen:review` skill with `--mode gap` against `plan.md`.
+This plan ships fully specced — every story already has a FIS (see the `FIS` column).
 
-> **Status tracking**: Keep the Story Catalog table and the Phase Breakdown story sections in sync. The `andthen:exec-plan` skill and the `andthen:ops` skill rely on these fields for progress tracking.
+1. **Execute the whole bundle**: invoke the `andthen:exec-plan` skill on this directory. It runs the per-story `exec-spec → quick-review` pipeline by phase and wave, then a final gap review.
+2. **Or execute one story at a time**: invoke the `andthen:exec-spec` skill on a single story's FIS for finer control.
+3. Phase ordering and `[P]` parallel markers are honored by `exec-plan`; dependencies block waves automatically.
+4. After execution, the `andthen:exec-plan` skill runs `andthen:review --mode gap` on `plan.md` for cross-story coverage validation.
+
+> **Status tracking**: Keep the Story Catalog table and the Phase Breakdown story sections in sync. The `andthen:exec-plan` and `andthen:exec-spec` skills (via `andthen:ops`) write authoritative status into these fields during execution.

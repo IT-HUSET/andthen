@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants a glossary, ubiquitous language extraction, or domain terminology cleanup. Extracts and maintains the project's `Ubiquitous Language` document as defined in the **Project Document Index**, using the codebase, documentation, and conversation. Trigger on 'build a glossary', 'extract ubiquitous language', 'update the domain language'.
-argument-hint: "[Scope or focus area] [--update]"
+argument-hint: "[--update] [scope or focus area]"
 ---
 
 # Extract and Maintain Ubiquitous Language
@@ -12,7 +12,7 @@ Scan the codebase, documentation, and conversation history to extract domain-rel
 ## VARIABLES
 
 _Arguments (scope and optional flags):_
-ARGUMENTS: $ARGUMENTS
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--update` before interpreting the remainder as the scope/focus area)
 
 ### Parse Arguments
 - Extract `--update` flag → UPDATE_MODE (reads the existing `Ubiquitous Language` document as defined in the **Project Document Index** and incorporates new terms)

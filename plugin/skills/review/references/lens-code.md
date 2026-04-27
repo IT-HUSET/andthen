@@ -33,9 +33,16 @@ Run available security tooling such as Semgrep (`../scripts/run-security-scan.sh
 When the review touches browser state, AI/agent flows, logs, stack traces, error output, scraped content, tool results, or other external-data flows, apply `trust-boundaries.md`.
 
 
+## Red-Team Sub-Lens (Always On)
+
+Run `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` against the same code scope as an always-on sub-lens. This is the finding pass for fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring that constructive review can miss.
+
+When code review delegates multiple specialist lenses to sub-agents, each specialist applies the Red-Team sub-lens to its own focus area. The final synthesis merges red-team findings into the normal severity sections before any Findings Filter runs.
+
+
 ## Calibration
 
-Calibrate severity with `review-calibration.md` (universal) and `code-review-calibration.md` (code-specific). Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
+Calibrate severity with `review-calibration.md` (universal) and `code-review-calibration.md` (code-specific). Load `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` while running the always-on Red-Team sub-lens; use the code-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
 
 
 ## Verification Evidence
