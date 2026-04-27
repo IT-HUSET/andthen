@@ -186,7 +186,7 @@ Long-running workflows spanning aggregates or contexts. Two forms worth distingu
 - **Saga** — no durable state; reacts to events and issues compensating actions. Simpler to reason about; limited memory.
 - **Process Manager** — a durable state machine coordinating a workflow across multiple aggregates or contexts. More powerful; more to maintain.
 
-**Orchestration vs. choreography** — orchestration (a process manager directing participants) is easier to trace but centralizes coupling; choreography (saga-style event chains) distributes coupling but is harder to observe. See `quanta.md` for Ford/Richards' 8-pattern saga classification and `farley-framework.md` for reliability framing.
+**Orchestration vs. choreography** — orchestration (a process manager directing participants) is easier to trace but centralizes coupling; choreography (saga-style event chains) distributes coupling but is harder to observe. See `quanta.md` for Ford/Richards' 8-pattern saga classification and `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` for reliability framing.
 
 ---
 

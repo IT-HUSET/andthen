@@ -61,7 +61,7 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 
 3. **Gap identification** - List gaps in: functional requirements, user flows, edge cases, success criteria, scope boundaries
 
-4. **Design space decomposition** _(see `references/design-tree.md`)_
+4. **Design space decomposition** _(see `${CLAUDE_PLUGIN_ROOT}/references/design-tree.md`)_
 
    When the feature involves **user-visible or product-level** design decisions with multiple viable approaches, decompose the solution space into independent dimensions:
    - Identify independent dimensions of choice at the requirements level (navigation model, data display, auth method, interaction pattern) – these are peers, not a hierarchy

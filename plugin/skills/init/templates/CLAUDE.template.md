@@ -56,7 +56,7 @@ See `docs/STATE.md` for current phase, active stories, blockers, and session con
 <!-- Workflow commands read this table to determine where to write output.
      If a location isn't specified, commands use the defaults shown above.
      The State–Stack rows are optional. Starter templates for these documents
-     are in the AndThen repo at plugin/skills/init/templates/project-state-templates.md.
+     are in the AndThen repo at plugin/references/project-state-templates.md.
      You can also generate Architecture, Conventions, and Stack docs
      automatically using /andthen:map-codebase. -->
 

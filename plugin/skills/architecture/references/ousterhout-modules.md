@@ -61,7 +61,7 @@ Splitting modules by the *order* operations happen ("read, then parse, then proc
 Sketch at least two fundamentally different interface designs before committing. The first plausible design is rarely the best one. For any new public API, the review expectation is evidence of a genuine alternative considered and rejected with reason.
 
 ### Strategic vs. tactical (Ch. 3)
-Tactical programming optimizes for "working now"; strategic programming treats ongoing design quality as continuous investment (Ousterhout suggests ~10–15% of time). Compatible with Farley's complexity-management framing (`farley-framework.md`) — use Ousterhout's budget framing as the concrete tactic.
+Tactical programming optimizes for "working now"; strategic programming treats ongoing design quality as continuous investment (Ousterhout suggests ~10–15% of time). Compatible with Farley's complexity-management framing (`${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md`) — use Ousterhout's budget framing as the concrete tactic.
 
 ---
 
@@ -78,7 +78,7 @@ When auditing a module or public API:
 7. **One-sentence test** — Can you describe the module in one sentence without using "and"? If not, abstraction is unclear.
 8. **Designed-twice test** — Was at least one genuinely different alternative interface considered?
 
-**Severity calibration**: defer to `architecture-calibration.md` (contrastive examples, false-positive traps) and `review-calibration.md` (universal anti-leniency rules). Apply the same blast-radius logic used for the existing examples there — HIGH requires measurable impact across multiple consumers; isolated single-module findings default to INFO. Do not invent thresholds specific to Ousterhout findings.
+**Severity calibration**: defer to `architecture-calibration.md` (contrastive examples, false-positive traps) and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (universal anti-leniency rules). Apply the same blast-radius logic used for the existing examples there — HIGH requires measurable impact across multiple consumers; isolated single-module findings default to INFO. Do not invent thresholds specific to Ousterhout findings.
 
 **Report artifact note**: most Ousterhout findings are qualitative (depth, obviousness, one-sentence) with no automated check. For the `Fitness Function` field required by `review-output.md`, **Manual review checkpoint** is acceptable — phrase it as the specific question to answer on re-review (e.g. "Can a caller use `X` correctly without reading its implementation?").
 

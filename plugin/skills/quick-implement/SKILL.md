@@ -53,7 +53,12 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--pr`, `--no-pr`, or `--issue
 
 #### 1.2. Analyze & Plan
 
-1. Understand requirements and scope – interpret as *what* to implement, not *how*
+1. Understand requirements and scope – interpret as *what* to implement, not *how*. Transform fuzzy asks into verifiable goals before coding:
+   - "Fix the bug" → "Write a test that reproduces it; make it pass"
+   - "Add validation" → "Write tests for invalid inputs; make them pass"
+   - "Refactor X" → "Ensure tests pass before and after"
+
+   Strong success criteria let you loop independently; weak ones ("make it work") force constant clarification.
 2. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview; use Explore (or general-purpose) agent for complex exploration
 3. Read relevant documentation (use the `andthen:documentation-lookup` agent as needed)
 4. Break down into manageable tasks and track them

@@ -2,7 +2,7 @@
 
 **Trade-off analysis** — research technical options, compare them systematically against weighted criteria, and deliver an evidence-based recommendation the user can act on. Optionally formalize the decision as an ADR. Use this mode to make architectural decisions defensible rather than opinion-based.
 
-**Shared reference**: `design-tree.md` for multi-dimensional decomposition.
+**Shared reference**: `${CLAUDE_PLUGIN_ROOT}/references/design-tree.md` for multi-dimensional decomposition.
 
 ## Variables
 
@@ -29,7 +29,7 @@ Get or confirm:
 
 ### 1b. Design Space Decomposition
 
-For multi-dimensional decisions, decompose the space instead of listing flat options. See `design-tree.md`.
+For multi-dimensional decisions, decompose the space instead of listing flat options. See `${CLAUDE_PLUGIN_ROOT}/references/design-tree.md`.
 
 1. Identify the independent dimensions.
 2. List viable options per dimension.

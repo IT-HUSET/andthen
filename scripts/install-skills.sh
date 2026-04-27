@@ -13,30 +13,47 @@ Options:
   --skills-dir PATH         Destination for skill directories (default: ~/.agents/skills)
   --codex-agents-dir PATH   Destination for Codex agent TOML files (default: ~/.codex/agents)
   --no-codex-agents         Skip Codex agent installation
-  --claude-user             Also install skills and agents as Claude Code user-level
-                            files (~/.claude/skills and ~/.claude/agents), using the
-                            same <prefix> so invocation is /andthen-<name> on both
-                            Claude Code and Codex. Alternative to the Claude Code
-                            plugin — do not enable while the plugin is also installed.
-  --prefix PREFIX           Prefix for exported names (default: andthen-)
+  --claude-user             Also install skills and agents for Claude Code at the
+                            user-level defaults (~/.claude/skills and
+                            ~/.claude/agents), using the same <prefix> so invocation
+                            is /<prefix><name> on both Claude Code and Codex.
+                            (Set implicitly by --claude-skills-dir / --claude-agents-dir.)
+                            Alternative to the Claude Code plugin. Safe to combine
+                            with the plugin only when --prefix differs from the
+                            default (andthen-); same prefix would expose duplicate
+                            skills.
+  --claude-skills-dir PATH  Override the Claude Code skills destination (implies a
+                            Claude Code install). Use to target a project-local
+                            location like <project>/.claude/skills for downstream
+                            toolkits that bundle AndThen with their own --prefix.
+  --claude-agents-dir PATH  Override the Claude Code agents destination (implies a
+                            Claude Code install). Counterpart to --claude-skills-dir;
+                            for a clean project-local install pass both, otherwise
+                            the unset half installs at the user-level default.
+  --prefix PREFIX           Prefix for exported names (must end with '-';
+                            default: andthen-)
   --dry-run                 Print planned operations without copying files
   -h, --help                Show this help text
 
 Notes:
   - All skills are exported as directories named <prefix><skill-name>/
-  - Skills are fully self-contained: each skill owns its references/, templates/,
-    and scripts/ locally, so only namespace rewriting (andthen: → <prefix>) is
-    applied at install time. No cross-skill or plugin-root paths remain.
+  - Skills are fully self-contained at install time: each skill owns its
+    references/, templates/, and scripts/ locally. Shared assets at
+    plugin/references/ are inlined into each consuming skill's references/
+    and ${CLAUDE_PLUGIN_ROOT} paths are rewritten to local-relative form,
+    alongside the andthen: → <prefix> namespace rewrite.
   - Codex agents are generated at install time from plugin/agents/*.md
     (Claude Code agent files are the source of truth) and written as
     <prefix><agent-name>.toml into the codex agents directory
-  - Claude Code user agents (with --claude-user) are plain .md copies of
-    plugin/agents/*.md, with the frontmatter `name:` prefixed so Task tool
-    resolution (subagent_type: "<prefix><agent>") works.
+  - Claude Code agents installed for Claude Code (via --claude-user or the
+    --claude-*-dir overrides) are plain .md copies of plugin/agents/*.md, with
+    the frontmatter `name:` prefixed so Task tool resolution
+    (subagent_type: "<prefix><agent>") works.
   - Existing files are overwritten in place, but stale files are not deleted.
-  - Disabling --claude-user on a later run does NOT remove previously installed
-    ~/.claude/skills/<prefix>* / ~/.claude/agents/<prefix>*.md — delete those
-    manually if switching back to the Claude Code plugin as the primary path.
+  - Skipping the Claude Code install on a later run does NOT remove previously
+    installed <claude-skills-dir>/<prefix>* / <claude-agents-dir>/<prefix>*.md —
+    delete those manually if switching back to the Claude Code plugin as the
+    primary path or relocating the install.
 EOF
 }
 
@@ -71,6 +88,16 @@ while [ "$#" -gt 0 ]; do
       install_claude_user=1
       shift
       ;;
+    --claude-skills-dir)
+      claude_skills_dir="$2"
+      install_claude_user=1
+      shift 2
+      ;;
+    --claude-agents-dir)
+      claude_agents_dir="$2"
+      install_claude_user=1
+      shift 2
+      ;;
     --prefix)
       prefix="$2"
       shift 2
@@ -103,8 +130,30 @@ if [ "$install_claude_user" -eq 1 ]; then
     _plugin_found=1
     break
   done
-  if [ "$_plugin_found" -eq 1 ]; then
-    printf 'warning: --claude-user enabled but an andthen Claude Code plugin install appears present under ~/.claude/plugins/. Running both will create duplicate skills under andthen:<name> (plugin) and andthen-<name> (user). Uninstall the plugin (/plugin uninstall andthen) before using --claude-user.\n' >&2
+  # Only warn when prefixes would actually collide AND both install paths are
+  # going to the user-tier defaults. Downstream tools that wrap this installer
+  # with their own --prefix (e.g. dartclaw-) or that redirect either path via
+  # --claude-skills-dir / --claude-agents-dir coexist with the AndThen plugin
+  # under disjoint namespaces or scopes and shouldn't see this warning.
+  if [ "$_plugin_found" -eq 1 ] \
+     && [ "$prefix" = "andthen-" ] \
+     && [ "$claude_skills_dir" = "${HOME}/.claude/skills" ] \
+     && [ "$claude_agents_dir" = "${HOME}/.claude/agents" ]; then
+    printf 'warning: --claude-user enabled with the default prefix and user-tier paths but an andthen Claude Code plugin install appears present under ~/.claude/plugins/. Running both will create duplicate skills under andthen:<name> (plugin) and andthen-<name> (user). Uninstall the plugin (/plugin uninstall andthen) before using --claude-user, pass a distinct --prefix, or target project-local --claude-skills-dir / --claude-agents-dir to coexist.\n' >&2
+  fi
+
+  # Asymmetric override: only one of the two --claude-*-dir flags was redirected
+  # away from the user-tier default. Almost certainly a mistake — a "project-local"
+  # install that splits skills and agents between project and user tiers is rarely
+  # what the caller wants. Warn but don't block; legitimate split-target setups
+  # remain possible.
+  _claude_skills_default=0
+  _claude_agents_default=0
+  [ "$claude_skills_dir" = "${HOME}/.claude/skills" ] && _claude_skills_default=1
+  [ "$claude_agents_dir" = "${HOME}/.claude/agents" ] && _claude_agents_default=1
+  if [ "$_claude_skills_default" -ne "$_claude_agents_default" ]; then
+    printf 'warning: --claude-skills-dir and --claude-agents-dir are split between project and user tier (skills=%s, agents=%s). For a clean project-local install pass both; for a user-tier install pass neither.\n' \
+      "$claude_skills_dir" "$claude_agents_dir" >&2
   fi
 fi
 
@@ -114,9 +163,9 @@ fi
 # installed bundle is self-contained (no ${CLAUDE_PLUGIN_ROOT} at runtime).
 # ---------------------------------------------------------------------------
 
-# Names of the contract-load-bearing canonical assets (filenames only).
+# Names of the canonical shared assets (filenames only).
 # Each must exist at plugin/references/<asset>.md and be consumed by ≥2 skills.
-_canonical_assets="automation-mode.md data-contract.md execution-discipline.md fis-authoring-guidelines.md fis-template.md lens-adversarial.md prd-template.md red-team-calibration.md"
+_canonical_assets="adversarial-challenge.md automation-mode.md data-contract.md design-tree.md execution-discipline.md farley-framework.md fis-authoring-guidelines.md fis-template.md lens-adversarial.md prd-template.md project-state-templates.md red-team-calibration.md review-calibration.md trust-boundaries.md"
 
 # Map of skill-name → space-separated list of canonical asset names it consumes.
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
@@ -126,9 +175,15 @@ _skill_assets_spec="automation-mode.md fis-authoring-guidelines.md fis-template.
 _skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md"
 _skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md"
 _skill_assets_ops="data-contract.md"
-_skill_assets_review="fis-authoring-guidelines.md lens-adversarial.md red-team-calibration.md"
+_skill_assets_review="adversarial-challenge.md fis-authoring-guidelines.md lens-adversarial.md red-team-calibration.md review-calibration.md trust-boundaries.md"
 _skill_assets_quick_review="lens-adversarial.md red-team-calibration.md"
-_skill_assets_architecture="lens-adversarial.md"
+_skill_assets_architecture="adversarial-challenge.md design-tree.md farley-framework.md review-calibration.md"
+_skill_assets_clarify="design-tree.md"
+_skill_assets_testing="farley-framework.md"
+_skill_assets_e2e_test="trust-boundaries.md"
+_skill_assets_triage="trust-boundaries.md"
+_skill_assets_init="project-state-templates.md"
+_skill_assets_map_codebase="project-state-templates.md"
 
 # Resolve the list of canonical assets for a given skill base name.
 # Prints a space-separated list of asset filenames.
@@ -144,6 +199,12 @@ _get_skill_assets() {
     review)   printf '%s' "$_skill_assets_review" ;;
     quick-review) printf '%s' "$_skill_assets_quick_review" ;;
     architecture) printf '%s' "$_skill_assets_architecture" ;;
+    clarify)  printf '%s' "$_skill_assets_clarify" ;;
+    testing)  printf '%s' "$_skill_assets_testing" ;;
+    e2e-test) printf '%s' "$_skill_assets_e2e_test" ;;
+    triage)   printf '%s' "$_skill_assets_triage" ;;
+    init)     printf '%s' "$_skill_assets_init" ;;
+    map-codebase) printf '%s' "$_skill_assets_map_codebase" ;;
     *)        printf '' ;;
   esac
 }

@@ -6,6 +6,22 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.15.1] – 2026-04-27
+
+### Added
+- **`--claude-skills-dir` / `--claude-agents-dir` install flags** – override the previously-hardcoded `~/.claude/skills` and `~/.claude/agents` destinations independently. Either flag implies a Claude Code install (no separate `--claude-user` needed); pass both for a clean project-local install (the unset half otherwise lands at the user-level default — the installer warns about asymmetric paths but does not block). Unblocks downstream toolkits (e.g. DartClaw) bundling AndThen with their own `--prefix`. README gains a "Bundling AndThen into a downstream toolkit" snippet covering both user-tier and project-local patterns; Codex-side targets (`--skills-dir`, `--codex-agents-dir`) remain independent and still default to user-tier.
+- **Goal-transformation prompts in `andthen:quick-implement`** – Phase 1.2 gains three task→verifiable-goal rewrites ("Fix the bug → write a failing test that reproduces it", etc.) so non-FIS quick fixes inherit the success-criteria discipline FIS scenarios provide. CLAUDE.md Skill Authoring Philosophy also gains a closing **Fitness check** working-signal line. Both inspired by a Karpathy-style coding-agent guidelines compilation (`forrestchang/andrej-karpathy-skills`).
+
+### Changed
+- **Boy Scout cleanup re-scoped to review/refactor modes** – CRITICAL RULES splits the prior combined rule into two named modes: **Surgical scope; surface — don't fix** (default for implementation skills, with explicit "every changed line traces to the spec/FIS or the issue under investigation" trace test) and **Boy Scout cleanup** (own role for `andthen:review`, `andthen:quick-review`, `andthen:refactor`, and `andthen:architecture`, *within the user's requested scope*). Implementation skills route spotted pre-existing issues through the existing Osmani-derived `NOTICED BUT NOT TOUCHING` channel for downstream review/refactor consumption rather than fixing inline; `exec-spec`, `remediate-findings`, the testing skill's `prove-it-pattern` and `tdd-discipline` references, and the `andthen:refactor` skill's anti-rationalization realigned. Central rule also adds a triage carveout for investigation-driven work, a gate-blocker exception for analyzer noise / blocking pre-existing issues, and a nested-call mode-precedence rule (called skill's mode wins for its run). Policy-split inspired by a Karpathy-style coding-agent guidelines compilation (`forrestchang/andrej-karpathy-skills`).
+- **Coexistence warning narrowed to actual collisions** – the `--claude-user` plugin-coexistence warning now fires only when prefix is the default `andthen-` AND both the skills and agents paths target the user-tier defaults. Downstream toolkits using a distinct `--prefix`, or redirecting the Claude-side paths via `--claude-skills-dir` / `--claude-agents-dir`, no longer see a false-positive warning. Note: skill/slash-command scope is per-install-location, but `subagent_type` agent-name resolution is global within a Claude Code session, so a distinct `--prefix` is still the way to coexist on the agent side.
+- **Skill-level duplicates promoted to `plugin/references/`** – the 6 files that lived as skill-level duplicates with `source:` frontmatter pointers (`adversarial-challenge`, `design-tree`, `farley-framework`, `review-calibration`, `trust-boundaries`, `project-state-templates`) are now canonical shared references, growing the inlined-canonical list from 8 to 14. The two-tier asset model collapses into one tier with explicit forks as the divergence escape hatch; `review-calibration.md` was slimmed to drop review-specific orchestration already restated in `review/SKILL.md` and the lens references. CLAUDE.md asset-ownership section rewritten; `install-skills.sh` extended with the 6 new canonicals and 6 new consuming skills.
+
+### Fixed
+- **Dead `lens-adversarial.md` dependency removed from `architecture` skill install payload** – `_skill_assets_architecture` registered `lens-adversarial.md` since 0.15.0, but no architecture-skill prompt ever loaded it; the file was inlined into every architecture install as dead bytes. Removed from `install-skills.sh` and the corresponding row in CLAUDE.md's Shared Plugin Assets table.
+
+---
+
 ## [0.15.0] – 2026-04-27
 
 ### Added

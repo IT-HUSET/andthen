@@ -32,7 +32,7 @@ Merge red-team findings into the normal document review findings before calibrat
 
 ## Calibration
 
-Calibrate severity with `review-calibration.md` (universal) and `doc-review-calibration.md` (doc-specific). Load `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` while running the always-on Red-Team sub-lens; use the document-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
+Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (universal) and `doc-review-calibration.md` (doc-specific). Load `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` while running the always-on Red-Team sub-lens; use the document-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
 
 
 ## Findings Filter
@@ -41,9 +41,9 @@ This pass cannot find new issues; that is the Red-Team Lens's job (`${CLAUDE_PLU
 
 Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples, adjust severity, and withdraw findings that don't hold up. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
 
-**Full filter** (when triggered): Use `adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
+**Full filter** (when triggered): Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
 - **Role**: `Findings Filter reviewing document review findings`
-- **Shared calibration**: `review-calibration.md`
+- **Shared calibration**: `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`
 - **Skill calibration**: `doc-review-calibration.md`
 - **Context block**: `Document type, path, project scale/stage context from discovery.`
 - **Questions**: Is this a real gap given project scale? Is severity proportional? Is it addressed elsewhere? Would it mislead or block implementation?

@@ -192,6 +192,26 @@ Invoke with `/andthen:<skill>` in Claude Code, or `$andthen-<skill>` in Codex an
 
 If you use a custom `--skills-dir` or `--prefix`, the installer rewrites the copied Codex agent TOML files to match that installed references path and agent name prefix automatically.
 
+### Bundling AndThen into a downstream toolkit
+
+Other workflow toolkits (e.g. DartClaw) can pull AndThen in under their own prefix so the two coexist without namespace collisions. The pattern is just clone + install:
+
+```bash
+git clone --depth 1 https://github.com/IT-HUSET/andthen /tmp/andthen
+
+# User-tier install (~/.claude/skills, ~/.agents/skills, ~/.codex/agents):
+/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- --claude-user
+
+# Project-local Claude Code install (target <project>/.claude/):
+/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- \
+  --claude-skills-dir "$PWD/.claude/skills" \
+  --claude-agents-dir "$PWD/.claude/agents"
+```
+
+Each downstream picks its own `--prefix` (must end with `-`). Skills install as `<prefix><name>` and on Claude Code are invokable as `/<prefix><name>`. The AndThen Claude Code plugin can be installed alongside without conflict as long as the prefixes differ. For *skills*, project-local and user-tier installs live in separate scopes; for *agents*, `subagent_type` resolution is global within a Claude Code session, so the prefix must still differ to avoid agent-name collisions even in a project-local install.
+
+`--claude-skills-dir` / `--claude-agents-dir` override the Claude-side destinations independently and each implies a Claude Code install (no separate `--claude-user` needed). For a clean project-local install pass *both*, otherwise the unset half lands at the user-level default — the installer warns about asymmetric paths but does not block. The Codex-side targets (`--skills-dir`, `--codex-agents-dir`) are independent and still default to user-tier (`~/.agents/skills`, `~/.codex/agents`); pass them too if you want a fully project-local bundle.
+
 
 ## Setup
 

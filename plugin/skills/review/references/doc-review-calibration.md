@@ -1,6 +1,6 @@
 # Document Review Calibration
 
-Domain-specific calibration for reviewing specifications, plans, PRDs, and other documents. Load `review-calibration.md` first for universal calibration principles (anti-leniency protocol, finding quality, over-leniency patterns), then apply the domain-specific calibration below.
+Domain-specific calibration for reviewing specifications, plans, PRDs, and other documents. Load `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` first for universal calibration principles (anti-leniency protocol, finding quality, over-leniency patterns), then apply the domain-specific calibration below.
 
 > **Core principle**: A document finding is severe when it would cause an implementer to build the wrong thing, miss a critical requirement, or make an irreversible decision based on incomplete information.
 

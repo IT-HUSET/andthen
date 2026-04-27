@@ -59,68 +59,41 @@ Each skill lives in `plugin/skills/<name>/` and contains:
 - `agents/openai.yaml` – OpenAI/Codex agent metadata for cross-agent portability
 - Optional subdirectories for templates, checklists, or references
 
-### Self-Contained Skills — Asset Ownership
+### Self-Contained Skills
 
 Skills are fully self-contained: each skill owns its `references/`, `templates/`, and `scripts/` locally. Skill files never reach into sibling skills (no `../<other-skill>/...` paths).
 
-**Two categories of shared assets:**
+Content shared by ≥2 skills lives at `plugin/references/` and is consumed via `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` — see [Shared Plugin Assets](#shared-plugin-assets) below. `install-skills.sh` inlines each canonical into every consuming skill at install time, so installed bundles stay self-contained.
 
-1. **Plugin-level shared assets** (`plugin/references/`) — 8 contract-load-bearing files consumed by multiple skills via `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md`. See `## Shared Plugin Assets` below.
-2. **Skill-level duplicates** — remaining shared assets duplicated into each consuming skill's `references/` or `templates/`. Markdown duplicates carry a YAML frontmatter `source:` pointer naming the canonical owner:
+**Forking shared content** — when a consumer genuinely needs a divergent version, fork explicitly: copy the canonical into the skill's local `references/` under a distinct name (e.g. `triage-trust-boundaries.md` as a triage-only fork of `trust-boundaries.md`) and point that skill's references at the local copy. Don't preemptively duplicate. The earlier two-tier model (canonical + skill-level duplicates with `source:` frontmatter pointers) was retired after the duplicates failed to actually diverge — divergence is now an explicit-fork-on-demand pattern, not a default.
 
-```yaml
----
-source: plugin/skills/<owner-skill>/<subdir>/<file>.md
----
-```
-
-Script duplicates (`.sh`) do not support frontmatter; their ownership is tracked only in the table below.
-
-Edits land in the canonical source first; consumers pull in or diverge as their needs evolve. No sync script, no CI check — accept drift and reconcile ad hoc.
-
-**Promotion criterion** — a file belongs in tier (1) only when wording drift between copies would break a cross-skill contract (status strings, severity scales, FIS structural rules, automation `BLOCKED:` triggers — anything one skill produces and another consumes against). Craft guidance (calibration heuristics, taxonomies, framework prose) stays in tier (2) so each consumer can specialize. The plugin-shared tier costs install-time path rewriting and inlined-canonical propagation per target; pay it only where the contract demands it. Historical pendulum: a single shared `plugin/references/` was tried and retired in favor of pure self-containment, then partially reinstated for the contract-load-bearing subset — promote conservatively.
-
-**References (`references/`)** — skill-level duplicates only; canonical plugin-level shared references live at `plugin/references/` (see [Shared Plugin Assets](#shared-plugin-assets) below).
+**Skill-level scripts**
 
 | File | Owner | Also in |
-|---|---|---|
-| adversarial-challenge.md | review | architecture |
-| design-tree.md | architecture | clarify |
-| farley-framework.md | architecture | testing |
-| review-calibration.md | review | architecture |
-| trust-boundaries.md | review | e2e-test, triage |
-
-**Templates (`templates/`)** — skill-level duplicates only
-
-| File | Owner | Also in |
-|---|---|---|
-| plan-template.md | plan | — |
-| CLAUDE.template.md | init | — |
-| project-state-templates.md | init | map-codebase |
-
-**Scripts (`scripts/`)**
-
-| File | Canonical source | Also in |
 |---|---|---|
 | run-security-scan.sh | review | — |
-
-**Contract-critical fields** (severity labels, verdict strings, report section names, script CLI contracts) must stay aligned across copies. Guidance content is allowed to diverge.
 
 
 ### Shared Plugin Assets
 
-The 8 contract-load-bearing assets live at `plugin/references/` — a single canonical location shared across all consuming skills. These files carry **no** `source:` frontmatter; absence of `source:` is the unambiguous signal that a file is the canonical source.
+The 14 shared assets live at `plugin/references/` — a single canonical location consumed by multiple skills.
 
 | Asset | Consumed by |
 |---|---|
+| `adversarial-challenge.md` | review, architecture |
 | `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan |
 | `data-contract.md` | ops, exec-spec, exec-plan |
+| `design-tree.md` | clarify, architecture |
 | `execution-discipline.md` | exec-spec, exec-plan |
+| `farley-framework.md` | architecture, testing |
 | `fis-authoring-guidelines.md` | spec, plan, review |
 | `fis-template.md` | spec, plan |
-| `lens-adversarial.md` | review, quick-review, architecture |
+| `lens-adversarial.md` | review, quick-review |
 | `prd-template.md` | prd, plan |
+| `project-state-templates.md` | init, map-codebase |
 | `red-team-calibration.md` | review, quick-review |
+| `review-calibration.md` | review, architecture |
+| `trust-boundaries.md` | review, e2e-test, triage |
 
 **Reference syntax** in skill prompts: `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` (strict braces form only; bare `$CLAUDE_PLUGIN_ROOT` is rejected by `install-skills.sh`).
 
@@ -146,7 +119,9 @@ Modern frontier models understand *why* things matter. Skills should express **i
 - **Named principles over unnamed rules**: A named principle (Chesterton's Fence, Prove-It Pattern, Proof-of-Work, Stop-the-Line) gives the model a conceptual anchor for *when* and *why* the principle applies. An unnamed rule is just a constraint to follow or ignore.
 - **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens — it prevents the model from rationalizing its way past the step.
 - **Headless by default**: Skills should run to completion without waiting for another user turn unless they are explicitly interactive by nature (for example `clarify` or `init`) or blocked by a real contract failure. Prefer explicit assumptions, conservative defaults, and documented open questions over `STOP and WAIT` patterns in execution-oriented skills.
-- **Brevity and clear language**: Always keep skills pragmatic, concise and actionable. Avoid jargon, verbosity, and complex sentence structures. Use simple, direct language to convey instructions and principles. 
+- **Brevity and clear language**: Always keep skills pragmatic, concise and actionable. Avoid jargon, verbosity, and complex sentence structures. Use simple, direct language to convey instructions and principles.
+
+**Fitness check.** Skills are working when implementation diffs trace cleanly to specs/FIS, headless runs reach completion without "stop and wait" pauses, and review findings are downstream of clarification gaps — not implementation drift or mid-implementation Boy Scout creep.
 
 
 ---

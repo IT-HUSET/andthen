@@ -20,8 +20,8 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--path` before interpreting t
 - **No scope creep** – only refactor what's specified
 - **Tests must pass** before and after refactoring
 - Match the codebase's existing conventions and style – read the project guidelines before making style judgments
-- **Anti-rationalization** — if cleanup starts widening or you're tempted to smuggle unrelated fixes, reject these common rationalizations:
-  - "I'll just fix this adjacent issue too" — scope creep hides regressions and muddies diffs.
+- **Anti-rationalization** — refactor's job is Boy Scout cleanup *within the user's requested scope* (per CRITICAL RULES); widening to other modules or files mid-flow is the failure mode. Reject these common rationalizations:
+  - "I'll refactor this adjacent module too while I'm here" — that widens scope; leave it for a separate refactor pass.
   - "This behavior change is obviously safe" — refactors preserve behavior exactly; behavior changes are a separate commit.
   - "Tests can come later" — a green baseline before and after is the refactor's only safety net.
   - "Three clever lines beat six clear ones" — readability is the goal; compactness is not.

@@ -43,7 +43,7 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 - When `--mode` declares multiple modes, treat them as a single declared chain: gather any required additional inputs up front before Phase 1 completes, and produce one combined report at the end.
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - Analysis and design only. Do not modify code.
-- Calibrate severity with `references/review-calibration.md` and `references/architecture-calibration.md`.
+- Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `references/architecture-calibration.md`.
 - Read project learnings if they exist.
 - Load only the mode reference and supporting references needed for the selected mode(s) — do not load all references upfront. For multi-mode chains, load the deduplicated union; `advise` supporting references load lazily inside the mode.
 - Adapt all tooling suggestions, metric computation, and fitness function implementations to the detected language.
@@ -122,9 +122,9 @@ Execute the selected mode by following its mode-reference file. For multi-mode i
 
 ### Phase 3: Findings Filter
 
-Use `references/adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
+Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
 - **Role**: `Findings Filter reviewing architecture findings`
-- **Shared calibration**: `references/review-calibration.md`
+- **Shared calibration**: `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`
 - **Skill calibration**: `references/architecture-calibration.md`
 - **Context block**: `The codebase/decision under review is a {project description and scale}. Primary language: {language or N/A}. Mode: {mode}. Scope: {scope}. Project stage: {from discovery}.` For multi-mode chains, render `{mode}` as the comma-separated list in declared order and tag each finding with the mode that produced it so the challenger applies the right reasoning to each.
 - **Questions**:

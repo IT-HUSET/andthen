@@ -8,7 +8,7 @@ Companion references:
 - `reviewer-roster.md` — reviewer catalog and selection examples
 - `lens-code.md` — the code-review rubric each specialist applies
 - `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md`: Red-Team Reviewer posture and calibration
-- `adversarial-challenge.md`: Findings Filter prompt templates for Devil's Advocate and Synthesis Challenger
+- `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md`: Findings Filter prompt templates for Devil's Advocate and Synthesis Challenger
 
 
 ## Gotchas
@@ -117,7 +117,7 @@ Output format per finding:
 
 **Gate:** Specialist reviews complete; findings collected.
 
-**Phase 2 - Devil's Advocate Findings Filter:** spawn a sub-agent as the Devil's Advocate. Use `adversarial-challenge.md` (`Devil's Advocate`) with:
+**Phase 2 - Devil's Advocate Findings Filter:** spawn a sub-agent as the Devil's Advocate. Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Devil's Advocate`) with:
 - **Role**: `Devil's Advocate on a Review Council for: {SCOPE}`
 - **Context block**: `You have received {N} findings from specialist reviewers.`
 - **Questions**: Is this actually a problem? Is severity justified? Could this be a false positive? Is there an existing mitigation?
@@ -126,7 +126,7 @@ Output format per finding:
 
 Apply the verdicts to the findings list. **Gate:** findings filtered, verdicts applied.
 
-**Phase 3 – Synthesis Review:** spawn a sub-agent as the Synthesis Challenger. Use `adversarial-challenge.md` (`Synthesis Challenger`) with:
+**Phase 3 – Synthesis Review:** spawn a sub-agent as the Synthesis Challenger. Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Synthesis Challenger`) with:
 - **Role**: `Synthesis Challenger on a Review Council for: {SCOPE}`
 - **Context block**: `You are the final quality gate. Review all findings that survived the Devil's Advocate phase holistically.`
 - **Questions**: Are severity ratings consistent? Are related findings actually one larger issue? Do validated findings imply a systemic pattern that should be reflected in their framing? Are any validated findings false positives in context?

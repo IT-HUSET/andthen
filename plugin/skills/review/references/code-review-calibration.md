@@ -1,6 +1,6 @@
 # Code Review Calibration
 
-Domain-specific calibration for reviewing code and implementation. Load `review-calibration.md` first for universal calibration principles (anti-leniency protocol, finding quality, over-leniency patterns), then apply the domain-specific calibration below.
+Domain-specific calibration for reviewing code and implementation. Load `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` first for universal calibration principles (anti-leniency protocol, finding quality, over-leniency patterns), then apply the domain-specific calibration below.
 
 
 ## Severity Calibration — Contrastive Examples

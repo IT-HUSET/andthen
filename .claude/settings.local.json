@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /tmp/at-fake-plugin/.claude/plugins/cache/local/andthen)",
+      "Bash(HOME=/tmp/at-fake-plugin sh scripts/install-skills.sh --claude-user --prefix dartclaw- --dry-run)",
+      "Bash(HOME=/tmp/at-fake-plugin sh scripts/install-skills.sh --claude-user --dry-run)",
+      "Bash(rm -rf /tmp/at-fake-plugin)"
+    ]
+  }
+}

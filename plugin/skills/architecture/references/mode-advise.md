@@ -4,7 +4,7 @@ Design or refactor guidance for architectural questions, greenfield systems, ser
 
 Optimize for sound decisions, clear boundaries, and guidance a team can implement and operate.
 
-**Supporting references** (load on demand based on the question): `anti-patterns.md`, `package-principles.md`, `connascence.md`, `fitness-functions.md`, `decomposition.md`, `farley-framework.md`, `ousterhout-modules.md` (for in-process module, class, and API design questions), `ddd.md` (for bounded contexts, aggregates, domain events, Event Storming, and Hexagonal/CQRS/Event Sourcing in a DDD setting).
+**Supporting references** (load on demand based on the question): `anti-patterns.md`, `package-principles.md`, `connascence.md`, `fitness-functions.md`, `decomposition.md`, `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md`, `ousterhout-modules.md` (for in-process module, class, and API design questions), `ddd.md` (for bounded contexts, aggregates, domain events, Event Storming, and Hexagonal/CQRS/Event Sourcing in a DDD setting).
 
 ## Decision-Making Process
 

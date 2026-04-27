@@ -97,4 +97,4 @@ Key tests added or updated; notable fixtures or patterns. For `tdd` / `prove-it`
 - `prove-it-pattern.md` — failing-test-first bugfix flow, characterization tests, Beyonce Rule (Osmani, Feathers).
 - `test-design.md` — behavior over implementation, Beck's Test Desiderata, diagnosability, mock minimization (Pocock, Dodds, Farley, Beck).
 - `levels-and-strategy.md` — unit/integration/E2E by trust boundary, Testing Trophy, risk×change matrix (Dodds, Farley).
-- `farley-framework.md` — testability-as-modularity anchor (duplicate; owned by `architecture`).
+- `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` — testability-as-modularity anchor.
