@@ -38,7 +38,7 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 - Delegate research and exploration to sub-agents to protect the main context window.
 - Stories define scope, not implementation details. Minimum stories to cover requirements.
 - Organize stories into logical phases.
-- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Plan-specific `BLOCKED:` triggers: missing `prd.md` (redirect to the `andthen:prd` skill), incompatible artifacts, ambiguity so severe no defensible plan can be produced.
+- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Plan-specific `BLOCKED:` triggers: missing `prd.md` (redirect to the `andthen:prd` skill), incompatible artifacts, ambiguity so severe no defensible plan can be produced.
 - Focus on "what" not "how" at the plan level; detailed implementation decisions live in per-story FIS files.
 - **Resume contract**: when re-running on a partially-specced directory, skip stories whose `**FIS**` field already points at an existing file. Re-running only fills gaps.
 - Read the `Learnings` document (see **Project Document Index**) before FIS generation, if it exists.
@@ -246,9 +246,9 @@ For each in-scope story, spawn a `general-purpose` sub-agent that runs `/andthen
 - Technical research: `{OUTPUT_DIR}/.technical-research.md` — use for shared decisions, file maps, and the binding-PRD-constraints extraction; skip research phases already covered.
 - Binding PRD constraints: every applicable entry from the "Binding PRD Constraints" section of the technical research flows into FIS Success Criteria unchanged. Do not narrow the binding constraint set.
 - Run Plan-Spec Alignment Check, Self-Check, and Reverse Coverage Check from the guidelines. Reverse Coverage Check runs against plan-level sources plus the binding-PRD-constraints extraction; PRD-level reverse coverage beyond the extracted constraints is handled by the orchestrator in Step 7.
-- Report back: success/failure, FIS path, confidence score, and any `PHANTOM_SCOPE` findings from Reverse Coverage.
+- Report back: success/failure, FIS path, confidence score, any `PHANTOM_SCOPE` findings from Reverse Coverage, and any `OVERSIZE:` line emitted by the spec skill (verbatim, including line/task counts and recommendation).
 
-> **Size signal**: if the `andthen:spec` skill reports oversize, the story was too broad — sub-agent reports back and the orchestrator revisits Step 3 for that story.
+> **Size signal**: if a sub-agent's completion summary contains an `OVERSIZE:` line (see `${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md` Key Generation Guidelines #6 for the threshold), the story was too broad — the orchestrator revisits Step 3 to decompose that story before regenerating its FIS. The oversized FIS that the spec sub-agent saved is discarded by the regeneration pass, so it does not need to be deleted up front.
 
 #### Wait, Collect, and Update Plan
 

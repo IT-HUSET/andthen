@@ -184,6 +184,7 @@ _skill_assets_e2e_test="trust-boundaries.md"
 _skill_assets_triage="trust-boundaries.md"
 _skill_assets_init="project-state-templates.md"
 _skill_assets_map_codebase="project-state-templates.md"
+_skill_assets_refactor="automation-mode.md"
 
 # Resolve the list of canonical assets for a given skill base name.
 # Prints a space-separated list of asset filenames.
@@ -205,6 +206,7 @@ _get_skill_assets() {
     triage)   printf '%s' "$_skill_assets_triage" ;;
     init)     printf '%s' "$_skill_assets_init" ;;
     map-codebase) printf '%s' "$_skill_assets_map_codebase" ;;
+    refactor) printf '%s' "$_skill_assets_refactor" ;;
     *)        printf '' ;;
   esac
 }

@@ -20,9 +20,9 @@ CODE_DIR: second positional argument _(optional – for multi-repo setups where 
 Require `PLAN_DIR`. Stop if missing. **You are the orchestrator.** Parse the plan, run the per-story pipeline (`exec-spec` → `quick-review` per story, then one final `review --mode gap`), verify writes landed, handle phase transitions, manage failures, run final verification. Delegate story code to `exec-spec` (sub-agent, teammate, or sequential fallback); take over locally if a story returns partial or non-green.
 
 ### Rules
-- **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly. Every story's `**FIS**` field must point at an existing file (FIS-unset sentinel: [`${CLAUDE_PLUGIN_ROOT}/references/data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md)); abort if missing — no auto-recovery.
-- **Execution discipline and authoritative status writes** — see [`${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md). `exec-spec` Step 5b is the per-story status write; sub-agents and teammates do not additionally call `andthen:ops update-*`. The orchestrator writes cross-story state and repair writes only.
-- **Automation rules** — see [`${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions.
+- **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly. Every story's `**FIS**` field must point at an existing file (FIS-unset sentinel: [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md)); abort if missing — no auto-recovery.
+- **Execution discipline and authoritative status writes** — see [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md). `exec-spec` Step 5b is the per-story status write; sub-agents and teammates do not additionally call `andthen:ops update-*`. The orchestrator writes cross-story state and repair writes only.
+- **Automation rules** — see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions.
 - **Status updates are gates** – plan and FIS checkpoint updates block the next phase; do not defer.
 - Not updating the `State` document (see **Project Document Index**) when phases transition or blockers are discovered is a common miss.
 
@@ -40,7 +40,7 @@ Require `PLAN_DIR`. Stop if missing. **You are the orchestrator.** Parse the pla
 
 3. Read `PLAN_DIR/plan.md`. If missing, stop — a valid plan artifact is required upstream (typically from the `andthen:plan` skill).
 4. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
-5. **Verify FIS files exist**: every story's `**FIS**` field must (a) not match the FIS-unset sentinel per [`${CLAUDE_PLUGIN_ROOT}/references/data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) and (b) point at an existing file. If any story fails this check, abort with: `Plan bundle has stories with missing FIS — run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` Do not proceed (same in `--auto` mode — no auto-recovery). Status field values are not gated here; that is bookkeeping per the data contract, not a runtime precondition.
+5. **Verify FIS files exist**: every story's `**FIS**` field must (a) not match the FIS-unset sentinel per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) and (b) point at an existing file. If any story fails this check, abort with: `Plan bundle has stories with missing FIS — run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` Do not proceed (same in `--auto` mode — no auto-recovery). Status field values are not gated here; that is bookkeeping per the data contract, not a runtime precondition.
 6. Build execution plan respecting phase ordering and dependency chains
 
 **Gate**: Plan parsed, FIS files exist on disk, phases identified

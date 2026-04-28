@@ -31,7 +31,7 @@ OUTPUT_DIR: _(see resolution rules below)_
 
 - Require `INPUT`. Stop if missing.
 - Delegate research and exploration to sub-agents to protect the main context window.
-- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` triggers: missing input; ambiguity so severe two or more incompatible PRDs are equally plausible; unsafe external actions on `--to-issue`.
+- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` triggers: missing input; ambiguity so severe two or more incompatible PRDs are equally plausible; unsafe external actions on `--to-issue`.
 - Focus on "what" not "how". Replace vague terms with measurable criteria. Record rationale and trade-offs.
 - Keep implementation-level details (architecture patterns, library choices, API protocol specifics, internal code organization) out of the PRD. Capture significant technical constraints in `Constraints & Assumptions`; defer deep technical research to the `andthen:plan` skill.
 
@@ -93,7 +93,7 @@ Initial gap analysis — document what's explicitly stated, what's assumed/impli
 
 Use existing artifacts (`requirements-clarification.md` from the `andthen:clarify` skill and/or `prd-draft.md`) as the primary basis for the PRD. This path avoids duplicating discovery work already completed.
 
-- Map existing content against the PRD template (see [`${CLAUDE_PLUGIN_ROOT}/references/prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md)); fill only the missing sections using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents.
+- Map existing content against the PRD template (see [`prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md)); fill only the missing sections using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents.
 - Do not re-ask questions already answered in the existing artifacts; do not pause for routine clarification.
 - If the artifacts are too ambiguous to support any defensible PRD shape, stop and report the minimum missing decisions required. Mention the `andthen:clarify` skill as the interactive fallback.
 - **Extract technical details**: if the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), keep them out of the PRD. Note significant technical constraints in `Constraints & Assumptions`; defer deep technical research to the `andthen:plan` skill.
@@ -104,7 +104,7 @@ Use existing artifacts (`requirements-clarification.md` from the `andthen:clarif
 
 ### 4. Generate PRD Document
 
-Structure the PRD from the synthesized or mapped requirements using the template at [`${CLAUDE_PLUGIN_ROOT}/references/prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md). Keep the required sections, adapt optional subsections to the project, and preserve concrete decisions from discovery rather than generalizing them away. Apply MoSCoW prioritization (Must / Should / Could / Won't) and P0/P1/P2 levels to features.
+Structure the PRD from the synthesized or mapped requirements using the template at [`prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md). Keep the required sections, adapt optional subsections to the project, and preserve concrete decisions from discovery rather than generalizing them away. Apply MoSCoW prioritization (Must / Should / Could / Won't) and P0/P1/P2 levels to features.
 
 When running headlessly, do not leave important ambiguity implicit. Capture it as an explicit assumption, dependency, or deferred decision in the PRD so downstream skills inherit a usable contract.
 
@@ -168,4 +168,4 @@ After completion, suggest the following next steps. **Recommend a clean session*
 
 ## Appendix: Template
 
-**USE THE TEMPLATE**: [`${CLAUDE_PLUGIN_ROOT}/references/prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md)
+**USE THE TEMPLATE**: [`prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md)

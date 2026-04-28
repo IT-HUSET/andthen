@@ -114,7 +114,7 @@ Update story status or FIS-field on a plan story row:
 - Set FIS field: `update-plan <plan_path> <story_id> fis "<fis_path>"`
 
 Actions for status form:
-- Set story **Status** field per the Status State Machine in [`${CLAUDE_PLUGIN_ROOT}/references/data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md). Forward transitions are skill-implicit; backward transitions (`Done → In Progress`, `In Progress → Spec Ready`) are valid only via explicit `update-plan` calls.
+- Set story **Status** field per the Status State Machine in [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md). Forward transitions are skill-implicit; backward transitions (`Done → In Progress`, `In Progress → Spec Ready`) are valid only via explicit `update-plan` calls.
 - Update Story Catalog table status column
 - When setting to `Done`: check off all acceptance criteria checkboxes
 

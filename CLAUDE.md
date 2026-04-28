@@ -81,7 +81,7 @@ The 14 shared assets live at `plugin/references/` — a single canonical locatio
 | Asset | Consumed by |
 |---|---|
 | `adversarial-challenge.md` | review, architecture |
-| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan |
+| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, refactor |
 | `data-contract.md` | ops, exec-spec, exec-plan |
 | `design-tree.md` | clarify, architecture |
 | `execution-discipline.md` | exec-spec, exec-plan |
@@ -95,7 +95,7 @@ The 14 shared assets live at `plugin/references/` — a single canonical locatio
 | `review-calibration.md` | review, architecture |
 | `trust-boundaries.md` | review, e2e-test, triage |
 
-**Reference syntax** in skill prompts: `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` (strict braces form only; bare `$CLAUDE_PLUGIN_ROOT` is rejected by `install-skills.sh`).
+**Reference syntax** in skill prompts: `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` (strict braces form only; bare `$CLAUDE_PLUGIN_ROOT` is rejected by `install-skills.sh`). In markdown links, put the bare filename in the link text and the full token in the URL — `` [`<asset>.md`](${CLAUDE_PLUGIN_ROOT}/references/<asset>.md) `` — so the rendered link text stays stable across install tiers; the URL is what `install-skills.sh` rewrites.
 
 **Install-time propagation** (`scripts/install-skills.sh` per-target behavior):
 

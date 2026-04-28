@@ -6,6 +6,17 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.15.3] – 2026-04-28
+
+### Added
+- **`--auto` / `--headless` flag on `andthen:refactor`** – the skill opts into the shared automation-mode contract so headless callers can drive it without conversational prompts. Phase 2's confirmation pause becomes a conservative auto-subset (deferred items recorded), Phase 1's no-arguments and red-baseline branches gain `AUTO_MODE` `BLOCKED:` behavior, and Phase 4 emits a deterministic `STATUS` / `FILES_CHANGED` / `VERIFY` / `DEFERRED` completion block.
+
+### Changed
+- **`andthen:spec` oversize handling softened from hard block to structured signal** – the Step 4.5 *Oversize Escalation* gate (which stopped, refused to save the FIS, and emitted `BLOCKED:` in `AUTO_MODE` when the draft exceeded size thresholds) is replaced by an always-on `OVERSIZE: {fis_path} — {N} lines, {T} tasks. Recommendation: …` line emitted as part of the artifact output in both interactive and `AUTO_MODE` (so headless callers do not lose the signal that the prior `BLOCKED:` carried). The drafted FIS always saves; recommendation routes by input shape — `/andthen:prd → /andthen:plan → /andthen:exec-plan` for standalone, upstream plan decomposition for plan-story. `andthen:plan` batch sub-agents echo the `OVERSIZE:` line back so the plan orchestrator's Step 3 size signal stays wired (the regeneration pass discards the oversized FIS). Canonical rule in `fis-authoring-guidelines.md` #6, plus its Self-Check size-check item and Confidence Check `<7 AND oversized` branch, all reworded to match the new save-and-signal contract.
+- **Historical release notes removed from `plugin/README.md`** – the 0.13.0 / 0.14.0 *Breaking Changes* sections drift from CHANGELOG over time; the README now points at CHANGELOG as the single source of release history.
+
+---
+
 ## [0.15.2] – 2026-04-27
 
 ### Added

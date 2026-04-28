@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Produces an execution-sized FIS; if the request turns out too large for a single FIS, redirects standalone inputs to the `andthen:prd → andthen:plan → andthen:exec-plan` chain and escalates plan-story inputs for upstream plan decomposition. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
+description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Produces an execution-sized FIS; if the draft exceeds size thresholds, saves it anyway and warns — recommending the `andthen:prd → andthen:plan → andthen:exec-plan` chain for standalone inputs, or upstream plan decomposition for plan-story inputs. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
 argument-hint: "[--auto|--headless] <description | @<requirements-file> | story <story-id> of <path-to-plan.md>>"
 ---
 
@@ -23,7 +23,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` befor
 - **Spec generation only** — no code changes, commits, or modifications.
 - Agents executing the FIS only get the context you provide. Include all necessary documentation, examples, and references.
 - Read the `Learnings` document (see **Project Document Index**) before starting, if it exists.
-- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Spec-specific `BLOCKED:` triggers: missing input, unreadable sources, incompatible artifacts, ambiguity where no defensible FIS can be written.
+- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Spec-specific `BLOCKED:` triggers: missing input, unreadable sources, incompatible artifacts, ambiguity where no defensible FIS can be written.
 
 
 ## GOTCHAS
@@ -43,7 +43,7 @@ In `AUTO_MODE`, do not use arrow prompts. Choose the most conservative defensibl
 
 **Scenarios that describe implementation, not behavior** – scenarios should use Given/When/Then to describe observable outcomes from the user's or system's perspective, not internal code steps. Bad: "Given a new AuthService class, When login() is called...". Good: "Given valid credentials, When the user submits login, Then a session token is returned."
 
-**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Size threshold and oversize handling: see [`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) Key Generation Guidelines #6.
+**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Size threshold and oversize handling: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) Key Generation Guidelines #6.
 
 **Generic "What We're NOT Doing" section** – use it to record real non-goals or deferrals with reasons, not filler bullets.
 
@@ -120,19 +120,9 @@ A bare "see plan.md" without an anchor or inlined content is not acceptable. The
 
 #### Generate from Template
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
-[`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md).
+[`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md).
 
 > **Optional**: Invoke the `andthen:review --mode doc` skill for thorough validation (recommended for large/complex features). This keeps pre-implementation FIS review on the document-review path.
-
-### 4.5 Oversize Escalation
-
-After drafting the first-pass FIS, assess whether it is still execution-sized using the size threshold from the FIS authoring guidelines (Key Generation Guidelines #6: 200-500 sweet spot; >700 lines or >18 tasks → oversized).
-
-- If the draft is still execution-sized, save the single FIS normally.
-- If the draft is oversized **and the input is a standalone feature request / issue / clarification directory**: stop. Do **not** save the oversized FIS. Instead, redirect to the multi-feature chain so the work goes through proper PRD-backed planning:
-  - Print: `Oversized for a single FIS — redirect to /andthen:prd <input> to start the prd → plan → exec-plan chain. The PRD skill accepts inline descriptions, files, URLs, GitHub issues, and clarification artifacts.`
-  - In `AUTO_MODE`, emit `BLOCKED:` with the same redirect message.
-- If the draft is oversized **and the input is `story {story_id} of {path-to-plan.md}`**: stop and report that the story needs upstream plan decomposition before spec generation can complete. Do not save an oversized single FIS, do not silently fan one plan story out into multiple FIS files.
 
 
 ## OUTPUT
@@ -146,26 +136,32 @@ After drafting the first-pass FIS, assess whether it is still execution-sized us
   - Set the story's **FIS** field to the generated FIS file path
   - Set the story's **Status** field to `Spec Ready`
 
-If the draft was oversized (Step 4.5 escalation), no FIS is saved — the redirect / `BLOCKED:` message is the output.
+**Oversize signal** — after saving, measure the FIS against the threshold from [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) Key Generation Guidelines #6 (>700 lines or >18 tasks). If oversized, emit a structured line as part of the artifact output (printed in both interactive and `AUTO_MODE`):
+
+```
+OVERSIZE: {fis_path} — {N} lines, {T} tasks. Recommendation: {recommendation}
+```
+
+- **Standalone input** recommendation: `switch to /andthen:prd <input> to start the prd → plan → exec-plan chain`
+- **Plan-story input** recommendation: `story too broad — revisit {plan_path} and decompose before regenerating`
+
+Plan-batch sub-agents must echo the `OVERSIZE:` line back in their completion summary so the `andthen:plan` orchestrator can revisit Step 3 for the over-broad story.
 
 ---
 
 
 ## FOLLOW-UP ACTIONS
 
-Skip this section when `AUTO_MODE=true`; print only the generated artifact paths and downstream command shape.
+Skip this section when `AUTO_MODE=true`; print only the generated artifact paths, the `OVERSIZE:` line if applicable, and downstream command shape.
 
-**If a FIS was saved**, suggest:
+After the FIS is saved, suggest:
 
 1. **Implement the FIS**: Invoke the `andthen:exec-spec` skill.
 2. **Review first**: Invoke the `andthen:review` skill with `--mode doc` on the FIS before implementation.
 
 > **Session tip**: The `andthen:exec-spec` skill is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
 
-**If the run ended with the Step 4.5 oversize escalation** (no FIS saved):
-
-- **Standalone input**: invoke the `andthen:prd` skill on the same input to start the `prd → plan → exec-plan` chain.
-- **Plan-story input**: revisit the source plan and decompose the story before re-running this skill on the resulting smaller stories.
+If the `OVERSIZE:` signal fired, expand the recommendation conversationally: standalone inputs should switch to the `andthen:prd → andthen:plan → andthen:exec-plan` chain; plan-story inputs need upstream plan decomposition before regenerating.
 
 
 ---
@@ -173,4 +169,4 @@ Skip this section when `AUTO_MODE=true`; print only the generated artifact paths
 
 ## Appendix: FIS Template
 
-**USE THE TEMPLATE**: Read and use the template at [`${CLAUDE_PLUGIN_ROOT}/references/fis-template.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-template.md) to generate the Feature Implementation Specification.
+**USE THE TEMPLATE**: Read and use the template at [`fis-template.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-template.md) to generate the Feature Implementation Specification.

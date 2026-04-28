@@ -20,7 +20,7 @@ Review the document through these lenses and record only issues relevant to the 
 - **Scope and architecture**: explicit in/out-of-scope boundaries, phase boundaries, architecture soundness, and signs of disproportionate complexity
 - **Stakeholder fit**: user needs, success criteria, UX/error-state coverage
 
-If the document is a FIS, verify it still follows the structure and intent-first authoring rules from [`${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md).
+If the document is a FIS, verify it still follows the structure and intent-first authoring rules from [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md).
 
 
 ## Red-Team Sub-Lens (Always On)
