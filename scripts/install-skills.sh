@@ -32,6 +32,13 @@ Options:
                             the unset half installs at the user-level default.
   --prefix PREFIX           Prefix for exported names (must end with '-';
                             default: andthen-)
+  --display-brand BRAND     Human-readable brand name substituted for "AndThen"
+                            in installed skill agents/openai.yaml files
+                            (display_name, short_description, default_prompt).
+                            Default: AndThen (no rewrite). Use for white-label
+                            installs where the namespace prefix is not
+                            "andthen-" (e.g. --prefix dartclaw- pairs with
+                            --display-brand DartClaw).
   --dry-run                 Print planned operations without copying files
   -h, --help                Show this help text
 
@@ -68,6 +75,7 @@ claude_agents_dir="${HOME}/.claude/agents"
 install_codex_agents=1
 install_claude_user=0
 prefix="andthen-"
+display_brand="AndThen"
 dry_run=0
 
 while [ "$#" -gt 0 ]; do
@@ -100,6 +108,14 @@ while [ "$#" -gt 0 ]; do
       ;;
     --prefix)
       prefix="$2"
+      shift 2
+      ;;
+    --display-brand)
+      display_brand="$2"
+      if [ -z "$display_brand" ]; then
+        printf 'error: --display-brand requires a non-empty value\n' >&2
+        exit 1
+      fi
       shift 2
       ;;
     --dry-run)
@@ -362,6 +378,32 @@ rewrite_namespace_dir() {
   done
 }
 
+# Rewrite the brand-cased token "AndThen" → <display_brand> in the installed
+# skill's agents/openai.yaml (display_name, short_description, default_prompt).
+# No-op when the brand is the default.
+#
+# Scope is intentionally narrowed to agents/openai.yaml rather than all *.yaml
+# under the skill: the broad form would silently rewrite incidental "AndThen"
+# substrings in unrelated yaml (manifests, fixtures, URLs like
+# github.com/AndThen/...) introduced later. Field-level scoping inside the
+# file is left to sed's substring match — acceptable because the file format
+# is small and fully ours.
+#
+# The brand is escaped for sed-replacement context (\, the chosen delimiter |,
+# and & — which would otherwise expand to the matched text). The empty-brand
+# case is rejected at arg-parse, so this helper does not need to guard it.
+rewrite_display_brand_dir() {
+  _rdb_dir="$1"
+  _rdb_brand="$2"
+  [ "$_rdb_brand" = "AndThen" ] && return 0
+  _rdb_yaml="$_rdb_dir/agents/openai.yaml"
+  [ -f "$_rdb_yaml" ] || return 0
+  _rdb_brand_esc=$(printf '%s' "$_rdb_brand" \
+    | sed -e 's/\\/\\\\/g' -e 's/|/\\|/g' -e 's/&/\\&/g')
+  sed -i.bak "s|AndThen|${_rdb_brand_esc}|g" "$_rdb_yaml"
+  rm -f "$_rdb_yaml.bak"
+}
+
 # Install a Claude Code user-level agent from a plugin/agents/<name>.md source.
 # Claude Code resolves agents by their frontmatter `name:` when the Task tool
 # looks up subagent_type, so the name must be prefixed to match the filename.
@@ -432,6 +474,7 @@ for dir in "$repo_root/plugin/skills"/*; do
     inline_canonical_assets "$skills_dir/$target_name" "$name"
     rewrite_plugin_root_dir "$skills_dir/$target_name"
     rewrite_namespace_dir "$skills_dir/$target_name" '$'
+    rewrite_display_brand_dir "$skills_dir/$target_name" "$display_brand"
   else
     inline_canonical_assets "$skills_dir/$target_name" "$name"
   fi
@@ -444,6 +487,7 @@ for dir in "$repo_root/plugin/skills"/*; do
       inline_canonical_assets "$claude_skills_dir/$target_name" "$name"
       rewrite_plugin_root_dir "$claude_skills_dir/$target_name"
       rewrite_namespace_dir "$claude_skills_dir/$target_name" '/'
+      rewrite_display_brand_dir "$claude_skills_dir/$target_name" "$display_brand"
     else
       inline_canonical_assets "$claude_skills_dir/$target_name" "$name"
     fi

@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.15.4] – 2026-04-28
+
+### Added
+- **`--display-brand BRAND` flag on `scripts/install-skills.sh`** – white-label installs can now substitute the brand-cased token `AndThen` in installed `agents/openai.yaml` files (`display_name`, `short_description`, `default_prompt`). Default `AndThen` is a no-op so the default-install bundle stays byte-identical. Pairs with `--prefix` for full white-labeling (e.g. `--prefix dartclaw- --display-brand DartClaw`); the two flags are independent. Replacement is sed-escaped (`\`, `|`, `&`) so brand strings containing metacharacters render verbatim, and empty brands are rejected at arg-parse. Scope is narrowed to `agents/openai.yaml` to avoid silently rewriting incidental `AndThen` substrings in unrelated yaml.
+
+---
+
 ## [0.15.3] – 2026-04-28
 
 ### Added
