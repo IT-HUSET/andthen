@@ -106,6 +106,8 @@ Use existing artifacts (`requirements-clarification.md` from the `andthen:clarif
 
 Structure the PRD from the synthesized or mapped requirements using the template at [`prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md). Keep the required sections, adapt optional subsections to the project, and preserve concrete decisions from discovery rather than generalizing them away. Apply MoSCoW prioritization (Must / Should / Could / Won't) and P0/P1/P2 levels to features.
 
+The `Executive Summary` is the **human review entry point** — a reviewer should be able to read it alone and understand what is being built, for whom, why, and what is explicitly not in scope. Fill its `Capabilities at a Glance` (one line per FR in `Functional Requirements > Feature Specifications`, with ID and name matching the canonical `#### FRn:` heading exactly), `Scope Highlights` (drawn from `## Scope`), and `Key Constraints, Assumptions & Dependencies` (drawn from `## Constraints & Assumptions`). Do not introduce requirements that live only in the summary; if a fact appears nowhere below, move it into the matching detail section. The inline priority tag in `Capabilities at a Glance` must match the canonical FR's `**Priority**:` line — if they conflict, the canonical line wins and the summary is the bug.
+
 When running headlessly, do not leave important ambiguity implicit. Capture it as an explicit assumption, dependency, or deferred decision in the PRD so downstream skills inherit a usable contract.
 
 Save the PRD to the path resolved under **Output Path Semantics**.
@@ -126,6 +128,12 @@ Self-check:
 - [ ] All assumptions documented
 - [ ] No conflicting requirements
 - [ ] **Problem-solution fit (bidirectional)**: every pain or desired outcome named on the **problem side** — in `Problem Definition` and in the "so that..." clauses of `Functional Requirements > User Stories` — has at least one feature, acceptance criterion, or metric on the **solution side** (a row in `Functional Requirements > Feature Specifications`, an item in `Executive Summary > Success Metrics`, a `Non-Functional Requirements` threshold, or a `Scope > In Scope` capability) that signals it's resolved; and every solution-side item traces back to such a pain or outcome. Fix: unaddressed problem → add a feature/metric or drop the problem element; orphan solution → drop it or amend `Problem Definition` / user-story rationale to justify (solutionism smell).
+- [ ] **Executive Summary is a summary, not a source**: walk each summary subsection bullet-by-bullet and confirm a matching canonical row exists below.
+  - Each `Capabilities at a Glance` bullet → a `#### FRn: [Feature Name]` block in `Functional Requirements > Feature Specifications` with the exact same `FRn:` ID, the same feature name, and a `**Priority**:` line that agrees with the inline tag.
+  - Each `Scope Highlights` bullet → an item in `## Scope > In Scope` / `Out of Scope` / `MVP Boundary`.
+  - Each `Key Constraints, Assumptions & Dependencies` bullet → an item in `## Constraints & Assumptions > Constraints` / `Assumptions` / `Dependencies`.
+  - Fix: if a summary bullet has no canonical row, either move it down into the matching detail section or delete it. If they conflict, canonical wins and the summary is the bug.
+  - The summary stays under ~1 page rendered.
 
 Optional: Invoke the `andthen:review --mode doc` skill to validate the PRD before finalizing.
 

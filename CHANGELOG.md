@@ -6,6 +6,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.15.5] – 2026-04-28
+
+### Changed
+- **`andthen:prd` Executive Summary expanded into a human-review entry point** – the section in `prd-template.md` now layers three new subsections on top of the existing Problem/Vision/Users/Metrics bullets: `Capabilities at a Glance` (one line per FR with `FRn:` ID and name matching the canonical `#### FRn:` heading exactly, plus an inline priority tag that must agree with the canonical `**Priority**:` line — canonical wins on conflict), `Scope Highlights` (mirror canonical `## Scope` when ≤4 items per bucket; cherry-pick the most likely misread items when more), and `Key Constraints, Assumptions & Dependencies` (top 2–4 drawn from any of the three canonical buckets). Solves long-PRD scannability without a separate sidecar file — the summary lives in the same file as the canonical detail, so drift is structurally bounded.
+- **`andthen:prd` skill wires the new contract** – Step 4 names the `Executive Summary` as the human-review entry point and points each new subsection at its canonical source. Step 5 self-check gains a concrete bullet-by-bullet trace ("each `Capabilities at a Glance` row → a `#### FRn:` block; each `Scope Highlights` row → an item in `## Scope`; each constraint/assumption/dependency row → its canonical bucket; missing canonical row = move down or delete"), replacing the earlier paper-rule shape with a procedure that matches the substance bar set by the bidirectional problem-solution-fit check above it.
+- **`andthen:exec-spec` skill prompt cleanup** – Step 2 *Read and Prepare* rebuilt so the structural-integrity guard is its own substep with bullets for the three required conditions (replacing a nested numbered list that broke the outer ordering and silently implied an order between parallel checks). Executor Role compressed from a 9-bullet workflow recap into one role-framing paragraph plus the existing Do-not anti-pattern line; Step 5b.5 *Standalone use* points at the `andthen:ops` commands in substeps 5b.2/5b.3 instead of duplicating them. Trimmed leftover version-history (`0.14.x FIS without provenance`, "now live in"), the awkward "100% required" phrase, and the inconsistent `_`FIS_FILE_PATH`_` styling; fixed Step 2 item 12 sub-bullet indent (3→4 spaces) for CommonMark correctness under the two-digit marker.
+
+---
+
 ## [0.15.4] – 2026-04-28
 
 ### Added

@@ -12,10 +12,32 @@
 
 
 ## Executive Summary
+
+> **Human review entry point.** A reviewer should be able to read this section alone and understand *what is being built, for whom, why, and what is explicitly not in scope.* Keep it concise — aim for ≤1 page rendered.
+> This section **summarizes** content from the detailed sections below. Do not introduce requirements that exist only here; if a fact lives only in the summary, move it into the matching detail section (`Functional Requirements`, `Scope`, `Constraints & Assumptions`, etc.).
+
 - **Problem**: [Clear statement of the user/business problem, ideally with quantified impact]
 - **Vision**: [What the finished outcome enables]
 - **Target Users**: [Primary users / personas]
-- **Success Metrics**: [Specific measurable outcomes]
+- **Success Metrics**: [3–5 specific measurable outcomes]
+
+### Capabilities at a Glance
+One line per **Feature Specification** (FR), in priority order. ID and feature name must match the canonical `#### FRn: [Feature Name]` heading exactly so anchor links and string traces resolve. The inline `(Must / P0)` tag must agree with the canonical `**Priority**:` line in the FR block — if they conflict, the canonical line wins; fix the summary. User stories without a backing FR do not appear here.
+
+- **FR1: [Feature Name]** _(Must / P0)_ — [single-line description of the capability]
+- **FR2: [Feature Name]** _(Should / P1)_ — [single-line description]
+- *(repeat for each FR; keep one line each. If >10 FRs, group by theme heading or limit the glance to Must/Should and note "see `Functional Requirements` for full list".)*
+
+### Scope Highlights
+When the canonical `## Scope` lists ≤4 items per bucket, mirror them. When it lists more, pick the items most likely to be misread or contested.
+- **In scope**: [2–4 bullets or a short comma-separated list of capabilities]
+- **Out of scope**: [2–4 bullets naming the most likely-misread non-goals]
+- **MVP boundary**: [single line — the smallest release that still solves the problem]
+
+### Key Constraints, Assumptions & Dependencies
+The 2–4 items that materially shape scope or priority — drawn from any of `Constraints`, `Assumptions`, or `Dependencies` in the canonical `## Constraints & Assumptions` section. Full lists live there.
+- [Constraint, assumption, or dependency — prefix with the bucket if not obvious, e.g. *Dependency:* vendor X must expose API Y]
+- [Constraint, assumption, or dependency]
 
 
 ## Problem Definition

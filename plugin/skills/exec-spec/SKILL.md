@@ -19,7 +19,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or
 
 ### Core Rules
 - Require `FIS_FILE_PATH`. Stop if missing.
-- **Complete implementation** — 100% required. Reporting incomplete work with a caveat is **not** completion.
+- **Complete implementation** — reporting incomplete work with a caveat is **not** completion.
 - **FIS is source of truth** — follow it exactly.
 - **Execution discipline** — Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
@@ -32,16 +32,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or
   - "I'll report this complete with a caveat" — broken is not Done. Finish it or surface a real external blocker.
 
 ### Executor Role
-**You are the executor.** Your job:
-- Load and understand the FIS
-- Read technical research, project learnings, and ubiquitous-language guidance needed to implement accurately
-- Build a quick codebase overview once at the start, then focus on the files the FIS actually touches
-- Handle bounded prep inline when it improves execution quality (for example scenario-test scaffolding and optional UI contract generation)
-- Implement tasks directly, in order, running each task's **Verify** line before moving on
-- Mark task checkboxes immediately after each task completes
-- Proactively spawn narrow advisory sub-agents when you hit genuine uncertainty
-- Run validation, triage findings, and fix must-fix issues directly until all gates are green
-- Ensure all status updates and gates complete before finishing
+**You are the executor.** Implement the FIS yourself, task by task, in order. Handle bounded prep (scenario-test scaffolding, optional UI contract) inline. Use sub-agents only for narrow advisory work, review, and validation. Run all gates in Steps 4–5 before finishing.
 
 Do not: delegate coding to advisory agents, batch status updates until the end, silently narrow scope, or skip final gates.
 
@@ -83,34 +74,44 @@ Usage rules:
 ### Step 1: Resolve FIS and Story Context
 1. Require a local `FIS_FILE_PATH`. Stop if the argument is missing or does not resolve to a readable file.
 2. Read the FIS header (lines between the H1 and the first `## ` heading) and extract `STORY_ID` from `**Story-ID**:` and `PLAN_FILE_PATH` from `**Plan**:`. These provenance fields are the authoritative source.
-   - If either field is absent (0.14.x FIS without provenance): fall back to filename-prefix extraction (e.g. `s01-feature-name.md` → `S01`) and sibling-`plan.md` lookup. Emit to stdout: `WARN: FIS missing **Plan**:/**Story-ID**: provenance fields; using filename/sibling fallback (re-spec to upgrade)`. For single-feature specs not derived from a plan, leave `STORY_ID` empty.
+   - If either field is absent (older FIS without provenance fields): fall back to filename-prefix extraction (e.g. `s01-feature-name.md` → `S01`) and sibling-`plan.md` lookup. Emit to stdout: `WARN: FIS missing **Plan**:/**Story-ID**: provenance fields; using filename/sibling fallback (re-spec to upgrade)`. For single-feature specs not derived from a plan, leave `STORY_ID` empty.
 3. Record `PLAN_FILE_PATH` for Step 5b updates when the FIS is plan-backed.
 
 **Gate**: `FIS_FILE_PATH` exists; `STORY_ID` and `PLAN_FILE_PATH` captured when the FIS is plan-backed
 
 ### Step 2: Read and Prepare
 
-1. Read the full FIS at _`FIS_FILE_PATH`_
+1. Read the full FIS at `FIS_FILE_PATH`.
 
-**Structural integrity guard** — after reading the full FIS, verify it is well-formed before any destructive work. Apply the three conditions from [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (FIS Structural Integrity Contract section):
-1. `## Success Criteria` heading exists and its span contains at least one `- [ ] ` line.
-2. `## Implementation Plan` heading exists and its span contains at least one task with a Verify line.
-3. `## Final Validation Checklist` heading exists.
+2. **Structural integrity guard** — verify the FIS is well-formed before any destructive work. Apply the three conditions from [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (FIS Structural Integrity Contract section):
+   - `## Success Criteria` heading exists and its span contains at least one `- [ ] ` line.
+   - `## Implementation Plan` heading exists and its span contains at least one task with a Verify line.
+   - `## Final Validation Checklist` heading exists.
 
-On any failure: emit `BLOCKED: <FIS_FILE_PATH> missing: <comma-separated list of failed sections>` and stop. Do not read upstream documents, do not enter Step 3.
-2. Understand the sections that define execution: Success Criteria, Scenarios, Scope & Boundaries, Architecture Decision, Technical Overview, Implementation Plan, Testing Strategy, Validation, and Final Validation Checklist
-3. **Process Required / Deeper Context** – the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution. Do not re-read their source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional — read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source (any reasonable check that confirms the slug or `<a id="...">` exists) and warn (do not stop) on broken anchors.
-4. **Read Technical Research** – if the FIS references a `.technical-research.md`, read it before making code changes. Treat findings as leads to verify, not facts to trust.
-5. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant
-6. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
-7. Build a quick codebase overview once at the start (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files/tasks the FIS actually touches
-8. If the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When practical, confirm they fail before implementation. If the test harness is still unclear after one bounded pass, note the skip and continue.
-9. If the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
-10. **Update project state** (if the `State` document exists in the location defined by the **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
-11. Initialize working notes you will maintain during the run:
-   - Per-task status
-   - `changed-files`
-   - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, `MISSING REQUIREMENT`, or AUTO_MODE `ASSUMPTION` items
+   On any failure: emit `BLOCKED: <FIS_FILE_PATH> missing: <comma-separated list of failed sections>` and stop. Do not read upstream documents, do not enter Step 3.
+
+3. Understand the sections that define execution: Success Criteria, Scenarios, Scope & Boundaries, Architecture Decision, Technical Overview, Implementation Plan, Testing Strategy, Validation, and Final Validation Checklist.
+
+4. **Process Required / Deeper Context** — the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution; do not re-read source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional — read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source and warn (do not stop) on broken anchors.
+
+5. **Read Technical Research** — if the FIS references a `.technical-research.md`, read it before making code changes. Treat findings as leads to verify, not facts to trust.
+
+6. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant.
+
+7. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
+
+8. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
+
+9. **Scaffold scenario tests** — if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When practical, confirm they fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
+
+10. **UI design contract** — if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
+
+11. **Update project state** (if the `State` document exists per **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
+
+12. Initialize working notes you will maintain during the run:
+    - Per-task status
+    - `changed-files`
+    - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, `MISSING REQUIREMENT`, or AUTO_MODE `ASSUMPTION` items
 
 ### Step 3: Implement
 Implement the FIS yourself, task by task, in the order listed.
@@ -210,11 +211,11 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
 
    Substeps 1 and 4's FIS verification still run in-worktree (FIS is story-local and merges cleanly).
 
-   **Standalone use** (no orchestrator above): the audit block tells the user what to apply. After committing FIS changes, the user runs the same writes the orchestrator would: `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done`; if the plan story row's FIS field is unset or stale, `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} fis "{FIS_FILE_PATH}"`; `andthen:ops update-state active-story {STORY_ID} Done`; and `andthen:ops update-state note "{one-line completion summary}"`. Standalone `--defer-shared-writes` is intended only for users who explicitly want this deferral; do not set it without one.
+   **Standalone use** (no orchestrator above): the audit block tells the user what to apply — after committing FIS changes, run the same `andthen:ops update-plan` and `update-state` calls listed in 5b.2 and 5b.3. Standalone `--defer-shared-writes` is intended only for users who explicitly want this deferral; do not set it without one.
 
 
 #### 5c. Completion Report
-Report: per-task status, files created/modified, verification evidence, and a brief summary of any persisted observations. Full `NOTICED BUT NOT TOUCHING` and `ASSUMPTIONS` details now live in the FIS's `## Implementation Observations` section (written in Step 5b.1) — reference the section, do not duplicate the full list in the report.
+Report: per-task status, files created/modified, verification evidence, and a brief summary of any persisted observations. Full `NOTICED BUT NOT TOUCHING` and `ASSUMPTIONS` details live in the FIS's `## Implementation Observations` section (written in Step 5b.1) — reference the section, do not duplicate the full list in the report.
 
 ## Post-Completion
 If the `Learnings` document (see **Project Document Index**) exists, capture story-level traps, domain knowledge, procedural knowledge, and error patterns. Organize by topic, not chronology. Keep entries brief (1-2 sentences). Do not create a new `Learnings` document unless one already exists.
