@@ -5,6 +5,15 @@ This document is the **single canonical source** for the plan/FIS data contract.
 > Skills that reference this document: `ops`, `exec-spec`, `exec-plan`.
 
 
+## FIS Mutability Contract
+
+FIS spec content — Required Context, Success Criteria, Scenarios, Scope, Architecture Decision, Implementation Plan, Testing Strategy, and Validation — is read-only input to the `andthen:exec-spec` skill during execution.
+
+The FIS itself is mutable only through the `andthen:ops` skill's `update-fis <path> <task_id|all>`, `update-fis <path> observations <markdown-body>`, and `update-fis <path> discovered-requirements <markdown-body>` forms. No other write path is sanctioned.
+
+Discovered Requirements is the single sanctioned append-only channel for FIS-augmenting requirement discoveries during execution. Append the requirement before writing the test or code that depends on it.
+
+
 ## Story Catalog Columns
 
 Every `plan.md` Story Catalog table uses exactly these columns, in this order:

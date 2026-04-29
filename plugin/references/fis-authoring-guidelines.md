@@ -59,6 +59,14 @@ A FIS is a contract with the executor. If the author pulls text from `plan.md` a
 
 Each scenario: one behavior, concrete Given/When/Then using actual codebase identifiers. Cover happy path first, then edge cases, then at least one error case. 3-7 scenarios is the sweet spot. If you can't write the **Then** clause, surface it as ambiguity.
 
+### Scenario Authoring Principles
+
+Dan North's "Introducing BDD" (2006) anchors scenarios as Given/When/Then examples; Liz Keogh's "Acceptance Criteria vs. Scenarios" (2011) separates abstract rules from concrete examples. Apply these principles:
+
+- **Concrete over Abstract** — use actual data: "Given Fluffy is 3 weeks old" instead of "Given an animal under selling age".
+- **Observable Boundary** — assert visible behavior: "Then checkout rejects the sale" instead of "Then `AgePolicy.validate()` returns false".
+- **Declarative over Imperative** — state precondition, event, outcome: "When checkout runs" instead of "When the test constructs mocks and calls methods".
+
 **Negative-path checklist** — after drafting scenarios, review for these three categories. Add one scenario per uncovered category (the riskiest gap), not one per parameter. The 3-7 target still applies.
 
 - **Omitted optional inputs**: null/absent case producing a fragile default (empty string instead of null, zero instead of absent)?

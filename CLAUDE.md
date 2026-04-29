@@ -38,9 +38,15 @@ Skills invoke as `/andthen:<name>` or via the Skill tool. Agents invoke via the 
 
 Every `andthen:<name>` reference in prose (skill prompts, references, this file) must have the type noun **adjacent**: "the `andthen:<name>` **skill**" or "the `andthen:<name>` **agent**". The named antipattern **"Spawn `andthen:<skill-name>` sub-agent"** primes agents to pass skill names as `subagent_type` and caused a real regression (0.12.x) — prefer "invoke the `andthen:<name>` skill" or "spawn a `general-purpose` sub-agent and have it run `/andthen:<name>`".
 
-Exceptions: bare `/andthen:<name>` in code blocks, schema/frontmatter data values, and compact routing maps where a leading parenthetical qualifier covers all entries.
+Exceptions: bare `/andthen:<name>` in code blocks or inline code spans (data, not prose), schema/frontmatter data values, and compact routing maps where a leading parenthetical qualifier covers all entries.
 
 Audit: `rg 'andthen:[a-z-]+' CLAUDE.md plugin/ docs/`
+
+### Citation Convention
+
+Cite the canonical author + work title that originated a principle, not a popularizer's restatement. Don't inline external URLs in shipped skill content — they invite unnecessary agent fetches and rot. Personal skill-collection repositories (`*/skills/*`) are not authoritative sources. When a popularizer's turn-of-phrase is load-bearing, rephrase in our own words. Provenance URLs belong in research artifacts (`.agent_temp/research/*.md`) and FIS Required Context comments only.
+
+Audit: `rg 'github\.com/[^/]+/skills' plugin/`
 
 
 ---
@@ -109,7 +115,9 @@ The 14 shared assets live at `plugin/references/` — a single canonical locatio
 ---
 
 
-## Skill Authoring Philosophy
+## Skill and Prompt Authoring Philosophy
+
+_**Always apply the following rules whenever modifying or creating skills, skill reference files or prompts in general.**_
 
 Modern frontier models understand *why* things matter. Skills should express **intent** — goals, outcomes, and verification criteria — not micro-managed procedures, if-then chains, or exhaustive enumerations.
 
@@ -119,7 +127,7 @@ Modern frontier models understand *why* things matter. Skills should express **i
 - **Named principles over unnamed rules**: A named principle (Chesterton's Fence, Prove-It Pattern, Proof-of-Work, Stop-the-Line) gives the model a conceptual anchor for *when* and *why* the principle applies. An unnamed rule is just a constraint to follow or ignore.
 - **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens — it prevents the model from rationalizing its way past the step.
 - **Headless by default**: Skills should run to completion without waiting for another user turn unless they are explicitly interactive by nature (for example `clarify` or `init`) or blocked by a real contract failure. Prefer explicit assumptions, conservative defaults, and documented open questions over `STOP and WAIT` patterns in execution-oriented skills.
-- **Brevity and clear language**: Always keep skills pragmatic, concise and actionable. Avoid jargon, verbosity, and complex sentence structures. Use simple, direct language to convey instructions and principles.
+- **Brevity and clear language**: Always keep skills pragmatic, concise and actionable. Avoid jargon, verbosity, prose, and complex sentence structures. Use simple, direct language to convey instructions and principles.
 
 **Fitness check.** Skills are working when implementation diffs trace cleanly to specs/FIS, headless runs reach completion without "stop and wait" pauses, and review findings are downstream of clarification gaps — not implementation drift or mid-implementation Boy Scout creep.
 

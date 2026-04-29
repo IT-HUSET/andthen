@@ -17,7 +17,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode` before interpreting t
 ## PHILOSOPHY
 
 - **Testability is a proxy for modularity** (Farley). Hard-to-test code is coupled code — test friction is architectural feedback.
-- **Tests are executable specifications** (Beck, Pocock). Pin observable behavior, not private structure.
+- **Tests are executable specifications** (Beck, North). Pin observable behavior, not private structure.
 - **Prove-It before claiming a fix.** A failing test that goes green is the only proof.
 
 
@@ -93,8 +93,8 @@ Key tests added or updated; notable fixtures or patterns. For `tdd` / `prove-it`
 
 ## REFERENCES
 
-- `tdd-discipline.md` — Red/Green/Refactor, Tidy First, triangulation, anti-rationalization (Beck, Farley, Osmani).
-- `prove-it-pattern.md` — failing-test-first bugfix flow, characterization tests, Beyonce Rule (Osmani, Feathers).
-- `test-design.md` — behavior over implementation, Beck's Test Desiderata, diagnosability, mock minimization (Pocock, Dodds, Farley, Beck).
+- `tdd-discipline.md` — Red/Green/Refactor, Tidy First, triangulation, anti-rationalization (Beck, Farley).
+- `prove-it-pattern.md` — failing-test-first bugfix flow, characterization tests, Beyonce Rule (Feathers; *Software Engineering at Google*, 2020).
+- `test-design.md` — behavior over implementation, Beck's Test Desiderata, diagnosability, mock minimization (Freeman & Pryce, Dodds, Farley, Beck).
 - `levels-and-strategy.md` — unit/integration/E2E by trust boundary, Testing Trophy, risk×change matrix (Dodds, Farley).
 - `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` — testability-as-modularity anchor.

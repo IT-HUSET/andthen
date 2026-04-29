@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants to execute or implement an existing spec or FIS. Implements code from a Feature Implementation Specification. Trigger on 'execute this spec', 'execute this FIS', 'implement this spec', 'implement this FIS', 'build from spec'.
-argument-hint: "[--auto|--headless] [--defer-shared-writes] <path-to-fis>"
+argument-hint: "[--auto|--headless] [--tdd] [--defer-shared-writes] <path-to-fis>"
 ---
 
 # Execute Feature Implementation Specification
@@ -8,10 +8,11 @@ argument-hint: "[--auto|--headless] [--defer-shared-writes] <path-to-fis>"
 Execute a fully-defined FIS document as the **executor**. Implement the FIS directly, use sub-agents only for narrow advisory/review work, and complete all validation and status gates before finishing.
 
 ## VARIABLES
-FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--defer-shared-writes` before interpreting the remainder as the FIS path)
+FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `--tdd`, or `--defer-shared-writes` before interpreting the remainder as the FIS path)
 
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
+- `--tdd` → TDD_MODE: strict TDD execution mode. Scaffold exactly one scenario test, observe it fail, drive red→green→refactor, then advance to the next scenario. The TDD canon — Anti-Cheat Invariant, Living Test List, Horizontal Slicing as Anti-Pattern, red→green→refactor discipline — is owned by the `andthen:testing` skill; load it via `/andthen:testing --mode tdd` (or the Skill tool) for canon depth, but the executor remains the test author — this is canon consultation, not delegation of test writing. `AUTO_MODE` honors `--tdd` without confirmation gates. Default off; opt in for logic-heavy or bug-mode FISes.
 - `--defer-shared-writes` → DEFER_SHARED_WRITES: skip direct `plan.md` and `State` document writes (FIS writes still run); emit a `## Deferred Shared Writes (worktree mode)` audit block in the completion report instead. Set automatically by `andthen:exec-plan --team --worktree` to prevent concurrent worktree merges from colliding on shared files. Intended for orchestrated use — see Step 5b.5 for emission format and standalone-use details.
 
 
@@ -102,7 +103,7 @@ Usage rules:
 
 8. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
 
-9. **Scaffold scenario tests** — if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When practical, confirm they fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
+9. **Scaffold scenario tests** — if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
 
 10. **UI design contract** — if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
 
@@ -111,10 +112,12 @@ Usage rules:
 12. Initialize working notes you will maintain during the run:
     - Per-task status
     - `changed-files`
-    - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, `MISSING REQUIREMENT`, or AUTO_MODE `ASSUMPTION` items
+    - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, `MISSING REQUIREMENT`, `DISCOVERED REQUIREMENT`, or AUTO_MODE `ASSUMPTION` items
 
 ### Step 3: Implement
 Implement the FIS yourself, task by task, in the order listed.
+
+When `TDD_MODE=true`, every scenario-bearing task runs as a strict red→green→refactor loop: scaffold exactly one scenario test, observe red for the right reason, implement the minimum code to drive green, refactor only while green, then advance to the next scenario. The Anti-Cheat Invariant applies throughout: tests may be rewritten when wrong, but not deleted, disabled, or weakened to pass. Prove-It is the bug-fix specialization of red→green→refactor — for bug-fix tasks (FIS-as-bugfix or a Tier C regression discovery), the failing test pins the defect and stays as a regression guard; load `/andthen:testing --mode prove-it` for canon depth, but the executor remains the test author. New-behavior tasks use the TDD canon; bug-fix tasks use the Prove-It canon; both nest under TDD_MODE's red→green→refactor discipline. `AUTO_MODE` honors `--tdd` without confirmation gates.
 
 For each task:
 1. Implement the outcome described
@@ -125,6 +128,18 @@ For each task:
 6. Update `changed-files`
 7. Mark the task checkbox complete immediately in the FIS — do not batch checkbox updates
 8. Record the task result in your working notes
+
+#### Traceability Gate: Requirement-Anchored Implementation
+
+Every test and motivated source-code change must trace to a requirement already present in the FIS or appended through the sanctioned Discovered Requirements path. Apply these friction tiers:
+
+- **Tier A — free pass**: Tidy First refactors, helper extractions transitively traced through a parent test, renames, formatting, and type-narrowing need no extra note when behavior is unchanged.
+- **Tier B — inline trace**: each new test names the scenario or success-criterion ID it satisfies via test name, comment, or task report line; each new code path is motivated by a currently-failing test.
+- **Tier C — stop-and-amend**: discovered edge cases, failure modes, or scenario ambiguities must be appended through the `andthen:ops` skill's `update-fis <path> discovered-requirements <body>` form before writing the test or code that addresses them. Mark the entry persisted in working notes only after `update-fis` returns success — Step 5b's catch-up pass relies on the unpersisted-list being truthful. For regression-style discoveries (a defect surfaced mid-run, not a missing edge case), follow the Prove-It path: the first dependent test pins the defect and stays as a regression guard.
+
+On `BLOCKED: invalid discovered-requirements body` from this op, reformat per the ops skill's body constraints and retry once. Persistent failure: do not write the dependent test or code (Tier C's "append before dependent change" temporal invariant). Surface as `CONFUSION` (interactive) or `BLOCKED:` in the completion report (`AUTO_MODE`).
+
+For Tier C in `AUTO_MODE`, pick the conservative interpretation, append the discovered requirement with rationale, write the test traced to that appended requirement, implement, and surface the full Discovered Requirements block in the completion report.
 
 Implementation rules:
 - When stuck, emit named output blocks instead of guessing:
@@ -182,6 +197,7 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
 1. **FIS** (always) — invoke the `andthen:ops` skill:
    - `update-fis {FIS_FILE_PATH} all` — Marks task checkboxes, success criteria, and Final Validation Checklist items in one pass.
    - **Persist observations** (if any): if working notes contain `NOTICED BUT NOT TOUCHING` items or AUTO_MODE `ASSUMPTION` records, format them as a markdown body with `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)` subsections (each item one line, file:line if applicable), then invoke `update-fis {FIS_FILE_PATH} observations '{body}'`. Skip when both lists are empty. The ops skill appends a timestamped `### Run:` block to the FIS's `## Implementation Observations` section (creating the section if absent).
+   - **Persist Discovered Requirements** (if any remain unpersisted): Tier C normally appends before dependent tests/code in Step 3. If working notes still contain unpersisted Discovered Requirements entries, format them as a markdown body with a `#### DISCOVERED REQUIREMENTS` subsection using the FIS template entry shape, then invoke `update-fis {FIS_FILE_PATH} discovered-requirements '{body}'`. Skip when the unpersisted list is empty.
 
 2. **Source plan** (plan-backed FIS only; **skip if `DEFER_SHARED_WRITES=true`** — defer to orchestrator):
    - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done` — sets the story's Status field, Story Catalog row, and acceptance-criteria checkboxes.
@@ -192,7 +208,7 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
    - `andthen:ops update-state note "{one-line completion summary}"`.
 
 4. **Verify** — re-read each updated file:
-   - **FIS**: every task checkbox `[x]`; Final Validation Checklist `[x]`; success criteria `[x]`. If observations were persisted, the `## Implementation Observations` section contains a new `### Run:` block dated to this run.
+   - **FIS**: every task checkbox `[x]`; Final Validation Checklist `[x]`; success criteria `[x]`. If observations or Discovered Requirements were persisted, the `## Implementation Observations` section contains a new `### Run:` block dated to this run.
    - **Plan** (if 5b.2 ran): story row `Done`; acceptance criteria `[x]`; FIS field set.
    - **State** (if 5b.3 ran): story absent from Active Stories.
    - Any miss → retry the matching `update-*` once. Persistent failure is Stop-the-Line — do not report completion on missing writes.
@@ -215,7 +231,7 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
 
 
 #### 5c. Completion Report
-Report: per-task status, files created/modified, verification evidence, and a brief summary of any persisted observations. Full `NOTICED BUT NOT TOUCHING` and `ASSUMPTIONS` details live in the FIS's `## Implementation Observations` section (written in Step 5b.1) — reference the section, do not duplicate the full list in the report.
+Report: per-task status, files created/modified, verification evidence, and a brief summary of any persisted observations or Discovered Requirements. Full `NOTICED BUT NOT TOUCHING`, `ASSUMPTIONS`, and Discovered Requirements details live in the FIS's `## Implementation Observations` section (written in Step 5b.1) — reference the section, duplicating only the full Discovered Requirements block when `AUTO_MODE` Tier C required it.
 
 ## Post-Completion
 If the `Learnings` document (see **Project Document Index**) exists, capture story-level traps, domain knowledge, procedural knowledge, and error patterns. Organize by topic, not chronology. Keep entries brief (1-2 sentences). Do not create a new `Learnings` document unless one already exists.

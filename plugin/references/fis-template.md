@@ -198,6 +198,15 @@ _Replace examples above with your actual tasks. Format: outcome + context line +
 
 ## Implementation Observations
 
-> _Managed by exec-spec post-implementation — append-only. Each execution run that produces observations adds a dated `### Run:` block recording out-of-scope items (`NOTICED BUT NOT TOUCHING`) and any AUTO_MODE assumptions. Available as a backlog for follow-up review/refactor work in this area. Spec authors: leave this section empty._
+> _Managed by exec-spec post-implementation — append-only. Each `update-fis observations` or `update-fis discovered-requirements` invocation appends a dated `### Run: {timestamp} — {op-tag}` block (multiple writes per run are normal). Recognized inner subsections: `#### NOTICED BUT NOT TOUCHING` / `#### ASSUMPTIONS (AUTO_MODE)` under the `observations` tag, `#### DISCOVERED REQUIREMENTS` under the `discovered-requirements` tag. Untagged blocks from older FISes remain valid for reading; idempotency-dedup matches by tag and never dedupes against them. Available as a backlog for follow-up review/refactor work. Spec authors: leave this section empty._
+
+Discovered Requirements entries use this shape:
+
+- **Title**: short imperative phrase
+- **Description**: 1-2 sentences on the discovered requirement
+- **Rationale**: why it was missed in original spec
+- **Interpretation** (AUTO_MODE only): the conservative interpretation chosen and why
+- **Traced from**: task ID where the discovery occurred
+- **Date**: YYYY-MM-DD
 
 _No observations recorded yet._

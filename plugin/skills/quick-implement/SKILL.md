@@ -1,6 +1,6 @@
 ---
 description: Quick implementation path for small features or fixes with verification. Bypasses the FIS workflow — for larger features, use the `andthen:clarify` → `andthen:spec` → `andthen:exec-spec` chain instead. Trigger on 'quick fix this', 'implement this quickly', 'make this small change'.
-argument-hint: "[--pr|--no-pr] <spec | --issue <number>>"
+argument-hint: "[--tdd] [--pr|--no-pr] <spec | --issue <number>>"
 ---
 
 # Quick Implement with Verification
@@ -10,7 +10,10 @@ Fast implementation path for small features, bug fixes, or GitHub issues. Bypass
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--pr`, `--no-pr`, or `--issue` before interpreting the remainder as the inline spec; `--pr`/`--no-pr` couple to input mode — see "PR behavior" under INSTRUCTIONS)
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, or `--issue` before interpreting the remainder as the inline spec; `--pr`/`--no-pr` couple to input mode — see "PR behavior" under INSTRUCTIONS)
+
+### Optional Flags
+- `--tdd` → TDD_MODE: strict TDD execution mode for quick fixes. Write one test at a time, observe red, drive red→green→refactor, then advance to the next behavior. The TDD canon — Anti-Cheat Invariant, red→green→refactor discipline — is owned by the `andthen:testing` skill; load `/andthen:testing --mode tdd` for canon depth when needed, but the executor remains the test author (canon consultation, not delegation). If `AUTO_MODE` is inherited from an orchestrating caller, honor `--tdd` without confirmation gates.
 
 
 ## INSTRUCTIONS
@@ -72,10 +75,16 @@ Execute: Implementation → Verification → Evaluation. Repeat until all requir
 
 #### Step 1: Implementation
 
-- Write tests first where applicable, otherwise alongside implementation
+- Write tests first for any non-trivial branching logic. Apply the **Beyonce Rule** (Bender & Winters, *Software Engineering at Google*, 2020) and the **Anti-Cheat Invariant** (Beck, *Augmented Coding: Beyond the Vibes*) — see `prove-it-pattern.md` and `tdd-discipline.md` for canon. Tests-alongside is acceptable only for purely structural changes (renames, reorganization, declarations); test-after is forbidden.
+- When `TDD_MODE=true`, write tests one at a time and drive each red→green→refactor before the next; if `AUTO_MODE` is inherited, honor the flag without confirmation gates.
+- **Requirement-Anchored**: every test and motivated code change traces to a requirement from the inline spec or `--issue` body.
+- If a discovered gap changes behavior, prompt in interactive mode before expanding scope.
+- If running under `AUTO_MODE`, document the conservative interpretation as an `ASSUMPTION` instead of silently widening the ask.
+- After 3 stop-and-amend events in a single run, the inline spec is too thin: in interactive mode, surface `CONFUSION:` recommending re-entry via the `andthen:exec-spec` skill with a generated FIS; in `AUTO_MODE`, stop with `BLOCKED:` listing the events and the same recommendation.
 - Write code following existing codebase patterns and project guidelines
 - Use **sub-agents** for independent tasks to protect the main context window
 - Invoke the `andthen:triage` skill for build or configuration issues
+- Load the `andthen:testing` skill for canon depth on test discipline — `/andthen:testing --mode tdd` under `--tdd`, `--mode prove-it` for bug-fix work, `--mode strategy` when coverage is unclear. Run inline by default (preserves test-context continuity); spawn a `general-purpose` sub-agent only if fresh context is required. The executor remains the test author either way.
 
 #### Step 2: Verification
 

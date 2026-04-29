@@ -3,7 +3,7 @@ description: "Deterministic operations: update STATE.md, plan status, FIS checkb
 context: fork
 agent: general-purpose
 user-invocable: true
-argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-fis, commit, branch, changelog, progress, stale)"
+argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-fis, update-fis observations, update-fis discovered-requirements, commit, branch, changelog, progress, stale)"
 ---
 
 # Deterministic Operations Skill
@@ -124,11 +124,12 @@ Actions for `fis` form:
 - No-op if the field already equals `<fis_path>` (path-normalized)
 
 #### Update FIS
-Mutate a FIS document — mark checkboxes or append implementation observations.
+Mutate a FIS document — mark checkboxes, append implementation observations, or append discovered requirements.
 
 **Usage**:
 - Mark checkboxes: `update-fis <fis_path> <task_id|all>`
 - Append observations: `update-fis <fis_path> observations <markdown-body>`
+- Append discovered requirements: `update-fis <fis_path> discovered-requirements <markdown-body>`
 
 Actions for `<task_id|all>` form:
 - When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
@@ -138,19 +139,36 @@ Actions for `<task_id|all>` form:
 
 Actions for `observations` form:
 - `<markdown-body>` is freeform multi-line markdown passed verbatim — quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape.
-- Body constraints: the caller MUST format `<markdown-body>` using `####`-or-deeper headings only (typically `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)`). The body MUST NOT contain `## ` headings or another `### Run:` line — these would visually close the section and break the append protocol. Reject (no-op + `BLOCKED: invalid observations body`) if the body violates these constraints.
+- Body constraints: the caller MUST format `<markdown-body>` using `####`-or-deeper headings only (typically `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)`). The body MUST NOT contain `## ` headings or another `### Run:` line — these would visually close the section and break the append protocol. The body MUST NOT contain `#### DISCOVERED REQUIREMENTS` — that subsection belongs in the dedicated `discovered-requirements` op so the tagged-lane separation holds. Reject (no-op + `BLOCKED: invalid observations body`) if the body violates these constraints.
 - Locate the `## Implementation Observations` section. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
 - If the placeholder line `_No observations recorded yet._` is present, remove it (exact-string match only; no-op otherwise).
 - Resolve a timestamp: prefer `date -u +"%Y-%m-%d %H:%M UTC"` so all run blocks share a single timezone and ordering is unambiguous.
 - Normalize whitespace: ensure exactly one blank line precedes the new run block and the previous block ends with a trailing newline.
-- Append the new run block to the section:
+- Append the new run block to the section, tagging the header with the op name so concurrent op types do not share an idempotency lane:
   ```
-  ### Run: {YYYY-MM-DD HH:MM UTC}
+  ### Run: {YYYY-MM-DD HH:MM UTC} — observations
 
   {markdown-body}
   ```
 - No-op if `<markdown-body>` is empty or whitespace-only.
-- **Idempotent retry**: if the most recent existing `### Run:` block has identical `<markdown-body>` (whitespace-normalized) AND its timestamp is within 2 minutes of the resolved timestamp, no-op — the call is a retry of an already-applied write. This makes the operation safe under exec-spec's Step 5b.4 retry-once protocol.
+- **Idempotent retry**: if the most recent existing `### Run: ... — observations` block (matched by tag suffix) has identical `<markdown-body>` (whitespace-normalized) AND its timestamp is within 2 minutes of the resolved timestamp, no-op — the call is a retry of an already-applied write. Compare only against same-tag blocks; an intervening `— discovered-requirements` block does not affect the decision. This makes the operation safe under exec-spec's Step 5b.4 retry-once protocol when both ops write to `## Implementation Observations` in the same run.
+- Append-only otherwise: never rewrite or remove prior `### Run:` blocks.
+
+Actions for `discovered-requirements` form:
+- `<markdown-body>` is freeform multi-line markdown passed verbatim — quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape.
+- Body constraints: the caller MUST format `<markdown-body>` using `####`-or-deeper headings only, specifically `#### DISCOVERED REQUIREMENTS` for the requirement block. The body MUST NOT contain `## ` headings or another `### Run:` line. Reject (no-op + `BLOCKED: invalid discovered-requirements body`) if the body violates these constraints or lacks `#### DISCOVERED REQUIREMENTS`.
+- Locate the `## Implementation Observations` section. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
+- If the placeholder line `_No observations recorded yet._` is present, remove it (exact-string match only; no-op otherwise).
+- Resolve a timestamp: prefer `date -u +"%Y-%m-%d %H:%M UTC"` so all run blocks share a single timezone and ordering is unambiguous.
+- Normalize whitespace: ensure exactly one blank line precedes the new run block and the previous block ends with a trailing newline.
+- Append the new run block to the section, tagging the header with the op name so concurrent op types do not share an idempotency lane:
+  ```
+  ### Run: {YYYY-MM-DD HH:MM UTC} — discovered-requirements
+
+  {markdown-body}
+  ```
+- No-op if `<markdown-body>` is empty or whitespace-only.
+- **Idempotent retry**: if the most recent existing `### Run: ... — discovered-requirements` block (matched by tag suffix) has identical `<markdown-body>` (whitespace-normalized) AND its timestamp is within 2 minutes of the resolved timestamp, no-op. Compare only against same-tag blocks; an intervening `— observations` block does not affect the decision.
 - Append-only otherwise: never rewrite or remove prior `### Run:` blocks.
 
 

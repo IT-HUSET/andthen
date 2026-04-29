@@ -6,6 +6,16 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.15.6] – 2026-04-29
+
+### Added
+- **TDD/BDD canon tightened with named principles** – `tdd-discipline.md` adds Anti-Cheat Invariant, Horizontal Slicing as Anti-Pattern, and Living Test List (Beck); FIS scenario guidance names North/Keogh's Concrete over Abstract, Observable Boundary, and Declarative over Imperative.
+- **Opt-in `--tdd` strict mode** on the `andthen:exec-spec` and `andthen:quick-implement` skills, with Requirement-Anchored traceability tiers (A/B/C).
+- **Discovered Requirements append-only path** – new `update-fis <path> discovered-requirements <body>` form on the `andthen:ops` skill; FIS template documents the entry shape; data contract codifies FIS Mutability and Tier C as the sanctioned amendment channel during execution. New `### Run:` headers carry an `— observations` / `— discovered-requirements` tag so the two ops have separate idempotency lanes (untagged pre-existing blocks remain valid as content).
+- **Citation Convention** codified in `CLAUDE.md` – cite the canonical author + work title, no inline URLs in shipped skill content, personal skill-collection repositories are not authoritative. Testing-skill attributions reattributed accordingly.
+
+---
+
 ## [0.15.5] – 2026-04-28
 
 ### Changed

@@ -1,6 +1,6 @@
 # TDD Discipline — Red, Green, Refactor
 
-Sources: Kent Beck (*Test-Driven Development: By Example*, 2002; *Tidy First?*, 2023), Dave Farley (*Modern Software Engineering*), Addy Osmani (anti-rationalization framing).
+Sources: Kent Beck (*Test-Driven Development: By Example*, 2002; *Tidy First?*, 2023; "Augmented Coding: Beyond the Vibes", 2025), Dave Farley (*Modern Software Engineering*, 2021).
 
 Home mode: `tdd`. Also used whenever a test drives *new* behavior.
 
@@ -25,6 +25,8 @@ Smallest test that expresses one piece of intended behavior.
 - Run it. **Confirm it fails for the right reason.** `ReferenceError` for a missing function is fine; a wrong-assertion pass is a lie.
 - The failure message is the test's first output. If a stranger couldn't diagnose the miss from it, rewrite the test.
 - One behavior per test. "Given X, When Y, Then A and B and C" is three tests.
+
+**Anti-pattern: Horizontal Slicing.** Writing all tests up front and all implementation afterward locks in imagined behavior — there is no observed-failure step for any test, the test structure is committed before the code reveals its shape, and the tight feedback loop that drives design is gone. Beck's Canon TDD keeps the slice vertical: "Turn exactly one item" from the list into a concrete runnable test, make it pass, then continue.
 
 ### 2. Green — minimum code to pass
 
@@ -57,6 +59,11 @@ Rules:
 - Run tests after every structural edit. A 10-minute batch that breaks three tests in ways you can't localize is undisciplined.
 
 
+### Named principle: *Living Test List*
+
+The scenario list changes as learning happens. Beck's Canon TDD keeps discovery inside the loop by "adding items to the list as you discover them." When execution discovers a requirement rather than just a test case, use the `andthen:exec-spec` skill's Discovered Requirements mechanism before writing the test or code that depends on it.
+
+
 ### Named principle: *Make it work, make it right, make it fast*
 
 Beck's three-phase order:
@@ -80,6 +87,13 @@ Every skip-worthy step has a seductive excuse:
 | "Mocking this would take longer than the implementation." | Architectural feedback. Introduce the seam; the test is the forcing function. |
 | "TDD is slower for exploratory work." | Spikes are fine. Delete the spike, then TDD. Don't promote untested spikes. |
 | "The test duplicates the implementation." | The implementation is leaking structure the test shouldn't know. Re-assert on observable behavior. |
+
+
+### Named principle: *Anti-Cheat Invariant*
+
+AI agents can (and do) introduce regressions; tests guard against that only while they keep telling the truth. Beck names this failure mode in *Augmented Coding: Beyond the Vibes* — "the genie cheating" by disabling or deleting tests — which turns a green build into a lie.
+
+Do not delete tests, disable them via `.skip` / `xit` / `@Disabled` / language equivalents, or pass by weakening assertions. A wrong test is rewritten, not silenced; a test whose subject was intentionally removed is replaced with a test for the new behavior, not deleted.
 
 
 ## When NOT to TDD

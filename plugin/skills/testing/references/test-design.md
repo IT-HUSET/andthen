@@ -1,6 +1,6 @@
 # Test Design — Behavior Over Implementation
 
-Sources: Matt Pocock (behavior-first testing), Kent C. Dodds (*Testing Trophy*), Dave Farley (diagnosability, friction-as-feedback), Kent Beck (*Test Desiderata*, 2019).
+Sources: Steve Freeman & Nat Pryce (*Growing Object-Oriented Software, Guided by Tests*, 2009), Kent C. Dodds (*Testing Trophy*), Dave Farley (diagnosability, friction-as-feedback), Kent Beck (*Test Desiderata*, 2019).
 
 Home mode: `write`. Also load for `tdd` (naming, assertions) and `strategy` (auditing suites before trusting their verdicts).
 
@@ -11,7 +11,7 @@ Home mode: `write`. Also load for `tdd` (naming, assertions) and `strategy` (aud
 
 A good test asserts what the code *should do* from a caller's perspective. A bad test asserts *how it does it*. They look identical when passing — the difference shows up on refactor.
 
-Pocock: *a test is a promise to your future self.* The promise worth keeping is "this behavior still works"; not "this variable is still named `foo`".
+A test is a promise to your future self. The promise worth keeping is "this behavior still works"; not "this variable is still named `foo`."
 
 Dodds: *"The more your tests resemble the way your software is used, the more confidence they can give you."*
 
