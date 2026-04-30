@@ -146,7 +146,7 @@ Every concern from the walkthrough is a finding. Each finding must carry: locati
 
 This pass cannot find new issues; that is the Red-Team Lens's job (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`).
 
-Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples, adjust severity, and withdraw findings that don't hold up. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
+Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples and adjust severity. Withdrawals follow the same Verdict-discipline floor as the formal filter ([`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md)) — concrete falsifier required; "doesn't hold up" alone is a downgrade. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
 
 **Full filter** (when triggered): Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
 - **Role**: `Findings Filter reviewing gap analysis findings`
@@ -226,10 +226,7 @@ If notable recurring traps emerge, append them to an existing learnings file.
 
 ## Report Output Conventions
 
-When writing a report file (not `--inline-findings`):
-- **Filename**: `<feature-name>-gap-review-<agent>-<YYYY-MM-DD>.md` — on collision append `-2`, `-3`. `<agent>` is your agent short name (`claude`, `codex`, etc.; fall back to `agent`).
-- **Directory priority**:
-  1. **Spec directory** — when the requirements baseline is a spec/FIS/plan in a spec directory, or the reviewed feature has an associated spec directory from the Project Document Index
-  2. **Target directory** — next to the primary implementation target (the localized implementation directory)
-  3. **Fallback** — `{AGENT_TEMP}/reviews/` (default `.agent_temp/reviews/`)
-- On completion, print the report's relative path from the project root.
+Filename and directory resolve per [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md). This lens contributes:
+- **`<feature-name>` token**: the feature/baseline name (e.g. `payments`, derived from the spec/FIS/plan path under review)
+- **Report suffix**: `gap-review` (canonical source: the `andthen:review` skill's mode table)
+- **Target nature**: source-code. The implementation under review is the primary target; the requirements baseline anchors tier 2 (spec directory). Tier-2 "next to target" is disabled for the implementation side — without a resolvable spec directory, current feature directory, or `--output-dir`, the report lands in `<agent-temp>/reviews/`.

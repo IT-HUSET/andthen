@@ -48,7 +48,7 @@ REPORT_SOURCE: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` b
    - Local report path or direct raw report URL: read it directly
    - Any other input shape (issue page, PR shell URL, generic link): stop with an invalid-input error stating that the actual report content is required
 2. Extract from the report body:
-   - Review mode (`gap`, `code`, `doc`, `mixed`, `architecture`, `council`) — read from the report's mode line or the report filename suffix (e.g. `-gap-review.md` → `gap`)
+   - Review mode (`gap`, `code`, `doc`, `security`, `mixed`, `architecture`, `council`) — read from the report's mode line or the report filename suffix (e.g. `-gap-review.md` → `gap`, `-security-review.md` → `security`)
    - Report verdict (PASS/FAIL) when present
    - Findings, severity, remediation recommendations, and reviewed scope
    - Referenced implementation targets, requirements baseline, FIS path, `plan.md`, and story IDs when the report names them
@@ -121,13 +121,41 @@ If the report is a full-plan or workspace-wide review:
 - Update only the status artifacts that can be justified from the completed remediation
 - Do not mark individual stories done unless their acceptance criteria are clearly satisfied
 
-**Gate**: Status artifacts reflect the validated post-remediation state
+#### Annotate the input report with `## Remediation Status`
+
+Run this step **before** the tech-debt persistence step below. If `REPORT_SOURCE` from Phase 1 was a local writable path (not a raw URL, not any other non-writable input shape), write a `## Remediation Status` section at the end of the report file:
+
+- Whole-section replace if the heading already exists: locate the LAST line that starts at column 0 with `## Remediation Status` and is not inside a fenced code block; overwrite from that line to EOF (so re-running on the same report leaves exactly one `## Remediation Status` H2). Append-with-leading-blank-line otherwise.
+- One bullet per finding, in the original report's finding order: `- **{finding title or short quote}** — {STATUS} — {one-line evidence or justification}` where `{STATUS}` is one of `RESOLVED` / `PARTIALLY RESOLVED` / `UNRESOLVED` / `DEFERRED` from the Phase 4 findings re-check.
+- Skip with a logged reason of `"remote URL — no local file to annotate"` (or an equivalent reason for any other non-writable input shape) when the input is not a local writable path. The skip is recorded in the completion report.
+- If annotation fails for any reason (filesystem error, permission issue, etc.), continue to the tech-debt persistence step below and surface the annotation failure in the completion report — losing the tech-debt write because annotation failed would create silent debt drift.
+
+#### Persist DEFERRED findings to the Tech Debt Backlog
+
+Batch all `DEFERRED` entries from the Phase 4 findings re-check into a single `andthen:ops` invocation: `update-tech-debt append <markdown-body>`. The body MUST follow this shape (one bullet per deferred finding):
+
+```
+#### DEFERRED FINDINGS
+
+- **{Finding title}** (`{location}`)
+  - Severity: {High|Medium|Low}
+  - Justification: {one-line reason for deferral}
+  - Source report: `{relative path to original report}`
+```
+
+Normalize each finding's upstream review severity into the `{High|Medium|Low}` bucket set before populating `Severity:` — map `CRITICAL → High`, `HIGH → High`, `MEDIUM → Medium`, `LOW → Low` (case-insensitive). For findings with a missing severity field or a non-canonical value (e.g., a foreign-report tag like `P0` or `Blocker`), surface the raw input in the completion report and route to `Medium` so the demotion is logged rather than silent. Without this normalization, the consumer's `default-to-Medium` fallback for unrecognized severities would silently demote a `CRITICAL` deferred finding to `Medium` tech debt; with it, that fallback becomes a defensive backstop rather than the primary path.
+
+The `Source report` line is the back-link to the source report path and is required on every entry — operators tracing a backlog item back to its origin depend on it. When zero findings are `DEFERRED`, skip this step entirely (no-op — no `update-tech-debt append` invocation). The `andthen:ops` skill is deterministic and `--auto` is not propagated to it (per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md)).
+
+**Gate**: Status artifacts reflect the validated post-remediation state; the input report is annotated when writable; deferred findings are persisted to the Tech Debt Backlog when present
 
 
 ## COMPLETION
 
 Report:
-- Findings re-check table (each finding → RESOLVED / PARTIALLY RESOLVED / UNRESOLVED with evidence)
+- Findings re-check table (each finding → RESOLVED / PARTIALLY RESOLVED / UNRESOLVED / DEFERRED with evidence or justification)
 - Findings intentionally left open and why
 - Verification results (tests, lints, builds, quick-review)
 - Which workflow artifacts were updated
+- **Tech-debt entries written**: count of new entries appended, target file path, and per-severity breakdown (e.g. `2 new entries → docs/TECH-DEBT-BACKLOG.md (High: 1, Medium: 1, Low: 0)`); state `0 entries` when no findings were `DEFERRED`
+- **Report annotation status**: `written` (new `## Remediation Status` section), `replaced` (existing section replaced in place), or `skipped: <reason>` (e.g. `skipped: remote URL — no local file to annotate`); state the report path when written or replaced

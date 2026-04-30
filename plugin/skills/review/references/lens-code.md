@@ -18,26 +18,18 @@ Run only the lenses that actually apply to the changed scope. Use the checklists
 2. **Architecture** — [ARCHITECTURAL-REVIEW-CHECKLIST.md](../checklists/ARCHITECTURAL-REVIEW-CHECKLIST.md): pattern adherence, coupling/cohesion, CUPID, DDD where relevant, resilience/performance trade-offs
 3. **Domain language** — [DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md](../checklists/DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md) when the `Ubiquitous Language` document (see **Project Document Index**) exists: terminology consistency
 4. **UI/UX** — [UI-UX-REVIEW-CHECKLIST.md](../checklists/UI-UX-REVIEW-CHECKLIST.md) when UI changed: usability, responsiveness, accessibility, interaction quality
-5. **Security** — select the applicable checklist(s):
+5. **Security awareness (thin pass)** — flag obvious security smells visible during ordinary code review: hardcoded secrets, raw SQL or shell string concatenation with untrusted input, unvalidated user input reaching dangerous sinks, missing auth/authz checks on new endpoints, broken or absent error handling in security-sensitive paths. Do **not** load OWASP checklists or run security scanners here — that is the security lens's job. When the changed surface materially touches auth, payments, network-exposed handlers, user input parsing, secret/credential handling, crypto, LLM/agent flows, native/cross-platform mobile (iOS/Android/React Native/Flutter/Expo) surfaces, or IaC/CI/CD, the review skill auto-routes the security lens into the chain — but only when `--mode` is absent. If `--mode code` (or any chain that explicitly omits `security`) was passed, auto-routing is suppressed; flag the surface as a HIGH finding ("surface warrants security lens — consider `--mode code,security`") rather than attempting OWASP-depth analysis here.
 
-| Checklist | Standard | Apply when... |
-|-----------|----------|---------------|
-| [SECURITY-CHECKLIST-WEB.md](../checklists/SECURITY-CHECKLIST-WEB.md) | OWASP Top 10:2025 | Web applications, server-rendered pages, or any general-purpose backend |
-| [SECURITY-CHECKLIST-API.md](../checklists/SECURITY-CHECKLIST-API.md) | OWASP API Security Top 10:2023 | REST, GraphQL, gRPC, microservices, or other HTTP-exposed code |
-| [SECURITY-CHECKLIST-LLM.md](../checklists/SECURITY-CHECKLIST-LLM.md) | OWASP LLM Top 10:2025 | LLM, RAG, agentic, or AI-generated-output systems |
-| [SECURITY-CHECKLIST-MOBILE.md](../checklists/SECURITY-CHECKLIST-MOBILE.md) | OWASP Mobile Top 10:2024 | Native or cross-platform mobile apps |
-| [SECURITY-CHECKLIST-CICD.md](../checklists/SECURITY-CHECKLIST-CICD.md) | OWASP CI/CD Risks | Pipelines, IaC, deployment workflows, build scripts, supply chain changes |
-
-Run available security tooling such as Semgrep (`../scripts/run-security-scan.sh <path>`) when possible.
-
-When the review touches browser state, AI/agent flows, logs, stack traces, error output, scraped content, tool results, or other external-data flows, apply `${CLAUDE_PLUGIN_ROOT}/references/trust-boundaries.md`.
+When the review touches browser state, AI/agent flows, logs, stack traces, error output, scraped content, tool results, or other external-data flows, apply [`trust-boundaries.md`](${CLAUDE_PLUGIN_ROOT}/references/trust-boundaries.md). The trust-boundary reference is broader than security — it informs domain language, integration, and resilience review too — and stays in the code lens regardless of whether the security lens is also running.
 
 
 ## Red-Team Sub-Lens (Always On)
 
 Run `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` against the same code scope as an always-on sub-lens. This is the finding pass for fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring that constructive review can miss.
 
-When code review delegates multiple specialist lenses to sub-agents, each specialist applies the Red-Team sub-lens to its own focus area. The final synthesis merges red-team findings into the normal severity sections before any Findings Filter runs.
+When code review delegates specialist lenses to sub-agents, each specialist applies Red-Team to its own focus area, **and** a single general-purpose sub-agent applies Red-Team to the **whole** change set in parallel. Specialists optimize for depth-within-concern; the generalist catches cross-concern issues that fall between specialist scopes — e.g. a security-shaped quirk inside an architecture slice that neither lens claims as theirs. Without the generalist pass, the find-time isolation the `andthen:quick-review` skill relies on is absent from the bigger review. The generalist is an **additional** sub-agent — not a replacement for any specialist (see *Parallelization* below for fan-out accounting). The synthesis merges all red-team findings into the normal severity sections before any Findings Filter runs.
+
+Sub-agent prompts dispatched here follow the *Sub-agent dispatch* rule in `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` — paste contents verbatim, not path tokens.
 
 
 ## Calibration
@@ -58,7 +50,9 @@ When invoked standalone, treat those checks as part of the review evidence. When
 
 ## Parallelization
 
-When the review applies two or more lenses from the list above and sub-agents are supported, delegate each applicable lens to a parallel sub-agent. Otherwise run the same lenses sequentially inline.
+When the review applies two or more lenses from the list above and sub-agents are supported, delegate each applicable lens to a parallel sub-agent. Otherwise run the same lenses sequentially inline. The security awareness pass is light enough to run inline; deep security review runs in its own lens (`andthen:review --mode security`) and parallelizes there.
+
+Total fan-out is N specialists **plus one** generalist Red-Team sub-agent (per *Red-Team Sub-Lens (Always On)* above) — the generalist adds to the parallel set, it does not displace a specialist.
 
 
 ## Findings Output
@@ -101,8 +95,10 @@ Also flag obsolete files, unmotivated complexity, and cleanup candidates.
 ## Compliance
 - Guidelines adherence: [Assessment]
 - Architecture patterns: [Assessment]
-- Security best practices: [Assessment]
+- Security awareness: [Assessment]
 - [UI/UX if applicable]: [Assessment]
+
+_Security awareness covers obvious smells only; defer to the security lens for depth when applicable._
 
 ## Verification Evidence
 - Commands run: [with result]
@@ -118,10 +114,7 @@ Ready / Needs Fixes / Blocked — with severity counts
 
 ## Report Output Conventions
 
-When writing a report file (not `--inline-findings`):
-- **Filename**: `<feature-name>-code-review-<agent>-<YYYY-MM-DD>.md` — on collision append `-2`, `-3`. `<agent>` is your agent short name (`claude`, `codex`, etc.; fall back to `agent`).
-- **Directory priority**:
-  1. **Spec directory** — when the files being reviewed correspond to a feature that has an associated spec directory from the Project Document Index
-  2. **Target directory** — next to the primary review target (the specific file or localized directory)
-  3. **Fallback** — `{AGENT_TEMP}/reviews/` (default `.agent_temp/reviews/`)
-- On completion, print the report's relative path from the project root.
+Filename and directory resolve per [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md). This lens contributes:
+- **`<feature-name>` token**: the feature or primary changed-area name (e.g. `payments`, `auth-refresh`)
+- **Report suffix**: `code-review` (canonical source: the `andthen:review` skill's mode table)
+- **Target nature**: source-code. The location reference's source-code subdirectory guard applies — tier-2 "next to target" is disabled, so without a resolvable spec directory, current feature directory, or `--output-dir`, the report lands in `<agent-temp>/reviews/`.

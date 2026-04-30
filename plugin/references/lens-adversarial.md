@@ -53,3 +53,8 @@ Every red-team finding must include:
 ## Integration
 
 Merge red-team findings into the same severity and report sections as the primary lens. Do not keep them in a separate appendix where they can be ignored.
+
+
+## Sub-agent dispatch
+
+When a review skill spawns a sub-agent to perform find-time red-team work, the sub-agent prompt **pastes the contents of this file and `red-team-calibration.md` verbatim into the prompt body** — not the path tokens. Loading-by-reference depends on the sub-agent choosing to read the path; pasting the contents guarantees the posture survives. The `andthen:quick-review` skill's sub-agent dispatch is the reference implementation. Applies to every consuming lens (code, doc, gap, security) and to every council-mode reviewer that runs find-time red-team.

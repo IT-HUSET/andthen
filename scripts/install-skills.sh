@@ -181,7 +181,7 @@ fi
 
 # Names of the canonical shared assets (filenames only).
 # Each must exist at plugin/references/<asset>.md and be consumed by ≥2 skills.
-_canonical_assets="adversarial-challenge.md automation-mode.md data-contract.md design-tree.md execution-discipline.md farley-framework.md fis-authoring-guidelines.md fis-template.md lens-adversarial.md prd-template.md project-state-templates.md red-team-calibration.md review-calibration.md trust-boundaries.md"
+_canonical_assets="adversarial-challenge.md automation-mode.md data-contract.md design-tree.md execution-discipline.md farley-framework.md fis-authoring-guidelines.md fis-template.md lens-adversarial.md prd-template.md project-state-templates.md red-team-calibration.md review-calibration.md review-report-location.md trust-boundaries.md"
 
 # Map of skill-name → space-separated list of canonical asset names it consumes.
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
@@ -191,9 +191,9 @@ _skill_assets_spec="automation-mode.md fis-authoring-guidelines.md fis-template.
 _skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md"
 _skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md"
 _skill_assets_ops="data-contract.md"
-_skill_assets_review="adversarial-challenge.md fis-authoring-guidelines.md lens-adversarial.md red-team-calibration.md review-calibration.md trust-boundaries.md"
+_skill_assets_review="adversarial-challenge.md fis-authoring-guidelines.md lens-adversarial.md red-team-calibration.md review-calibration.md review-report-location.md trust-boundaries.md"
 _skill_assets_quick_review="lens-adversarial.md red-team-calibration.md"
-_skill_assets_architecture="adversarial-challenge.md design-tree.md farley-framework.md review-calibration.md"
+_skill_assets_architecture="adversarial-challenge.md design-tree.md farley-framework.md review-calibration.md review-report-location.md"
 _skill_assets_clarify="design-tree.md"
 _skill_assets_testing="farley-framework.md"
 _skill_assets_e2e_test="trust-boundaries.md"
@@ -201,6 +201,7 @@ _skill_assets_triage="trust-boundaries.md"
 _skill_assets_init="project-state-templates.md"
 _skill_assets_map_codebase="project-state-templates.md"
 _skill_assets_refactor="automation-mode.md"
+_skill_assets_remediate_findings="automation-mode.md"
 
 # Resolve the list of canonical assets for a given skill base name.
 # Prints a space-separated list of asset filenames.
@@ -223,6 +224,7 @@ _get_skill_assets() {
     init)     printf '%s' "$_skill_assets_init" ;;
     map-codebase) printf '%s' "$_skill_assets_map_codebase" ;;
     refactor) printf '%s' "$_skill_assets_refactor" ;;
+    remediate-findings) printf '%s' "$_skill_assets_remediate_findings" ;;
     *)        printf '' ;;
   esac
 }

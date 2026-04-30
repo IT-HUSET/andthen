@@ -41,7 +41,7 @@
       "category": "pipe_to_shell"
     },
     {
-      "regex": "\\b(bash|sh|zsh|dash|ksh)\\s+-c\\s+[\"']",
+      "regex": "\\b(bash|sh|zsh|dash|ksh)\\s+-c\\b",
       "message": "Shell interpreter escape blocked. Run the command directly.",
       "category": "interpreter_escape"
     },

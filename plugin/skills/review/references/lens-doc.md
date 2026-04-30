@@ -39,7 +39,7 @@ Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`
 
 This pass cannot find new issues; that is the Red-Team Lens's job (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`).
 
-Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples, adjust severity, and withdraw findings that don't hold up. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
+Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples and adjust severity. Withdrawals follow the same Verdict-discipline floor as the formal filter ([`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md)) — concrete falsifier required; "doesn't hold up" alone is a downgrade. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
 
 **Full filter** (when triggered): Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
 - **Role**: `Findings Filter reviewing document review findings`
@@ -115,10 +115,7 @@ One line. Name the specific skill (`andthen:clarify`, `andthen:remediate-finding
 
 ## Report Output Conventions
 
-When writing a report file (not `--inline-findings`):
-- **Filename**: `<spec-name>-doc-review-<agent>-<YYYY-MM-DD>.md` — on collision append `-2`, `-3`. `<agent>` is your agent short name (`claude`, `codex`, etc.; fall back to `agent`).
-- **Directory priority**:
-  1. **Spec directory** — when the document being reviewed lives in a spec/FIS directory or has an associated spec directory from the Project Document Index
-  2. **Target directory** — otherwise, same directory as the document being reviewed
-  3. **Fallback** — `{AGENT_TEMP}/reviews/` (default `.agent_temp/reviews/`)
-- On completion, print the report's relative path from the project root.
+Filename and directory resolve per [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md). This lens contributes:
+- **`<feature-name>` token**: the spec/FIS/PRD/plan name (e.g. `payments-prd`, `s03-checkout-fis`)
+- **Report suffix**: `doc-review` (canonical source: the `andthen:review` skill's mode table)
+- **Target nature**: doc artifact. Tier-2 "next to target" remains enabled — when no spec directory resolves, doc reviews co-locate with the document under review.

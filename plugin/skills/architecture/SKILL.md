@@ -145,13 +145,12 @@ Format findings per `references/review-output.md`. For multi-mode invocations, p
 
 Each mode reference file declares what its report must include. See the reference for details.
 
-**Report output conventions**:
-- **Filename**: `<scope-or-topic>-architecture-<agent>-<YYYY-MM-DD>.md` — on collision append `-2`, `-3`. `<agent>` is your agent short name (`claude`, `codex`, etc.; fall back to `agent`).
-- **Directory priority**:
-  1. **Spec directory** — when the scope corresponds to a feature with an associated spec directory from the Project Document Index
-  2. **Target directory** — for `review`/`decompose`/`fitness`, next to the primary target package/directory; for `advise`/`trade-off`, in the project's research/ADR location (see **Project Document Index**)
-  3. **Fallback** — `{AGENT_TEMP}/reviews/` (default `.agent_temp/reviews/`)
-- On completion, print the report's relative path from the project root.
+**Report output conventions** — filename and directory resolve per [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md). This skill contributes:
+- **`<feature-name>` token**: `<scope-or-topic>` (the package/module/topic under analysis)
+- **Report suffix**: `architecture`
+- **Target nature** (per mode):
+  - `review` / `decompose` / `fitness` → source-code (the primary target is a package/directory; tier-2 co-location is disabled)
+  - `advise` / `trade-off` → doc artifact, with a **substituted tier-2 destination** (per the asset's tier-2 hook): the project's research/ADR location from the Project Document Index `Research` / `ADRs` rows. When such a row resolves, it replaces tier 2's "next to target" destination; tier 1 still wins, tiers 3/4 still apply on miss.
 
 ### Publish to PR _(if --to-pr)_
 If `PUBLISH_PR` is set, post the report file's contents as a plain PR comment via `gh pr comment <number> --body-file <report-path>`. If the command does not return a direct comment URL, resolve it via follow-up lookup. Print the direct comment URL.

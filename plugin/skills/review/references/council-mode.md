@@ -1,14 +1,15 @@
 # Council Mode
 
-Multi-perspective code review: 5-7 specialized reviewers find issues, a Red-Team Reviewer attacks assumptions, and findings-filter roles prune weak findings. Load this reference when running the `andthen:review` skill with `--council`, or when code mode auto-escalates to council because the scope spans multiple concerns (security, performance, architecture, UX), the surface is high-risk (auth, payments, data integrity), or the user asked for "multi-perspective" / "adversarial" / "red-team" / "skeptic" / "thorough" review.
+Multi-perspective code or security review: 5-7 specialized reviewers find issues, a Red-Team Reviewer attacks assumptions, and findings-filter roles prune weak findings. Load this reference when running the `andthen:review` skill with `--council`, or when code/security mode auto-escalates to council because the scope spans multiple concerns (security, performance, architecture, UX), the surface is high-risk (auth, payments, data integrity), or the user asked for "multi-perspective" / "adversarial" / "red-team" / "skeptic" / "thorough" review.
 
-Council mode augments **code mode** (or the code sub-pass of mixed mode) — it does not apply to `doc` or `gap` alone.
+Council mode augments **code mode** and **security mode** (or those sub-passes of mixed mode) — it does not apply to `doc` or `gap` alone. In a chain that includes both code and security, council runs once per applicable lens with reviewers selected for that lens's focus, and writes one council section per lens.
 
 Companion references:
-- `reviewer-roster.md` — reviewer catalog and selection examples
-- `lens-code.md` — the code-review rubric each specialist applies
-- `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md`: Red-Team Reviewer posture and calibration
-- `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md`: Findings Filter prompt templates for Devil's Advocate and Synthesis Challenger
+- `reviewer-roster.md` — reviewer catalog and selection examples (security-mode councils lean heavily on Security Sentinel plus 1-2 surface specialists)
+- `lens-code.md` — the code-review rubric each code-mode specialist applies
+- `lens-security.md` — the security-review rubric each security-mode specialist applies (OWASP applicability gate, trust-boundary analysis, scanners)
+- [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md) and [`red-team-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md): Red-Team Reviewer posture and calibration
+- [`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md): Findings Filter prompt templates for Devil's Advocate and Synthesis Challenger
 
 
 ## Gotchas
@@ -32,7 +33,13 @@ Check whether Agent Teams are available by verifying that team creation tools ex
 
 Choose 5-7 reviewers from `reviewer-roster.md` based on the review scope (see the Selection Examples in that reference). Always include **Red-Team Reviewer**, **Devil's Advocate**, and **Synthesis Challenger**.
 
-**Gate:** 5-7 reviewers selected (always include Red-Team Reviewer + Devil's Advocate + Synthesis Challenger)
+For **security-mode councils**, the 2-4 specialists added on top of the three fixed roles should center on the security surface: always include **Security Sentinel**; pick 1-3 more matched to the OWASP applicability gate (e.g. **API Designer** for API surfaces, **Frontend Specialist** for browser/XSS surfaces, **Backend Specialist** for server-side logic, **Database Specialist** for SQLi / data-layer concerns, **Architecture Strategist** for trust-boundary structure). Each specialist applies the `lens-security.md` rubric in their focus area.
+
+For **code-mode councils**, select 2-4 specialists matched to the code-lens applicable subset (quality, architecture, domain language, UI/UX) — Security Sentinel is optional here since the code lens runs only the thin awareness pass; if security depth is wanted, the chain should include `security` and run a separate security-mode council.
+
+When a chain runs council on both lenses, the two councils have distinct reviewer rosters but share the Red-Team Reviewer / Devil's Advocate / Synthesis Challenger pattern. Run them sequentially (security after code) so security findings can reference code-quality issues without double-counting.
+
+**Gate:** 5-7 reviewers selected per lens (always include Red-Team Reviewer + Devil's Advocate + Synthesis Challenger)
 
 
 ## 3a. Agent Teams Path
@@ -61,7 +68,7 @@ Each specialist reviewer, including Red-Team Reviewer, should:
 - Red-Team Reviewer applies `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` directly
 - Report findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
 - Provide specific file:line references
-- Use `lens-code.md` rubric inline (if unavailable, perform the review directly)
+- Use the appropriate rubric inline: `lens-code.md` for code-mode councils, `lens-security.md` for security-mode councils (if unavailable, perform the review directly)
 
 PHASE 2 - Findings Filter:
 Devil's Advocate should:
@@ -101,7 +108,7 @@ You are the {reviewer name} on a Review Council for: {SCOPE}
 Your focus areas: {focus areas from roster}
 
 Review process:
-1. Analyze the code through your specialized lens using the `lens-code.md` rubric
+1. Analyze the code through your specialized lens using the appropriate rubric (`lens-code.md` for code-mode councils, `lens-security.md` for security-mode councils)
    - If your role is Red-Team Reviewer, use `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` as your primary lens
 2. Report findings with severity (CRITICAL/HIGH/MEDIUM/LOW)
 3. Provide specific file:line references

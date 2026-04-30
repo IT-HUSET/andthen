@@ -82,12 +82,12 @@ Content shared by ≥2 skills lives at `plugin/references/` and is consumed via 
 
 ### Shared Plugin Assets
 
-The 14 shared assets live at `plugin/references/` — a single canonical location consumed by multiple skills.
+The 15 shared assets live at `plugin/references/` — a single canonical location consumed by multiple skills.
 
 | Asset | Consumed by |
 |---|---|
 | `adversarial-challenge.md` | review, architecture |
-| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, refactor |
+| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, refactor, remediate-findings |
 | `data-contract.md` | ops, exec-spec, exec-plan |
 | `design-tree.md` | clarify, architecture |
 | `execution-discipline.md` | exec-spec, exec-plan |
@@ -99,6 +99,7 @@ The 14 shared assets live at `plugin/references/` — a single canonical locatio
 | `project-state-templates.md` | init, map-codebase |
 | `red-team-calibration.md` | review, quick-review |
 | `review-calibration.md` | review, architecture |
+| `review-report-location.md` | review, architecture |
 | `trust-boundaries.md` | review, e2e-test, triage |
 
 **Reference syntax** in skill prompts: `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` (strict braces form only; bare `$CLAUDE_PLUGIN_ROOT` is rejected by `install-skills.sh`). In markdown links, put the bare filename in the link text and the full token in the URL — `` [`<asset>.md`](${CLAUDE_PLUGIN_ROOT}/references/<asset>.md) `` — so the rendered link text stays stable across install tiers; the URL is what `install-skills.sh` rewrites.
@@ -115,7 +116,12 @@ The 14 shared assets live at `plugin/references/` — a single canonical locatio
 ---
 
 
-## Skill and Prompt Authoring Philosophy
+## Workflow Rules, Guardrails and Guidelines
+
+### Foundational Rules and Guardrails
+_Always fully understand and adhere to the "CRITICAL RULES and GUARDRAILS in this environment" (part of system prompt) before doing any work_.
+
+### Skill and Prompt Authoring Guidelines
 
 _**Always apply the following rules whenever modifying or creating skills, skill reference files or prompts in general.**_
 
@@ -130,16 +136,6 @@ Modern frontier models understand *why* things matter. Skills should express **i
 - **Brevity and clear language**: Always keep skills pragmatic, concise and actionable. Avoid jargon, verbosity, prose, and complex sentence structures. Use simple, direct language to convey instructions and principles.
 
 **Fitness check.** Skills are working when implementation diffs trace cleanly to specs/FIS, headless runs reach completion without "stop and wait" pauses, and review findings are downstream of clarification gaps — not implementation drift or mid-implementation Boy Scout creep.
-
-
----
-
-
-## Workflow Rules, Guardrails and Guidelines
-
-### Foundational Rules and Guardrails
-_Always fully understand and adhere to the "CRITICAL RULES and GUARDRAILS in this environment" (part of system prompt) before doing any work_.
-
 
 ### Foundational Development Guidelines and Standards
 Always fully read relevant guidelines below as needed, based on the type of work being done:

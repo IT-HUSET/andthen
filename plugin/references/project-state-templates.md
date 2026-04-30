@@ -109,6 +109,31 @@ Status: On Track | At Risk | Blocked
 
 ---
 
+## TECH-DEBT-BACKLOG.md
+
+> Known technical debt grouped by severity. Append-only run blocks (`### Run: {timestamp} — tech-debt`) are written under the matching severity heading by `andthen:ops update-tech-debt append`. The placeholder line is removed on the first write per section.
+
+```markdown
+# Technical Debt Backlog
+
+## High
+<!-- Severity: blocks correctness, security, or critical workflow. Address with priority. -->
+
+_No tech debt recorded yet._
+
+## Medium
+<!-- Severity: maintainability, clarity, or non-critical correctness. Schedule deliberately. -->
+
+_No tech debt recorded yet._
+
+## Low
+<!-- Severity: cosmetic, minor consistency, or opportunistic cleanup. Address when convenient. -->
+
+_No tech debt recorded yet._
+```
+
+---
+
 ## ARCHITECTURE.md
 
 > System architecture overview – enough for an agent to understand component boundaries and data flow.

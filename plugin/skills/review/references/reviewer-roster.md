@@ -33,7 +33,14 @@ The find/filter/synthesize spine of the council:
 
 ## Selection Examples
 
-- **Product feature**: Product Manager, Requirements Analyst, Security Sentinel, Content Designer, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
-- **Backend/API work**: Security Sentinel, Performance Oracle, API Designer, Backend Specialist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
+Code-mode councils (security depth handled by separate security-mode council when applicable):
+- **Product feature**: Product Manager, Requirements Analyst, Architecture Strategist, Content Designer, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
+- **Backend/API work**: Performance Oracle, API Designer, Backend Specialist, Architecture Strategist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
 - **Frontend/UI work**: UX/Accessibility Advocate, Frontend Specialist, Performance Oracle, Architecture Strategist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
-- **Infrastructure/config** (smaller scope, 5 reviewers): Security Sentinel, Architecture Strategist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
+- **Infrastructure/config** (smaller scope, 5 reviewers): Architecture Strategist, Backend Specialist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
+
+Security-mode councils (Security Sentinel always included):
+- **Web app surface**: Security Sentinel, Frontend Specialist, Backend Specialist, Architecture Strategist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
+- **API / network-exposed**: Security Sentinel, API Designer, Backend Specialist, Database Specialist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
+- **LLM / agent flows**: Security Sentinel, Backend Specialist, Architecture Strategist, Content Designer, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
+- **Supply chain / CI/CD / IaC** (smaller scope, 5 reviewers): Security Sentinel, Architecture Strategist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger

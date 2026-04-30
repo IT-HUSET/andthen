@@ -3,7 +3,7 @@ description: "Deterministic operations: update STATE.md, plan status, FIS checkb
 context: fork
 agent: general-purpose
 user-invocable: true
-argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-fis, update-fis observations, update-fis discovered-requirements, commit, branch, changelog, progress, stale)"
+argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-fis, update-fis observations, update-fis discovered-requirements, update-tech-debt append, commit, branch, changelog, progress, stale)"
 ---
 
 # Deterministic Operations Skill
@@ -26,6 +26,7 @@ Reliable, template-driven operations for state management, git conventions, and 
 - Forgetting to update all three version locations on version bumps: CHANGELOG.md, .claude-plugin/marketplace.json, and plugin/.claude-plugin/plugin.json
 - Creating the `State` document when it doesn't exist – initialization is the `init` skill's job; ops only reads/writes an existing `State` document as defined in the **Project Document Index**
 - Letting Active Stories or Session Notes grow unbounded – apply maintenance rules on every write
+- **Exception – `update-tech-debt append` IS allowed to create its target file**: this is the *one* documented deviation from the "ops never creates target files" rule. When the Tech Debt Backlog file (resolved from the **Project Document Index** `Tech Debt` row, default `docs/TECH-DEBT-BACKLOG.md`) does not exist, this form scaffolds it from the `# Technical Debt Backlog` template (canonical in `project-state-templates.md`; structure inlined in the `Update Tech Debt` form below) before appending. No other ops form may follow this pattern – do not extend the exception to State, Plan, FIS, or any future target.
 
 
 ## OPERATIONS
@@ -169,6 +170,31 @@ Actions for `discovered-requirements` form:
   ```
 - No-op if `<markdown-body>` is empty or whitespace-only.
 - **Idempotent retry**: if the most recent existing `### Run: ... — discovered-requirements` block (matched by tag suffix) has identical `<markdown-body>` (whitespace-normalized) AND its timestamp is within 2 minutes of the resolved timestamp, no-op. Compare only against same-tag blocks; an intervening `— observations` block does not affect the decision.
+- Append-only otherwise: never rewrite or remove prior `### Run:` blocks.
+
+#### Update Tech Debt
+Append tech-debt entries (typically deferred review findings) to the project's Tech Debt Backlog.
+
+**Usage**: `update-tech-debt append <markdown-body>`
+
+Resolve the target file path from the **Project Document Index** `Tech Debt` row (default `docs/TECH-DEBT-BACKLOG.md`).
+
+Actions for `append` form:
+- `<markdown-body>` is freeform multi-line markdown passed verbatim — quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape.
+- Body constraints: the caller MUST format `<markdown-body>` using `####`-or-deeper headings only (typically `#### DEFERRED FINDINGS`). The body MUST NOT contain `## ` headings or another `### Run:` line — these would visually close the section and break the append protocol. Reject (no-op + `BLOCKED: invalid tech-debt body`) if the body violates these constraints.
+- **File creation exception** (the *one* documented deviation from "ops never creates target files" — see GOTCHAS): if the resolved target file does not exist, scaffold it from the `# Technical Debt Backlog` template defined in `project-state-templates.md` (H1 `# Technical Debt Backlog` + H2 `## High` / `## Medium` / `## Low` in fixed order, each carrying placeholder line `_No tech debt recorded yet._`) before appending. Do not extend this exception to any other ops form.
+- **Severity routing**: each entry is a top-level `- **{title}** ...` bullet with its `Severity:` line nested as a sub-bullet. Parse the `Severity:` value and route the entry to the matching H2 section (`High` / `Medium` / `Low`). Default to `Medium` when the severity is missing or unrecognized. When a single body batches mixed severities, split into per-severity run blocks sharing one timestamp — one new run block under each affected severity H2.
+- For each affected severity section: if the placeholder line `_No tech debt recorded yet._` is present, remove it (exact-string match only; no-op otherwise).
+- Resolve a timestamp: prefer `date -u +"%Y-%m-%d %H:%M UTC"` so all run blocks share a single timezone and ordering is unambiguous.
+- Normalize whitespace: ensure exactly one blank line precedes each new run block and the previous block ends with a trailing newline.
+- Append the new run block(s) under the matching severity H2, tagging the header with the op name so concurrent op types do not share an idempotency lane:
+  ```
+  ### Run: {YYYY-MM-DD HH:MM UTC} — tech-debt
+
+  {filtered-body for this severity}
+  ```
+- No-op if `<markdown-body>` is empty or whitespace-only — and do not create the target file in that case.
+- **Idempotent retry**: if the most recent existing `### Run: ... — tech-debt` block under the affected severity H2 (matched by tag suffix) has identical filtered body (whitespace-normalized) AND its timestamp is within 2 minutes of the resolved timestamp, no-op for that severity. Compare only against same-tag blocks. This makes the operation safe under exec-spec's Step 5b.4 retry-once protocol and parallels `update-fis observations` idempotency, scoped per severity H2.
 - Append-only otherwise: never rewrite or remove prior `### Run:` blocks.
 
 

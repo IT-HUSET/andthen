@@ -28,6 +28,13 @@ Findings to filter:
 {findings_payload}
 ```
 
+**Verdict discipline** — when verdicts include `WITHDRAWN`, withdrawal requires a concrete falsifier of one of these shapes:
+- **Observed mitigation in the artifact under review** — for code/security: a guard, escape, or check that demonstrably handles the path the finding names; for docs: text that already addresses what the finding flagged as missing.
+- **Explicit upstream citation** — the requirements baseline (mandatory source for gap-review citations — *not* the implementation under review), an authoritative external source (RFC, vendor SDK doc, ADR, standards document), or an established project convention. The citation must be *explicit*, not inferred from silence.
+- **Calibration example the finding clearly matches** — a contrastive example in the lens-specific or universal calibration that the finding is patterned on and would be classified the same way.
+
+"Low impact" or "probably fine" is `DOWNGRADED`, not `WITHDRAWN`. The Filter prunes unsupported findings — it does not relabel doubt as dismissal. This floor binds **every variant below** — Devil's Advocate, Synthesis Challenger, and any council-mode debate that withdraws findings — so the merge/reframe license in Synthesis Challenger does not read as a withdrawal-without-falsifier exception. The same floor applies to lens-level inline self-checks that withdraw findings in lieu of running the full filter. Without it, the Filter becomes the place where real findings get talked away — exactly the failure mode `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (*Anti-Leniency Protocol*) is calibrated against.
+
 ## Review-Council Variants
 
 ### Devil's Advocate

@@ -59,6 +59,19 @@ Severity counts + a readiness label:
 Readiness is a summary — callers still read the severity counts and individual findings.
 
 
+### Security mode (`--mode security`)
+
+Reuses the code-mode readiness scale (`Ready` / `Needs Fixes` / `Blocked`) so the unified ladder in mixed mode (below) covers it without a separate vocabulary:
+
+| Readiness | When |
+|-----------|------|
+| **Ready** | No CRITICAL or HIGH findings; LOW/MEDIUM items are hardening / defense-in-depth opportunities. |
+| **Needs Fixes** | Any HIGH finding (real exploitation path with weak preconditions), or three or more MEDIUM findings that collectively require rework. |
+| **Blocked** | Any CRITICAL finding (actively exploitable on an exposed surface, secret committed, auth bypass), or a failing security scanner check that is load-bearing for the change. |
+
+Severity is calibrated by exposure tier (per `security-review-calibration.md`), so the same defect at different exposure levels can land at different readiness verdicts — that is the lens working as designed, not an inconsistency.
+
+
 ### Doc mode (`--mode doc`)
 
 Readiness label:
@@ -73,13 +86,13 @@ Readiness label:
 
 ### Mixed mode (`--mode mixed`)
 
-Runs both doc and code sub-passes. Report:
-- Per-sub-mode verdicts using each sub-mode's own readiness label (doc: 4-level scale; code: 3-level scale)
-- **Overall readiness** = **worst** of the two: `Not Ready` / `Blocked` > `Needs Significant Rework` > `Needs Fixes` > `Needs Minor Updates` > `Ready`
+Runs the resolved lens chain (subset of {doc, code, security, gap}). Report:
+- Per-sub-mode verdicts using each sub-mode's own readiness label (doc: 4-level scale; code/security: 3-level scale; gap: PASS/FAIL)
+- **Overall readiness** = **worst** across all lenses: `Not Ready` / `Blocked` / `FAIL` > `Needs Significant Rework` > `Needs Fixes` > `Needs Minor Updates` > `Ready` / `PASS`
 
-> This ladder intentionally merges the two readiness vocabularies (doc: `Ready` / `Needs Minor Updates` / `Needs Significant Rework` / `Not Ready`; code: `Ready` / `Needs Fixes` / `Blocked`) into a single precedence order. When comparing across vocabularies, doc `Needs Significant Rework` ranks worse than code `Needs Fixes` because HIGH-severity structural gaps in a document tend to produce more downstream rework than the localised fixes tracked by code `Needs Fixes`.
+> This ladder intentionally merges three readiness vocabularies (doc: `Ready` / `Needs Minor Updates` / `Needs Significant Rework` / `Not Ready`; code & security: `Ready` / `Needs Fixes` / `Blocked`; gap: `PASS` / `FAIL`) into a single precedence order. When comparing across vocabularies, doc `Needs Significant Rework` ranks worse than code `Needs Fixes` because HIGH-severity structural gaps in a document tend to produce more downstream rework than the localised fixes tracked by code `Needs Fixes`. Gap `FAIL` and code/security `Blocked` are equivalent at the top of the ladder — both mean "do not ship."
 
-Keep findings from the two sub-passes in distinct subsections. Merge overlapping findings and use the strongest framing as canonical.
+Keep findings from each sub-pass in distinct subsections. Merge overlapping findings and use the strongest framing as canonical. Security findings often overlap with code-quality findings (e.g. SQLi is both a correctness bug and an injection vuln); when the same defect surfaces in both lenses, keep it in the security section with a back-reference from the code section.
 
 
 ## Publishing

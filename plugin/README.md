@@ -64,7 +64,7 @@ Use these individually for everyday development — no setup, no pipeline, no pr
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub → auto-PR) |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |
-| `review` | Smart review entrypoint: routes to code, doc, gap, mixed, or multi-perspective council review (`--council`) |
+| `review` | Smart review entrypoint: routes to code, doc, gap, security, mixed, or multi-perspective council review (`--council`) |
 | `refactor` | Code improvement and simplification |
 | `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, and fitness functions (modes: `review`, `decompose`, `advise`, `fitness`, `trade-off`) |
 | `ui-ux-design` | UI/UX work — research, design systems, wireframes, and design review (modes: `research`, `design-system`, `wireframes`, `review`) |
@@ -179,13 +179,14 @@ Codex agent files are generated from these Claude agent files at install time by
 # Review specific PR with council
 /andthen:review --council --to-pr 123
 
-# Focus on specific aspect
-/andthen:review --council "security"
+# Deep security review with multi-perspective council
+/andthen:review --mode security --council
 
 # Reviewers auto-selected based on changes:
 # - Product features → Product Manager, Requirements Analyst, etc.
-# - Backend APIs → Security, Performance, API Designer, etc.
+# - Backend APIs → Performance Oracle, API Designer, Backend Specialist, etc.
 # - Frontend UI → UX/Accessibility, Frontend Specialist, etc.
+# - Security-mode councils → Security Sentinel + 1-3 surface specialists
 # - Always includes Devil's Advocate + Synthesis Challenger
 
 # OR force Agent Teams for real-time debate (Claude Code only)
