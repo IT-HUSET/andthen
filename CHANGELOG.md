@@ -6,6 +6,16 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.15.9] – 2026-05-01
+
+### Added
+- **`andthen:quick-review --inline`** — apply the Critic rubric directly in the current conversation instead of dispatching a fresh-context sub-agent; use when the calling conversation has not produced or substantively reasoned about the change set under review, otherwise the `--inline` branch verifies caller freshness up-front and emits `FALLBACK: --inline rejected, dispatching sub-agent (calling conversation not fresh w.r.t. change set)` then continues with default dispatch — fallback is surfaced in the final report, never silent, `AUTO_MODE` included. Phase 4 carries an `--inline`-specific anti-leniency reminder since generator and evaluator collapse into one context under the flag (and applicator too under `--inline --fix`) — dismissals require a concrete falsifier (observed mitigation in the artifact, explicit upstream citation, calibration match), never recall ("I already considered that") or recency ("I just wrote that and it seemed fine"); `--inline` reads `lens-adversarial.md` + `critic-calibration.md` directly rather than pasting them into a sub-agent prompt. Default dispatch behavior is unchanged; new GOTCHA names the non-fresh misuse case.
+
+### Changed
+- **Red-Team → Critic vocabulary rename** — the always-on adversarial finding pass is now the **Critic** Lens / Sub-Lens / Reviewer, aligning with the ASDLC Critic Agent pattern that the rubric content was originally descended from and with the Citation Convention added in 0.15.6 (which the prior "Red-Team" labeling predated); also defuses the security-priming the broader-than-security lens carried under the old name. `'red-team review'` and `'red-team this'` retained as additive trigger phrases for routing parity; `lens-security.md`'s OWASP attacker posture is unchanged (it lives in natural-language attacker vocabulary, independent of the role-noun).
+
+---
+
 ## [0.15.8] – 2026-04-30
 
 ### Added

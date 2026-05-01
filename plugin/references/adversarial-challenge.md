@@ -1,6 +1,6 @@
 # Shared Findings Filter Templates
 
-Use this reference when a review skill needs a fresh-context sub-agent to filter previously collected findings. This pass cannot find new issues; that is the Red-Team Lens's job (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`).
+Use this reference when a review skill needs a fresh-context sub-agent to filter previously collected findings. This pass cannot find new issues; that is the Critic Lens's job (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`).
 
 ## Generic Findings-Filter Template
 
@@ -41,7 +41,7 @@ Findings to filter:
 - Reuse the generic template.
 - Typical verdicts: `VALIDATED`, `DOWNGRADED`, `WITHDRAWN`, and optional `DISPUTED`.
 - Typical context: council scope plus the full findings set from specialist reviewers.
-- This is a findings-filter role. It pressure-tests the Red-Team and specialist findings for false positives, weak severity, and missing context.
+- This is a findings-filter role. It pressure-tests the Critic and specialist findings for false positives, weak severity, and missing context.
 
 ### Synthesis Challenger
 - Reuse the generic template's structure, but change the instructions from per-finding filtering to holistic synthesis.

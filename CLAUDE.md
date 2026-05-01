@@ -88,6 +88,7 @@ The 15 shared assets live at `plugin/references/` — a single canonical locatio
 |---|---|
 | `adversarial-challenge.md` | review, architecture |
 | `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, refactor, remediate-findings |
+| `critic-calibration.md` | review, quick-review |
 | `data-contract.md` | ops, exec-spec, exec-plan |
 | `design-tree.md` | clarify, architecture |
 | `execution-discipline.md` | exec-spec, exec-plan |
@@ -97,7 +98,6 @@ The 15 shared assets live at `plugin/references/` — a single canonical locatio
 | `lens-adversarial.md` | review, quick-review |
 | `prd-template.md` | prd, plan |
 | `project-state-templates.md` | init, map-codebase |
-| `red-team-calibration.md` | review, quick-review |
 | `review-calibration.md` | review, architecture |
 | `review-report-location.md` | review, architecture |
 | `trust-boundaries.md` | review, e2e-test, triage |

@@ -23,18 +23,18 @@ Run only the lenses that actually apply to the changed scope. Use the checklists
 When the review touches browser state, AI/agent flows, logs, stack traces, error output, scraped content, tool results, or other external-data flows, apply [`trust-boundaries.md`](${CLAUDE_PLUGIN_ROOT}/references/trust-boundaries.md). The trust-boundary reference is broader than security — it informs domain language, integration, and resilience review too — and stays in the code lens regardless of whether the security lens is also running.
 
 
-## Red-Team Sub-Lens (Always On)
+## Critic Sub-Lens (Always On)
 
 Run `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` against the same code scope as an always-on sub-lens. This is the finding pass for fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring that constructive review can miss.
 
-When code review delegates specialist lenses to sub-agents, each specialist applies Red-Team to its own focus area, **and** a single general-purpose sub-agent applies Red-Team to the **whole** change set in parallel. Specialists optimize for depth-within-concern; the generalist catches cross-concern issues that fall between specialist scopes — e.g. a security-shaped quirk inside an architecture slice that neither lens claims as theirs. Without the generalist pass, the find-time isolation the `andthen:quick-review` skill relies on is absent from the bigger review. The generalist is an **additional** sub-agent — not a replacement for any specialist (see *Parallelization* below for fan-out accounting). The synthesis merges all red-team findings into the normal severity sections before any Findings Filter runs.
+When code review delegates specialist lenses to sub-agents, each specialist runs the Critic sub-lens against its own focus area, **and** a single general-purpose sub-agent runs the Critic sub-lens against the **whole** change set in parallel. Specialists optimize for depth-within-concern; the generalist catches cross-concern issues that fall between specialist scopes — e.g. a security-shaped quirk inside an architecture slice that neither lens claims as theirs. Without the generalist pass, the find-time isolation the `andthen:quick-review` skill relies on is absent from the bigger review. The generalist is an **additional** sub-agent — not a replacement for any specialist (see *Parallelization* below for fan-out accounting). The synthesis merges all Critic findings into the normal severity sections before any Findings Filter runs.
 
 Sub-agent prompts dispatched here follow the *Sub-agent dispatch* rule in `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` — paste contents verbatim, not path tokens.
 
 
 ## Calibration
 
-Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (universal) and `code-review-calibration.md` (code-specific). Load `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` while running the always-on Red-Team sub-lens; use the code-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
+Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (universal) and `code-review-calibration.md` (code-specific). Load `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md` while running the always-on Critic sub-lens; use the code-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
 
 
 ## Verification Evidence
@@ -52,7 +52,7 @@ When invoked standalone, treat those checks as part of the review evidence. When
 
 When the review applies two or more lenses from the list above and sub-agents are supported, delegate each applicable lens to a parallel sub-agent. Otherwise run the same lenses sequentially inline. The security awareness pass is light enough to run inline; deep security review runs in its own lens (`andthen:review --mode security`) and parallelizes there.
 
-Total fan-out is N specialists **plus one** generalist Red-Team sub-agent (per *Red-Team Sub-Lens (Always On)* above) — the generalist adds to the parallel set, it does not displace a specialist.
+Total fan-out is N specialists **plus one** generalist Critic sub-agent (per *Critic Sub-Lens (Always On)* above) — the generalist adds to the parallel set, it does not displace a specialist.
 
 
 ## Findings Output

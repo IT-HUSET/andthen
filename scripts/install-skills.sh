@@ -181,7 +181,7 @@ fi
 
 # Names of the canonical shared assets (filenames only).
 # Each must exist at plugin/references/<asset>.md and be consumed by ≥2 skills.
-_canonical_assets="adversarial-challenge.md automation-mode.md data-contract.md design-tree.md execution-discipline.md farley-framework.md fis-authoring-guidelines.md fis-template.md lens-adversarial.md prd-template.md project-state-templates.md red-team-calibration.md review-calibration.md review-report-location.md trust-boundaries.md"
+_canonical_assets="adversarial-challenge.md automation-mode.md critic-calibration.md data-contract.md design-tree.md execution-discipline.md farley-framework.md fis-authoring-guidelines.md fis-template.md lens-adversarial.md prd-template.md project-state-templates.md review-calibration.md review-report-location.md trust-boundaries.md"
 
 # Map of skill-name → space-separated list of canonical asset names it consumes.
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
@@ -191,8 +191,8 @@ _skill_assets_spec="automation-mode.md fis-authoring-guidelines.md fis-template.
 _skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md"
 _skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md"
 _skill_assets_ops="data-contract.md"
-_skill_assets_review="adversarial-challenge.md fis-authoring-guidelines.md lens-adversarial.md red-team-calibration.md review-calibration.md review-report-location.md trust-boundaries.md"
-_skill_assets_quick_review="lens-adversarial.md red-team-calibration.md"
+_skill_assets_review="adversarial-challenge.md critic-calibration.md fis-authoring-guidelines.md lens-adversarial.md review-calibration.md review-report-location.md trust-boundaries.md"
+_skill_assets_quick_review="critic-calibration.md lens-adversarial.md"
 _skill_assets_architecture="adversarial-challenge.md design-tree.md farley-framework.md review-calibration.md review-report-location.md"
 _skill_assets_clarify="design-tree.md"
 _skill_assets_testing="farley-framework.md"

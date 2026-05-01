@@ -55,16 +55,16 @@ Treat scanner output as input to the review, not as findings on its own:
 Other security tooling that the project already wires up (`npm audit`, `pip-audit`, `cargo audit`, `trivy`, `gitleaks`, IaC scanners) should be run when present and reported alongside Semgrep in Verification Evidence.
 
 
-## Red-Team Sub-Lens (Always On)
+## Critic Sub-Lens (Always On)
 
 Run [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md) against the same security scope as an always-on sub-lens. Posture for the security context: assume the attacker, not just the careless developer. Walk each entry point with malicious input, partial trust, replay, race, and resource-exhaustion intent. Attack assumptions about what an upstream layer guarantees — these are the assumptions where exploitable gaps hide.
 
-Merge red-team findings into the OWASP/trust-boundary categories before the Findings Filter runs. Do not treat Red-Team as a separate mode or an optional escalation.
+Merge Critic findings into the OWASP/trust-boundary categories before the Findings Filter runs. Do not treat the Critic as a separate mode or an optional escalation.
 
 
 ## Calibration
 
-Calibrate severity with [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) (universal) and `security-review-calibration.md` (security-specific contrastive examples and false-positive traps). Load [`red-team-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md) while running the always-on Red-Team sub-lens; use the security-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
+Calibrate severity with [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) (universal) and `security-review-calibration.md` (security-specific contrastive examples and false-positive traps). Load [`critic-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md) while running the always-on Critic sub-lens; use the security-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
 
 Security severity is more sensitive to *exposure* than code-lens severity — the same code defect can be CRITICAL on a public unauthenticated endpoint and MEDIUM behind admin-only VPN access. The calibration reference's contrastive examples make this explicit.
 
@@ -83,7 +83,7 @@ When invoked standalone, treat those checks as part of the review evidence. When
 
 ## Findings Filter
 
-This pass cannot find new issues; that is the Red-Team Lens's job ([`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md)).
+This pass cannot find new issues; that is the Critic Lens's job ([`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md)).
 
 Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples and adjust severity. Withdrawals follow the same Verdict-discipline floor as the formal filter ([`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md)) — concrete falsifier required; "doesn't hold up" alone is a downgrade. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
 
@@ -94,7 +94,7 @@ Run the full Findings Filter only when any finding is Critical OR total findings
 - **Context block**: `Review target context: {implementation paths and applicable OWASP checklists from Step 0}`
 - **Questions**: Is the source/sink path real? Is the exposure level (public / authenticated / internal / admin / VPN) accurately reflected in the severity? Could there be an existing mitigation upstream or downstream of the changed code? Is this a known false-positive shape (test fixture, intentional eval, framework-provided escape)?
 - **Verdicts**: `VALIDATED`, `DOWNGRADED`, `WITHDRAWN`
-- **Findings payload**: `{all findings from OWASP checklists, trust-boundary analysis, scanner hits, and red-team walkthrough}`
+- **Findings payload**: `{all findings from OWASP checklists, trust-boundary analysis, scanner hits, and Critic walkthrough}`
 
 Apply verdicts before scoring.
 

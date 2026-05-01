@@ -1,5 +1,5 @@
 ---
-description: "The default review skill - start here for all reviews. Runs code, doc, gap, security, or mixed review - single lens or `--mode a,b` chains - plus multi-perspective council mode via `--council`. Trigger on 'review this', 'review this PR/spec/PRD', 'audit this', 'security review', 'OWASP review', 'does this match the spec', 'council review', 'adversarial review', 'red-team review', 'skeptic review', 'multi-reviewer'."
+description: "The default review skill - start here for all reviews. Runs code, doc, gap, security, or mixed review - single lens or `--mode a,b` chains - plus multi-perspective council mode via `--council`. Trigger on 'review this', 'review this PR/spec/PRD', 'audit this', 'security review', 'OWASP review', 'does this match the spec', 'council review', 'adversarial review', 'critic review', 'red-team review', 'skeptic review', 'multi-reviewer'."
 user-invocable: true
 argument-hint: "[--mode <mode>[,<mode>...]] [--council] [--team] [--fix] [--inline-findings] [--output-dir <path>] [--to-pr <number>] [--auto|--headless] [target/files/PR/spec path]"
 ---
@@ -8,7 +8,7 @@ argument-hint: "[--mode <mode>[,<mode>...]] [--council] [--team] [--fix] [--inli
 
 Unified review skill. Determine what is actually being reviewed, run the right lens inline, and produce one consolidated result.
 
-Code, document, gap, security, and mixed reviews all run inside this skill using lens-specific references. Single lens by default; `--mode` accepts a comma-separated list (e.g. `--mode doc,code,security,gap`) to chain lenses in declared order with shared context and one combined report. `mixed` auto-resolves to the subset of {doc, code, security, gap} the inputs warrant. Each primary lens includes the always-on Red-Team sub-lens; multi-perspective **council mode** (5-7 specialized reviewers with Red-Team plus findings-filter debate) augments the code or security lens when `--council` is passed or scope/complexity warrants it.
+Code, document, gap, security, and mixed reviews all run inside this skill using lens-specific references. Single lens by default; `--mode` accepts a comma-separated list (e.g. `--mode doc,code,security,gap`) to chain lenses in declared order with shared context and one combined report. `mixed` auto-resolves to the subset of {doc, code, security, gap} the inputs warrant. Each primary lens includes the always-on Critic sub-lens; multi-perspective **council mode** (5-7 specialized reviewers with the Critic plus findings-filter debate) augments the code or security lens when `--council` is passed or scope/complexity warrants it.
 
 
 ## VARIABLES
@@ -16,7 +16,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--council`, `--team
 
 ### Optional Mode Flags
 - `--mode <mode>[,<mode>...]` → comma-separated list. Values: `code`, `doc`, `gap`, `security`, `mixed`. Single value runs that lens. Multiple values chain in declared order with shared context, producing one combined report. `mixed` auto-resolves (Step 2) and cannot be combined with explicit lenses. Absent → auto-detect per Step 2 routing.
-- `--council` → multi-perspective red-team review (5-7 specialists, Findings Filter, synthesis). Augments the **code** and **security** lenses only; behavior depends on which applicable lenses are in scope:
+- `--council` → multi-perspective review with debate (5-7 specialists, Findings Filter, synthesis). Augments the **code** and **security** lenses only; behavior depends on which applicable lenses are in scope:
 
   | Chain shape | Council behavior |
   |---|---|
@@ -26,7 +26,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--council`, `--team
 
   **Security-trigger surface, `security` not in scope** — when the explicit lens set omits `security` (single `--mode code`, or any chain containing `code` without `security`) and the target map fires a Step 2 security-escalation trigger, the chain is honored and council runs on `code` only — no silent broadening. The code lens emits the standard "surface warrants security lens" HIGH finding (per the INSTRUCTIONS rule below). Same rule for any other security-omitting chain on a trigger surface.
 
-  Detailed orchestration in `references/council-mode.md` — load only when this flag is set or auto-escalation triggers (multi-concern scope, high-risk surface like auth/payments/data, or explicit "multi-perspective" / "adversarial" / "red-team" / "skeptic" / "thorough" request).
+  Detailed orchestration in `references/council-mode.md` — load only when this flag is set or auto-escalation triggers (multi-concern scope, high-risk surface like auth/payments/data, or explicit "multi-perspective" / "adversarial" / "critic" / "skeptic" / "thorough" request).
 - `--team` → force Agent Teams execution for council (error if unavailable). See `references/council-mode.md` for fallback behavior.
 - `--inline-findings` → return findings inline and skip report-file output. **Do not pass** when the caller depends on a report file (e.g. the `andthen:exec-plan` skill's final gap gate, which feeds the `andthen:remediate-findings` skill).
 - `--output-dir <path>` → explicit output directory override for the consolidated report file. Bypasses both the directory-priority resolution and the source-code subdirectory guard in `${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md`.
@@ -51,7 +51,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--council`, `--team
 - Chains run in declared order with shared target map and findings — never re-classify or re-scan.
 - Use the unified severity scale and per-mode verdict definitions from `references/review-verdict.md`.
 - **Anti-leniency at find time**: when a lens identifies a problem, record it. Severity belongs to calibration; dismissal belongs to the Findings Filter — or to the lens-level inline self-check that subs for the formal filter on small batches (both bound by the same Verdict-discipline floor in `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md`) — never to ad-hoc rationalization at find time. A finding talked-out-of before being written down cannot be validated, downgraded, or withdrawn later — it is invisible to the whole pipeline. Record-then-filter, not filter-while-recording.
-- **Calibration-first**: Always load `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (universal) plus the lens-specific calibration (cited by each lens reference) before categorising findings. The Red-Team sub-lens also loads `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md`; the Findings Filter uses `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` after findings are collected.
+- **Calibration-first**: Always load `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (universal) plus the lens-specific calibration (cited by each lens reference) before categorising findings. The Critic sub-lens also loads `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`; the Findings Filter uses `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` after findings are collected.
 - **FIS Required / Deeper Context handling** (when a FIS is in scope — any lens set that includes `doc` or `gap`): treat `Required Context` blocks as the authoritative upstream intent at review time — do not re-read their source documents just to reconfirm inlined content. For `Deeper Context` anchors that are load-bearing for a finding, verify the anchor resolves in the source and warn (do not stop) on broken anchors. If a reviewer notices that a `Required Context` block's content appears to no longer match the current source, that is a legitimate doc-review finding (MEDIUM by default — spec should be re-run against the updated source), not an execution blocker. **Legacy FIS fallback**: a FIS authored before these sections existed will have neither. Fall back to whatever upstream-reference structures the legacy FIS uses: the old `## References & Constraints` heading and its `### Documentation & References` table (rows typed `file|doc|url|wire`), or prose mentions. Don't flag the absence of Required/Deeper Context as a defect on legacy FIS files.
 - **Default output is a report file.** `--inline-findings` is the explicit opt-out; without it, always write the consolidated report to disk.
 - **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Auto-detect the minimum correct lens when possible, write the normal report artifact, propagate `--auto` to nested `andthen:*` skill invocations that accept it (including the `andthen:remediate-findings` skill when `--fix` is set; the `andthen:ops` skill is exempt — it is deterministic), and return deterministic verdict/report-path output. Stop with `BLOCKED:` (listing the minimum missing input) only when the requested mode cannot resolve a required target/baseline, an external action is unsafe, or report publication fails.
@@ -68,7 +68,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--council`, `--team
 - Writing review reports into source-code subdirectories via heuristic resolution — the location reference disables the "next to target" fallback for source-code targets. The `--output-dir` flag is the user-explicit override and bypasses the guard when the caller actually wants a source-code path
 - Forgetting that the `andthen:remediate-findings` skill reads the canonical PASS/FAIL verdict block from gap reports — don't re-label, re-phrase, or re-order its columns
 - Loading council-mode content when `--council` was not passed — council orchestration is gated behind `references/council-mode.md` for a reason
-- Treating Red-Team as a top-level mode or optional flag: it is an always-on sub-lens inside code, doc, security, and gap
+- Treating the Critic as a top-level mode or optional flag: it is an always-on sub-lens inside code, doc, security, and gap
 - Auto-adding `security` to an explicit `--mode code` run — explicit lens sets are honored. The code lens flags missed coverage as a HIGH finding instead.
 - Loading the OWASP checklists from inside the code lens — depth-of-OWASP belongs in `references/lens-security.md`. The code lens runs only the thin awareness pass.
 
@@ -169,7 +169,7 @@ Load the lens reference(s) for the resolved lens set and run each lens inline. R
 
 Unified severity and verdict: `references/review-verdict.md` — CRITICAL / HIGH / MEDIUM / LOW; per-mode readiness/verdict rules defined there.
 
-Each lens reference includes the always-on Red-Team sub-lens (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`) and its calibration (`${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md`). This is not a separate mode token.
+Each lens reference includes the always-on Critic sub-lens (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`) and its calibration (`${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`). This is not a separate mode token.
 
 **Single lens**: load its reference and run the lens.
 
@@ -177,7 +177,7 @@ Each lens reference includes the always-on Red-Team sub-lens (`${CLAUDE_PLUGIN_R
 
 **Code lens** orchestration: when two or more lenses from `lens-code.md` apply (code quality, architecture, domain language, UI/UX, security awareness) and sub-agents are supported, delegate one parallel reviewer per applicable lens. Otherwise run the lenses sequentially inline. The code lens's security awareness pass is light enough to run inline; deep security review runs in the security lens.
 
-**Security lens** orchestration: load `references/lens-security.md` and run its applicability gate first (which OWASP checklists match the surface), then run the resulting checklists, trust-boundary analysis, scanners, and the always-on Red-Team sub-lens. When sub-agents are supported and multiple OWASP checklists apply, delegate one parallel reviewer per checklist; otherwise run sequentially inline.
+**Security lens** orchestration: load `references/lens-security.md` and run its applicability gate first (which OWASP checklists match the surface), then run the resulting checklists, trust-boundary analysis, scanners, and the always-on Critic sub-lens. When sub-agents are supported and multiple OWASP checklists apply, delegate one parallel reviewer per checklist; otherwise run sequentially inline.
 
 **Council mode** (`--council`): load `references/council-mode.md` and run its orchestration in place of standard code-lens or security-lens orchestration. Council scopes to the **code** and **security** lenses (the lenses that benefit most from specialist debate); on a single-lens call without either, append `code` at the end (see `--council` flag). In a chain that includes both code and security, council runs once per lens and writes one council section per lens. Council owns reviewer selection, Agent Teams vs sub-agent paths, the two-phase debate, and its report structure.
 

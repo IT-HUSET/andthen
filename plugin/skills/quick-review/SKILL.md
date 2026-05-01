@@ -1,22 +1,23 @@
 ---
-description: Quick in-conversation skill for red-team review of recent changes in fresh context. Use mid-conversation to sanity-check work before moving on. Trigger on 'quick review this', 'sanity-check this', 'give this a quick pass', 'red-team this'.
+description: Quick in-conversation skill for critic review of recent changes in fresh context. Use mid-conversation to sanity-check work before moving on. Trigger on 'quick review this', 'sanity-check this', 'give this a quick pass', 'critic this', 'red-team this'.
 user-invocable: true
-argument-hint: "[--fix] [--auto|--headless] [focus or scope | commit <sha>]"
+argument-hint: "[--inline] [--fix] [--auto|--headless] [focus or scope | commit <sha>]"
 ---
 
 # Quick Review
 
-Lightweight, ad-hoc review of recent work in the current conversation. Internally delegates the critique to a fresh-context sub-agent to catch errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
+Lightweight, ad-hoc review of recent work in the current conversation. By default, delegates the critique to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; with `--inline`, applies the rubric directly when the calling conversation is itself fresh w.r.t. the change set. Either path catches errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
 
 `andthen:quick-review` is a **skill**, not an agent type. Invoke it via `/andthen:quick-review` or the Skill tool — do not pass it as `subagent_type`.
 
 
 ## VARIABLES
 
-FOCUS: $ARGUMENTS (strip any flag tokens like `--fix`, `--auto`, or `--headless` before interpreting the remainder as focus)
+FOCUS: $ARGUMENTS (strip any flag tokens like `--inline`, `--fix`, `--auto`, or `--headless` before interpreting the remainder as focus)
 
 
 ### Optional Flags
+- `--inline` → apply the Critic rubric directly in the current conversation instead of dispatching a fresh-context sub-agent. Use when the calling conversation has **not** produced or substantively reasoned about the change set under review (e.g. the skill is invoked as the first action in a new session, or against a `commit <sha>` from work the conversation never touched). The sub-agent's bias-reduction property is already satisfied by the caller's freshness w.r.t. the change set, so the dispatch is redundant scaffolding. Do not use when the calling conversation produced, edited, or actively reasoned about the change set — the `--inline` branch in Phase 3 will reject the flag and fall back to default dispatch.
 - `--fix` → after evaluating findings, apply the **accepted** ones directly. Dismissed findings stay dismissed — the Accept/Dismiss step in Phase 4 remains the guardrail. If zero findings are accepted, report that plainly and stop — nothing to fix. Without this flag, the skill is strictly read-only — see Phase 4.
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
@@ -24,9 +25,9 @@ FOCUS: $ARGUMENTS (strip any flag tokens like `--fix`, `--auto`, or `--headless`
 ## INSTRUCTIONS
 
 - This is a **lightweight mid-conversation review** – a fast, focused checkpoint scoped to recent changes rather than a full formal pass.
-- **Default mode is read-only.** Without `--fix`, this skill must not modify any files — it reviews and reports, nothing else. Both the review sub-agent and the outer skill are read-only unless `--fix` is set. The outer skill may edit files only in Phase 4, and only when `--fix` is set on the **current** invocation. If the user wants fixes applied after seeing the report, they must re-invoke with `--fix` — an in-conversation reply alone never unlocks editing.
-- The sub-agent reviews in a **fresh context** to avoid confirmation bias.
-- Anti-leniency: if the sub-agent identifies a problem, it is a problem. Do not rationalize issues away.
+- **Default mode is read-only.** Without `--fix`, this skill must not modify any files — it reviews and reports, nothing else. The reviewer (sub-agent under default dispatch, the outer skill under `--inline`) and any wrapping logic are read-only unless `--fix` is set. The outer skill may edit files only in Phase 4, and only when `--fix` is set on the **current** invocation. If the user wants fixes applied after seeing the report, they must re-invoke with `--fix` — an in-conversation reply alone never unlocks editing.
+- Bias reduction comes from **fresh context** — provided by the sub-agent under default dispatch, by the calling conversation under `--inline`. If the calling conversation is not in fact fresh w.r.t. the change set, the `--inline` branch in Phase 3 falls back to default dispatch.
+- Anti-leniency: if a finding is identified, it is a problem. Do not rationalize issues away.
 - Output findings inline — no separate report file.
 - **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. If `--fix` is present, apply accepted findings directly; otherwise remain read-only and return accepted findings for the orchestrator to decide on. Stop with `BLOCKED:` (listing what could not be resolved, e.g. no change set, unreadable target) only when the review scope cannot be resolved.
 
@@ -36,6 +37,7 @@ FOCUS: $ARGUMENTS (strip any flag tokens like `--fix`, `--auto`, or `--headless`
 - Sending the sub-agent too much context (entire files when only a section changed)
 - Rationalizing away findings because "I just wrote that and it seemed fine"
 - Using this as a substitute for a proper review on significant changes
+- **Using `--inline` in a non-fresh conversation** — the flag's whole premise is that the calling conversation has no in-context bias to escape. If the work being reviewed was produced by this same conversation's earlier turns, drop the flag and use the default sub-agent dispatch.
 - **Editing files when `--fix` was not passed** — default mode is report-only. Named failure modes this guardrail blocks: treating a vague in-conversation reply ("looks good", "ok", "sure") as confirmation; "starting with the easy ones" inline; pre-emptively patching because the fixes seem trivial or "obviously what the user wants". None of these unlock editing — only `--fix` on the current invocation does.
 
 
@@ -67,11 +69,13 @@ Determine what type of work was done to frame the review appropriately:
 | Prompt / skill | Clarity of intent, edge case handling, instruction consistency |
 | Mixed | Apply relevant lenses per artifact |
 
-### 3. Sub-Agent Review
+### 3. Critic Review
 
-Spawn a **single `general-purpose` sub-agent** to apply the canonical Red-Team rubric. Construct its prompt by:
+Apply the canonical Critic rubric to the change set. Default execution dispatches to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; `--inline` applies the rubric directly when the calling conversation is already fresh.
 
-1. Reading `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md` and pasting their contents verbatim as the lead of the sub-agent prompt.
+**Default — sub-agent dispatch.** Spawn a **single `general-purpose` sub-agent**. Construct its prompt by:
+
+1. Reading `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md` and pasting their contents verbatim as the lead of the sub-agent prompt.
 2. Appending the call-specific sections below, filled in from the scope and classification steps above:
 
 ```
@@ -91,13 +95,19 @@ Report findings as a concise list using the **Finding Shape** from the rubric ab
 
 Provide enough inline context (diffs, file excerpts, project framing) that the sub-agent does not need to explore the codebase extensively.
 
-**Gate**: Sub-agent review complete
+**`--inline` — in-context application.** Read the same two reference files directly, adopt the Critic posture, and apply it to the change set in the current conversation. Use the same Finding Shape and anti-leniency rules.
+
+Before applying the rubric, verify the calling conversation has not produced or substantively reasoned about the change set. If it has, emit `FALLBACK: --inline rejected, dispatching sub-agent (calling conversation not fresh w.r.t. change set)` and continue with default dispatch — surface the fallback in the final report so the caller knows the flag was overridden. In `AUTO_MODE`, the fallback is reported the same way; never silently swap mechanisms.
+
+**Gate**: Critic review complete
 
 ### 4. Evaluate and Report
 
-Review the sub-agent's findings. For each:
+Review the findings produced in Phase 3 (sub-agent or `--inline`). For each:
 - **Accept**: the finding is valid and actionable
 - **Dismiss**: the finding is based on a misunderstanding of the context (explain briefly why)
+
+**Under `--inline`**: the same agent generated and is now evaluating the findings — the structural separation default dispatch provides is collapsed. Dismiss only on a concrete falsifier (observed mitigation in the artifact, explicit upstream citation, calibration match), never on recall ("I already considered that") or recency ("I just wrote that and it seemed fine"). The same discipline applies under `--inline --fix`, where generator, evaluator, and applicator collapse into one context.
 
 Present accepted findings to the user as a concise inline list.
 

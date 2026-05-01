@@ -6,7 +6,7 @@ Total council size is 5–7. Three roles are always included; pick 2–4 scope-r
 
 The find/filter/synthesize spine of the council:
 
-- **Red-Team Reviewer**: primary finding role that attacks fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring. Applies `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/red-team-calibration.md`.
+- **Critic Reviewer**: primary finding role that attacks fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring. Applies `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`.
 - **Devil's Advocate**: findings-filter role that pressure-tests collected findings for false positives and weak severity.
 - **Synthesis Challenger**: final filter pass for consistency, overlap, and missed systemic patterns.
 
@@ -34,13 +34,13 @@ The find/filter/synthesize spine of the council:
 ## Selection Examples
 
 Code-mode councils (security depth handled by separate security-mode council when applicable):
-- **Product feature**: Product Manager, Requirements Analyst, Architecture Strategist, Content Designer, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
-- **Backend/API work**: Performance Oracle, API Designer, Backend Specialist, Architecture Strategist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
-- **Frontend/UI work**: UX/Accessibility Advocate, Frontend Specialist, Performance Oracle, Architecture Strategist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
-- **Infrastructure/config** (smaller scope, 5 reviewers): Architecture Strategist, Backend Specialist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
+- **Product feature**: Product Manager, Requirements Analyst, Architecture Strategist, Content Designer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Backend/API work**: Performance Oracle, API Designer, Backend Specialist, Architecture Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Frontend/UI work**: UX/Accessibility Advocate, Frontend Specialist, Performance Oracle, Architecture Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Infrastructure/config** (smaller scope, 5 reviewers): Architecture Strategist, Backend Specialist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
 
 Security-mode councils (Security Sentinel always included):
-- **Web app surface**: Security Sentinel, Frontend Specialist, Backend Specialist, Architecture Strategist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
-- **API / network-exposed**: Security Sentinel, API Designer, Backend Specialist, Database Specialist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
-- **LLM / agent flows**: Security Sentinel, Backend Specialist, Architecture Strategist, Content Designer, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
-- **Supply chain / CI/CD / IaC** (smaller scope, 5 reviewers): Security Sentinel, Architecture Strategist, Red-Team Reviewer, Devil's Advocate, Synthesis Challenger
+- **Web app surface**: Security Sentinel, Frontend Specialist, Backend Specialist, Architecture Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **API / network-exposed**: Security Sentinel, API Designer, Backend Specialist, Database Specialist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **LLM / agent flows**: Security Sentinel, Backend Specialist, Architecture Strategist, Content Designer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Supply chain / CI/CD / IaC** (smaller scope, 5 reviewers): Security Sentinel, Architecture Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
