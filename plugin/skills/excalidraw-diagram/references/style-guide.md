@@ -239,6 +239,20 @@ Element size encodes importance. A diagram where every shape is the same size is
 
 Check yourself: if you just generated a 3×4 or 4×3 grid of same-size rectangles, you have failed. Go back and apply a rhythm breaker.
 
+### Shape Vocabulary
+
+Each Excalidraw shape type carries a visual connotation. Use shapes consistently so viewers learn the vocabulary as they read the diagram.
+
+| Shape | Excalidraw Type | Conveys | Examples |
+|-------|----------------|---------|----------|
+| **No shape** | free-floating text | Annotation, label, heading | Section titles, descriptions, detail notes |
+| **Rounded rectangle** | `rectangle` + `roundness: {"type": 3}` | Process, action, component | Services, functions, pipeline stages |
+| **Ellipse** | `ellipse` | State, origin, or destination | Start/end points, inputs/outputs, triggers |
+| **Diamond** | `diamond` | Decision or condition | Branching logic, feature flags, conditionals |
+| **Small dot** | `ellipse` (10-20px) | Marker or anchor point | Timeline steps, bullet points, connection nodes |
+| **Overlapping ellipses** | multiple `ellipse` | Abstract / fuzzy concept | Context, memory, ambient state |
+| **Lines + text** | `line` + free text | Hierarchical structure | Tree branches, org charts, taxonomies |
+
 ---
 
 ## 6. Section / Zone Backgrounds
@@ -391,6 +405,33 @@ On canvases ≥ 1200px wide, partition the canvas into three density bands so th
 ---
 
 ## 12. Design Principles
+
+### Structure and Specificity
+
+**Structure is the argument.** Visual topology communicates meaning independently of labels. Two litmus tests:
+1. **Structure test** – Cover all text. Does shape arrangement alone convey the core relationship? A fan-out radiating arrows says "one source, many targets" without labels. A grid of equal boxes is decoration.
+2. **Specificity test** – Real API names, actual data formats, genuine code snippets? `handleWebhook(event: StripeEvent)` teaches; `"Process" → "Handler"` merely labels.
+
+| Weak | Strong | Why |
+|------|--------|-----|
+| Equal-sized boxes | Sizes reflect importance (hero → primary → small) | Scale encodes hierarchy |
+| Every label in a rectangle | Most text free-floating; boxes for connectable entities | Typography creates hierarchy |
+| One shape type throughout | Different shapes per concept (ellipse = state, diamond = decision, rectangle = action) | Shape vocabulary mirrors concept vocabulary |
+| Arrows implied by proximity | Explicit arrows with typed endpoints | Relationships must be visible, not assumed |
+
+### Evidence Artifacts
+
+Embed real, verifiable details directly into the diagram – not "Service A → Service B" but actual function signatures, data shapes, event names, and API endpoints. All artifacts use the dark "editor pane" container (Section 7 Evidence Artifacts): dark background, monospace font, syntax-colored text. Types: code snippets, JSON data shapes, sequences (timeline pattern), real HTTP inputs, UI fragments (nested rectangles), method signatures (inline monospace in shape labels).
+
+### Multi-Zoom Rule
+
+A comprehensive technical diagram is readable at three distances: **Overview** (large shapes + bold arrows show the full pipeline), **Sections** (zone backgrounds + section headings group related elements), **Detail** (dark "editor pane" containers with monospace text show evidence artifacts). All three coexist on one canvas; the eye scans overview → section → detail.
+
+### Text Placement Strategy
+
+Default to **free-floating text**. Add a container only when the element needs to be an arrow endpoint, carries shape-semantic meaning (diamond = decision, ellipse = state), or is a section anchor. Keep section titles, annotations, and nearby descriptive labels free-floating – font size and position create hierarchy without borders.
+
+**Box-budget rule**: Fewer than 30% of text elements inside containers. Over-containing makes a diagram look like a form. Use font size (28px title → 16px body) and color (zone stroke for headings → gray for annotations) to create hierarchy.
 
 ### The Zone-Color Rule
 

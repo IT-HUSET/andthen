@@ -63,50 +63,16 @@ docs/
 └── guidelines/
 ```
 
-Present optional documents and ask which to create:
+Present the following options together. **STOP and WAIT** for the user's selection before creating any files:
 
-```
-Optional core project document types from the **Project Document Index**:
+- **Core** (recommended): `Learnings` (docs/LEARNINGS.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md)
+- **Planning**: `State` (docs/STATE.md), `Product Backlog` (docs/PRODUCT-BACKLOG.md), `Roadmap` (docs/ROADMAP.md)
+- **Architecture**: `Architecture` document (or generate later via the `andthen:map-codebase` skill)
+- **Domain**: `Ubiquitous Language` document (or generate later via the `andthen:ubiquitous-language` skill)
+- **Guidelines** (if `docs/guidelines/` is empty): offer the starter guidelines (`DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`, `UX-UI-GUIDELINES.md`, `WEB-DEV-GUIDELINES.md`, `CRITICAL-RULES-AND-GUARDRAILS.md`)
+- **Monorepo** (if `IS_MONOREPO = true`): offer per-sub-project `CLAUDE.md` files
 
-Core (recommended):
-  [ ] `Learnings` document                     – see **Project Document Index**; default: docs/LEARNINGS.md – Accumulated project knowledge and error patterns
-  [ ] `Stack` document                         – see **Project Document Index**; default: docs/STACK.md – Technology stack documentation
-  [ ] `Key Dev Commands` document              – see **Project Document Index**; default: docs/KEY_DEVELOPMENT_COMMANDS.md – Dev, test, build, deploy commands
-
-Planning (when ready):
-  [ ] `State` document                         – see **Project Document Index**; default: docs/STATE.md – Cross-session state tracking
-  [ ] `Product Backlog` document               – see **Project Document Index**; default: docs/PRODUCT-BACKLOG.md – Product backlog with REQ-IDs
-  [ ] `Roadmap` document                       – see **Project Document Index**; default: docs/ROADMAP.md – Phase structure with success criteria
-
-Architecture (or generate later via the `andthen:map-codebase` skill):
-  [ ] `Architecture` document                  – see **Project Document Index**; default: docs/ARCHITECTURE.md – System architecture overview
-
-Domain (or generate later via the `andthen:ubiquitous-language` skill):
-  [ ] `Ubiquitous Language` document           – see **Project Document Index**; default: docs/UBIQUITOUS_LANGUAGE.md – Domain glossary
-
-Which would you like to create? (e.g. "Learnings, Stack" or "all core" or "none for now")
-```
-
-If `docs/guidelines/` is empty, also offer:
-```
-AndThen includes starter guidelines. Copy any that are useful:
-  [ ] DEVELOPMENT-ARCHITECTURE-GUIDELINES.md
-  [ ] UX-UI-GUIDELINES.md
-  [ ] WEB-DEV-GUIDELINES.md
-  [ ] CRITICAL-RULES-AND-GUARDRAILS.md
-```
-
-If `IS_MONOREPO = true`, also offer per-sub-project CLAUDE.md files:
-```
-Monorepo detected ([workspace tool]: [list of sub-projects]).
-Claude Code loads per-directory CLAUDE.md files automatically – each sub-project can have
-its own context agents pick up when working in that directory.
-
-Create per-sub-project CLAUDE.md files? (recommended)
-  [list of discovered sub-projects]
-```
-
-> **CRITICAL**: Present all the above options together and **STOP and WAIT** for user response before creating any files.
+Ask: _"Which would you like to create? (e.g. 'Learnings, Stack' or 'all core' or 'none for now')"_
 
 For each confirmed document type, generate the file from templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`, using the location from the **Project Document Index** or the default path above. Pre-fill what's auto-detectable (e.g., the `Stack` document from package config).
 
@@ -187,8 +153,11 @@ Created:
 
 Next steps:
   1. Review and customize CLAUDE.md (especially Project Overview)
-  2. Start a feature: /andthen:spec "your feature description"  (or $andthen:spec ...)
-  3. Or plan an MVP:  /andthen:plan "your requirements"  (or $andthen:plan ...)
+  2. Not sure where to start? Run /andthen:now-what (or $andthen:now-what)
+     — it inspects state and routes to the right skill (clarify, spec, plan,
+     architecture, ui-ux-design, etc.). Pass your idea inline if you have one.
+  3. Already know what you need? Jump straight to /andthen:spec, /andthen:plan,
+     /andthen:quick-implement, /andthen:architecture, etc.
 ```
 
 

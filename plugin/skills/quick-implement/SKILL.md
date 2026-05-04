@@ -33,11 +33,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, or
 ## GOTCHAS
 - Skipping verification after implementation – always run tests/build
 - Scope creep: implementing more than was asked
-- When stuck, emit named output blocks instead of guessing:
-  - `CONFUSION:` — ambiguity + labeled options + `-> Which approach?`
-  - `NOTICED BUT NOT TOUCHING:` — out-of-scope observations + `-> Want me to create tasks?`
-  - `MISSING REQUIREMENT:` — undefined behavior + labeled options + `-> Which behavior?`
-  Each is a labeled block with concrete choices and an arrow-prompt for the user.
+- When stuck, emit named output blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:` → `-> Which approach?`, `NOTICED BUT NOT TOUCHING:` → `-> Want me to create tasks?`, `MISSING REQUIREMENT:` → `-> Which behavior?`. Under `AUTO_MODE`, see the reference's AUTO_MODE Override section.
 
 
 ## WORKFLOW
@@ -63,7 +59,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, or
 
    Strong success criteria let you loop independently; weak ones ("make it work") force constant clarification.
 2. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview; use Explore (or general-purpose) agent for complex exploration
-3. Read relevant documentation (use the `andthen:documentation-lookup` agent as needed)
+3. Read relevant documentation. When lookup is needed, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section; Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly.
 4. Break down into manageable tasks and track them
 
 **Gate**: Plan complete, all requirements understood
@@ -84,7 +80,7 @@ Execute: Implementation → Verification → Evaluation. Repeat until all requir
 - Write code following existing codebase patterns and project guidelines
 - Use **sub-agents** for independent tasks to protect the main context window
 - Invoke the `andthen:triage` skill for build or configuration issues
-- Load the `andthen:testing` skill for canon depth on test discipline — `/andthen:testing --mode tdd` under `--tdd`, `--mode prove-it` for bug-fix work, `--mode strategy` when coverage is unclear. Run inline by default (preserves test-context continuity); spawn a `general-purpose` sub-agent only if fresh context is required. The executor remains the test author either way.
+- Load the `andthen:testing` skill for canon depth (`--mode tdd` / `--mode prove-it` / `--mode strategy`). The executor remains the test author either way.
 
 #### Step 2: Verification
 
@@ -92,7 +88,7 @@ Run in parallel:
 
 **2.1. Code & Architecture Review** – Invoke the `andthen:review` skill with `--mode code` for static analysis, linting, type checking, code quality, security, architecture.
 
-**2.2. Run Tests** – Execute all tests with project-specific commands.
+**2.2. Run Tests** – Execute all tests using the commands from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`). Fall back to discovery and language / tech stack conventions only when the document is missing.
 
 **2.3. Visual Validation** (if UI changed) – Follow Visual Validation Workflow from project guidelines; verify via screenshot analysis.
 

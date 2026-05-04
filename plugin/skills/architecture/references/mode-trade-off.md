@@ -55,13 +55,15 @@ Ask the user to confirm the options and the weighted criteria before deep resear
 Use this only when the design space is still fuzzy or heavily contested.
 
 1. Pick 3+ contrasting constraint lenses.
-2. Spawn parallel general-purpose sub-agents, each instructed to run the `andthen:architecture` skill in `advise` mode under one lens.
+2. Spawn parallel sub-agents, each instructed to run the `andthen:architecture` skill in `advise` mode under one lens.
 3. Have each agent fully commit to its lens and return an interface sketch, what the design hides/exposes, trade-offs, and where it breaks down.
 4. Synthesize the results in prose: convergences, tensions, and which design dimensions are most sensitive to constraints.
 
 Skip this phase for simple technology choices or well-understood options.
 
 ## Step 3 — Parallel Deep Research
+
+Focus on contested dimensions and risky conditions, not the whole design space — dimensions where every surviving option meets the criteria need no deep research.
 
 For each option, launch a parallel sub-agent to investigate:
 - Core capabilities and hard limitations

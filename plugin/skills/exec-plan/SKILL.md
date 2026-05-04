@@ -1,18 +1,20 @@
 ---
 description: Use when the user wants to execute a fully-specced implementation plan bundle. Runs a fixed pipeline per story (exec-spec + quick-review) and a final gap review on the whole plan. Requires a plan bundle where every story already has a FIS. Supports Agent Teams (--team) and sub-agents (portable fallback). Trigger on 'execute this plan', 'implement this plan', 'run the plan', 'execute with agents', 'run as team'.
-argument-hint: "[--team] [--worktree] [--auto|--headless] <path-to-plan-directory> [path-to-code-repo]"
+argument-hint: "[--team] [--worktree] [--from-issue <number>] [--to-pr <number>] [--auto|--headless] <path-to-plan-directory> [path-to-code-repo]"
 ---
 
 # Execute Plan
 
 ## VARIABLES
 
-PLAN_DIR: $ARGUMENTS first positional argument (strip any flag tokens like `--team`, `--worktree`, `--auto`, or `--headless` before interpreting the remainder as positional args)
+PLAN_DIR: $ARGUMENTS first positional argument (strip any flag tokens like `--team`, `--worktree`, `--from-issue`, `--to-pr`, `--auto`, or `--headless` before interpreting the remainder as positional args). When `--from-issue <N>` is set, `PLAN_DIR` is empty and the plan source is the GitHub issue body.
 CODE_DIR: second positional argument _(optional – for multi-repo setups where plan and code live in different repos)_
 
 ### Optional Flags
 - `--team` → USE_TEAM: force Agent Teams mode; error if unavailable
 - `--worktree` → USE_WORKTREE: enable isolated git worktrees for parallel execution (team mode only; default: `false`)
+- `--from-issue <number>` → ISSUE_INPUT: Use a GitHub plan issue as input (`gh issue view <N>`). Auto-detects single-issue vs granular shape per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md), materializes `## Technical Research` to `<run-tempdir>/.technical-research.md`, generates each story's FIS just-in-time by invoking the `andthen:spec` skill with inline-text input (single-issue: extracted from the story section in the parent body; granular: fetched via `gh issue view <story-N> --json body` from the linked story issue), then runs the existing per-story exec-spec + quick-review pipeline against the materialized FIS. Posts shape-appropriate closure comments after Step 5. **Mutually exclusive with `--team`** (parallel JIT FIS generation is not supported under this flag) — reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop in default mode.
+- `--to-pr <number>` → PUBLISH_PR: after Step 5 Final Verification, post the existing rolled-up completion summary plus final gap verdict as a PR comment via `gh pr comment <number> --body-file <summary-path>`. No new content generation. Composes with `--from-issue <N>` (the same flag works whether the plan came from a local directory or a GitHub issue). See Step 5 Publish to PR sub-step.
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 ## INSTRUCTIONS
@@ -31,19 +33,21 @@ Require `PLAN_DIR`. Stop if missing. **You are the orchestrator.** Parse the pla
 
 ### Step 1: Parse Plan
 
+> **When `--from-issue <N>` is set**: load `references/from-issue-mode.md` for the flag-combination guard, plan-issue body fetch and shape detection, technical-research materialization, and execution-plan parsing. The local-directory flow below is skipped in favor of the issue-body parse; the FIS-existence check (item 5) is skipped because FIS files are generated just-in-time in Step 3.
+
 1. **Resolve CODE_DIR** _(skip if `--team` not set and no second positional arg)_:
    - If provided: verify git repository, resolve to absolute path
-   - If not provided: auto-detect from PLAN_DIR's git root vs CWD's git root. Same repo → use that root. Different repos → use CWD's git root
+   - If not provided: auto-detect from PLAN_DIR's git root (when set) vs CWD's git root. Same repo → use that root. Different repos → use CWD's git root.
    - Resolve `BASE_BRANCH`: `git -C {CODE_DIR} rev-parse --abbrev-ref HEAD`
 
 2. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
 
-3. Read `PLAN_DIR/plan.md`. If missing, stop — a valid plan artifact is required upstream (typically from the `andthen:plan` skill).
+3. Read `PLAN_DIR/plan.md` _(local-directory mode)_. If missing, stop — a valid plan artifact is required upstream (typically from the `andthen:plan` skill).
 4. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
-5. **Verify FIS files exist**: every story's `**FIS**` field must (a) not match the FIS-unset sentinel per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) and (b) point at an existing file. If any story fails this check, abort with: `Plan bundle has stories with missing FIS — run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` Do not proceed (same in `--auto` mode — no auto-recovery). Status field values are not gated here; that is bookkeeping per the data contract, not a runtime precondition.
+5. **Verify FIS files exist** _(local-directory mode only; skipped under `--from-issue` per `references/from-issue-mode.md`)_: every story's `**FIS**` field must (a) not match the FIS-unset sentinel per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) and (b) point at an existing file. If any story fails this check, abort with: `Plan bundle has stories with missing FIS — run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` Do not proceed (same in `--auto` mode — no auto-recovery). Status field values are not gated here; that is bookkeeping per the data contract, not a runtime precondition.
 6. Build execution plan respecting phase ordering and dependency chains
 
-**Gate**: Plan parsed, FIS files exist on disk, phases identified
+**Gate**: Plan parsed (from local `plan.md` or fetched issue body); in local mode FIS files exist on disk; phases identified
 
 
 ### Step 2: Determine Execution Mode
@@ -72,6 +76,8 @@ FIS files were verified to exist in Step 1, item 5. Re-read `plan.md` if any sta
 **Gate**: Phase context loaded, `plan.md` current
 
 #### 3b. Execute Story Pipelines
+
+> **JIT FIS layer** _(only when `--from-issue` is set)_: load `references/from-issue-mode.md` for the per-story FIS materialization recipe (story-body extraction, temp-file invocation form, and the `andthen:spec` failure policy). Once the FIS path is captured, fall through to the standard per-story pipeline below using that path as `{fis_path}`.
 
 **Per-story pipeline** (one FIS per story, so each story gets its own exec-spec + quick-review run):
 1. **Implement**: `/andthen:exec-spec {fis_path}`
@@ -128,7 +134,7 @@ For each phase: update project state (same as Step 3a), then create and manage t
 
 ### Step 4: Final Review
 
-Spawn a `general-purpose` sub-agent with fresh context (the orchestrator is biased by construction context). **Model**: use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) — gap review is cross-cutting, not routine pattern-matching.
+Spawn a sub-agent with fresh context (the orchestrator is biased by construction context). **Model**: use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) — gap review is cross-cutting, not routine pattern-matching.
 
 Resolve `PLAN_DIR` and `CODE_DIR` to absolute paths before composing the prompt. Compose by substituting the canonical **Per-Story Worker Prompt** block (bottom of this file) with `{MODE}=final-review` and overrides:
 - `{PLAN_PATH}` = `PLAN_DIR_ABS/plan.md`; `{CODE_DIR_ABS}` = resolved absolute code directory
@@ -145,6 +151,22 @@ If the verdict is FAIL: invoke `/andthen:remediate-findings {absolute_report_pat
 Run build, run tests, review cross-story integration. Include verification evidence: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts).
 
 **Gate**: Build, tests, integration pass
+
+#### 5b. Publish to PR _(only when `--to-pr <number>`)_
+
+After Final Verification has passed, post the rolled-up summary (per-story completion + final gap verdict from Step 4) per **Pattern B** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Summary temp file: `.agent_temp/exec-plan-completion-{plan-slug}.md` — in `--from-issue` mode where `PLAN_DIR` is empty, `{plan-slug}` resolves to `issue-<N>` (full path: `.agent_temp/exec-plan-completion-issue-<N>.md`).
+
+**Failure-handling override of Pattern B (only when `--from-issue` is also set)**: on `gh` failure here, record the error verbatim and **continue to Step 5c** so issue-side closure still runs — skipping it on a PR-side failure would leave granular story issues unclosed. Surface in the final completion report as `BLOCKED: gh pr comment failed for #<number>` (recorded but non-fatal at this step).
+
+When `--from-issue` is NOT set, Pattern B's default applies: surface the `gh` error verbatim and stop. There is no Step 5c to protect, so the override would silently mask a transport failure as success — fall through to the default stop.
+
+**Gate**: PR comment posted (default `--to-pr` only); or PR comment posted / surfaced as deferred failure with Step 5c continuing (when `--from-issue` is also set)
+
+#### 5c. Issue Closure Comments _(only when `--from-issue <N>` was set)_
+
+Load `references/from-issue-mode.md` for the shape-appropriate closure protocol — single-issue posts N+1 comments on the plan issue; granular uses the deliberate comment-then-close 2-call pattern per story plus a rolled-up summary on the plan issue. Use the existing per-story completion summaries (already produced by `andthen:exec-spec` Step 5c) and the rolled-up plan summary (Step 5).
+
+**Gate**: Closure comments posted per shape (or skipped when `--from-issue` is absent)
 
 ## FAILURE HANDLING
 
@@ -183,7 +205,7 @@ For the no-double-write contract, see execution-discipline.md.
 
 Report:
 - Step results (success/failure), files changed
-- exec-spec Step 4a numbers (build, tests, lint/type-check)
+- exec-spec Step 4a numbers (build, tests, lint/type-check, format)
 - Any issues, incomplete work, or non-green state — be explicit
 ```
 
@@ -202,7 +224,6 @@ Report back:
 2. The absolute path to the written report file
 ```
 
-Mode-specific overrides are applied at each invocation site (see Step 3b, Step 3T, Step 3c, Step 4).
 
 
 ## COMPLETION

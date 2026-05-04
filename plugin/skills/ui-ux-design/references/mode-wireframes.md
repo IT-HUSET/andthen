@@ -64,7 +64,7 @@ Create basic, grayscale HTML layouts showing major sections and placement, key c
 
 **CRITICAL**: Create wireframes in parallel for efficiency.
 
-For each page in the inventory, spawn a general-purpose sub-agent and have it run this skill with `--mode wireframes` scoped to a single page, given:
+For each page in the inventory, spawn a sub-agent and have it run this skill with `--mode wireframes` scoped to a single page, given:
 - Reference to base HTML template (the structure from 2.1), page name and purpose, key content/sections, navigation context, responsive requirements
 
 **Execute multiple agents simultaneously** — each handles a single page.
@@ -86,7 +86,7 @@ Cross-check against Phase 1 inventory. Verify EVERY page has a corresponding wir
 **MCP Server Detection** (in order of preference):
 1. **Playwright MCP** (`mcp__playwright__*` tools) — preferred
 2. **Chrome DevTools MCP** (`mcp__chrome-devtools__*` tools) — fallback
-3. **Manual validation** — if no MCP available, invoke the `andthen:visual-validation-specialist` agent with a manually opened browser
+3. **Manual validation** — if no MCP available, invoke the `andthen:visual-validation` skill in a sub-agent with a manually opened browser
 
 **Viewport Matrix:**
 | Device | Width | Height |
@@ -111,7 +111,7 @@ Fix issues by adjusting CSS (gap, overflow, min-height, breakpoint rules) before
 
 ### 3.2 Visual Comparison
 
-Invoke the `andthen:visual-validation-specialist` agent with the screenshots. Agent produces `OUTPUT_DIR/validation-report.md` documenting pass/fail per page/viewport and issues found.
+Invoke the `andthen:visual-validation` skill in a sub-agent with the screenshots. The validation report at `OUTPUT_DIR/validation-report.md` documents pass/fail per page/viewport and issues found.
 
 ### 3.3 Design Review
 

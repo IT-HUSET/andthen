@@ -5,7 +5,7 @@ From Dave Farley's "Modern Software Engineering." Frames all of software enginee
 ## Two Core Problems
 
 ### 1. Optimize for Learning
-Software is design, not manufacturing. Two-thirds of ideas from top software companies fail to produce expected value. The discipline must be empirical, iterative, and feedback-driven.
+Software is design, not manufacturing — stay empirical, iterative, and feedback-driven.
 
 ### 2. Optimize for Managing Complexity
 Systems that grow beyond single-team comprehension degrade toward "big ball of mud" absent deliberate discipline.
@@ -15,38 +15,19 @@ Systems that grow beyond single-team comprehension degrade toward "big ball of m
 ## Five Tools for Managing Complexity
 
 ### 1. Modularity
-Decompose systems into independently understandable, independently changeable units.
-
-- **Test**: Can you change this module without understanding the whole system? Can you test it in isolation?
-- **Effect**: Well-modularized systems maintain flat cost-of-change curves. Poorly modularized = exponential cost growth.
-- **Review question**: "If I increment a counter here, what else do I need to know about the system to be confident the change is correct?"
+Decompose into independently changeable units. **Heuristic**: flat cost-of-change curve over time — "If I increment a counter here, what else do I need to know about the system to be confident the change is correct?"
 
 ### 2. Cohesion
-The degree to which things inside a module actually belong together.
-
-- **Heuristic**: "The bits that are closely related should be close together in the software."
-- **Test**: Can you state in ONE sentence what this module is responsible for? If it requires "and also...", cohesion is low.
-- **Anti-pattern**: Modules organized by technical role (all controllers together) rather than by domain — feature changes touch multiple layers.
+"The bits that are closely related should be close together in the software." **Heuristic**: state the module's responsibility in one sentence; "and also..." signals low cohesion.
 
 ### 3. Separation of Concerns
-Distinct concerns (business logic, persistence, presentation, concurrency, security) should be structurally isolated.
-
-- **Architectural application**: At LMAX, Farley's team isolated concurrency — business logic ran single-threaded, concurrency confined to I/O infrastructure. Both parts became simpler and more correct.
-- **Review question**: Is the concern most likely to change (business rules, UI) isolated from less-likely-to-change concerns (infrastructure)?
-- **Anti-pattern**: Business logic aware of its persistence mechanism; domain logic coupled to HTTP models.
+Isolate the concern most likely to change (business rules, UI) from less-likely-to-change concerns (infrastructure). **Anti-pattern**: business logic coupled to its persistence or transport layer.
 
 ### 4. Information Hiding and Abstraction
-Expose only what callers need. Changes inside a module must not require changes in callers.
-
-- **Test**: If you change HOW this module implements its behavior, what breaks outside? If "nothing" — information hiding works.
-- **Leaky abstraction red flags**: Callers importing internal types, casting to implementation classes, depending on ordering that's an implementation artifact.
+Expose only what callers need. **Test**: if you change HOW this module implements its behavior, what breaks outside? If "nothing" — information hiding works.
 
 ### 5. Managing Coupling
-Minimize dependencies between modules. Prefer interaction through stable abstractions.
-
-- **Coupling compounds**: Farley cites 300x performance penalty from poorly managed concurrency coupling.
-- **Review question**: Does adding this dependency make sense because the things are genuinely related, or because the class is conveniently available? Convenience coupling is accidental complexity.
-- **Anti-pattern**: "God classes" or service locators everything depends on; importing a package for one utility and getting 40 transitive deps.
+Prefer interaction through stable abstractions. **Heuristic**: "Does this dependency reflect a genuine relationship, or just convenience?" Convenience coupling is accidental complexity.
 
 ---
 
@@ -93,8 +74,8 @@ Architecture quality is readable from feedback loop speed.
 
 ## Cost-of-Change Curve
 
-The ultimate diagnostic:
-- **Well-modularized**: Flat cost-of-change curve over time. Adding feature N is roughly as expensive as adding feature 3.
-- **Poorly modularized**: Exponential curve. Each feature is harder than the last because coupling means understanding more of the system.
+The ultimate diagnostic. Plot effort-per-feature over time:
+- **Well-modularized** — flat curve. Adding feature N costs roughly the same as adding feature 3.
+- **Poorly modularized** — exponential curve. Each feature is harder than the last because coupling forces understanding of more of the system.
 
-If cost-of-change is accelerating, the architecture is failing — regardless of what the metrics say.
+If cost-of-change is accelerating, the architecture is failing — regardless of what other metrics say.

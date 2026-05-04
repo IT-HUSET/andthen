@@ -99,24 +99,4 @@ Concise, actionable checklist for thorough code reviews.
 - [ ] No breaking API changes without versioning
 - [ ] Deployment risks identified
 
----
-
-## Issue Classification
-
-### 🚨 CRITICAL (Must Fix)
-- Data loss/corruption risks
-- Breaking changes/regressions
-- Critical bugs
-
-### ⚠️ HIGH (Should Fix)
-- Performance issues
-- Maintainability concerns
-- Incorrect error handling
-- Significant technical debt
-
-### 💡 LOW (Consider)
-- Code style improvements
-- Refactoring opportunities
-- Documentation enhancements
-- Test coverage gaps
-- Performance optimizations
+Severity: see [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) and the relevant `<lens>-review-calibration.md`

@@ -21,11 +21,11 @@ REPORT_SOURCE: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` b
 
 - Require `REPORT_SOURCE`. Stop if missing.
 - Treat the review report as an input contract, not unquestionable truth. Re-validate findings against the current workspace before editing artifacts.
-- **FIS Required / Deeper Context handling** (when the remediation target includes a FIS): `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative. Do not "fix" a FIS by re-fetching and rewriting inlined content against the current source — that silently changes the executor's contract. Drift between a `Required Context` pin and the current source is a re-spec signal: surface it, and if the finding demands fresh content, escalate to re-running the `andthen:spec` skill rather than editing the inlined block in place. For `Deeper Context` anchors that fail to resolve, repair the anchor (or replace with a current pointer) rather than deleting the bullet silently. **Legacy FIS fallback**: a FIS authored before these sections existed will have neither. Apply the same minimal-fix discipline to whatever upstream-reference structure the legacy FIS uses: the old `## References & Constraints` heading and its `### Documentation & References` table (rows typed `file|doc|url|wire`), or prose mentions. Don't migrate a legacy FIS to the new sections opportunistically — that's a re-spec, not a remediation.
+- **FIS Required / Deeper Context handling** (when the remediation target includes a FIS): `Required Context` blocks are inlined verbatim at spec time and are authoritative — do not "fix" by re-fetching against the current source (that silently changes the executor's contract). Drift is a re-spec signal; escalate to the `andthen:spec` skill if fresh content is required. For broken `Deeper Context` anchors: repair the anchor, don't delete silently. **Legacy FIS fallback**: apply the same minimal-fix discipline to whatever upstream-reference structure the legacy FIS uses (old `## References & Constraints` heading, `### Documentation & References` table, or prose mentions). Don't migrate a legacy FIS to the new sections opportunistically — that's a re-spec, not a remediation.
 - Fix validated findings with the smallest coherent patch set that resolves them.
 - Avoid scope creep across files. Apply changes only to issues listed in the findings report; co-located issues you spot while remediating are surfaced in the completion report rather than fixed inline (surgical scope — see CRITICAL RULES). Do not expand into untouched files or rewrite nearby docs unless required to resolve a finding or prevent a regression.
 - Prefer explicit, local fixes over broad rewrites, reorganizations, helpers, or framework layers.
-- If external documentation is needed, use the `andthen:documentation-lookup` agent.
+- If external documentation is needed, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section; Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly.
 - Invoke the `andthen:ops` skill for deterministic plan/FIS/STATE updates instead of hand-editing those artifacts.
 - **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Re-validate and fix all in-policy findings, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic), and return deterministic status/verification output. Stop with `BLOCKED:` (listing the minimum missing decisions or unresolved findings with evidence) only when the report is invalid, an unsafe external action is required, or a finding requires a product/requirements decision with no defensible local fix.
 
@@ -92,7 +92,7 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
 1. Implement fixes by logical area and artifact type.
 2. Add or update tests when an implementation finding requires proof-of-work.
 3. Run targeted verification after each fix group:
-   - Implementation fixes: tests, linting, type checks, builds
+   - Implementation fixes: tests, linting, type checks, builds — use the commands from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`); fall back to discovery (package.json scripts, Makefile targets, language conventions) only when the document is missing
    - Document fixes: verify terminology, cross-references, linked paths, commands/examples, consistency with source of truth
    - Workflow artifact fixes: verify templates, status semantics, cross-document consistency
 4. Invoke the `andthen:quick-review` skill on the touched scope (via `/andthen:quick-review` or the Skill tool — not as `subagent_type`; append `--auto` when `AUTO_MODE=true`).
@@ -105,7 +105,7 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
 
 ### Phase 5: Update Workflow State
 
-The findings re-check and quick-review results from Phase 4 are the evidence needed to update state. When all required findings are resolved and verification is clean, update state now.
+When all required findings are resolved and verification is clean, update state now.
 
 If the report is tied to a story or FIS and remediation passed validation:
 - Use the `andthen:ops` skill: `update-fis {fis_path} all` when the FIS work is substantively complete and evidence exists
@@ -132,20 +132,7 @@ Run this step **before** the tech-debt persistence step below. If `REPORT_SOURCE
 
 #### Persist DEFERRED findings to the Tech Debt Backlog
 
-Batch all `DEFERRED` entries from the Phase 4 findings re-check into a single `andthen:ops` invocation: `update-tech-debt append <markdown-body>`. The body MUST follow this shape (one bullet per deferred finding):
-
-```
-#### DEFERRED FINDINGS
-
-- **{Finding title}** (`{location}`)
-  - Severity: {High|Medium|Low}
-  - Justification: {one-line reason for deferral}
-  - Source report: `{relative path to original report}`
-```
-
-Normalize each finding's upstream review severity into the `{High|Medium|Low}` bucket set before populating `Severity:` — map `CRITICAL → High`, `HIGH → High`, `MEDIUM → Medium`, `LOW → Low` (case-insensitive). For findings with a missing severity field or a non-canonical value (e.g., a foreign-report tag like `P0` or `Blocker`), surface the raw input in the completion report and route to `Medium` so the demotion is logged rather than silent. Without this normalization, the consumer's `default-to-Medium` fallback for unrecognized severities would silently demote a `CRITICAL` deferred finding to `Medium` tech debt; with it, that fallback becomes a defensive backstop rather than the primary path.
-
-The `Source report` line is the back-link to the source report path and is required on every entry — operators tracing a backlog item back to its origin depend on it. When zero findings are `DEFERRED`, skip this step entirely (no-op — no `update-tech-debt append` invocation). The `andthen:ops` skill is deterministic and `--auto` is not propagated to it (per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md)).
+Batch all `DEFERRED` entries into a single `andthen:ops` invocation: `update-tech-debt append <markdown-body>`. Use the `#### DEFERRED FINDINGS` body shape from the `andthen:ops` skill (`update-tech-debt append` form). Normalize upstream severity before populating `Severity:` — `CRITICAL/HIGH → High`, `MEDIUM → Medium`, `LOW → Low`; non-canonical values route to `Medium` with a logged note. Each entry requires a `Source report:` back-link. When zero findings are `DEFERRED`, skip this step entirely. The `andthen:ops` skill is deterministic and `--auto` is not propagated to it (per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md)).
 
 **Gate**: Status artifacts reflect the validated post-remediation state; the input report is annotated when writable; deferred findings are persisted to the Tech Debt Backlog when present
 

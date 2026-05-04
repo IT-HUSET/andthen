@@ -27,12 +27,7 @@ Attack the target from these angles:
 
 ## Anti-Leniency Rules
 
-- If you identify a problem, it IS a problem. Do not talk yourself out of it.
-- "Works on the happy path" is not a pass — check edge cases and error paths.
-- Do not hedge with "could be an issue" or "might cause problems." State the condition that fails and the impact if it does.
-- Substance over surface: check that things are actually complete, wired, and load-bearing — not just present.
-- "Did not touch pre-existing X" inside files that were modified is a finding, not a disclaimer — flag it.
-- Favor concrete false positives over false negatives. A separate filter pass after this one will dismiss findings that do not hold up.
+Anti-Leniency Protocol: see [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) — find pass favors false positives; filter pass dismisses findings that do not hold up.
 
 
 ## Review Instructions
@@ -59,4 +54,4 @@ Merge Critic findings into the same severity and report sections as the primary 
 
 ## Sub-agent dispatch
 
-When a review skill spawns a sub-agent to perform find-time Critic work, the sub-agent prompt **pastes the contents of this file and `critic-calibration.md` verbatim into the prompt body** — not the path tokens. Loading-by-reference depends on the sub-agent choosing to read the path; pasting the contents guarantees the posture survives. The `andthen:quick-review` skill's sub-agent dispatch is the reference implementation. Applies to every consuming lens (code, doc, gap, security) and to every council-mode reviewer that runs the find-time Critic pass.
+Consuming skills pass this file (and its calibration peers `critic-calibration.md` and `review-calibration.md`) by path tokens in the sub-agent prompt body. The host prompt MUST open with an explicit instruction to read all three referenced files before applying the rubric — without that instruction, the sub-agent may silently skip the calibration files and apply a generic adversarial posture, losing the Anti-Leniency Protocol and the find-pass calibration this lens depends on. The `andthen:quick-review` skill's sub-agent prompt is the reference implementation of the read-first instruction. Applies to every consuming lens (code, doc, gap, security) and to every council-mode reviewer that runs the find-time Critic pass.

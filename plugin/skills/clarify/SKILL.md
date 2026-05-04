@@ -1,6 +1,6 @@
 ---
 description: Clarify requirements through systematic discovery of gaps, edge cases, and scope boundaries. Trigger on 'clarify this', 'clarify requirements', 'what are the requirements', 'discover requirements'.
-argument-hint: "[requirements source: description or file path | --issue <number>]"
+argument-hint: "[requirements source: description or file path | --issue <number>] [--to-issue]"
 ---
 
 # Clarify Requirements
@@ -12,10 +12,11 @@ Transform incomplete requirements into complete, actionable specifications throu
 ## VARIABLES
 
 _Requirements to clarify (**required**):_
-INPUT: $ARGUMENTS (strip any flag tokens like `--issue` before interpreting the remainder as the requirements source — description or file path)
+INPUT: $ARGUMENTS (strip any flag tokens like `--issue` or `--to-issue` before interpreting the remainder as the requirements source — description or file path)
 
 ### Optional Flags
 - `--issue <number>` → Fetch and use a GitHub issue as requirements input
+- `--to-issue` → After Step 4 Validation, save the clarification doc locally (as today), then create a NEW GitHub issue with the doc body via `gh issue create --title "Requirements Clarification: <name>" --body-file <path>`. When an input issue was supplied (via `--issue <N>` or a GitHub issue URL), append `Refs #<N>` as the last line of the issue body. The flag never comments on or edits the input issue. Print the new issue URL.
 
 _Output directory for clarified requirements:_
 OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Document Index**)_
@@ -32,10 +33,10 @@ OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Documen
 ### Requirements vs. Implementation Boundary
 Clarify operates at the **requirements level** — decisions that users, stakeholders, or product owners care about. The test is **load-bearing-ness**, not topic: *would the answer change user-visible behavior, scope, or acceptance criteria?*
 
-- **In scope — load-bearing technical questions**: offline support; sync semantics (real-time vs eventual consistency); user-visible auth model (which IdP, SSO yes/no, MFA requirement); data residency or sovereignty; user-facing limits (file size, rate, retention); choice of externally-visible third-party providers (payment, identity, geolocation); platform or device targets that change what is possible.
-- **Out of scope — implementation-only choices**: library or framework selection; caching strategy; internal API shape and protocol; token format and session storage; code organization; DB engine; schema layout; deployment topology. These belong downstream in the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`).
+- **In scope — load-bearing technical questions**: offline support; sync semantics; user-visible auth model (IdP, SSO, MFA); data residency; user-facing limits (file size, rate, retention); choice of externally-visible third-party providers; platform or device targets.
+- **Out of scope — implementation-only choices**: library or framework selection; caching strategy; internal API shape; token format; code organization; DB engine. These belong downstream in the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`).
 
-Litmus when the load-bearing test is unclear: *would a non-developer stakeholder care about the answer itself — not a downstream consequence of it?* Stakeholders care that pages feel fast, but that does not pull caching strategy into scope; the caring is about the consequence, not the choice.
+Litmus when the load-bearing test is unclear: *would a non-developer stakeholder care about the answer itself — not a downstream consequence of it?*
 
 
 ## GOTCHAS
@@ -44,7 +45,6 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 - Asking the user things that are already answerable from the codebase or existing docs (except a prior clarification doc in amendment mode — that is a baseline to extend)
 - Scope creep: expanding beyond the original request
 - Jumping to solution design instead of requirement discovery
-- Decomposing implementation-only dimensions during design space decomposition (see boundary above) — note that load-bearing technical questions that shape user-visible behavior, scope, or acceptance criteria *are* fair game
 
 
 ## WORKFLOW
@@ -62,18 +62,7 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 
 3. **Gap identification** - List gaps in: functional requirements, user flows, edge cases, success criteria, scope boundaries
 
-4. **Design space decomposition** _(see `${CLAUDE_PLUGIN_ROOT}/references/design-tree.md`)_
-
-   When the feature involves **user-visible or product-level** design decisions with multiple viable approaches, decompose the solution space into independent dimensions:
-   - Identify independent dimensions of choice at the requirements level (navigation model, data display, auth method, interaction pattern) – these are peers, not a hierarchy
-   - List viable options per dimension (2–5 each)
-   - Assess cross-consistency: evaluate pairwise compatibility between options, marking incompatible or conditional pairings with rationale
-   - Use the decomposition to generate targeted questions — each unresolved dimension is a question to ask
-
-   > **Scope guard**: Decompose a dimension only if it passes the load-bearing test in *Requirements vs. Implementation Boundary* above. Implementation-only dimensions are flagged as downstream concerns for the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`) — do not decompose them here.
-
-   Include the decomposition in the requirements output so downstream skills can reference resolved decisions.
-   _Skip this step for simple features with no meaningful design alternatives._
+4. **Design space decomposition** — when the feature has **user-visible or product-level** decisions with multiple viable approaches, decompose load-bearing dimensions only (see `${CLAUDE_PLUGIN_ROOT}/references/design-tree.md` for the Dimension Independence + cross-consistency rubric). Implementation-only dimensions are downstream concerns for the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`). Include the decomposition in the requirements output. _Skip for simple features with no meaningful design alternatives._
 
 **Gate**: Assessment complete with documented gap list and design space decomposition (if applicable)
 
@@ -95,18 +84,7 @@ Cover these areas when relevant: scope & boundaries (in/out of scope, MVP, defer
 
 ### 3. Consolidate Requirements
 
-Structure all findings into comprehensive requirements document (amendment mode: preserve unchanged sections verbatim, add missing template sections only when the delta requires them):
-1. **Summary** - 2-3 sentences: what, who, core value
-2. **Scope definition** - In scope, out of scope, MVP boundary
-3. **Not Doing (for now)** - Explicit non-goals or deferred items with brief reasons
-4. **Functional requirements** - Core flows, alternate paths, user stories
-5. **UI wireframes** _(if applicable)_ - Simple ASCII wireframes for core screens
-6. **Edge cases** - Scenarios with expected behavior
-7. **Error handling** - Error types, messages, recovery actions
-8. **Non-functional requirements** - Performance, security, accessibility
-9. **Success criteria** - Testable acceptance criteria
-10. **Dependencies** - External systems, integrations
-11. **Open questions** - Any remaining items for later phases
+Structure all findings into the requirements document using the template in **REPORT** below (amendment mode: preserve unchanged sections verbatim, add missing template sections only when the delta requires them).
 
 **Gate**: Requirements document complete and structured
 
@@ -118,6 +96,15 @@ Review consolidated requirements: all user flows have clear steps; design space 
 Fix any issues found before finalizing.
 
 **Gate**: All validation checks pass
+
+
+### 4b. Publish to GitHub _(only when `--to-issue`)_
+
+After the local clarification doc is written and validated, publish per **Pattern A** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Title: `Requirements Clarification: <feature-name>`. Body temp file: `.agent_temp/clarify/<feature-slug>-issue-body.md` when `Refs #<N>` is appended; otherwise pass the local doc path directly to `--body-file`.
+
+The flag is additive — the local doc is the source of truth; the issue is a durable transport record for downstream skills (`andthen:prd --issue <N>`).
+
+**Gate**: Issue created (or skipped when `--to-issue` is absent)
 
 
 ### 5. Domain Language Extraction _(if domain complexity warrants)_
@@ -218,11 +205,14 @@ When complete, print the report's **relative path from the project root**.
 
 ## FOLLOW-UP ACTIONS
 
+Skip this section when `AUTO_MODE=true` — print only the output path and completion summary.
+
 After completion, ask user if they'd like to:
-1. **Create feature spec** – invoke the `andthen:spec` skill on the output directory to generate a FIS from the clarified requirements.
-2. **Create a PRD** – invoke the `andthen:prd` skill on the output directory before planning a multi-feature effort.
-3. **Proceed to planning** – invoke the `andthen:prd` skill, then the `andthen:plan` skill on the output directory for multi-feature / MVP scope.
-4. Review specific areas in more depth.
-5. Share with stakeholders for validation.
+1. **Review visually** – invoke the `andthen:visualize` skill on `requirements-clarification.md` to spot scope and edge-case issues a markdown view obscures.
+2. **Create feature spec** – invoke the `andthen:spec` skill on the output directory to generate a FIS from the clarified requirements.
+3. **Create a PRD** – invoke the `andthen:prd` skill on the output directory before planning a multi-feature effort.
+4. **Proceed to planning** – invoke the `andthen:prd` skill, then the `andthen:plan` skill on the output directory for multi-feature / MVP scope.
+5. Review specific areas in more depth.
+6. Share with stakeholders for validation.
 
 > **Session tip**: `spec`, `prd`, and `plan` can run in this session. But the heavier skills that follow them — `exec-spec`, `exec-plan` — are context-intensive and perform best in a **clean session**. `plan` also benefits from a clean session when generating the full FIS bundle.

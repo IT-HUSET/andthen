@@ -197,19 +197,8 @@ A bounded context is a linguistic boundary — within it, all terms have a singl
 
 ### Context Mapping Patterns
 
-Eight canonical patterns from Evans, plus Big Ball of Mud as a quarantine strategy added by the DDD Crew community. Move toward the top when teams are aligned and models are stable; toward the bottom when teams are organizationally distant, models are incompatible, or the upstream cannot be negotiated with. See `ddd.md` for full depth.
-
-| Pattern | Coupling | Team relationship | Choose when |
-|---------|----------|-------------------|-------------|
-| **Partnership** | High | Mutual, synchronized releases | Teams succeed or fail together; shared fate on a specific capability. *Tension: reduces deployment independence — use sparingly.* |
-| **Shared Kernel** | High | Shared ownership of a model subset | Closely related contexts, stable shared model, strong communication. Keep the kernel small. |
-| **Customer/Supplier** | Negotiated | Upstream/downstream, downstream has leverage | Downstream needs factor into upstream planning. |
-| **Conformist** | Medium | Upstream authoritative | Upstream is external or can't be influenced; simplicity wins over autonomy. |
-| **Anticorruption Layer** | Medium | Downstream protects itself | Upstream model is hostile, legacy, or semantically incompatible. |
-| **Open Host Service** | Low | Upstream serves many | Stable API for multiple consumers; standardize once. |
-| **Published Language** | Low | Shared exchange format | Common schema or event envelope; often pairs with Open Host Service. |
-| **Separate Ways** | None | Explicit non-integration | Integration cost exceeds value; duplication is cheaper. |
-| **Big Ball of Mud** _(quarantine, not Evans canon)_ | Variable | Quarantine | Legacy or entangled system; wrap with an Anticorruption Layer so its model does not contaminate neighbors. |
+DDD context-mapping: see [`ddd.md`](ddd.md) § Context Mapping for the canonical 9-pattern table (Partnership through Big Ball of Mud).
+Use the table when mapping context relationships during decomposition; coupling is highest at Partnership / Shared Kernel and lowest at Separate Ways.
 
 ---
 

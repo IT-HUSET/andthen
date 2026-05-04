@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Now What"
+  short_description: "First stop for users new to AndThen or unsure what to do next — routes to the right skill"
+  default_prompt: "I'm not sure what to do next on this project. Look at the state and tell me where to start: "
+
+policy:
+  allow_implicit_invocation: true

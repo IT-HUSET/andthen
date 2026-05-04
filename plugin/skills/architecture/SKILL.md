@@ -1,5 +1,5 @@
 ---
-description: Use for architecture design, review, decomposition, trade-off analysis, ADRs, CUPID/DDD guidance, and fitness functions. Operates in five modes — `review`, `decompose`, `advise`, `fitness`, `trade-off` — runnable singly or as a chain (e.g. `--mode review,fitness`). Trigger on 'architecture review', 'design architecture', 'CUPID', 'DDD', 'bounded context', 'should we split this module', 'should we merge these packages', 'propose fitness functions', 'compare options', 'trade-off', 'write an ADR', 'which approach'.
+description: Use for architecture design, review, decomposition, trade-off analysis, ADRs, CUPID/DDD guidance, fitness functions, strategic design, and event storming. Operates in seven modes — `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming` — runnable singly or as a chain (e.g. `--mode review,fitness` or `--mode event-storming,strategic-design,decompose`). Trigger on 'architecture review', 'design architecture', 'CUPID', 'DDD', 'bounded context', 'subdomain', 'context map', 'event storming', 'strategic design', 'should we split this module', 'should we merge these packages', 'propose fitness functions', 'compare options', 'trade-off', 'write an ADR', 'which approach'.
 user-invocable: true
 argument-hint: "[--mode <mode>[,<mode>...]] [--to-pr <number>] [--auto|--headless] [scope/path]"
 ---
@@ -21,8 +21,10 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--to-pr`, `--count`
 | **advise** | architectural questions, greenfield design, "which pattern", "how should I structure", CUPID/DDD, trade-off framing questions | `references/mode-advise.md` |
 | **fitness** | "fitness functions", "governance", "architectural tests", "prevent drift" | `references/mode-fitness.md` |
 | **trade-off** | "trade-off analysis", "compare options", "evaluate alternatives", "write an ADR", "which approach" | `references/mode-trade-off.md` |
+| **strategic-design** | "strategic design", "subdomains", "bounded contexts", "context map", "domain map", "model the domain" | `references/mode-strategic-design.md` |
+| **event-storming** | "event storming", "discover the domain", "process discovery", "pivotal events", Brandolini | `references/mode-event-storming.md` |
 
-**Multi-mode**: `--mode` accepts a comma-separated list (e.g. `--mode review,fitness` or `--mode advise,trade-off`). Modes execute in declared order, sharing context — metrics, dependency graphs, candidate options, and findings computed by an earlier mode feed later modes without recomputation. `decompose` requires a boundary, `advise` requires a question, and `trade-off` requires a decision topic — include those inputs (via scope/argument or Phase 0) when chaining them.
+**Multi-mode**: `--mode` accepts a comma-separated list (e.g. `--mode review,fitness`, `--mode advise,trade-off`, or `--mode event-storming,strategic-design,decompose`). Modes execute in declared order, sharing context — metrics, dependency graphs, candidate options, subdomain/context candidates, and findings computed by an earlier mode feed later modes without recomputation. `decompose` requires a boundary, `advise` requires a question, `trade-off` requires a decision topic, and `strategic-design` / `event-storming` require a scope or topic (the domain or workflow under discovery) — include those inputs (via scope/argument or Phase 0) when chaining them.
 
 ### Optional Output Flags
 - `--to-pr <number>` -> PUBLISH_PR: post the report as a plain PR comment
@@ -39,8 +41,7 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 ## INSTRUCTIONS
 
 - When `ARGUMENTS` is empty or ambiguous (no clear mode or scope), or when a declared chain is missing a required input for one of its modes (decompose boundary, advise question, trade-off topic), start with guided setup (see Phase 0). Do not assume a mode or run a full-project review by default.
-- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Infer mode and scope from the arguments using the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` and list the minimum missing decisions (mode, scope, decompose boundary, advise question, or trade-off topic). Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic).
-- When `--mode` declares multiple modes, treat them as a single declared chain: gather any required additional inputs up front before Phase 1 completes, and produce one combined report at the end.
+- **Automation mode** (`--auto` / `--headless`) — never ask the user what to do next. Infer mode and scope from the arguments using the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` and list the minimum missing decisions (mode, scope, decompose boundary, advise question, trade-off topic, or strategic-design / event-storming domain or workflow scope). Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt — it is deterministic).
 - Read the Workflow Rules, Guardrails, and relevant project guidelines before starting.
 - Analysis and design only. Do not modify code.
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `references/architecture-calibration.md`.
@@ -53,7 +54,6 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 - **Progressive improvement**: support the "frozen rules" pattern — snapshot current violation count, fail CI only on regressions.
 - **Multi-scale awareness**: tag findings by C4 level (Context / Container / Component / Code).
 - **Connascence-aware coupling**: classify coupling by connascence type, not just edge count.
-- **Reader-oriented reports**: assume the reader may not know architecture shorthand. Include a brief `How to Read This Report` legend near the top of every report, define only the terms actually used, and expand acronyms on first prose mention.
 
 ## GOTCHAS
 
@@ -81,8 +81,10 @@ When invoked without clear mode and scope, guide the user interactively:
    - **advise** — Design or refactor guidance grounded in CUPID, DDD, and established architectural frameworks (covers greenfield design)
    - **fitness** — Propose fitness functions for architectural governance and ADR enforcement
    - **trade-off** — Trade-off analysis: research technical options, compare them systematically using weighted criteria, deliver an evidence-based recommendation or ADR
+   - **strategic-design** — Discovery-oriented strategic DDD: classify subdomains (core/supporting/generic), propose bounded contexts and sizing, draw the context map with named integration patterns, surface UL touchpoints (greenfield + brownfield paths)
+   - **event-storming** — Brandolini-style event-storming session as a discovery technique: orange events, blue commands, yellow actors, lilac policies, purple hotspots, green read models; Big Picture / Process Modeling / Design Level
 
-2. Ask what they want to accomplish and which part of the codebase or decision to focus on. The user may select one mode or a chain (e.g. "advise then trade-off"). For **decompose**, ask which boundary. For **advise**, ask for the specific question. For **trade-off**, ask for the decision topic and any hard constraints.
+2. Ask what they want to accomplish and which part of the codebase or decision to focus on. The user may select one mode or a chain (e.g. "advise then trade-off", or "event-storming → strategic-design → decompose" for end-to-end discovery into decomposition). For **decompose**, ask which boundary. For **advise**, ask for the specific question. For **trade-off**, ask for the decision topic and any hard constraints. For **strategic-design** and **event-storming**, ask for the domain or workflow scope (e.g. "order fulfillment", "loan origination") and, for event-storming, which level (Big Picture is the default).
 
 3. Confirm mode(s) and scope before proceeding to Phase 1. When modes were elicited interactively here, confirm the order; when modes arrived via explicit `--mode`, do not re-confirm — the order is already declared.
 
@@ -92,7 +94,7 @@ When invoked without clear mode and scope, guide the user interactively:
 
 1. Parse mode(s) from `ARGUMENTS` (auto-detect a single mode, or parse a comma-separated list from explicit `--mode`), or use the mode(s) confirmed in Phase 0. Preserve declared order for multi-mode chains.
 2. Read project rules, guidelines, and existing ADRs.
-3. Detect the primary language from project files (only required for modes that compute structural metrics — `review`, `decompose`, `fitness`):
+3. Detect the primary language from project files (only required for modes that compute structural metrics — `review`, `decompose`, `fitness`). The discovery and design modes (`advise`, `trade-off`, `strategic-design`, `event-storming`) do not require language detection — they reason about contexts, decisions, and events at the C4 Context/Container level rather than computing metrics:
 
    | Indicator | Language | Tooling |
    |-----------|----------|---------|
@@ -117,6 +119,8 @@ Execute the selected mode by following its mode-reference file. For multi-mode i
 - `advise` → `references/mode-advise.md` (covers greenfield design, refactor guidance, CUPID/DDD assessment, and pattern advice)
 - `fitness` → `references/mode-fitness.md`
 - `trade-off` → `references/mode-trade-off.md`
+- `strategic-design` → `references/mode-strategic-design.md` (subdomain classification, bounded-context discovery and sizing, context mapping, UL touchpoints; greenfield + brownfield paths)
+- `event-storming` → `references/mode-event-storming.md` (Brandolini's three levels; produces event timelines, command/actor maps, hotspots, and subdomain or aggregate candidates)
 
 **Gate**: Mode work complete with evidence-based findings or an evidence-based recommendation
 
@@ -150,25 +154,10 @@ Each mode reference file declares what its report must include. See the referenc
 - **Report suffix**: `architecture`
 - **Target nature** (per mode):
   - `review` / `decompose` / `fitness` → source-code (the primary target is a package/directory; tier-2 co-location is disabled)
-  - `advise` / `trade-off` → doc artifact, with a **substituted tier-2 destination** (per the asset's tier-2 hook): the project's research/ADR location from the Project Document Index `Research` / `ADRs` rows. When such a row resolves, it replaces tier 2's "next to target" destination; tier 1 still wins, tiers 3/4 still apply on miss.
+  - `advise` / `trade-off` / `strategic-design` / `event-storming` → doc artifact, with a **substituted tier-2 destination** (per the asset's tier-2 hook): the project's research/ADR location from the Project Document Index `Research` / `ADRs` rows. When such a row resolves, it replaces tier 2's "next to target" destination; tier 1 still wins, tiers 3/4 still apply on miss.
 
 ### Publish to PR _(if --to-pr)_
 If `PUBLISH_PR` is set, post the report file's contents as a plain PR comment via `gh pr comment <number> --body-file <report-path>`. If the command does not return a direct comment URL, resolve it via follow-up lookup. Print the direct comment URL.
-
-## MULTI-STEP SESSIONS
-
-This skill supports chaining multiple analyses/designs in a single session in two equivalent ways:
-
-- **Declared upfront** — the user passes a comma-separated `--mode` list (or selects multiple modes in Phase 0). The chain runs end-to-end and produces one combined report (see Phase 4).
-- **Interactive chaining** — after any single-mode run, FOLLOW-UP ACTIONS offer the next mode and the skill loops back to Phase 1 with the user's choice. Each loop produces its own report.
-
-Both flavors carry forward context from prior steps — metrics computed in **review** should inform a subsequent **decompose**; options surfaced in **advise** should inform a subsequent **trade-off**.
-
-Typical chains:
-- **review** -> **decompose** (a specific finding) -> **fitness** (governance for the resolution)
-- **advise** -> **trade-off** (evaluate the candidate options surfaced during advice) -> ADR
-- **review** -> **advise** (dig into a specific concern) -> **fitness**
-- **fitness** -> **review** (assess current state before proposing governance)
 
 ## FOLLOW-UP ACTIONS
 
@@ -182,6 +171,8 @@ Offer:
 3. **Create fitness function implementations** from proposals
 4. **Formalize an ADR** from a `trade-off` recommendation or an `advise` decision
 5. **Code-level review** for correctness, style, security (invoke the `andthen:review` skill with `--mode code`)
-6. **End session** — finalize the report and stop
+6. **Review visually** — _trade-off and strategic-design modes only; OMIT this entry from the printed list when the active mode is neither `trade-off` nor `strategic-design`_. Invoke the `andthen:visualize` skill on the report to spot scope and edge-case issues a markdown view obscures (trade-off matrix becomes a per-option radar chart for at-a-glance comparison; strategic-design report renders each H2 section through the generic-prose path with section-anchored notes).
+7. **End session** — finalize the report and stop
+- **Common chains**: `review → decompose → fitness`; `advise → trade-off → ADR`; `review → advise → fitness`; `fitness → review`; `event-storming → strategic-design → decompose` _(end-to-end discovery into decomposition)_; `strategic-design → fitness` _(formalize strategic decisions as fitness functions)_; `strategic-design,trade-off` _(weighted-criteria comparison when an integration-pattern choice is contested)_
 
 When the user selects a follow-up that maps to another mode, loop back to Phase 1 with the new mode and narrowed scope. Do not re-read project rules or re-detect language — reuse context from the current session.

@@ -16,6 +16,8 @@ Apply these rules when evaluating findings:
 4. **Apply the peer-review standard.** If you would flag this in a review for a team you respect, flag it here. Do not lower your standards because this is an automated review.
 5. **Probe deeply, not broadly.** Don't just check that each item has a corresponding artifact. Verify that the artifact actually fulfills its purpose — that implementations work end-to-end, that specifications are actually implementable, that requirements are actually testable.
 6. **Do not dismiss findings you've already identified.** If your analysis found an issue, record it at the severity it deserves. The remediation plan can deprioritize it — your job is accurate identification, not triage.
+7. **No hedging language.** Don't soften findings with "could be an issue", "might cause problems", or "probably fine" — state the condition that fails and the impact if it does. Hedging is the verbal form of the leniency bias: it lets the reviewer mark a problem as a non-problem without writing down a falsifier.
+8. **Disclaimer-as-finding inside changed files.** "Did not touch pre-existing X" or "out of scope" applied to issues sitting *inside the files modified by the change set under review* are themselves findings, not disclaimers — flag them. Issues in unchanged files remain out of scope. Per-lens severity is set by the lens reference (default MEDIUM in code; HIGH for auth/injection/secret in security).
 
 
 ## Over-Lenient Review Calibration

@@ -55,23 +55,28 @@ Every skill works standalone — no pipeline required. Use them individually for
 
 Invoke with `/andthen:<skill>` (e.g. `/andthen:triage`, `/andthen:spec`).
 
+> **Not sure where to start?** Run `/andthen:now-what` — it inspects your project state and routes you to the right skill.
+
 ### Standalone Skills
 
 Use these individually for everyday development — no setup, no pipeline, no prior artifacts needed.
 
 | Skill | Purpose |
 |-------|---------|
+| `now-what` | First-stop router — inspects project state and routes to the right skill (use when starting fresh or unsure what to do next) |
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub → auto-PR) |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |
 | `review` | Smart review entrypoint: routes to code, doc, gap, security, mixed, or multi-perspective council review (`--council`) |
 | `refactor` | Code improvement and simplification |
-| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, and fitness functions (modes: `review`, `decompose`, `advise`, `fitness`, `trade-off`) |
+| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, and event storming (modes: `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming`) |
 | `ui-ux-design` | UI/UX work — research, design systems, wireframes, and design review (modes: `research`, `design-system`, `wireframes`, `review`) |
 | `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
 | `testing` | Test strategy, coverage, authoring, and test-first / red-green-refactor discipline (Prove-It for bugfixes) |
 | `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
 | `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
+| `visual-validation` | Validate UI screenshots and implementations against visual, responsive, and design expectations (`andthen:visual-validation` skill) |
+| `visualize` | Render PRD / requirements-clarification / trade-off report as a self-contained HTML view (inline CSS+JS+SVG, dark theme, no external deps); section-anchored notes export via clipboard as a markdown payload that downstream skills (`prd`, `clarify`, `architecture`) consume as conversational input. Open-loop (emits HTML, opens browser, exits). Output: `.agent_temp/visualize/<slug>-<ts>.html`. Diagrams: design-tree (clarification), per-option radar (trade-off), User Flows flowchart + Decisions Log timeline + Dependencies list-graph (PRD). Notes survive refresh via per-tab LocalStorage with restore prompt; `beforeunload` warning on unsaved notes; clipboard-API fallback to selectable textarea |
 | `e2e-test` | End-to-end browser testing for web applications |
 
 ### Pipeline Skills
@@ -94,15 +99,9 @@ These compose into structured workflows — from requirements through implementa
 
 ## Agents
 
-| Agent | Purpose |
-|-------|---------|
-| `research-specialist` | Web research and synthesis |
-| `documentation-lookup` | External documentation retrieval |
-| `visual-validation-specialist` | Visual validation workflow |
+AndThen ships one agent: the `andthen:documentation-lookup` agent for Claude Code plugin-tier installs only. Other install paths use equivalent skill-prompt routing through the project's `## Documentation Lookup Tools` section.
 
-Architecture and UI/UX design used to live as agents (`solution-architect`, `ui-ux-designer`); they are now **skills** — use `/andthen:architecture` and `/andthen:ui-ux-design`. Build/test diagnosis used to be a separate `build-troubleshooter` agent; its capability is now folded into the existing `/andthen:triage` skill.
-
-Codex agent files are generated from these Claude agent files at install time by `scripts/generate-codex-agents.sh` (invoked by `scripts/install-skills.sh`) — they are not committed to the repo.
+Architecture, UI/UX design, build/test diagnosis, and visual validation are **skills** — use `/andthen:architecture`, `/andthen:ui-ux-design`, `/andthen:triage`, and `/andthen:visual-validation` where relevant. Research is inline sub-agent guidance embedded in the skill prompts that need it (no standalone skill or agent).
 
 ## Usage Examples
 
@@ -143,6 +142,11 @@ Codex agent files are generated from these Claude agent files at install time by
 
 # Visualize an architecture or workflow
 /andthen:excalidraw-diagram "data pipeline architecture"
+
+# Render a PRD / requirements-clarification / trade-off report as a self-contained HTML view
+# with section-anchored notes (notes round-trip to downstream skills via clipboard)
+/andthen:visualize docs/specs/auth-feature/prd.md
+/andthen:visualize docs/specs/auth-feature/requirements-clarification.md
 ```
 
 #### Architecture Modes
@@ -166,8 +170,15 @@ Codex agent files are generated from these Claude agent files at install time by
 # Trade-off analysis — compare options with weighted criteria, produce an evidence-based recommendation or ADR
 /andthen:architecture --mode trade-off "SQL vs document DB for the events store"
 
+# Strategic design — subdomain classification, bounded contexts, context map, UL touchpoints (greenfield + brownfield)
+/andthen:architecture --mode strategic-design "order fulfillment domain"
+
+# Event storming — Brandolini-style discovery of pivotal events, hotspots, and subdomain candidates
+/andthen:architecture --mode event-storming "loan origination workflow"
+
 # Supports multi-step sessions — after any run, continue with another mode
-# (e.g. advise → trade-off → formal ADR, or review → decompose → fitness)
+# (e.g. advise → trade-off → formal ADR, review → decompose → fitness, or
+# event-storming → strategic-design → decompose for end-to-end discovery into decomposition)
 ```
 
 #### Multi-Perspective Review

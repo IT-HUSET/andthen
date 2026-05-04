@@ -244,3 +244,88 @@ Asymmetric three-zone layout so the hero gets room to breathe:
 | None of these cleanly fit | Combine two (e.g. Pipeline + Comparison = two parallel pipelines) |
 
 **Do not** default to Architecture for everything. Most "architecture diagrams" from AI tools are actually pipelines or taxonomies wearing architecture clothing, and the wrong archetype choice is why they look generic.
+
+---
+
+## Visual Patterns
+
+Map each concept to the pattern that mirrors its behavior. **Each major concept must use a different visual pattern.** No uniform cards or grids.
+
+### Fan-out
+One source spawns multiple outputs. Use for: broadcasting, triggers, root causes, one-to-many.
+```
+            ○ target
+           ↗
+    □ ──→ ○ target
+    source ↘
+            ○ target
+```
+
+### Convergence
+Multiple inputs merge into a single output. Use for: aggregation, funnels, synthesis, many-to-one.
+```
+    ○ input ↘
+    ○ input ──→ □ result
+    ○ input ↗
+```
+
+### Tree
+Parent-child branching hierarchy. Use for: file systems, org charts, taxonomies, nested structures. **Use lines + free-floating text, not boxes.**
+```
+    Root Label
+    ├── Branch A
+    │   ├── Leaf A1
+    │   └── Leaf A2
+    └── Branch B
+        └── Leaf B1
+```
+
+### Timeline
+Ordered sequence of steps or events. Use for: protocols, lifecycles, step-by-step processes. **Line + small dots + free-floating labels.**
+```
+    ●──────●──────●──────●──────●
+    Step 1  Step 2  Step 3  Step 4  Step 5
+    detail  detail  detail  detail  detail
+```
+
+### Spiral / Cycle
+Continuous loop that repeats. Use for: feedback loops, iterative processes, retry patterns, evolution.
+```
+    □ ────→ □
+    ↑         ↓
+    □ ←──── □
+```
+
+### Cloud
+Overlapping ellipses forming a fuzzy region. Use for: abstract state, context, memory, ambient processes.
+```
+       ╭───╮
+    ╭──┤   ├──╮
+    │  ╰─┬─╯  │
+    ╰────┴────╯
+      abstract
+```
+
+### Assembly Line
+Input transforms through a process into output. Use for: ETL, compilation, data pipelines, before/after.
+```
+    ○○○  ──→  [ PROCESS ]  ──→  □□□
+    raw         transform        result
+```
+
+### Side-by-Side
+Parallel structures for comparison. Use for: before/after, trade-offs, options, old vs new.
+```
+    ┌─── Option A ───┐    ┌─── Option B ───┐
+    │  □ → □ → □     │    │  □ → □         │
+    │  fast, complex  │    │  slow, simple   │
+    └────────────────┘    └────────────────┘
+```
+
+### Gap / Break
+Visual whitespace or barrier between phases. Use for: phase transitions, context switches, boundaries.
+```
+    [ Phase 1 ]          [ Phase 2 ]
+    □ → □ → □    ║║║    □ → □ → □
+                 gap
+```

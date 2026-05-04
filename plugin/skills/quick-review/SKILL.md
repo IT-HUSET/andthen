@@ -73,12 +73,16 @@ Determine what type of work was done to frame the review appropriately:
 
 Apply the canonical Critic rubric to the change set. Default execution dispatches to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; `--inline` applies the rubric directly when the calling conversation is already fresh.
 
-**Default — sub-agent dispatch.** Spawn a **single `general-purpose` sub-agent**. Construct its prompt by:
-
-1. Reading `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md` and pasting their contents verbatim as the lead of the sub-agent prompt.
-2. Appending the call-specific sections below, filled in from the scope and classification steps above:
+**Default — sub-agent dispatch.** The outer skill loads the same three references itself before dispatch so it can apply the same calibration in Phase 4. Spawn a **single sub-agent** with a prompt of this shape, filled in from the scope and classification steps above:
 
 ```
+Read all three references before applying the rubric:
+- ${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md — Critic posture, what to attack, Finding Shape
+- ${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md — find-pass calibration and contrastive examples
+- ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md — Anti-Leniency Protocol
+
+Apply the Critic posture to the change set below.
+
 ## Context
 {what was done and why — brief description of the task/goal}
 
@@ -90,12 +94,12 @@ Apply the canonical Critic rubric to the change set. Default execution dispatche
 
 ## Output
 
-Report findings as a concise list using the **Finding Shape** from the rubric above. No preamble, no summary section, no severity table. If no weakness survives the attack, say so explicitly using the wording in the rubric's Review Instructions.
+Report findings as a concise list using the **Finding Shape** from `lens-adversarial.md`. No preamble, no summary section, no severity table. If no weakness survives the attack, say so explicitly using the wording in that file's Review Instructions.
 ```
 
 Provide enough inline context (diffs, file excerpts, project framing) that the sub-agent does not need to explore the codebase extensively.
 
-**`--inline` — in-context application.** Read the same two reference files directly, adopt the Critic posture, and apply it to the change set in the current conversation. Use the same Finding Shape and anti-leniency rules.
+**`--inline` — in-context application.** Read the same three reference files directly, adopt the Critic posture, and apply it to the change set in the current conversation. Use the same Finding Shape and anti-leniency rules.
 
 Before applying the rubric, verify the calling conversation has not produced or substantively reasoned about the change set. If it has, emit `FALLBACK: --inline rejected, dispatching sub-agent (calling conversation not fresh w.r.t. change set)` and continue with default dispatch — surface the fallback in the final report so the caller knows the flag was overridden. In `AUTO_MODE`, the fallback is reported the same way; never silently swap mechanisms.
 
@@ -105,9 +109,9 @@ Before applying the rubric, verify the calling conversation has not produced or 
 
 Review the findings produced in Phase 3 (sub-agent or `--inline`). For each:
 - **Accept**: the finding is valid and actionable
-- **Dismiss**: the finding is based on a misunderstanding of the context (explain briefly why)
+- **Dismiss**: only on a concrete falsifier — observed mitigation in the artifact, explicit upstream citation, or calibration match. Never dismiss on recall ("I already considered that") or recency ("I just wrote that and it seemed fine").
 
-**Under `--inline`**: the same agent generated and is now evaluating the findings — the structural separation default dispatch provides is collapsed. Dismiss only on a concrete falsifier (observed mitigation in the artifact, explicit upstream citation, calibration match), never on recall ("I already considered that") or recency ("I just wrote that and it seemed fine"). The same discipline applies under `--inline --fix`, where generator, evaluator, and applicator collapse into one context.
+**Under `--inline`** (and especially `--inline --fix`): the same agent generated and is now evaluating the findings — the structural separation default dispatch provides is collapsed. The falsifier rule above applies with extra force.
 
 Present accepted findings to the user as a concise inline list.
 

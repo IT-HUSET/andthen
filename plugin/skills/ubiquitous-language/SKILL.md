@@ -21,9 +21,6 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--update` before interpreting
 
 ## INSTRUCTIONS
 
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
-  - **Foundational Rules and Guardrails**
-  - **Foundational Development Guidelines and Standards** (e.g. Development, Architecture, UI/UX Guidelines etc.)
 - **Read-only analysis** – do not modify any source code
 - **Domain focus** – extract terms that represent business/domain concepts, not generic programming terms
 - **Resolve, don't accumulate** – when two terms mean the same thing, pick one canonical name and list the other as a synonym to avoid
@@ -94,29 +91,16 @@ Output the `Ubiquitous Language` document using this structure:
 
 ```markdown
 # Ubiquitous Language
+> Domain glossary for [Project Name]. Use these exact terms in code, documentation, and discussion.
 
-> Domain glossary for [Project Name]. Canonical terms for use in code, documentation, and team communication.
->
-> **Usage**: Use these exact terms in code (class names, variables, functions), documentation, and discussion. Avoid synonyms listed in the "Avoid" column.
-
-## [Domain Cluster: e.g., "Users & Authentication"]
-
+## [Domain Cluster]
 | Term | Definition | Avoid (synonyms) | Bounded Context |
 |------|-----------|-------------------|-----------------|
-| Tenant | An organization-level account that owns resources | company, org, workspace | Multi-tenancy |
-| Member | A user belonging to a Tenant | employee, team member, staff | Identity |
-
-## [Domain Cluster: e.g., "Billing"]
-
-| Term | Definition | Avoid (synonyms) | Bounded Context |
-|------|-----------|-------------------|-----------------|
-| Subscription | ... | plan, membership | Billing |
+| Tenant | An organization-level account | company, org, workspace | Multi-tenancy |
 
 ## Overloaded Terms
-
 | Term | Context A | Meaning A | Context B | Meaning B |
 |------|-----------|-----------|-----------|-----------|
-| Account | Identity | User login credentials | Billing | Payment method |
 
 ## Changelog
 - [date]: Initial extraction / Updated [terms]
@@ -129,10 +113,8 @@ Store at the `Ubiquitous Language` document location from the **Project Document
 
 ### 5. Validation
 
-- [ ] All domain clusters have at least 2 terms
 - [ ] No synonym appears as a canonical term elsewhere
 - [ ] Overloaded terms are identified with context qualifiers
-- [ ] Bounded contexts are meaningful (not just "general")
 - [ ] Terms are actionable – a developer can use them to name things
 
 

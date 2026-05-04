@@ -19,28 +19,8 @@ Default to **independent peer dimensions**, not hierarchy.
 
 Handle incompatibilities in cross-consistency notes, not by inventing a tree too early. Only nest when one choice truly determines the available choices below it.
 
-## How to Construct
+## Cross-Consistency Rubric
 
-### 1. Name the Decision
-State the feature, capability, or design question being explored.
-
-### 2. Decompose into Dimensions
-List 3-7 independent axes of choice.
-
-Ask:
-- What separate decisions are bundled together here?
-- Which choices can change without automatically changing the others?
-- Which distinctions matter to users, operators, or implementers?
-
-### 3. List Options per Dimension
-List 2-5 viable options per dimension.
-
-Rules:
-- Keep only realistic options
-- Use codebase and domain language, not abstract placeholders
-- Avoid "nice to have someday" brainstorming
-
-### 4. Run Cross-Consistency Assessment
 Mark important pairs as:
 - **Compatible**
 - **Incompatible**
@@ -48,15 +28,12 @@ Mark important pairs as:
 
 This is the pruning step. The goal is not to rank options yet; it is to rule out combinations that do not make sense.
 
-### 5. Derive Viable Combinations
-Pick the 2-4 combinations worth deeper evaluation or specification.
-
-Each candidate should be one option per dimension plus any important conditions.
-
 ## Output Shapes
 
+Three named shapes; pick the one whose information density matches the decision.
+
 ### Compact List
-Use for most documentation:
+Default for inline use in specs and clarification docs:
 
 ```text
 [Decision]
@@ -66,7 +43,7 @@ Use for most documentation:
 ```
 
 ### Morphological Matrix
-Use when you need to reason systematically about combinations:
+Use when you need to reason systematically about combinations across many dimensions:
 
 ```text
 | Dimension | Option 1 | Option 2 | Option 3 |
@@ -77,7 +54,7 @@ Use when you need to reason systematically about combinations:
 ```
 
 ### Hierarchical Nesting
-Use only for genuine dependency:
+Use only for genuine dependency where a parent choice changes what options exist for the child:
 
 ```text
 API Design
@@ -89,32 +66,13 @@ API Design
 
 ## Example
 
-```text
-Caching Strategy
-- Invalidation: TTL | Event-driven | Hybrid
-- Storage: In-process | Redis/Valkey | CDN edge
-- Scope: Request | User/session | Shared
-- Consistency: Strong | Eventual | Read-your-writes
-```
+Caching Strategy dimensions:
+- Storage: `In-process` | `Redis/Valkey` | `CDN edge`
+- Consistency: `Strong` | `Eventual` | `Read-your-writes`
+- Scope: `Per-user` | `Shared` | `Per-tenant`
+- Invalidation: `TTL` | `Event-driven` | `Request`
 
 Cross-consistency notes:
 - `CDN edge` + `Strong` -> incompatible
 - `In-process` + `Shared` -> incompatible in multi-instance deployments
 - `Request` + `Event-driven` -> usually unnecessary
-
-## Using the Output
-
-### In `clarify`
-- Turn unresolved dimensions into discovery questions
-- Capture resolved dimensions as explicit decisions
-- Keep open dimensions visible instead of quietly choosing defaults
-- Decompose only **load-bearing** dimensions — those whose outcome shapes user-visible behavior, scope, or acceptance criteria. Defer implementation-only dimensions to `spec` or `architecture --mode trade-off`. The clarify skill's `Requirements vs. Implementation Boundary` section names the canonical examples on each side.
-
-### In `trade-off`
-- Compare viable combinations, not imaginary "complete solutions"
-- Research only the contested dimensions and risky conditions
-
-### In `plan`
-- Independent dimensions often become separate stories
-- Coupled dimensions belong in the same story
-- High-uncertainty dimensions may need a spike first

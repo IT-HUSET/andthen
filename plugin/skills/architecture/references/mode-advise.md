@@ -41,55 +41,6 @@ For structured option comparison with weighted criteria, chain into the `trade-o
 2. Explain the trade-off (what you gain, what you lose)
 3. Cite counter-arguments or when the principle should bend
 
-## Core Competencies
-
-### Architectural Analysis & Design
-
-- run structured trade-off analysis using cost, risk, and technical-debt lenses
-- apply layered, Clean, hexagonal, event-driven, CQRS, event sourcing, and reactive patterns in context
-- define clear domain boundaries, bounded contexts, and aggregate responsibilities
-- use C4, UML, or other architecture descriptions when they clarify the decision
-
-### System Design
-
-- evaluate monolith vs modular monolith vs microservices based on team, complexity, and organizational factors
-- design synchronous and asynchronous integration patterns, including event-driven flows and API gateways where justified
-- reason about concurrency, consistency, availability, and partition-tolerance trade-offs
-- choose caching, storage, and communication patterns appropriate to the workload, including application, distributed, and CDN caching
-
-### API Design
-
-- define explicit API contracts and documentation
-- choose REST, GraphQL, gRPC, or event-driven interfaces based on use case and team fit
-- optimize for usability, discoverability, and change management, using OpenAPI or similar specifications when useful
-- handle versioning, status codes, validation, rate limiting, and CORS deliberately
-
-### Database & Data Access
-
-- choose SQL or NoSQL based on data shape, access patterns, and consistency needs
-- design schemas around the domain model rather than incidental implementation details
-- use repositories or similar patterns when they improve boundary clarity
-- plan constraints, validation, indexing, transactions, and rollback behavior up front
-- use CQRS when read and write concerns materially diverge
-- consider event sourcing when change history is central to the domain
-- consider brokers such as Kafka or RabbitMQ when asynchronous integration is operationally justified
-- plan schema and data versioning so change is manageable over time
-
-### Service Granularity & Modularity
-
-- define service boundaries around business capabilities, not just technical layers
-- apply single-responsibility thinking at service and module boundaries
-- evaluate the organizational and operational forces behind service splits
-- optimize for high cohesion, low coupling, and independent change
-- use service discovery, gateways, or meshes only when their operational cost is justified
-
-### Quality, Performance, and Operations
-
-- use SOLID and/or CUPID as design lenses
-- choose the simplest effective scaling strategy: horizontal, vertical, load balancing, and targeted optimization
-- account for security, observability, operability, and resilience in major decisions
-- treat performance characteristics and failure modes as first-class design concerns
-
 ## CUPID Assessment Lens
 
 Use CUPID (https://cupid.dev/) as an assessment lens, not a pass/fail checklist.
@@ -149,41 +100,7 @@ For questions about **in-process** module, class, or public-API design (not serv
 
 This lens is **complementary** to CUPID and DDD, not a replacement: apply it to within-service design, not to service decomposition. For altitude and limits, see `ousterhout-modules.md`.
 
-## Modern Architecture Patterns
-
-### Cloud-Native & Distributed Systems
-
-- evaluate microservices vs modular monolith based on team size, complexity, and organizational readiness
-- use event-driven architecture for asynchronous or resilience-sensitive workflows when the domain supports it
-- consider serverless for suitable event processing, API, and batch workloads
-- use API gateways only when the centralization benefit justifies the added layer
-
-### Performance & Scalability
-
-- choose horizontal vs vertical scaling based on actual workload characteristics
-- use multi-layer caching only when it improves performance without corrupting correctness
-- consider CQRS, event sourcing, polyglot persistence, and read replicas only when justified
-- make load balancing and failover part of the design, not an afterthought
-
-### Resilience & Observability
-
-- use circuit breakers, retries, timeouts, and backoff deliberately to prevent cascading failure
-- define metrics, logging, tracing, and alerting around critical paths
-- include observability in architecture decisions, not only implementation details
-
-## Common Anti-Patterns to Detect
-
-- **God Objects**: responsibilities concentrated in one class or module; split by responsibility and boundary
-- **Circular Dependencies**: direct or indirect mutual dependency; introduce a stable abstraction or boundary
-- **Tight Coupling**: components cannot change independently; reduce knowledge and invert dependencies
-- **Framework Coupling**: business logic tied to framework constructs; restore architectural boundaries
-- **Anemic Domain Model**: domain objects have no behavior; move business logic into the domain
-- **Inappropriate Intimacy**: modules know too much about each other's internals; enforce encapsulation
-- **Feature Envy**: logic belongs closer to the data or behavior it depends on; move it to the proper owner
-- **Distributed Monolith**: services are split physically but not operationally; reduce synchronous coupling or consolidate
-- **Chatty Interfaces**: excessive cross-boundary back-and-forth; coarsen APIs or restructure ownership
-- **Shared Database**: multiple services write the same store directly; separate ownership or add integration boundaries
-- **Big Ball of Mud**: boundaries are absent or unenforced; re-establish explicit domains and dependency rules
+Common anti-patterns: see [`anti-patterns.md`](anti-patterns.md) for the full catalog of anti-patterns to detect during advisory work.
 
 ## Codebase Analysis Approach
 

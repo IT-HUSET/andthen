@@ -155,23 +155,22 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 | `/review --mode code` | Thorough code review (quality, security, architecture) | `sonnet` | `medium`–`high` | Medium for routine review, high for security-critical |
 | `/review --mode doc` | Review specs/PRDs/documentation | `sonnet` | `medium` | Comprehension and completeness checking |
 | `/review --council` | Multi-perspective adversarial review | `sonnet` | `high` | Multiple subagent perspectives need depth to be meaningful |
+| `/visual-validation` | Validate UI screenshots and implementations against design references, baselines, and responsive expectations | `sonnet` | `medium` | Visual comparison and issue classification benefit from focused perception and design judgment |
 | `/ubiquitous-language` | Extract and maintain domain glossary | `sonnet` | `medium` | Analytical extraction and resolution, not deep reasoning |
 | `/testing` | Test strategy, coverage, authoring, TDD (red-green-refactor, Prove-It) | `sonnet` | `medium` | Formulaic craft with domain knowledge; test-first benefits from focused sub-context |
 
-#### Other Agents (invoked by commands or directly)
+#### Other Agents (Claude Code plugin tier only)
 
 | Agent | Description | Model | Effort | Rationale |
 |-------|-------------|-------|--------|-----------|
-| `visual-validation-specialist` | Screenshot capture, comparison, design compliance | `sonnet` | `medium` | Primarily perceptual (multimodal), not reasoning-heavy |
-| `documentation-lookup` | Fetch up-to-date library/API docs | `haiku` | `low` | Retrieval task, no reasoning needed |
-| `research-specialist` | Deep web research, multi-source synthesis | `sonnet` | `medium` | Broad search + synthesis, not deep per-query reasoning |
+| `documentation-lookup` | Fetch up-to-date library/API docs; Claude Code plugin tier only | `haiku` | `low` | Retrieval task, no reasoning needed |
 | Subagents (general parallel work) | Delegated subtasks | `haiku` or `sonnet` | `low` | Cost multiplies with parallelism |
 
 > Architecture, UI/UX, and build/test diagnosis used to be agents (`solution-architect`, `ui-ux-designer`, `build-troubleshooter`); as of 0.13 they are **skills** — see `/architecture`, `/ui-ux-design`, and `/triage` in the tables above.
 
 ### Commands via Other Agents (Codex CLI, etc.)
 
-Skills are agent-agnostic – the same files work across all agents. Recommendations for Codex CLI assume you ran `./scripts/install-skills.sh`, which exports skills as `andthen-*/` and installs the matching Codex custom agents:
+Skills are agent-agnostic – the same files work across all agents. Recommendations for other agents assume you ran `./scripts/install-skills.sh`, which exports skills as `andthen-*/`:
 
 | Skill | Description | Model | Effort | Rationale |
 |-------|-------------|-------|--------|-----------|
@@ -183,6 +182,7 @@ Skills are agent-agnostic – the same files work across all agents. Recommendat
 | `andthen-review` | Code/doc/gap review with selectable mode | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical or complex gap analysis |
 | `andthen-remediate-findings` | Implement validated review findings | `gpt-5.4` | `medium`–`high` | Requires bounded remediation, re-validation, and status bookkeeping |
 | `andthen-ui-ux-design` | UI/UX research, design systems, wireframes, review | `gpt-5.4` | `medium` | Pattern-following with design knowledge |
+| `andthen-visual-validation` | Validate screenshots and UI implementations against design references, baselines, and responsive expectations | `gpt-5.4` | `medium` | Visual comparison and issue classification benefit from focused perception and design judgment |
 | `andthen-architecture` | Architecture design, review, decomposition, trade-off analysis, fitness functions | `gpt-5.4` | `high` | Core reasoning task, decision quality matters |
 | `andthen-refactor` | Code simplification and cleanup | `gpt-5.4` | `medium`–`high` | Medium for localized, high for cross-file |
 | `andthen-quick-implement` | Fast path for small features/fixes | `gpt-5.4` | `medium` | Bounded scope, standard implementation |

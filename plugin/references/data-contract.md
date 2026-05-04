@@ -89,7 +89,7 @@ Before executing destructive work, `exec-spec` Step 2 verifies the FIS is struct
 
 Failure on any condition: emit `BLOCKED: <fis-path> missing: <comma-separated section list>` and exit before Step 3. Do not enter Step 3 on a failed structural check.
 
-> **Pre-0.14.x FIS** (no Required/Deeper Context sections, no provenance fields): these FIS will fail the structural integrity check because they lack the required section headings. The failure is intentional — pre-0.14.x FIS require re-spec. The `BLOCKED:` message directs the user to re-spec.
+> Older FIS files lacking the required structural sections (Success Criteria, Implementation Plan, Final Validation Checklist) fail this check intentionally. The `BLOCKED:` message instructs the user to re-spec.
 
 
 ## FIS Filename Convention

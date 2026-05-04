@@ -44,7 +44,7 @@ Record one finding per source/sink pair where validation is missing, weak, or ap
 Run available security scanners when applicable. The default tool is Semgrep via the helper script:
 
 ```sh
-../scripts/run-security-scan.sh <path>
+${CLAUDE_SKILL_DIR}/scripts/run-security-scan.sh <path>
 ```
 
 Treat scanner output as input to the review, not as findings on its own:
@@ -83,17 +83,13 @@ When invoked standalone, treat those checks as part of the review evidence. When
 
 ## Findings Filter
 
-This pass cannot find new issues; that is the Critic Lens's job ([`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md)).
+> **Findings Filter**: see [`lens-findings-filter.md`](lens-findings-filter.md).
 
-Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples and adjust severity. Withdrawals follow the same Verdict-discipline floor as the formal filter ([`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md)) — concrete falsifier required; "doesn't hold up" alone is a downgrade. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
-
-**Full filter** (when triggered): Use [`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md) (`Generic Findings-Filter Template`) with:
+Lens-specific placeholder values:
 - **Role**: `Findings Filter reviewing security review findings`
-- **Shared calibration**: [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md)
 - **Skill calibration**: `security-review-calibration.md`
 - **Context block**: `Review target context: {implementation paths and applicable OWASP checklists from Step 0}`
 - **Questions**: Is the source/sink path real? Is the exposure level (public / authenticated / internal / admin / VPN) accurately reflected in the severity? Could there be an existing mitigation upstream or downstream of the changed code? Is this a known false-positive shape (test fixture, intentional eval, framework-provided escape)?
-- **Verdicts**: `VALIDATED`, `DOWNGRADED`, `WITHDRAWN`
 - **Findings payload**: `{all findings from OWASP checklists, trust-boundary analysis, scanner hits, and Critic walkthrough}`
 
 Apply verdicts before scoring.

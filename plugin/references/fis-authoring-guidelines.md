@@ -5,28 +5,19 @@ Shared authoring guidelines for generating Feature Implementation Specifications
 
 ## FIS Authoring Principles
 
-> FIS is an executable spec: intent over implementation, references over content, decisions not explanations.
-> No code snippets >5 lines, no inline docs, no verbose prose, no file trees — reference existing patterns and describe outcomes.
+FIS is an executable spec: intent over implementation, references over content, decisions not explanations.
+
+> **FIS Mutability**: see [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) — *FIS Mutability Contract*.
 
 
 ## Technical Research Separation
 
 Technical research that supports the FIS but doesn't require intent review belongs in a **Technical Research** companion document (`.technical-research.md`) stored alongside the FIS. This keeps the FIS reviewable for intent correctness while preserving implementation-enabling details for the executing agent.
 
-### What stays in the FIS (needs human intent review)
-- Success criteria, scenarios, scope decisions
-- Architecture decision (compact: chosen approach + rationale)
-- UI/UX flows and user-facing interactions
-- High-level data shapes and integration points (what connects, not protocol details)
-- Constraints that affect scope or feasibility
+**Named contrast**: "intent review" (FIS) vs "enables execution" (Technical Research).
 
-### What goes in Technical Research (enables execution, doesn't need intent review)
-- Codebase analysis: patterns found, conventions, file:line inventories, similar implementations
-- API documentation excerpts, library research, version-specific gotchas
-- Detailed architecture trade-off analysis (full alternatives comparison, PoC results)
-- Field-level data model details, schema specifics, migration considerations
-- Integration implementation details (auth flows, webhook formats, SDK usage patterns)
-- Detailed workarounds for known limitations
+- **FIS**: success criteria, scenarios, scope decisions, architecture decisions, constraints — what a reviewer validates to confirm *"are we building the right thing?"*
+- **Technical Research**: codebase analysis (patterns, file:line inventories), API docs and library research, detailed trade-off analysis and PoC results, schema/migration specifics, integration implementation details
 
 **Guiding principle**: If a reviewer needs to validate *"are we building the right thing?"* → FIS. If the detail helps the executing agent *"build the thing right"* → Technical Research.
 
@@ -131,7 +122,7 @@ For each FIS Success Criterion, name the plan acceptance criterion, PRD outcome,
 
 **Resolution depends on mode:**
 
-- **Batch sub-agent mode** (from the `andthen:plan` skill) — sub-agents check Success Criteria against plan-level sources **plus the binding-PRD-constraints extraction** in the technical research (verbatim text + heading anchor for each binding entry). A criterion that traces to either is sourced; only criteria with no plan-level *and* no extraction source are candidates for phantom-scope reporting. For each candidate, either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate — at Step 7's cross-cutting review the orchestrator filters once more against the full `prd.md` to catch any constraint missed by the extraction. Do not rationalize by adding scope notes. Do not edit `plan.md` or `prd.md`.
+- **Batch sub-agent mode** (from the `andthen:plan` skill) — sub-agents check Success Criteria against plan-level sources **plus the binding-PRD-constraints extraction** in the technical research (verbatim text + heading anchor for each binding entry). A criterion that traces to either is sourced; only criteria with no plan-level *and* no extraction source are candidates for phantom-scope reporting. For each candidate, either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate — at Step 7's cross-cutting review the orchestrator filters once more against the full `prd.md` to catch any constraint missed by the extraction. Do not rationalize by adding scope notes. **Do not edit `plan.md` or `prd.md` from a sub-agent** — phantom-scope resolution flows through the orchestrator only.
 - **Standalone mode**: (a) remove, or (b) raise with the user and — on approval — add a scope note documenting the proposed addition for plan/PRD amendment.
 - **Standalone with no plan or PRD at all**: accept the criterion only if it traces to a user- or business-observable outcome in the feature request. "Uses X library", "refactors Y" are phantom scope absent a user-facing reason.
 
@@ -141,10 +132,10 @@ Do not finalize a FIS with Success Criteria the upstream contract doesn't justif
 ## Self-Check
 
 Quick sanity check before saving:
-- [ ] **Template structure**: FIS follows the template; ADR states the decision; no over-specification or code snippets >5 lines
-- [ ] **Size check**: measured against Key Generation Guidelines #6 — if oversized, the `OVERSIZE:` signal is emitted in the artifact output (the FIS itself still saves)
-- [ ] **Scope-consistency**: every "In Scope" item is exercised by a scenario or Verify line; `What We're NOT Doing` is specific and never contradicts a Success Criterion
-- [ ] **Coverage**: every Success Criterion has a proof path (scenario or Verify line); scenarios cover happy path, edge cases, one error case; negative-path checklist applied; plan Key Scenario seeds all mapped (if plan-derived); output shapes specified when structured output is a Success Criterion
+- [ ] **Template structure**: follows Key Generation Guidelines — ADR states decision, no over-specification or code snippets >5 lines
+- [ ] **Size check**: see Key Generation Guidelines #6 — if oversized, emit the `OVERSIZE:` signal
+- [ ] **Scope-consistency**: every "In Scope" item exercised by a scenario or Verify line; see Reverse Coverage Check + In-Scope rules
+- [ ] **Coverage**: every Success Criterion has a proof path; see Scenarios and Proof-of-Work (negative-path checklist)
 
 ### Confidence Check
 Rate your FIS 1-10 for single-pass implementation success:
@@ -154,4 +145,4 @@ Rate your FIS 1-10 for single-pass implementation success:
 
 **If score <7**: Revise or ask for user clarification.
 
-**If score <7 AND FIS exceeds size thresholds**: the feature is likely too large for a single spec. The FIS still saves, but the `OVERSIZE:` signal must fire and the recommendation should match Key Generation Guidelines #6 — `/andthen:prd → /andthen:plan → /andthen:exec-plan` for standalone inputs, upstream plan decomposition for plan-story inputs.
+**If score <7 AND FIS exceeds size thresholds**: see Key Generation Guidelines #6.

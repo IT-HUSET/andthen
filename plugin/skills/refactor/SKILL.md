@@ -18,7 +18,6 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--
 
 ## INSTRUCTIONS
 
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
 - **Preserve exact behavior** – change only *how* the code works, never *what* it does, unless explicitly requested
 - **No scope creep** – only refactor what's specified
 - **Tests must pass** before and after refactoring
@@ -32,16 +31,10 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--
 
 ### Refactoring Philosophy
 
-The purpose of refactoring is to make code easier to understand, maintain, and extend. Favor **readable, explicit code** over compact or clever solutions:
-
-- **Reduce complexity**: flatten nesting, eliminate over-abstraction, remove dead code and unused imports
-- **Improve clarity**: better naming, consolidate related logic, remove comments that describe the obvious
-- **Eliminate duplication**: extract shared logic only when it genuinely reduces maintenance burden
-- **Respect balance**: don't over-simplify – avoid combining too many concerns into single functions, don't remove helpful abstractions, don't prioritize "fewer lines" over readability, don't create overly clever solutions that are hard to debug or extend
+Favor **readable, explicit code** over compact or clever solutions. Reduce complexity, improve naming, eliminate duplication where it genuinely helps, and respect balance — don't over-simplify into hard-to-debug cleverness or remove helpful abstractions.
 
 
 ## GOTCHAS
-- Changing behavior while refactoring – preserve all existing functionality
 - Not establishing a baseline (tests pass, build succeeds) before starting
 - Over-simplification that makes code harder to debug or extend
 - Premature abstraction – three similar lines of code is often better than one clever helper
@@ -64,6 +57,7 @@ The purpose of refactoring is to make code easier to understand, maintain, and e
 - In `AUTO_MODE`, this fallback is only defensible when it yields a small, cohesive file set; stop with `BLOCKED: no defensible scope (no --path, no description, recent-git-history fallback yielded {nothing | shallow-clone error | a wide cross-module set})` rather than refactoring against noise
 
 #### 1.2. Establish Baseline
+- Use the commands from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) for all baseline and Phase 4 verification calls. Fall back to discovery (package.json scripts, Makefile targets, language conventions) only when the document is missing.
 - Run existing tests to confirm passing state
 - Run linting/type checks
 - Note current state for regression comparison
@@ -98,7 +92,7 @@ Execute improvements from the prioritized list:
 
 ### Phase 4: Verification
 
-Run in **parallel sub-agents**:
+Run in **parallel sub-agents**. Each sub-agent prompt must include the relevant command from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) read in Phase 1.2 — sub-agents start with fresh context and do not inherit Phase 1.2's reads. Fall back to discovery only when the document was missing.
 
 1. **Tests**: Run full test suite – all tests must pass
 2. **Code review**: Invoke the `andthen:review` skill with `--mode code` to verify improvements and catch regressions

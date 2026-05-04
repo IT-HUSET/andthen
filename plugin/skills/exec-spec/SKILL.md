@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants to execute or implement an existing spec or FIS. Implements code from a Feature Implementation Specification. Trigger on 'execute this spec', 'execute this FIS', 'implement this spec', 'implement this FIS', 'build from spec'.
-argument-hint: "[--auto|--headless] [--tdd] [--defer-shared-writes] <path-to-fis>"
+argument-hint: "[--auto|--headless] [--tdd] [--defer-shared-writes] [--to-pr <number>] <path-to-fis>"
 ---
 
 # Execute Feature Implementation Specification
@@ -8,12 +8,13 @@ argument-hint: "[--auto|--headless] [--tdd] [--defer-shared-writes] <path-to-fis
 Execute a fully-defined FIS document as the **executor**. Implement the FIS directly, use sub-agents only for narrow advisory/review work, and complete all validation and status gates before finishing.
 
 ## VARIABLES
-FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `--tdd`, or `--defer-shared-writes` before interpreting the remainder as the FIS path)
+FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `--tdd`, `--defer-shared-writes`, or `--to-pr` before interpreting the remainder as the FIS path)
 
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 - `--tdd` → TDD_MODE: strict TDD execution mode. Scaffold exactly one scenario test, observe it fail, drive red→green→refactor, then advance to the next scenario. The TDD canon — Anti-Cheat Invariant, Living Test List, Horizontal Slicing as Anti-Pattern, red→green→refactor discipline — is owned by the `andthen:testing` skill; load it via `/andthen:testing --mode tdd` (or the Skill tool) for canon depth, but the executor remains the test author — this is canon consultation, not delegation of test writing. `AUTO_MODE` honors `--tdd` without confirmation gates. Default off; opt in for logic-heavy or bug-mode FISes.
 - `--defer-shared-writes` → DEFER_SHARED_WRITES: skip direct `plan.md` and `State` document writes (FIS writes still run); emit a `## Deferred Shared Writes (worktree mode)` audit block in the completion report instead. Set automatically by `andthen:exec-plan --team --worktree` to prevent concurrent worktree merges from colliding on shared files. Intended for orchestrated use — see Step 5b.5 for emission format and standalone-use details.
+- `--to-pr <number>` → PUBLISH_PR: after Step 5b status writes succeed, post the existing completion summary (the report produced by Step 5c) as a PR comment via `gh pr comment <number> --body-file <summary-path>`. No new content generation — the comment body is the local summary verbatim. Explicit number only; no auto-detect from the current branch. See Step 5d for emission details.
 
 
 ## INSTRUCTIONS
@@ -26,31 +27,22 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
 - **Direct execution** — implement the code yourself. Sub-agents are for advisory work, review, and validation only.
 - **Surgical scope; surface — don't fix** — every changed line should trace to a FIS task. Clean only orphans your own changes caused (an import you made unused, a helper your refactor stranded). Pre-existing issues outside that orphan radius — including lint/analyzer warnings, dead code, typos, and small co-located bugs *inside files you touch* — go into a `NOTICED BUT NOT TOUCHING` block in working notes during the run, are persisted to the FIS's `## Implementation Observations` section at completion (Step 5b), and are surfaced as a brief pointer (not a full duplicate) from the completion report; do not fix inline. Boy Scout cleanup is reserved for review/refactor skills (the `andthen:review`, `andthen:quick-review`, `andthen:refactor`, and `andthen:architecture` skills), not exec-spec. See **Workflow Rules, Guardrails and Guidelines** in the project `CLAUDE.md`.
-- **Anti-rationalization** — if you catch yourself skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate, reject these common rationalizations:
-  - "I'll verify after the next group" — defects compound; verify before more work builds on a bad assumption.
-  - "This failing check is probably unrelated" — Stop-the-Line applies.
-  - "I'll update status at the end" — deferred bookkeeping drifts from reality.
-  - "I'll report this complete with a caveat" — broken is not Done. Finish it or surface a real external blocker.
-
-### Executor Role
-**You are the executor.** Implement the FIS yourself, task by task, in order. Handle bounded prep (scenario-test scaffolding, optional UI contract) inline. Use sub-agents only for narrow advisory work, review, and validation. Run all gates in Steps 4–5 before finishing.
-
-Do not: delegate coding to advisory agents, batch status updates until the end, silently narrow scope, or skip final gates.
+- **Anti-rationalization** — reject rationalizations for skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate (e.g. *"I'll verify after the next group"*, *"this failing check is unrelated"*, *"I'll batch status updates at the end"*, *"completing with a caveat is fine"*). Broken is not Done; Stop-the-Line applies.
 
 ### Proactive Sub-Agents
 Spawn narrow sub-agents when they materially improve a coding decision. Their output is advisory; the FIS remains the contract.
 
-**Agents** (pass as `subagent_type` to the Task tool):
+**Documentation lookup and research**:
 
-- the `andthen:documentation-lookup` agent – unfamiliar APIs, library/framework behavior, migration details, or version-specific questions. Required path for documentation lookup. Use a fast/lightweight model (`model: "haiku"`, `gpt-5.4-mini`, or similar).
-- the `andthen:research-specialist` agent – external best-practice research or context not available in the codebase
-- the `andthen:visual-validation-specialist` agent – visual/design compliance against wireframes or baselines
+- For unfamiliar APIs, library/framework behavior, migration details, or version-specific questions, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section in `CLAUDE.md` / `AGENTS.md`. Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly for the same behavior.
+- For external best-practice research or context not available in the codebase, do research in a sub-agent. Prefer official sources and separate evidence from inference.
 
-**Skills** (invoke as `/andthen:<name>`; when you want fresh-context isolation, spawn a `general-purpose` sub-agent whose prompt runs the skill):
+**Skills** (invoke as `/andthen:<name>`; when you want fresh-context isolation, spawn a sub-agent whose prompt runs the skill):
 
 - the `andthen:testing` skill – test strategy, coverage assessment, test-first / red-green-refactor discipline, Prove-It bugfix flow, or unfamiliar test-harness patterns
 - the `andthen:architecture` skill (`--mode advise` or `--mode trade-off`) – unresolved architectural trade-offs or integration-pattern ambiguity not settled by the FIS
 - the `andthen:ui-ux-design` skill – UI layout, interaction, accessibility, or responsive-pattern advice when the FIS needs a design contract
+- the `andthen:visual-validation` skill – visual/design compliance against wireframes, screenshots, or baselines
 - the `andthen:triage` skill – non-trivial build failures, dependency conflicts, or cascading test failures
 
 For advisory analysis, use a capable reasoning model (`model: "sonnet"` or stronger, `gpt-5.4`, or similar); for retrieval and routine lookups, haiku-class is sufficient.
@@ -63,10 +55,6 @@ Usage rules:
 
 
 ## GOTCHAS
-- **Delegating implementation to advisory sub-agents** – recreates the context-loss and serial overhead the skill is designed to avoid
-- **Status updates dropped when context exhausted** – update FIS task checkboxes immediately; plan and FIS updates in Step 5 are gates
-- **FIS references get stale if spec was updated** – always re-read the FIS
-- **Not signaling active-story status to the `State` document when called in a plan context** – read the location from the **Project Document Index** and set "In Progress" at start
 - **Treating spec size or difficulty as permission to narrow scope** – exec-spec executes the FIS it was given; if the spec should have been split, that is an upstream spec-quality problem, not a license to land a subset and stop
 
 
@@ -101,15 +89,17 @@ Usage rules:
 
 7. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
 
-8. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
+8. Read the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) if it exists. It is the canonical source for build, format, lint/type-check, test, and run commands. Use these whenever a FIS task `Verify` line does not already specify the command. If the document is missing, fall back to discovery and language / tech stack conventions.
 
-9. **Scaffold scenario tests** — if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
+9. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
 
-10. **UI design contract** — if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
+10. **Scaffold scenario tests** — if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
 
-11. **Update project state** (if the `State` document exists per **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
+11. **UI design contract** — if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
 
-12. Initialize working notes you will maintain during the run:
+12. **Update project state** (if the `State` document exists per **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
+
+13. Initialize working notes you will maintain during the run:
     - Per-task status
     - `changed-files`
     - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, `MISSING REQUIREMENT`, `DISCOVERED REQUIREMENT`, or AUTO_MODE `ASSUMPTION` items
@@ -117,7 +107,7 @@ Usage rules:
 ### Step 3: Implement
 Implement the FIS yourself, task by task, in the order listed.
 
-When `TDD_MODE=true`, every scenario-bearing task runs as a strict red→green→refactor loop: scaffold exactly one scenario test, observe red for the right reason, implement the minimum code to drive green, refactor only while green, then advance to the next scenario. The Anti-Cheat Invariant applies throughout: tests may be rewritten when wrong, but not deleted, disabled, or weakened to pass. Prove-It is the bug-fix specialization of red→green→refactor — for bug-fix tasks (FIS-as-bugfix or a Tier C regression discovery), the failing test pins the defect and stays as a regression guard; load `/andthen:testing --mode prove-it` for canon depth, but the executor remains the test author. New-behavior tasks use the TDD canon; bug-fix tasks use the Prove-It canon; both nest under TDD_MODE's red→green→refactor discipline. `AUTO_MODE` honors `--tdd` without confirmation gates.
+When `TDD_MODE=true`, run every scenario-bearing task as a strict red→green→refactor loop; load `/andthen:testing --mode tdd` (or `--mode prove-it` for bug-fix tasks) for canon depth — the `--tdd` flag definition above carries the full description.
 
 For each task:
 1. Implement the outcome described
@@ -142,12 +132,7 @@ On `BLOCKED: invalid discovered-requirements body` from this op, reformat per th
 For Tier C in `AUTO_MODE`, pick the conservative interpretation, append the discovered requirement with rationale, write the test traced to that appended requirement, implement, and surface the full Discovered Requirements block in the completion report.
 
 Implementation rules:
-- When stuck, emit named output blocks instead of guessing:
-  - `CONFUSION:` — the FIS is ambiguous and you cannot safely proceed. State the ambiguity, list labeled options, ask `-> Which approach?`
-  - `NOTICED BUT NOT TOUCHING:` — out-of-scope observations. List issues, ask `-> Want me to create tasks?`
-  - `MISSING REQUIREMENT:` — a task assumes something absent. State what is undefined, list labeled options, ask `-> Which behavior?`
-  Each is a labeled block with concrete choices and an arrow-prompt for the user.
-- In `AUTO_MODE`, do not use arrow prompts. Choose the safest FIS-preserving option and record it as an `ASSUMPTION`; if no safe option exists, stop with `BLOCKED:` and list the minimum missing decisions.
+- When stuck, emit named output blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:` → `-> Which approach?`, `NOTICED BUT NOT TOUCHING:` → `-> Want me to create tasks?`, `MISSING REQUIREMENT:` → `-> Which behavior?`. Under `AUTO_MODE`, see the reference's AUTO_MODE Override section.
 - Spawn proactive sub-agents when the need arises, but keep ownership of the code changes locally
 - If `changed-files` becomes incomplete or ambiguous, derive it from the current worktree diff before Step 4
 
@@ -155,19 +140,22 @@ Implementation rules:
 Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues — integration, security, architectural coherence, and spec drift — that can still survive per-task Verify lines.
 
 #### 4a. Direct Checks
+Use the canonical commands from the `Key Dev Commands` document (read in Step 2.8) for build/format/lint/type-check/test invocations below; if the document was not present, the discovery fallback from Step 2.8 stands. The per-task `Verify` lines (Step 3.2) drive Step 3's inner-loop checks; 4a runs the cross-cutting project-wide pass *in addition* (per the Step 4 framing above), not instead.
+
 1. **Build**: run the project's applicable build/package checks; every available build step relevant to the feature must succeed
 2. **Tests**: run the applicable test suites; all relevant tests must pass (or pre-existing failures documented)
 3. **Lint/types**: run the applicable static analysis checks; no new violations introduced by your changes. Pre-existing violations inside `changed-files` are surfaced under `NOTICED BUT NOT TOUCHING`, not fixed inline (surgical scope — Core Rules).
-4. **Stub detection**: grep `changed-files` for incomplete-implementation markers (`TODO`, `FIXME`, `XXX`, `NotImplementedError`, language-appropriate `pass`/empty-body/`throw.*not implemented` patterns). Triage each hit — intentional (e.g. a `pass` in an abstract stub) vs. forgotten — and remediate the forgotten ones.
-5. **Wiring check**: for each new file in `changed-files`, confirm at least one other file imports or references it (language-appropriate import/require/include grep on the basename or module path). Isolated new files are a Stop-the-Line signal unless the FIS explicitly justifies them.
-6. **Spec compliance spot-check**: extract prescriptive details from the FIS (output format strings, column name lists, file paths for new artifacts, exact error messages, UI elements like buttons/controls) and grep/verify each against the implementation — any mismatch is a remediation input
-7. **Tautology check**: for each test added or modified in `changed-files`, inspect the test source — the unit under test must be imported and called without being replaced by a mock/stub; assertions must reference its return value or an observable effect, not mock call arguments; fixtures must not substitute for the production computation (captured golden outputs are fine). A test that would still pass if the asserted behavior were removed is tautological and is a remediation input.
+4. **Format**: prefer a formatter *check* mode (e.g. `prettier --check`, `ruff format --check`, `gofmt -l`) over a write mode so pre-existing formatting drift in `changed-files` does not get bundled into the diff. Treat any *new* formatting violations introduced by your edits as remediation inputs; surface pre-existing drift on touched files under `NOTICED BUT NOT TOUCHING` (surgical scope — Core Rules), not as inline fixes. Never run a project-wide format pass. When formatter and linter overlap (e.g. `ruff format` + `ruff check`), running both is fine.
+5. **Stub detection**: grep `changed-files` for incomplete-implementation markers (`TODO`, `FIXME`, `XXX`, `NotImplementedError`, language-appropriate `pass`/empty-body/`throw.*not implemented` patterns). Triage each hit — intentional (e.g. a `pass` in an abstract stub) vs. forgotten — and remediate the forgotten ones.
+6. **Wiring check**: for each new file in `changed-files`, confirm at least one other file imports or references it (language-appropriate import/require/include grep on the basename or module path). Isolated new files are a Stop-the-Line signal unless the FIS explicitly justifies them.
+7. **Spec compliance spot-check**: extract prescriptive details from the FIS (output format strings, column name lists, file paths for new artifacts, exact error messages, UI elements like buttons/controls) and grep/verify each against the implementation — any mismatch is a remediation input
+8. **Tautology check**: for each test added or modified in `changed-files`, inspect the test source — the unit under test must be imported and called without being replaced by a mock/stub; assertions must reference its return value or an observable effect, not mock call arguments; fixtures must not substitute for the production computation (captured golden outputs are fine). A test that would still pass if the asserted behavior were removed is tautological and is a remediation input.
 
 #### 4b. Code Review (mandatory fresh-context review)
-Run the `andthen:review` **skill** with `--mode code` for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a `general-purpose` sub-agent whose prompt runs `/andthen:review --mode code`. Do not pass `andthen:review` as `subagent_type` — it is a skill, not an agent type.
+Run the `andthen:review` **skill** with `--mode code` for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a sub-agent whose prompt runs `/andthen:review --mode code`. Do not pass `andthen:review` as `subagent_type` — it is a skill, not an agent type.
 
 #### 4c. Visual Validation (if UI)
-Spawn the `andthen:visual-validation-specialist` **agent** per any Visual Validation Workflow defined in CLAUDE.md.
+Invoke the `andthen:visual-validation` **skill** in a sub-agent per any Visual Validation Workflow defined in CLAUDE.md.
 
 Steps 4b and 4c can run in parallel.
 
@@ -175,20 +163,13 @@ Steps 4b and 4c can run in parallel.
 
 Apply the Gate Classes policy from `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
 
-1. **Collect** — combine required failures from 4a with findings from 4b/4c. A failed build/test/lint/stub/wiring check is a remediation input even if the code review does not flag it separately.
+1. **Collect** — combine required failures from 4a with findings from 4b/4c. A failed build/test/lint/format/stub/wiring check is a remediation input even if the code review does not flag it separately.
 2. **Triage** — severity scale: CRITICAL/HIGH must fix, MEDIUM should fix, LOW optional.
 3. **Objective red gates (4a)** — iterate until green, invoking the `andthen:triage` skill when iteration stalls.
 4. **Subjective findings (4b/4c)** — one pass on CRITICAL/HIGH, re-run the affected lens (`/andthen:review --mode code` or visual validation) on the touched scope; escalate if they persist.
 
 ### Step 5: Complete
 All substeps below are gates — complete them before finishing.
-
-#### 5a. Verify Completion
-Lightweight gate – uses Step 4a results, does not re-run checks:
-1. Verify all success criteria met
-2. Verify all task checkboxes marked (catch any missed from Step 3)
-3. Verify Final Validation Checklist items satisfied
-4. Collect verification evidence from Step 4a: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts); add **Visual validation** and **Runtime** for UI/runtime stories
 
 #### 5b. Update FIS, Source Plan, and Project State
 
@@ -231,9 +212,15 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
 
 
 #### 5c. Completion Report
-Report: per-task status, files created/modified, verification evidence, and a brief summary of any persisted observations or Discovered Requirements. Full `NOTICED BUT NOT TOUCHING`, `ASSUMPTIONS`, and Discovered Requirements details live in the FIS's `## Implementation Observations` section (written in Step 5b.1) — reference the section, duplicating only the full Discovered Requirements block when `AUTO_MODE` Tier C required it.
+**Gate** (uses Step 4a results, does not re-run checks): verify all success criteria met, all task checkboxes marked, and Final Validation Checklist items satisfied.
+
+Report: per-task status, files created/modified, verification evidence — **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts), **Format** (clean/violations); add **Visual validation** and **Runtime** for UI/runtime stories — and a brief summary of any persisted observations or Discovered Requirements. Full `NOTICED BUT NOT TOUCHING`, `ASSUMPTIONS`, and Discovered Requirements details live in the FIS's `## Implementation Observations` section (written in Step 5b.1) — reference the section, duplicating only the full Discovered Requirements block when `AUTO_MODE` Tier C required it.
+
+#### 5d. Publish to PR _(only when `--to-pr <number>`)_
+
+After Step 5b status writes have verified, post the Step 5c completion summary per **Pattern B** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Summary temp file: `.agent_temp/exec-spec-completion-{STORY_ID-or-feature-slug}.md`. Pattern B's default failure handling applies (surface and stop).
+
+**Gate**: PR comment posted (or skipped when `--to-pr` is absent)
 
 ## Post-Completion
 If the `Learnings` document (see **Project Document Index**) exists, capture story-level traps, domain knowledge, procedural knowledge, and error patterns. Organize by topic, not chronology. Keep entries brief (1-2 sentences). Do not create a new `Learnings` document unless one already exists.
-
-> FIS checkbox/status updates and plan updates are handled in Step 5 — they are gates, not post-completion tasks.

@@ -12,9 +12,7 @@
 
 ## Required Context
 
-> Load-bearing spans from upstream documents (PRD, plan, ADRs, guidelines, glossary), **inlined verbatim at spec time**. The executor does NOT need to read the source documents to act on this content. Each block is source-pinned for audit; the inlined text is authoritative at execution time even if the source later drifts.
->
-> Omit when no load-bearing upstream spans exist. See [Cross-Document References](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) for the inline budget, source-pin format, and `.technical-research.md` exclusion rule.
+> Cross-doc reference rules: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) (inline budget, source-pin format, `.technical-research.md` exclusion).
 
 {{Repeat blocks as needed. Keep each block focused: one decision, constraint, or contract per block.}}
 
@@ -26,16 +24,14 @@
 
 ## Deeper Context
 
-> Anchored pointers to source documents, for when the Required Context above is insufficient. Read on demand. Anchors are validated at authoring time; broken anchors found later are a doc-review finding, not an execution blocker.
->
-> Omit this section when there are no supplementary pointers worth surfacing.
+> Anchored pointers for supplementary context; read on demand. Omit when none exist.
 
 - `{{path/to/source.md}}#{{heading-slug-or-id}}` — {{one-line description of what's there and when to read it}}
 - `{{path/to/source.md}}#{{heading-slug-or-id}}` — {{description}}
 
 
 ## Success Criteria (Must Be TRUE)
-> Each criterion must have a defined proof path — at least one Scenario (for behavioral criteria) or a task Verify line (for structural criteria). If you can't define how to prove it, the criterion is too vague.
+> Each criterion must have a proof path: a Scenario (behavioral) or task Verify line (structural).
 - [ ] {{Observable truth from user's perspective}}
 - [ ] {{Verifiable system behavior}}
 - [ ] {{Measurable technical requirement}}
@@ -48,7 +44,7 @@
 
 ## Scenarios
 
-> Concrete examples of expected behavior that serve as both requirement and test specification (Proof-of-Work — see authoring guidelines).
+> Scenarios as Proof-of-Work: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#scenarios-and-proof-of-work) (authoring principles, negative-path checklist).
 
 ### {{Scenario Name}}
 - **Given** {{precondition / system state}}
@@ -60,18 +56,16 @@
 - **When** {{boundary condition or error trigger}}
 - **Then** {{expected handling behavior}}
 
-_Write 3-7 scenarios. Cover the happy path, key edge cases, and at least one error/failure case. After drafting, apply the **negative-path checklist** from the authoring guidelines: verify coverage for omitted optional inputs, no-match filter/selector cases, and rejection paths for external integrations — add scenarios for any gaps found. Skip scenarios only for configuration-only work with no branching logic (e.g. env config, static asset changes)._
-
 
 ## Scope & Boundaries
 
 ### In Scope
-_Every scope item must be covered by at least one scenario (behavioral items) or task with a Verify line (structural items). If you list it here but can't write coverage for it, either remove it or flag it as underspecified._
+_Every scope item must be covered by at least one scenario (behavioral items) or task with a Verify line (structural items)._
 - {{Core functionality to be built}}
 - {{Integration points to be created}}
 
 ### What We're NOT Doing
-_Keep this to 3-5 explicit non-goals or deferrals. Each item should name the exclusion and why it is excluded now._
+_Keep this to 3-5 explicit non-goals or deferrals with reasons._
 - {{Out of scope item - be specific}} -- {{reason it is deferred or excluded}}
 - {{Existing functionality not to be modified}} -- {{reason}}
 
@@ -99,7 +93,7 @@ _Keep this to 3-5 explicit non-goals or deferrals. Each item should name the exc
 
 ## Technical Overview
 
-> High-level decisions and key references only. Detailed codebase analysis, API specifics, and implementation research belong in the **Technical Research** document.
+> High-level decisions and key references only. Detailed analysis belongs in the Technical Research document.
 
 ### UI/UX Design (if applicable)
 {{Describe UI changes, screens, interactions, user flows}}
@@ -116,9 +110,7 @@ _Keep this to 3-5 explicit non-goals or deferrals. Each item should name the exc
 
 ## Code Patterns & External References
 
-> Code-pattern pointers (file:line), external URLs, and wireframes. Unlike `Required Context` / `Deeper Context`, these refer to *code and external resources* — the executor reads surrounding context, not just the named lines.
->
-> **Allowed types**: `file` (code patterns), `url` (external docs), `wire` (wireframes/mockups). **Do not** add `doc` rows here for PRD/plan/research/ADR references — those belong in `Required Context` (inlined) or `Deeper Context` (anchored pointer) above.
+> Code-pattern pointers (file:line), external URLs, and wireframes. `doc` rows (PRD/plan/research/ADR) belong in `Required Context` or `Deeper Context`.
 
 ```
 # type | path/url | why needed
@@ -137,28 +129,15 @@ wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 
 ## Implementation Plan
 
-List implementation tasks in execution order. A later task may depend on a type, interface, or component established by an earlier task; state that dependency explicitly in the later task's context line.
-
 > **Vertical slice ordering**: First tasks should produce a thin but working end-to-end path. Later tasks widen the slice.
-> **Size discipline**: see FIS authoring guidelines, Key Generation Guidelines #6, for the 200-500 sweet spot and the oversize split signal.
 
 ### Implementation Tasks
 
-_Examples -- note how tasks describe outcomes, not code changes:_
+_Example — replace with your actual tasks. Format: outcome + context line (constraints, file:line pattern reference) + behavioral Verify._
 
-- [ ] **TI01** Event ingestion endpoint accepts and validates incoming payloads
+- [ ] **TI00 (example — delete this block)** Event ingestion endpoint accepts and validates incoming payloads
   - Follow API pattern at `src/api/users.ts:12-34`; reuse existing validation middleware
   - **Verify**: `Test: POST /events with valid payload returns 201; invalid payload returns 422 with field-level errors`
-
-- [ ] **TI02** Events persisted to storage with idempotency guarantee
-  - Use existing repository pattern at `src/repos/base.ts:8-25`; dedup on event ID
-  - **Verify**: `Test: sending same event twice produces exactly one stored record`
-
-- [ ] **TI03** Events queryable by type, time range, and source with pagination
-  - Follow query builder pattern at `src/repos/users.ts:40-65`; depends on TI01/TI02 data model
-  - **Verify**: `Test: query with type filter returns only matching events; pagination cursor works across pages`
-
-_Replace examples above with your actual tasks. Format: outcome + context line + behavioral Verify._
 
 - [ ] **TI01** {{Outcome that must be TRUE when done}}
   - {{1-2 lines of context: constraints, pattern reference (file:line), key decisions}}
@@ -169,7 +148,7 @@ _Replace examples above with your actual tasks. Format: outcome + context line +
   - **Verify**: {{Assertion}}
 
 ### Testing Strategy
-> Derive test cases from the **Scenarios** section. Each scenario maps to one or more test cases. Tag with the task ID(s) the test proves — the executing agent uses these tags to know which tests must go red→green for each task.
+> Derive test cases from the **Scenarios** section. Tag with task ID(s) the test proves.
 - [TI01] Scenario: {{scenario name}} → {{test description}}
 - [TI02] Scenario: {{scenario name}} → {{test description}}
 - [TI01,TI02] Scenario: {{scenario name}} → {{edge case test description}}
@@ -198,7 +177,7 @@ _Replace examples above with your actual tasks. Format: outcome + context line +
 
 ## Implementation Observations
 
-> _Managed by exec-spec post-implementation — append-only. Each `update-fis observations` or `update-fis discovered-requirements` invocation appends a dated `### Run: {timestamp} — {op-tag}` block (multiple writes per run are normal). Recognized inner subsections: `#### NOTICED BUT NOT TOUCHING` / `#### ASSUMPTIONS (AUTO_MODE)` under the `observations` tag, `#### DISCOVERED REQUIREMENTS` under the `discovered-requirements` tag. Untagged blocks from older FISes remain valid for reading; idempotency-dedup matches by tag and never dedupes against them. Available as a backlog for follow-up review/refactor work. Spec authors: leave this section empty._
+> _Managed by exec-spec post-implementation — append-only. Tag semantics: see [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (FIS Mutability Contract, tag definitions). AUTO_MODE assumption-recording: see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Spec authors: leave this section empty._
 
 Discovered Requirements entries use this shape:
 

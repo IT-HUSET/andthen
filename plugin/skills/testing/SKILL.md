@@ -52,7 +52,7 @@ Working from FIS scenarios:
 - **When** → the action under test
 - **Then** → observable assertions
 
-Every important scenario needs at least one test or a documented proof artifact. For scenarios that can't be tested directly (e.g. purely visual), name the stand-in and flag visual checks for the `andthen:visual-validation-specialist` agent.
+Every important scenario needs at least one test or a documented proof artifact. For scenarios that can't be tested directly (e.g. purely visual), name the stand-in and flag visual checks for the `andthen:visual-validation` skill.
 
 
 ## FRAMEWORK SELECTION
@@ -65,7 +65,7 @@ Every important scenario needs at least one test or a documented proof artifact.
 
 ## CALLER INTEGRATION
 
-Callers (`exec-spec`, `triage`, `e2e-test`) invoke this skill as `/andthen:testing <target/scope>`. Runs in the caller's context by default — continuity matters for `tdd` and `prove-it`. For fresh-context isolation, the caller wraps the invocation in a `general-purpose` sub-agent.
+Callers (`exec-spec`, `triage`, `e2e-test`) invoke this skill as `/andthen:testing <target/scope>`. Runs in the caller's context by default — continuity matters for `tdd` and `prove-it`. For fresh-context isolation, the caller wraps the invocation in a sub-agent.
 
 Output is advisory for `strategy`; the tests themselves are the artifact for `write` / `tdd` / `prove-it`.
 
@@ -81,14 +81,10 @@ Behavior covered or planned, level chosen, rationale.
 Key tests added or updated; notable fixtures or patterns. For `tdd` / `prove-it`, quote the red-step failure message.
 
 ### Coverage & Quality
-- what is now proven
-- notable edge/error cases covered
-- pass/fail counts when available
+What is now proven; notable edge/error cases; pass/fail counts when available.
 
 ### Recommendations
-- remaining critical gaps
-- next-best additions
-- coupling signals surfaced by test friction
+Remaining critical gaps; next-best additions; coupling signals surfaced by test friction.
 
 
 ## REFERENCES

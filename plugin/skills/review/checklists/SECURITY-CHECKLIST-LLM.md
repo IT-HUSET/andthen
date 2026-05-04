@@ -138,28 +138,4 @@ Excessive resource consumption through uncontrolled model usage, leading to DoS 
 - [ ] Review LLM SDK usage for insecure patterns (raw string interpolation into prompts)
 - [ ] Check for `eval()` or `exec()` calls consuming model output
 
----
-
-## Issue Classification
-
-### 🚨 CRITICAL (Immediate Fix Required)
-- Prompt injection enabling privilege escalation or data exfiltration
-- LLM output used in `eval`, OS commands, or SQL without validation
-- PII or credentials sent to external model APIs without authorization
-- Excessive agency – model can take irreversible actions without confirmation
-
-### ⚠️ HIGH (Fix Before Release)
-- System prompt leakage of sensitive internal logic
-- RAG store accessible beyond document-level permissions
-- No rate limiting on LLM endpoints (cost/DoS exposure)
-- Model output rendered as raw HTML (XSS)
-
-### 🔶 MEDIUM (Fix Soon)
-- Missing output schema validation
-- Conversation history passed across trust boundaries without redaction
-- No user disclosure for AI-generated content in high-stakes contexts
-
-### 💡 LOW (Track & Plan)
-- Model version not pinned
-- Missing cost alerting
-- Hallucination risk in non-critical informational output
+Severity: see [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) and the relevant `<lens>-review-calibration.md`

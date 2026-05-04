@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Visual Validation"
+  short_description: "Validate UI screenshots and implementations against visual, responsive, and design expectations"
+  default_prompt: "Validate the specified screens, states, screenshots, or design references and return prioritized visual findings. Scope: "
+
+policy:
+  allow_implicit_invocation: true

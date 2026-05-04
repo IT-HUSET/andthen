@@ -22,7 +22,7 @@ Compose the per-story sub-agent prompt by substituting the canonical Per-Story W
 
 Include in each implementer's system prompt:
 - Only work on assigned `impl-*` tasks
-- Per task: `cd {CODE_DIR_ABS}` → (worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}` → commit → (worktree: `ExitWorktree(keep)`) → mark done; report `exec-spec` Step 4a numbers (build, tests, lint/type-check)
+- Per task: `cd {CODE_DIR_ABS}` → (worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}` → commit → (worktree: `ExitWorktree(keep)`) → mark done; report `exec-spec` Step 4a numbers (build, tests, lint/type-check, format)
 - **Worktree mode (`{WORKTREE_SUFFIX}` non-empty)**: `exec-spec` skips `plan.md` and `State` document writes and emits a `## Deferred Shared Writes (worktree mode)` audit block (Story / Plan / FIS / Completion summary). Pass that block through to your report so the orchestrator can read the `Completion summary` line and audit what was deferred — the orchestrator already knows Story / Plan / FIS from its own plan parse and constructs / applies the writes post-merge itself. Constraints: (1) do not apply those writes yourself, (2) do not stage or commit `plan.md` or the `State` document inside the worktree branch — only code (and FIS) edits belong there. Shadow plan/state commits inside the worktree defeat the deferral and resurrect the merge-conflict failure mode this flag exists to prevent.
 - Absolute FIS paths; escalate unresolvable issues
 - For no-double-write contract, see `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`
@@ -153,7 +153,7 @@ Run after all phases complete and before shutting down the team. Also runs on fa
 
 Invoke:
 ```
-bash ${CLAUDE_PLUGIN_ROOT}/skills/exec-plan/scripts/teardown-worktrees.sh {BASE_BRANCH}
+bash ${CLAUDE_SKILL_DIR}/scripts/teardown-worktrees.sh {BASE_BRANCH}
 ```
 
 `git worktree prune` alone does **not** clean anything — it only purges admin records for worktrees whose directories are already gone. Live `story-*` worktrees from failed waves, abandoned stories, or earlier runs persist until removed explicitly.

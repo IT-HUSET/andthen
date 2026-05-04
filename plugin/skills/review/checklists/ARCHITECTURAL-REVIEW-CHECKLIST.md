@@ -243,26 +243,4 @@ Check for these violations:
 - [ ] Migration paths for deprecated components
 - [ ] Long-term sustainability considered
 
----
-
-## Issue Classification
-
-### 🚨 Critical Issues (Must Address)
-- Architectural violations causing serious issues
-- Security vulnerabilities at architectural level
-- Data loss/corruption risks
-- Performance/scalability blockers
-- Breaking existing guarantees
-
-### ⚠️ High Priority (Should Address)
-- Anti-patterns requiring refactoring
-- Maintainability concerns
-- Coupling issues
-- Missing abstractions
-- Technical debt accumulation
-
-### 💡 Suggestions (Consider)
-- Refactoring opportunities
-- Pattern improvements
-- Performance optimizations
-- Documentation enhancements
+Severity: see [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) and the relevant `<lens>-review-calibration.md`

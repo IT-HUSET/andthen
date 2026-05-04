@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Visualize"
+  short_description: "Render a PRD, requirements-clarification, trade-off, or strategic-design report as a self-contained HTML view with section-anchored notes"
+  default_prompt: "Render the workflow artifact as a self-contained HTML file with section-anchored note-taking and open it in the user's browser. Artifact path: "
+
+policy:
+  allow_implicit_invocation: true

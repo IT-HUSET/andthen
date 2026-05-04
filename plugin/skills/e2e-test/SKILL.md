@@ -23,7 +23,7 @@ FOCUS: $ARGUMENTS
 - Use the `agent-browser` skill for all browser automation (snapshots, clicks, form fills, screenshots)
 - If `agent-browser` is unavailable, warn the user and stop
 - Delegate server startup failures to the `andthen:triage` skill
-- Delegate responsive screenshot analysis to the `andthen:visual-validation-specialist` agent
+- Delegate responsive screenshot analysis to the `andthen:visual-validation` skill in a sub-agent
 - Use sub-agents for parallel discovery work
 
 
@@ -38,10 +38,7 @@ FOCUS: $ARGUMENTS
 
 ### Phase 1: Pre-flight
 
-1. **Platform check** – confirm macOS, Linux, or WSL; warn and stop on unsupported platforms
-2. **Frontend check** – verify a frontend exists (`package.json`, framework config, `index.html`, etc.)
-3. **Tool check** – confirm `agent-browser` skill is available; if not, stop with clear instructions
-4. **Read guidelines** – read CLAUDE.md and relevant project guidelines
+Confirm macOS/Linux/WSL (warn and stop otherwise), verify a frontend exists, confirm `agent-browser` skill is available, and read project guidelines.
 
 **Gate**: Environment confirmed suitable for E2E testing
 
@@ -84,12 +81,7 @@ Execute journeys sequentially. For each journey:
 
 **5.1 Setup** – Clear auth state; prepare required test data.
 
-**5.2 Execution (via `agent-browser` skill)**
-1. Navigate to journey's starting URL
-2. Take interactive snapshot to identify clickable/fillable elements
-3. Execute steps: navigate, click, fill, submit
-4. After each significant step: screenshot + verify expected outcome
-5. On completion: verify final state and check DB/API for data persistence
+**5.2 Execution (via `agent-browser` skill)** — navigate to the starting URL; snapshot to identify elements; execute steps (navigate, click, fill, submit); screenshot + verify after each significant step; on completion verify final state and check DB/API for data persistence.
 
 **5.3 Issue Handling** – Classify: **Critical** (flow blocked) / **High** (degraded UX) / **Low** (cosmetic). Fix if root cause is clear and contained; otherwise document steps-to-reproduce + screenshot and continue.
 
@@ -98,7 +90,7 @@ Execute journeys sequentially. For each journey:
 
 ### Phase 6: Responsive Validation
 
-Delegate to the `andthen:visual-validation-specialist` agent with pages (home, primary feature, auth, any in `FOCUS`), viewports (mobile 375×812, tablet 768×1024, desktop 1440×900), checking for layout overflow, text truncation, broken flex/grid, inaccessible touch targets, hidden navigation.
+Invoke the `andthen:visual-validation` skill in a sub-agent with pages (home, primary feature, auth, any in `FOCUS`), viewports (mobile 375×812, tablet 768×1024, desktop 1440×900), checking for layout overflow, text truncation, broken flex/grid, inaccessible touch targets, hidden navigation.
 
 **Gate**: Responsive validation complete with screenshots
 
@@ -130,7 +122,7 @@ Stop the dev server if started by this skill. Remove test data created during te
 [Title – Journey – Steps to reproduce – Expected vs Actual – Screenshot]
 
 ## Responsive Validation
-[Summary from visual-validation-specialist, viewport × page matrix]
+[Summary from visual validation, viewport × page matrix]
 
 ## Coverage
 - Routes tested: [n] / [total] | Journeys: [n passed] / [n total] | Viewports: mobile, tablet, desktop
@@ -144,6 +136,8 @@ When complete, print the report's **relative path from the project root** and su
 
 
 ## FOLLOW-UP ACTIONS
+
+Skip this section when `AUTO_MODE=true` — print only the report path and key findings.
 
 After the report, ask the user if they'd like to:
 1. Investigate specific failing journeys in depth

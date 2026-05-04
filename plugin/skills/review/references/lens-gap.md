@@ -66,7 +66,7 @@ Run project checks and gather evidence directly — do not delegate to the code 
 - **Stub scan**: grep changed files for incomplete-implementation markers (`TODO`, `FIXME`, `XXX`, `NotImplementedError`, language-appropriate `pass`/empty-body/`throw.*not implemented` patterns). Triage intentional vs. forgotten.
 - **Wiring check**: for each new file, confirm at least one other file imports or references it (language-appropriate import/require/include grep on basename or module path).
 - Check substance and wiring using `verification-patterns.md`
-- Run available security tooling (e.g. `../scripts/run-security-scan.sh <path>`) when applicable
+- Run available security tooling (e.g. `${CLAUDE_SKILL_DIR}/scripts/run-security-scan.sh <path>`) when applicable
 
 Focus on requirements-vs-implementation alignment — the unique value of this lens.
 
@@ -142,19 +142,22 @@ Walk through the work; do not skim it. For each significant requirement, feature
 Every concern from the walkthrough is a finding. Each finding must carry: location, the requirement or invariant it threatens, the path or input that triggers it, and the observable impact. Merge into the Step 4 categories so they are scored and filtered alongside the mechanical gap findings.
 
 
+## FIS Upstream-Context Handling
+
+When a FIS is in scope: treat `Required Context` blocks as the authoritative upstream intent — do not re-read source documents just to reconfirm inlined content. For `Deeper Context` anchors that are load-bearing for a finding, verify the anchor resolves in the source and warn (do not stop) on broken anchors. If a `Required Context` block appears to no longer match the current source, that is a doc-review finding (MEDIUM by default — spec should be re-run against the updated source), not an execution blocker.
+
+**Legacy FIS fallback**: a FIS without `Required Context` / `Deeper Context` sections predates them. Fall back to whatever upstream-reference structures it uses: the old `## References & Constraints` heading and its `### Documentation & References` table (rows typed `file|doc|url|wire`), or prose mentions. Do not flag the absence of these sections as a defect on legacy FIS files.
+
+
 ## 6. Findings Filter
 
-This pass cannot find new issues; that is the Critic Lens's job (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`).
+> **Findings Filter**: see [`lens-findings-filter.md`](lens-findings-filter.md).
 
-Run the full Findings Filter only when any finding is Critical OR total findings > 5. Otherwise apply an inline self-check: re-read each finding against calibration examples and adjust severity. Withdrawals follow the same Verdict-discipline floor as the formal filter ([`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md)) — concrete falsifier required; "doesn't hold up" alone is a downgrade. Add one line: "Applied inline severity calibration (Findings Filter skipped: no Critical findings and <=5 total)."
-
-**Full filter** (when triggered): Use `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` (`Generic Findings-Filter Template`) with:
+Lens-specific placeholder values:
 - **Role**: `Findings Filter reviewing gap analysis findings`
-- **Shared calibration**: `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`
 - **Skill calibration**: `code-review-calibration.md`
 - **Context block**: `Review target context: {implementation target paths from Step 0}`
 - **Questions**: Is this a real gap? Is severity justified? Could there be an existing mitigation? Would a senior engineer flag this?
-- **Verdicts**: `VALIDATED`, `DOWNGRADED`, `WITHDRAWN`
 - **Findings payload**: `{all findings from quality review, gap analysis, and behavioral dry-run walkthrough}`
 
 Apply verdicts before scoring.

@@ -27,9 +27,7 @@ When the review touches browser state, AI/agent flows, logs, stack traces, error
 
 Run `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` against the same code scope as an always-on sub-lens. This is the finding pass for fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring that constructive review can miss.
 
-When code review delegates specialist lenses to sub-agents, each specialist runs the Critic sub-lens against its own focus area, **and** a single general-purpose sub-agent runs the Critic sub-lens against the **whole** change set in parallel. Specialists optimize for depth-within-concern; the generalist catches cross-concern issues that fall between specialist scopes — e.g. a security-shaped quirk inside an architecture slice that neither lens claims as theirs. Without the generalist pass, the find-time isolation the `andthen:quick-review` skill relies on is absent from the bigger review. The generalist is an **additional** sub-agent — not a replacement for any specialist (see *Parallelization* below for fan-out accounting). The synthesis merges all Critic findings into the normal severity sections before any Findings Filter runs.
-
-Sub-agent prompts dispatched here follow the *Sub-agent dispatch* rule in `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` — paste contents verbatim, not path tokens.
+When code review delegates specialist lenses to sub-agents, each specialist runs the Critic sub-lens against its own focus area, **and** a single sub-agent runs the Critic sub-lens against the **whole** change set in parallel. Specialists optimize for depth-within-concern; the generalist catches cross-concern issues that fall between specialist scopes — e.g. a security-shaped quirk inside an architecture slice that neither lens claims as theirs. Without the generalist pass, the find-time isolation the `andthen:quick-review` skill relies on is absent from the bigger review. The generalist is an **additional** sub-agent — not a replacement for any specialist (see *Parallelization* below for fan-out accounting). The synthesis merges all Critic findings into the normal severity sections before any Findings Filter runs.
 
 
 ## Calibration
@@ -39,7 +37,8 @@ Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`
 
 ## Verification Evidence
 
-Run applicable project checks that strengthen review signal:
+Run applicable project checks that strengthen review signal. The `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) is the canonical source for these commands when present; fall back to discovery (package.json scripts, Makefile targets, language conventions) only when the document is missing.
+
 - **Build**: project's applicable build/package checks
 - **Tests**: applicable test suites
 - **Lint/types**: applicable static analysis, linting, type checks

@@ -1,4 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+.venv/
+venv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Database
+*.db
+*.sqlite3
+
+# Environment
+.env
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and temp files
 *.log
-.agent_temp
+
+# Claude Code local settings
+.claude/settings.local.json
+**/.claude/settings.local.json
+
+# Agent temp files
+.agent_temp/
 docs/temp

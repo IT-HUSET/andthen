@@ -21,7 +21,7 @@ Capture the states users actually depend on, not just the default view:
 - hover / focus / active where relevant
 - each target breakpoint
 
-For visual capture and pixel-level regression checks, invoke the `andthen:visual-validation-specialist` agent (which handles the full capture → compare → document workflow). Use the semantic review process below as the primary assessment.
+For visual capture and pixel-level regression checks, invoke the `andthen:visual-validation` skill in a sub-agent. Use the semantic review process below as the primary assessment.
 
 ### 3. Semantic Review
 

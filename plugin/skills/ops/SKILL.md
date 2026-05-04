@@ -31,21 +31,31 @@ Reliable, template-driven operations for state management, git conventions, and 
 
 ## OPERATIONS
 
+### Append-Run Block Protocol
+
+Applies to the `observations`, `discovered-requirements`, and `update-tech-debt append` forms. `<markdown-body>` is freeform multi-line markdown passed verbatim — quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape. Each form names its own tag suffix, target section, and body-constraint variant — the following protocol is common to all three:
+
+- **Empty/whitespace-only body**: no-op; do not append a run block and do not create the target file (for `update-tech-debt append`).
+- **Body constraints**: `<markdown-body>` MUST use `####`-or-deeper headings only. The body MUST NOT contain `## ` headings or another `### Run:` line — these would visually close the section and break the append protocol.
+- **Placeholder removal**: if the placeholder line `_No observations recorded yet._` or `_No tech debt recorded yet._` is present in the target section, remove it (exact-string match only; no-op otherwise).
+- **Timestamp resolution**: resolve a timestamp via `date -u +"%Y-%m-%d %H:%M UTC"` so all run blocks share a single timezone and ordering is unambiguous.
+- **Whitespace normalization**: ensure exactly one blank line precedes the new run block and the previous block ends with a trailing newline.
+- **Run-block frame**: append the run block tagged with the form's own suffix:
+  ```
+  ### Run: {YYYY-MM-DD HH:MM UTC} — {tag}
+
+  {markdown-body}
+  ```
+- **Append-only**: never rewrite or remove prior `### Run:` blocks.
+- **Idempotent retry** (2-minute window): if the most recent existing `### Run: ... — {tag}` block (matched by tag suffix) has identical body content (whitespace-normalized; for `update-tech-debt append` compare the per-severity filtered body against the matching severity block, not the full body) AND its timestamp is within 2 minutes of the resolved timestamp, no-op for that block. Compare only against same-tag blocks — an intervening block with a different tag suffix does not affect the decision.
+
 ### 1. State File Operations
 
 #### Read State
 
 **Usage**: `read-state`
 
-Parse the `State` document (path from **Project Document Index**, default: `docs/STATE.md`) and return a structured summary:
-- Current phase and status (On Track / At Risk / Blocked)
-- Active stories table (story, status, FIS, notes)
-- Blockers (list)
-- Recent decisions (list with dates)
-- Session continuity notes (list with dates)
-- Last updated timestamp
-
-If the `State` document does not exist in the location defined by the **Project Document Index**, report "no state file" – do not create it or prompt the user.
+Parse the `State` document (path from **Project Document Index**, default: `docs/STATE.md`) and return: current phase/status, active stories table, blockers, recent decisions, session continuity notes, last updated timestamp. If absent, report "no state file" – do not create it.
 
 #### Update State
 Update specific fields in the `State` document (path from **Project Document Index**, default: `docs/STATE.md`):
@@ -77,35 +87,7 @@ After any update, set `Last Updated` to current timestamp.
 - **Session Continuity Notes**: keep only the **last 5** entries; older entries are trimmed. Notes from completed milestones that have been captured elsewhere (CHANGELOG, Recently Completed) should be removed.
 - **Overall size**: the `State` document should stay under ~60 lines. If it exceeds this after other maintenance rules, trim the oldest/longest entries first. This file is a snapshot of _current_ state, not a history log.
 
-Format for the `State` document (see **Project Document Index**):
-```markdown
-# Project State
-
-Last Updated: {YYYY-MM-DD HH:MM}
-
-## Current Phase
-Phase: {phase}
-Status: {On Track | At Risk | Blocked}
-
-## Active Stories
-| Story | Status | FIS | Notes |
-|-------|--------|-----|-------|
-| {story_id}: {story_name} | {In Progress | Blocked} | {fis_path or –} | {brief note} |
-
-## Recently Completed
-- **{version/milestone}** ({date}): {one-line summary}
-- **{version/milestone}** ({date}): {one-line summary}
-Previous: {older milestone list, if any}
-
-## Blockers
-- {blocker description} _(added {date})_
-
-## Recent Decisions
-- [{date}] {decision}
-
-## Session Continuity Notes
-- [{date}] {note}
-```
+State document format: see [`project-state-templates.md`](${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md).
 
 #### Update Plan Status
 Update story status or FIS-field on a plan story row:
@@ -135,42 +117,17 @@ Mutate a FIS document — mark checkboxes, append implementation observations, o
 Actions for `<task_id|all>` form:
 - When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
 - When `task_id` is `all`: Mark ALL unchecked task checkboxes (`- [ ]` → `- [x]`), all success criteria checkboxes, and all Final Validation Checklist items in one pass
-- Before marking done, verify that evidence of completion exists — the calling skill should have already performed verification. Do not re-run full verification; check that it was performed, not that it passes again.
-- When all tasks are done (or using `all`): also mark success criteria and Final Validation Checklist items
+- Before marking done, verify that evidence of completion exists — the calling skill should have already performed verification; do not re-run it. When all tasks are done (or using `all`): also mark success criteria and Final Validation Checklist items.
 
 Actions for `observations` form:
-- `<markdown-body>` is freeform multi-line markdown passed verbatim — quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape.
-- Body constraints: the caller MUST format `<markdown-body>` using `####`-or-deeper headings only (typically `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)`). The body MUST NOT contain `## ` headings or another `### Run:` line — these would visually close the section and break the append protocol. The body MUST NOT contain `#### DISCOVERED REQUIREMENTS` — that subsection belongs in the dedicated `discovered-requirements` op so the tagged-lane separation holds. Reject (no-op + `BLOCKED: invalid observations body`) if the body violates these constraints.
-- Locate the `## Implementation Observations` section. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
-- If the placeholder line `_No observations recorded yet._` is present, remove it (exact-string match only; no-op otherwise).
-- Resolve a timestamp: prefer `date -u +"%Y-%m-%d %H:%M UTC"` so all run blocks share a single timezone and ordering is unambiguous.
-- Normalize whitespace: ensure exactly one blank line precedes the new run block and the previous block ends with a trailing newline.
-- Append the new run block to the section, tagging the header with the op name so concurrent op types do not share an idempotency lane:
-  ```
-  ### Run: {YYYY-MM-DD HH:MM UTC} — observations
-
-  {markdown-body}
-  ```
-- No-op if `<markdown-body>` is empty or whitespace-only.
-- **Idempotent retry**: if the most recent existing `### Run: ... — observations` block (matched by tag suffix) has identical `<markdown-body>` (whitespace-normalized) AND its timestamp is within 2 minutes of the resolved timestamp, no-op — the call is a retry of an already-applied write. Compare only against same-tag blocks; an intervening `— discovered-requirements` block does not affect the decision. This makes the operation safe under exec-spec's Step 5b.4 retry-once protocol when both ops write to `## Implementation Observations` in the same run.
-- Append-only otherwise: never rewrite or remove prior `### Run:` blocks.
+- Body constraint variant: MUST use `####`-or-deeper headings (typically `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)`). MUST NOT contain `#### DISCOVERED REQUIREMENTS` — that subsection belongs in the `discovered-requirements` form so tagged-lane separation holds. Reject (no-op + `BLOCKED: invalid observations body`) if violated.
+- Tag suffix: `— observations`. Target section: `## Implementation Observations`. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
+- Apply the Append-Run Block Protocol above.
 
 Actions for `discovered-requirements` form:
-- `<markdown-body>` is freeform multi-line markdown passed verbatim — quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape.
-- Body constraints: the caller MUST format `<markdown-body>` using `####`-or-deeper headings only, specifically `#### DISCOVERED REQUIREMENTS` for the requirement block. The body MUST NOT contain `## ` headings or another `### Run:` line. Reject (no-op + `BLOCKED: invalid discovered-requirements body`) if the body violates these constraints or lacks `#### DISCOVERED REQUIREMENTS`.
-- Locate the `## Implementation Observations` section. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
-- If the placeholder line `_No observations recorded yet._` is present, remove it (exact-string match only; no-op otherwise).
-- Resolve a timestamp: prefer `date -u +"%Y-%m-%d %H:%M UTC"` so all run blocks share a single timezone and ordering is unambiguous.
-- Normalize whitespace: ensure exactly one blank line precedes the new run block and the previous block ends with a trailing newline.
-- Append the new run block to the section, tagging the header with the op name so concurrent op types do not share an idempotency lane:
-  ```
-  ### Run: {YYYY-MM-DD HH:MM UTC} — discovered-requirements
-
-  {markdown-body}
-  ```
-- No-op if `<markdown-body>` is empty or whitespace-only.
-- **Idempotent retry**: if the most recent existing `### Run: ... — discovered-requirements` block (matched by tag suffix) has identical `<markdown-body>` (whitespace-normalized) AND its timestamp is within 2 minutes of the resolved timestamp, no-op. Compare only against same-tag blocks; an intervening `— observations` block does not affect the decision.
-- Append-only otherwise: never rewrite or remove prior `### Run:` blocks.
+- Body constraint variant: MUST contain `#### DISCOVERED REQUIREMENTS`. Reject (no-op + `BLOCKED: invalid discovered-requirements body`) if the body lacks `#### DISCOVERED REQUIREMENTS`.
+- Tag suffix: `— discovered-requirements`. Target section: `## Implementation Observations`. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
+- Apply the Append-Run Block Protocol above.
 
 #### Update Tech Debt
 Append tech-debt entries (typically deferred review findings) to the project's Tech Debt Backlog.
@@ -180,22 +137,11 @@ Append tech-debt entries (typically deferred review findings) to the project's T
 Resolve the target file path from the **Project Document Index** `Tech Debt` row (default `docs/TECH-DEBT-BACKLOG.md`).
 
 Actions for `append` form:
-- `<markdown-body>` is freeform multi-line markdown passed verbatim — quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape.
-- Body constraints: the caller MUST format `<markdown-body>` using `####`-or-deeper headings only (typically `#### DEFERRED FINDINGS`). The body MUST NOT contain `## ` headings or another `### Run:` line — these would visually close the section and break the append protocol. Reject (no-op + `BLOCKED: invalid tech-debt body`) if the body violates these constraints.
+- Body constraint variant: MUST use `####`-or-deeper headings (typically `#### DEFERRED FINDINGS`). Reject (no-op + `BLOCKED: invalid tech-debt body`) if violated.
 - **File creation exception** (the *one* documented deviation from "ops never creates target files" — see GOTCHAS): if the resolved target file does not exist, scaffold it from the `# Technical Debt Backlog` template defined in `project-state-templates.md` (H1 `# Technical Debt Backlog` + H2 `## High` / `## Medium` / `## Low` in fixed order, each carrying placeholder line `_No tech debt recorded yet._`) before appending. Do not extend this exception to any other ops form.
 - **Severity routing**: each entry is a top-level `- **{title}** ...` bullet with its `Severity:` line nested as a sub-bullet. Parse the `Severity:` value and route the entry to the matching H2 section (`High` / `Medium` / `Low`). Default to `Medium` when the severity is missing or unrecognized. When a single body batches mixed severities, split into per-severity run blocks sharing one timestamp — one new run block under each affected severity H2.
-- For each affected severity section: if the placeholder line `_No tech debt recorded yet._` is present, remove it (exact-string match only; no-op otherwise).
-- Resolve a timestamp: prefer `date -u +"%Y-%m-%d %H:%M UTC"` so all run blocks share a single timezone and ordering is unambiguous.
-- Normalize whitespace: ensure exactly one blank line precedes each new run block and the previous block ends with a trailing newline.
-- Append the new run block(s) under the matching severity H2, tagging the header with the op name so concurrent op types do not share an idempotency lane:
-  ```
-  ### Run: {YYYY-MM-DD HH:MM UTC} — tech-debt
-
-  {filtered-body for this severity}
-  ```
-- No-op if `<markdown-body>` is empty or whitespace-only — and do not create the target file in that case.
-- **Idempotent retry**: if the most recent existing `### Run: ... — tech-debt` block under the affected severity H2 (matched by tag suffix) has identical filtered body (whitespace-normalized) AND its timestamp is within 2 minutes of the resolved timestamp, no-op for that severity. Compare only against same-tag blocks. This makes the operation safe under exec-spec's Step 5b.4 retry-once protocol and parallels `update-fis observations` idempotency, scoped per severity H2.
-- Append-only otherwise: never rewrite or remove prior `### Run:` blocks.
+- Tag suffix: `— tech-debt`. Idempotency lane scoped per severity H2.
+- Apply the Append-Run Block Protocol above (once per affected severity section).
 
 
 ### 2. Git Operations
