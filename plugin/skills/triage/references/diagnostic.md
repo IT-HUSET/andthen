@@ -5,7 +5,7 @@ Systematic debugging methodology for runtime failures, build breakages, regressi
 ## Phase 1: Information Gathering
 
 Gather evidence before forming hypotheses. Run diagnostic commands in parallel where possible:
-- Project context: read CLAUDE.md and any troubleshooting guidelines
+- Project context: read `CLAUDE.md` / `AGENTS.md` and any troubleshooting guidelines
 - Error capture: collect error messages, stack traces, build logs, test output
 - Timeline: when did the issue begin? What changed?
 - Scope: isolated incident or recurring pattern?
@@ -42,7 +42,7 @@ For build, compile, dependency, and configuration failures specifically:
 
 ## Build Success Criteria
 
-When the triage target is a broken build, continue until all pass using project-specific commands (read CLAUDE.md for the correct commands):
+When the triage target is a broken build, continue until all pass using project-specific commands (read `CLAUDE.md` / `AGENTS.md` for the correct commands):
 
 1. Clean build completes without errors
 2. Full test suite passes consistently

@@ -36,7 +36,7 @@ Partial sub-agent work, intermediate refactor state, and perceived scope overrun
 
 In orchestrated flows (e.g. `andthen:exec-spec` running under `andthen:exec-plan`):
 
-- The **executing skill** writes its own story's status authoritatively via `andthen:ops` (plan.md story row, FIS field, FIS checkboxes, `State` active-story).
+- The **executing skill** writes its own story's status authoritatively via `andthen:ops` (Story Catalog status/FIS cells, FIS checkboxes, `State` active-story).
 - **Delegating sub-agents and teammates do NOT additionally call `andthen:ops update-*`** on top of the executing skill — that duplicates writes.
 - The **orchestrator** writes cross-story state only (phase transitions, overall status, session notes) plus *repair writes* when an executing-skill write is missing.
 - After each delegated story, the orchestrator runs the **Writes-Landed Checklist** (`andthen:exec-plan` Step 3c) to confirm writes landed, and calls `andthen:ops update-*` exactly once per missing item to repair.
@@ -46,7 +46,7 @@ In orchestrated flows (e.g. `andthen:exec-spec` running under `andthen:exec-plan
 When the executing skill runs under `--defer-shared-writes` (typically `andthen:exec-spec --defer-shared-writes`, set automatically by `andthen:exec-plan --team --worktree`), the contract shifts to avoid concurrent worktree merges colliding on shared files:
 
 - The executing skill writes **only** the FIS (story-local — merges cleanly).
-- It defers `plan.md` and `State` document writes by emitting a `## Deferred Shared Writes (worktree mode)` **audit block** in its completion report — fields are `Story`, `Plan`, `FIS`, and `Completion summary`. The block is an audit record and summary source, not a script.
+- It defers `plan.md` and `State` document writes by emitting a `## Deferred Shared Writes` **audit block** in its completion report — fields are `Story`, `Plan`, `FIS`, and `Completion summary`. The block is an audit record and summary source, not a script.
 - The **orchestrator** constructs the actual `andthen:ops update-*` invocations from values it already knows (`STORY_ID`, `FIS_FILE_PATH`, `PLAN_FILE_PATH`) plus the completion summary from the audit block, and applies them as the **primary** write path (not a repair) immediately after merging that worktree, before the next worktree merges or Wave N+1 worktrees are created.
 - Repo placement: writes land on `BASE_BRANCH` in single-repo (`PLAN_DIR == CODE_DIR`); in multi-repo (`PLAN_DIR ≠ CODE_DIR`) they land in `PLAN_DIR` (committed there if it is a git repo) and `CODE_DIR`'s history is unaffected.
 - A missing audit block is **not** a Stop-the-Line — the orchestrator already has all required values; it falls back to a generated completion-summary string and proceeds, logging the miss as a worker self-report drift signal.

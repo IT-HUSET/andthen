@@ -13,16 +13,16 @@ CODE_DIR: second positional argument _(optional – for multi-repo setups where 
 ### Optional Flags
 - `--team` → USE_TEAM: force Agent Teams mode; error if unavailable
 - `--worktree` → USE_WORKTREE: enable isolated git worktrees for parallel execution (team mode only; default: `false`)
-- `--from-issue <number>` → ISSUE_INPUT: Use a GitHub plan issue as input (`gh issue view <N>`). Auto-detects single-issue vs granular shape per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md), extracts `## Shared Decisions` and `## Binding Constraints` (when present) for inlining into per-story FIS context, generates each story's FIS just-in-time by invoking the `andthen:spec` skill with inline-text input (single-issue: extracted from the story section in the parent body; granular: fetched via `gh issue view <story-N> --json body` from the linked story issue), then runs the existing per-story exec-spec + quick-review pipeline against the materialized FIS. Posts shape-appropriate closure comments after Step 5. **Mutually exclusive with `--team`** (parallel JIT FIS generation is not supported under this flag) — reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop in default mode.
+- `--from-issue <number>` → ISSUE_INPUT: Use a GitHub plan issue as input (`gh issue view <N>`). Auto-detects single-issue vs granular shape per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md), extracts `## Shared Decisions`, `## Binding Constraints`, and the PRD source for inlining into per-story FIS context, generates each story's FIS just-in-time by invoking the `andthen:spec` skill with a temp story-source file (single-issue: extracted from the story section in the parent body; granular: fetched via `gh issue view <story-N> --json body` from the linked story issue), then runs the existing per-story exec-spec + quick-review pipeline against the materialized FIS with shared local writes deferred. Posts shape-appropriate closure comments after Step 5. **Mutually exclusive with `--team`** (parallel JIT FIS generation is not supported under this flag) — reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop in default mode.
 - `--to-pr <number>` → PUBLISH_PR: after Step 5 Final Verification, post the existing rolled-up completion summary plus final gap verdict as a PR comment via `gh pr comment <number> --body-file <summary-path>`. No new content generation. Composes with `--from-issue <N>` (the same flag works whether the plan came from a local directory or a GitHub issue). See Step 5 Publish to PR sub-step.
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 ## INSTRUCTIONS
 
-Require `PLAN_DIR`. Stop if missing. **You are the orchestrator.** Parse the plan, run the per-story pipeline (`exec-spec` → `quick-review` per story, then one final `review --mode gap`), verify writes landed, handle phase transitions, manage failures, run final verification. Delegate story code to `exec-spec` (sub-agent, teammate, or sequential fallback); take over locally if a story returns partial or non-green.
+Require `PLAN_DIR` unless `--from-issue <N>` is set. Stop if the required plan source is missing. **You are the orchestrator.** Parse the plan, run the per-story pipeline (`exec-spec` → `quick-review` per story, then one final `review --mode gap`), verify writes landed, handle phase transitions, manage failures, run final verification. Delegate story code to `exec-spec` (sub-agent, teammate, or sequential fallback); take over locally if a story returns partial or non-green.
 
 ### Rules
-- **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly. Every story's `**FIS**` field must point at an existing file (FIS-unset sentinel: [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md)); abort if missing — no auto-recovery.
+- **Plan is source of truth** – follow phase ordering, dependencies, and parallel markers exactly. Every Story Catalog `FIS` cell must point at an existing file (FIS-unset sentinel: [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md)); abort if missing — no auto-recovery.
 - **Execution discipline and authoritative status writes** — see [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md). `exec-spec` Step 5b is the per-story status write; sub-agents and teammates do not additionally call `andthen:ops update-*`. The orchestrator writes cross-story state and repair writes only.
 - **Automation rules** — see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions.
 - **Status updates are gates** – plan and FIS checkpoint updates block the next phase; do not defer.
@@ -43,8 +43,8 @@ Require `PLAN_DIR`. Stop if missing. **You are the orchestrator.** Parse the pla
 2. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
 
 3. Read `PLAN_DIR/plan.md` _(local-directory mode)_. If missing, stop — a valid plan artifact is required upstream (typically from the `andthen:plan` skill).
-4. Extract stories (ID, name, scope, acceptance criteria, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...)
-5. **Verify FIS files exist** _(local-directory mode only; skipped under `--from-issue` per `references/from-issue-mode.md`)_: every story's `**FIS**` field must (a) not match the FIS-unset sentinel per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) and (b) point at an existing file. If any story fails this check, abort with: `Plan bundle has stories with missing FIS — run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` Do not proceed (same in `--auto` mode — no auto-recovery). Status field values are not gated here; that is bookkeeping per the data contract, not a runtime precondition.
+4. Extract stories (ID, name, compact story brief, dependencies), phases, parallel markers `[P]`, dependency graph, and wave assignments (W1, W2, W3...). Validate every dependency token before building the schedule: local-plan `Dependencies` cells must be `-` or comma-separated Story IDs that exist in the Story Catalog. If a cell contains prose or an unknown ID, stop with `BLOCKED: invalid dependency in {story_id}: "{value}" — use concrete story IDs in the Dependencies cell and put milestone prose in Dependency Graph or phase notes.`
+5. **Verify FIS files exist** _(local-directory mode only; skipped under `--from-issue` per `references/from-issue-mode.md`)_: every Story Catalog `FIS` cell must (a) not match the FIS-unset sentinel per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) and (b) point at an existing file. If any story fails this check, abort with: `Plan bundle has stories with missing FIS — run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` Do not proceed (same in `--auto` mode — no auto-recovery). Status values are not gated here; that is bookkeeping per the data contract, not a runtime precondition.
 6. Build execution plan respecting phase ordering and dependency chains
 
 **Gate**: Plan parsed (from local `plan.md` or fetched issue body); in local mode FIS files exist on disk; phases identified
@@ -71,7 +71,7 @@ For each phase in the plan:
 
 **Update project state** (if the `State` document exists; see **Project Document Index**): invoke the `andthen:ops` skill with `update-state phase "{Phase N}: {phase_name}"` and `update-state status "On Track"`.
 
-FIS files were verified to exist in Step 1, item 5. Re-read `plan.md` if any status updates from a prior phase may have landed during execution.
+In local-directory mode, FIS files were verified to exist in Step 1, item 5; re-read `plan.md` if any status updates from a prior phase may have landed during execution. In `--from-issue` mode, FIS files are materialized per story and there is no local `plan.md` to re-read.
 
 **Gate**: Phase context loaded, `plan.md` current
 
@@ -80,7 +80,7 @@ FIS files were verified to exist in Step 1, item 5. Re-read `plan.md` if any sta
 > **JIT FIS layer** _(only when `--from-issue` is set)_: load `references/from-issue-mode.md` for the per-story FIS materialization recipe (story-body extraction, temp-file invocation form, and the `andthen:spec` failure policy). Once the FIS path is captured, fall through to the standard per-story pipeline below using that path as `{fis_path}`.
 
 **Per-story pipeline** (one FIS per story, so each story gets its own exec-spec + quick-review run):
-1. **Implement**: `/andthen:exec-spec {fis_path}`
+1. **Implement**: `/andthen:exec-spec {fis_path}`. When `--from-issue` is set, append `--defer-shared-writes`; there is no local `plan.md` or `State` status target, and issue-side completion is handled in Step 5c.
 2. **Review**: `/andthen:quick-review` on the story's changes
 
 **Wave-based execution**: W1 in parallel (via sub-agents), then W2, etc. Fall back to sequential in-orchestrator execution if sub-agents are unavailable or delegated execution stalls / returns partial / non-green.
@@ -88,8 +88,9 @@ FIS files were verified to exist in Step 1, item 5. Re-read `plan.md` if any sta
 Compose the per-story sub-agent prompt by substituting the canonical **Per-Story Worker Prompt** block (see bottom of this file) with `{MODE}=default` and overrides:
 - `{STORY_ID}` = the story's plan identifier (e.g. `S03`)
 - `{FIS_PATH}` = absolute path to the story's FIS
-- `{PLAN_PATH}` = absolute path to `PLAN_DIR/plan.md`
+- `{PLAN_PATH}` = absolute path to `PLAN_DIR/plan.md` (local-directory mode) or `github://issue/<N>` (`--from-issue`)
 - `{BASE_BRANCH}` = resolved at run start
+- `{SHARED_WRITE_SUFFIX}` = `" --defer-shared-writes"` when `--from-issue` is set, else `""`
 - Apply `--auto` propagation per `${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md` when `AUTO_MODE=true`
 
 **Model assignment**: Use a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar).
@@ -105,18 +106,20 @@ Pass → run the **Writes-Landed Checklist** below. This is a structured re-read
 **Writes-Landed Checklist** (per story just completed):
 
 - [ ] **FIS** — open the FIS at `{fis_path}`. Every task checkbox is `[x]`. Final Validation Checklist items are `[x]`. Success criteria are `[x]`.
-- [ ] **Plan story row** — open `plan.md`. The Story Catalog row for `{story_id}` shows status `Done`.
-- [ ] **Plan story section** — the story's section header field shows `**Status**: Done`. `**FIS**` field points at the correct path. Acceptance criteria checkboxes are all `[x]`.
-- [ ] **State document** (if it exists per **Project Document Index**) — `{story_id}` is no longer in the Active Stories table.
+- [ ] **Plan Story Catalog row** _(local-directory mode only)_ — open `plan.md`. The Story Catalog row for `{story_id}` shows status `Done` and its `FIS` cell points at the correct path.
+- [ ] **State document** _(local-directory mode only, if it exists per **Project Document Index**)_ — `{story_id}` is no longer in the Active Stories table.
 
-Missing item → call the matching `andthen:ops update-*` once to repair, then re-read that item only. Persistent miss after one repair pass is Stop-the-Line — do not advance the wave on unverified status.
+In `--from-issue` mode, skip the local Plan and State checklist items. The generated FIS carries `**Plan**: github://issue/<plan-N>` for traceability, not as a local `andthen:ops update-plan` target; Step 5c posts the issue-side completion record.
+
+Missing local item → call the matching `andthen:ops update-*` once to repair, then re-read that item only. Persistent miss after one repair pass is Stop-the-Line — do not advance the wave on unverified status.
 
 **Re-delegation** (remediation via sub-agent): compose the per-story sub-agent prompt by substituting the canonical **Per-Story Worker Prompt** block with `{MODE}=re-delegation` and overrides:
 - `{STORY_ID}`, `{FIS_PATH}`, `{PLAN_PATH}`, `{BASE_BRANCH}` as above
+- `{SHARED_WRITE_SUFFIX}` as above
 - `{REVIEW_FINDINGS_PATH}` = path to prior review findings
 - Add a `Failure list:` section with the specific failures before the main prompt block
 
-**Gate**: All stories in current phase verified green and their plan.md + FIS writes confirmed (or repaired)
+**Gate**: All stories in current phase verified green and their FIS writes confirmed; local-directory mode also confirms or repairs `plan.md` / State writes.
 
 **Gate**: All phases complete.
 
@@ -188,6 +191,7 @@ Single canonical prompt template for all per-story sub-agent invocation sites. P
 - `{REVIEW_FINDINGS_PATH}` – path to prior review findings (re-delegation only)
 - `{AUTO_SUFFIX}` – `" --auto"` when `AUTO_MODE=true`, else `""` (team mode; pre-substituted per Team Setup)
 - `{WORKTREE_SUFFIX}` – `" --defer-shared-writes"` when `USE_WORKTREE=true`, else `""` (team mode; pre-substituted per Team Setup)
+- `{SHARED_WRITE_SUFFIX}` – `" --defer-shared-writes"` when `--from-issue` or worktree mode defers local plan/state writes, else `""`
 - `{CODE_DIR_ABS}` – resolved absolute path to the code repository (final-review mode)
 
 For the no-double-write contract, see `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
@@ -197,10 +201,10 @@ For the no-double-write contract, see `${CLAUDE_PLUGIN_ROOT}/references/executio
 Story {STORY_ID} | Mode: {MODE}
 Plan: {PLAN_PATH} | FIS: {FIS_PATH}
 
-1. /andthen:exec-spec {FIS_PATH}
+1. /andthen:exec-spec {FIS_PATH}{SHARED_WRITE_SUFFIX}
 2. /andthen:quick-review on the changes
 
-Run `/andthen:exec-spec` — its Step 5b writes this story's status.
+Run `/andthen:exec-spec` — its Step 5b writes this story's status unless `{SHARED_WRITE_SUFFIX}` defers shared local writes back to the orchestrator / issue workflow.
 For the no-double-write contract, see execution-discipline.md.
 
 Report:

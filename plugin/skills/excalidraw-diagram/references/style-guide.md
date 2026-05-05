@@ -2,7 +2,7 @@
 
 **Default visual style for generated Excalidraw diagrams.** This file is the fallback when a project does not configure its own style guide.
 
-**To customize for your project**: Copy this file to your project (e.g. `docs/design/diagram-style-guide.md`), modify it to match your brand, and add a `Diagram Style Guide` row to the **Project Document Index** in your CLAUDE.md pointing to the copy.
+**To customize for your project**: Copy this file to your project (e.g. `docs/design/diagram-style-guide.md`), modify it to match your brand, and add a `Diagram Style Guide` row to the **Project Document Index** in your root agent instruction file (`CLAUDE.md` / `AGENTS.md`) pointing to the copy.
 
 **Aesthetic: Hand-drawn Blueprint** – clean white canvas, pastel-tinted shapes with confident strokes, and spatial zones that group by color family. Shapes use light shade[1] fills with strong shade[4] strokes. The hand-drawn Excalifont and `roughness: 1` give warmth. Zones use the lightest shade[0] tints as subtle spatial grouping. The result feels like a skilled architect's whiteboard sketch – organized, colorful but cohesive, approachable. Dark mode is a well-supported alternative (Section 9).
 

@@ -7,7 +7,7 @@ Concise, actionable checklist for thorough code reviews.
 ## Pre-Review
 - [ ] Understand code's purpose and context
 - [ ] Review changed files (`git diff` or equivalent)
-- [ ] Check project guidelines (CLAUDE.md, coding standards)
+- [ ] Check project guidelines (`CLAUDE.md` / `AGENTS.md`, coding standards)
 
 ---
 

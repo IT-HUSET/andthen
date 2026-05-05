@@ -6,6 +6,8 @@ This document is the **single canonical source** for the body shape of a plan is
 
 The contract has two shapes — **single-issue** (default `--to-issue`) and **granular** (`--to-issue --create-story-issues`). Both use the same parser-friendly H2 anchors so a downstream consumer can detect shape and extract sections without bespoke regex. The Story Catalog table column order is identical to the local `plan.md` template ([`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) — Story Catalog Columns).
 
+Story Catalog `Dependencies` cells follow the same machine-readable contract as local plans: `-` or comma-separated Story IDs from the same table. Do not put prose such as `Blocks A-G complete` in the catalog. Granular story issue bodies may add optional `Depends on #<sibling-issue-N>` navigation after issue numbers exist, but the parent catalog remains the scheduling source of truth.
+
 
 ## Link Conventions
 
@@ -13,9 +15,10 @@ Plan and story issues use these exact link forms — they are contracts, not sug
 
 | Token | Meaning | Where it appears |
 |---|---|---|
+| `> **PRD**: ...` | Durable PRD source: local `prd.md` path or `github://issue/<N>` | Header of every plan issue |
 | `Refs #N` | Provenance: this artifact derives from issue `#N` | Footer of any plan, PRD, story, clarify, or triage issue when an input issue was supplied |
 | `Part of #N` | Containment: this story issue belongs to plan issue `#N` | Footer of every story issue created by `--create-story-issues` |
-| `Depends on #N` | Inter-story ordering: this story depends on story issue `#N` | Inline in a story issue's `Dependencies` field; the consumer maps `#N` back to a Story ID via the parent plan's Story Catalog |
+| `Depends on #N` | Optional child-issue navigation for inter-story ordering | Inline in a granular story issue's optional `Depends on` note; the parent Story Catalog remains the scheduling source of truth |
 
 `Refs #N` and `Part of #N` are independent: a story issue carries both — `Refs` to the originating PRD issue, `Part of` to the parent plan issue.
 
@@ -41,6 +44,8 @@ Used by `andthen:plan --to-issue` (default). Everything lives in one issue; no s
 Body skeleton:
 
 ```
+> **PRD**: <prd.md path or github://issue/<prd-N>>
+
 <plan summary — 1–3 paragraphs of context>
 
 ## Shared Decisions
@@ -60,25 +65,18 @@ Body skeleton:
 
 ### Story S01: <name>
 
-**Status**: Pending
-**FIS**: -
-**Phase**: <phase>
-**Wave**: W1
-**Dependencies**: -
-**Parallel**: Yes
-**Risk**: Low
 **Scope**: <one-paragraph scope>
-**Acceptance Criteria**:
-- [ ] <criterion>
+**Source refs**: <PRD feature IDs and anchors>
+**Asset refs**: <optional refs, or omit>
 
 ### Story S02: <name>
 
-<same fields as S01>
+<same compact story brief as S01>
 
 Refs #<prd-N>
 ```
 
-Story metadata fields mirror those of a local plan story. Omit the `Refs #<prd-N>` footer when no PRD issue was the input.
+Story briefs mirror local `plan.md` story briefs: `Scope` plus `Source refs` for PRD-backed stories, with optional provenance, asset refs, and notes. The Story Catalog is the only status/FIS/scheduling surface. The `> **PRD**:` header is required so `exec-plan --from-issue` can resolve `Source refs` when generating JIT FIS files. Omit the `Refs #<prd-N>` footer when no PRD issue was the input.
 
 
 ## Granular Shape
@@ -88,6 +86,8 @@ Used by `andthen:plan --to-issue --create-story-issues`. Produces one parent pla
 ### Parent Plan Issue Body Skeleton
 
 ```
+> **PRD**: <prd.md path or github://issue/<prd-N>>
+
 <plan summary — 1–3 paragraphs>
 
 ## Shared Decisions
@@ -116,32 +116,25 @@ The plan body is created first with placeholders under `## Story Issues`, then `
 
 ### Story Issue Body Skeleton
 
-The issue title is `S0N: <name>`; the body has no nested `### Story` heading. The metadata fields below are the canonical 9 from `data-contract.md` `## Required Story Metadata Labels` — single-issue and granular shapes carry the same set so the consumer parses them uniformly.
+The issue title is `S0N: <name>`; the body has no nested `### Story` heading. The body carries the same compact story brief as a local plan story. Status, FIS path, phase, wave, dependencies, parallelism, and risk stay in the parent Story Catalog.
 
 ```
-<story description — same body the local plan would carry under its
- ### Story S0N: section, minus the H3 heading>
+<story description — same compact body the local plan would carry
+ under the story's Phase Breakdown heading>
 
-**Status**: Pending
-**FIS**: -
-**Phase**: <phase>
-**Wave**: W1
-**Dependencies**: Depends on #<sibling-issue-N>, Depends on #<sibling-issue-N>
-**Parallel**: Yes
-**Risk**: <Low|Medium|High>
 **Scope**: <one-paragraph scope>
-**Acceptance Criteria**:
-- [ ] <criterion>
+**Source refs**: <PRD feature IDs and anchors>
+**Depends on**: #<sibling-issue-N>, #<sibling-issue-N>  <!-- optional; omit when none -->
 
 Refs #<prd-N>
 Part of #<plan-N>
 ```
 
-`Dependencies` is `-` when none. `**FIS**` stays `-` (FIS files are generated just-in-time by `andthen:exec-plan --from-issue`). The consumer maps `#<sibling-issue-N>` back to a Story ID via the parent plan's Story Catalog.
+Story issue `**Depends on**` notes are optional navigation only; omit the field when there are no dependencies. When emitted, each dependency uses a sibling issue number after the two-pass rewrite. Prose dependencies are invalid. The parent Story Catalog remains authoritative for scheduling, and its `FIS` cells stay `-` because FIS files are generated just-in-time by `andthen:exec-plan --from-issue`.
 
-> **Two-pass `Depends on` resolution**: `gh issue create` is one-shot, so a story whose dependencies point at later-catalog stories cannot reference real issue numbers at first creation. The producer (`andthen:plan` granular mode) writes placeholder text initially and rewrites the dependencies via a second `gh issue edit <story-N>` call once every sibling issue exists. Story-issue bodies are therefore created twice in the granular flow; the final-form `Depends on #<sibling-issue-N>` shown above is the post-rewrite shape that consumers parse.
+> **Two-pass `Depends on` resolution**: `gh issue create` is one-shot, so a story whose dependencies point at later-catalog stories cannot reference real issue numbers at first creation. The producer (`andthen:plan` granular mode) writes placeholder navigation text initially and rewrites it via a second `gh issue edit <story-N>` call once every sibling issue exists. Story-issue bodies are therefore created twice in the granular flow; the final-form `Depends on #<sibling-issue-N>` shown above is the post-rewrite navigation shape.
 
-> **Producer / consumer race window**: between the first `gh issue create` calls and the final `gh issue edit` rewrites, the parent plan issue body has placeholder `## Story Issues` bullets and individual story issues have placeholder `Depends on` text. Producers (`andthen:plan --to-issue --create-story-issues`) MUST add the label `andthen-finalizing` to the parent plan issue at creation time and remove it after both rewrite passes complete. Consumers (`andthen:exec-plan --from-issue <plan-N>`) MUST check for the label before parsing — when present, stop with `BLOCKED: plan issue #<N> is still being finalized — retry after the producer completes` (default mode prints a wait-and-retry message; `AUTO_MODE` exits with the BLOCKED line).
+> **Producer / consumer race window**: between the first `gh issue create` calls and the final `gh issue edit` rewrites, the parent plan issue body has placeholder `## Story Issues` bullets and individual story issues may have placeholder `Depends on` text. Producers (`andthen:plan --to-issue --create-story-issues`) MUST add the label `andthen-finalizing` to the parent plan issue at creation time and remove it after both rewrite passes complete. Consumers (`andthen:exec-plan --from-issue <plan-N>`) MUST check for the label before parsing — when present, stop with `BLOCKED: plan issue #<N> is still being finalized — retry after the producer completes` (default mode prints a wait-and-retry message; `AUTO_MODE` exits with the BLOCKED line).
 
 
 ## Shape Detection (consumer side)

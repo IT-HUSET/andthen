@@ -2,7 +2,7 @@
 
 This document is the **single canonical source** for the plan/FIS data contract. Skills reference this document; they do not restate the contract inline.
 
-> Skills that reference this document: `ops`, `exec-spec`, `exec-plan`.
+> Skills that reference this document: `ops`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`.
 
 
 ## FIS Mutability Contract
@@ -16,7 +16,7 @@ Discovered Requirements is the single sanctioned append-only channel for FIS-aug
 
 ## Story Catalog Columns
 
-Every `plan.md` Story Catalog table uses exactly these columns, in this order:
+Every local `plan.md` and plan-issue Story Catalog table uses exactly these columns, in this order:
 
 | Column | Type | Description |
 |---|---|---|
@@ -24,41 +24,51 @@ Every `plan.md` Story Catalog table uses exactly these columns, in this order:
 | `Name` | String | Short story name. |
 | `Phase` | String | Phase name/number. |
 | `Wave` | String | Wave assignment, e.g. `W1`. |
-| `Dependencies` | String | Comma-separated story IDs, or `-` if none. |
+| `Dependencies` | String | Comma-separated story IDs from the same Story Catalog, or `-` if none. Prose is invalid. |
 | `Parallel` | String | `Yes` / `No` / `[P]` — whether this story can run in parallel with wave siblings. |
 | `Risk` | String | `Low` / `Medium` / `High`. |
 | `Status` | String | Current state per the Status State Machine below. |
 | `FIS` | String | Relative POSIX path to the story's FIS file, or an unset sentinel (see FIS-Unset Sentinel below). |
 
 
-## Required Story Metadata Labels
+## Required Story Brief Labels
 
-Each story section in `plan.md` carries these fields (bold-label format):
+Each local `plan.md` story section and granular story issue body carries a compact story brief. The Story Catalog is the source of truth for status, FIS path, phase, wave, dependencies, parallelism, and risk.
 
-- `**Status**`
-- `**FIS**`
-- `**Phase**`
-- `**Wave**`
-- `**Dependencies**`
-- `**Parallel**`
-- `**Risk**`
 - `**Scope**`
-- `**Acceptance Criteria**`
+- `**Source refs**` — required for PRD-backed stories; omit only when `**Provenance**` explains why no PRD source exists.
+
+Optional labels:
+
+- `**Provenance**` — required only for stories with no direct PRD feature coverage.
+- `**Asset refs**` — wireframes, ADRs, design-system references, or other upstream artifacts needed by the FIS author.
+- `**Notes**` — only for load-bearing planning notes that do not belong in the Story Catalog or Dependency Graph.
+
+
+## Dependency Cell Contract
+
+`Dependencies` cells are machine-readable scheduler input. A valid Story Catalog value is exactly one of:
+
+- `-` when the story has no dependencies
+- One or more story IDs from the same Story Catalog, separated by commas, e.g. `S01` or `S01, S04`
+
+Do not put prose, phase names, milestone gates, or "all previous work" summaries in dependency cells. A value such as `Blocks A-G complete` is parsed as a literal dependency ID by downstream schedulers and fails with an unknown-dependency error. Express broad sequencing through phase/wave assignment, the `## Dependency Graph` section, or concrete story IDs.
 
 
 ## Status State Machine
 
-`Pending → Spec Ready → In Progress → Done`
+Story Catalog status values are:
 
-Forward transitions are skill-implicit per the write-authority table below. Backward transitions (`Done → In Progress`, `In Progress → Spec Ready`) are allowed only through explicit `andthen:ops update-plan` calls — never inferred.
+`Pending → Spec Ready → Done`
+
+`In Progress` belongs in the State document's Active Stories table, not in the Story Catalog. Forward transitions are skill-implicit per the write-authority table below. Backward transitions (`Done → Spec Ready`) are allowed only through explicit `andthen:ops update-plan` calls — never inferred.
 
 ### Write Authority
 
 | Transition | Write authority |
 |---|---|
-| `Pending → Spec Ready` | `andthen:plan` Step 6 (after FIS lands); `andthen:spec` post-save action (plan-story input mode) |
-| `Spec Ready → In Progress` | `andthen:exec-spec` Step 2 — marks story active in the State document (Active Stories table). The plan row `**Status**` field is **not** written to `In Progress`; it advances directly to `Done` in Step 5b. |
-| `In Progress → Done` | `andthen:exec-spec` Step 5b (plan row `**Status**` field + Story Catalog row) |
+| `Pending → Spec Ready` | `andthen:plan` Step 5 (after FIS lands); `andthen:spec` post-save action (plan-story input mode) |
+| `Spec Ready → Done` | `andthen:exec-spec` Step 5b (Story Catalog `Status` column). The `In Progress` state, when needed, is represented only in the State document's Active Stories table. |
 | Any backward transition | `andthen:ops update-plan` explicit call only |
 
 `andthen:exec-plan` orchestrates but does not write `Status` directly — it delegates through `andthen:ops` for cross-story state and repair writes only.
@@ -66,17 +76,17 @@ Forward transitions are skill-implicit per the write-authority table below. Back
 
 ## FIS-Unset Sentinel
 
-A `**FIS**:` field value matching the following regex is classified as **unset**:
+A Story Catalog `FIS` cell value matching the following regex is classified as **unset**:
 
 ```
 ^\s*(-|–|—|TBD|N/A)?\s*$
 ```
 
-(case-insensitive on the literal tokens `TBD` and `N/A`; applied to the span after `**FIS**:` on the row)
+(case-insensitive on the literal tokens `TBD` and `N/A`; applied to the normalized cell text)
 
 This covers: ASCII hyphen `-` (U+002D), en-dash `–` (U+2013), em-dash `—` (U+2014, defensive for rich-text-editor paste), `TBD`, `N/A`, empty, and whitespace-only values.
 
-A `**FIS**:` field with a path value that points at a **non-existent file** is also classified as unset (file-existence check required).
+A Story Catalog `FIS` cell with a path value that points at a **non-existent file** is also classified as unset (file-existence check required).
 
 
 ## FIS Structural Integrity Contract
@@ -117,4 +127,4 @@ Every FIS produced for a plan story carries provenance fields between the H1 hea
 
 - Path: POSIX forward slashes; no leading `./`; no trailing slash
 - `Story-ID`: uppercase `S` prefix + two-digit zero-padded number (e.g. `S03`)
-- No `**Status**:` field in the FIS header — Status is plan-row-only to avoid a second source of truth
+- No `**Status**:` field in the FIS header — Status is Story Catalog-only to avoid a second source of truth

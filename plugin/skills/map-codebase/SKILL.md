@@ -36,7 +36,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 
 1. Run `tree -d -L 3` for directory structure
 2. Run `git ls-files | head -500` for file inventory
-3. Check existing documentation: README, CLAUDE.md, docs/, etc.
+3. Check existing documentation: README, CLAUDE.md, AGENTS.md, docs/, etc.
 4. Identify primary language(s) and frameworks from config files
 5. Check git history: `git log --oneline -20`
 6. **Detect monorepo/workspace structure** – look for `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `"workspaces"` in root `package.json`, `[workspace]` in root `Cargo.toml`, `go.work`, or multiple sub-dirs with their own package config. If detected: list workspace tool and sub-projects. Set `IS_MONOREPO = true` and pass the sub-project list to all analysis sub-agents.
@@ -60,7 +60,7 @@ Output: the `Architecture` document (see **Project Document Index**; default: `O
 
 #### 2c. Conventions Analysis (sub-agent)
 Analyze and document naming conventions, file organization patterns, error handling, logging, testing patterns, and code style (formatting, imports, exports).
-Output: a `## Conventions` section to be appended to the project's `CLAUDE.md`
+Output: a `## Conventions` section for the project's root agent instruction file (`CLAUDE.md` and/or `AGENTS.md`). Append it to whichever root instruction file exists; if both exist, keep the section aligned in both; if neither exists, include the section in the completion output so the `andthen:init` skill can insert it when creating the file(s).
 
 #### 2d. Testing Overview (sub-agent)
 Analyze test framework(s), test directory structure, coverage patterns, test helpers/fixtures, and integration/E2E setup.
@@ -107,12 +107,12 @@ Output: `OUTPUT_DIR/requirements-discovered.md` in a format compatible with the 
 
 1. Write all documents to `OUTPUT_DIR/`
 2. Print summary listing all generated files with brief descriptions
-3. If `IS_MONOREPO = true`: generate a lightweight `CLAUDE.md` for each sub-project that doesn't already have one (under ~40 lines: name/description, key development commands inline table, sub-project-specific notes)
+3. If `IS_MONOREPO = true`: generate lightweight sub-project agent instruction file(s) that match the root file choice (`CLAUDE.md`, `AGENTS.md`, or both) for each sub-project that doesn't already have them (under ~40 lines: name/description, key development commands inline table, sub-project-specific notes)
 4. Suggest next steps: review discovered requirements with team, invoke the `andthen:plan` skill: `/andthen:plan docs/requirements-discovered.md`
 
 
 ## OUTPUT
 
-Files written to `OUTPUT_DIR/`: `STACK.md`, `ARCHITECTURE.md` (+ testing overview), `KEY_DEVELOPMENT_COMMANDS.md`, `requirements-discovered.md`. A `## Conventions` section is appended to the project's `CLAUDE.md`; monorepo: per-sub-project `CLAUDE.md` files are generated in each sub-project directory.
+Files written to `OUTPUT_DIR/`: `STACK.md`, `ARCHITECTURE.md` (+ testing overview), `KEY_DEVELOPMENT_COMMANDS.md`, `requirements-discovered.md`. A `## Conventions` section is appended to the project's root agent instruction file(s), or reported for `andthen:init` to insert when no root file exists yet; monorepo: matching per-sub-project agent instruction files are generated in each sub-project directory.
 
 When complete, print each output file's **relative path from the project root**.

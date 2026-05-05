@@ -23,7 +23,7 @@ Compose the per-story sub-agent prompt by substituting the canonical Per-Story W
 Include in each implementer's system prompt:
 - Only work on assigned `impl-*` tasks
 - Per task: `cd {CODE_DIR_ABS}` → (worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}` → commit → (worktree: `ExitWorktree(keep)`) → mark done; report `exec-spec` Step 4a numbers (build, tests, lint/type-check, format)
-- **Worktree mode (`{WORKTREE_SUFFIX}` non-empty)**: `exec-spec` skips `plan.md` and `State` document writes and emits a `## Deferred Shared Writes (worktree mode)` audit block (Story / Plan / FIS / Completion summary). Pass that block through to your report so the orchestrator can read the `Completion summary` line and audit what was deferred — the orchestrator already knows Story / Plan / FIS from its own plan parse and constructs / applies the writes post-merge itself. Constraints: (1) do not apply those writes yourself, (2) do not stage or commit `plan.md` or the `State` document inside the worktree branch — only code (and FIS) edits belong there. Shadow plan/state commits inside the worktree defeat the deferral and resurrect the merge-conflict failure mode this flag exists to prevent.
+- **Worktree mode (`{WORKTREE_SUFFIX}` non-empty)**: `exec-spec` skips `plan.md` and `State` document writes and emits a `## Deferred Shared Writes` audit block (Story / Plan / FIS / Completion summary). Pass that block through to your report so the orchestrator can read the `Completion summary` line and audit what was deferred — the orchestrator already knows Story / Plan / FIS from its own plan parse and constructs / applies the writes post-merge itself. Constraints: (1) do not apply those writes yourself, (2) do not stage or commit `plan.md` or the `State` document inside the worktree branch — only code (and FIS) edits belong there. Shadow plan/state commits inside the worktree defeat the deferral and resurrect the merge-conflict failure mode this flag exists to prevent.
 - Absolute FIS paths; escalate unresolvable issues
 - For no-double-write contract, see `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`
 
@@ -67,7 +67,7 @@ After all `impl-*` in the current wave complete, for each worktree branch in seq
      `printf %s` does no metacharacter expansion on its substituted value, and `git commit -F -` reads the message as a byte stream — `SUMMARY` never reaches the shell argument vector. The `Squashed-story: {STORY_ID}` trailer is **load-bearing**: Final Worktree Teardown uses it to classify cross-run leftover worktrees as merged. `STORY_ID` is the bare plan id (e.g. `S03`), not the task name (`impl-S03`).
    - Consequences worth knowing: (a) **implementer authorship is collapsed** into the orchestrator's commit — `git blame` on `{BASE_BRANCH}` surfaces the orchestrator, not the implementer; the FIS, squash commit message, and deferred-writes completion summary are the forensic record. (b) **Single-repo only** (`PLAN_DIR == CODE_DIR`) — step 4's plan/state writes land as a *second* commit on `{BASE_BRANCH}`, so `git revert <squash-sha>` reverts code only; full story revert in single-repo also requires reverting the plan/state commit. The "one squash commit per story" framing applies to code-side history; plan/state side adds one more in single-repo.
 2. **Verify build** on `{BASE_BRANCH}` post-commit.
-3. **Apply deferred shared writes for this story.** The implementer's report contains a `## Deferred Shared Writes (worktree mode)` audit block with `Story`, `Plan`, `FIS`, and `Completion summary` fields. **Do not parse it as a script** — use it as audit / summary source.
+3. **Apply deferred shared writes for this story.** The implementer's report contains a `## Deferred Shared Writes` audit block with `Story`, `Plan`, `FIS`, and `Completion summary` fields. **Do not parse it as a script** — use it as audit / summary source.
 
    **Value sources** — the orchestrator already holds the structural values from Step 1's plan parse, not from the audit block or the task name:
    - `STORY_ID` is the plan story identifier (e.g. `S03`), extracted from `plan.md` at parse time. The team task names (`impl-{STORY_ID}` / `review-{STORY_ID}`) embed the same value but are *not* the source of truth.
@@ -75,8 +75,8 @@ After all `impl-*` in the current wave complete, for each worktree branch in seq
    - `Completion summary` is the only field actually pulled from the audit block — extract by matching the line `^Completion summary:\s*(.+)$` and trimming the captured value.
 
    Construct and run the writes:
-   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done` — sets Status, Story Catalog row, acceptance-criteria checkboxes.
-   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} fis "{FIS_FILE_PATH}"` — only if the plan story row's FIS field is *unset* (empty / `–` / placeholder) or *stale* (path differs from `{FIS_FILE_PATH}` after path normalization).
+   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done` — sets the Story Catalog `Status` cell.
+   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} fis "{FIS_FILE_PATH}"` — only if the Story Catalog `FIS` cell is *unset* (empty / `–` / placeholder) or *stale* (path differs from `{FIS_FILE_PATH}` after path normalization).
    - `andthen:ops update-state active-story {STORY_ID} Done` — only if the `State` document exists.
    - `andthen:ops update-state note "{Completion summary}"` — use the summary line from the audit block; if the audit block is missing or its summary is empty, fall back to `"{STORY_ID}: completed (worktree merge)"` (the substituted `STORY_ID` is the bare plan ID like `S03`, not the team task name `impl-S03`). A missing audit block is **not** a Stop-the-Line — all required values are already in the orchestrator's hand; the writes still proceed. Log the missing block as a worker self-report drift signal for follow-up.
 
@@ -120,7 +120,7 @@ Source of truth for the checklist depends on mode:
 - **Worktree** — primary writes come from the Merge Wave step's "apply deferred shared writes" substep, not from inside the worktree branch. Run the checklist after the deferred writes are applied and committed (single-repo: read from `{BASE_BRANCH}`; multi-repo: read directly from `PLAN_DIR`). Any miss after that is a real loss → repair via the matching `andthen:ops update-*` once.
 - **No worktree** — `exec-spec` Step 5b writes status in-place. Run the checklist as in Step 3c; one-shot repair on miss.
 
-Additionally verify the **Plan Acceptance Gate** before accepting `Done`: each acceptance criterion demonstrably satisfied, scope notes present when the FIS narrowed scope.
+Additionally verify the **Plan Acceptance Gate** before accepting `Done`: each FIS success criterion is demonstrably satisfied, and implementation observations are present when the FIS narrowed scope.
 
 Move to the next phase only after the current phase fully passes the checklist for every story.
 

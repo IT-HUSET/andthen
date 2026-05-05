@@ -1,6 +1,6 @@
 # Project State Document Templates
 
-Lightweight starter templates for the supplementary project documents referenced in the **Project Document Index** of `CLAUDE.md`. Each template provides structure and brief guidance – fill in what applies, remove what doesn't.
+Lightweight starter templates for the supplementary project documents referenced in the **Project Document Index** of the root agent instruction file (`CLAUDE.md` / `AGENTS.md`). Each template provides structure and brief guidance – fill in what applies, remove what doesn't.
 
 ---
 
@@ -245,7 +245,7 @@ _No tech debt recorded yet._
 
 ## KEY_DEVELOPMENT_COMMANDS.md
 
-> Key commands for development, running, testing, deployment, and code quality. Offloads this from CLAUDE.md to keep it focused on structure and context. For monorepos, organize commands per sub-project.
+> Key commands for development, running, testing, deployment, and code quality. Offloads this from the root agent instruction file to keep it focused on structure and context. For monorepos, organize commands per sub-project.
 
 ```markdown
 # Key Development Commands

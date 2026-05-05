@@ -67,19 +67,19 @@ See `docs/STATE.md` for current phase, active stories, blockers, and session con
 ## Workflow Rules, Guardrails and Guidelines
 
 ### Foundational Rules and Guardrails
-_Always fully read and understand this file before doing any work:_ @docs/rules/CRITICAL-RULES-AND-GUARDRAILS.md
+_Always fully read and understand this file before doing any work:_ `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md`
 
-> **Alternative (stronger adherence):** Instead of the `@` reference above, you can inject the rules
-> directly into the system prompt via a shell alias. This keeps the rules in a privileged position
-> that survives long sessions without drift.
+> **Alternative (stronger adherence):** Claude Code users can prefix the path above with `@`,
+> or inject the rules directly into the system prompt via a shell alias. This keeps the rules
+> in a privileged position that survives long sessions without drift.
 
 
 ### Foundational Development Guidelines and Standards
 **Always read** relevant guidelines below as _needed_, based on the type of work being done. Review what guidelines are relevant to the task at hand before starting any work that involves coding, code exploration, architecture and solution design, UX/UI, code review, etc.
 
-- _`<repository_root>/docs/guidelines/DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`_ when doing development work (coding, architecture, etc.)
-- _`<repository_root>/docs/guidelines/UX-UI-GUIDELINES.md`_ when doing UX/UI related work
-- _`<repository_root>/docs/guidelines/WEB-DEV-GUIDELINES.md`_ when doing web development work
+- _`docs/guidelines/DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`_ when doing development work (coding, architecture, etc.)
+- _`docs/guidelines/UX-UI-GUIDELINES.md`_ when doing UX/UI related work
+- _`docs/guidelines/WEB-DEV-GUIDELINES.md`_ when doing web development work
 
 
 ---

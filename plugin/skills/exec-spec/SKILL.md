@@ -13,7 +13,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 - `--tdd` → TDD_MODE: strict TDD execution mode. Scaffold exactly one scenario test, observe it fail, drive red→green→refactor, then advance to the next scenario. The TDD canon — Anti-Cheat Invariant, Living Test List, Horizontal Slicing as Anti-Pattern, red→green→refactor discipline — is owned by the `andthen:testing` skill; load it via `/andthen:testing --mode tdd` (or the Skill tool) for canon depth, but the executor remains the test author — this is canon consultation, not delegation of test writing. `AUTO_MODE` honors `--tdd` without confirmation gates. Default off; opt in for logic-heavy or bug-mode FISes.
-- `--defer-shared-writes` → DEFER_SHARED_WRITES: skip direct `plan.md` and `State` document writes (FIS writes still run); emit a `## Deferred Shared Writes (worktree mode)` audit block in the completion report instead. Set automatically by `andthen:exec-plan --team --worktree` to prevent concurrent worktree merges from colliding on shared files. Intended for orchestrated use — see Step 5b.5 for emission format and standalone-use details.
+- `--defer-shared-writes` → DEFER_SHARED_WRITES: skip direct `plan.md` and `State` document writes (FIS writes still run); emit a `## Deferred Shared Writes` audit block in the completion report instead. Set automatically by `andthen:exec-plan --team --worktree` to prevent concurrent worktree merges from colliding on shared files, and by `andthen:exec-plan --from-issue` because GitHub issue plans are not local `andthen:ops update-plan` targets. Intended for orchestrated use — see Step 5b.5 for emission format and standalone-use details.
 - `--to-pr <number>` → PUBLISH_PR: after Step 5b status writes succeed, post the existing completion summary (the report produced by Step 5c) as a PR comment via `gh pr comment <number> --body-file <summary-path>`. No new content generation — the comment body is the local summary verbatim. Explicit number only; no auto-detect from the current branch. See Step 5d for emission details.
 
 
@@ -26,7 +26,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 - **Execution discipline** — Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
 - **Direct execution** — implement the code yourself. Sub-agents are for advisory work, review, and validation only.
-- **Surgical scope; surface — don't fix** — every changed line should trace to a FIS task. Clean only orphans your own changes caused (an import you made unused, a helper your refactor stranded). Pre-existing issues outside that orphan radius — including lint/analyzer warnings, dead code, typos, and small co-located bugs *inside files you touch* — go into a `NOTICED BUT NOT TOUCHING` block in working notes during the run, are persisted to the FIS's `## Implementation Observations` section at completion (Step 5b), and are surfaced as a brief pointer (not a full duplicate) from the completion report; do not fix inline. Boy Scout cleanup is reserved for review/refactor skills (the `andthen:review`, `andthen:quick-review`, `andthen:refactor`, and `andthen:architecture` skills), not exec-spec. See **Workflow Rules, Guardrails and Guidelines** in the project `CLAUDE.md`.
+- **Surgical scope; surface — don't fix** — every changed line should trace to a FIS task. Clean only orphans your own changes caused (an import you made unused, a helper your refactor stranded). Pre-existing issues outside that orphan radius — including lint/analyzer warnings, dead code, typos, and small co-located bugs *inside files you touch* — go into a `NOTICED BUT NOT TOUCHING` block in working notes during the run, are persisted to the FIS's `## Implementation Observations` section at completion (Step 5b), and are surfaced as a brief pointer (not a full duplicate) from the completion report; do not fix inline. Boy Scout cleanup is reserved for review/refactor skills (the `andthen:review`, `andthen:quick-review`, `andthen:refactor`, and `andthen:architecture` skills), not exec-spec. See **Workflow Rules, Guardrails and Guidelines** in the project's root agent instruction file (`CLAUDE.md` / `AGENTS.md`).
 - **Anti-rationalization** — reject rationalizations for skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate (e.g. *"I'll verify after the next group"*, *"this failing check is unrelated"*, *"I'll batch status updates at the end"*, *"completing with a caveat is fine"*). Broken is not Done; Stop-the-Line applies.
 
 ### Proactive Sub-Agents
@@ -95,7 +95,7 @@ Usage rules:
 
 10. **UI design contract** — if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
 
-11. **Update project state** (if the `State` document exists per **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
+11. **Update project state** (if the `State` document exists per **Project Document Index**, the FIS originated from a plan, and `DEFER_SHARED_WRITES=false`): restore story context from `STORY_ID` and mark it as the active story. When shared writes are deferred, do not mutate the State document at start; the orchestrator or issue workflow owns shared status surfaces.
 
 12. Initialize working notes you will maintain during the run:
     - Per-task status
@@ -153,7 +153,7 @@ Use the canonical commands from the `Key Dev Commands` document (read in Step 2.
 Run the `andthen:review` **skill** with `--mode code` for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a sub-agent whose prompt runs `/andthen:review --mode code`. Do not pass `andthen:review` as `subagent_type` — it is a skill, not an agent type.
 
 #### 4c. Visual Validation (if UI)
-Invoke the `andthen:visual-validation` **skill** in a sub-agent per any Visual Validation Workflow defined in CLAUDE.md.
+Invoke the `andthen:visual-validation` **skill** in a sub-agent per any Visual Validation Workflow defined in `CLAUDE.md` / `AGENTS.md`.
 
 Steps 4b and 4c can run in parallel.
 
@@ -179,8 +179,8 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
    - **Persist Discovered Requirements** (if any remain unpersisted): Tier C normally appends before dependent tests/code in Step 3. If working notes still contain unpersisted Discovered Requirements entries, format them as a markdown body with a `#### DISCOVERED REQUIREMENTS` subsection using the FIS template entry shape, then invoke `update-fis {FIS_FILE_PATH} discovered-requirements '{body}'`. Skip when the unpersisted list is empty.
 
 2. **Source plan** (plan-backed FIS only; **skip if `DEFER_SHARED_WRITES=true`** — defer to orchestrator):
-   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done` — sets the story's Status field, Story Catalog row, and acceptance-criteria checkboxes.
-   - If the plan story row's FIS field is *unset* (empty / `–` / placeholder) or *stale* (path differs from `{FIS_FILE_PATH}` after path normalization): `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} fis "{FIS_FILE_PATH}"`.
+   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done` — sets the Story Catalog `Status` cell.
+   - If the Story Catalog `FIS` cell is *unset* (empty / `–` / placeholder) or *stale* (path differs from `{FIS_FILE_PATH}` after path normalization): `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} fis "{FIS_FILE_PATH}"`.
 
 3. **State document** (if it exists per **Project Document Index**; **skip if `DEFER_SHARED_WRITES=true`** — defer to orchestrator):
    - `andthen:ops update-state active-story {STORY_ID} Done` — removes the story from Active Stories.
@@ -188,25 +188,25 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
 
 4. **Verify** — re-read each updated file:
    - **FIS**: every task checkbox `[x]`; Final Validation Checklist `[x]`; success criteria `[x]`. If observations or Discovered Requirements were persisted, the `## Implementation Observations` section contains a new `### Run:` block dated to this run.
-   - **Plan** (if 5b.2 ran): story row `Done`; acceptance criteria `[x]`; FIS field set.
+   - **Plan** (if 5b.2 ran): Story Catalog row is `Done`; `FIS` cell points at `{FIS_FILE_PATH}`.
    - **State** (if 5b.3 ran): story absent from Active Stories.
    - Any miss → retry the matching `update-*` once. Persistent failure is Stop-the-Line — do not report completion on missing writes.
 
-5. **Deferred shared writes** — when `DEFER_SHARED_WRITES=true` (typically under `/andthen:exec-plan --team --worktree`), substeps 2 and 3 are deferred so concurrent stories in a wave do not conflict on `plan.md` / `State` document during merge. Skip those invocations and emit this **audit block** in the completion report:
+5. **Deferred shared writes** — when `DEFER_SHARED_WRITES=true` (typically under `/andthen:exec-plan --team --worktree`, or under `/andthen:exec-plan --from-issue` where the source plan is a GitHub issue), substeps 2 and 3 are deferred so the executor does not mutate shared local status surfaces. Skip those invocations and emit this **audit block** in the completion report:
 
    ```
-   ## Deferred Shared Writes (worktree mode)
+   ## Deferred Shared Writes
    Story: {STORY_ID}
    Plan: {PLAN_FILE_PATH}
    FIS: {FIS_FILE_PATH}
    Completion summary: {one-line completion summary}
    ```
 
-   Substitute literal values before emitting. The block is an **audit record and summary source** — the orchestrator constructs the actual `andthen:ops update-*` invocations from these values plus its own knowledge of single-repo vs multi-repo layout, and applies them post-merge (see `andthen:exec-plan` Step 3T Merge Wave). Do not emit a list of `andthen:ops` lines as the consumption format; the orchestrator does not parse it that way.
+   Substitute literal values before emitting. The block is an **audit record and summary source** — in worktree mode the orchestrator constructs the actual `andthen:ops update-*` invocations from these values plus its own knowledge of single-repo vs multi-repo layout, and applies them post-merge (see `andthen:exec-plan` Step 3T Merge Wave). In `--from-issue` mode the block is traceability only; issue closure comments are the status surface. Do not emit a list of `andthen:ops` lines as the consumption format; the orchestrator does not parse it that way.
 
    Substeps 1 and 4's FIS verification still run in-worktree (FIS is story-local and merges cleanly).
 
-   **Standalone use** (no orchestrator above): the audit block tells the user what to apply — after committing FIS changes, run the same `andthen:ops update-plan` and `update-state` calls listed in 5b.2 and 5b.3. Standalone `--defer-shared-writes` is intended only for users who explicitly want this deferral; do not set it without one.
+   **Standalone use** (no orchestrator above): when `Plan` is a local path, the audit block tells the user what to apply — after committing FIS changes, run the same `andthen:ops update-plan` and `update-state` calls listed in 5b.2 and 5b.3. When `Plan` is `github://issue/<N>`, do not run local `ops update-plan`; post or close the relevant issue record instead. Standalone `--defer-shared-writes` is intended only for users who explicitly want this deferral; do not set it without one.
 
 
 #### 5c. Completion Report

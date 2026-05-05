@@ -18,7 +18,7 @@ AndThen brings spec-driven development to AI coding agents – lightweight, open
 > [!WARNING]
 > **Recent breaking changes.** 0.13.0 reshaped the plan and review skill surface; 0.14.0 made `plan` strictly 1:1 with FIS. See [Breaking Changes](plugin/README.md#breaking-changes) in the plugin README for migration tables, or [CHANGELOG.md](CHANGELOG.md) for full notes.
 
-**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` available when you want that flow orchestrated for you (add `--team` for Agent Teams parallelism). `review` runs a single lens per call (code, doc, gap, or mixed) selected automatically or via `--mode`. Skills read a lightweight Document Index in your `CLAUDE.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
+**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` available when you want that flow orchestrated for you (add `--team` for Agent Teams parallelism). `review` runs a single lens per call (code, doc, gap, or mixed) selected automatically or via `--mode`. Skills read a lightweight Document Index in your `CLAUDE.md` / `AGENTS.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
 
 Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** – falling back to direct execution when sub-agents aren't available.
 
@@ -138,7 +138,7 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 - **Manual plan workflow** (`clarify` → `prd` → `plan` → per-story `exec-spec`): Multiple features, MVP, or a new project where you want explicit control story by story. `plan` produces the full bundle (`plan.md` + FIS per story); you drive execution story by story with optional per-story or final review/remediation
 - **Automated plan workflow** (`clarify` → `prd` → `plan` → `exec-plan`): The same bundle, with implementation orchestrated for you. Use `--team` for Agent Teams parallelism
 
-In both plan workflows, the per-story execution step is handled by `exec-spec`. `plan --skip-specs` is available when you want a cheap planning pass that defers FIS generation.
+In both plan workflows, the per-story execution step is handled by `exec-spec`.
 
 **Headless orchestration:** the core pipeline skills (`prd`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`) and the supporting skills they call into (`architecture`, `ui-ux-design`, `triage`) accept `--auto` / `--headless` for external orchestrators. In this mode, skills do not ask follow-up questions or emit arrow-prompts; they make conservative assumptions, write assumptions/deferred decisions into artifacts, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt — it is deterministic), and stop with `BLOCKED:` on contract failures or unsafe actions. This is intended for systems that already provide deterministic orchestration, such as CI or external agent runners.
 
@@ -218,16 +218,16 @@ The quickest way to get started:
 /andthen:init
 ```
 
-This is the single entry point for all project types – new, partial setups, and existing codebases. It interactively generates `CLAUDE.md`, creates selected document types, and copies guidelines. For existing codebases, it offers to run `map-codebase` to auto-generate architecture, stack, and conventions documentation from code analysis.
+This is the single entry point for all project types – new, partial setups, and existing codebases. It interactively generates `CLAUDE.md` / `AGENTS.md`, creates selected document types, and copies guidelines. For existing codebases, it offers to run `map-codebase` to auto-generate architecture, stack, and conventions documentation from code analysis.
 
-**Manual setup** – if you prefer to set things up yourself, skills reference your project's `CLAUDE.md` for context. Add these sections:
+**Manual setup** – if you prefer to set things up yourself, skills reference your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents) for context. Add these sections:
 
 **1. Project Document Index** – tells skills where to write output (specs, plans, etc.)
 **2. Workflow Rules, Guardrails and Guidelines** – behavioral rules and development standards
 
 See [`plugin/skills/init/templates/CLAUDE.template.md`](plugin/skills/init/templates/CLAUDE.template.md) for a starter template.
 
-**Optional project docs** – The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these live in [`plugin/skills/init/templates/project-state-templates.md`](plugin/skills/init/templates/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
+**Optional project docs** – The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these live in [`plugin/references/project-state-templates.md`](plugin/references/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
 
 ### Agent Teams (Optional, Claude Code only)
 
@@ -299,10 +299,8 @@ docs/specs/data-export/data-export.md
 /andthen:prd docs/specs/data-export/
 /andthen:prd --issue 42   # or directly from a GitHub issue
 
-# Step 2b-ii: Create the full plan bundle (plan.md + FIS per story + research)
+# Step 2b-ii: Create the full plan bundle (plan.md + FIS per story)
 /andthen:plan docs/specs/data-export/
-# Cheap planning pass (plan.md only, defer FIS generation):
-/andthen:plan --skip-specs docs/specs/data-export/
 ```
 
 `prd` picks up `requirements-clarification.md` or a draft PRD automatically; `plan` requires `prd.md` and breaks the PRD into sequenced stories with phases and dependencies, plus batch-generates FIS for every story and runs a cross-cutting review.
@@ -447,7 +445,7 @@ Architecture, UI/UX design, build/test diagnosis, and visual validation are **sk
 
 ### Guidelines (`docs/guidelines/`)
 
-Simplified starting points – copy into your project and adapt to your needs. Workflow skills reference these via your project's `CLAUDE.md`, so you can replace them entirely with your own.
+Simplified starting points – copy into your project and adapt to your needs. Workflow skills reference these via your project's `CLAUDE.md` / `AGENTS.md`, so you can replace them entirely with your own. The canonical files live in `plugin/skills/init/templates/guidelines/`; in this repo, `docs/guidelines/` is only a symlink to that directory so there is one source of truth. For manual setup, copy the template contents directly or dereference the symlink, e.g. `mkdir -p <target>/docs/guidelines && cp -RL docs/guidelines/. <target>/docs/guidelines/`.
 
 | Guide | Purpose |
 |-------|---------|
@@ -462,14 +460,15 @@ Simplified starting points – copy into your project and adapt to your needs. W
 |----------|---------|
 | `MODEL-EFFORT-SELECTION-GUIDE.md` | Model and thinking effort selection guide |
 
-### Starter Templates (`plugin/skills/init/templates/`)
+### Starter Templates
 
 Canonical user-facing starter templates (owned by the `init` skill — see ownership table in `CLAUDE.md`).
 
 | Document | Purpose |
 |----------|---------|
-| `CLAUDE.template.md` | Starter template for project `CLAUDE.md` |
-| `project-state-templates.md` | Starter templates for STATE.md, PRODUCT-BACKLOG.md, ROADMAP.md, etc. |
+| `plugin/skills/init/templates/CLAUDE.template.md` | Starter template for project `CLAUDE.md` / `AGENTS.md` |
+| `plugin/skills/init/templates/guidelines/` | Starter guideline files copied by the `init` skill |
+| `plugin/references/project-state-templates.md` | Starter templates for STATE.md, PRODUCT-BACKLOG.md, ROADMAP.md, etc. |
 
 
 ## Hooks

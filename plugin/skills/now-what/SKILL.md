@@ -41,8 +41,8 @@ Read these signals **in order; stop at the first state-determining match.** Most
 
 | Signal | How to read | Outcome |
 |---|---|---|
-| `CLAUDE.md` (or `AGENTS.md`) at project root? | File exists | If no → `setup: not-started` |
-| `## Project Document Index` section in CLAUDE.md? | Heading match | If no → `setup: partial` |
+| `CLAUDE.md` or `AGENTS.md` at project root? | File exists | If no → `setup: not-started` |
+| `## Project Document Index` and `## Workflow Rules, Guardrails and Guidelines` in the root agent instruction file(s)? | Check every existing root instruction file. A single existing file may carry the contract; when both `CLAUDE.md` and `AGENTS.md` exist, both must carry the shared workflow sections. | If no → `setup: partial` |
 | Source code beyond config/README? | `git ls-files` count + extension distribution. Rough cut: >50 tracked files with substantive code extensions. **If genuinely unclear** (small repo, mixed signals), ask one question: "Is this a fresh project or are we working with existing code?" — never present a menu. | If yes & no map → `codebase: brownfield-unmapped` |
 | Map-codebase output present? | Files matching `project-state-templates.md` outputs (Architecture, Stack, etc.) per **Project Document Index** | If yes → `codebase: brownfield-mapped` |
 | Any in-flow artifact at indexed paths? | Read the **Project Document Index** and check for `requirements-clarification.md`, `prd.md`, `plan.md`, `*.fis.md`, `STATE.md`, the most recent architecture-report (`*-architecture-*.md`<sup>†</sup>), the most recent triage-report (`*-triage-*.md`), and the most recent ui-ux-design output (wireframes / design-system / design-review). | If any → `workflow: mid-flow` (and infer where in flow from the artifact type) |
@@ -72,7 +72,7 @@ Open with the mental model in three lines, no more:
 
 > AndThen guides features through a disciplined chain: **clarify → (spec → exec-spec) or (prd → plan → exec-plan) → review**. There are also optional design tools (architecture, UI/UX, glossary, diagrams). First we need to set up the workflow structure in this project.
 
-Then recommend the `andthen:init` skill (one line on what it does — creates CLAUDE.md, Document Index, folder layout) and offer to invoke it now. If the user accepts, hand off via the Skill tool with `$ARGUMENTS` passed through as project name when relevant. After `init` returns, the invocation ends — tell the user to re-invoke `/andthen:now-what` (with their idea, or no argument) to continue. The "one handoff per invocation" rule keeps the user in control.
+Then recommend the `andthen:init` skill (one line on what it does — creates CLAUDE.md / AGENTS.md, Document Index, folder layout) and offer to invoke it now. If the user accepts, hand off via the Skill tool with `$ARGUMENTS` passed through as project name when relevant. After `init` returns, the invocation ends — tell the user to re-invoke `/andthen:now-what` (with their idea, or no argument) to continue. The "one handoff per invocation" rule keeps the user in control.
 
 Note: `init` itself handles New / Partial / Brownfield classification at fine granularity, so do not duplicate that logic here.
 
@@ -132,7 +132,7 @@ When state shows the user is mid-flow, do not onboard. Just route. Output: 1–3
 |---|---|
 | `requirements-clarification.md` just produced, before `prd` / `spec` | offer the `andthen:visualize` skill (review checkpoint) → then the next workflow skill |
 | `prd.md` exists, no `plan.md` | the `andthen:plan` skill (or offer the `andthen:visualize` skill as a review checkpoint first) |
-| `plan.md` exists, FIS files missing | the `andthen:spec` skill per story (re-running `andthen:plan` would regenerate `plan.md` and clobber it) |
+| `plan.md` exists, FIS files missing | the `andthen:plan` skill to resume the bundle and fill missing FIS files |
 | All FIS exist, implementation incomplete | the `andthen:exec-plan` skill (multi) or the `andthen:exec-spec` skill (single) |
 | Implementation done, no review on this branch | the `andthen:review` skill |
 | Review done, findings unaddressed | the `andthen:remediate-findings` skill |
@@ -156,10 +156,10 @@ Format: _"You're at X — next is the `andthen:<skill>` skill. Run it? (Y/n)"_
 
 ## Skill Reference
 
-Brief reference for skills `andthen:now-what` recommends. Each entry covers purpose, output, and workflow position. For behavioral depth (flag mechanics, mode internals, decision logic), read the target skill's `SKILL.md` directly — depth lives there, not here. Maintenance contract: see `CLAUDE.md` "Skill Reference maintenance" — entries are updated whenever a skill's purpose, output, or workflow position changes.
+Brief reference for skills `andthen:now-what` recommends. Each entry covers purpose, output, and workflow position. For behavioral depth (flag mechanics, mode internals, decision logic), read the target skill's `SKILL.md` directly — depth lives there, not here. Maintenance contract: see the root agent instruction file's "Skill Reference maintenance" rule — entries are updated whenever a skill's purpose, output, or workflow position changes.
 
 ### `andthen:init`
-Sets up the AndThen workflow structure: `CLAUDE.md`, Project Document Index, folder layout, optional starter docs (Learnings, Stack, Key Dev Commands, guidelines). Detects new / partial-setup / brownfield projects and adapts non-destructively. Run once per project; re-running fills gaps without overwriting.
+Sets up the AndThen workflow structure: `CLAUDE.md` / `AGENTS.md`, Project Document Index, folder layout, optional starter docs (Learnings, Stack, Key Dev Commands, guidelines). Detects new / partial-setup / brownfield projects and adapts non-destructively. Run once per project; re-running fills gaps without overwriting.
 **Typical next step:** re-invoke `andthen:now-what` to route the first feature.
 
 ### `andthen:now-what`
@@ -179,7 +179,7 @@ Creates a Product Requirements Document (`prd.md`) from clarified requirements, 
 **Use when:** scoping a multi-feature initiative. **Typical next step:** `andthen:plan` to break the PRD into stories with FIS specs.
 
 ### `andthen:plan`
-Consumes an existing `prd.md` and produces the full plan bundle: `plan.md` (story breakdown) plus one FIS file per story. With `--skip-specs`, produces `plan.md` alone.
+Consumes an existing `prd.md` and produces the full plan bundle: `plan.md` (story breakdown) plus one FIS file per story. Re-running on an interrupted bundle fills missing FIS files without intentionally producing a plan-only artifact.
 **Use when:** turning a PRD into an executable, story-by-story plan. **Typical next step:** `andthen:exec-plan` to implement the bundle.
 
 ### `andthen:spec`

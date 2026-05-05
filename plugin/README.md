@@ -23,7 +23,7 @@ See the [full documentation](../README.md) for workflow overview, usage examples
 
 ## Setup
 
-Skills reference your project's `CLAUDE.md` for two things:
+Skills reference your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents) for two things:
 
 - **Project Document Index** – tells skills where to write output (specs, plans, etc.)
 - **Workflow Rules, Guardrails and Guidelines** – behavioral rules and development standards
@@ -90,7 +90,7 @@ These compose into structured workflows — from requirements through implementa
 | `prd` | Create a Product Requirements Document from requirements (supports `--issue` for GitHub input, `--to-issue` for publishing) |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS – direct implementation with validation |
-| `plan` | Full plan bundle: story breakdown + FIS for every story + cross-cutting review. Requires `prd.md` input (`--skip-specs` for cheap planning pass) |
+| `plan` | Full plan bundle: story breakdown + FIS for every story + cross-cutting review. Requires `prd.md` input |
 | `exec-plan` | Execute a fully-specced plan bundle – exec-spec + quick-review per story, final gap review. Use `--team` for Agent Teams |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
@@ -242,8 +242,6 @@ Architecture, UI/UX design, build/test diagnosis, and visual validation are **sk
 
 # 3b. Create the full plan bundle (story breakdown + FIS for every story)
 /andthen:plan docs/specs/dashboard/
-# Cheap planning pass (plan.md only, skip FIS generation):
-/andthen:plan --skip-specs docs/specs/dashboard/
 
 # 4a. Execute all stories via pipeline (default per-story review)
 /andthen:exec-plan docs/specs/dashboard/

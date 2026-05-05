@@ -6,7 +6,7 @@ Concise, actionable checklist for architectural reviews and validation.
 
 ## Pre-Review
 - [ ] Understand architectural scope and intent
-- [ ] Review project architectural guidelines (CLAUDE.md, ADRs)
+- [ ] Review project architectural guidelines (`CLAUDE.md` / `AGENTS.md`, ADRs)
 - [ ] Identify changed components and their relationships
 - [ ] Determine review mode (design, implementation, advisory)
 

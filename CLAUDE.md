@@ -26,7 +26,7 @@ Core artifacts are the **Feature Implementation Specification (FIS)** for single
 
 ## Skill Invocation
 
-Skills invoke as `/andthen:<name>` or via the Skill tool. Agents invoke via the Task tool with `subagent_type: "andthen:<name>"`. Both share the `andthen:` prefix but are **not** interchangeable — passing a skill name as `subagent_type` fails with "Agent type not found". The 1 valid agent is `documentation-lookup`, available only when AndThen is installed as a Claude Code plugin. Under all other install paths (Codex, `--claude-user`, generic), there are no AndThen agents — skills route documentation-lookup work to a sub-agent that consults the project's `## Documentation Lookup Tools` section. All other AndThen capabilities (architecture, UI/UX, testing, triage, visual validation, etc.) are **skills** — invoke via `/andthen:<name>` or via the Skill tool. Skills marked `context: fork` in their frontmatter (e.g. `ops`) auto-isolate in a sub-context when invoked; other skills that need fresh context are run by spawning a sub-agent whose prompt runs `/andthen:<name>`.
+Skills invoke as `/andthen:<name>` or via the Skill tool. Agents invoke via the Task tool with `subagent_type: "andthen:<name>"`. Both share the `andthen:` prefix but are **not** interchangeable — passing a skill name as `subagent_type` fails with "Agent type not found". The 1 valid agent is `documentation-lookup`, available only when AndThen is installed as a Claude Code plugin. Under all other install paths (Codex, `--claude-user`, generic), there are no AndThen agents — skills route documentation-lookup work to a sub-agent that consults the project's `## Documentation Lookup Tools` section. All other AndThen capabilities (architecture, UI/UX, testing, triage, visual validation, etc.) are **skills** — invoke via `/andthen:<name>` or via the Skill tool. Skills marked `context: fork` in their frontmatter (e.g. `ops`, `now-what`) auto-isolate in a sub-context when invoked; other skills that need fresh context are run by spawning a sub-agent whose prompt runs `/andthen:<name>`.
 
 **Naming convention**: AndThen capabilities default to skills because skills are portable across all install tiers. The single exception is `documentation-lookup`, retained as a Claude-Code-plugin-only agent because the plugin tier exposes proactive description-based routing for ad-hoc docs questions outside any skill — a capability skills do not match. The persona-vs-activity heuristic does not apply to this exception.
 
@@ -76,6 +76,7 @@ Content shared by ≥2 skills lives at `plugin/references/` and is consumed via 
 | File | Owner | Also in |
 |---|---|---|
 | run-security-scan.sh | review | — |
+| teardown-worktrees.sh | exec-plan | — |
 
 
 ### Shared Plugin Assets
@@ -87,7 +88,7 @@ The 18 shared assets live at `plugin/references/` — a single canonical locatio
 | `adversarial-challenge.md` | review, architecture |
 | `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, refactor, remediate-findings |
 | `critic-calibration.md` | review, quick-review |
-| `data-contract.md` | ops, exec-spec, exec-plan |
+| `data-contract.md` | ops, plan, spec, exec-spec, exec-plan, review |
 | `design-tree.md` | clarify, architecture |
 | `execution-discipline.md` | exec-spec, exec-plan |
 | `execution-named-blocks.md` | exec-spec, quick-implement, triage |
@@ -147,7 +148,7 @@ Modern frontier models understand *why* things matter. Skills should express **i
 
 **README maintenance (split-by-depth contract).** Two READMEs describe the skill set and they are *intentionally* split by depth, not duplicated:
 - `/README.md` carries one-liner *purpose* per skill — no flags, no mode names, no behavioral nuance. It is the project intro and only changes when a skill is **added, renamed, or removed**, or when the one-liner purpose in `/README.md` is no longer accurate.
-- `/plugin/README.md` is the canonical *reference* — flags, modes, options, edge-case behavior, cross-skill notes (e.g. Agent Teams auto-detect, `--council`, `--team`, `--issue`, `--to-issue`, `--skip-specs`, etc.). All flag/mode/option changes land here only.
+- `/plugin/README.md` is the canonical *reference* — flags, modes, options, edge-case behavior, cross-skill notes (e.g. Agent Teams auto-detect, `--council`, `--team`, `--issue`, `--to-issue`, etc.). All flag/mode/option changes land here only.
 
 When adding/renaming/removing a skill, update both READMEs, `CHANGELOG.md`, and the `now-what` Skill Reference (per the **Skill Reference maintenance** bullet above). When adding or changing a flag, mode, option, or behavioral nuance, update `/plugin/README.md` only. If you find yourself wanting to add a flag/mode mention to `/README.md`, that's the contract telling you it belongs in `/plugin/README.md` instead. Note: `marketplace.json` and `plugin.json` carry plugin metadata + version, not the skill list — they are governed by the separate `## Version Bumps` rule below, not by this one.
 

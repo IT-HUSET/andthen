@@ -279,12 +279,12 @@ _canonical_assets="adversarial-challenge.md automation-mode.md critic-calibratio
 # Map of skill-name → space-separated list of canonical asset names it consumes.
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
 _skill_assets_prd="automation-mode.md github-publish.md prd-template.md"
-_skill_assets_plan="automation-mode.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md"
-_skill_assets_spec="automation-mode.md fis-authoring-guidelines.md fis-template.md"
+_skill_assets_plan="automation-mode.md data-contract.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md"
+_skill_assets_spec="automation-mode.md data-contract.md fis-authoring-guidelines.md fis-template.md"
 _skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md"
 _skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md"
 _skill_assets_ops="data-contract.md"
-_skill_assets_review="adversarial-challenge.md critic-calibration.md fis-authoring-guidelines.md lens-adversarial.md review-calibration.md review-report-location.md trust-boundaries.md"
+_skill_assets_review="adversarial-challenge.md critic-calibration.md data-contract.md fis-authoring-guidelines.md lens-adversarial.md review-calibration.md review-report-location.md trust-boundaries.md"
 _skill_assets_quick_review="critic-calibration.md lens-adversarial.md review-calibration.md"
 _skill_assets_architecture="adversarial-challenge.md design-tree.md farley-framework.md review-calibration.md review-report-location.md"
 _skill_assets_clarify="design-tree.md github-publish.md"

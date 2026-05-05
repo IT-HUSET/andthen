@@ -52,7 +52,7 @@ Dan North's "Introducing BDD" (2006) anchors scenarios as Given/When/Then exampl
 
 **Proof-of-Work**: Every Success Criterion must have a proof path — at least one scenario (behavioral) or task Verify line (structural). The FIS locks down what proof is required; exec-spec produces and verifies it. Testing Strategy maps scenarios to task IDs so proof is produced incrementally, not deferred.
 
-**Traceability**: Plan stories may include **Key Scenarios** (one-line behavioral seeds). During spec, seeds are elaborated into full scenarios. Every plan Key Scenario seed must map to at least one FIS scenario — don't silently drop seeds.
+**Traceability**: Plan stories carry compact scope and source refs, while the FIS owns detailed Success Criteria and Scenarios. Read the story's Source refs for detailed PRD behavior. If a legacy plan includes **Key Scenarios** or acceptance criteria, treat them as seeds and map each retained seed to at least one FIS scenario — don't silently drop them.
 
 ## Execution Contract
 
@@ -90,12 +90,12 @@ When a later task must consume something from an earlier task (an API, a type, a
 
 ## Plan-Spec Alignment Check (when FIS originated from a plan story)
 
-Before finalizing, cross-check each plan acceptance criterion against the FIS:
-- For each acceptance criterion in the plan story, verify the FIS Success Criteria can deliver it
-- If any criterion cannot be fully satisfied (due to scope exclusions, architectural constraints, or "What We're NOT Doing" items), you MUST either:
-  (a) Expand the FIS scope to address the criterion, or
-  (b) Add a scope note to the FIS explaining the narrowing (e.g., "replace-mode harnesses only; see Constraints") and flag it for the `andthen:plan` cross-cutting review
-- Do not finalize a FIS that silently narrows a plan requirement
+Before finalizing, cross-check the plan story brief, its Source refs, and any applicable Binding Constraints against the FIS:
+- Verify the FIS Success Criteria and Scenarios deliver the story scope and every applicable Binding Constraint.
+- If the FIS cannot fully satisfy the story scope (due to exclusions, architectural constraints, or "What We're NOT Doing" items), you MUST either:
+  (a) Expand the FIS scope to address the story, or
+  (b) Add a scope note to the FIS explaining the narrowing (e.g., "replace-mode harnesses only; see Constraints") and flag it for the `andthen:plan` cross-cutting review.
+- Do not finalize a FIS that silently narrows a plan story or Binding Constraint.
 
 
 ## Reverse Coverage Check (phantom-scope guard) — applies to all FIS
@@ -104,7 +104,7 @@ Forward coverage (above) catches plan criteria the FIS misses. Reverse coverage 
 
 > Distinct from Self-Check's **Scope-consistency** (internal: In Scope → coverage within the FIS). Reverse Coverage is external: Success Criterion → upstream source.
 
-For each FIS Success Criterion, name the plan acceptance criterion, PRD outcome, or (standalone) feature-request element it serves. Any unnamed criterion is **phantom scope**.
+For each FIS Success Criterion, name the plan story scope, Source ref, Binding Constraint, PRD outcome, or (standalone) feature-request element it serves. Any unnamed criterion is **phantom scope**.
 
 **Resolution depends on mode:**
 

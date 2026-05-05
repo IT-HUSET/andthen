@@ -24,7 +24,7 @@ When the caller provides a directory path or a plan file, discover the full requ
 - `plan.md` — the implementation plan with story breakdown
 - `prd.md` — the product requirements document
 - FIS/spec files (`s01-*.md`, `s02-*.md`, etc.) co-located with the plan
-- Also check the Project Document Index in the project `CLAUDE.md` for additional pointers
+- Also check the Project Document Index in the project's root agent instruction file (`CLAUDE.md` / `AGENTS.md`) for additional pointers
 
 **Plan file** — read the plan and extract related requirements:
 - Look for a sibling `prd.md` in the same directory

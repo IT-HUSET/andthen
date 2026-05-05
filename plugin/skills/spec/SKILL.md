@@ -54,7 +54,7 @@ In `AUTO_MODE`, do not use arrow prompts. Choose the most conservative defensibl
 
 **If ARGUMENTS is a directory with `requirements-clarification.md`** (from the `andthen:clarify` skill): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes, and any explicit non-goals / deferred items as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
-**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates. If `plan.md` carries `## Shared Decisions` and/or `## Binding Constraints` sections, read them — Shared Decisions inform architectural alignment with sibling stories; Binding Constraints flow unchanged into FIS Required Context blocks (each entry's verbatim PRD span becomes a Required Context block with the entry's `prd.md#<heading-slug>` as the source pin).
+**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its compact story brief (`**Scope**`, `**Source refs**`, plus optional `**Provenance**`, `**Asset refs**`, and `**Notes**`) together with the Story Catalog row (phase, wave, dependencies, parallel marker, risk) as the feature request. Read the PRD anchors named in `**Source refs**` and use those spans as detailed behavioral source material; do not re-read the whole PRD. Plan story briefs intentionally do not carry full success criteria or scenarios; derive those in the FIS from the source-ref spans, scope, Binding Constraints, and scenario-writing workflow below. For legacy plans that still include `**Acceptance Criteria**` or **Key Scenarios**, treat them as input seeds but do not require them. Store plan path and story ID for output updates. If `plan.md` carries `## Shared Decisions` and/or `## Binding Constraints` sections, read them — Shared Decisions inform architectural alignment with sibling stories; Binding Constraints flow unchanged into FIS Required Context blocks (each entry's verbatim PRD span becomes a Required Context block with the entry's `prd.md#<heading-slug>` as the source pin).
 
 **Otherwise**: use inline description or file reference as the feature request.
 
@@ -115,8 +115,8 @@ Use the template in the **Appendix** below. Then read and follow the FIS authori
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
 - **Update source plan** – if this spec was created for a plan story:
-  - Set the story's **FIS** field to the generated FIS file path
-  - Set the story's **Status** field to `Spec Ready`
+  - Set the Story Catalog `FIS` cell to the generated FIS file path
+  - Set the Story Catalog `Status` cell to `Spec Ready`
 
 **Oversize signal** — after saving, measure the FIS against the threshold from [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) Key Generation Guidelines #6 (>700 lines or >18 tasks). If oversized, emit a structured line as part of the artifact output (printed in both interactive and `AUTO_MODE`):
 

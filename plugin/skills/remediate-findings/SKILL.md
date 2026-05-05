@@ -109,17 +109,17 @@ When all required findings are resolved and verification is clean, update state 
 
 If the report is tied to a story or FIS and remediation passed validation:
 - Use the `andthen:ops` skill: `update-fis {fis_path} all` when the FIS work is substantively complete and evidence exists
-- Use the `andthen:ops` skill: `update-plan {plan_path} {story_id} Done` only after confirming plan acceptance criteria are satisfied
+- Use the `andthen:ops` skill: `update-plan {plan_path} {story_id} Done` only after confirming the FIS success criteria satisfy the plan story scope
 - Update the `State` document (see **Project Document Index**) through the `andthen:ops` skill when it exists and the story is now complete
 - Re-read the updated artifacts to verify the status changes applied
 
 If the remediation only fixes document artifacts:
 - Update only the workflow artifacts justified by the document remediation
-- Do not mark implementation complete unless the implementation acceptance criteria are also satisfied
+- Do not mark implementation complete unless the FIS success criteria are also satisfied
 
 If the report is a full-plan or workspace-wide review:
 - Update only the status artifacts that can be justified from the completed remediation
-- Do not mark individual stories done unless their acceptance criteria are clearly satisfied
+- Do not mark individual stories done unless their FIS success criteria are clearly satisfied
 
 #### Annotate the input report with `## Remediation Status`
 

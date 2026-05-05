@@ -6,6 +6,26 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.18.0] – 2026-05-05
+
+### Added
+
+### Changed
+- **Plan story sections are now compact story briefs** — `Status`, `FIS`, phase/wave, dependencies, parallelism, and risk live only in the Story Catalog. Phase Breakdown stories carry `Scope`, PRD-backed `Source refs`, plus optional provenance, asset refs, and notes; FIS files own detailed success criteria and scenarios.
+- **Plan dependency cells are explicitly machine-readable** — `Dependencies` now accepts only `-` or comma-separated Story IDs from the same Story Catalog. Broad sequencing prose belongs in `## Dependency Graph`, phase notes, or execution guidance; `exec-plan` now blocks with a targeted invalid-dependency message before scheduler handoff.
+
+### Removed
+- **`andthen:plan --skip-specs`** — plan-only output is no longer a public mode. Local `andthen:plan` always aims to produce an executable bundle (`plan.md` + one FIS per story), while interrupted or legacy partial bundles are resumed by re-running `andthen:plan`. GitHub `--to-issue` remains the intentional no-local-FIS publication path, with `exec-plan --from-issue` materializing FIS just-in-time. Legacy invocations now fail with a targeted removal message instead of being parsed as input.
+- **`andthen:plan --stories` and `--phase`** — targeted plan-side FIS generation filters are no longer public modes. Re-running `andthen:plan <dir>` fills every missing FIS; use `andthen:spec story <id> of <plan.md>` for one-off story spec generation.
+
+### Fixed
+- **Compact GitHub plan stories keep resolvable PRD source** — local `andthen:plan --issue` now materializes the fetched PRD issue as `OUTPUT_DIR/prd.md`; plan issues carry a `> **PRD**:` source header; and `exec-plan --from-issue` resolves that source into JIT FIS temp files so `Source refs` do not collapse into symbolic-only hints.
+- **`exec-plan --from-issue` no longer treats `github://issue/<N>` as a local plan path** — JIT FIS provenance stays traceable, while `exec-spec` runs with deferred shared writes and issue-side completion is represented by closure comments instead of `andthen:ops update-plan` against a synthetic URI.
+- **Installed `spec` and `review` bundles now carry `data-contract.md`** — their copied `fis-authoring-guidelines.md` / `fis-template.md` links resolve under Codex and Claude user-tier installs.
+- **`andthen:init` guideline setup** — starter guidelines now ship inside the init skill bundle (`templates/guidelines/`) so Plugin, Claude user-tier, and Codex installs can actually copy them; repo-level `docs/guidelines/` is a symlink to that bundled template directory to avoid duplicate files. The generated agent instruction template now references `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` instead of the stale `docs/rules/` path and treats `CLAUDE.md` / `AGENTS.md` as first-class setup targets. `andthen:map-codebase` now emits conventions for whichever root agent instruction file exists instead of hard-coding `CLAUDE.md`.
+
+---
+
 ## [0.17.0] – 2026-05-05
 
 ### Added

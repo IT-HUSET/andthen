@@ -90,19 +90,16 @@ After any update, set `Last Updated` to current timestamp.
 State document format: see [`project-state-templates.md`](${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md).
 
 #### Update Plan Status
-Update story status or FIS-field on a plan story row:
+Update story status or FIS cell on a Story Catalog row:
 
 **Usage**:
 - Set status: `update-plan <plan_path> <story_id> <status>`
-- Set FIS field: `update-plan <plan_path> <story_id> fis "<fis_path>"`
+- Set Story Catalog FIS cell: `update-plan <plan_path> <story_id> fis "<fis_path>"`
 
 Actions for status form:
-- Set story **Status** field per the Status State Machine in [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md). Forward transitions are skill-implicit; backward transitions (`Done → In Progress`, `In Progress → Spec Ready`) are valid only via explicit `update-plan` calls.
-- Update Story Catalog table status column
-- When setting to `Done`: check off all acceptance criteria checkboxes
+- Set the Story Catalog `Status` column per the Status State Machine in [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md). Forward transitions are skill-implicit; backward transitions such as `Done → Spec Ready` are valid only via explicit `update-plan` calls.
 
 Actions for `fis` form:
-- Set the `**FIS**` field on the story's section header to `<fis_path>`
 - Update the Story Catalog table FIS column to `<fis_path>`
 - No-op if the field already equals `<fis_path>` (path-normalized)
 
@@ -208,14 +205,12 @@ Output:
 - **Total Stories**: {N}
 - **Completed**: {done} ({percentage}%)
 - **Spec Ready**: {spec_ready}
-- **In Progress**: {in_progress}
 - **Pending**: {pending}
-- **Blocked**: {blocked}
 
 ### By Phase
-| Phase | Total | Done | Spec Ready | In Progress | Pending |
-|-------|-------|------|------------|-------------|---------|
-| {phase} | {n} | {n} | {n} | {n} | {n} |
+| Phase | Total | Done | Spec Ready | Pending |
+|-------|-------|------|------------|---------|
+| {phase} | {n} | {n} | {n} | {n} |
 
 ### Current Wave
 - Wave {N}: {status} ({done}/{total} stories complete)
@@ -227,7 +222,6 @@ Detect stories that may be stale:
 **Usage**: `stale <plan_path>`
 
 A story is potentially stale if:
-- Status is `In Progress` but no commits touch related files in 2+ days
 - FIS exists but no task checkboxes are checked
 - Dependencies are all `Done` but story hasn't started
 

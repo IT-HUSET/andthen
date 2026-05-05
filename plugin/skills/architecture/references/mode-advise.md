@@ -8,7 +8,7 @@ Optimize for sound decisions, clear boundaries, and guidance a team can implemen
 
 ## Decision-Making Process
 
-1. **Project context**: read `CLAUDE.md`, project docs, and existing ADRs for constraints, standards, and established patterns.
+1. **Project context**: read `CLAUDE.md` / `AGENTS.md`, project docs, and existing ADRs for constraints, standards, and established patterns.
 2. **Business context**: understand functional and non-functional requirements, team capability, organizational constraints, and the current system landscape.
 3. **Options**: present 2-3 viable approaches for this project.
 4. **Trade-offs**: compare complexity, maintainability, performance, cost, technical debt, and team fit.
