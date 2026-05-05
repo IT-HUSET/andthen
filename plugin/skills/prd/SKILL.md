@@ -10,7 +10,7 @@ Produce a `prd.md` from whatever requirements material is available: a clarified
 
 Upstream of the `andthen:plan` skill. The PRD created here is the required input for `andthen:plan`.
 
-**Philosophy**: PRDs focus on *what* must be true for users and the business — not *how* to build it. Deep technical research and story breakdown belong in the `andthen:plan` skill.
+**Philosophy**: PRDs focus on *what* must be true for users and the business — not *how* to build it. Story breakdown belongs in the `andthen:plan` skill; architecture/UX trade-offs belong in upstream specialist artifacts, and ad-hoc API/library lookup happens during execution.
 
 
 ## VARIABLES
@@ -33,7 +33,7 @@ OUTPUT_DIR: _(resolved per Step 1)_
 - Delegate research and exploration to sub-agents to protect the main context window.
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` triggers: missing input; ambiguity so severe two or more incompatible PRDs are equally plausible; unsafe external actions on `--to-issue`.
 - Focus on "what" not "how". Replace vague terms with measurable criteria. Record rationale and trade-offs.
-- Keep implementation-level details (architecture patterns, library choices, API protocol specifics, internal code organization) out of the PRD. Capture significant technical constraints in `Constraints & Assumptions`; deep technical research belongs in the `andthen:plan` skill (see Philosophy above).
+- Keep implementation-level details (architecture patterns, library choices, API protocol specifics, internal code organization) out of the PRD. Capture significant technical constraints in `Constraints & Assumptions`; route unresolved architecture/UX decisions to their upstream skills and leave unfamiliar API/library lookup to execution (see Philosophy above).
 
 
 ## GOTCHAS
@@ -86,7 +86,7 @@ Use existing artifacts (`requirements-clarification.md` from the `andthen:clarif
 - Map existing content against the PRD template (see [`prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md)); fill only the missing sections using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents.
 - Do not re-ask questions already answered in the existing artifacts; do not pause for routine clarification.
 - If the artifacts are too ambiguous to support any defensible PRD shape, stop and report the minimum missing decisions required. Mention the `andthen:clarify` skill as the interactive fallback.
-- **Extract technical details**: if the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), keep them out of the PRD. Note significant technical constraints in `Constraints & Assumptions`; defer deep technical research to the `andthen:plan` skill (see Philosophy above).
+- **Extract technical details**: if the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), keep them out of the PRD. Note significant technical constraints in `Constraints & Assumptions`; route unresolved architecture/UX decisions to their upstream skills and leave unfamiliar API/library lookup to execution (see Philosophy above).
 - Preserve decisions, rationale, and specific details from existing artifacts — do not paraphrase or generalize away specifics.
 
 **Gate**: Source artifacts mapped, gaps filled with bounded assumptions → continue to Step 4
@@ -152,7 +152,7 @@ Skip this section when `AUTO_MODE=true`; print only the output path and completi
 After completion, suggest the following next steps. **Recommend a clean session** for the context-intensive downstream skills.
 
 1. **Review visually** – invoke the `andthen:visualize` skill on `prd.md` to spot scope and edge-case issues a markdown view obscures.
-2. **Create implementation plan** _(clean session recommended)_: Invoke the `andthen:plan` skill on the PRD directory — it produces the full plan bundle (`plan.md` + all FIS + `.technical-research.md`).
+2. **Create implementation plan** _(clean session recommended)_: Invoke the `andthen:plan` skill on the PRD directory — it produces the full plan bundle (`plan.md` + all FIS).
 3. **Review the PRD**: Invoke the `andthen:review --mode doc` skill on `prd.md`.
 4. **Initialize project state** (if not already tracking): Create the `State` document via the `andthen:init` skill.
 

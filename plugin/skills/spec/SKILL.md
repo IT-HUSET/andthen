@@ -28,7 +28,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` befor
 
 ## GOTCHAS
 
-**Generating a FIS without reading the codebase first** – architecture analysis (Step 1) must precede specification (Step 4).
+**Generating a FIS without orienting in the codebase first** – the quick codebase scan in Step 1 must precede specification (Step 4), but deep file-pattern exploration waits until `exec-spec`.
 
 **Undefined behavior** – surface ambiguity and missing requirements rather than silently inventing answers. Emit named output blocks:
 - `CONFUSION:` — ambiguity + labeled options + `-> Which approach?`
@@ -43,7 +43,7 @@ In `AUTO_MODE`, do not use arrow prompts. Choose the most conservative defensibl
 
 **Scenarios that describe implementation, not behavior** – scenarios should use Given/When/Then to describe observable outcomes from the user's or system's perspective, not internal code steps. Bad: "Given a new AuthService class, When login() is called...". Good: "Given valid credentials, When the user submits login, Then a session token is returned."
 
-**Over-researching** – gather just enough context for a clear spec. Default to skipping research phases unless clearly needed (gap in requirements, unfamiliar APIs, novel features). A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Size threshold and oversize handling: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) Key Generation Guidelines #6.
+**Over-researching** – do not research what `clarify`, `prd`, `architecture`, or `ui-ux-design` already produced upstream. The spec skill identifies which upstream inputs are needed and inlines the load-bearing spans into Required Context — it is not a new research pass. External API/library lookups are deferred to `exec-spec`'s proactive documentation-lookup sub-agent. A spec that reads like a diff is too detailed. A 30-line minimal FIS is fine; zero FIS is not. Size threshold and oversize handling: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) Key Generation Guidelines #6.
 
 **Generic "What We're NOT Doing" section** – use it to record real non-goals or deferrals with reasons, not filler bullets.
 
@@ -54,33 +54,23 @@ In `AUTO_MODE`, do not use arrow prompts. Choose the most conservative defensibl
 
 **If ARGUMENTS is a directory with `requirements-clarification.md`** (from the `andthen:clarify` skill): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes, and any explicit non-goals / deferred items as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
-**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates. If a plan-scoped `.technical-research.md` exists in the plan directory (from the `andthen:plan` skill — check for the `## Story-Scoped File Map` section as a fingerprint), read it and reduce Steps 1 and 2 research accordingly.
+**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its scope, acceptance criteria, dependencies, and phase context as feature request. If the story has **Key Scenarios**, use them as seeds for the Scenarios section (Step 3) — elaborate each seed into full Given/When/Then format. Store plan path and story ID for output updates. If `plan.md` carries `## Shared Decisions` and/or `## Binding Constraints` sections, read them — Shared Decisions inform architectural alignment with sibling stories; Binding Constraints flow unchanged into FIS Required Context blocks (each entry's verbatim PRD span becomes a Required Context block with the entry's `prd.md#<heading-slug>` as the source pin).
 
 **Otherwise**: use inline description or file reference as the feature request.
 
 
 ### 1. Priming and Project Understanding
 
-If a plan-scoped `.technical-research.md` exists (fingerprint check: see Step 0), read it and reduce this step to a quick verification that the project structure matches the research. Otherwise, analyse the codebase using `tree -d` and `git ls-files | head -250`; spawn a sub-agent for deeper context when the scan is broad.
+Quick `tree -d` + `git ls-files | head -250` scan to orient. Stop there — file-pattern exploration happens at exec-spec time when the executor has a concrete task in front of it.
 
 
-### 2. Feature Research and Design
+### 2. Identify Required Inputs
 
-If a plan-scoped `.technical-research.md` exists with relevant coverage, skip research categories it already addresses. Only research what's genuinely missing:
+Walk the references the FIS will need (PRD, plan, ADRs, design system, wireframes, glossary, `Ubiquitous Language`). For each, confirm the input exists or note its absence.
 
-- **Codebase research** _(skip if technical research covers file maps and patterns for this story)_: locate similar features/patterns, files to reference with line numbers, existing conventions and test patterns. Use `rg`/`tree`/file reads directly.
+If an obviously-needed input is missing — e.g., the FIS would require an architectural trade-off and no ADR exists, or UI work and no wireframe — surface as `MISSING REQUIREMENT:` (interactive) or `BLOCKED:` (`AUTO_MODE`) with a redirect to the upstream skill (`andthen:architecture --mode trade-off`, `andthen:ui-ux-design --mode wireframes`, etc.). Keep this check **light** — flag obvious gaps, not every conceivable input.
 
-- **Solution architecture** _(skip if technical research already frames the solution for this story)_: frame how the feature fits the existing architecture — module boundaries, integration points, component responsibilities, data flow, test seams. Worth doing for most code changes, not just novel ones. Invoke the `andthen:architecture` skill (`--mode advise`) in a spawned sub-agent.
-
-- **External research** _(if references to APIs/libraries without prior research)_: current documentation, known gotchas. Spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section; for broader research, use official sources and separate evidence from inference. Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly for documentation lookup.
-
-- **Architecture trade-offs** _(often unnecessary — skip unless the story has 1-3 genuinely competing approaches with non-trivial risk or cost differences; also skip if technical research covers shared decisions or an ADR is in ARGUMENTS)_: analyse the candidate approaches, document risks, pick one with rationale. Invoke the `andthen:architecture` skill (`--mode trade-off`) in a spawned sub-agent.
-
-- **UI research** _(if applicable, and no prior wireframes)_: existing patterns, create wireframes. Invoke the `andthen:ui-ux-design` skill (`--mode research` or `--mode wireframes`) in a spawned sub-agent.
-
-**Save research findings** (if substantial) to `.technical-research.md` in the FIS output directory — a hidden companion document that keeps the FIS lean and reviewable. The FIS references this document; the executing agent reads it alongside the FIS for implementation context. See the [Technical Research Separation](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#technical-research-separation) guidelines for what belongs in the research doc vs the FIS. Skip this if findings are minimal — not every spec needs a technical research document.
-
-If an existing `.technical-research.md` already exists, append story-specific findings under a `## {Story Name}` heading rather than overwriting.
+Do **not** invoke architecture / UI / documentation-lookup sub-agents from spec. Architecture and UX are upstream skills (`andthen:clarify` → `andthen:architecture` → `andthen:ui-ux-design` → `andthen:prd` → `andthen:plan` → `andthen:spec` → `andthen:exec-spec`); ad-hoc API/library lookups are exec-spec's responsibility via its proactive documentation-lookup sub-agent.
 
 Only stop for ambiguity when it blocks a defensible specification. In that case, return the minimum missing decisions required rather than pausing for routine clarification.
 
@@ -95,16 +85,16 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 ### 4. Generate FIS
 
 #### Gather Context
-- Technical research from Step 2 (reference `.technical-research.md` — don't inline findings into the FIS)
 - ADRs and the `Architecture` document (see **Project Document Index**); file paths with line numbers for patterns to follow
 - UI wireframes/mockups; design system references; external documentation URLs
 - `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions
+- For plan-story inputs: `## Shared Decisions` and `## Binding Constraints` sections from `plan.md` (when present) — Binding Constraints' verbatim PRD spans become Required Context blocks with the entry's `prd.md#<heading-slug>` as the source pin
 
 #### Resolve Cross-Document References
 
-Walk every upstream document the spec depends on (PRD, plan, ADRs, project guidelines like `Ubiquitous Language` / coding standards / security rules, glossary) and resolve each reference into one of two tiers per the [Cross-Document References](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) guideline (which carries the full rules, the inline budget, and the `.technical-research.md` exclusion):
+Walk every upstream document the spec depends on (PRD, plan, ADRs, project guidelines like `Ubiquitous Language` / coding standards / security rules, glossary) and resolve each reference into one of two tiers per the [Cross-Document References](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) guideline:
 
-- **Required Context** — load-bearing spans inlined verbatim, source-pinned with `<!-- source: -->` and `<!-- extracted: -->` comments. See the [Cross-Document References](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) guideline for the inline budget, pin format, and `.technical-research.md` exclusion.
+- **Required Context** — load-bearing spans inlined verbatim, source-pinned with `<!-- source: -->` and `<!-- extracted: -->` comments. See the [Cross-Document References](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) guideline for the inline budget and pin format.
 - **Deeper Context** — supplementary anchored pointers. Validate each anchor resolves before finalizing.
 
 The walk is mandatory; the sections themselves are optional based on what's found. Omit Required Context entirely when no load-bearing upstream spans surface; omit Deeper Context when no supplementary pointers are worth surfacing. A truly standalone feature request with no PRD/plan/ADR/guideline upstream legitimately produces neither section — but only after the walk confirms there's nothing to inline or anchor.
@@ -124,7 +114,6 @@ Use the template in the **Appendix** below. Then read and follow the FIS authori
 - Plan story input: save FIS in plan directory as `s{NN}-{name}.md` (two-digit zero-padded story number; `{name}` is a kebab-case slug derived from the story name). The FIS body must carry `**Plan**:` and `**Story-ID**:` between the H1 and `## Feature Overview and Goal`, populated from the source plan path and story ID.
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
-- **Technical research**: save as `.technical-research.md` in the same directory as the FIS. If the FIS is for a plan story and `.technical-research.md` already exists (from the `andthen:plan` skill), append story-specific findings under a `## {Story Name}` heading rather than creating a separate file.
 - **Update source plan** – if this spec was created for a plan story:
   - Set the story's **FIS** field to the generated FIS file path
   - Set the story's **Status** field to `Spec Ready`

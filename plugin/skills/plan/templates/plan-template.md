@@ -7,10 +7,10 @@
 # Implementation Plan: [Project Name]
 
 > **PRD**: [`prd.md`](./prd.md)
-> **ADRs**: [link any ADR files if present]
-> **Design System**: [link if present]
-> **Wireframes**: [link if present]
-> **Technical Research**: [link if present]
+
+> **References**: any upstream artifacts the plan depends on — ADRs, design system, wireframes, glossary, ad-hoc research, etc. One bullet per reference. Omit the section entirely when none exist.
+> - [Label](relative-path) — one-line purpose
+> - [Label](relative-path) — one-line purpose
 
 
 ## Overview
@@ -28,6 +28,26 @@
 | S03 | [Name] | Core | W2 | S01 | [P] | Medium | Pending | `docs/specs/my-feature/s03-other-feature.md` |
 
 > **Invariant**: each row's `FIS` path is unique — one story maps to exactly one FIS. Stories that would share a spec should have been merged in Step 3's Consolidation Pass.
+
+
+## Shared Decisions
+
+> _Optional — include only when stories have inter-dependencies that imply a shared interface, naming convention, or abstraction. Omit the section when none apply._
+>
+> 3-6 bullets naming inter-story interface contracts, naming conventions, or shared abstractions multiple stories will create or consume. FIS sub-agents inherit these as-is so independently-generated specs don't drift on shared concerns.
+
+- **[Decision name]**: [one-line description; name the producing and consuming stories]
+- **[Decision name]**: [description]
+
+
+## Binding Constraints
+
+> _Optional — include only when the PRD contains "must support X"-style language at risk of being silently dropped during plan decomposition. Omit when none apply._
+>
+> Each entry: verbatim PRD span + heading anchor + source feature ID. These flow unchanged into FIS Required Context blocks — they are not subject to architectural trade-offs or scope narrowing by individual stories.
+
+- **[FR-N — short label]**: "[verbatim PRD text span]" — source: [`prd.md#<heading-slug>`](./prd.md#heading-slug)
+- **[FR-N — short label]**: "[verbatim text]" — source: [`prd.md#<heading-slug>`](./prd.md#heading-slug)
 
 
 ## Phase Breakdown

@@ -33,6 +33,7 @@
       "Bash(git checkout --force*)",
       "Bash(git checkout --orphan *)",
       "Bash(git commit --amend*)",
+      "Bash(git restore *)",
       "Bash(gh pr create *)",
       "Bash(gh pr merge *)",
       "Bash(gh pr close *)",

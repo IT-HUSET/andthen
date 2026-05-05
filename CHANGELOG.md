@@ -6,6 +6,26 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.17.0] – 2026-05-05
+
+### Added
+- **Selective skill installs** — `scripts/install-skills.sh` now accepts `--skills <comma-separated-list>` to export only named source skills, with upfront validation, duplicate handling, support for prefixed names, and the same self-contained copy/rewrite pipeline used by full installs.
+
+### Changed
+- **Claude installer flag simplified** — `--claude` is now the documented Claude Code user-tier install flag. `--claude-user` remains accepted as a backward-compatible hidden alias.
+- **`.technical-research.md` artifact eliminated** across `andthen:plan` and `andthen:spec` (batch and standalone). Plan's old Step 5 (3-sub-agent technical research fan-out) is gone, FIS template loses its `> **Technical Research**:` reference line, and `plugin/skills/plan/templates/technical-research-template.md` is removed.
+- **`andthen:plan` reads the PRD once.** Step 2 reads `prd.md` directly (no sub-agent); the cross-cutting review sub-agent in Step 6 is the only other PRD read (fresh context for validation). Previously the PRD was loaded 3+ times across orchestrator and sub-agents.
+- **Two new optional plan sections absorb the load-bearing extraction**: `## Shared Decisions` (inter-story interface contracts) and `## Binding Constraints` (verbatim PRD spans + heading anchors that flow unchanged into FIS Required Context). Inline-extracted by the orchestrator in Step 4, no sub-agent fan-out.
+- **Plan-template reference header is now extensible.** Fixed-slot blockquote (PRD/ADRs/Design System/Wireframes/Technical Research) becomes a generic `**References**` bullet list with PRD as the only named slot — accommodates ad-hoc upstream artifacts without privileging any single category.
+- **`andthen:spec` Step 2 reframed to "Identify Required Inputs"** — lightweight check that confirms upstream artifacts exist and surfaces obvious gaps via `MISSING REQUIREMENT:` / `BLOCKED:`. Spec no longer invokes `andthen:architecture --mode advise/trade-off` or `andthen:ui-ux-design` from inside Step 2; those are upstream prerequisites in the canonical chain.
+- **External API/library research deferred to `andthen:exec-spec`.** Exec-spec's documentation-lookup sub-agent contract tightened ("do not pause and ask") so executors reliably reach for it on unfamiliar API surface. Exec-spec Step 2 drops the "Read Technical Research" substep and renumbers.
+- **FIS template trims**: Architecture Decision demoted to a one-line default (full Alternatives form is opt-in only when an inline trade-off actually happened — otherwise reference the ADR); Technical Overview reframed as the home for spec-time elaborations only (load-bearing material belongs in Required Context).
+- **`fis-authoring-guidelines.md` simplifications**: `## Technical Research Separation` section deleted; Cross-Document References rule #4 simplified; Reverse Coverage Check updated to read `## Binding Constraints` from `plan.md`.
+- **GitHub-issue plan shape** (`plan-issue-shape.md`, `to-issue-mode.md`, `exec-plan --from-issue`, `from-issue-mode.md`) deprecates `## Technical Research` as a producer-emitted section (parser tolerance retained for legacy issues). New parser anchors `## Shared Decisions` and `## Binding Constraints` round-trip the load-bearing pieces; `exec-plan --from-issue` no longer materializes `## Technical Research` to a temp file.
+- **`andthen:visualize` durability contracts** — `SKILL.md` adds *Layout Skeleton*, *Section Block*, *Sidebar Behavior*, *Renderer Discipline*, and *JavaScript Authoring Discipline* sections preventing four named regressions: empty Non-Functional Requirements section (a renderer dispatched against a schema it didn't fit), every button on the page going inert (literal newlines inside regex / quoted-string literals threw a `SyntaxError` disabling the entire `<script>`), invisible TOC on common laptop widths, and missing `+ Note` / `View source` affordances (JS-injected buttons vanished if JS failed). Section Block requires both `id` and `data-anchor` per H2 with static-HTML affordances; Renderer Discipline carries a per-section schema-contract table, an inline canonical Non-Functional Requirements renderer, and a section-deduplication mechanism.
+
+---
+
 ## [0.16.0] – 2026-05-04
 
 ### Changed

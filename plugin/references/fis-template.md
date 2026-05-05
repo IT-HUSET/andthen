@@ -6,13 +6,10 @@
 ## Feature Overview and Goal
 {{1-2 sentences: what needs to be built and why}}
 
-{{If technical research was produced during spec creation, include this reference line. Remove if no research doc exists.}}
-> **Technical Research**: [.technical-research.md](./.technical-research.md) _(codebase patterns, architecture analysis, API research)_
-
 
 ## Required Context
 
-> Cross-doc reference rules: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) (inline budget, source-pin format, `.technical-research.md` exclusion).
+> Cross-doc reference rules: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) (inline budget, source-pin format).
 
 {{Repeat blocks as needed. Keep each block focused: one decision, constraint, or contract per block.}}
 
@@ -76,24 +73,21 @@ _Keep this to 3-5 explicit non-goals or deferrals with reasons._
 
 ## Architecture Decision
 
-{{For simple decisions (obvious from project patterns), use compact format:}}
+> Default: one line. If a genuine trade-off needs analysis, that is an upstream `andthen:architecture --mode trade-off` task — reference the resulting ADR here rather than performing the analysis inline.
 
-**We will**: {{approach}} -- {{one-line rationale}} (over {{rejected alternatives}})
+**Approach**: {{one-line approach + rationale}} {{(optional: `See ADR: <path>/NNN-<slug>.md`)}}
 
-{{For genuine trade-offs (2+ viable alternatives), use full format:}}
+{{Rare — only when an inline trade-off was actually performed and no ADR exists, expand to:}}
 
-**We will**: {{chosen approach}}
 **Rationale**: {{why this approach, given constraints}}
 **Alternatives considered**:
 1. **{{Alt 1}}** -- rejected: {{reason}}
 2. **{{Alt 2}}** -- rejected: {{reason}}
 
-{{If covered by an existing ADR, reference it using the `ADRs` location from the **Project Document Index**. Example: `See ADR: <path-from-ADRs-entry>/001-foo.md`}}
-
 
 ## Technical Overview
 
-> High-level decisions and key references only. Detailed analysis belongs in the Technical Research document.
+> Anything load-bearing belongs in `Required Context` (verbatim upstream spans). Use this section only for spec-time elaborations that have no upstream source — drop it entirely if Required Context already covers the surface.
 
 ### UI/UX Design (if applicable)
 {{Describe UI changes, screens, interactions, user flows}}

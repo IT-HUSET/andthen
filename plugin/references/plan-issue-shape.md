@@ -24,9 +24,12 @@ Plan and story issues use these exact link forms — they are contracts, not sug
 
 Both shapes use these H2 anchors. The consumer matches them by `^## <name>$` against a markdown body — do not introduce identical H2s elsewhere in the body.
 
-- **`## Technical Research`** — full tech-research content (materialized to `<run-tempdir>/.technical-research.md` by `exec-plan --from-issue`).
+- **`## Shared Decisions`** — optional; bullets naming inter-story interface contracts, naming conventions, or shared abstractions (mirrors the optional section in `plan.md`).
+- **`## Binding Constraints`** — optional; verbatim PRD spans + heading anchors that flow unchanged into FIS Required Context (mirrors the optional section in `plan.md`).
 - **`## Story Catalog`** — standard markdown table; columns per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md).
 - **`## Story Issues`** — granular-shape only; presence of this section with at least one `#<digit>` reference under it is the **shape-detection signal** for `exec-plan --from-issue`.
+
+> **Legacy parser tolerance**: `## Technical Research` is no longer emitted by producers. Consumers retain tolerance for legacy issues — if encountered, the section is read but not materialized. New plan issues must not emit this section.
 
 Story sections in the single-issue shape use H3: `### Story S0N: <name>`. Granular-shape story issues do not nest a duplicate `### Story` heading — the issue title carries the story name.
 
@@ -40,9 +43,13 @@ Body skeleton:
 ```
 <plan summary — 1–3 paragraphs of context>
 
-## Technical Research
+## Shared Decisions
 
-<full tech-research content; no separate file>
+<optional — 3-6 bullets naming inter-story interface contracts; omit section when none apply>
+
+## Binding Constraints
+
+<optional — verbatim PRD spans + heading anchors; omit section when none apply>
 
 ## Story Catalog
 
@@ -83,9 +90,13 @@ Used by `andthen:plan --to-issue --create-story-issues`. Produces one parent pla
 ```
 <plan summary — 1–3 paragraphs>
 
-## Technical Research
+## Shared Decisions
 
-<full content; not duplicated into story issues>
+<optional — same shape as single-issue; omit when none apply; not duplicated into story issues>
+
+## Binding Constraints
+
+<optional — same shape as single-issue; omit when none apply; not duplicated into story issues>
 
 ## Story Catalog
 
@@ -140,6 +151,6 @@ Part of #<plan-N>
 - The parent plan issue body contains `## Story Issues` as a column-0 H2 line (NOT inside a fenced code block ```` ``` ```` and NOT inside an HTML comment `<!-- ... -->`) AND at least one column-0 bare `#<digit>` reference under it (also not inside a code block / comment) → **granular**.
 - Otherwise → **single-issue**.
 
-Producers MUST avoid emitting H2s with the parser-anchor names (`## Technical Research`, `## Story Catalog`, `## Story Issues`) inside the inlined `## Technical Research` section or anywhere else in the body — the technical-research synthesis is the largest source of accidental H2 collisions and must be sanitized (downshift any internal H2 to H3 or below) before inlining. Consumers strip fenced code blocks and HTML comments before applying the shape-detection regex.
+Producers MUST avoid emitting H2s with the parser-anchor names (`## Shared Decisions`, `## Binding Constraints`, `## Story Catalog`, `## Story Issues`) anywhere outside their canonical position in the body — accidental H2 collisions inside inlined PRD spans (under `## Binding Constraints`) must be sanitized by downshifting to H3 or below before inlining. Consumers strip fenced code blocks and HTML comments before applying the shape-detection regex.
 
 The Story Catalog table is parsed identically in both shapes — it is the authoritative wave/dependency list. Story-section H3 headings (single-issue) and story-issue bodies (granular) are the per-story content sources, selected by shape.

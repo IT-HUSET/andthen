@@ -34,7 +34,7 @@ Spawn narrow sub-agents when they materially improve a coding decision. Their ou
 
 **Documentation lookup and research**:
 
-- For unfamiliar APIs, library/framework behavior, migration details, or version-specific questions, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section in `CLAUDE.md` / `AGENTS.md`. Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly for the same behavior.
+- External API/library docs are **not** pre-resolved at spec time. Spawn a documentation-lookup sub-agent whenever you encounter unfamiliar API surface, library/framework behavior, migration details, or version-specific questions — do not pause and ask. The sub-agent consults the project's `## Documentation Lookup Tools` section in `CLAUDE.md` / `AGENTS.md`. Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly for the same behavior.
 - For external best-practice research or context not available in the codebase, do research in a sub-agent. Prefer official sources and separate evidence from inference.
 
 **Skills** (invoke as `/andthen:<name>`; when you want fresh-context isolation, spawn a sub-agent whose prompt runs the skill):
@@ -83,23 +83,21 @@ Usage rules:
 
 4. **Process Required / Deeper Context** — the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution; do not re-read source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional — read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source and warn (do not stop) on broken anchors.
 
-5. **Read Technical Research** — if the FIS references a `.technical-research.md`, read it before making code changes. Treat findings as leads to verify, not facts to trust.
+5. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant.
 
-6. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant.
+6. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
 
-7. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
+7. Read the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) if it exists. It is the canonical source for build, format, lint/type-check, test, and run commands. Use these whenever a FIS task `Verify` line does not already specify the command. If the document is missing, fall back to discovery and language / tech stack conventions.
 
-8. Read the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) if it exists. It is the canonical source for build, format, lint/type-check, test, and run commands. Use these whenever a FIS task `Verify` line does not already specify the command. If the document is missing, fall back to discovery and language / tech stack conventions.
+8. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
 
-9. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
+9. **Scaffold scenario tests** — if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
 
-10. **Scaffold scenario tests** — if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
+10. **UI design contract** — if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
 
-11. **UI design contract** — if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
+11. **Update project state** (if the `State` document exists per **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
 
-12. **Update project state** (if the `State` document exists per **Project Document Index** and the FIS originated from a plan): restore story context from `STORY_ID` and mark it as the active story.
-
-13. Initialize working notes you will maintain during the run:
+12. Initialize working notes you will maintain during the run:
     - Per-task status
     - `changed-files`
     - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, `MISSING REQUIREMENT`, `DISCOVERED REQUIREMENT`, or AUTO_MODE `ASSUMPTION` items
@@ -140,7 +138,7 @@ Implementation rules:
 Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues — integration, security, architectural coherence, and spec drift — that can still survive per-task Verify lines.
 
 #### 4a. Direct Checks
-Use the canonical commands from the `Key Dev Commands` document (read in Step 2.8) for build/format/lint/type-check/test invocations below; if the document was not present, the discovery fallback from Step 2.8 stands. The per-task `Verify` lines (Step 3.2) drive Step 3's inner-loop checks; 4a runs the cross-cutting project-wide pass *in addition* (per the Step 4 framing above), not instead.
+Use the canonical commands from the `Key Dev Commands` document (read in Step 2.7) for build/format/lint/type-check/test invocations below; if the document was not present, the discovery fallback from Step 2.7 stands. The per-task `Verify` lines (Step 3.2) drive Step 3's inner-loop checks; 4a runs the cross-cutting project-wide pass *in addition* (per the Step 4 framing above), not instead.
 
 1. **Build**: run the project's applicable build/package checks; every available build step relevant to the feature must succeed
 2. **Tests**: run the applicable test suites; all relevant tests must pass (or pre-existing failures documented)

@@ -10,20 +10,6 @@ FIS is an executable spec: intent over implementation, references over content, 
 > **FIS Mutability**: see [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) — *FIS Mutability Contract*.
 
 
-## Technical Research Separation
-
-Technical research that supports the FIS but doesn't require intent review belongs in a **Technical Research** companion document (`.technical-research.md`) stored alongside the FIS. This keeps the FIS reviewable for intent correctness while preserving implementation-enabling details for the executing agent.
-
-**Named contrast**: "intent review" (FIS) vs "enables execution" (Technical Research).
-
-- **FIS**: success criteria, scenarios, scope decisions, architecture decisions, constraints — what a reviewer validates to confirm *"are we building the right thing?"*
-- **Technical Research**: codebase analysis (patterns, file:line inventories), API docs and library research, detailed trade-off analysis and PoC results, schema/migration specifics, integration implementation details
-
-**Guiding principle**: If a reviewer needs to validate *"are we building the right thing?"* → FIS. If the detail helps the executing agent *"build the thing right"* → Technical Research.
-
-When writing the FIS, reference the technical research rather than inlining findings. Example: `See [Technical Research](./.technical-research.md#architecture-analysis) for detailed trade-off analysis`.
-
-
 ## Cross-Document References
 
 Every reference from a FIS to another document (PRD, plan, research, ADRs, guidelines, glossary) is a **trust boundary**: the intent behind that reference lives with the author, not the executor. Punting the resolution ("see plan.md") forces every downstream reader — exec-spec, review, remediate-findings, council reviewers — to re-discover what the author already knew. Precision at spec time eliminates that duplication.
@@ -38,12 +24,12 @@ Every reference from a FIS to another document (PRD, plan, research, ADRs, guide
 1. **Prefer anchors over line numbers.** `plan.md#story-3-error-handling` survives source edits; `plan.md:42-78` rots on the first line shift. When a source document lacks stable headings, favor adding `<a id="..."></a>` markers in the source over fragile line references.
 2. **Resolve at authoring time, not execution time.** Before emitting the FIS, walk every cross-doc reference, extract the span, and decide required vs deeper. A bare "see plan.md" without anchor or inlined content is not acceptable — the author saw the source, so the author names what matters.
 3. **Inline budget.** Per block: typically 30-100 lines, hard cap 200 lines (only when a single load-bearing span legitimately needs more). Total across all blocks: ≤ 250 lines, so the FIS stays inside the 200-500 line sweet spot with room for Scenarios and Tasks. When the per-block cap is hit, narrow the extraction and move overflow to Deeper Context; when the total budget would be breached by additional blocks, downgrade lower-priority blocks. The 200-line per-block cap and 250-line total are not additive — a FIS with two blocks at the per-block hard cap (400 lines) breaches the total and must be cut down.
-4. **Keep code and `.technical-research.md` out of Required Context.** `src/foo.ts:45-78` pattern pointers belong inside task descriptions or in `Code Patterns & External References`. Technical research stays as a referenced companion per Technical Research Separation above — do not inline spans from `.technical-research.md` into Required Context. Required/Deeper Context is reserved for upstream *intent* documents (PRD, plan, ADRs, guidelines, glossary).
+4. **Keep code pointers out of Required Context.** `src/foo.ts:45-78` pattern pointers belong inside task descriptions or in `Code Patterns & External References`. Required/Deeper Context is reserved for upstream *intent* documents (PRD, plan, ADRs, guidelines, glossary).
 5. **Omit empty sections.** If a FIS has no load-bearing upstream spans to inline, omit the Required Context section entirely rather than leaving a stub. The same applies to Deeper Context — omit when there are no supplementary pointers worth surfacing. Standalone FIS with no PRD/plan upstream typically have neither section.
 
 ### Why the inlined text is authoritative
 
-A FIS is a contract with the executor. If the author pulls text from `plan.md` at spec time, that's the intent the FIS is committing to — even if `plan.md` later changes. Drift between the pinned span and the current source is a *review* signal (the FIS may need re-spec'ing), not an *execution* failure. This matches how the existing FIS already treats technical research: a point-in-time snapshot, not a live join.
+A FIS is a contract with the executor. If the author pulls text from `plan.md` at spec time, that's the intent the FIS is committing to — even if `plan.md` later changes. Drift between the pinned span and the current source is a *review* signal (the FIS may need re-spec'ing), not an *execution* failure. Required Context is a point-in-time intent snapshot, not a live join.
 
 
 ## Scenarios and Proof-of-Work
@@ -122,7 +108,7 @@ For each FIS Success Criterion, name the plan acceptance criterion, PRD outcome,
 
 **Resolution depends on mode:**
 
-- **Batch sub-agent mode** (from the `andthen:plan` skill) — sub-agents check Success Criteria against plan-level sources **plus the binding-PRD-constraints extraction** in the technical research (verbatim text + heading anchor for each binding entry). A criterion that traces to either is sourced; only criteria with no plan-level *and* no extraction source are candidates for phantom-scope reporting. For each candidate, either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate — at Step 7's cross-cutting review the orchestrator filters once more against the full `prd.md` to catch any constraint missed by the extraction. Do not rationalize by adding scope notes. **Do not edit `plan.md` or `prd.md` from a sub-agent** — phantom-scope resolution flows through the orchestrator only.
+- **Batch sub-agent mode** (from the `andthen:plan` skill) — sub-agents check Success Criteria against plan-level sources **plus the `## Binding Constraints` section in `plan.md`** when present (verbatim text + heading anchor for each binding entry). A criterion that traces to either is sourced; only criteria with no plan-level *and* no Binding Constraints source are candidates for phantom-scope reporting. For each candidate, either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate — at the cross-cutting review the orchestrator filters once more against the full `prd.md` to catch any constraint missed by the inline extraction. Do not rationalize by adding scope notes. **Do not edit `plan.md` or `prd.md` from a sub-agent** — phantom-scope resolution flows through the orchestrator only.
 - **Standalone mode**: (a) remove, or (b) raise with the user and — on approval — add a scope note documenting the proposed addition for plan/PRD amendment.
 - **Standalone with no plan or PRD at all**: accept the criterion only if it traces to a user- or business-observable outcome in the feature request. "Uses X library", "refactors Y" are phantom scope absent a user-facing reason.
 

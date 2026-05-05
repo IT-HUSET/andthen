@@ -16,7 +16,7 @@ Usage:
 
 Options:
   --skills-dir PATH         Destination for skill directories (default: ~/.agents/skills)
-  --claude-user             Also install skills for Claude Code at the user-level
+  --claude                  Also install skills for Claude Code at the user-level
                             default (~/.claude/skills), using the same <prefix>
                             so invocation is /<prefix><name>.
                             (Set implicitly by --claude-skills-dir.)
@@ -28,6 +28,10 @@ Options:
                             Claude Code install). Use to target a project-local
                             location like <project>/.claude/skills for downstream
                             toolkits that bundle AndThen with their own --prefix.
+  --skills LIST             Comma-separated source skill names to install
+                            (default: all). Example: clarify,prd,review.
+                            Names may be unprefixed or use the current exported
+                            prefix (e.g. andthen-prd with the default prefix).
   --prefix PREFIX           Prefix for exported names (must end with '-';
                             default: andthen-)
   --display-brand BRAND     Human-readable brand name substituted for "AndThen"
@@ -42,6 +46,8 @@ Options:
 
 Notes:
   - All skills are exported as directories named <prefix><skill-name>/
+  - When --skills is set, only those source skills are exported. Missing names
+    fail before any install work starts.
   - Skills are fully self-contained at install time: each skill owns its
     references/, templates/, and scripts/ locally. Shared assets at
     plugin/references/ are inlined into each consuming skill's references/
@@ -65,6 +71,8 @@ install_claude_user=0
 prefix="andthen-"
 display_brand="AndThen"
 dry_run=0
+selected_skills_raw=""
+selected_skills=""
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -72,13 +80,21 @@ while [ "$#" -gt 0 ]; do
       skills_dir="$2"
       shift 2
       ;;
-    --claude-user)
+    --claude|--claude-user)
       install_claude_user=1
       shift
       ;;
     --claude-skills-dir)
       claude_skills_dir="$2"
       install_claude_user=1
+      shift 2
+      ;;
+    --skills)
+      if [ "$#" -lt 2 ] || [ -z "$2" ]; then
+        printf 'error: --skills requires a comma-separated list of skill names\n' >&2
+        exit 1
+      fi
+      selected_skills_raw="$2"
       shift 2
       ;;
     --prefix)
@@ -108,6 +124,77 @@ while [ "$#" -gt 0 ]; do
       ;;
   esac
 done
+
+_available_skills() {
+  find "$repo_root/plugin/skills" -mindepth 1 -maxdepth 1 -type d \
+    -exec basename {} \; | LC_ALL=C sort | paste -sd, -
+}
+
+_normalize_selected_skills() {
+  _nss_raw="$1"
+  selected_skills=""
+  [ -z "$_nss_raw" ] && return 0
+  case "$_nss_raw" in
+    ,*|*,|*,,*)
+      printf 'error: --skills contains an empty skill name in %s\n' "$_nss_raw" >&2
+      return 1
+      ;;
+  esac
+
+  IFS=',' read -r -a _nss_items <<< "$_nss_raw"
+  for _nss_token in "${_nss_items[@]}"; do
+    # Source skill names never contain whitespace; trimming lets users write
+    # "clarify, prd" without carrying the space into validation.
+    _nss_name=$(printf '%s' "$_nss_token" | tr -d '[:space:]')
+    if [ -z "$_nss_name" ]; then
+      printf 'error: --skills contains an empty skill name in %s\n' "$_nss_raw" >&2
+      return 1
+    fi
+
+    case "$_nss_name" in
+      /andthen:*) _nss_name="${_nss_name#/andthen:}" ;;
+      andthen:*)  _nss_name="${_nss_name#andthen:}" ;;
+    esac
+    case "$_nss_name" in
+      "$prefix"*) _nss_name="${_nss_name#"$prefix"}" ;;
+      andthen-*)  _nss_name="${_nss_name#andthen-}" ;;
+    esac
+
+    if [ -z "$_nss_name" ]; then
+      printf 'error: --skills contains an empty skill name in %s\n' "$_nss_raw" >&2
+      return 1
+    fi
+    case "$_nss_name" in
+      *[!a-zA-Z0-9_-]*)
+        printf 'error: invalid skill name in --skills: %s\n' "$_nss_name" >&2
+        printf 'available skills: %s\n' "$(_available_skills)" >&2
+        return 1
+        ;;
+    esac
+
+    if [ ! -d "$repo_root/plugin/skills/$_nss_name" ]; then
+      printf 'error: unknown skill in --skills: %s\n' "$_nss_name" >&2
+      printf 'available skills: %s\n' "$(_available_skills)" >&2
+      return 1
+    fi
+
+    case " $selected_skills " in
+      *" $_nss_name "*) ;;
+      *) selected_skills="${selected_skills}${selected_skills:+ }$_nss_name" ;;
+    esac
+  done
+}
+
+_should_install_skill() {
+  _sis_name="$1"
+  [ -z "$selected_skills" ] && return 0
+  case " $selected_skills " in
+    *" $_sis_name "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+_normalize_selected_skills "$selected_skills_raw" || exit 1
 
 # Canonicalize install destinations to absolute paths. The Codex-tier
 # ${CLAUDE_SKILL_DIR} rewrite bakes this path into installed .md files, so
@@ -175,7 +262,7 @@ if [ "$install_claude_user" -eq 1 ]; then
   if [ "$_plugin_found" -eq 1 ] \
      && [ "$prefix" = "andthen-" ] \
      && [ "$claude_skills_dir" = "${HOME}/.claude/skills" ]; then
-    printf 'warning: --claude-user enabled with the default prefix and user-tier path but an andthen Claude Code plugin install appears present under ~/.claude/plugins/. Running both will create duplicate skills under andthen:<name> (plugin) and andthen-<name> (user). Uninstall the plugin (/plugin uninstall andthen) before using --claude-user, pass a distinct --prefix, or target project-local --claude-skills-dir to coexist.\n' >&2
+    printf 'warning: --claude enabled with the default prefix and user-tier path but an andthen Claude Code plugin install appears present under ~/.claude/plugins/. Running both will create duplicate skills under andthen:<name> (plugin) and andthen-<name> (user). Uninstall the plugin (/plugin uninstall andthen) before using --claude, pass a distinct --prefix, or target project-local --claude-skills-dir to coexist.\n' >&2
   fi
 fi
 
@@ -498,6 +585,7 @@ claude_skills_count=0
 for dir in "$repo_root/plugin/skills"/*; do
   [ -d "$dir" ] || continue
   name=$(basename "$dir")
+  _should_install_skill "$name" || continue
 
   case "$name" in
     "$prefix"*)

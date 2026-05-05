@@ -10,7 +10,7 @@ This file provides guidance to AI coding agents when working with code in this p
 
 AndThen is an opinionated workflow system for AI coding agents. It provides structured skills that guide development through disciplined pipelines – from requirements discovery through implementation to review. See `plugin/README.md` for the full workflow overview and skill reference.
 
-Core artifacts are the **Feature Implementation Specification (FIS)** for single features and the **PRD + Plan Bundle** (story breakdown + FIS for every story + shared technical research) for multi-feature work. The `andthen:prd` skill produces the PRD; the `andthen:plan` skill consumes that PRD and produces the plan bundle in one pass; the `andthen:exec-plan` skill consumes the bundle as-is.
+Core artifacts are the **Feature Implementation Specification (FIS)** for single features and the **PRD + Plan Bundle** (story breakdown + FIS for every story) for multi-feature work. The `andthen:prd` skill produces the PRD; the `andthen:plan` skill consumes that PRD and produces the plan bundle in one pass; the `andthen:exec-plan` skill consumes the bundle as-is.
 
 **Structure:**
 - `plugin/` – Claude Code plugin (skills and agents). Each skill is fully self-contained with its own `references/`, `templates/`, and `scripts/` where needed — no cross-skill or plugin-root paths are used inside skill files.

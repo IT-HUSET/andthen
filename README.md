@@ -135,7 +135,7 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 **When to use which:**
 - **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue – you know what to do and it's under ~3 files
 - **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review`): Single feature with real complexity – multiple files, non-obvious requirements, needs a blueprint
-- **Manual plan workflow** (`clarify` → `prd` → `plan` → per-story `exec-spec`): Multiple features, MVP, or a new project where you want explicit control story by story. `plan` produces the full bundle (`plan.md` + FIS per story + technical research); you drive execution story by story with optional per-story or final review/remediation
+- **Manual plan workflow** (`clarify` → `prd` → `plan` → per-story `exec-spec`): Multiple features, MVP, or a new project where you want explicit control story by story. `plan` produces the full bundle (`plan.md` + FIS per story); you drive execution story by story with optional per-story or final review/remediation
 - **Automated plan workflow** (`clarify` → `prd` → `plan` → `exec-plan`): The same bundle, with implementation orchestrated for you. Use `--team` for Agent Teams parallelism
 
 In both plan workflows, the per-story execution step is handled by `exec-spec`. `plan --skip-specs` is available when you want a cheap planning pass that defers FIS generation.
@@ -310,7 +310,6 @@ docs/specs/data-export/data-export.md
 ```
 docs/specs/data-export/prd.md
 docs/specs/data-export/plan.md
-docs/specs/data-export/.technical-research.md
 docs/specs/data-export/s01-*.md   (FIS per story)
 ```
 
@@ -431,7 +430,7 @@ These compose into structured workflows — from requirements through implementa
 | `prd` | Create a Product Requirements Document from requirements |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS – direct implementation with validation |
-| `plan` | Full plan bundle: story breakdown + FIS for every story + technical research + cross-cutting review. Requires `prd.md` input |
+| `plan` | Full plan bundle: story breakdown + FIS for every story + cross-cutting review. Requires `prd.md` input |
 | `exec-plan` | Execute a fully-specced plan bundle – exec-spec + quick-review per story, final gap review |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |

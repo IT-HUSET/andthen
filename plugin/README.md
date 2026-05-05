@@ -90,7 +90,7 @@ These compose into structured workflows — from requirements through implementa
 | `prd` | Create a Product Requirements Document from requirements (supports `--issue` for GitHub input, `--to-issue` for publishing) |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS – direct implementation with validation |
-| `plan` | Full plan bundle: story breakdown + FIS for every story + technical research + cross-cutting review. Requires `prd.md` input (`--skip-specs` for cheap planning pass) |
+| `plan` | Full plan bundle: story breakdown + FIS for every story + cross-cutting review. Requires `prd.md` input (`--skip-specs` for cheap planning pass) |
 | `exec-plan` | Execute a fully-specced plan bundle – exec-spec + quick-review per story, final gap review. Use `--team` for Agent Teams |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |

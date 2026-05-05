@@ -179,7 +179,7 @@ Creates a Product Requirements Document (`prd.md`) from clarified requirements, 
 **Use when:** scoping a multi-feature initiative. **Typical next step:** `andthen:plan` to break the PRD into stories with FIS specs.
 
 ### `andthen:plan`
-Consumes an existing `prd.md` and produces the full plan bundle: `plan.md` (story breakdown), one FIS file per story, and a shared `.technical-research.md`. With `--skip-specs`, produces `plan.md` alone.
+Consumes an existing `prd.md` and produces the full plan bundle: `plan.md` (story breakdown) plus one FIS file per story. With `--skip-specs`, produces `plan.md` alone.
 **Use when:** turning a PRD into an executable, story-by-story plan. **Typical next step:** `andthen:exec-plan` to implement the bundle.
 
 ### `andthen:spec`

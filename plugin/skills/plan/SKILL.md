@@ -1,12 +1,12 @@
 ---
-description: Use when the user wants an implementation plan with FIS specs for every story. Trigger on 'create a plan', 'break this into stories', 'plan this feature', 'spec all stories', 'batch spec this plan'. Produces the full plan bundle (`plan.md` + all FIS + `.technical-research.md`) from an existing `prd.md`, or `plan.md` alone with `--skip-specs`. Requires an existing `prd.md` in the input directory — redirect to `andthen:prd` if missing.
+description: Use when the user wants an implementation plan with FIS specs for every story. Trigger on 'create a plan', 'break this into stories', 'plan this feature', 'spec all stories', 'batch spec this plan'. Produces the full plan bundle (`plan.md` + all FIS) from an existing `prd.md`, or `plan.md` alone with `--skip-specs`. Requires an existing `prd.md` in the input directory — redirect to `andthen:prd` if missing.
 argument-hint: "[--skip-specs] [--stories S01,S03,...] [--phase N] [--max-parallel N] [--skip-review] [--issue <number>] [--to-issue] [--create-story-issues] [--auto|--headless] <path-to-directory-with-prd.md>"
 ---
 
 # Create Implementation Plan Bundle
 
 
-Transform a Product Requirements Document (`prd.md`) into a complete implementation plan bundle: `plan.md` with story breakdown **plus** batch-generated Feature Implementation Specifications (FIS) — one per story — **plus** shared `.technical-research.md`. Runs story breakdown with a consolidation pass, parallel FIS sub-agents, and a cross-cutting review in one flow.
+Transform a Product Requirements Document (`prd.md`) into a complete implementation plan bundle: `plan.md` with story breakdown **plus** batch-generated Feature Implementation Specifications (FIS) — one per story. Runs story breakdown with a consolidation pass, parallel FIS sub-agents, and a cross-cutting review in one flow.
 
 **Invariant**: one story → one FIS. The Story Catalog `FIS` column is a unique-key column; no two stories share a FIS path.
 
@@ -24,13 +24,13 @@ _Output directory (defaults to input directory):_
 OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolved per the input contract below
 
 ### Optional Flags
-- `--skip-specs` → SKIP_SPECS: Produce `plan.md` only (cheap planning pass; skip technical research, FIS generation, and cross-cutting review)
+- `--skip-specs` → SKIP_SPECS: Produce `plan.md` only (cheap planning pass; skip FIS generation and cross-cutting review)
 - `--stories S01,S03,...` → STORY_FILTER: Only generate FIS for listed story IDs
 - `--phase N` → PHASE_FILTER: Only generate FIS for stories in phase N
 - `--max-parallel N` → MAX_PARALLEL: Concurrency cap per sub-wave (default 5, max 10)
 - `--skip-review` → SKIP_REVIEW: Skip the cross-cutting review step
 - `--issue <number>` → ISSUE_INPUT: Use a GitHub PRD issue as input (`gh issue view <N>`); the issue body replaces a local `prd.md` read. `OUTPUT_DIR` resolves to `<base-output-dir>/issue-<N>-<feature-slug>/` (mirrors `clarify` and `prd` patterns). Composes with all output modes — default bundle, `--skip-specs`, and `--to-issue`.
-- `--to-issue` → PUBLISH_PLAN_ISSUE: Output the plan as a single GitHub issue per the **single-issue shape** in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). **Writes nothing to disk** — skip Steps 4 (plan.md write), 5 (local technical-research write), 6 (FIS generation), and 7 (cross-cutting review). Mutually exclusive with `--skip-specs` (FIS-not-needed is implicit in `--to-issue`). Default GitHub-output mode produces ONE plan issue.
+- `--to-issue` → PUBLISH_PLAN_ISSUE: Output the plan as a single GitHub issue per the **single-issue shape** in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). **Writes nothing to disk** — skip Steps 4 (plan.md write), 5 (FIS generation), and 6 (cross-cutting review). Mutually exclusive with `--skip-specs` (FIS-not-needed is implicit in `--to-issue`). Default GitHub-output mode produces ONE plan issue.
 - `--create-story-issues` → CREATE_STORY_ISSUES: Switch `--to-issue` from single-issue to **granular shape** per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md): one parent plan issue PLUS N story issues with `Refs #<prd-N>` and `Part of #<plan-N>` links. **Requires `--to-issue`** — reject up-front if absent (`BLOCKED: --create-story-issues requires --to-issue` in `AUTO_MODE`; print error and stop in default mode) before any `gh` call.
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
@@ -49,13 +49,12 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 
 ### Orchestrator Role
 
-Do not write FIS content yourself — delegate to per-story sub-agents in Step 6.
+Do not write FIS content yourself — delegate to per-story sub-agents in Step 5.
 
 
 ## GOTCHAS
 - **Carried-forward stories without PRD coverage** – use the **Provenance** field; a story with no PRD feature and no provenance is a traceability gap
 - **Skipping the Consolidation Pass** – two stories with shared implementation surface produce two specs that drift. Merge them at the story level in Step 3 instead
-- **Technical research becomes stale if plan changes** — re-run technical research before generating new specs after plan edits
 - **Status updates get dropped when context is exhausted** — `plan.md` FIS field updates are gates. Update immediately after each sub-wave
 
 
@@ -80,13 +79,13 @@ Do not write FIS content yourself — delegate to per-story sub-agents in Step 6
 
 ### 2. Requirements Analysis
 
-Scan codebase structure (use a sub-agent) to identify natural implementation boundaries, feature groupings, and dependency relationships — enough to inform story breakdown. Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists — use current phase, active stories, and blockers to inform story priorities. Reference the `Ubiquitous Language` document (see **Project Document Index**) if it exists; use canonical terms in story names and acceptance criteria.
+**Read `prd.md` directly here.** This is the single PRD read for plan generation — Step 5 sub-agents receive relevant spans as context (do not re-read), and Step 6's cross-cutting review reads the PRD fresh in its own sub-agent context.
 
-Synthesize into a unified understanding of: all PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), natural implementation boundaries, feature dependencies, and complexity/risk areas.
+Run a quick `tree -d` + `git ls-files | head -250` codebase scan inline (no sub-agent) to identify natural implementation boundaries — enough to inform story breakdown, not deep research. Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists — use current phase, active stories, and blockers to inform story priorities. Reference the `Ubiquitous Language` document (see **Project Document Index**) if it exists; use canonical terms in story names and acceptance criteria.
 
-> Do not save `.technical-research.md` here — deep technical research is generated in Step 5 (after story breakdown), where it directly informs FIS generation.
+Synthesize into a unified understanding of: all PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), natural implementation boundaries, feature dependencies, and complexity/risk areas. As you read the PRD, note any "must support X" / "must not Y" language that should land in the optional `## Binding Constraints` section in Step 4.
 
-**Gate**: Feature mapping complete
+**Gate**: Feature mapping complete; PRD read once and held in working notes
 
 
 ### 3. Story Breakdown
@@ -111,7 +110,7 @@ For each story, define:
 - **ID**: Sequential identifier (S01, S02, etc.)
 - **Name**: Brief descriptive name
 - **Status**: Tracking field — initially `Pending` (updated to `Spec Ready` / `In Progress` / `Done` during execution)
-- **FIS**: Reference to generated spec — initially `–` (updated to file path after FIS generation in Step 6). Exactly one FIS per story; FIS paths are unique across the Story Catalog
+- **FIS**: Reference to generated spec — initially `–` (updated to file path after FIS generation in Step 5). Exactly one FIS per story; FIS paths are unique across the Story Catalog
 - **Scope**: 2-4 sentences — what's included and excluded (no implementation approach — that's for the per-story FIS)
 - **Acceptance criteria**: 3-6 testable outcomes — the first 2-3 should be must-be-TRUE observable truths from goal-backward analysis; remaining items are supplementary verification points
 - **Dependencies**: Other story IDs that must complete first
@@ -131,7 +130,7 @@ Before finalizing the Story Catalog, sweep the draft stories and **merge any set
 - **Tight dependency chain** — `A → B` (or `A → B → C`) where downstream stories have no independent demo value without the upstream (e.g., "define API endpoint" + "wire endpoint to handler" + "surface endpoint in UI" for the same feature).
 - **Trivially small set** — each story in the set would produce a barely-populated FIS (small surface, few acceptance criteria — well below the 3-6 guideline in Story Definition) and they share a primary concern.
 
-Run pairwise, then iterate to a fixed point so a 3-way or larger merge composes naturally from successive pair-merges. Merge by union: combine acceptance criteria, reconcile scope into a single coherent vertical slice, renumber if needed. The merged story is still one demoable outcome, just broader. If a merged story turns out too large for a single FIS, Step 6's per-story sub-agent reports that back via the size signal and the orchestrator revisits Step 3 for that story — do not pre-split here.
+Run pairwise, then iterate to a fixed point so a 3-way or larger merge composes naturally from successive pair-merges. Merge by union: combine acceptance criteria, reconcile scope into a single coherent vertical slice, renumber if needed. The merged story is still one demoable outcome, just broader. If a merged story turns out too large for a single FIS, Step 5's per-story sub-agent reports that back via the size signal and the orchestrator revisits Step 3 for that story — do not pre-split here.
 
 > **Why this matters**: the plan↔FIS join is a single-column contract (the `FIS` field). Keeping it 1:1 means downstream skills (`exec-plan`, `exec-spec`, `ops`) never need to reason about shared or composite specs, and plan.md is unambiguous at a glance. Two stories wanting to share a spec is a signal they were one story.
 
@@ -144,7 +143,13 @@ Generate `plan.md` using the template at [`templates/plan-template.md`](template
 
 This template defines the document's operational contract. Preserve the heading names, Story Catalog columns, and standard story metadata labels because downstream skills parse them directly. Adapt the phase names, story count, and example content to the project.
 
-**Document references header**: Include a blockquote header at the top linking to all key reference documents discovered during Input Validation (PRD, ADRs, design system, wireframes, etc.). Use relative paths. Omit entries where no document exists — only include actual references.
+**Document references header**: Emit `**PRD**` always (it's the load-bearing input). Emit a generic `**References**` blockquote with one bullet per upstream artifact discovered during Input Validation (ADRs, design system, wireframes, glossary, ad-hoc research, etc.) — relative paths, one-line purpose each. Omit the `References` section entirely when no upstream artifacts exist.
+
+**Shared Decisions and Binding Constraints (inline extraction, no sub-agent)**: After story breakdown, walk the working-notes PRD synthesis from Step 2:
+- **`## Shared Decisions`** — emit when stories have inter-dependencies that imply a shared interface, naming convention, or abstraction multiple stories will create or consume. 3-6 bullets, each naming the producing and consuming stories. Omit the section when none apply.
+- **`## Binding Constraints`** — emit when the PRD contains "must support X" / "must not Y" language at risk of being silently dropped during decomposition. Each entry: verbatim PRD span + heading anchor (`prd.md#<heading-slug>`) + source feature ID. These flow unchanged into FIS Required Context blocks during Step 5. Omit the section when none apply.
+
+Both sections are **optional** — extracted inline from PRD content already loaded in Step 2, no sub-agent fan-out.
 
 Keep these invariants from the template:
 - Story Catalog columns remain `ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS`
@@ -176,46 +181,27 @@ If the `State` document does not exist, do not create it — suggest it in follo
 
 **Gate**: `plan.md` saved and validated
 
-> **If `--skip-specs` is set**: stop here and print the path to `plan.md`. Do not run Steps 5–7.
+> **If `--skip-specs` is set**: stop here and print the path to `plan.md`. Do not run Steps 5–6.
 
-> **If `--to-issue` is set**: do not write `plan.md` to disk in this step. Build the same logical plan content (story breakdown, catalog, metadata) in memory, then load `references/to-issue-mode.md` for the GitHub-output workflow (in-memory research synthesis, plan-issue body assembly per `plan-issue-shape.md`, single-issue or granular `gh issue create` flow, and the no-local-writes gate). Steps 5 (FIS generation) and 7 (cross-cutting review) are skipped in this mode.
-
-
-### 5. Technical Research (One-Time Upfront Discovery)
-
-Before spawning any spec sub-agents, do **all discovery and research work once** via up to 3 parallel sub-agents. This eliminates redundant codebase scanning, guideline reading, and architecture analysis each spec sub-agent would otherwise do independently.
-
-**Sub-agent 1: Project Context** — Read project `CLAUDE.md` (Document Index, workflow rules); scan codebase structure; identify conventions, tech stack, learnings. Output: dense summary.
-
-**Sub-agent 2: Story-Scoped File Map** — Per-story related files/modules; shared-files section. Output: per-story file list with relevance notes.
-
-**Sub-agent 3: Shared Architectural Decisions** — For each pair of dependent stories: identify the interface/contract between them (API shape, data types, naming, error handling); document the shared decision so both specs can reference it. Also identify: naming conventions that must be consistent, shared abstractions multiple stories will create/consume, API patterns that must be uniform. Extract **binding PRD constraints** from `OUTPUT_DIR/prd.md`: requirements that specify explicit capabilities (e.g., "must support remote hosts"), protocol details, security requirements, or user-facing behaviors. These constraints must flow unchanged into FIS success criteria — they are not subject to architectural trade-offs or scope narrowing by individual stories. Output: numbered list of shared decisions with rationale, specific enough to reference in FIS success criteria; plus a separate "Binding PRD Constraints" section. Each constraint entry includes the verbatim PRD text span, the source feature ID, and the source PRD heading anchor (`prd.md#<heading-slug>`). Per-story sub-agents inherit these as-is; broken anchors found later are a doc-review finding, not an execution blocker.
-
-External research (API docs, library lookups) is deferred to individual spec sub-agents that need it — most stories don't reference external APIs, and the ones that do can spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section. Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly.
-
-**Consolidation**: After all sub-agents complete, save to `{OUTPUT_DIR}/.technical-research.md`. **Use the template**: [`templates/technical-research-template.md`](templates/technical-research-template.md).
-
-If a `.technical-research.md` already exists (e.g. from a prior run), merge new sections into it rather than overwriting.
-
-**Gate**: Technical research saved to `{OUTPUT_DIR}/.technical-research.md`, covers all stories in scope
+> **If `--to-issue` is set**: do not write `plan.md` to disk in this step. Build the same logical plan content (story breakdown, catalog, metadata, optional Shared Decisions / Binding Constraints) in memory, then load `references/to-issue-mode.md` for the GitHub-output workflow (plan-issue body assembly per `plan-issue-shape.md`, single-issue or granular `gh issue create` flow, and the no-local-writes gate). Steps 5 (FIS generation) and 6 (cross-cutting review) are skipped in this mode.
 
 
-### 6. Parallel FIS Creation
+### 5. Parallel FIS Creation
 
 Apply filters (`STORY_FILTER`, `PHASE_FILTER`); skip stories whose `**FIS**` field already points at a file that exists on disk. Remaining in-scope stories each get one sub-agent producing one FIS.
 
 #### Wave Ordering
 
-The technical research pre-resolves most inter-story architectural decisions. Default: all in-scope stories launch in parallel (up to `MAX_PARALLEL`, default 5, max 10). Exception: hold back a story if its spec depends on a decision the technical research could not pre-resolve — wait for the producing story's spec to complete first. Fallback: if the technical research is incomplete or unavailable, use strict wave ordering (W1 complete → W2). Batch into sub-waves if story count exceeds `MAX_PARALLEL`.
+Plan-level `## Shared Decisions` (when present) pre-resolves inter-story architectural decisions. Default: all in-scope stories launch in parallel (up to `MAX_PARALLEL`, default 5, max 10). Exception: hold back a story if its spec depends on a decision not captured in `## Shared Decisions` — wait for the producing story's spec to complete first. Fallback: if no `## Shared Decisions` section exists, use strict wave ordering (W1 complete → W2). Batch into sub-waves if story count exceeds `MAX_PARALLEL`.
 
 #### Sub-Agent Prompts
 
-For each in-scope story, spawn a sub-agent that runs `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.md`. The `andthen:spec` skill handles the full authoring flow per its guidelines at `${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`. Because `.technical-research.md` already exists on disk (from Step 5), the spec skill's Steps 1–2 short-circuit to verification-only, keeping per-story invocation cost low.
+For each in-scope story, spawn a sub-agent that runs `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.md`. The `andthen:spec` skill handles the full authoring flow per its guidelines at `${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md`.
 
 **Additional context for each sub-agent** (pass alongside the skill invocation):
-- Technical research: `{OUTPUT_DIR}/.technical-research.md` — use for shared decisions, file maps, and the binding-PRD-constraints extraction; skip research phases already covered.
-- Binding PRD constraints: every applicable entry from the "Binding PRD Constraints" section of the technical research flows into FIS Success Criteria unchanged. Do not narrow the binding constraint set.
-- Run Plan-Spec Alignment Check, Self-Check, and Reverse Coverage Check from the guidelines. Reverse Coverage Check runs against plan-level sources plus the binding-PRD-constraints extraction; PRD-level reverse coverage beyond the extracted constraints is handled by the orchestrator in Step 7.
+- Each sub-agent reads `plan.md` (which carries the optional `## Shared Decisions` and `## Binding Constraints` sections inline). Sub-agents do **not** re-read `prd.md` — Required Context blocks in the FIS are sourced from `plan.md`'s Binding Constraints (which are themselves verbatim PRD spans with anchors).
+- Binding constraints: every applicable entry from `plan.md`'s `## Binding Constraints` section (when present) flows into FIS Success Criteria unchanged. Do not narrow the binding constraint set.
+- Run Plan-Spec Alignment Check, Self-Check, and Reverse Coverage Check from the guidelines. Reverse Coverage Check runs against plan-level sources plus `plan.md`'s `## Binding Constraints`; PRD-level reverse coverage beyond those constraints is handled by the orchestrator in Step 6.
 - Report back: success/failure, FIS path, confidence score, any `PHANTOM_SCOPE` findings from Reverse Coverage, and any `OVERSIZE:` line emitted by the spec skill (verbatim, including line/task counts and recommendation).
 
 > **Size signal**: if a sub-agent's completion summary contains an `OVERSIZE:` line (see `${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md` Key Generation Guidelines #6 for the threshold), the story was too broad — the orchestrator revisits Step 3 to decompose that story before regenerating its FIS. The oversized FIS that the spec sub-agent saved is discarded by the regeneration pass, so it does not need to be deleted up front.
@@ -233,7 +219,7 @@ Wait for all sub-agents in the current sub-wave to complete. Log any failures (c
 ```
 8-story plan (after Step 3 Consolidation Pass) → 8 FIS files
 
-Step 6 (MAX_PARALLEL=4):
+Step 5 (MAX_PARALLEL=4):
   Sub-wave 1: spec-S01, spec-S02, spec-S03, spec-S04 (parallel)
   Sub-wave 2: spec-S05, spec-S06, spec-S07, spec-S08 (parallel)
   → Update plan.md FIS fields after each sub-wave
@@ -242,11 +228,11 @@ Step 6 (MAX_PARALLEL=4):
 **Gate**: All specs complete, all `plan.md` FIS fields updated (each path unique)
 
 
-### 7. Cross-Cutting Review & Fixes
+### 6. Cross-Cutting Review & Fixes
 
 > **Skip this step if `--skip-review` flag is set.**
 
-Delegate to a single opus sub-agent with all generated FIS paths. Provide: plan path, list of all FIS paths. The sub-agent should read ALL FIS files, `plan.md`, and `prd.md`, then check for:
+Delegate to a single opus sub-agent with all generated FIS paths. Provide: plan path, list of all FIS paths. This is the **second (and only other) full PRD read** in the plan flow — the sub-agent reads `prd.md` fresh in its own context, plus all FIS files and `plan.md`, then checks for:
 
 1. **Overlapping scope** – multiple stories modifying the same files or abstractions
 2. **Inconsistent architectural decisions** – contradictory ADR choices across stories
@@ -268,7 +254,7 @@ Apply fixes for CRITICAL or HIGH severity issues: overlapping scope → clarify 
 
 **Broken scenario chains (#11)** — pick one:
 - Add the missing scenario to the FIS whose story naturally owns that leg. Don't stretch an unrelated FIS.
-- If no story owns it, add a new story: re-enter Step 3 (Phase/Wave/Dependencies/Risk), update the Story Catalog, re-run technical research if files fall outside the existing map, then Step 6 for that story before execution.
+- If no story owns it, add a new story: re-enter Step 3 (Phase/Wave/Dependencies/Risk), update the Story Catalog, then Step 5 for that story before execution.
 - If the gap is a missing upstream decision, treat as a contract failure (per INSTRUCTIONS): stop, surface the minimum missing decision, and don't invent the answer. In `AUTO_MODE`, return `BLOCKED:` with the missing decision for the external orchestrator.
 
 **Phantom-scope findings** (from sub-agent `PHANTOM_SCOPE` return summaries): sub-agents only saw plan-level sources, so first re-check each finding against `prd.md` — criteria that trace to a PRD outcome are **not** phantom scope (suppress). For confirmed phantom scope: remove the unsourced Success Criterion, or amend plan/PRD to justify it. Treat confirmed phantom scope as MEDIUM severity by default; upgrade to HIGH when it drives significant implementation work or introduces new dependencies.
@@ -282,10 +268,9 @@ After fixes, re-read changed FIS files and re-walk affected PRD flows.
 
 ```
 OUTPUT_DIR/
-├── prd.md                 # Product Requirements Document (carried in, not modified)
-├── plan.md                # Implementation plan with story catalog
-├── .technical-research.md # Shared technical research (hidden companion)
-└── s0N-*.md               # FIS files — one per story, one story per FIS
+├── prd.md     # Product Requirements Document (carried in, not modified)
+├── plan.md    # Implementation plan with story catalog (+ optional Shared Decisions / Binding Constraints)
+└── s0N-*.md   # FIS files — one per story, one story per FIS
 ```
 
 - With `--skip-specs`: only `plan.md` is produced (plus unchanged `prd.md`).
