@@ -22,10 +22,11 @@ Compose the per-story sub-agent prompt by substituting the canonical Per-Story W
 
 Include in each implementer's system prompt:
 - Only work on assigned `impl-*` tasks
-- Per task: `cd {CODE_DIR_ABS}` → (worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}` → commit → (worktree: `ExitWorktree(keep)`) → mark done; report `exec-spec` Step 4a numbers (build, tests, lint/type-check, format)
+- Per task: `cd {CODE_DIR_ABS}` → (worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}`. On success only: commit → `ExitWorktree(keep)` → mark done; report `exec-spec` Step 4a numbers (build, tests, lint/type-check, format).
 - **Worktree mode (`{WORKTREE_SUFFIX}` non-empty)**: `exec-spec` skips `plan.md` and `State` document writes and emits a `## Deferred Shared Writes` audit block (Story / Plan / FIS / Completion summary). Pass that block through to your report so the orchestrator can read the `Completion summary` line and audit what was deferred — the orchestrator already knows Story / Plan / FIS from its own plan parse and constructs / applies the writes post-merge itself. Constraints: (1) do not apply those writes yourself, (2) do not stage or commit `plan.md` or the `State` document inside the worktree branch — only code (and FIS) edits belong there. Shadow plan/state commits inside the worktree defeat the deferral and resurrect the merge-conflict failure mode this flag exists to prevent.
+- If `exec-spec` returns `BLOCKED:` or a Failed Story Report, do not commit or mark done. Preserve the worktree, report story/branch/failure details, and let the orchestrator apply the aggregate failure policy.
 - Absolute FIS paths; escalate unresolvable issues
-- For no-double-write contract, see `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`
+- Do not call `andthen:ops update-*` yourself — `exec-spec` Step 5b handles those calls
 
 
 ## Reviewer Prompt
@@ -36,11 +37,11 @@ Include in each reviewer's system prompt:
 - Role constraint: only work on assigned `review-*` tasks. `{CODE_DIR_ABS}`, `{BASE_BRANCH}`, and `{AUTO_SUFFIX}` are pre-substituted in this prompt by the orchestrator (per the substitution-scope rule above). Derive your story id at runtime by stripping the `review-` prefix from your task name (`review-S03` → `S03`); call this `<story-id>`.
 - **Per-task workflow**:
   1. `cd {CODE_DIR_ABS}`.
-  2. **Resolve the commit SHA to review** — the change set is committed in both modes, so `git diff` is empty either way; `quick-review`'s `commit <sha>` FOCUS form is what gives it the change set:
-     - **Worktree mode (`USE_WORKTREE=true`)**: `git log {BASE_BRANCH} --grep="^Squashed-story: <story-id>$" --pretty=format:%H | head -1` (substitute the literal `<story-id>` into the grep). Empty result → escalate (the squash merge for this story has not landed). Under squash-merge the implementer's intermediate commits are not preserved on `{BASE_BRANCH}`; the squash commit IS the story's changes. If a Stop-the-Line retry produced multiple commits with the trailer, `head -1` returns the most recent — that is the right one to review.
+  2. **Resolve the review commit SHA** — the change set is committed in both modes, so `git diff` is empty either way; `quick-review`'s `commit <sha>` FOCUS form is what gives it the change set:
+     - **Worktree mode (`USE_WORKTREE=true`)**: create an unreferenced review snapshot for the full branch diff: `git commit-tree "story-<story-id>^{tree}" -p "$(git merge-base {BASE_BRANCH} story-<story-id>)" -m "review snapshot <story-id>"`. Empty result → escalate.
      - **No worktree mode (`USE_WORKTREE=false`)**: `git rev-parse HEAD`. Task-dependency ordering (`impl-<story-id>` completes before `review-<story-id>` starts, no tasks intervene) guarantees the implementer's just-completed commit is at HEAD.
   3. **Substitute both `<story-id>` and `<hex-sha>` as literal values** (slash-command lines are not bash; `$VAR` and `<placeholder>` reach `quick-review` unexpanded). Invoke: `/andthen:quick-review story <story-id> commit <hex-sha>{AUTO_SUFFIX}`. The `commit <sha>` form is recognized by `quick-review`'s Determine Scope step (priority 1) — it sets the change set to `git show <sha>` and skips the empty-`git diff` fallback path.
-  4. Mark task done.
+  4. If quick-review returns accepted findings, report them to the orchestrator and do not mark the review task done. If no findings survive, mark task done.
 - Escalate unresolvable issues to orchestrator.
 
 
@@ -48,14 +49,18 @@ Include in each reviewer's system prompt:
 
 **Task naming**: `impl-{story_id}` / `review-{story_id}` (one impl task per story, one review task per story — each story has its own FIS). Round-robin assign; do not self-assign impl and review of the same story to the same agent.
 
-**Dependencies** (sequential, `USE_WORKTREE=false`): each `impl-*` blocked by previous `review-*`. Parallel markers ignored.
+**Dependencies** (sequential, `USE_WORKTREE=false`): each `impl-*` is blocked by the previous `review-*`, except `AUTO_MODE` may unblock the next independent story after recording a failed/skipped story. Parallel markers ignored.
 
-**Dependencies** (worktree, `USE_WORKTREE=true`): current-wave `impl-*` unblocked; `review-*` blocked until wave merge; W2+ `impl-*` blocked by prior-wave merge completion.
+**Dependencies** (worktree, `USE_WORKTREE=true`): current-wave `impl-*` unblocked; each `review-*` blocked until its matching `impl-*` succeeds; merge waits for review pass or recorded failure; W2+ `impl-*` blocked until the prior wave has merged successes and recorded failed/skipped stories.
+
+**Failure containment**: a failed `impl-*` task blocks only its own `review-*` task and downstream stories. In `AUTO_MODE`, record the failure, preserve its worktree/branch, skip dependents, and continue independent work. In no-worktree mode, prove the shared checkout clean before unblocking another independent `impl-*`.
 
 
 ## Merge Wave _(worktree mode only)_
 
-After all `impl-*` in the current wave complete, for each worktree branch in sequence:
+After current-wave `impl-*` and `review-*` tasks have succeeded or been recorded failed, merge only reviewed-successful implementation tasks. Before merging, resolve `WORKTREE_PATH` using the step 5 command and run `git -C "$WORKTREE_PATH" status --porcelain`. If the implementer reported `BLOCKED:` / Failed Story Report, quick-review returned unresolved accepted findings, or the worktree is dirty, record a failed story and do not run merge, deferred writes, or cleanup for that story.
+
+For each successful worktree branch in sequence:
 
 1. **Squash-merge** the worktree branch into `{BASE_BRANCH}` and create the code-side commit. **Precondition (checked once, at step 1 entry)**: `git status --porcelain` in the orchestrator's CWD must be empty — `git merge --squash` refuses with staged/unstaged changes, and a leftover stage from the previous wave's step 4 would point at a missed commit boundary. If non-empty, Stop-the-Line; investigate before proceeding. Mid-step the index is intentionally dirty in two windows: between the `git merge --squash` and `git commit -F -` substeps below (the squash stages the combined diff, the commit clears it), and between top-level Step 3's plan/state writes and Step 4's commit. Neither violates the precondition.
    - **Extract `SUMMARY` first** — pull `Completion summary` from the implementer's audit block now using the regex / fallback defined in step 3 (`^Completion summary:\s*(.+)$`, trimmed; fall back to `"{STORY_ID}: completed (worktree merge)"` if the block is missing or the field is empty). The same value is reused in step 3 for `update-state note`; extract once to avoid divergence.
@@ -89,11 +94,9 @@ After all `impl-*` in the current wave complete, for each worktree branch in seq
 5. **Clean up worktree and branch** in `CODE_DIR` (orchestrator's CWD). The implementer exited with `ExitWorktree(keep)`, so the directory and branch are still on disk; `ExitWorktree(remove)` cannot be used cross-session, so drop to git. Substitute the actual story id for the `{task_id}` placeholder in every command below (story ids are alphanumeric/hyphen, no further shell escaping needed). **Precondition**: `pwd` must be `CODE_DIR` (the main checkout), not inside a `story-*` worktree — `git worktree remove` refuses to remove the worktree you are currently in.
    - Resolve the worktree path: `WORKTREE_PATH=$(git worktree list --porcelain | awk -v b="refs/heads/story-{task_id}" '/^worktree /{p=$2} $1=="branch" && $2==b {print p}')`.
    - **Empty resolution** — if `WORKTREE_PATH` is empty (the implementer crashed before `EnterWorktree` succeeded, or the directory was manually deleted): skip `git worktree remove`, run `git worktree prune` to clear any stale admin record, then `git branch -D story-{task_id} 2>/dev/null || true` (the branch may or may not exist). Continue to the next merge — this is recoverable, not Stop-the-Line.
-   - **Dirty-tree check** — `git -C "$WORKTREE_PATH" status --porcelain` must be empty (the implementer committed inside `exec-spec`). If not, **Stop-the-Line** per FAILURE HANDLING: log path + branch in the failure summary, leave the worktree intact, and abort the wave — uncommitted work is not safe to discard.
+   - **Dirty-tree check** — `git -C "$WORKTREE_PATH" status --porcelain` must be empty (the implementer committed inside `exec-spec`). If not, the story is not mergeable. In `AUTO_MODE`, record a failed story, preserve the worktree, skip dependents, and continue independent work. Outside `AUTO_MODE`, Stop-the-Line per FAILURE HANDLING.
    - `git worktree remove "$WORKTREE_PATH"` then `git branch -D story-{task_id}`. `-D` (not `-d`) is **required** under squash-merge: a squash commit has different SHA + tree-parents than the side branch's tip, so the side branch is *never* an ancestor of `{BASE_BRANCH}` after squash — `-d`'s "fully-merged" check always refuses. The squash commit on `{BASE_BRANCH}` already carries all the work, so the branch ref is safe to discard.
    - Verify `git worktree list` no longer contains `story-{task_id}`. If it does, Stop-the-Line — a leftover will collide with `EnterWorktree` if the same story id reappears.
-
-   Then **unblock** the matching review task.
 
 Run all five steps for one worktree before starting the next — sequential ordering keeps each merge based on a tip that already includes the prior story's deferred writes (single-repo) or sees the latest plan/state file content (multi-repo).
 
@@ -103,11 +106,11 @@ Run all five steps for one worktree before starting the next — sequential orde
 Ordering violations cause stale-base overwrites — a Wave N+1 worktree branched off an outdated base will stomp deferred writes when it merges back. All rules below follow from this one constraint.
 
 **Wave N+1 worktrees must be created AFTER Wave N merges.** Specifically:
-- Wave N+1 worktrees must branch off `{BASE_BRANCH}` only after all Wave N squash-merges have committed **and** any orchestrator-applied writes that land in `CODE_DIR` (deferred shared writes in single-repo, repair writes, phase transition writes) are committed to `CODE_DIR`'s `{BASE_BRANCH}`.
+- Wave N+1 worktrees must branch off `{BASE_BRANCH}` only after all Wave N squash-merges, per-story reviews, and any orchestrator-applied writes that land in `CODE_DIR` (deferred shared writes in single-repo, repair writes, phase transition writes) are committed to `CODE_DIR`'s `{BASE_BRANCH}`.
 - A worktree branched off a stale base will stomp those writes when it merges back.
 - Multi-repo plan/state writes land in `PLAN_DIR`, not `CODE_DIR`'s `{BASE_BRANCH}`, so they are not at risk from this; only `CODE_DIR`-bound writes apply to this gate.
 
-**Deferred shared writes must commit before next-wave worktree creation.** In single-repo setups, the plan/state write commit from Merge Wave step 4 must land on `{BASE_BRANCH}` before any Wave N+1 worktree is created. Do not parallelize worktree creation and deferred-writes commits.
+**Deferred shared writes must commit before next-wave worktree creation.** In single-repo setups, the post-review plan/state write commit from Merge Wave step 4 must land on `{BASE_BRANCH}` before any Wave N+1 worktree is created. Do not parallelize worktree creation and deferred-writes commits.
 
 **Do not use `isolation: "worktree"` with `team_name`** — Claude Code bug ([#33045](https://github.com/anthropics/claude-code/issues/33045)); instruct implementers to call `EnterWorktree` themselves.
 
@@ -117,19 +120,21 @@ Ordering violations cause stale-base overwrites — a Wave N+1 worktree branched
 Same green-gate discipline as Step 3c, then run the **Writes-Landed Checklist** (defined in Step 3c of `exec-plan/SKILL.md`) per story.
 
 Source of truth for the checklist depends on mode:
-- **Worktree** — primary writes come from the Merge Wave step's "apply deferred shared writes" substep, not from inside the worktree branch. Run the checklist after the deferred writes are applied and committed (single-repo: read from `{BASE_BRANCH}`; multi-repo: read directly from `PLAN_DIR`). Any miss after that is a real loss → repair via the matching `andthen:ops update-*` once.
+- **Worktree** — primary writes come from the Merge Wave step's post-review "apply deferred shared writes" substep, not from inside the worktree branch. Run the checklist after the deferred writes are applied and committed (single-repo: read from `{BASE_BRANCH}`; multi-repo: read directly from `PLAN_DIR`). Any miss after that is a real loss → repair via the matching `andthen:ops update-*` once.
 - **No worktree** — `exec-spec` Step 5b writes status in-place. Run the checklist as in Step 3c; one-shot repair on miss.
 
-Additionally verify the **Plan Acceptance Gate** before accepting `Done`: each FIS success criterion is demonstrably satisfied, and implementation observations are present when the FIS narrowed scope.
+Additionally verify the **Plan Acceptance Gate** before accepting `Done`: each FIS success criterion is demonstrably satisfied, implementation observations are present when the FIS narrowed scope, and the story's `review-*` task completed without accepted quick-review findings.
 
-Move to the next phase only after the current phase fully passes the checklist for every story.
+Checklist pass → record the story in the orchestrator run ledger's `completed` list.
+
+Move to the next phase only after every current-phase story is verified green or recorded failed/skipped with dependents handled.
 
 **Green-gate timing**:
 - **Worktree** — per-worktree build/tests pre-merge; orchestrator gate on `{BASE_BRANCH}` post-merge. Stop-the-Line on `{BASE_BRANCH}`, not inside a worktree.
 - **No worktree** — gate after each `impl-*`, before the matching `review-*` unblocks.
 
 **Take-over topology** (orchestrator repair):
-- **Worktree, pre-merge** — re-enter the live worktree using `EnterWorktree`'s **path form** (`EnterWorktree path: <resolved-worktree-path>`), not the name form: the orchestrator did not create the worktree itself, and the name form only resolves session-created worktrees. Per `EnterWorktree`'s contract, path-entered worktrees cannot be removed via `ExitWorktree(remove)` — fix → re-verify → commit → exit with `ExitWorktree(keep)` → merge in step 1; cleanup still runs through bash `git worktree remove` in Merge Wave step 5, never `ExitWorktree(remove)`.
+- **Worktree, pre-merge** — re-enter the live worktree using `EnterWorktree`'s **path form** (`EnterWorktree path: <resolved-worktree-path>`), not the name form: the orchestrator did not create the worktree itself, and the name form only resolves session-created worktrees. Per `EnterWorktree`'s contract, path-entered worktrees cannot be removed via `ExitWorktree(remove)` — fix → re-verify → commit → exit with `ExitWorktree(keep)` → merge in step 1; cleanup still runs through bash `git worktree remove` in Merge Wave step 5, never `ExitWorktree(remove)`. In `AUTO_MODE`, use this only for bounded fix-forward repair; otherwise preserve the worktree and record failure.
 - **Worktree post-merge** or **no worktree** — repair on `{BASE_BRANCH}` in orchestrator's CWD.
 
 

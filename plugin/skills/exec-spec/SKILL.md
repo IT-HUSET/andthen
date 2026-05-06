@@ -25,6 +25,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 - **FIS is source of truth** — follow it exactly.
 - **Execution discipline** — Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
+- **Retry-safe dirty worktrees** — before editing, classify existing dirty paths. Resume only when they clearly belong to this FIS; preserve unrelated edits; `BLOCKED:` on ambiguous overlap. Never discard or overwrite pre-existing edits.
 - **Direct execution** — implement the code yourself. Sub-agents are for advisory work, review, and validation only.
 - **Surgical scope; surface — don't fix** — every changed line should trace to a FIS task. Clean only orphans your own changes caused (an import you made unused, a helper your refactor stranded). Pre-existing issues outside that orphan radius — including lint/analyzer warnings, dead code, typos, and small co-located bugs *inside files you touch* — go into a `NOTICED BUT NOT TOUCHING` block in working notes during the run, are persisted to the FIS's `## Implementation Observations` section at completion (Step 5b), and are surfaced as a brief pointer (not a full duplicate) from the completion report; do not fix inline. Boy Scout cleanup is reserved for review/refactor skills (the `andthen:review`, `andthen:quick-review`, `andthen:refactor`, and `andthen:architecture` skills), not exec-spec. See **Workflow Rules, Guardrails and Guidelines** in the project's root agent instruction file (`CLAUDE.md` / `AGENTS.md`).
 - **Anti-rationalization** — reject rationalizations for skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate (e.g. *"I'll verify after the next group"*, *"this failing check is unrelated"*, *"I'll batch status updates at the end"*, *"completing with a caveat is fine"*). Broken is not Done; Stop-the-Line applies.
@@ -79,27 +80,34 @@ Usage rules:
 
    On any failure: emit `BLOCKED: <FIS_FILE_PATH> missing: <comma-separated list of failed sections>` and stop. Do not read upstream documents, do not enter Step 3.
 
-3. Understand the sections that define execution: Success Criteria, Scenarios, Scope & Boundaries, Architecture Decision, Technical Overview, Implementation Plan, Testing Strategy, Validation, and Final Validation Checklist.
+3. **Classify pre-existing dirty paths** (`git status --porcelain`) before scaffolding, state writes, or code edits:
+   - Clean: record `BASELINE_DIRTY=none`.
+   - Clearly FIS-owned: treat as retry context; in `AUTO_MODE`, record `ASSUMPTION: resuming existing edits for {STORY_ID}`.
+   - Unrelated: record `BASELINE_DIRTY=<paths>`; preserve and exclude from `changed-files`.
+   - Ambiguous overlap: stop before editing. In `AUTO_MODE`, emit `BLOCKED: dirty worktree overlaps {STORY_ID}: <paths>`; otherwise surface `CONFUSION:`.
 
-4. **Process Required / Deeper Context** — the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution; do not re-read source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional — read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source and warn (do not stop) on broken anchors.
+4. Understand the sections that define execution: Success Criteria, Scenarios, Scope & Boundaries, Architecture Decision, Technical Overview, Implementation Plan, Testing Strategy, Validation, and Final Validation Checklist.
 
-5. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant.
+5. **Process Required / Deeper Context** — the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution; do not re-read source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional — read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source and warn (do not stop) on broken anchors.
 
-6. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
+6. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant.
 
-7. Read the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) if it exists. It is the canonical source for build, format, lint/type-check, test, and run commands. Use these whenever a FIS task `Verify` line does not already specify the command. If the document is missing, fall back to discovery and language / tech stack conventions.
+7. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
 
-8. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
+8. Read the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) if it exists. It is the canonical source for build, format, lint/type-check, test, and run commands. Use these whenever a FIS task `Verify` line does not already specify the command. If the document is missing, fall back to discovery and language / tech stack conventions.
 
-9. **Scaffold scenario tests** — if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
+9. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
 
-10. **UI design contract** — if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
+10. **Scaffold scenario tests** — if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
 
-11. **Update project state** (if the `State` document exists per **Project Document Index**, the FIS originated from a plan, and `DEFER_SHARED_WRITES=false`): restore story context from `STORY_ID` and mark it as the active story. When shared writes are deferred, do not mutate the State document at start; the orchestrator or issue workflow owns shared status surfaces.
+11. **UI design contract** — if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
 
-12. Initialize working notes you will maintain during the run:
+12. **Update project state** (if the `State` document exists per **Project Document Index**, the FIS originated from a plan, and `DEFER_SHARED_WRITES=false`): restore story context from `STORY_ID` and mark it as the active story. When shared writes are deferred, do not mutate the State document at start; the orchestrator or issue workflow owns shared status surfaces.
+
+13. Initialize working notes you will maintain during the run:
     - Per-task status
     - `changed-files`
+    - Pre-existing dirty baseline classification, if any
     - Any `CONFUSION`, `NOTICED BUT NOT TOUCHING`, `MISSING REQUIREMENT`, `DISCOVERED REQUIREMENT`, or AUTO_MODE `ASSUMPTION` items
 
 ### Step 3: Implement
@@ -132,7 +140,7 @@ For Tier C in `AUTO_MODE`, pick the conservative interpretation, append the disc
 Implementation rules:
 - When stuck, emit named output blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:` → `-> Which approach?`, `NOTICED BUT NOT TOUCHING:` → `-> Want me to create tasks?`, `MISSING REQUIREMENT:` → `-> Which behavior?`. Under `AUTO_MODE`, see the reference's AUTO_MODE Override section.
 - Spawn proactive sub-agents when the need arises, but keep ownership of the code changes locally
-- If `changed-files` becomes incomplete or ambiguous, derive it from the current worktree diff before Step 4
+- If `changed-files` becomes incomplete or ambiguous, derive it from the current worktree diff before Step 4, subtracting `BASELINE_DIRTY`
 
 ### Step 4: Validate
 Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues — integration, security, architectural coherence, and spec drift — that can still survive per-task Verify lines.
@@ -165,6 +173,8 @@ Apply the Gate Classes policy from `${CLAUDE_PLUGIN_ROOT}/references/execution-d
 2. **Triage** — severity scale: CRITICAL/HIGH must fix, MEDIUM should fix, LOW optional.
 3. **Objective red gates (4a)** — iterate until green, invoking the `andthen:triage` skill when iteration stalls.
 4. **Subjective findings (4b/4c)** — one pass on CRITICAL/HIGH, re-run the affected lens (`/andthen:review --mode code` or visual validation) on the touched scope; escalate if they persist.
+
+If a gate or Success Criterion stays red after repair, do not mark completion. In `AUTO_MODE`, emit `BLOCKED: exec-spec failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report` with Story/FIS, failing gates, verification evidence, changed files, and preserved partial-work location.
 
 ### Step 5: Complete
 All substeps below are gates — complete them before finishing.
@@ -211,6 +221,8 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
 
 #### 5c. Completion Report
 **Gate** (uses Step 4a results, does not re-run checks): verify all success criteria met, all task checkboxes marked, and Final Validation Checklist items satisfied.
+
+Any miss is not a completion-report caveat. Return to Step 4d; if the miss persists in `AUTO_MODE`, use the Failed Story Report shape above.
 
 Report: per-task status, files created/modified, verification evidence — **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts), **Format** (clean/violations); add **Visual validation** and **Runtime** for UI/runtime stories — and a brief summary of any persisted observations or Discovered Requirements. Full `NOTICED BUT NOT TOUCHING`, `ASSUMPTIONS`, and Discovered Requirements details live in the FIS's `## Implementation Observations` section (written in Step 5b.1) — reference the section, duplicating only the full Discovered Requirements block when `AUTO_MODE` Tier C required it.
 

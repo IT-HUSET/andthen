@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.18.1] – 2026-05-06
+
+### Fixed
+- **`exec-plan --auto` story failure containment** — failed stories now stay scoped to their dependency chain: partial work is preserved, dependents are skipped, independent stories continue, and the run ends with an aggregate failure report. `exec-spec --auto` now classifies dirty retry worktrees before editing and returns a structured failed-story report instead of asking for approval.
+
+---
+
 ## [0.18.0] – 2026-05-05
 
 ### Added
