@@ -38,6 +38,7 @@ Thumbs.db
 # Claude Code local settings
 .claude/settings.local.json
 **/.claude/settings.local.json
+.claude/worktrees/
 
 # Agent temp files
 .agent_temp/

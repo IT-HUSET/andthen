@@ -90,8 +90,8 @@ These compose into structured workflows — from requirements through implementa
 | `prd` | Create a Product Requirements Document from requirements (supports `--issue` for GitHub input, `--to-issue` for publishing) |
 | `spec` | Generate Feature Implementation Specification from requirements |
 | `exec-spec` | Execute a FIS – direct implementation with validation |
-| `plan` | Full plan bundle: story breakdown + FIS for every story + cross-cutting review. Requires `prd.md` input |
-| `exec-plan` | Execute a fully-specced plan bundle – exec-spec + quick-review per story, final gap review. Use `--team` for Agent Teams |
+| `plan` | Full plan bundle: typed `plan.json` (story manifest per `plan-schema.md`) + FIS for every story + cross-cutting review. Requires `prd.md` input. Re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files |
+| `exec-plan` | Execute a fully-specced plan bundle – reads `plan.json`, runs exec-spec + quick-review per story, final gap review. `--from-issue` materializes a local `plan.json` ledger from a GitHub plan issue. Use `--team` for Agent Teams |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
 
@@ -120,7 +120,7 @@ Architecture, UI/UX design, build/test diagnosis, and visual validation are **sk
 # Review current changes, a PR, or a spec/plan
 /andthen:review
 /andthen:review --pr 42
-/andthen:review --mode doc docs/specs/my-feature/plan.md
+/andthen:review --mode doc docs/specs/my-feature/plan.json
 
 # Refactor messy code
 /andthen:refactor src/utils/
@@ -262,6 +262,53 @@ Architecture, UI/UX design, build/test diagnosis, and visual validation are **sk
 ```
 
 **GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --to-pr` and `architecture --to-pr` post reports as PR comments. Everything else is local — use a branch + PR as the transport.
+
+## Breaking Changes
+
+See [CHANGELOG.md](../CHANGELOG.md) for full release notes. Entries below cover the migration steps for the recent breaks.
+
+### 0.19.0 — `plan.md` → `plan.json`
+
+`andthen:plan` now emits a typed `plan.json` manifest ([schema](references/plan-schema.md)) instead of the prior `plan.md` markdown table. Mutability is contractually narrower: story `status` and `fis` are mutable only via `andthen:ops update-plan` / `update-plan-fis`; every other field is immutable between full plan regenerations, enforced by a `metadata.immutableDigest` baseline that refuses non-`ops` writes.
+
+**To migrate an existing bundle**, re-run `/andthen:plan <dir>`:
+- The legacy `plan.md` Story Catalog is parsed once and `plan.json` is written next to it.
+- For each migrated story whose `FIS` cell pointed at an existing file, the FIS path and migrated status are preserved — **FIS regeneration is skipped**.
+- Stories with sentinel or missing FIS paths get `fis: null`, `status: "pending"`, and FIS generation runs as on a fresh plan.
+- The legacy `plan.md` is left in place for you to delete; downstream skills ignore it.
+
+Downstream consumers (`exec-plan`, `review --mode gap`, `ops`, `now-what`) read `plan.json` directly. GitHub plan issues continue to use the markdown shape from [`plan-issue-shape.md`](references/plan-issue-shape.md) — `exec-plan --from-issue` materializes a local ledger at `.agent_temp/from-issue-<N>/plan.json` and drives execution from there.
+
+### 0.18.0 — `andthen:plan` flags removed; story shape compacted
+
+- `--skip-specs`, `--stories`, and `--phase` removed. Re-run `/andthen:plan <dir>` to fill every missing FIS; for a single story, use `/andthen:spec story <id> of <plan>`. Legacy invocations now fail with a targeted removal message.
+- Plan story sections are now compact briefs — `Status`, `FIS`, phase/wave, dependencies, parallelism, and risk live only in the Story Catalog. Detailed success criteria and scenarios live in the per-story FIS.
+- Plan `Dependencies` cells accept only `-` or comma-separated Story IDs from the same Story Catalog. Broad sequencing prose belongs in `## Dependency Graph`, phase notes, or execution guidance.
+
+### 0.14.0 — `plan` is 1:1 with FIS
+
+- Removed THIN / COMPOSITE story tiers. Every story now maps to exactly one FIS file; no two stories share a FIS path.
+- `exec-plan` and `exec-spec` dropped composite / shared-FIS handling. Re-run `/andthen:plan <dir>` on legacy bundles — the Consolidation Pass merges candidates at breakdown time.
+- FIS size sweet spot raised to `150–450` lines; oversize-pivot trigger raised to `>600 lines or >18 tasks`.
+
+### 0.13.0 — plan altitudes and unified review
+
+**Plan side** — three altitudes: `prd` (product), `plan` (stories + FIS bundle), `exec-plan` (execution).
+
+| Before | After |
+|---|---|
+| `/andthen:plan <requirements>` | `/andthen:prd <requirements>` → `/andthen:plan <dir-with-prd>` |
+| `/andthen:spec-plan <plan-dir>` | `/andthen:plan <plan-dir>` (re-run fills missing FIS) |
+| `/andthen:exec-plan <plan-dir>` (auto-spec per phase) | `/andthen:plan <plan-dir>` → `/andthen:exec-plan <plan-dir>` |
+
+**Review side** — one user-facing skill with modes instead of separate delegates.
+
+| Before | After |
+|---|---|
+| `/andthen:review-code`, `/andthen:review-doc`, `/andthen:review-gap` | `/andthen:review --mode code\|doc\|gap` |
+| `/andthen:review --code-only` / `--doc-only` / `--gap-only` | `/andthen:review --mode code\|doc\|gap` |
+
+Severity scale unified: `SUGGESTIONS` → `LOW`. Gap-mode PASS/FAIL verdict contract preserved.
 
 ## Release Notes
 

@@ -13,7 +13,10 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 - `--tdd` → TDD_MODE: strict TDD execution mode. Scaffold exactly one scenario test, observe it fail, drive red→green→refactor, then advance to the next scenario. The TDD canon — Anti-Cheat Invariant, Living Test List, Horizontal Slicing as Anti-Pattern, red→green→refactor discipline — is owned by the `andthen:testing` skill; load it via `/andthen:testing --mode tdd` (or the Skill tool) for canon depth, but the executor remains the test author — this is canon consultation, not delegation of test writing. `AUTO_MODE` honors `--tdd` without confirmation gates. Default off; opt in for logic-heavy or bug-mode FISes.
-- `--defer-shared-writes` → DEFER_SHARED_WRITES: skip direct `plan.md` and `State` document writes (FIS writes still run); emit a `## Deferred Shared Writes` audit block in the completion report instead. Set automatically by `andthen:exec-plan --team --worktree` to prevent concurrent worktree merges from colliding on shared files, and by `andthen:exec-plan --from-issue` because GitHub issue plans are not local `andthen:ops update-plan` targets. Intended for orchestrated use — see Step 5b.5 for emission format and standalone-use details.
+- `--defer-shared-writes` → DEFER_SHARED_WRITES (boolean; default `false`; set to `true` iff this flag is passed at invocation; immutable for the run):
+  - When `true`: skip the `State` write in Step 2.12, the `plan.json` write in Step 5b.2, the `State` writes in Step 5b.3, and the `State` writes in Step 4d's failure path; FIS writes (Step 5b.1) still run; emit a `## Deferred Shared Writes` audit block in the completion report (Step 5b.5) so the caller can apply the deferred writes itself.
+  - When `false` (standalone default): Step 5b.2 / 5b.3 perform the per-story `plan.json` and `State` writes (story `status: "done"`, `fis` field, removal from Active Stories) **plus** plan-level `status` derived from `plan.json` on success (Step 5b.3 Plan health) and a per-story blocker + derived `status` on persistent failure (Step 4d). Together these match what `andthen:exec-plan` writes per-story and at phase boundaries, so a user running stories one at a time via exec-spec keeps the plan and State documents consistent. The audit block is not emitted.
+  - Auto-propagated to `true` by `andthen:exec-plan --team --worktree` (prevents concurrent worktree merges from colliding on shared files) and by `andthen:exec-plan --from-issue` (orchestrator drives ledger updates against the materialized local `plan.json`). Intended for orchestrated use — pass standalone only when you explicitly want the writes deferred (see Step 5b.5 standalone-use note).
 - `--to-pr <number>` → PUBLISH_PR: after Step 5b status writes succeed, post the existing completion summary (the report produced by Step 5c) as a PR comment via `gh pr comment <number> --body-file <summary-path>`. No new content generation — the comment body is the local summary verbatim. Explicit number only; no auto-detect from the current branch. See Step 5d for emission details.
 
 
@@ -64,8 +67,10 @@ Usage rules:
 ### Step 1: Resolve FIS and Story Context
 1. Require a local `FIS_FILE_PATH`. Stop if the argument is missing or does not resolve to a readable file.
 2. Read the FIS header (lines between the H1 and the first `## ` heading) and extract `STORY_ID` from `**Story-ID**:` and `PLAN_FILE_PATH` from `**Plan**:`. These provenance fields are the authoritative source.
-   - If either field is absent (older FIS without provenance fields): fall back to filename-prefix extraction (e.g. `s01-feature-name.md` → `S01`) and sibling-`plan.md` lookup. Emit to stdout: `WARN: FIS missing **Plan**:/**Story-ID**: provenance fields; using filename/sibling fallback (re-spec to upgrade)`. For single-feature specs not derived from a plan, leave `STORY_ID` empty.
+   - **Legacy `**Plan**: …/plan.md` rewrite**: if the extracted `PLAN_FILE_PATH` ends with `.md` AND a sibling `.json` exists (replace the trailing `.md` segment with `.json`), prefer the sibling `.json` regardless of whether the legacy `.md` still resolves. The migration in the `andthen:plan` skill does not auto-delete `plan.md`, so a populated `**Plan**: docs/specs/feature/plan.md` value can still resolve to an existing file post-migration; preferring the live ledger when both are present is the right behavior. Emit to stdout: `WARN: FIS **Plan**: provenance points at legacy plan.md; using sibling plan.json (re-spec to upgrade).` If the path ends with `.md` and no sibling `.json` exists but the `.md` does not resolve either, fall through to the missing-fields branch below.
+   - If either field is absent (older FIS without provenance fields): fall back to filename-prefix extraction (e.g. `s01-feature-name.md` → `S01`) and sibling-plan lookup for `plan.json` only. Emit to stdout: `WARN: FIS missing **Plan**:/**Story-ID**: provenance fields; using filename/sibling fallback (re-spec to upgrade)`. If only a legacy `plan.md` sibling exists (no `plan.json`), emit `BLOCKED: legacy plan.md found alongside FIS but plan.json is required. Run /andthen:plan in <plan-dir> to migrate (existing FIS files are preserved).` and stop. For single-feature specs not derived from a plan, leave `STORY_ID` empty.
 3. Record `PLAN_FILE_PATH` for Step 5b updates when the FIS is plan-backed.
+   - **`github://issue/<N>` provenance**: when `PLAN_FILE_PATH` starts with `github://`, there is no on-disk `plan.json`. With `DEFER_SHARED_WRITES=true`, proceed (Step 5b.2 already skips). With `DEFER_SHARED_WRITES=false`, stop with `BLOCKED: FIS provenance points at github://issue/<N>; no local plan.json to update. Re-invoke with --defer-shared-writes, or supply a materialized ledger path explicitly.`
 
 **Gate**: `FIS_FILE_PATH` exists; `STORY_ID` and `PLAN_FILE_PATH` captured when the FIS is plan-backed
 
@@ -174,7 +179,15 @@ Apply the Gate Classes policy from `${CLAUDE_PLUGIN_ROOT}/references/execution-d
 3. **Objective red gates (4a)** — iterate until green, invoking the `andthen:triage` skill when iteration stalls.
 4. **Subjective findings (4b/4c)** — one pass on CRITICAL/HIGH, re-run the affected lens (`/andthen:review --mode code` or visual validation) on the touched scope; escalate if they persist.
 
-If a gate or Success Criterion stays red after repair, do not mark completion. In `AUTO_MODE`, emit `BLOCKED: exec-spec failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report` with Story/FIS, failing gates, verification evidence, changed files, and preserved partial-work location.
+If a gate or Success Criterion stays red after repair, do not mark completion.
+
+**Persistent-failure State writes** (plan-backed FIS; State document exists; **skip if `DEFER_SHARED_WRITES=true`** — orchestrator owns aggregate health):
+1. `andthen:ops update-state blocker "{STORY_ID}: exec-spec persistent-failure"` — stable description so a later successful re-run of this story can remove this exact entry per Step 5b.3's "Clear prior blocker" call. Failure detail lives in the Failed Story Report below, not in the blocker text.
+2. Apply the **Plan-level status derivation rule** (defined in Step 5b.3) and write via `andthen:ops update-state status "{derived}"`.
+
+The story's `plan.json` status is unchanged — the bundled exec-spec flow goes `spec-ready → done` directly (per `plan-schema.md`), so a failed story stays at its pre-run status (typically `spec-ready`); exec-spec does not flip it to `blocked` (manual escape hatch). The blocker entry carries the failure signal.
+
+In `AUTO_MODE`, emit `BLOCKED: exec-spec failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report` with Story/FIS, failing gates, verification evidence, changed files, and preserved partial-work location.
 
 ### Step 5: Complete
 All substeps below are gates — complete them before finishing.
@@ -189,16 +202,27 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
    - **Persist Discovered Requirements** (if any remain unpersisted): Tier C normally appends before dependent tests/code in Step 3. If working notes still contain unpersisted Discovered Requirements entries, format them as a markdown body with a `#### DISCOVERED REQUIREMENTS` subsection using the FIS template entry shape, then invoke `update-fis {FIS_FILE_PATH} discovered-requirements '{body}'`. Skip when the unpersisted list is empty.
 
 2. **Source plan** (plan-backed FIS only; **skip if `DEFER_SHARED_WRITES=true`** — defer to orchestrator):
-   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done` — sets the Story Catalog `Status` cell.
-   - If the Story Catalog `FIS` cell is *unset* (empty / `–` / placeholder) or *stale* (path differs from `{FIS_FILE_PATH}` after path normalization): `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} fis "{FIS_FILE_PATH}"`.
+   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} done` — sets `stories[].status` to `done`.
+   - If the story's `fis` is `null` or differs from `{FIS_FILE_PATH}` after path normalization: `andthen:ops update-plan-fis {PLAN_FILE_PATH} {STORY_ID} {FIS_FILE_PATH}`.
 
 3. **State document** (if it exists per **Project Document Index**; **skip if `DEFER_SHARED_WRITES=true`** — defer to orchestrator):
    - `andthen:ops update-state active-story {STORY_ID} Done` — removes the story from Active Stories.
    - `andthen:ops update-state note "{one-line completion summary}"`.
+   - **Clear prior blocker for this story** (plan-backed FIS only): `andthen:ops update-state blocker remove "{STORY_ID}: exec-spec persistent-failure"`. Best-effort — ignore "not found" returns from a clean run; this clears any blocker a prior failed exec-spec run wrote in Step 4d so the derivation below can downgrade `"At Risk"` once nothing else is open.
+   - **Plan health** (plan-backed FIS only): apply the **Plan-level status derivation rule** (defined immediately below) and write via `andthen:ops update-state status "{derived}"`. Mirrors exec-plan's phase-boundary `status` write so story-by-story standalone runs keep plan-level health current.
+
+   **Plan-level status derivation rule** (shared by Step 5b.3 success path and Step 4d failure path; failure path appends its blocker before applying, success path removes its prior blocker before applying). Output is one of the bare literals `On Track`, `At Risk`, `Blocked` — quote at the invocation site (`status "{derived}"`):
+   1. Re-read `{PLAN_FILE_PATH}` and the State document.
+   2. `schedulable` = count of stories where `status` ∈ {`pending`, `spec-ready`} AND every `dependsOn` ID resolves to `status` ∈ {`done`, `skipped`}.
+   3. Derive in order — first match wins:
+      - any plan.json story `status === "blocked"` → `Blocked`
+      - else `schedulable == 0` AND (any plan.json story is not in {`done`, `skipped`} OR any State blocker exists) → `Blocked`
+      - else (any State blocker exists OR any plan.json story `status === "skipped"`) → `At Risk`
+      - else → `On Track`
 
 4. **Verify** — re-read each updated file:
    - **FIS**: every task checkbox `[x]`; Final Validation Checklist `[x]`; success criteria `[x]`. If observations or Discovered Requirements were persisted, the `## Implementation Observations` section contains a new `### Run:` block dated to this run.
-   - **Plan** (if 5b.2 ran): Story Catalog row is `Done`; `FIS` cell points at `{FIS_FILE_PATH}`.
+   - **Plan** (if 5b.2 ran): the story's `status` is `"done"` and `fis` points at `{FIS_FILE_PATH}`.
    - **State** (if 5b.3 ran): story absent from Active Stories.
    - Any miss → retry the matching `update-*` once. Persistent failure is Stop-the-Line — do not report completion on missing writes.
 
@@ -212,11 +236,11 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
    Completion summary: {one-line completion summary}
    ```
 
-   Substitute literal values before emitting. The block is an **audit record and summary source** — in worktree mode the orchestrator constructs the actual `andthen:ops update-*` invocations from these values plus its own knowledge of single-repo vs multi-repo layout, and applies them post-merge (see `andthen:exec-plan` Step 3T Merge Wave). In `--from-issue` mode the block is traceability only; issue closure comments are the status surface. Do not emit a list of `andthen:ops` lines as the consumption format; the orchestrator does not parse it that way.
+   Substitute literal values before emitting. The block is an **audit record and summary source** — in worktree mode the orchestrator constructs the actual `andthen:ops update-*` invocations from these values plus its own knowledge of single-repo vs multi-repo layout, and applies them post-merge (see `andthen:exec-plan` Step 3T Merge Wave). In `--from-issue` mode, the orchestrator owns the materialized local ledger (`.agent_temp/from-issue-<N>/plan.json`) and must update that ledger's story `status` to `done` after exec-spec succeeds and quick-review is clear; issue closure comments are the GitHub-side completion record, not a replacement for the local ledger write. Do not emit a list of `andthen:ops` lines as the consumption format; the orchestrator does not parse it that way.
 
    Substeps 1 and 4's FIS verification still run in-worktree (FIS is story-local and merges cleanly).
 
-   **Standalone use** (no orchestrator above): when `Plan` is a local path, the audit block tells the user what to apply — after committing FIS changes, run the same `andthen:ops update-plan` and `update-state` calls listed in 5b.2 and 5b.3. When `Plan` is `github://issue/<N>`, do not run local `ops update-plan`; post or close the relevant issue record instead. Standalone `--defer-shared-writes` is intended only for users who explicitly want this deferral; do not set it without one.
+   **Standalone use** (no orchestrator above): when `Plan` is a local path, the audit block tells the user what to apply — after committing FIS changes, run the same `andthen:ops update-plan` and `update-state` calls listed in 5b.2 and 5b.3. When `Plan` is `github://issue/<N>`, there is no discoverable local ledger path in the FIS header; do not run local `ops update-plan` unless the caller explicitly supplies the materialized ledger path. Post or close the relevant issue record instead. Standalone `--defer-shared-writes` is intended only for users who explicitly want this deferral; do not set it without one.
 
 
 #### 5c. Completion Report

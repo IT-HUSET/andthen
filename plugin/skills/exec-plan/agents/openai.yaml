@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Exec Plan"
   short_description: "Execute a fully-specced plan bundle through the AndThen pipeline"
-  default_prompt: "Execute all stories in a fully-specced plan bundle: exec-spec + quick-review per story, then a final gap review on the whole plan. Requires every story in plan.md to already have a FIS. Plan directory: "
+  default_prompt: "Execute all stories in a fully-specced plan bundle: exec-spec + quick-review per story, then a final gap review on the whole plan. Requires every story in plan.json to already have a FIS. Plan directory: "
 
 policy:
   allow_implicit_invocation: true

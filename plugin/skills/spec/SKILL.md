@@ -1,12 +1,12 @@
 ---
 description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Produces an execution-sized FIS; if the draft exceeds size thresholds, saves it anyway and warns — recommending the `andthen:prd → andthen:plan → andthen:exec-plan` chain for standalone inputs, or upstream plan decomposition for plan-story inputs. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
-argument-hint: "[--auto|--headless] <description | @<requirements-file> | story <story-id> of <path-to-plan.md>>"
+argument-hint: "[--auto|--headless] <description | @<requirements-file> | story <story-id> of <path-to-plan.json>>"
 ---
 
 # Generate Feature Implementation Specification
 
 
-Given a feature request, generate an execution-sized specification artifact: a single Feature Implementation Specification (FIS) by default, or a small `plan.md` plus multiple child FIS files when one spec would clearly be too large.
+Given a feature request, generate an execution-sized Feature Implementation Specification (FIS). One spec → one FIS. When a feature is too large for a single FIS, the skill emits an `OVERSIZE:` signal and redirects: standalone inputs switch to the `andthen:prd → andthen:plan → andthen:exec-plan` chain (the `andthen:plan` skill is the sole writer of `plan.json` per the schema's write-authority model); plan-story inputs need upstream plan decomposition before regenerating.
 
 
 ## VARIABLES
@@ -37,7 +37,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` befor
 
 In `AUTO_MODE`, do not use arrow prompts. Choose the most conservative defensible option and record it as an assumption in the FIS; if no defensible option exists, stop with `BLOCKED:` and list the minimum missing decisions.
 
-**Describing code changes instead of outcomes** – tasks should state what must be TRUE when done, not what code to write. Bad: "Create lib/auth.ts with login() and logout()". Good: "Auth module with login/logout; follow pattern at lib/users.ts:10-30".
+**Describing code changes instead of outcomes** – tasks should state what must be TRUE when done, not what code to write. Bad: "Create lib/auth.ts with login() and logout()". Good: "Auth module with login/logout; follow pattern at lib/users.ts#getUser".
 
 **Acceptance criteria that can't be verified programmatically** – every criterion needs a concrete verify command or observable check. If you can't write the scenario's **Then** clause, you don't understand the requirement yet.
 
@@ -54,7 +54,9 @@ In `AUTO_MODE`, do not use arrow prompts. Choose the most conservative defensibl
 
 **If ARGUMENTS is a directory with `requirements-clarification.md`** (from the `andthen:clarify` skill): read it; use clarified scope, functional requirements, edge cases, success criteria, design decisions, wireframes, and any explicit non-goals / deferred items as the feature request. Skip or reduce research phases (clarify already did discovery). Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
-**If ARGUMENTS use `story {story_id} of {path-to-plan.md}`**: read the plan; locate the story by ID; use its compact story brief (`**Scope**`, `**Source refs**`, plus optional `**Provenance**`, `**Asset refs**`, and `**Notes**`) together with the Story Catalog row (phase, wave, dependencies, parallel marker, risk) as the feature request. Read the PRD anchors named in `**Source refs**` and use those spans as detailed behavioral source material; do not re-read the whole PRD. Plan story briefs intentionally do not carry full success criteria or scenarios; derive those in the FIS from the source-ref spans, scope, Binding Constraints, and scenario-writing workflow below. For legacy plans that still include `**Acceptance Criteria**` or **Key Scenarios**, treat them as input seeds but do not require them. Store plan path and story ID for output updates. If `plan.md` carries `## Shared Decisions` and/or `## Binding Constraints` sections, read them — Shared Decisions inform architectural alignment with sibling stories; Binding Constraints flow unchanged into FIS Required Context blocks (each entry's verbatim PRD span becomes a Required Context block with the entry's `prd.md#<heading-slug>` as the source pin).
+**If ARGUMENTS match `story {story_id} of {path}` AND `path`'s basename matches `plan.*` but is not `plan.json`** (e.g. `plan.md`, `plan.jsom`, `plan.yaml`): stop with `BLOCKED: only plan.json is consumed; got "{basename}". If you have a legacy plan.md, run /andthen:plan {dirname(path)} to migrate (existing FIS files are preserved), then retry: /andthen:spec story {story_id} of {dirname(path)}/plan.json`. Same in `AUTO_MODE`. Do not fall through to the file-reference branch — that would silently treat the path as a free-form feature description.
+
+**If ARGUMENTS use `story {story_id} of {path-to-plan.json}`**: read the plan JSON; locate the story by `id`; use its compact story brief fields (`scope`, `sourceRefs`, plus optional `provenance`, `assetRefs`, `notes`) together with its catalog metadata (`phase`, `wave`, `dependsOn`, `parallel`, `risk`) as the feature request. Read the PRD anchors named in `sourceRefs` and use those spans as detailed behavioral source material; do not re-read the whole PRD. Plan story briefs intentionally do not carry full success criteria or scenarios; derive those in the FIS from the source-ref spans, scope, `bindingConstraints`, and scenario-writing workflow below. Store plan path and story ID for output updates. If `plan.json` carries non-empty `sharedDecisions` and/or `bindingConstraints` arrays, read them — `sharedDecisions` inform architectural alignment with sibling stories; `bindingConstraints` flow unchanged into FIS Required Context blocks (each entry's `verbatim` becomes a Required Context block with the entry's `anchor` as the source pin).
 
 **Otherwise**: use inline description or file reference as the feature request.
 
@@ -85,10 +87,10 @@ Before generating the full FIS, write the **Scenarios** section first. Scenarios
 ### 4. Generate FIS
 
 #### Gather Context
-- ADRs and the `Architecture` document (see **Project Document Index**); file paths with line numbers for patterns to follow
+- ADRs and the `Architecture` document (see **Project Document Index**); `file#symbol` references for patterns to follow (see [Cross-Document References rule #1](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) for the symbol-anchor ladder)
 - UI wireframes/mockups; design system references; external documentation URLs
 - `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions
-- For plan-story inputs: `## Shared Decisions` and `## Binding Constraints` sections from `plan.md` (when present) — Binding Constraints' verbatim PRD spans become Required Context blocks with the entry's `prd.md#<heading-slug>` as the source pin
+- For plan-story inputs: `sharedDecisions` and `bindingConstraints` arrays from `plan.json` (when non-empty) — `bindingConstraints[].verbatim` PRD spans become Required Context blocks with the entry's `anchor` as the source pin
 
 #### Resolve Cross-Document References
 
@@ -99,7 +101,7 @@ Walk every upstream document the spec depends on (PRD, plan, ADRs, project guide
 
 The walk is mandatory; the sections themselves are optional based on what's found. Omit Required Context entirely when no load-bearing upstream spans surface; omit Deeper Context when no supplementary pointers are worth surfacing. A truly standalone feature request with no PRD/plan/ADR/guideline upstream legitimately produces neither section — but only after the walk confirms there's nothing to inline or anchor.
 
-A bare "see plan.md" without an anchor or inlined content is not acceptable. The author saw the source; the author names what matters. Code-pattern `file:line` pointers stay inside task descriptions or the `Code Patterns & External References` section — they're not Required/Deeper Context material.
+A bare "see the plan" without an anchor or inlined content is not acceptable. The author saw the source; the author names what matters. Code-pattern `file#symbol` pointers stay inside task descriptions or the `Code Patterns & External References` section — they're not Required/Deeper Context material.
 
 #### Generate from Template
 Use the template in the **Appendix** below. Then read and follow the FIS authoring guidelines at
@@ -115,8 +117,8 @@ Use the template in the **Appendix** below. Then read and follow the FIS authori
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
 - **Update source plan** – if this spec was created for a plan story:
-  - Set the Story Catalog `FIS` cell to the generated FIS file path
-  - Set the Story Catalog `Status` cell to `Spec Ready`
+  - Invoke `andthen:ops update-plan-fis <plan_path> <story_id> <fis_path>` to set `stories[].fis`
+  - Invoke `andthen:ops update-plan <plan_path> <story_id> spec-ready` to advance status
 
 **Oversize signal** — after saving, measure the FIS against the threshold from [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) Key Generation Guidelines #6 (>700 lines or >18 tasks). If oversized, emit a structured line as part of the artifact output (printed in both interactive and `AUTO_MODE`):
 

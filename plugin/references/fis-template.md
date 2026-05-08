@@ -1,6 +1,6 @@
 # Feature Implementation Specification Template
 
-**Plan**: <relative-posix-path-to-plan.md>
+**Plan**: <relative-posix-path-to-plan.json>
 **Story-ID**: <S##>
 
 ## Feature Overview and Goal
@@ -104,14 +104,14 @@ _Keep this to 3-5 explicit non-goals or deferrals with reasons._
 
 ## Code Patterns & External References
 
-> Code-pattern pointers (file:line), external URLs, and wireframes. `doc` rows (PRD/plan/research/ADR) belong in `Required Context` or `Deeper Context`.
+> Code-pattern pointers (`file#symbol` — see [Cross-Document References rule #1](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#cross-document-references) for the symbol-anchor ladder), external URLs, and wireframes. `doc` rows (PRD/plan/research/ADR) belong in `Required Context` or `Deeper Context`. The "why needed" column states *intent* — what the executor should learn — not just a label.
 
 ```
-# type | path/url | why needed
-file   | src/components/Modal.tsx:45-78    | Pattern for dialog handling
-file   | src/api/users.ts:12-34            | API structure to follow
-url    | https://docs.example.com/auth     | OAuth flow reference
-wire   | docs/specs/wireframes/login.html  | UI layout for login screen
+# type | path#anchor or url               | why needed (intent)
+file   | src/components/Modal.tsx#Modal   | Dialog pattern — copy focus-trap + escape-key handling
+file   | src/api/users.ts#getUser         | API shape — match request/response envelope and error mapping
+url    | https://docs.example.com/auth    | OAuth flow reference
+wire   | docs/specs/wireframes/login.html | UI layout for login screen
 ```
 
 
@@ -127,14 +127,14 @@ wire   | docs/specs/wireframes/login.html  | UI layout for login screen
 
 ### Implementation Tasks
 
-_Example — replace with your actual tasks. Format: outcome + context line (constraints, file:line pattern reference) + behavioral Verify._
+_Example — replace with your actual tasks. Format: outcome + context line (constraints, `file#symbol` pattern reference) + behavioral Verify._
 
 - [ ] **TI00 (example — delete this block)** Event ingestion endpoint accepts and validates incoming payloads
-  - Follow API pattern at `src/api/users.ts:12-34`; reuse existing validation middleware
+  - Follow `src/api/users.ts#getUser` for request/response envelope shape and field-level error mapping; reuse existing validation middleware
   - **Verify**: `Test: POST /events with valid payload returns 201; invalid payload returns 422 with field-level errors`
 
 - [ ] **TI01** {{Outcome that must be TRUE when done}}
-  - {{1-2 lines of context: constraints, pattern reference (file:line), key decisions}}
+  - {{1-2 lines of context: constraints, pattern reference (`file#symbol`), key decisions}}
   - **Verify**: {{Behavioral assertion that fails if outcome not achieved}}
 
 - [ ] **TI02** {{Outcome}}

@@ -4,7 +4,9 @@ This document is the **single canonical source** for the body shape of a plan is
 
 > Skills that reference this document: `plan`, `exec-plan`.
 
-The contract has two shapes — **single-issue** (default `--to-issue`) and **granular** (`--to-issue --create-story-issues`). Both use the same parser-friendly H2 anchors so a downstream consumer can detect shape and extract sections without bespoke regex. The Story Catalog table column order is identical to the local `plan.md` template ([`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) — Story Catalog Columns).
+Local plans are JSON ([`plan-schema.md`](plan-schema.md)). The markdown body shape defined here is the **GitHub transport** only — `--to-issue` renders the in-memory plan object as markdown into an issue body; `--from-issue` parses the issue body into a local `plan.json` ledger once and then drives execution from the local ledger.
+
+The contract has two shapes — **single-issue** (default `--to-issue`) and **granular** (`--to-issue --create-story-issues`). Both use the same parser-friendly H2 anchors so a downstream consumer can detect shape and extract sections without bespoke regex. The Story Catalog table column order is documented in [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (Plan Issue Catalog).
 
 Story Catalog `Dependencies` cells follow the same machine-readable contract as local plans: `-` or comma-separated Story IDs from the same table. Do not put prose such as `Blocks A-G complete` in the catalog. Granular story issue bodies may add optional `Depends on #<sibling-issue-N>` navigation after issue numbers exist, but the parent catalog remains the scheduling source of truth.
 
@@ -27,8 +29,8 @@ Plan and story issues use these exact link forms — they are contracts, not sug
 
 Both shapes use these H2 anchors. The consumer matches them by `^## <name>$` against a markdown body — do not introduce identical H2s elsewhere in the body.
 
-- **`## Shared Decisions`** — optional; bullets naming inter-story interface contracts, naming conventions, or shared abstractions (mirrors the optional section in `plan.md`).
-- **`## Binding Constraints`** — optional; verbatim PRD spans + heading anchors that flow unchanged into FIS Required Context (mirrors the optional section in `plan.md`).
+- **`## Shared Decisions`** — optional; bullets naming inter-story interface contracts, naming conventions, or shared abstractions (renders the JSON `sharedDecisions[]`).
+- **`## Binding Constraints`** — optional; verbatim PRD spans + heading anchors that flow unchanged into FIS Required Context (renders the JSON `bindingConstraints[]`).
 - **`## Story Catalog`** — standard markdown table; columns per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md).
 - **`## Story Issues`** — granular-shape only; presence of this section with at least one `#<digit>` reference under it is the **shape-detection signal** for `exec-plan --from-issue`.
 
@@ -76,7 +78,7 @@ Body skeleton:
 Refs #<prd-N>
 ```
 
-Story briefs mirror local `plan.md` story briefs: `Scope` plus `Source refs` for PRD-backed stories, with optional provenance, asset refs, and notes. The Story Catalog is the only status/FIS/scheduling surface. The `> **PRD**:` header is required so `exec-plan --from-issue` can resolve `Source refs` when generating JIT FIS files. Omit the `Refs #<prd-N>` footer when no PRD issue was the input.
+Story briefs render the JSON story brief fields: `Scope` (`scope`) plus `Source refs` (`sourceRefs`) for PRD-backed stories, with optional provenance, asset refs, and notes. The Story Catalog is the only status/FIS/scheduling surface. The `> **PRD**:` header is required so `exec-plan --from-issue` can resolve `Source refs` when generating JIT FIS files. Omit the `Refs #<prd-N>` footer when no PRD issue was the input.
 
 
 ## Granular Shape
@@ -119,8 +121,8 @@ The plan body is created first with placeholders under `## Story Issues`, then `
 The issue title is `S0N: <name>`; the body has no nested `### Story` heading. The body carries the same compact story brief as a local plan story. Status, FIS path, phase, wave, dependencies, parallelism, and risk stay in the parent Story Catalog.
 
 ```
-<story description — same compact body the local plan would carry
- under the story's Phase Breakdown heading>
+<story description — same compact body the single-issue shape carries
+ under its `### Story S0N: <name>` heading>
 
 **Scope**: <one-paragraph scope>
 **Source refs**: <PRD feature IDs and anchors>

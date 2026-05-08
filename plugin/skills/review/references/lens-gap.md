@@ -21,15 +21,15 @@ Default to **workspace-wide resolution** when requirements and implementation ma
 When the caller provides a directory path or a plan file, discover the full requirements baseline rather than treating the single input as the only source.
 
 **Directory path** — search the directory (and its parent, for cases where a subdirectory like `fis/` is given) for:
-- `plan.md` — the implementation plan with story breakdown
+- `plan.json` — the typed implementation plan (canonical; see [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md))
 - `prd.md` — the product requirements document
 - FIS/spec files (`s01-*.md`, `s02-*.md`, etc.) co-located with the plan
 - Also check the Project Document Index in the project's root agent instruction file (`CLAUDE.md` / `AGENTS.md`) for additional pointers
 
 **Plan file** — read the plan and extract related requirements:
 - Look for a sibling `prd.md` in the same directory
-- Extract FIS file paths from the **Story Catalog** table (`FIS` column) and from `**FIS**:` fields in Phase Breakdown sections — these are typically relative paths in the same directory or under a `fis/` subdirectory
-- Read all referenced FIS files that exist on disk (skip entries marked `–` or not yet created)
+- Read `stories[]` from `plan.json`; collect each story's `fis` value (skip entries where `fis` is `null`)
+- Read all referenced FIS files that exist on disk
 
 **Any other input** (specific file, issue, URL) — use as-is without further discovery.
 

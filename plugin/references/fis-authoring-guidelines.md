@@ -12,7 +12,7 @@ FIS is an executable spec: intent over implementation, references over content, 
 
 ## Cross-Document References
 
-Every reference from a FIS to another document (PRD, plan, research, ADRs, guidelines, glossary) is a **trust boundary**: the intent behind that reference lives with the author, not the executor. Punting the resolution ("see plan.md") forces every downstream reader — exec-spec, review, remediate-findings, council reviewers — to re-discover what the author already knew. Precision at spec time eliminates that duplication.
+Every reference from a FIS to another document (PRD, plan, research, ADRs, guidelines, glossary) is a **trust boundary**: the intent behind that reference lives with the author, not the executor. Punting the resolution ("see the plan") forces every downstream reader — exec-spec, review, remediate-findings, council reviewers — to re-discover what the author already knew. Precision at spec time eliminates that duplication.
 
 ### Two-tier model
 
@@ -21,15 +21,30 @@ Every reference from a FIS to another document (PRD, plan, research, ADRs, guide
 
 ### Authoring rules
 
-1. **Prefer anchors over line numbers.** `plan.md#story-3-error-handling` survives source edits; `plan.md:42-78` rots on the first line shift. When a source document lacks stable headings, favor adding `<a id="..."></a>` markers in the source over fragile line references.
-2. **Resolve at authoring time, not execution time.** Before emitting the FIS, walk every cross-doc reference, extract the span, and decide required vs deeper. A bare "see plan.md" without anchor or inlined content is not acceptable — the author saw the source, so the author names what matters.
+1. **Prefer anchors over line numbers — for docs *and* code.** `prd.md#error-handling` and `src/auth.ts#validateToken` survive source edits; `prd.md:42-78` and `src/auth.ts:120-145` rot on the first line shift. For docs lacking stable headings, favor adding `<a id="..."></a>` markers in the source over fragile line references. For JSON sources like `plan.json`, anchor by story id (`stories[]` is keyed conceptually by `id`) rather than file offset. For code, use this fallback ladder:
+
+   | Form | When to use | Example |
+   |---|---|---|
+   | `path#Symbol` | A named function/class/method/exported identifier exists. If multiple symbols share the name (overloads, merged declarations, `function format` + `class Format`), qualify as `Container.member` or fall back to the line-range row | `src/auth.ts#validateToken` |
+   | `path#key.path` *(unquoted)* | Config/YAML/JSON nested key — dots walk into nested maps | `definitions/spec.yaml#steps.spec.skill` |
+   | `path#"key.with.dots"` *(quoted)* | The key name itself literally contains dots — quotes prevent the dotted-walk interpretation | `config.yaml#"feature.flag.v2"` |
+   | `path:LINE-LINE` | **Fallback only** — sub-region of a larger symbol where the span matters and no stable identifier exists | `src/parser/index.ts:120-145` |
+
+   For multiple related symbols in one file, list one row per symbol; for a pattern spanning several symbols, anchor the row at the primary symbol and name the related symbols in the why column. Comma-joined fragments (`path#A,B`) break URL encoding and markdown rendering when the FIS is published to GitHub — don't use them.
+
+   **Pair every reference with intent**: the why column states *what the executor should learn* from this pointer, not just a label ("Dialog pattern — copy focus-trap + escape-key handling", not "Pattern for dialog handling"). This applies wherever the ladder is used (Code Patterns table, task pattern references).
+
+   **Scope**: this rule governs *new* FIS authoring. Reference rows pre-existing in a FIS are not retroactive findings; rows added or rewritten in the change set are in scope per normal review calibration.
+
+   `path#X` is interpreted by file kind: markdown sources resolve to heading slugs, code/config sources to symbols or keys per the ladder. The convention is parseable text, not a navigable link in standard renderers.
+2. **Resolve at authoring time, not execution time.** Before emitting the FIS, walk every cross-doc reference, extract the span, and decide required vs deeper. A bare "see the plan" without anchor or inlined content is not acceptable — the author saw the source, so the author names what matters.
 3. **Inline budget.** Per block: typically 30-100 lines, hard cap 200 lines (only when a single load-bearing span legitimately needs more). Total across all blocks: ≤ 250 lines, so the FIS stays inside the 200-500 line sweet spot with room for Scenarios and Tasks. When the per-block cap is hit, narrow the extraction and move overflow to Deeper Context; when the total budget would be breached by additional blocks, downgrade lower-priority blocks. The 200-line per-block cap and 250-line total are not additive — a FIS with two blocks at the per-block hard cap (400 lines) breaches the total and must be cut down.
-4. **Keep code pointers out of Required Context.** `src/foo.ts:45-78` pattern pointers belong inside task descriptions or in `Code Patterns & External References`. Required/Deeper Context is reserved for upstream *intent* documents (PRD, plan, ADRs, guidelines, glossary).
+4. **Keep code pointers out of Required Context.** `src/foo.ts#parseFoo` pattern pointers belong inside task descriptions or in `Code Patterns & External References`. Required/Deeper Context is reserved for upstream *intent* documents (PRD, plan, ADRs, guidelines, glossary).
 5. **Omit empty sections.** If a FIS has no load-bearing upstream spans to inline, omit the Required Context section entirely rather than leaving a stub. The same applies to Deeper Context — omit when there are no supplementary pointers worth surfacing. Standalone FIS with no PRD/plan upstream typically have neither section.
 
 ### Why the inlined text is authoritative
 
-A FIS is a contract with the executor. If the author pulls text from `plan.md` at spec time, that's the intent the FIS is committing to — even if `plan.md` later changes. Drift between the pinned span and the current source is a *review* signal (the FIS may need re-spec'ing), not an *execution* failure. Required Context is a point-in-time intent snapshot, not a live join.
+A FIS is a contract with the executor. If the author pulls text from `prd.md` or a story scope from `plan.json` at spec time, that's the intent the FIS is committing to — even if the upstream source later changes. Drift between the pinned span and the current source is a *review* signal (the FIS may need re-spec'ing), not an *execution* failure. Required Context is a point-in-time intent snapshot, not a live join.
 
 
 ## Scenarios and Proof-of-Work
@@ -62,8 +77,8 @@ Include the template's **Execution Contract** section near the bottom of the Imp
 ## Key Generation Guidelines
 
 1. **Outcomes, not code changes**: Each task describes what must be TRUE when done, not what code to write. The executing agent determines the implementation.
-2. **Task brevity**: Each task description is 1-3 lines. State the outcome, reference the pattern (file:line), include the Verify line. If a task description exceeds 3 lines, it is either too large (split it) or too detailed (describe the outcome, not the steps).
-3. Each task: atomic, self-contained, with file:line references to patterns to follow. Order tasks so later tasks can build on earlier ones without hidden dependencies (see Task Ordering below)
+2. **Task brevity**: Each task description is 1-3 lines. State the outcome, reference the pattern (`file#symbol` — see Cross-Document References rule #1 for the symbol-anchor ladder), include the Verify line. If a task description exceeds 3 lines, it is either too large (split it) or too detailed (describe the outcome, not the steps).
+3. Each task: atomic, self-contained, with `file#symbol` references to patterns to follow. Order tasks so later tasks can build on earlier ones without hidden dependencies (see Task Ordering below)
 4. Reference patterns, don't reproduce them
 5. Each task must include a **`Verify:`** line — a concrete, observable check proving the outcome. **Verify lines must assert the described behavior, not just build success.** At least one assertion per task should fail if the outcome is not achieved. Trace verification back to the feature's Success Criteria where applicable.
 
@@ -73,7 +88,7 @@ Include the template's **Execution Contract** section near the bottom of the Imp
    - Strong: `Verify: traces list output includes columns IN_TOKENS, OUT_TOKENS, CACHE_R, CACHE_W`
 
    Rule of thumb: if you prescribed a specific format, column name, file path, or string in the FIS — put it in the Verify line verbatim.
-6. Most good FIS files land in the 200-500 line range. Once a draft starts pushing past roughly ~700 lines or more than ~18 tasks, that is a strong signal that this is no longer one execution-sized spec. Save the FIS regardless, but warn the user and recommend a path: for standalone feature requests, switch to the `/andthen:prd → /andthen:plan → /andthen:exec-plan` chain so the work goes through proper PRD-backed planning; for `story {story_id} of plan.md` inputs, the story was too broad — revisit the source plan and decompose it before regenerating specs.
+6. Most good FIS files land in the 200-500 line range. Once a draft starts pushing past roughly ~700 lines or more than ~18 tasks, that is a strong signal that this is no longer one execution-sized spec. Save the FIS regardless, but warn the user and recommend a path: for standalone feature requests, switch to the `/andthen:prd → /andthen:plan → /andthen:exec-plan` chain so the work goes through proper PRD-backed planning; for `story {story_id} of plan.json` inputs, the story was too broad — revisit the source plan and decompose it before regenerating specs.
 7. Replace `<path-to-this-file>` in the self-executing callout with the actual FIS output path
 8. Make **What We're NOT Doing** explicit: 3-5 specific exclusions or deferrals with reasons. Use it to preserve scope boundaries across sessions, not as filler.
 9. Include the **Execution Contract** section from the template. Keep it consistent unless the feature truly needs extra execution-specific constraints.
@@ -108,7 +123,7 @@ For each FIS Success Criterion, name the plan story scope, Source ref, Binding C
 
 **Resolution depends on mode:**
 
-- **Batch sub-agent mode** (from the `andthen:plan` skill) — sub-agents check Success Criteria against plan-level sources **plus the `## Binding Constraints` section in `plan.md`** when present (verbatim text + heading anchor for each binding entry). A criterion that traces to either is sourced; only criteria with no plan-level *and* no Binding Constraints source are candidates for phantom-scope reporting. For each candidate, either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate — at the cross-cutting review the orchestrator filters once more against the full `prd.md` to catch any constraint missed by the inline extraction. Do not rationalize by adding scope notes. **Do not edit `plan.md` or `prd.md` from a sub-agent** — phantom-scope resolution flows through the orchestrator only.
+- **Batch sub-agent mode** (from the `andthen:plan` skill) — sub-agents check Success Criteria against plan-level sources **plus the `bindingConstraints[]` array in `plan.json`** when non-empty (each entry's `verbatim` text and `anchor` are the binding source). A criterion that traces to either is sourced; only criteria with no plan-level *and* no Binding Constraints source are candidates for phantom-scope reporting. For each candidate, either (a) remove the criterion, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate — at the cross-cutting review the orchestrator filters once more against the full `prd.md` to catch any constraint missed by the inline extraction. Do not rationalize by adding scope notes. **Do not edit `plan.json` or `prd.md` from a sub-agent** — phantom-scope resolution flows through the orchestrator only.
 - **Standalone mode**: (a) remove, or (b) raise with the user and — on approval — add a scope note documenting the proposed addition for plan/PRD amendment.
 - **Standalone with no plan or PRD at all**: accept the criterion only if it traces to a user- or business-observable outcome in the feature request. "Uses X library", "refactors Y" are phantom scope absent a user-facing reason.
 

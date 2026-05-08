@@ -51,7 +51,7 @@ See `docs/STATE.md` for current phase, active stories, blockers, and session con
 | Changelog            | `CHANGELOG.md`                      | Release history                         |
 | Agent Temp           | `.agent_temp/`                      | Temporary agent workspace (reviews, research, QA) |
 
-&dagger; Organized by version or feature name: `docs/specs/{version-or-feature}/prd.md`, `plan.md`, and per-story FIS files (`s01-*.md`, `s02-*.md`, …) co-located in the same directory — one FIS per story. Standalone specs go directly in `docs/specs/`.
+&dagger; Organized by version or feature name: `docs/specs/{version-or-feature}/prd.md`, `plan.json`, and per-story FIS files (`s01-*.md`, `s02-*.md`, …) co-located in the same directory — one FIS per story. Standalone specs go directly in `docs/specs/`.
 
 <!-- Workflow commands read this table to determine where to write output.
      If a location isn't specified, commands use the defaults shown above.

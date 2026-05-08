@@ -2,16 +2,16 @@
 
 GitHub-output sibling of Step 4 in `andthen:plan`. Load this reference when running the `andthen:plan` skill with `--to-issue` set, or when implementing changes to the plan-issue body shape.
 
-**Nothing is written to disk** — no `plan.md`, no FIS files. The plan content goes into a GitHub issue body per the canonical shape in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). Steps 5 (FIS generation) and 6 (cross-cutting review) are skipped.
+**Nothing is written to disk** — no `plan.json`, no FIS files. The plan content is rendered from the in-memory plan object (built in Step 2–3 of the parent skill) into a GitHub issue body per the canonical shape in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). Steps 5 (FIS generation) and 6 (cross-cutting review) are skipped.
 
 
 ## 1. Build the plan-issue body
 
-Synthesize per the **single-issue shape** in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md): `> **PRD**:` source header (`github://issue/<input-issue-N>` for issue input, otherwise the local PRD path) → plan summary → optional `## Shared Decisions` → optional `## Binding Constraints` → `## Story Catalog` table → one `### Story S0N: <name>` per story → `Refs #<input-issue-N>` footer line when an input issue was supplied.
+Render the in-memory plan object using the markdown shape in [`templates/plan-template-issue.md`](../templates/plan-template-issue.md). This is the GitHub-transport view of the plan — the canonical local artifact remains JSON. Body skeleton: `> **PRD**:` source header (`github://issue/<input-issue-N>` for issue input, otherwise the local PRD path) → plan summary → optional `## Shared Decisions` → optional `## Binding Constraints` → `## Story Catalog` table → one `### Story S0N: <name>` per story → `Refs #<input-issue-N>` footer line when an input issue was supplied.
 
-`## Shared Decisions` and `## Binding Constraints` are extracted inline from the working-notes PRD synthesis (Step 2 of the parent skill) — same extraction logic as Step 4's local-output path. Omit either section when none apply.
+`sharedDecisions` and `bindingConstraints` come straight from the in-memory plan object — same extraction (in Step 2 of the parent skill) feeds both the local-output path (Step 4) and the GitHub-output path here. Omit either section when the corresponding array is empty.
 
-Story Catalog columns and compact story brief fields mirror the local `plan.md` template — the same [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) Story Catalog Columns, Required Story Brief Labels, and Dependency Cell Contract apply. The Story Catalog `Dependencies` column uses only `-` or comma-separated Story IDs; granular story issue bodies may use optional `Depends on #<sibling-issue-N>` navigation only after the two-pass rewrite. Story Catalog `FIS` cells stay unset (`-`); FIS files are generated just-in-time by `andthen:exec-plan --from-issue`.
+Story Catalog columns and compact story brief fields are the markdown rendering of `stories[]` from the plan object — see the [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) Plan Issue Catalog (markdown) section for column ordering and the dependency-cell contract. The Story Catalog `Dependencies` column uses only `-` or comma-separated Story IDs; granular story issue bodies may use optional `Depends on #<sibling-issue-N>` navigation only after the two-pass rewrite. Story Catalog `FIS` cells stay unset (`-`); FIS files are generated just-in-time by `andthen:exec-plan --from-issue`.
 
 
 ## 2. Create the plan issue (single-issue mode, default)

@@ -45,7 +45,7 @@ Read these signals **in order; stop at the first state-determining match.** Most
 | `## Project Document Index` and `## Workflow Rules, Guardrails and Guidelines` in the root agent instruction file(s)? | Check every existing root instruction file. A single existing file may carry the contract; when both `CLAUDE.md` and `AGENTS.md` exist, both must carry the shared workflow sections. | If no → `setup: partial` |
 | Source code beyond config/README? | `git ls-files` count + extension distribution. Rough cut: >50 tracked files with substantive code extensions. **If genuinely unclear** (small repo, mixed signals), ask one question: "Is this a fresh project or are we working with existing code?" — never present a menu. | If yes & no map → `codebase: brownfield-unmapped` |
 | Map-codebase output present? | Files matching `project-state-templates.md` outputs (Architecture, Stack, etc.) per **Project Document Index** | If yes → `codebase: brownfield-mapped` |
-| Any in-flow artifact at indexed paths? | Read the **Project Document Index** and check for `requirements-clarification.md`, `prd.md`, `plan.md`, `*.fis.md`, `STATE.md`, the most recent architecture-report (`*-architecture-*.md`<sup>†</sup>), the most recent triage-report (`*-triage-*.md`), and the most recent ui-ux-design output (wireframes / design-system / design-review). | If any → `workflow: mid-flow` (and infer where in flow from the artifact type) |
+| Any in-flow artifact at indexed paths? | Read the **Project Document Index** and check for `requirements-clarification.md`, `prd.md`, `plan.json` (or legacy `plan.md`), `*.fis.md`, `STATE.md`, the most recent architecture-report (`*-architecture-*.md`<sup>†</sup>), the most recent triage-report (`*-triage-*.md`), and the most recent ui-ux-design output (wireframes / design-system / design-review). | If any → `workflow: mid-flow` (and infer where in flow from the artifact type) |
 
 <sup>†</sup> The `andthen:architecture` skill emits the single suffix `architecture` for all 7 modes; differentiate trade-off / strategic-design / event-storming etc. by reading the report's H1/H2, not the filename.
 
@@ -131,8 +131,9 @@ When state shows the user is mid-flow, do not onboard. Just route. Output: 1–3
 | Detected state | Recommended next |
 |---|---|
 | `requirements-clarification.md` just produced, before `prd` / `spec` | offer the `andthen:visualize` skill (review checkpoint) → then the next workflow skill |
-| `prd.md` exists, no `plan.md` | the `andthen:plan` skill (or offer the `andthen:visualize` skill as a review checkpoint first) |
-| `plan.md` exists, FIS files missing | the `andthen:plan` skill to resume the bundle and fill missing FIS files |
+| `prd.md` exists, no `plan.json` | the `andthen:plan` skill (or offer the `andthen:visualize` skill as a review checkpoint first) |
+| `plan.json` exists, FIS files missing | the `andthen:plan` skill to resume the bundle and fill missing FIS files |
+| Legacy `plan.md` exists, no `plan.json` | the `andthen:plan` skill — re-running migrates `plan.md` → `plan.json` and preserves existing FIS files |
 | All FIS exist, implementation incomplete | the `andthen:exec-plan` skill (multi) or the `andthen:exec-spec` skill (single) |
 | Implementation done, no review on this branch | the `andthen:review` skill |
 | Review done, findings unaddressed | the `andthen:remediate-findings` skill |
@@ -179,7 +180,7 @@ Creates a Product Requirements Document (`prd.md`) from clarified requirements, 
 **Use when:** scoping a multi-feature initiative. **Typical next step:** `andthen:plan` to break the PRD into stories with FIS specs.
 
 ### `andthen:plan`
-Consumes an existing `prd.md` and produces the full plan bundle: `plan.md` (story breakdown) plus one FIS file per story. Re-running on an interrupted bundle fills missing FIS files without intentionally producing a plan-only artifact.
+Consumes an existing `prd.md` and produces the full plan bundle: `plan.json` (typed story manifest, canonical) plus one FIS file per story. Re-running on an interrupted bundle fills missing FIS files; re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files.
 **Use when:** turning a PRD into an executable, story-by-story plan. **Typical next step:** `andthen:exec-plan` to implement the bundle.
 
 ### `andthen:spec`
@@ -251,7 +252,7 @@ Improves, simplifies, and refactors code for clarity, consistency, and maintaina
 **Use when:** code is becoming hard to maintain, or after a feature lands and a cleanup pass is warranted.
 
 ### `andthen:ops`
-Deterministic operations on workflow state — `STATE.md` updates, plan status, FIS checkboxes, standardized commits.
+Deterministic operations on workflow state — `STATE.md` updates, `plan.json` mutations (`update-plan`, `update-plan-fis`), FIS checkboxes, standardized commits. Enforces `plan.json` writability rules: any non-status / non-fis edit since the last ops write is rejected.
 **Use when:** transitioning between workflow phases or marking progress. Often invoked automatically by other skills.
 
 

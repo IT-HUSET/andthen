@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.19.0] – 2026-05-08
+
+### Changed
+- **Plan output flips to `plan.json` (canonical, machine-parseable)** — `andthen:plan` now emits a typed JSON manifest per the new shared `plan-schema.md` (consumed by `plan`, `exec-plan`, `ops`, `review`); `andthen:ops update-plan` / `update-plan-fis` are the only mutators, gated by a `metadata.immutableDigest` baseline that refuses writes touching any non-mutable field. Re-running `andthen:plan` on a legacy `plan.md`-only directory migrates to `plan.json` and preserves existing FIS files; `andthen:exec-plan --from-issue` parses the plan-issue body once into a local `.agent_temp/from-issue-<N>/plan.json` ledger and drives execution from there.
+- **`andthen:remediate-findings` Low-severity policy inverted to fix-by-default** — Phase 2 flips the Low rule from "fix only when cheap" to fix-by-default, with `DEFERRED Low` requiring one of four named blockers (`out-of-scope file`, `decision needed`, `new test harness required`, `risk: <concrete>`); Phase 4 findings re-check and Phase 5 tech-debt persistence both propagate the blocker so the rule cannot rot at later phase boundaries. New GOTCHA names writing `DEFERRED Low` without a blocker as the parking-lot anti-pattern itself.
+
+---
+
 ## [0.18.1] – 2026-05-06
 
 ### Fixed

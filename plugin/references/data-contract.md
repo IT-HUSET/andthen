@@ -1,6 +1,6 @@
 # Plan/FIS Data Contract
 
-This document is the **single canonical source** for the plan/FIS data contract. Skills reference this document; they do not restate the contract inline.
+This document is the **single canonical source** for the FIS data contract and for the markdown shape used in GitHub plan-issue bodies. The structured local plan format lives in [`plan-schema.md`](plan-schema.md); this document defers to it for `plan.json` field shapes and references the markdown table only as the GitHub-issue transport.
 
 > Skills that reference this document: `ops`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`.
 
@@ -14,69 +14,43 @@ The FIS itself is mutable only through the `andthen:ops` skill's `update-fis <pa
 Discovered Requirements is the single sanctioned append-only channel for FIS-augmenting requirement discoveries during execution. Append the requirement before writing the test or code that depends on it.
 
 
-## Story Catalog Columns
+## Plan Schema
 
-Every local `plan.md` and plan-issue Story Catalog table uses exactly these columns, in this order:
+Local plans are JSON. The schema is canonical at [`plan-schema.md`](plan-schema.md): top-level fields, `stories[]` shape, status enum, writability rules, and file-location conventions live there. This document does not restate them.
 
-| Column | Type | Description |
+
+## Plan Issue Catalog (markdown)
+
+The GitHub-issue body shape (`andthen:plan --to-issue` output, parsed by `andthen:exec-plan --from-issue` to materialize a local `plan.json` ledger) carries a markdown Story Catalog table. Columns, in this order:
+
+| Column | Maps to JSON field | Description |
 |---|---|---|
-| `ID` | String | Story identifier, e.g. `S01`. Uppercase `S` + two-digit zero-padded number. |
-| `Name` | String | Short story name. |
-| `Phase` | String | Phase name/number. |
-| `Wave` | String | Wave assignment, e.g. `W1`. |
-| `Dependencies` | String | Comma-separated story IDs from the same Story Catalog, or `-` if none. Prose is invalid. |
-| `Parallel` | String | `Yes` / `No` / `[P]` — whether this story can run in parallel with wave siblings. |
-| `Risk` | String | `Low` / `Medium` / `High`. |
-| `Status` | String | Current state per the Status State Machine below. |
-| `FIS` | String | Relative POSIX path to the story's FIS file, or an unset sentinel (see FIS-Unset Sentinel below). |
+| `ID` | `id` | Story identifier, e.g. `S01`. Uppercase `S` + two-digit zero-padded number. |
+| `Name` | `name` | Short story name. |
+| `Phase` | `phase` | Phase id matching `overview.phases[].id`. |
+| `Wave` | `wave` | Wave id (e.g. `W1`). |
+| `Dependencies` | `dependsOn` | Comma-separated story IDs from the same catalog, or `-` if none. Prose is invalid. |
+| `Parallel` | `parallel` | `Yes` / `No` / `[P]` — renders the boolean. |
+| `Risk` | `risk` | `Low` / `Medium` / `High` (capitalized in markdown; lowercase in JSON). |
+| `Status` | `status` | Capitalized form of the schema enum (see mapping below). |
+| `FIS` | `fis` | Relative POSIX path, or `-` when `null`. |
+
+Status mapping between markdown rendering and the JSON enum: `Pending` ↔ `pending`, `Spec Ready` ↔ `spec-ready`, `In Progress` ↔ `in-progress`, `Done` ↔ `done`, `Skipped` ↔ `skipped`, `Blocked` ↔ `blocked`. The JSON enum is canonical; the capitalized form is markdown-only.
+
+Story brief fields in the issue body (`### Story S0N: <name>` per story) carry the same content as the JSON story brief fields:
+
+- `**Scope**` ↔ `scope`
+- `**Source refs**` ↔ `sourceRefs`
+- `**Provenance**` ↔ `provenance`
+- `**Asset refs**` ↔ `assetRefs`
+- `**Notes**` ↔ `notes`
+
+The 1:1 story↔FIS invariant and the `dependsOn` machine-readable contract apply to both the markdown table cells and the JSON fields. Prose dependencies (`Blocks A-G complete`) are rejected.
 
 
-## Required Story Brief Labels
+## FIS-Unset Sentinel (markdown rendering only)
 
-Each local `plan.md` story section and granular story issue body carries a compact story brief. The Story Catalog is the source of truth for status, FIS path, phase, wave, dependencies, parallelism, and risk.
-
-- `**Scope**`
-- `**Source refs**` — required for PRD-backed stories; omit only when `**Provenance**` explains why no PRD source exists.
-
-Optional labels:
-
-- `**Provenance**` — required only for stories with no direct PRD feature coverage.
-- `**Asset refs**` — wireframes, ADRs, design-system references, or other upstream artifacts needed by the FIS author.
-- `**Notes**` — only for load-bearing planning notes that do not belong in the Story Catalog or Dependency Graph.
-
-
-## Dependency Cell Contract
-
-`Dependencies` cells are machine-readable scheduler input. A valid Story Catalog value is exactly one of:
-
-- `-` when the story has no dependencies
-- One or more story IDs from the same Story Catalog, separated by commas, e.g. `S01` or `S01, S04`
-
-Do not put prose, phase names, milestone gates, or "all previous work" summaries in dependency cells. A value such as `Blocks A-G complete` is parsed as a literal dependency ID by downstream schedulers and fails with an unknown-dependency error. Express broad sequencing through phase/wave assignment, the `## Dependency Graph` section, or concrete story IDs.
-
-
-## Status State Machine
-
-Story Catalog status values are:
-
-`Pending → Spec Ready → Done`
-
-`In Progress` belongs in the State document's Active Stories table, not in the Story Catalog. Forward transitions are skill-implicit per the write-authority table below. Backward transitions (`Done → Spec Ready`) are allowed only through explicit `andthen:ops update-plan` calls — never inferred.
-
-### Write Authority
-
-| Transition | Write authority |
-|---|---|
-| `Pending → Spec Ready` | `andthen:plan` Step 5 (after FIS lands); `andthen:spec` post-save action (plan-story input mode) |
-| `Spec Ready → Done` | `andthen:exec-spec` Step 5b (Story Catalog `Status` column). The `In Progress` state, when needed, is represented only in the State document's Active Stories table. |
-| Any backward transition | `andthen:ops update-plan` explicit call only |
-
-`andthen:exec-plan` orchestrates but does not write `Status` directly — it delegates through `andthen:ops` for cross-story state and repair writes only.
-
-
-## FIS-Unset Sentinel
-
-A Story Catalog `FIS` cell value matching the following regex is classified as **unset**:
+In the markdown issue catalog, a `FIS` cell value matching the following regex renders the JSON `null`:
 
 ```
 ^\s*(-|–|—|TBD|N/A)?\s*$
@@ -84,9 +58,7 @@ A Story Catalog `FIS` cell value matching the following regex is classified as *
 
 (case-insensitive on the literal tokens `TBD` and `N/A`; applied to the normalized cell text)
 
-This covers: ASCII hyphen `-` (U+002D), en-dash `–` (U+2013), em-dash `—` (U+2014, defensive for rich-text-editor paste), `TBD`, `N/A`, empty, and whitespace-only values.
-
-A Story Catalog `FIS` cell with a path value that points at a **non-existent file** is also classified as unset (file-existence check required).
+This covers: ASCII hyphen `-` (U+002D), en-dash `–` (U+2013), em-dash `—` (U+2014, defensive for rich-text-editor paste), `TBD`, `N/A`, empty, and whitespace-only values. JSON sources use `null` directly — the sentinel is only relevant when parsing markdown issue bodies.
 
 
 ## FIS Structural Integrity Contract
@@ -121,10 +93,10 @@ Examples: `s01-user-auth.md`, `s03-exec-plan-tightening.md`
 Every FIS produced for a plan story carries provenance fields between the H1 heading and `## Feature Overview and Goal`:
 
 ```
-**Plan**: <relative-posix-path-from-project-root-to-plan.md>
+**Plan**: <relative-posix-path-from-project-root-to-plan.json>
 **Story-ID**: <ID>
 ```
 
-- Path: POSIX forward slashes; no leading `./`; no trailing slash
+- Path: POSIX forward slashes; no leading `./`; no trailing slash. For GitHub-issue-sourced plans, the value is `github://issue/<plan-N>` (the durable contract) — execution still drives off the local materialized ledger.
 - `Story-ID`: uppercase `S` prefix + two-digit zero-padded number (e.g. `S03`)
-- No `**Status**:` field in the FIS header — Status is Story Catalog-only to avoid a second source of truth
+- No `**Status**:` field in the FIS header — `status` is `plan.json`-only to avoid a second source of truth.

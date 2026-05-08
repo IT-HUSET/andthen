@@ -62,7 +62,7 @@ Content shared by ≥2 skills lives at `plugin/references/` and is consumed via 
 
 ### Shared Plugin Assets
 
-The 18 shared assets live at `plugin/references/` — a single canonical location consumed by multiple skills.
+The 19 shared assets live at `plugin/references/` — a single canonical location consumed by multiple skills.
 
 | Asset | Consumed by |
 |---|---|
@@ -79,6 +79,7 @@ The 18 shared assets live at `plugin/references/` — a single canonical locatio
 | `github-publish.md` | clarify, prd, triage, exec-spec, exec-plan, plan |
 | `lens-adversarial.md` | review, quick-review |
 | `plan-issue-shape.md` | plan, exec-plan |
+| `plan-schema.md` | plan, exec-plan, ops, review |
 | `prd-template.md` | prd |
 | `project-state-templates.md` | init, map-codebase |
 | `review-calibration.md` | review, quick-review, architecture |
@@ -119,6 +120,7 @@ Modern frontier models understand *why* things matter. Skills should express **i
 - **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens — it prevents the model from rationalizing its way past the step.
 - **Headless by default**: Skills should run to completion without waiting for another user turn unless they are explicitly interactive by nature (for example `clarify` or `init`) or blocked by a real contract failure. Prefer explicit assumptions, conservative defaults, and documented open questions over `STOP and WAIT` patterns in execution-oriented skills.
 - **Brevity and clear language**: Pragmatic, actionable, plain. Skills are part of every prompt — words cost tokens.
+- **AI agents are the intended audience for skills and reference files**: Write for the model, not for human readers. Avoid over-explaining – be direct and precise.
 - **Avoid external URLs**: Do not place external URLs in shipped skill content (unless explicitly instructed to).
 
 See also _`docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md`_ for more detailed prompt engineering guidelines.

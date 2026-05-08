@@ -16,7 +16,7 @@ AndThen brings spec-driven development to AI coding agents – lightweight, open
 > **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal.
 
 > [!WARNING]
-> **Recent breaking changes.** 0.13.0 reshaped the plan and review skill surface; 0.14.0 made `plan` strictly 1:1 with FIS. See [Breaking Changes](plugin/README.md#breaking-changes) in the plugin README for migration tables, or [CHANGELOG.md](CHANGELOG.md) for full notes.
+> **Recent breaking changes.** 0.19.0 flips `andthen:plan` output from `plan.md` to a typed `plan.json`; re-run `/andthen:plan <dir>` to migrate (existing FIS preserved). 0.18.0 removed `plan --skip-specs` / `--stories` / `--phase`. Earlier: 0.14.0 made `plan` strictly 1:1 with FIS; 0.13.0 reshaped the plan and review surface. See [Breaking Changes](plugin/README.md#breaking-changes) or [CHANGELOG.md](CHANGELOG.md).
 
 **Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` available when you want that flow orchestrated for you (add `--team` for Agent Teams parallelism). `review` runs a single lens per call (code, doc, gap, or mixed) selected automatically or via `--mode`. Skills read a lightweight Document Index in your `CLAUDE.md` / `AGENTS.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
 
@@ -96,7 +96,7 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 │                        ▼                                            │
 │                     [plan] ────→ [review] (optional)                │
 │                        │                                            │
-│                        │ plan.md + FIS per story + research         │
+│                        │ plan.json + FIS per story + research       │
 │                        ▼                                            │
 │                per story: [exec-spec]                               │
 │                        │    └──→ optional [review]                  │
@@ -135,7 +135,7 @@ Four paths, pick the one that fits. Every step produces an artifact that the nex
 **When to use which:**
 - **Quick path** (`quick-implement`): Bug fix, small feature, GitHub issue – you know what to do and it's under ~3 files
 - **Feature workflow** (`clarify` → `spec` → `exec-spec` → `review`): Single feature with real complexity – multiple files, non-obvious requirements, needs a blueprint
-- **Manual plan workflow** (`clarify` → `prd` → `plan` → per-story `exec-spec`): Multiple features, MVP, or a new project where you want explicit control story by story. `plan` produces the full bundle (`plan.md` + FIS per story); you drive execution story by story with optional per-story or final review/remediation
+- **Manual plan workflow** (`clarify` → `prd` → `plan` → per-story `exec-spec`): Multiple features, MVP, or a new project where you want explicit control story by story. `plan` produces the full bundle (`plan.json` + FIS per story); you drive execution story by story with optional per-story or final review/remediation
 - **Automated plan workflow** (`clarify` → `prd` → `plan` → `exec-plan`): The same bundle, with implementation orchestrated for you. Use `--team` for Agent Teams parallelism
 
 In both plan workflows, the per-story execution step is handled by `exec-spec`.
@@ -299,7 +299,7 @@ docs/specs/data-export/data-export.md
 /andthen:prd docs/specs/data-export/
 /andthen:prd --issue 42   # or directly from a GitHub issue
 
-# Step 2b-ii: Create the full plan bundle (plan.md + FIS per story)
+# Step 2b-ii: Create the full plan bundle (plan.json + FIS per story)
 /andthen:plan docs/specs/data-export/
 ```
 
@@ -307,7 +307,7 @@ docs/specs/data-export/data-export.md
 
 ```
 docs/specs/data-export/prd.md
-docs/specs/data-export/plan.md
+docs/specs/data-export/plan.json
 docs/specs/data-export/s01-*.md   (FIS per story)
 ```
 
@@ -324,7 +324,7 @@ docs/specs/data-export/s01-*.md   (FIS per story)
 /andthen:remediate-findings <path-to-review-report>   # if review reports actionable gaps
 # ...repeat for each story in plan order
 # Optional final plan-level review:
-/andthen:review --mode gap docs/specs/data-export/plan.md
+/andthen:review --mode gap docs/specs/data-export/plan.json
 /andthen:remediate-findings <path-to-review-report>   # if needed after final review
 
 # Multi-feature (automated):

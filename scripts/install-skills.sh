@@ -217,9 +217,13 @@ _canonicalize_dir() {
     /*) printf '%s' "$_cd_path" ;;
     *)
       # Resolve relative paths against the current working directory. If
-      # the path doesn't exist yet, mkdir -p is harmless and lets `cd`
-      # succeed; install would create it later anyway.
-      mkdir -p "$_cd_path" 2>/dev/null || true
+      # the path doesn't exist yet, mkdir -p creates it so `cd` can
+      # succeed; install would create it later anyway. Capture mkdir's
+      # stderr so a failure here surfaces the underlying cause (permission
+      # denied, ENOTDIR on a parent that's a file, etc.) rather than
+      # collapsing into a generic "mkdir/cd failed" message.
+      _cd_mkdir_err=$(mkdir -p "$_cd_path" 2>&1)
+      _cd_mkdir_status=$?
       _cd_resolved=$( CDPATH= cd -- "$_cd_path" 2>/dev/null && pwd )
       if [ -z "$_cd_resolved" ]; then
         # Fail loud rather than fall through to the original (relative)
@@ -227,7 +231,11 @@ _canonicalize_dir() {
         # into installed .md files, so a relative result here would silently
         # produce broken bash invocations at runtime — the exact failure
         # the comment block above this function says it is preventing.
-        printf 'error: cannot canonicalize directory %s (mkdir/cd failed)\n' "$_cd_path" >&2
+        if [ "$_cd_mkdir_status" -ne 0 ] && [ -n "$_cd_mkdir_err" ]; then
+          printf 'error: cannot canonicalize directory %s (mkdir failed: %s)\n' "$_cd_path" "$_cd_mkdir_err" >&2
+        else
+          printf 'error: cannot canonicalize directory %s (mkdir/cd failed)\n' "$_cd_path" >&2
+        fi
         return 1
       fi
       printf '%s' "$_cd_resolved"
@@ -274,17 +282,17 @@ fi
 
 # Names of the canonical shared assets (filenames only).
 # Each must exist at plugin/references/<asset>.md and be consumed by ≥2 skills.
-_canonical_assets="adversarial-challenge.md automation-mode.md critic-calibration.md data-contract.md design-tree.md execution-discipline.md execution-named-blocks.md farley-framework.md fis-authoring-guidelines.md fis-template.md github-publish.md lens-adversarial.md plan-issue-shape.md prd-template.md project-state-templates.md review-calibration.md review-report-location.md trust-boundaries.md"
+_canonical_assets="adversarial-challenge.md automation-mode.md critic-calibration.md data-contract.md design-tree.md execution-discipline.md execution-named-blocks.md farley-framework.md fis-authoring-guidelines.md fis-template.md github-publish.md lens-adversarial.md plan-issue-shape.md plan-schema.md prd-template.md project-state-templates.md review-calibration.md review-report-location.md trust-boundaries.md"
 
 # Map of skill-name → space-separated list of canonical asset names it consumes.
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
 _skill_assets_prd="automation-mode.md github-publish.md prd-template.md"
-_skill_assets_plan="automation-mode.md data-contract.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md"
+_skill_assets_plan="automation-mode.md data-contract.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md plan-schema.md"
 _skill_assets_spec="automation-mode.md data-contract.md fis-authoring-guidelines.md fis-template.md"
 _skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md"
-_skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md"
-_skill_assets_ops="data-contract.md"
-_skill_assets_review="adversarial-challenge.md critic-calibration.md data-contract.md fis-authoring-guidelines.md lens-adversarial.md review-calibration.md review-report-location.md trust-boundaries.md"
+_skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md"
+_skill_assets_ops="data-contract.md plan-schema.md"
+_skill_assets_review="adversarial-challenge.md critic-calibration.md data-contract.md fis-authoring-guidelines.md lens-adversarial.md plan-schema.md review-calibration.md review-report-location.md trust-boundaries.md"
 _skill_assets_quick_review="critic-calibration.md lens-adversarial.md review-calibration.md"
 _skill_assets_architecture="adversarial-challenge.md design-tree.md farley-framework.md review-calibration.md review-report-location.md"
 _skill_assets_clarify="design-tree.md github-publish.md"

@@ -38,6 +38,7 @@ REPORT_SOURCE: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` b
 - Marking plan or FIS artifacts done before re-validation proves the findings are actually addressed
 - Editing the wrong artifact when the real issue belongs in a spec, plan, PRD, or user-facing document
 - Forcing a speculative doc rewrite when the real issue is an unresolved product or requirements decision that needs escalation
+- Writing `DEFERRED Low` without citing one of the named blockers from Phase 2's severity policy — that means you are using the Tech Debt Backlog as a parking lot, not as a deferred-work queue
 
 
 ## WORKFLOW
@@ -51,7 +52,7 @@ REPORT_SOURCE: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` b
    - Review mode (`gap`, `code`, `doc`, `security`, `mixed`, `architecture`, `council`) — read from the report's mode line or the report filename suffix (e.g. `-gap-review.md` → `gap`, `-security-review.md` → `security`)
    - Report verdict (PASS/FAIL) when present
    - Findings, severity, remediation recommendations, and reviewed scope
-   - Referenced implementation targets, requirements baseline, FIS path, `plan.md`, and story IDs when the report names them
+   - Referenced implementation targets, requirements baseline, FIS path, `plan.json`, and story IDs when the report names them
 3. If the report has no actionable findings, stop and return that there are no actionable findings.
 
 **Gate**: Actionable findings and the remediation target are explicit
@@ -68,7 +69,13 @@ For each finding:
 Severity policy:
 - **Critical / High**: must fix
 - **Medium**: fix when it affects requirements, correctness, maintainability, or report PASS/FAIL
-- **Low**: fix only when it is cheap, low-risk, or explicitly requested
+- **Low**: **Default: fix.** Defer only when one of these named blockers applies, cited explicitly with the deferral:
+  - `out-of-scope file` — fixing requires editing a file the surgical-scope rule (Instructions, line 26) forbids
+  - `decision needed` — the fix encodes an unresolved product, design, or requirements decision
+  - `new test harness required` — fixing needs a new test file, fixture, or framework setup. Adding a test case to an existing test file is not a blocker
+  - `risk: <concrete>` — a named caller, test, input shape, or invariant the fix could break. Generic "regression risk" or "could break callers" is not concrete and is not a blocker
+
+  Locality and triviality bias *toward* fixing, not toward deferral. The Tech Debt Backlog is for findings that genuinely cannot be fixed in this pass — not a parking lot for trivially-fixable Lows.
 
 If all findings are already fixed or superseded, skip to Phase 5 and only update status artifacts when that is now justified.
 
@@ -96,7 +103,7 @@ If all findings are already fixed or superseded, skip to Phase 5 and only update
    - Document fixes: verify terminology, cross-references, linked paths, commands/examples, consistency with source of truth
    - Workflow artifact fixes: verify templates, status semantics, cross-document consistency
 4. Invoke the `andthen:quick-review` skill on the touched scope (via `/andthen:quick-review` or the Skill tool — not as `subagent_type`; append `--auto` when `AUTO_MODE=true`).
-5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), or `DEFERRED` (per severity policy, with justification). This is the primary close-the-loop validation.
+5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), or `DEFERRED` (per severity policy, with justification). `DEFERRED Low` entries must additionally cite one of the named blockers from Phase 2's severity policy — entries without a cited blocker are not valid deferrals and the finding must be fixed instead. This is the primary close-the-loop validation.
 6. If both implementation and document artifacts changed, verify consistency across them.
 7. If Critical/High findings remain after one remediation pass, escalate rather than looping. In `AUTO_MODE`, return `BLOCKED:` with unresolved findings and verification evidence.
 
@@ -132,7 +139,7 @@ Run this step **before** the tech-debt persistence step below. If `REPORT_SOURCE
 
 #### Persist DEFERRED findings to the Tech Debt Backlog
 
-Batch all `DEFERRED` entries into a single `andthen:ops` invocation: `update-tech-debt append <markdown-body>`. Use the `#### DEFERRED FINDINGS` body shape from the `andthen:ops` skill (`update-tech-debt append` form). Normalize upstream severity before populating `Severity:` — `CRITICAL/HIGH → High`, `MEDIUM → Medium`, `LOW → Low`; non-canonical values route to `Medium` with a logged note. Each entry requires a `Source report:` back-link. When zero findings are `DEFERRED`, skip this step entirely. The `andthen:ops` skill is deterministic and `--auto` is not propagated to it (per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md)).
+Batch all `DEFERRED` entries into a single `andthen:ops` invocation: `update-tech-debt append <markdown-body>`. Use the `#### DEFERRED FINDINGS` body shape from the `andthen:ops` skill (`update-tech-debt append` form). Normalize upstream severity before populating `Severity:` — `CRITICAL/HIGH → High`, `MEDIUM → Medium`, `LOW → Low`; non-canonical values route to `Medium` with a logged note. Each entry requires a `Source report:` back-link. **For `DEFERRED Low` entries, include the named blocker from Phase 2 verbatim in the entry body (e.g. as a `Blocker:` line) so the parking-lot rule remains auditable from the backlog alone — a `Low` entry with no blocker citation is the anti-pattern itself.** When zero findings are `DEFERRED`, skip this step entirely. The `andthen:ops` skill is deterministic and `--auto` is not propagated to it (per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md)).
 
 **Gate**: Status artifacts reflect the validated post-remediation state; the input report is annotated when writable; deferred findings are persisted to the Tech Debt Backlog when present
 

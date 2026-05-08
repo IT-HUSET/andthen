@@ -23,7 +23,7 @@ Compose the per-story sub-agent prompt by substituting the canonical Per-Story W
 Include in each implementer's system prompt:
 - Only work on assigned `impl-*` tasks
 - Per task: `cd {CODE_DIR_ABS}` → (worktree: `EnterWorktree "story-{task_id}"`) → `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}`. On success only: commit → `ExitWorktree(keep)` → mark done; report `exec-spec` Step 4a numbers (build, tests, lint/type-check, format).
-- **Worktree mode (`{WORKTREE_SUFFIX}` non-empty)**: `exec-spec` skips `plan.md` and `State` document writes and emits a `## Deferred Shared Writes` audit block (Story / Plan / FIS / Completion summary). Pass that block through to your report so the orchestrator can read the `Completion summary` line and audit what was deferred — the orchestrator already knows Story / Plan / FIS from its own plan parse and constructs / applies the writes post-merge itself. Constraints: (1) do not apply those writes yourself, (2) do not stage or commit `plan.md` or the `State` document inside the worktree branch — only code (and FIS) edits belong there. Shadow plan/state commits inside the worktree defeat the deferral and resurrect the merge-conflict failure mode this flag exists to prevent.
+- **Worktree mode (`{WORKTREE_SUFFIX}` non-empty)**: `exec-spec` skips `plan.json` and `State` document writes and emits a `## Deferred Shared Writes` audit block (Story / Plan / FIS / Completion summary). Pass that block through to your report so the orchestrator can read the `Completion summary` line and audit what was deferred — the orchestrator already knows Story / Plan / FIS from its own plan parse and constructs / applies the writes post-merge itself. Constraints: (1) do not apply those writes yourself, (2) do not stage or commit `plan.json` or the `State` document inside the worktree branch — only code (and FIS) edits belong there. Shadow plan/state commits inside the worktree defeat the deferral and resurrect the merge-conflict failure mode this flag exists to prevent.
 - If `exec-spec` returns `BLOCKED:` or a Failed Story Report, do not commit or mark done. Preserve the worktree, report story/branch/failure details, and let the orchestrator apply the aggregate failure policy.
 - Absolute FIS paths; escalate unresolvable issues
 - Do not call `andthen:ops update-*` yourself — `exec-spec` Step 5b handles those calls
@@ -75,21 +75,21 @@ For each successful worktree branch in sequence:
 3. **Apply deferred shared writes for this story.** The implementer's report contains a `## Deferred Shared Writes` audit block with `Story`, `Plan`, `FIS`, and `Completion summary` fields. **Do not parse it as a script** — use it as audit / summary source.
 
    **Value sources** — the orchestrator already holds the structural values from Step 1's plan parse, not from the audit block or the task name:
-   - `STORY_ID` is the plan story identifier (e.g. `S03`), extracted from `plan.md` at parse time. The team task names (`impl-{STORY_ID}` / `review-{STORY_ID}`) embed the same value but are *not* the source of truth.
+   - `STORY_ID` is the plan story identifier (e.g. `S03`), extracted from `plan.json` at parse time. The team task names (`impl-{STORY_ID}` / `review-{STORY_ID}`) embed the same value but are *not* the source of truth.
    - `FIS_FILE_PATH` and `PLAN_FILE_PATH` are likewise from Step 1.
    - `Completion summary` is the only field actually pulled from the audit block — extract by matching the line `^Completion summary:\s*(.+)$` and trimming the captured value.
 
    Construct and run the writes:
-   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} Done` — sets the Story Catalog `Status` cell.
-   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} fis "{FIS_FILE_PATH}"` — only if the Story Catalog `FIS` cell is *unset* (empty / `–` / placeholder) or *stale* (path differs from `{FIS_FILE_PATH}` after path normalization).
+   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} done` — sets `stories[].status` to `done`.
+   - `andthen:ops update-plan-fis {PLAN_FILE_PATH} {STORY_ID} {FIS_FILE_PATH}` — only if the story's `fis` is `null` or differs from `{FIS_FILE_PATH}` after path normalization.
    - `andthen:ops update-state active-story {STORY_ID} Done` — only if the `State` document exists.
    - `andthen:ops update-state note "{Completion summary}"` — use the summary line from the audit block; if the audit block is missing or its summary is empty, fall back to `"{STORY_ID}: completed (worktree merge)"` (the substituted `STORY_ID` is the bare plan ID like `S03`, not the team task name `impl-S03`). A missing audit block is **not** a Stop-the-Line — all required values are already in the orchestrator's hand; the writes still proceed. Log the missing block as a worker self-report drift signal for follow-up.
 
-   This is the **primary** write path for `plan.md` and `State` document in worktree mode (not a repair).
+   This is the **primary** write path for `plan.json` and `State` document in worktree mode (not a repair).
 
 4. **Commit the resulting writes in the repo where the files live**:
    - **Single-repo** (`PLAN_DIR == CODE_DIR`) — commit on `CODE_DIR`'s `{BASE_BRANCH}`. See Worktree Merge Ordering below — subsequent merges in this wave and Wave N+1 worktrees must include these commits.
-   - **Multi-repo** (`PLAN_DIR ≠ CODE_DIR`) — `plan.md` and the `State` document are **not** in `CODE_DIR`'s history. If `PLAN_DIR` is itself a git repo, commit there; otherwise the file edits stand on their own. `CODE_DIR`'s `{BASE_BRANCH}` is unaffected, so the Wave N+1 stale-base concern does not apply to plan/state files in multi-repo. (Code-side commits from the merge in step 1 still land on `CODE_DIR`'s `{BASE_BRANCH}` as usual.)
+   - **Multi-repo** (`PLAN_DIR ≠ CODE_DIR`) — `plan.json` and the `State` document are **not** in `CODE_DIR`'s history. If `PLAN_DIR` is itself a git repo, commit there; otherwise the file edits stand on their own. `CODE_DIR`'s `{BASE_BRANCH}` is unaffected, so the Wave N+1 stale-base concern does not apply to plan/state files in multi-repo. (Code-side commits from the merge in step 1 still land on `CODE_DIR`'s `{BASE_BRANCH}` as usual.)
 
 5. **Clean up worktree and branch** in `CODE_DIR` (orchestrator's CWD). The implementer exited with `ExitWorktree(keep)`, so the directory and branch are still on disk; `ExitWorktree(remove)` cannot be used cross-session, so drop to git. Substitute the actual story id for the `{task_id}` placeholder in every command below (story ids are alphanumeric/hyphen, no further shell escaping needed). **Precondition**: `pwd` must be `CODE_DIR` (the main checkout), not inside a `story-*` worktree — `git worktree remove` refuses to remove the worktree you are currently in.
    - Resolve the worktree path: `WORKTREE_PATH=$(git worktree list --porcelain | awk -v b="refs/heads/story-{task_id}" '/^worktree /{p=$2} $1=="branch" && $2==b {print p}')`.
@@ -142,7 +142,7 @@ Move to the next phase only after every current-phase story is verified green or
 - All git operations target `CODE_DIR` – never the plan repo
 - `EnterWorktree` must be called from `CODE_DIR` context
 - FIS paths passed to agents must be **absolute**
-- The plan repo is **read-only for git operations** – only the orchestrator updates `plan.md`
+- The plan repo is **read-only for git operations** – only the orchestrator updates `plan.json`
 
 
 ## Monitoring
