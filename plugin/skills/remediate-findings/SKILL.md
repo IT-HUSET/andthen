@@ -1,7 +1,7 @@
 ---
 description: Use when the user wants review findings or review comments addressed. Implements actionable findings from a review report with minimal, guideline-aligned fixes across code, specs, plans, PRDs, and documentation, then re-validates the result and updates plan/FIS status. Trigger on 'address these review findings', 'fix review comments', 'remediate findings'.
 user-invocable: true
-argument-hint: "[--auto|--headless] <review-report-path | report URL>"
+argument-hint: "[--auto|--headless] <review-report-path(s) | report URL(s)>"
 ---
 
 # Remediate Findings

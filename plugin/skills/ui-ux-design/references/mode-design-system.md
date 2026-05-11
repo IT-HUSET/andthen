@@ -4,11 +4,7 @@ Transform feature requirements into a focused design system with essential visua
 
 **Platform-agnostic**: Design tokens and styles serve as the canonical reference for ALL platforms (web, mobile, desktop). They will be adapted to platform-specific implementations later.
 
-## Variables
-
-- **REQUIREMENTS**: feature requirements — inline description, file path, or PRD reference (required)
-- **CONCEPT_DIR**: optional — directory with concept design, mockups, or existing design system
-- **OUTPUT_DIR**: defaults to `docs/design-system` or as configured in the **Project Document Index**
+**Inputs/destinations**: `REQUIREMENTS`, `CONCEPT_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (with per-token binding type — required input, optional contextual input, or default destination).
 
 ## Principles
 

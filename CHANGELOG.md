@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.19.2] – 2026-05-11
+
+### Changed
+- **`andthen:architecture --output-dir` promoted from trade-off-only to general Output Flag** – applies to all modes as a tier-1 override of the report-location resolver (`review-report-location.md`). Trade-off mode retains the dual use of the path as the research-artifacts subtree root at `OUTPUT_DIR/[topic-slug]/`, with the report file alongside the subtree at `OUTPUT_DIR/`; trade-off's default OUTPUT_DIR (Project Document Index Research location, or `<project_root>/docs/research/`) preserved in the SKILL.md flag doc. Composes with `--to-pr` (writes to `--output-dir`, then posts as PR comment).
+- **`## Variables` sections removed from mode references; UI/UX inputs hoisted to SKILL.md** – eliminates the silent-override risk where mode-ref `## Variables` blocks competed with the SKILL.md contract surface. `architecture/mode-trade-off.md`, `ui-ux-design/mode-design-system.md`, and `ui-ux-design/mode-wireframes.md` now carry a one-line `**Inputs**` breadcrumb anchored at the specific SKILL.md subsection. `ui-ux-design/SKILL.md` gains a `### Mode Inputs` subsection declaring per-mode named tokens with binding-type discrimination (required input / optional contextual input / default destination).
+
+---
+
 ## [0.19.1] – 2026-05-11
 
 ### Changed

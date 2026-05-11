@@ -15,6 +15,20 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--auto`, or `--head
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
+### Mode Inputs (per-mode named tokens; binding type noted per token)
+
+For **design-system** mode:
+- `REQUIREMENTS` — **required input**; bound from ARGUMENTS (positional) or elicited in Phase 0. Feature requirements as inline description, file path, or PRD reference.
+- `CONCEPT_DIR` — **optional contextual input**; directory with concept design, mockups, or existing design system. Provided via Phase 0 or inferred from inputs.
+- `OUTPUT_DIR` — **default destination** (no CLI flag in this skill); `docs/design-system` or the **Project Document Index** design-system location.
+
+For **wireframes** mode:
+- `REQUIREMENTS` — **required input**; bound from ARGUMENTS (positional) or elicited in Phase 0. Feature requirements as inline description, file path, or PRD reference.
+- `DESIGN_DIR` — **optional contextual input**; design system directory or concept design inputs. Provided via Phase 0 or inferred from inputs.
+- `OUTPUT_DIR` — **default destination** (no CLI flag in this skill); `docs/wireframes` or the **Project Document Index** wireframes location.
+
+Modes `research` and `review` describe inputs in prose — see their mode references.
+
 ### Mode (auto-detected from arguments or explicit `--mode`)
 
 | Mode | Triggers | Mode reference |

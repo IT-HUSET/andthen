@@ -4,11 +4,7 @@ Transform feature requirements into simple HTML wireframes that capture key layo
 
 **Platform-agnostic**: HTML/CSS is used as the universal design language for ALL projects (web, mobile, desktop). Wireframes serve as the canonical design reference that will be adapted to platform-specific implementations later.
 
-## Variables
-
-- **REQUIREMENTS**: feature requirements — inline description, file path, or PRD reference (required)
-- **DESIGN_DIR**: optional — design system directory or concept design inputs
-- **OUTPUT_DIR**: defaults to `docs/wireframes` or as configured in the **Project Document Index**
+**Inputs/destinations**: `REQUIREMENTS`, `DESIGN_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (with per-token binding type — required input, optional contextual input, or default destination).
 
 ## Principles
 

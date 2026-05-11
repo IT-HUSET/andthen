@@ -4,12 +4,7 @@
 
 **Shared reference**: `${CLAUDE_PLUGIN_ROOT}/references/design-tree.md` for multi-dimensional decomposition.
 
-## Variables
-
-Extract from the skill's `ARGUMENTS`:
-- **TOPIC**: the non-flag argument text — the decision to research (required; elicit in Phase 0 if missing)
-- **COUNT**: `--count <N>` flag, default `5`
-- **OUTPUT_DIR**: `--output-dir <path>` flag, default `<project_root>/docs/research/` or the project's research/ADR location from the **Project Document Index**
+**Inputs**: `TOPIC`, `COUNT`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES` (Optional Output Flags + Mode-Specific Flags subsections).
 
 ## Principles
 

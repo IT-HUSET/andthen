@@ -1,7 +1,7 @@
 ---
 description: Use for architecture design, review, decomposition, trade-off analysis, ADRs, CUPID/DDD guidance, fitness functions, strategic design, and event storming. Operates in seven modes — `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming` — runnable singly or as a chain (e.g. `--mode review,fitness` or `--mode event-storming,strategic-design,decompose`). Trigger on 'architecture review', 'design architecture', 'CUPID', 'DDD', 'bounded context', 'subdomain', 'context map', 'event storming', 'strategic design', 'should we split this module', 'should we merge these packages', 'propose fitness functions', 'compare options', 'trade-off', 'write an ADR', 'which approach'.
 user-invocable: true
-argument-hint: "[--mode <mode>[,<mode>...]] [--to-pr <number>] [--auto|--headless] [scope/path]"
+argument-hint: "[--mode <mode>[,<mode>...]] [--output-dir <path>] [--to-pr <number>] [--auto|--headless] [scope/path]"
 ---
 
 # Architecture
@@ -27,6 +27,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--to-pr`, `--count`
 **Multi-mode**: `--mode` accepts a comma-separated list (e.g. `--mode review,fitness`, `--mode advise,trade-off`, or `--mode event-storming,strategic-design,decompose`). Modes execute in declared order, sharing context — metrics, dependency graphs, candidate options, subdomain/context candidates, and findings computed by an earlier mode feed later modes without recomputation. `decompose` requires a boundary, `advise` requires a question, `trade-off` requires a decision topic, and `strategic-design` / `event-storming` require a scope or topic (the domain or workflow under discovery) — include those inputs (via scope/argument or Phase 0) when chaining them.
 
 ### Optional Output Flags
+- `--output-dir <path>` -> OUTPUT_DIR: explicit report-directory override; bypasses the directory-priority resolution and source-code subdirectory guard in [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md). Path must exist and be writable — `BLOCKED: --output-dir <path> not writable` in `AUTO_MODE`, warning + fallthrough to heuristic tiers in default mode. When combined with `--to-pr`, the report writes to `--output-dir` and is then posted as the PR comment. In **trade-off** mode the path also roots the research-artifacts subtree at `OUTPUT_DIR/[topic-slug]/` (the report file sits at `OUTPUT_DIR/`, alongside the subtree); when `--output-dir` is absent, OUTPUT_DIR defaults to the **Project Document Index** Research location, or `<project_root>/docs/research/`.
 - `--to-pr <number>` -> PUBLISH_PR: post the report as a plain PR comment
 - `--auto` / `--headless` -> AUTO_MODE: automation-safe execution with no conversational prompts
 
@@ -34,7 +35,6 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--to-pr`, `--count`
 
 For **trade-off** mode:
 - `--count <N>` -> COUNT: number of alternatives to compare (default `5`)
-- `--output-dir <path>` -> OUTPUT_DIR: where to write research artifacts and recommendation (default `<project_root>/docs/research/` or the **Project Document Index** research location)
 
 The remaining non-flag argument text is treated as the decision topic (`TOPIC`) for trade-off, the boundary for decompose, the question for advise, or the scope path for review/fitness.
 
