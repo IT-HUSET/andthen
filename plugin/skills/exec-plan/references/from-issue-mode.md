@@ -12,10 +12,10 @@ Companion references:
 
 ## Step 1: Flag-combination guard
 
-Apply both guards before any other Step 1 work. The `--worktree` guard is added here (in addition to the existing `--worktree requires --team` pre-validate in the parent SKILL.md) so the user gets a single, accurate error rather than the ping-pong between `--worktree requires --team` and `--from-issue is mutually exclusive with --team`.
+Apply both guards before any other Step 1 work. The `--worktree` guard is duplicated here (alongside the parent SKILL.md `--worktree requires --team` pre-validate) so the user sees a single accurate error rather than ping-pong between the two mutually-exclusive constraints.
 
-- If `--from-issue` is set with `--team`, stop. Print: `Error: --from-issue is mutually exclusive with --team (parallel JIT FIS generation not supported under this flag).` In `AUTO_MODE`, emit `BLOCKED: --from-issue is mutually exclusive with --team` and exit.
-- If `--from-issue` is set with `--worktree`, stop. Print: `Error: --from-issue is mutually exclusive with --worktree (worktree isolation requires --team, which is itself rejected with --from-issue).` In `AUTO_MODE`, emit `BLOCKED: --from-issue is mutually exclusive with --worktree` and exit.
+- `--from-issue` with `--team` → stop. `Error: --from-issue is mutually exclusive with --team (parallel JIT FIS generation not supported under this flag).` `AUTO_MODE`: `BLOCKED: --from-issue is mutually exclusive with --team`.
+- `--from-issue` with `--worktree` → stop. `Error: --from-issue is mutually exclusive with --worktree (worktree isolation requires --team, which is itself rejected with --from-issue).` `AUTO_MODE`: `BLOCKED: --from-issue is mutually exclusive with --worktree`.
 
 
 ## Step 1: Plan-source resolution (`--from-issue` branch)

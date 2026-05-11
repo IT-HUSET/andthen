@@ -6,6 +6,17 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.19.1] – 2026-05-11
+
+### Changed
+- **`exec-plan --team --worktree` worktree lifecycle is bash-driven** — harness isolation (`EnterWorktree`, `Agent({isolation:"worktree"})`) is unreliable under `team_name`, so it's replaced by **pre-create-and-verify isolation**: `create-worktree.sh` pre-creates the worktree, the implementer runs `verify-in-worktree.sh` as its first action every turn, and absolute paths are mandatory (relative paths silently leak to the main checkout).
+- **Merge Wave squash hardened with three guards + output-encoded status** — `merge-worktree.sh` runs PRECONDITION (CWD repo + branch + clean), G1 (branch has commits beyond merge-base), G2 (no diffs against `--guard-path` files), G3 (worktree clean), then squash and commit with a load-bearing `Squashed-story:` trailer. Guard failures preserve the worktree and drop a `.andthen-fail-reason` marker that `teardown-worktrees.sh` surfaces as `UNMERGED:<branch>:<reason>`.
+- **Squash conflicts route to a `worktree-merge-resolve.md` sub-agent** — semantic resolution (imports → union, lock files → worktree side, logic → reasoned tie-break or `outcome: failed`), runs `Key Dev Commands` verification, commits all-or-nothing. Absolute prohibition on `git reset` / `git clean` / `git checkout .` / `git branch -D` on any failure path.
+- **Skill prose trim across `exec-plan`** — external URLs and historical bug references removed, restated procedures cut, **pre-create-and-verify isolation** named; counter-intuitive notes (slash-command `$VAR` non-expansion, `git branch -D` under squash-merge) preserved.
+- **Teammate contract hardenings** — Step 1 logs `BASE_BRANCH` and warns on non-default; implementer prompt gains **Post-impl HARD GATE** and **Inbox-STOP first**; Implementer/Reviewer carry **Self-review prevention** (no `review-Sxx` after `impl-Sxx`); new `## Known Limitations` section documents mid-turn-interrupt absence and self-claim race semantics.
+
+---
+
 ## [0.19.0] – 2026-05-08
 
 ### Changed

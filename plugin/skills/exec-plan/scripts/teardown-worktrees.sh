@@ -13,10 +13,18 @@ Must be run from CODE_DIR (the main checkout), not inside a story-* worktree
 (git refuses to remove the worktree you are currently in).
 
 For each leftover worktree:
-  MERGED:<branch>        – squash-merged into BASE_BRANCH; worktree + branch removed
-  MERGED_DIRTY:<branch>  – squashed, but worktree has uncommitted edits or post-squash commits; preserved
-  UNMERGED:<branch>      – not merged; preserved for manual inspection
-  DETACHED:<path>        – detached HEAD (no branch line); preserved
+  MERGED:<branch>              – squash-merged into BASE_BRANCH; worktree + branch removed
+  MERGED_DIRTY:<branch>        – squashed, but worktree has uncommitted edits or post-squash commits; preserved
+  MERGED_INDETERMINATE:<branch>:diff_rc=<n>
+                               – squash matched but `git diff` exited ≥128 (git error,
+                                 not 0/1); preserved pending inspection rather than
+                                 misclassified as MERGED_DIRTY
+  UNMERGED:<branch>            – not merged; preserved for manual inspection
+  UNMERGED:<branch>:<reason>   – not merged AND a guard-failure marker was found (e.g.
+                                 G1:empty_branch, G2:<paths>, G3:worktree_dirty written by
+                                 merge-worktree.sh); preserved
+  DETACHED:<path>              – detached HEAD (no branch line); preserved
+  DETACHED:<path>:<reason>     – detached with a guard-failure marker; preserved
 
 Classification:
   Test A (primary):  git log BASE_BRANCH -E --grep="^Squashed-story: STORY_ID$"
@@ -151,7 +159,29 @@ for RECORD in "${RECORDS[@]}"; do
     continue
   fi
 
-  # Detached short-circuit: no branch → DETACHED classification
+  # Marker-file short-circuit: when merge-worktree.sh wrote a guard-failure
+  # marker, it explicitly preserved the worktree for inspection. Skip the
+  # squash-trailer / ancestry classification entirely and emit UNMERGED with
+  # the recorded reason. This is load-bearing: an empty story branch (G1
+  # failure) is structurally indistinguishable from a fully-merged branch
+  # because its tip IS the merge-base, so Test B below would misclassify it
+  # as MERGED. The marker is the orchestrator's explicit "do not auto-clean".
+  REASON=""
+  if [[ -r "$WORKTREE_PATH/.andthen-fail-reason" ]]; then
+    REASON=$(head -1 "$WORKTREE_PATH/.andthen-fail-reason" 2>/dev/null || true)
+  fi
+  if [[ -n "$REASON" ]]; then
+    if [[ "$IS_DETACHED" == true || -z "$WORKTREE_BRANCH" ]]; then
+      echo "DETACHED:${WORKTREE_PATH}:${REASON}"
+      echo "  Preserved detached worktree: $WORKTREE_PATH (reason: $REASON)" >&2
+    else
+      echo "UNMERGED:${WORKTREE_BRANCH}:${REASON}"
+      echo "  Preserved unmerged worktree: $WORKTREE_PATH (branch: $WORKTREE_BRANCH, reason: $REASON)" >&2
+    fi
+    continue
+  fi
+
+  # Detached short-circuit: no branch → DETACHED classification.
   if [[ "$IS_DETACHED" == true || -z "$WORKTREE_BRANCH" ]]; then
     echo "DETACHED:${WORKTREE_PATH}"
     echo "  Preserved detached worktree: $WORKTREE_PATH" >&2
@@ -174,10 +204,21 @@ for RECORD in "${RECORDS[@]}"; do
     MERGED=true
   fi
 
-  # Test B: SHA ancestry fallback (for --no-ff merges from older runs)
+  # Test B: SHA ancestry fallback (for --no-ff merges from older runs).
+  # Empty branches (tip == merge-base, no commits beyond) are *vacuously*
+  # ancestors of BASE_BRANCH and would be misclassified MERGED by a bare
+  # is-ancestor check — but they carry no work to claim merged. The marker
+  # short-circuit above catches G1-detected empties, but a hand-cleared
+  # marker (or an empty branch from outside merge-worktree.sh) would slip
+  # past it; gating on "carries ≥1 commit beyond merge-base" closes that hole.
   if [[ "$MERGED" == false ]]; then
-    if git merge-base --is-ancestor "$WORKTREE_BRANCH" "$BASE_BRANCH" 2>/dev/null; then
-      MERGED=true
+    MERGE_BASE_TB=$(git merge-base "$BASE_BRANCH" "$WORKTREE_BRANCH" 2>/dev/null || true)
+    if [[ -n "$MERGE_BASE_TB" ]]; then
+      BRANCH_COMMITS=$(git rev-list --count "$MERGE_BASE_TB..$WORKTREE_BRANCH" 2>/dev/null || echo 0)
+      if [[ "$BRANCH_COMMITS" -gt 0 ]] \
+         && git merge-base --is-ancestor "$WORKTREE_BRANCH" "$BASE_BRANCH" 2>/dev/null; then
+        MERGED=true
+      fi
     fi
   fi
 
@@ -196,10 +237,25 @@ for RECORD in "${RECORDS[@]}"; do
     # If the branch tip's tree differs from the squash, the branch carries
     # commits made after the squash that are NOT on BASE_BRANCH. Same hazard:
     # `branch -D` would discard committed work.
-    if [[ -n "$SQUASH_SHA" ]] && ! git diff --quiet "$SQUASH_SHA" "$WORKTREE_BRANCH" 2>/dev/null; then
-      echo "MERGED_DIRTY:${WORKTREE_BRANCH}"
-      echo "  Preserved merged worktree with post-squash work: $WORKTREE_PATH (branch: $WORKTREE_BRANCH); rebase onto $BASE_BRANCH or discard before re-running" >&2
-      continue
+    #
+    # Capture the exit code explicitly: `git diff --quiet` returns 0 (no diff),
+    # 1 (diff present), or ≥128 on a git error (lock contention, missing tree
+    # in a partially deleted worktree, etc). Treating every non-zero exit as
+    # "diff present" would misclassify clean merged worktrees as MERGED_DIRTY
+    # on transient git noise — preserving orphans the orchestrator already
+    # moved on from.
+    if [[ -n "$SQUASH_SHA" ]]; then
+      diff_rc=0
+      git diff --quiet "$SQUASH_SHA" "$WORKTREE_BRANCH" 2>/dev/null || diff_rc=$?
+      if [[ "$diff_rc" -eq 1 ]]; then
+        echo "MERGED_DIRTY:${WORKTREE_BRANCH}"
+        echo "  Preserved merged worktree with post-squash work: $WORKTREE_PATH (branch: $WORKTREE_BRANCH); rebase onto $BASE_BRANCH or discard before re-running" >&2
+        continue
+      elif [[ "$diff_rc" -ne 0 ]]; then
+        echo "MERGED_INDETERMINATE:${WORKTREE_BRANCH}:diff_rc=$diff_rc"
+        echo "  Preserved merged worktree pending diff-state inspection: git diff $SQUASH_SHA $WORKTREE_BRANCH returned exit $diff_rc (not 0/1)." >&2
+        continue
+      fi
     fi
 
     echo "MERGED:${WORKTREE_BRANCH}"
@@ -215,6 +271,8 @@ for RECORD in "${RECORDS[@]}"; do
       exit 3
     fi
   else
+    # Marker-file case is handled by the short-circuit higher up. Reaching
+    # here means no marker and the branch isn't merged: a true UNMERGED.
     echo "UNMERGED:${WORKTREE_BRANCH}"
     echo "  Preserved unmerged worktree: $WORKTREE_PATH (branch: $WORKTREE_BRANCH)" >&2
   fi

@@ -9,7 +9,7 @@ argument-hint: "[--team] [--worktree] [--from-issue <number>] [--to-pr <number>]
 
 PLAN_DIR: $ARGUMENTS first positional argument (strip any flag tokens like `--team`, `--worktree`, `--from-issue`, `--to-pr`, `--auto`, or `--headless` before interpreting the remainder as positional args). When `--from-issue <N>` is set, `PLAN_DIR` is empty and the plan source is the GitHub issue body.
 CODE_DIR: second positional argument _(optional – for multi-repo setups where plan and code live in different repos)_
-PLAN_PATH: resolved in Step 1, then used unchanged in Steps 3, 4, and 5. In local-directory mode, `PLAN_DIR/plan.json` (absolute). In `--from-issue` mode, `.agent_temp/from-issue-<N>/plan.json` (absolute) — the materialized local ledger. This is the single value all downstream steps reference; do not re-derive `PLAN_DIR/plan.json` in `--from-issue` mode (where `PLAN_DIR` is empty by definition). Distinct from the `{PLAN_PATH}` placeholder in the **Per-Story Worker Prompt** template at the bottom of this file: the placeholder is substituted textually with this variable's value at prompt-composition time; it is not a reference to a runtime variable inside the worker's context.
+PLAN_PATH: resolved in Step 1, used unchanged in Steps 3, 4, 5. Local-directory mode: `PLAN_DIR/plan.json` (absolute). `--from-issue` mode: `.agent_temp/from-issue-<N>/plan.json` (absolute) — the materialized local ledger. Do not re-derive `PLAN_DIR/plan.json` in `--from-issue` mode (`PLAN_DIR` is empty there).
 
 ### Optional Flags
 - `--team` → USE_TEAM: force Agent Teams mode; error if unavailable
@@ -28,7 +28,7 @@ Require `PLAN_DIR` unless `--from-issue <N>` is set. Stop if the required plan s
 - **Automation rules** — see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions.
 - **Status updates are gates** – plan and FIS checkpoint updates block the next phase; do not defer. `plan.json` is mutated only via `andthen:ops update-plan` / `update-plan-fis` (writability rules in `plan-schema.md`).
 - **Story failure containment** — `done` still means fully green. Failed stories transition to `skipped` (dependency-chain containment) or remain `in-progress` until repaired; never skip the enum.
-- Not updating the `State` document (see **Project Document Index**) when phases transition or blockers are discovered is a common miss.
+- **State document updates are gated** — update on phase transitions and blocker discovery (see **Project Document Index**).
 
 
 ### Status-Write Contract (Multi-Story Orchestration)
@@ -39,13 +39,10 @@ Orchestrator-side rules that extend the universal Stop-the-Line gate (see [`exec
 
 - **Authoritative writes (no double-write)** — `exec-spec` Step 5b writes the per-story status (FIS checkboxes, `plan.json` story `status`, State active-story) via `andthen:ops`. Sub-agents and teammates **do not** additionally call `andthen:ops update-*` on top of the executing skill — that duplicates writes. The orchestrator writes cross-story state only (phase transitions, overall status, session notes) plus *repair writes* when a Step 3c Writes-Landed Checklist item is missing (one `andthen:ops update-*` per missing item).
 
-- **Worktree deferral** — Under `--worktree` (which propagates `--defer-shared-writes` to `exec-spec`), the contract shifts to avoid concurrent worktree merges colliding on shared files:
-  - The executing skill writes **only** the FIS (story-local — merges cleanly).
-  - It defers `plan.json` and `State` document writes by emitting a `## Deferred Shared Writes` **audit block** in its completion report — fields are `Story`, `Plan`, `FIS`, and `Completion summary`. The block is an audit record and summary source, not a script.
-  - The orchestrator constructs the actual `andthen:ops update-*` invocations from values it already knows (`STORY_ID`, `FIS_FILE_PATH`, `PLAN_FILE_PATH`) plus the completion summary from the audit block, and applies them as the **primary** write path (not a repair) immediately after merging that worktree, before the next worktree merges or Wave N+1 worktrees are created.
-  - Repo placement: writes land on `BASE_BRANCH` in single-repo (`PLAN_DIR == CODE_DIR`); in multi-repo (`PLAN_DIR ≠ CODE_DIR`) they land in `PLAN_DIR` (committed there if it is a git repo) and `CODE_DIR`'s history is unaffected.
-  - A missing audit block is **not** a Stop-the-Line — the orchestrator already has all required values; it falls back to a generated completion-summary string and proceeds, logging the miss as a worker self-report drift signal.
-  - The Writes-Landed Checklist runs *after* deferred writes are applied. A miss at that point is a real loss and triggers the same one-shot repair path.
+- **Worktree deferral** — Under `--worktree`, `exec-spec` runs with `--defer-shared-writes`: it writes only the FIS (story-local, merges cleanly) and emits a `## Deferred Shared Writes` audit block (`Story`, `Plan`, `FIS`, `Completion summary`). The orchestrator constructs the `andthen:ops update-*` calls from its own `STORY_ID` / `FIS_FILE_PATH` / `PLAN_FILE_PATH` plus the audit's `Completion summary` and applies them as the **primary** write path immediately after merging that worktree, before the next merge or Wave N+1 creation.
+  - Repo placement: single-repo writes land on `{BASE_BRANCH}`; multi-repo writes land in `PLAN_DIR` (committed there if it's a git repo) and leave `CODE_DIR` untouched.
+  - Missing audit block → fall back to a generated `Completion summary` and proceed; log the miss but don't Stop-the-Line.
+  - The Writes-Landed Checklist runs *after* deferred writes are applied; any miss there is a real loss → one-shot repair.
 
 
 ## WORKFLOW
@@ -57,7 +54,8 @@ Orchestrator-side rules that extend the universal Stop-the-Line gate (see [`exec
 1. **Resolve CODE_DIR** _(skip if `--team` not set and no second positional arg)_:
    - If provided: verify git repository, resolve to absolute path
    - If not provided: auto-detect from PLAN_DIR's git root (when set) vs CWD's git root. Same repo → use that root. Different repos → use CWD's git root.
-   - Resolve `BASE_BRANCH`: `git -C {CODE_DIR} rev-parse --abbrev-ref HEAD`
+   - Resolve `BASE_BRANCH`: `git -C {CODE_DIR} rev-parse --abbrev-ref HEAD`.
+   - **Log + non-default warning** _(only when CODE_DIR was resolved above; default no-team runs do not branch off `BASE_BRANCH` and skip this step)_: print `BASE_BRANCH={value}` explicitly. Resolve `DEFAULT_BRANCH` from the most authoritative source available — `git symbolic-ref refs/remotes/origin/HEAD --short` (strip `origin/` prefix), else a local `main`, else a local `master`. If none resolve, skip the warning (no nag in repos without a clear default). When `BASE_BRANCH ≠ DEFAULT_BRANCH`: confirm in default mode; in `AUTO_MODE`, proceed but log `WARNING: BASE_BRANCH={value} is not the repo's default branch ({DEFAULT_BRANCH}) — all stories will land here.`. Catches the "I thought I was on a different branch" silent-corruption case.
 
 2. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
 
@@ -164,6 +162,8 @@ Load `references/team-mode-orchestration.md` for the full orchestration content 
 
 For each phase: update project state (same as Step 3a), then create and manage the Agent Team pipeline per `team-mode-orchestration.md`. The bundle is already fully specced — no per-phase spec generation step.
 
+**Pre-create-and-verify isolation** _(when `USE_WORKTREE=true`)_: worktree lifecycle runs through bash scripts, never through `EnterWorktree` / `ExitWorktree` / `Agent({isolation:"worktree"})` — harness isolation is unreliable under `team_name`. Flow: `create-worktree.sh` (orchestrator, pre-spawn per `impl-*`) → `verify-in-worktree.sh` (implementer HARD GATE, first action every turn) → `merge-worktree.sh` with guards G1/G2/G3 (orchestrator, Merge Wave) → `teardown-worktrees.sh` (Final Worktree Teardown). See `references/team-mode-orchestration.md`.
+
 **Gate**: All phases complete, or remaining work is blocked only by recorded failed/skipped stories.
 
 
@@ -231,17 +231,14 @@ If any story failed or was skipped:
 ## Per-Story Worker Prompt
 
 Single canonical prompt template for all per-story sub-agent invocation sites. Placeholders:
-- `{STORY_ID}` – story identifier from plan (e.g. `S03`)
-- `{FIS_PATH}` – absolute path to the story's FIS file
-- `{PLAN_PATH}` – absolute path to `plan.json`
-- `{BASE_BRANCH}` – git branch resolved at run start
-- `{MODE}` – one of `default` / `team` / `re-delegation` / `final-review`
-- `{WORKTREE_PATH}` – resolved worktree path (team mode only)
-- `{REVIEW_FINDINGS_PATH}` – path to prior review findings (re-delegation only)
-- `{AUTO_SUFFIX}` – `" --auto"` when `AUTO_MODE=true`, else `""`
-- `{WORKTREE_SUFFIX}` – `" --defer-shared-writes"` when `USE_WORKTREE=true`, else `""` (team mode; pre-substituted per Team Setup)
-- `{SHARED_WRITE_SUFFIX}` – `" --defer-shared-writes"` when `--from-issue` or worktree mode defers local plan/state writes, else `""`
-- `{CODE_DIR_ABS}` – resolved absolute path to the code repository (final-review mode)
+- `{STORY_ID}`, `{FIS_PATH}`, `{PLAN_PATH}`, `{BASE_BRANCH}` – plan/story identity (FIS, plan, branch as absolute path/value).
+- `{MODE}` – `default` / `team` / `re-delegation` / `final-review`.
+- `{WORKTREE_PATH_ABS}` – absolute worktree path captured from `create-worktree.sh` (team + worktree only; empty otherwise).
+- `{WORKTREE_PRELUDE}` – orchestrator-composed block injected ahead of the per-story body. When `{WORKTREE_PATH_ABS}` is non-empty: the substituted value is a leading blank line + `cd {WORKTREE_PATH_ABS}` + `bash ${CLAUDE_SKILL_DIR}/scripts/verify-in-worktree.sh {STORY_ID} {WORKTREE_PATH_ABS}` + STOP-on-anything-other-than-`VERIFY_OK` + absolute-paths-only mandate + trailing blank line. Empty for non-worktree runs (template collapses flush — see the template below). **Kept in sync** with the Implementer system-prompt step 1 in `references/team-mode-orchestration.md` (`## Implementer Prompt` → `Per task, worktree mode` → step 1): the prelude is the per-task injection, the system-prompt step is the durable rule; both encode the same verify-first-or-STOP contract. Edit both together.
+- `{AUTO_SUFFIX}` – `" --auto"` when `AUTO_MODE=true`, else `""`.
+- `{WORKTREE_SUFFIX}` / `{SHARED_WRITE_SUFFIX}` – `" --defer-shared-writes"` when defer applies (worktree mode or `--from-issue`), else `""`.
+- `{REVIEW_FINDINGS_PATH}` – prior review findings (re-delegation only).
+- `{CODE_DIR_ABS}` – absolute code repo path (final-review mode).
 
 For the no-double-write contract, see **Status-Write Contract** above.
 
@@ -249,7 +246,7 @@ For the no-double-write contract, see **Status-Write Contract** above.
 ```
 Story {STORY_ID} | Mode: {MODE}
 Plan: {PLAN_PATH} | FIS: {FIS_PATH}
-
+{WORKTREE_PRELUDE}
 1. /andthen:exec-spec {FIS_PATH}{AUTO_SUFFIX}{SHARED_WRITE_SUFFIX}
 2. If exec-spec succeeded, run `/andthen:quick-review{AUTO_SUFFIX} on the changes`. If it returned `BLOCKED:` or a Failed Story Report, stop this story and report it to the orchestrator.
 
