@@ -55,7 +55,7 @@ Notes:
     alongside the andthen: → <prefix> namespace rewrite.
   - Existing files are overwritten in place, but stale files are not deleted.
   - Skipping the Claude Code install on a later run does NOT remove previously
-    installed <claude-skills-dir>/<prefix>* —
+    installed <claude-skills-dir>/<prefix>* –
     delete those manually if switching back to the Claude Code plugin as the
     primary path or relocating the install.
 EOF
@@ -229,7 +229,7 @@ _canonicalize_dir() {
         # Fail loud rather than fall through to the original (relative)
         # path. The Codex-tier ${CLAUDE_SKILL_DIR} rewrite bakes this path
         # into installed .md files, so a relative result here would silently
-        # produce broken bash invocations at runtime — the exact failure
+        # produce broken bash invocations at runtime – the exact failure
         # the comment block above this function says it is preventing.
         if [ "$_cd_mkdir_status" -ne 0 ] && [ -n "$_cd_mkdir_err" ]; then
           printf 'error: cannot canonicalize directory %s (mkdir failed: %s)\n' "$_cd_path" "$_cd_mkdir_err" >&2
@@ -253,7 +253,7 @@ if [ "$install_claude_user" -eq 1 ]; then
 
   # Claude Code plugin cache layout is not a stable public contract. Check the
   # current (cache/<marketplace>/andthen) layout plus a direct cache/andthen
-  # fallback. Best-effort only — if Claude Code changes the path entirely, the
+  # fallback. Best-effort only – if Claude Code changes the path entirely, the
   # warning silently stops firing and the user can still see the plugin via
   # /plugin list.
   _plugin_found=0
@@ -275,7 +275,7 @@ if [ "$install_claude_user" -eq 1 ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Canonical shared assets at plugin/references/ — consumed by multiple skills.
+# Canonical shared assets at plugin/references/ – consumed by multiple skills.
 # Inlined into each consuming skill's references/ at install time so the
 # installed bundle is self-contained (no ${CLAUDE_PLUGIN_ROOT} at runtime).
 # ---------------------------------------------------------------------------
@@ -341,7 +341,7 @@ _validate_plugin_root_syntax() {
   _vprs_found=0
   # Match the bare form: $CLAUDE_PLUGIN_ROOT followed by anything other than `{`.
   # `[^{]` is required (not `[^}]`) to also catch end-of-line / end-of-file
-  # occurrences — `[^}]` requires *some* character to follow and silently
+  # occurrences – `[^}]` requires *some* character to follow and silently
   # passes a bare token at EOL, which would violate the strict-braces rule.
   _vprs_list=$(grep -rElZ '\$CLAUDE_PLUGIN_ROOT([^{]|$)' \
     "$repo_root/plugin/skills" \
@@ -364,11 +364,11 @@ _validate_plugin_root_syntax() {
 # Strict-syntax validation: reject bare $CLAUDE_SKILL_DIR (no braces). Only
 # the braces form ${CLAUDE_SKILL_DIR} is accepted, mirroring the
 # ${CLAUDE_PLUGIN_ROOT} rule. This is the Anthropic-documented substitution
-# for skill-bundled resources (scripts/, templates/, references/) — see
+# for skill-bundled resources (scripts/, templates/, references/) – see
 # code.claude.com/docs/en/skills.md "Available string substitutions".
 # ---------------------------------------------------------------------------
 _validate_skill_dir_syntax() {
-  # See _validate_plugin_root_syntax above — `([^{]|$)` (not `[^}]`) catches
+  # See _validate_plugin_root_syntax above – `([^{]|$)` (not `[^}]`) catches
   # bare tokens at end-of-line / end-of-file.
   _vsds_list=$(grep -rElZ '\$CLAUDE_SKILL_DIR([^{]|$)' \
     "$repo_root/plugin/skills" \
@@ -433,7 +433,7 @@ inline_canonical_assets() {
 # rewrite_plugin_root_file: rewrite ${CLAUDE_PLUGIN_ROOT}/references/<asset>
 # to a local path that resolves correctly from the consumer file's location.
 #   - Files in <skill>/references/ (immediate children) → <asset>
-#     (bare filename, sibling-relative — unambiguous under both file-relative
+#     (bare filename, sibling-relative – unambiguous under both file-relative
 #     and skill-root-relative semantics).
 #   - All other files (skill root, and any other depth-1+ subdir like
 #     templates/, scripts/) → references/<asset> (skill-root-relative).
@@ -542,7 +542,7 @@ rewrite_namespace_file() {
 
 rewrite_namespace_dir() {
   # Use locally-unique names so this does not clobber the outer for-loop's
-  # `dir` variable — POSIX sh has no function-local scope.
+  # `dir` variable – POSIX sh has no function-local scope.
   _rwns_dir="$1"
   _rwns_target="$2"
   # Resolve the file list up-front so `set -e` catches find errors. In a
@@ -564,11 +564,11 @@ rewrite_namespace_dir() {
 # under the skill: the broad form would silently rewrite incidental "AndThen"
 # substrings in unrelated yaml (manifests, fixtures, URLs like
 # github.com/AndThen/...) introduced later. Field-level scoping inside the
-# file is left to sed's substring match — acceptable because the file format
+# file is left to sed's substring match – acceptable because the file format
 # is small and fully ours.
 #
 # The brand is escaped for sed-replacement context (\, the chosen delimiter |,
-# and & — which would otherwise expand to the matched text). The empty-brand
+# and & – which would otherwise expand to the matched text). The empty-brand
 # case is rejected at arg-parse, so this helper does not need to guard it.
 rewrite_display_brand_dir() {
   _rdb_dir="$1"
@@ -604,7 +604,7 @@ for dir in "$repo_root/plugin/skills"/*; do
       ;;
   esac
 
-  # ~/.agents/skills install (Codex discovery) — rewrite with $ sigil form.
+  # ~/.agents/skills install (Codex discovery) – rewrite with $ sigil form.
   # ${CLAUDE_SKILL_DIR} has no Codex equivalent, so it is replaced with the
   # absolute install path of this skill at install time.
   copy_dir_contents "$dir" "$skills_dir/$target_name"
@@ -622,7 +622,7 @@ for dir in "$repo_root/plugin/skills"/*; do
   fi
   skills_count=$((skills_count + 1))
 
-  # Optional: Claude Code user-level skills — rewrite with / slash-command form.
+  # Optional: Claude Code user-level skills – rewrite with / slash-command form.
   # ${CLAUDE_SKILL_DIR} is left intact: Claude Code substitutes it natively at
   # runtime for both plugin-tier and ~/.claude/skills/ user-tier installs.
   if [ "$install_claude_user" -eq 1 ]; then

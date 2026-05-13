@@ -44,7 +44,7 @@ Model-agnostic patterns for building reliable autonomous agents and slash comman
 ## Core Principles
 
 ### 1. Intent > Context > Prompts
-What you're ultimately engineering is **intent** — goals, constraints, and success criteria that tell the AI *what must be true*, not *what code to write*. Context provides the information environment. Prompts are just the mechanism.
+What you're ultimately engineering is **intent** – goals, constraints, and success criteria that tell the AI *what must be true*, not *what code to write*. Context provides the information environment. Prompts are just the mechanism.
 - Encode outcomes and goals, not implementation steps
 - Progressive disclosure (just-in-time loading)
 - Tool-mediated exploration
@@ -250,7 +250,7 @@ For complex reasoning:
 5. Combine solutions
 
 ### Reasoning Models vs Standard
-Reasoning models (o-series, Claude with extended thinking) have built-in chain-of-thought — **do not** add explicit "think step by step" prompting, as it wastes tokens and can degrade output.
+Reasoning models (o-series, Claude with extended thinking) have built-in chain-of-thought – **do not** add explicit "think step by step" prompting, as it wastes tokens and can degrade output.
 
 - **Reasoning models**: Direct task instructions only. Model handles its own thinking process.
 - **Standard models**: Still benefit from explicit CoT prompting ("think step by step", "break this down").
@@ -307,7 +307,7 @@ Both major providers support automatic prompt caching with ~90% cost savings on 
 3. Reference documents (cached)
 4. Dynamic conversation history (not cached)
 
-This ordering maximizes cache hit rates. No code changes needed — caching is automatic when content prefix matches between requests.
+This ordering maximizes cache hit rates. No code changes needed – caching is automatic when content prefix matches between requests.
 
 ### Sub-Agent Architecture
 **Main Agent** (orchestrator): High-level planning, coordination, lightweight state
@@ -357,8 +357,8 @@ Models understand and retry correctly when given clear error messages.
 
 ### Structured Outputs
 Both major providers now support constrained decoding for guaranteed schema compliance:
-- **`strict: true`** on tool/function definitions — model output guaranteed to match schema
-- **`json_schema`** output format — force entire response into a JSON schema
+- **`strict: true`** on tool/function definitions – model output guaranteed to match schema
+- **`json_schema`** output format – force entire response into a JSON schema
 
 This eliminates JSON parsing errors and schema violations in production. See model-specific docs for implementation details:
 - [Claude: Structured Outputs](PROMPT-ENGINEERING-GUIDELINES-CLAUDE.md#structured-outputs-ga)

@@ -1,6 +1,6 @@
 # Development and Architecture Guidelines
 
-These guidelines supplement — not restate — standard engineering principles. Apply SOLID, DRY, KISS, and YAGNI by default. These rules address architectural judgment and project-specific standards.
+These guidelines supplement – not restate – standard engineering principles. Apply SOLID, DRY, KISS, and YAGNI by default. These rules address architectural judgment and project-specific standards.
 
 
 ## Architecture Decision-Making
@@ -23,16 +23,16 @@ Evaluate architecture using [CUPID](https://cupid.dev/):
 ### Scalability and Resilience
 - Prefer stateless services, horizontal scaling, and caching
 - Design for failure: circuit breakers, retries with backoff, bulkheads
-- Contain blast radius — one component's failure must not cascade
+- Contain blast radius – one component's failure must not cascade
 
 
 ## Coding Standards
 
 - Use the simplest solution that meets the requirements
 - Check for existing similar functionality before writing new code
-- Write tests for critical paths; prefer TDD. If you introduce non-trivial branching logic, put a test on it — even when no scenario covers it (Beyonce Rule). Temporary tests during implementation are fine if removed after
+- Write tests for critical paths; prefer TDD. If you introduce non-trivial branching logic, put a test on it – even when no scenario covers it (Beyonce Rule). Temporary tests during implementation are fine if removed after
 - Keep source files focused on a single concern
-- Document only the "why" — never the obvious "what"
+- Document only the "why" – never the obvious "what"
 - Use latest stable versions of frameworks and libraries
 - Never overwrite `.env` files without explicit confirmation
 
@@ -40,7 +40,7 @@ Evaluate architecture using [CUPID](https://cupid.dev/):
 ## Workflow
 
 - Work in increments: break tasks into smaller, verifiable steps
-- Validate understanding before implementation — re-read requirements, confirm assumptions
+- Validate understanding before implementation – re-read requirements, confirm assumptions
 - Use up-to-date documentation (Context7 MCP) for API references
 - Delegate complex subtasks to sub-agents; main agent orchestrates
 - Update README.md only when features, dependencies, or setup steps change
@@ -53,12 +53,12 @@ When researching APIs, libraries, or frameworks, prioritize sources in this orde
 3. **Web standards references** (MDN, web.dev, language specs)
 4. **Compatibility references** (caniuse.com, platform support matrices)
 
-**Do not rely on**: Stack Overflow answers, blog tutorials, AI-generated summaries, or model training data recall — these may reflect outdated APIs, deprecated patterns, or incorrect usage. When in doubt, verify against the official source.
+**Do not rely on**: Stack Overflow answers, blog tutorials, AI-generated summaries, or model training data recall – these may reflect outdated APIs, deprecated patterns, or incorrect usage. When in doubt, verify against the official source.
 
 
 ## Visual UI Validation
 
-UI features require visual validation — code review alone is insufficient:
+UI features require visual validation – code review alone is insufficient:
 - Capture screenshots across target devices and orientations
 - Verify touch targets, theme consistency, and responsive behavior
 - Use the `ui-ux-design` skill (review mode) for systematic checks
@@ -69,5 +69,5 @@ UI features require visual validation — code review alone is insufficient:
 - **NEVER** create duplicate files with version suffixes (`file_v2.xyz`, `file_new.xyz`)
 - **NEVER** modify core frameworks without explicit instruction
 - **NEVER** create a branch unless explicitly instructed
-- **NEVER** use `git rebase --skip` — causes data loss; ask the user for help with rebase conflicts
+- **NEVER** use `git rebase --skip` – causes data loss; ask the user for help with rebase conflicts
 - Avoid major architectural changes to working features unless explicitly instructed

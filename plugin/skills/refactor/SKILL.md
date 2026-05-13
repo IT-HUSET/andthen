@@ -23,15 +23,15 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--
 - **Tests must pass** before and after refactoring
 - Match the codebase's existing conventions and style – read the project guidelines before making style judgments
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Refactor-specific `BLOCKED:` triggers: red baseline (tests/build/lint failing before any refactor edit), no defensible scope derivable from arguments or recent git history, ambiguity between two or more incompatible refactor directions with no conservative default.
-- **Anti-rationalization** — refactor's job is Boy Scout cleanup *within the user's requested scope* (per CRITICAL RULES); widening to other modules or files mid-flow is the failure mode. Reject these common rationalizations:
-  - "I'll refactor this adjacent module too while I'm here" — that widens scope; leave it for a separate refactor pass.
-  - "This behavior change is obviously safe" — refactors preserve behavior exactly; behavior changes are a separate commit.
-  - "Tests can come later" — a green baseline before and after is the refactor's only safety net.
-  - "Three clever lines beat six clear ones" — readability is the goal; compactness is not.
+- **Anti-rationalization** – refactor's job is Boy Scout cleanup *within the user's requested scope* (per CRITICAL RULES); widening to other modules or files mid-flow is the failure mode. Reject these common rationalizations:
+  - "I'll refactor this adjacent module too while I'm here" – that widens scope; leave it for a separate refactor pass.
+  - "This behavior change is obviously safe" – refactors preserve behavior exactly; behavior changes are a separate commit.
+  - "Tests can come later" – a green baseline before and after is the refactor's only safety net.
+  - "Three clever lines beat six clear ones" – readability is the goal; compactness is not.
 
 ### Refactoring Philosophy
 
-Favor **readable, explicit code** over compact or clever solutions. Reduce complexity, improve naming, eliminate duplication where it genuinely helps, and respect balance — don't over-simplify into hard-to-debug cleverness or remove helpful abstractions.
+Favor **readable, explicit code** over compact or clever solutions. Reduce complexity, improve naming, eliminate duplication where it genuinely helps, and respect balance – don't over-simplify into hard-to-debug cleverness or remove helpful abstractions.
 
 
 ## GOTCHAS
@@ -61,7 +61,7 @@ Favor **readable, explicit code** over compact or clever solutions. Reduce compl
 - Run existing tests to confirm passing state
 - Run linting/type checks
 - Note current state for regression comparison
-- In `AUTO_MODE`, a red baseline triggers `BLOCKED:` (per INSTRUCTIONS) rather than Stop-the-Line iteration — refactor never tries to fix the baseline itself
+- In `AUTO_MODE`, a red baseline triggers `BLOCKED:` (per INSTRUCTIONS) rather than Stop-the-Line iteration – refactor never tries to fix the baseline itself
 
 **Gate**: Scope defined, baseline passing
 
@@ -76,9 +76,11 @@ Analyze the scoped code for improvement opportunities:
 - Readability and maintainability issues
 - Simplification opportunities
 
-Before proposing removal of any code, understand why it exists — check callers, tests, and git history. Never remove what you don't understand (Chesterton's Fence).
+Before proposing removal of any code, understand why it exists – check callers, tests, and git history. Never remove what you don't understand (Chesterton's Fence).
 
-Produce a prioritized list of improvements. Ask user for confirmation before proceeding if changes are substantial. In `AUTO_MODE`, do not pause for confirmation — proceed with the conservative, lowest-risk subset (drop genuinely risky or scope-widening items) and record the deferred items in the completion summary.
+Cross-check against the `Architecture` document (see **Project Document Index**) if it exists – refactors should respect documented component boundaries and not silently change architectural shape. A refactor that crosses boundaries belongs in `andthen:architecture --mode advise` first, not bundled into this run.
+
+Produce a prioritized list of improvements. Ask user for confirmation before proceeding if changes are substantial. In `AUTO_MODE`, do not pause for confirmation – proceed with the conservative, lowest-risk subset (drop genuinely risky or scope-widening items) and record the deferred items in the completion summary.
 
 
 ### Phase 3: Refactoring
@@ -92,7 +94,7 @@ Execute improvements from the prioritized list:
 
 ### Phase 4: Verification
 
-Run in **parallel sub-agents**. Each sub-agent prompt must include the relevant command from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) read in Phase 1.2 — sub-agents start with fresh context and do not inherit Phase 1.2's reads. Fall back to discovery only when the document was missing.
+Run in **parallel sub-agents**. Each sub-agent prompt must include the relevant command from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) read in Phase 1.2 – sub-agents start with fresh context and do not inherit Phase 1.2's reads. Fall back to discovery only when the document was missing.
 
 1. **Tests**: Run full test suite – all tests must pass
 2. **Code review**: Invoke the `andthen:review` skill with `--mode code` to verify improvements and catch regressions

@@ -21,9 +21,6 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 
 ## INSTRUCTIONS
 
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including but not limited to:
-  - **Foundational Rules and Guardrails**
-  - **Foundational Development Guidelines and Standards**
 - **Diagram generation only** – create the `.excalidraw` source and rendered PNG, not implementation code
 - **Resolve references first** – read the style guide, element format, and composition playbook before writing a single shape:
   1. Project's `Diagram Style Guide` (from the **Project Document Index**) if present, else `references/style-guide.md`
@@ -44,7 +41,7 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 - **Uniform grid = AI-aesthetic failure** – 6+ shapes with identical `(type, width, height, backgroundColor)` is the defining generic look. Apply the Anti-Uniformity Rule from the style guide: anchor shape every 3–4 items, alternating row heights, or an evidence artifact insertion.
 - **Implied connections** – Phase headers sitting above their children, or two boxes near each other, communicate nothing. Every relationship needs an **explicit arrow** or a line+text tree structure.
 - **Ellipses/diamonds are hungry** – for the same label, an ellipse needs ~1.4× a rectangle and a diamond needs ~2×. Hard-coding identical widths produces clipping. See `element-format.md` § Label Auto-Sizing.
-- **Label shorthand vs portable form** – the `label` shorthand is render-template-only: writing a file with `label:` fields on shapes produces empty boxes in `app.excalidraw.com`. If your specified `width` is smaller than the label needs, `redrawTextBoundingBox` also silently expands the container, collapsing your size cascade. Always over-size (cascade numbers are floors), and always export via `window.getConvertedJSON()` before saving — see Phase 5 portable-save contract.
+- **Label shorthand vs portable form** – the `label` shorthand is render-template-only: writing a file with `label:` fields on shapes produces empty boxes in `app.excalidraw.com`. If your specified `width` is smaller than the label needs, `redrawTextBoundingBox` also silently expands the container, collapsing your size cascade. Always over-size (cascade numbers are floors), and always export via `window.getConvertedJSON()` before saving – see Phase 5 portable-save contract.
 - **Arrow routing** – arrows crossing through elements. Add intermediate waypoints in the `points` array.
 - **Too small text** – minimum `fontSize: 16` for body, `20` for titles. Below 14 is unreadable. Scale up at XL/XXL canvas sizes.
 - **JSON truncation** – generating the entire diagram in one pass hits output token limits. Build section-by-section for non-trivial diagrams.
@@ -52,7 +49,7 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 - **Forgetting `fillStyle: "solid"`** – without it, `backgroundColor` won't show.
 - **Emoji in text** – emoji don't render in Excalidraw's font. Use shapes instead.
 - **Off-grid coordinates** – snap all `x`, `y`, `width`, `height` to multiples of 20. Arbitrary values (x: 143, 287) produce an "almost aligned" look that reads as sloppy.
-- **ES-module readiness race** – on cold load, the `esm.sh` module graph for `@excalidraw/excalidraw` takes 30s+, which exceeds the 25s default `agent-browser wait` timeout. `AGENT_BROWSER_DEFAULT_TIMEOUT` and `--timeout` are **not honored by `wait --fn`** (verified empirically). Both `wait --text` and `wait --fn` do exit non-zero on timeout, so they fail loudly — but that's still a failure you have to work around. The working pattern is the bash polling loop in Phase 3.2. Also: `sleep 2` only appears to work because the module is cached from a prior session — do not assume it.
+- **ES-module readiness race** – on cold load, the `esm.sh` module graph for `@excalidraw/excalidraw` takes 30s+, which exceeds the 25s default `agent-browser wait` timeout. `AGENT_BROWSER_DEFAULT_TIMEOUT` and `--timeout` are **not honored by `wait --fn`** (verified empirically). Both `wait --text` and `wait --fn` do exit non-zero on timeout, so they fail loudly – but that's still a failure you have to work around. The working pattern is the bash polling loop in Phase 3.2. Also: `sleep 2` only appears to work because the module is cached from a prior session – do not assume it.
 
 
 ## WORKFLOW
@@ -105,9 +102,9 @@ Pick an archetype from `references/composition-playbook.md` (Pipeline, Architect
 #### 2.1 Resolve References
 Read, in this order:
 1. Project-specific diagram style guide from the Document Index, if present
-2. Otherwise `references/style-guide.md` — colors, size cascade, signal badges, density gradient, Anti-Uniformity Rule, **Shape Vocabulary (§ 5 Shape Styling)**, and **Design Principles family (§ 12: Structure/Specificity litmus tests, Evidence Artifacts, Multi-Zoom Rule, Text Placement Strategy, Box-budget rule)**
-3. `references/element-format.md` — JSON shape, label auto-sizing math, font metrics
-4. `references/composition-playbook.md` — archetype recipes (pipeline / architecture / taxonomy / lifecycle / comparison) AND **Pattern Catalog (§ Visual Patterns: Fan-out, Convergence, Tree, Timeline, Spiral/Cycle, Cloud, Assembly Line, Side-by-Side, Gap/Break)**
+2. Otherwise `references/style-guide.md` – colors, size cascade, signal badges, density gradient, Anti-Uniformity Rule, **Shape Vocabulary (§ 5 Shape Styling)**, and **Design Principles family (§ 12: Structure/Specificity litmus tests, Evidence Artifacts, Multi-Zoom Rule, Text Placement Strategy, Box-budget rule)**
+3. `references/element-format.md` – JSON shape, label auto-sizing math, font metrics
+4. `references/composition-playbook.md` – archetype recipes (pipeline / architecture / taxonomy / lifecycle / comparison) AND **Pattern Catalog (§ Visual Patterns: Fan-out, Convergence, Tree, Timeline, Spiral/Cycle, Cloud, Assembly Line, Side-by-Side, Gap/Break)**
 
 These files are the source of truth for visual styling, JSON shape rules, and design quality. Your Layout Contract from Phase 1.5 keyed off them; now you are executing it.
 
@@ -172,7 +169,7 @@ await window.renderDiagram(data);
 JSEOF
 
 # 4. Screenshot the result. Use AGENT_BROWSER_FULL=true for a full-page capture
-#    at the diagram's native dimensions — no viewport sizing required.
+#    at the diagram's native dimensions – no viewport sizing required.
 AGENT_BROWSER_FULL=true agent-browser screenshot <OUTPUT_DIR>/<name>.png
 ```
 
@@ -234,7 +231,7 @@ Invoke the `andthen:visual-validation` skill in a sub-agent with the latest PNG,
 
 ### Phase 5: Output (MANDATORY – Portable Save)
 
-Save the **portable / expanded** form to `<name>.excalidraw`, plus the PNG. The file you wrote in Phase 2.2 used the `label` shorthand and (for standalone text) likely has missing/undersized `width`/`height`. Those defects are invisible in the render template but break the file for every other consumer — most notably `app.excalidraw.com`, which shows empty shapes and clipped text.
+Save the **portable / expanded** form to `<name>.excalidraw`, plus the PNG. The file you wrote in Phase 2.2 used the `label` shorthand and (for standalone text) likely has missing/undersized `width`/`height`. Those defects are invisible in the render template but break the file for every other consumer – most notably `app.excalidraw.com`, which shows empty shapes and clipped text.
 
 Export the expanded form:
 
@@ -247,7 +244,7 @@ agent-browser eval "window.getConvertedJSON()" > <OUTPUT_DIR>/<name>.excalidraw
 
 Do NOT wrap in `JSON.stringify()` – `agent-browser eval` already JSON-encodes its return value, and `getConvertedJSON` returns a plain object.
 
-**Verify** by opening the saved file in `app.excalidraw.com` (or visually inspect the JSON for `label:` on shapes — if any remain, the export failed and you saved the wrong form).
+**Verify** by opening the saved file in `app.excalidraw.com` (or visually inspect the JSON for `label:` on shapes – if any remain, the export failed and you saved the wrong form).
 
 
 ## OUTPUT

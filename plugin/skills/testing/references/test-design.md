@@ -1,4 +1,4 @@
-# Test Design — Behavior Over Implementation
+# Test Design – Behavior Over Implementation
 
 Sources: Steve Freeman & Nat Pryce (*Growing Object-Oriented Software, Guided by Tests*, 2009), Kent C. Dodds (*Testing Trophy*), Dave Farley (diagnosability, friction-as-feedback), Kent Beck (*Test Desiderata*, 2019).
 
@@ -9,7 +9,7 @@ Home mode: `write`. Also load for `tdd` (naming, assertions) and `strategy` (aud
 
 **Test behavior, not implementation.**
 
-A good test asserts what the code *should do* from a caller's perspective. A bad test asserts *how it does it*. They look identical when passing — the difference shows up on refactor.
+A good test asserts what the code *should do* from a caller's perspective. A bad test asserts *how it does it*. They look identical when passing – the difference shows up on refactor.
 
 A test is a promise to your future self. The promise worth keeping is "this behavior still works"; not "this variable is still named `foo`."
 
@@ -18,7 +18,7 @@ Dodds: *"The more your tests resemble the way your software is used, the more co
 
 ## Six signals of a behavior-first test
 
-1. **Assertions reference observable outputs** — return values, rendered UI, emitted events, HTTP responses, persisted records. Not private fields, call order, or internal method invocations.
+1. **Assertions reference observable outputs** – return values, rendered UI, emitted events, HTTP responses, persisted records. Not private fields, call order, or internal method invocations.
 2. **Survives a behavior-preserving refactor.** If renaming a private method breaks the test, the test is reading implementation.
 3. **Fails in one obvious way.** One clear failure beats three tangentially related reds.
 4. **Name reads as a spec sentence.** `rejects_withdrawal_when_balance_insufficient`, not `test_withdraw_3`.
@@ -29,7 +29,7 @@ Dodds: *"The more your tests resemble the way your software is used, the more co
 ## Six signals of an implementation-coupled test
 
 1. Names like `test_method_X_calls_helper_Y`.
-2. Assertions on internal call counts (unless the repetition *is* the behavior — e.g. retries).
+2. Assertions on internal call counts (unless the repetition *is* the behavior – e.g. retries).
 3. Rewrites required after a rename, reorder, or extract-method.
 4. Assertions on output formatting nothing downstream consumes (e.g. log whitespace).
 5. Reaches private APIs via reflection, `@ts-ignore`, friend-class tricks.
@@ -47,35 +47,35 @@ At write time:
 3. **Custom messages for non-obvious values.** `expect(hash).toBe(expectedHash, "SHA-256 of known fixture")` beats a bare hex literal.
 
 
-## Arrange / Act / Assert — with a warning
+## Arrange / Act / Assert – with a warning
 
 Most tests should follow AAA. **The Arrange block is where tests leak implementation.**
 
 If Arrange is larger than Act + Assert combined, one of these is true:
-- Wrong level — promote to integration.
-- Too many responsibilities in the unit — split it.
-- Setup should live in a named fixture — `a_customer_with_overdue_invoices`, not `setup_db_with_data_3`.
+- Wrong level – promote to integration.
+- Too many responsibilities in the unit – split it.
+- Setup should live in a named fixture – `a_customer_with_overdue_invoices`, not `setup_db_with_data_3`.
 
 
 ## Mock minimization
 
 Farley: mocks are a design tool, not a test tool. Each mock declares "this collaborator's behavior is not part of what I'm proving." If the mock's own behavior needs a spec, you're testing the mock.
 
-- **Mock at system edges.** Filesystem, network, clock, randomness — yes. Your own repositories and services — usually no; use a real implementation with a test fixture.
+- **Mock at system edges.** Filesystem, network, clock, randomness – yes. Your own repositories and services – usually no; use a real implementation with a test fixture.
 - **Elaborate stubbing encodes the call graph.** Replace with an in-memory fake or promote to integration.
 - **Never mock the unit under test.** If you need to, you've mis-identified the unit.
 
 
 ## Tests as executable documentation
 
-- Write tests that read like prose — skimmers (new hires, reviewers) parse sentences faster than code.
+- Write tests that read like prose – skimmers (new hires, reviewers) parse sentences faster than code.
 - `// why` comments on non-obvious assertions: *"`Date.now()` not mocked; fixture uses a real TTL."* Three seconds to write, saves the next reader five minutes.
 - Group by scenario (`describe("when account has overdue invoices")`), not by method (`describe("Account.charge()")`). Scenarios match how users think.
 
 
-## Beck's Test Desiderata — audit rubric
+## Beck's Test Desiderata – audit rubric
 
-Twelve properties. No test scores perfectly on all of them — they trade — but the list gives the vocabulary for *why* a test feels wrong.
+Twelve properties. No test scores perfectly on all of them – they trade – but the list gives the vocabulary for *why* a test feels wrong.
 
 | Desideratum | Meaning | Common violation |
 |---|---|---|
@@ -94,12 +94,12 @@ Twelve properties. No test scores perfectly on all of them — they trade — bu
 
 Use in `strategy` mode to audit existing suites; in `write` mode as a pre-commit self-check.
 
-Trade-offs are real — Fast vs Predictive, Specific vs Composable. The craft is knowing which your context tolerates.
+Trade-offs are real – Fast vs Predictive, Specific vs Composable. The craft is knowing which your context tolerates.
 
 
 ## Domain-specific patterns
 
-- **Property-based testing** (hypothesis, fast-check, proptest) — for pure-ish functions with too-large input spaces. Specify invariants; the framework finds counter-examples. Good for parsers, serialization, ordering, idempotency.
-- **Golden / snapshot tests** — for rendered output (HTML, diagrams, formatted strings). Dangerous as defaults; bugs sail through reviewer-rubber-stamped snapshot updates. Require explicit updates, not `--update-all`.
-- **Contract tests** — at service boundaries. Both sides assert against a shared contract, not each other's mocks. Avoids mock-drift in microservice suites.
-- **Type-level tests** (TypeScript, `expectTypeOf` / `tsd`) — for libraries where the type *is* the contract. Failure is a type error, not a runtime assertion.
+- **Property-based testing** (hypothesis, fast-check, proptest) – for pure-ish functions with too-large input spaces. Specify invariants; the framework finds counter-examples. Good for parsers, serialization, ordering, idempotency.
+- **Golden / snapshot tests** – for rendered output (HTML, diagrams, formatted strings). Dangerous as defaults; bugs sail through reviewer-rubber-stamped snapshot updates. Require explicit updates, not `--update-all`.
+- **Contract tests** – at service boundaries. Both sides assert against a shared contract, not each other's mocks. Avoids mock-drift in microservice suites.
+- **Type-level tests** (TypeScript, `expectTypeOf` / `tsd`) – for libraries where the type *is* the contract. Failure is a type error, not a runtime assertion.

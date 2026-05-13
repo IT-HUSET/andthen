@@ -16,7 +16,7 @@ Every finding must follow this format:
 
 **Evidence**: {specific packages, files, metric values, import chains}
 
-**Connascence** (if applicable): {type} — Strength: {N}, Degree: {N}, Locality: {N} -> Severity: {score}
+**Connascence** (if applicable): {type} – Strength: {N}, Degree: {N}, Locality: {N} -> Severity: {score}
 
 **Impact**: {which quality attribute is affected and how}
 
@@ -90,7 +90,7 @@ Text description of the condensed DAG (SCCs collapsed). Note:
 - Any cycles (highlight in findings)
 
 ### 6. Decomposition Recommendations
-If applicable — modules that should be split or merged, based on findings. Reference the specific findings that drive each recommendation.
+If applicable – modules that should be split or merged, based on findings. Reference the specific findings that drive each recommendation.
 
 ### 7. Proposed Fitness Functions
 The primary actionable output. For each:

@@ -6,9 +6,9 @@ Concepts from Ford/Richards ("Software Architecture: The Hard Parts") and Ford/P
 
 ### Definition
 The smallest independently deployable artifact with three simultaneous characteristics:
-1. **High functional cohesion** — unified in purpose (aligned with a DDD bounded context)
-2. **High static coupling** — tightly bound structurally (shared contracts, shared deps resolved at build time)
-3. **Synchronous dynamic coupling** — communicates with internal parts synchronously; async communication across boundaries signals separate quanta
+1. **High functional cohesion** – unified in purpose (aligned with a DDD bounded context)
+2. **High static coupling** – tightly bound structurally (shared contracts, shared deps resolved at build time)
+3. **Synchronous dynamic coupling** – communicates with internal parts synchronously; async communication across boundaries signals separate quanta
 
 ### Counting Quanta
 The quantum count is a diagnostic of true independence:
@@ -23,7 +23,7 @@ The quantum count is a diagnostic of true independence:
 - Do any synchronous call chains require other artifacts to be available?
 
 ### Anti-Patterns
-- **Distributed monolith**: Many deployed services that cannot actually deploy independently — shared schemas, shared libraries with breaking APIs, synchronous chains
+- **Distributed monolith**: Many deployed services that cannot actually deploy independently – shared schemas, shared libraries with breaking APIs, synchronous chains
 - **Nano-services**: Quanta so small that operational overhead (infra, observability, latency) exceeds modularity benefit
 
 ### Trade-offs
@@ -42,7 +42,7 @@ Evolutionary Architecture = Incremental Change + Fitness Functions + Appropriate
 Architecture rarely decays because teams stop caring. It decays because change accumulates faster than the system can absorb it. The job is to keep absorption rate ahead of change rate.
 
 ### Last Responsible Moment
-Delay architectural decisions until the cost of NOT deciding exceeds the cost of deciding. Fitness functions support this by making the cost of deciding later visible — when coupling calcifies without guardrails, the delayed cost becomes apparent.
+Delay architectural decisions until the cost of NOT deciding exceeds the cost of deciding. Fitness functions support this by making the cost of deciding later visible – when coupling calcifies without guardrails, the delayed cost becomes apparent.
 
 ### Sacrificial Architecture
 Deliberately build a system expecting to discard it, because early uncertainty makes premature optimization wasteful.
@@ -101,11 +101,11 @@ Ford/Richards classify distributed workflows across three axes, producing 8 patt
 - Risk: orchestrator becomes bottleneck/single point of failure
 
 **Choreography**:
-- Maximum decoupling — services evolve independently
+- Maximum decoupling – services evolve independently
 - Scales horizontally without coordination
-- Risk: implicit workflow — distributed across event handlers, harder to trace
+- Risk: implicit workflow – distributed across event handlers, harder to trace
 
 ### Connascence Lens on Sagas
-- **RPC-style** services have CoE (execution order) + CoTm (timing) — strong dynamic connascence across boundaries
-- **Event-driven** services have only CoN + CoT (event name and schema) — weak static connascence
+- **RPC-style** services have CoE (execution order) + CoTm (timing) – strong dynamic connascence across boundaries
+- **Event-driven** services have only CoN + CoT (event name and schema) – weak static connascence
 - Event-driven architectures are architecturally superior from a connascence standpoint: they convert CoE and CoTm into CoN and CoT. The cost is eventual consistency and operational complexity.

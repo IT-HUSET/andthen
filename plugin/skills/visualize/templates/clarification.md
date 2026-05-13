@@ -19,7 +19,7 @@ Use when the source is a `requirements-clarification.md` from `andthen:clarify`.
 | [ Stories list + flow steps ]                 [ Note ] [ <> ]|
 +-------------------------------------------------------------+
 | ## Design Decisions                                         |
-| [ Design tree — see diagrams.md#tree ]        [ Note ] [ <> ]|
+| [ Design tree – see diagrams.md#tree ]        [ Note ] [ <> ]|
 | [ Cross-consistency notes ]                                 |
 | [ Resolved decisions table ]                                |
 +-------------------------------------------------------------+
@@ -35,6 +35,20 @@ Use when the source is a `requirements-clarification.md` from `andthen:clarify`.
 ```
 
 
+## KPI Cells
+
+The four-cell `.kpi-band` (rendered per the SKILL.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. Clarification cells in source order:
+
+| Cell | Label | Source |
+|---|---|---|
+| 1 | Open Questions | Count of bullets under `## Open Questions` not marked `(resolved)` / `→` / `lean:` |
+| 2 | Resolved | Count of rows in `## Decisions Log` table |
+| 3 | Decisions | Count of dimension rows in `## Design Decisions` → "Resolved Decisions" table |
+| 4 | Edge Cases | Count of rows in `## Edge Cases` table |
+
+Auto-`.attention`: cell 1 when count > 0.
+
+
 ## Section Renderers
 
 ### Scope → 4-column kanban
@@ -43,24 +57,26 @@ Same renderer as PRD's scope, but include "Not Doing" as a fourth column (don't 
 
 ```css
 .scope-kanban-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-.scope-column.not-doing h3 { color: var(--accent-warn); }
+.scope-column.not-doing h3 { color: var(--warn); }
 ```
 
 ### Design Decisions → tree + notes + table
 
 The headline view of clarification documents. Three subsections:
 
-1. **Design Space Decomposition** — render as inline SVG tree per `diagrams.md#tree`. Below the diagram, include the original ASCII text inside a `<details><summary>View source</summary><pre>...</pre></details>` so the user can verify the diagram matches the source.
-2. **Cross-Consistency Notes** — bulleted list with light styling:
+1. **Design Space Decomposition** – render as inline SVG tree per `diagrams.md#tree`. Below the diagram, include the original ASCII text inside a `<details><summary>View source</summary><pre>...</pre></details>` so the user can verify the diagram matches the source.
+2. **Cross-Consistency Notes** – bulleted list with light styling:
 
    ```css
    .cross-consistency { padding-left: 1rem; border-left: 2px solid var(--text-muted); margin: 1rem 0; }
    .cross-consistency li { color: var(--text-muted); }
-   .cross-consistency li.incompatible::before { content: '✗ '; color: var(--accent-warn); }
-   .cross-consistency li.conditional::before { content: '~ '; color: #bf8700; }
+   .cross-consistency li.incompatible::before { content: '✗ '; color: var(--danger); }
+   .cross-consistency li.conditional::before { content: '~ '; color: var(--warn); }
    ```
 
-3. **Resolved Decisions** — `| Dimension | Choice | Rationale |` table rendered as-is.
+3. **Resolved Decisions** – `| Dimension | Choice | Rationale |` table rendered as-is. **Walkthrough variant:** when the table has ≤ 5 rows AND every Rationale cell's stripped Unicode-code-point count is ≥ 60 (same stripping rule as `prd.md#User Flows` walkthrough trigger – strip leading/trailing whitespace and markdown markers, count code points), render as a numbered **Walkthrough** (see `diagrams.md#walkthrough`) instead of a plain table – each row becomes one step (Dimension as the step title, Choice in mono as the step location, Rationale as the prose).
+
+Open Questions H3 blocks (when present under this section or its own H2) may emit `.risk-map` chips above the list per SKILL.md *Risk-map chips* contract: unresolved → `.attention`, leaning-toward → `.medium`, resolved → `.safe`. Light TL;DR (SKILL.md contract) may appear as the first child of an Open Question H3 block when authored.
 
 ### Edge Cases → highlighted table
 
@@ -90,7 +106,7 @@ function renderCriterion(line) {
 ```css
 .criteria-list { list-style: none; padding: 0; }
 .criteria-list li { padding: 0.4rem 0.6rem; border-left: 3px solid var(--border); margin: 0.3rem 0; background: var(--panel); border-radius: 4px; }
-.criteria-list li.checked { border-left-color: #1a7f37; }
+.criteria-list li.checked { border-left-color: var(--ok); }
 .criteria-list input[type=checkbox] { margin-right: 0.5rem; }
 ```
 
@@ -107,7 +123,7 @@ Render the `| Decision | Rationale | Date |` table; date column muted.
 
 Same approach as PRD: parse → dispatch per H2 substring match → render. Generic Prose fallback for unmatched sections.
 
-The Design Decisions section is the visual centerpiece — make sure it's prominently styled (slightly larger panel, accent border) so reviewers gravitate to the design tree first.
+The Design Decisions section is the visual centerpiece – make sure it's prominently styled (slightly larger panel, accent border) so reviewers gravitate to the design tree first.
 
 
 ## Example Use Cases

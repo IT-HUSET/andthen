@@ -15,7 +15,7 @@ CRUD-centric decomposition by data entity instead of business capability.
 - High fan-in to entity services (load hotspots)
 - Services expose their data model directly as API
 
-**Root cause**: Confusing data relationships for capability boundaries. "Order" in fulfillment context has different properties and lifecycle than "Order" in billing context — treating them as the same entity forces contexts to share a data model.
+**Root cause**: Confusing data relationships for capability boundaries. "Order" in fulfillment context has different properties and lifecycle than "Order" in billing context – treating them as the same entity forces contexts to share a data model.
 
 **Fix**: Decompose by business capability using DDD bounded contexts. Ask "what does this module DO for the business?" not "what data does it own?"
 
@@ -25,7 +25,7 @@ CRUD-centric decomposition by data entity instead of business capability.
 
 ## Distributed Monolith
 
-Split topology but coupled behavior — the worst of both worlds.
+Split topology but coupled behavior – the worst of both worlds.
 
 **Symptoms**:
 - Services require coordinated deployment (can't deploy independently)
@@ -44,7 +44,7 @@ Split topology but coupled behavior — the worst of both worlds.
 
 ## God Module
 
-A module that does too much — high LOC, high coupling, high complexity.
+A module that does too much – high LOC, high coupling, high complexity.
 
 **Detection thresholds** (all three must be present to reduce false positives):
 - LOC > 1000 (relative to sibling packages)
@@ -54,9 +54,9 @@ A module that does too much — high LOC, high coupling, high complexity.
 **Symptoms**:
 - Difficult to understand without reading the entire module
 - Changes frequently for many different reasons (CCP violation)
-- Hard to test in isolation — requires extensive setup
+- Hard to test in isolation – requires extensive setup
 
-**Fix**: Extract cohesive submodules. Apply CCP — group by change driver, not by technical role.
+**Fix**: Extract cohesive submodules. Apply CCP – group by change driver, not by technical role.
 
 **Review question**: Can you state in one sentence what this module does, without the word "and"?
 
@@ -67,8 +67,8 @@ A module that does too much — high LOC, high coupling, high complexity.
 Concrete, stable packages (I ≈ 0, A ≈ 0). Heavily depended upon with no abstractions.
 
 **Characteristics**:
-- High change cost — every modification cascades to many dependents
-- Low extensibility — no interfaces to extend, only concrete classes to modify
+- High change cost – every modification cascades to many dependents
+- Low extensibility – no interfaces to extend, only concrete classes to modify
 - Cascading breakage on any change
 
 **When acceptable**: Infrastructure genuinely stable by nature (database drivers, language runtime bindings). NOT acceptable for business logic or domain rules.
@@ -100,7 +100,7 @@ Abstract, unstable packages (I ≈ 1, A ≈ 1). Nobody depends on them.
 
 Paying distribution costs without distribution benefits.
 
-**Check these conditions** — if most are true, the premium is not justified:
+**Check these conditions** – if most are true, the premium is not justified:
 - Team smaller than ~8 engineers
 - Domain is unclear or greenfield (boundaries not yet understood)
 - No subsystem needs independent scaling
@@ -109,13 +109,13 @@ Paying distribution costs without distribution benefits.
 
 **Fix**: Use a modular monolith with enforced boundaries (Shopify/Packwerk approach). Get the benefits of decomposition (clear boundaries, independent testing) without the distributed systems tax.
 
-**Reference**: Fowler's "MonolithFirst" — start with a well-structured monolith, decompose when you have proven reasons.
+**Reference**: Fowler's "MonolithFirst" – start with a well-structured monolith, decompose when you have proven reasons.
 
 ---
 
 ## Circular Dependencies
 
-Packages that form a dependency cycle — cannot be independently compiled, tested, or deployed.
+Packages that form a dependency cycle – cannot be independently compiled, tested, or deployed.
 
 **Always a finding. Always fix.** There is no acceptable production use of circular package dependencies.
 
@@ -137,7 +137,7 @@ Callers depend on implementation details rather than the declared interface, **o
 - Callers cast to implementation classes
 - Callers depend on behavior that's an implementation artifact (result ordering, side effects)
 - Callers access fields or methods not part of the declared API
-- A single design decision (file format, protocol detail, data layout, algorithm choice) shows up in the shape of multiple module interfaces — so changing it forces coordinated API changes
+- A single design decision (file format, protocol detail, data layout, algorithm choice) shows up in the shape of multiple module interfaces – so changing it forces coordinated API changes
 
 **Fix**: Narrow the public API surface. Move implementation types to `src/`-only access. Add missing methods to the interface so callers don't need to bypass it. For shape-level leakage, relocate the decision so exactly one module's interface reflects it.
 
@@ -155,7 +155,7 @@ Splitting before the domain is understood.
 - Abstractions created for zero consumers
 - "We might need this separation later"
 
-**Fix**: Fowler's "monolith first" — build a well-structured monolith, learn the domain, then decompose when boundaries are clear and the benefit is measurable.
+**Fix**: Fowler's "monolith first" – build a well-structured monolith, learn the domain, then decompose when boundaries are clear and the benefit is measurable.
 
 **Review question**: How many times have these boundaries been redrawn? If more than twice, the domain isn't understood well enough to split.
 
@@ -194,13 +194,13 @@ Dependencies added because a class is available, not because the dependency is a
 
 ## Shallow Module
 
-A module whose interface is about as complex as its implementation — it adds a boundary to cross without abstracting meaningfully (Ousterhout, APoSD Ch. 4).
+A module whose interface is about as complex as its implementation – it adds a boundary to cross without abstracting meaningfully (Ousterhout, APoSD Ch. 4).
 
 **Symptoms**:
 - Interface parameters mirror implementation details (one parameter per internal step, field, or branch)
 - Callers must read the implementation to use the module safely
 - Decomposing an existing module produced N helpers whose signatures together carry as much information as the original body
-- "Classitis" — many small classes/methods each doing a single trivial operation with non-trivial plumbing
+- "Classitis" – many small classes/methods each doing a single trivial operation with non-trivial plumbing
 
 **Fix**: Collapse shallow modules into a deeper one that hides more; or widen the implementation behind the existing interface until the abstraction earns its depth. Prefer fewer, deeper modules over many small ones when cohesion allows.
 
@@ -212,14 +212,14 @@ A module whose interface is about as complex as its implementation — it adds a
 
 ## Pass-Through Method / Layer
 
-A method, class, or layer that forwards to another with the same (or near-identical) parameters, adding no abstraction or meaningful work (Ousterhout, APoSD Ch. 7 — _different layer, different abstraction_).
+A method, class, or layer that forwards to another with the same (or near-identical) parameters, adding no abstraction or meaningful work (Ousterhout, APoSD Ch. 7 – _different layer, different abstraction_).
 
 **Symptoms**:
 - Wrapper methods that just call a delegate with the same arguments
 - Facade classes whose methods match the underlying service 1:1
 - Layer whose every public call is a thin forward to the layer below, with identical types crossing the boundary
 
-**Fix**: Remove the layer, or give it a distinct abstraction (aggregation, translation, policy, caching, authorization — something the caller would actually ask for). If nothing qualifies, the layer is not earning its existence.
+**Fix**: Remove the layer, or give it a distinct abstraction (aggregation, translation, policy, caching, authorization – something the caller would actually ask for). If nothing qualifies, the layer is not earning its existence.
 
 **Review question**: What abstraction does this layer introduce that the layer below does not already provide? If the answer is "none," delete it.
 
@@ -238,4 +238,4 @@ Modules split by the **order operations occur at runtime** rather than by the kn
 
 **Review question**: If the file format (or protocol, or schema) changed, how many of these modules would need edits? More than one ⇒ temporal decomposition masking shared knowledge.
 
-**When acceptable**: True pipeline / stream architectures (compilers, ETL, stream processors) where each stage owns a **distinct abstraction** and communicates through a typed intermediate form. The signal is that each stage's knowledge is disjoint, not shared — a parser that emits AST nodes the next stage consumes is legitimate; a parser that the next stage re-parses or re-interprets is not.
+**When acceptable**: True pipeline / stream architectures (compilers, ETL, stream processors) where each stage owns a **distinct abstraction** and communicates through a typed intermediate form. The signal is that each stage's knowledge is disjoint, not shared – a parser that emits AST nodes the next stage consumes is legitimate; a parser that the next stage re-parses or re-interprets is not.

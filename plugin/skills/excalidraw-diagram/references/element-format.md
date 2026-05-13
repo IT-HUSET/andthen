@@ -192,7 +192,7 @@ When you attach `label: { text: "..." }` to a shape, Excalidraw computes a minim
 | **Rectangle** | `W + 16` | `H + 16` | Baseline – tightest fit |
 | **Ellipse** | `≈ (W + 16) × √2` | `≈ (H + 16) × √2` | Inscribed rectangle geometry – needs **~1.4×** a rectangle |
 | **Diamond** | `2 × (W + 16)` | `2 × (H + 16)` | Rhombus geometry – needs **~2×** a rectangle |
-| **Arrow (labeled)** | `W + 128` | — | Very generous padding |
+| **Arrow (labeled)** | `W + 128` | – | Very generous padding |
 
 **Implication**: do **not** use identical widths for a rectangle and an ellipse that hold the same label. The ellipse will look crammed or force text to overflow.
 

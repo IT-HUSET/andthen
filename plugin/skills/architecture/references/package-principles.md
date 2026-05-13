@@ -18,7 +18,7 @@ Robert C. Martin's six package principles and the quantitative metrics that oper
 
 What belongs in the same package?
 
-### REP — Reuse-Release Equivalence Principle
+### REP – Reuse-Release Equivalence Principle
 > The granule of reuse is the granule of release.
 
 Everything in a package is released and versioned together. If a consumer reuses one class, they accept all classes and all breaking changes.
@@ -27,23 +27,23 @@ Everything in a package is released and versioned together. If a consumer reuses
 - **Anti-pattern**: Utility grab-bags of unrelated small classes
 - **Implication**: Groups with different stability and release cycles should not share a package
 
-### CCP — Common Closure Principle
+### CCP – Common Closure Principle
 > Classes that change for the same reasons, at the same times, belong in the same package.
 
 SRP applied at the package level. Group by change driver so a single business requirement change touches exactly one package.
 
 - **Review question**: Does a single business change require modifying multiple packages?
-- **Anti-pattern**: A feature spread across 5 packages (entity, repository, service, controller, dto) — adding a field touches all 5
-- **Dominates when**: Early in development — reducing change blast radius is priority
+- **Anti-pattern**: A feature spread across 5 packages (entity, repository, service, controller, dto) – adding a field touches all 5
+- **Dominates when**: Early in development – reducing change blast radius is priority
 
-### CRP — Common Reuse Principle
+### CRP – Common Reuse Principle
 > Classes that are reused together belong together. Don't force consumers to depend on classes they don't use.
 
-ISP applied at the package level. A package is a dependency unit — every class creates transitive dependency burden.
+ISP applied at the package level. A package is a dependency unit – every class creates transitive dependency burden.
 
 - **Review question**: Does importing this package force consumers to take on dependencies they don't use?
 - **Anti-pattern**: A "common" package with 40 loosely related utilities
-- **Dominates when**: Consumer diversity grows — minimizing unnecessary coupling becomes priority
+- **Dominates when**: Consumer diversity grows – minimizing unnecessary coupling becomes priority
 
 ### The Tension Triangle
 
@@ -60,16 +60,16 @@ A package cannot maximize all three simultaneously. Early in development, priori
 
 How should packages relate?
 
-### ADP — Acyclic Dependencies Principle
+### ADP – Acyclic Dependencies Principle
 > No cycles in the package dependency graph.
 
 Cycles make packages impossible to independently compile, test, and deploy. All packages in a cycle are effectively one unit.
 
 - **Measurement**: Run cycle detection (Tarjan's SCC). Any SCC with >1 node = violation.
-- **Breaking cycles**: (1) DIP — extract an interface both sides depend on, (2) Merge the cyclic packages, (3) Create a new abstraction package
+- **Breaking cycles**: (1) DIP – extract an interface both sides depend on, (2) Merge the cyclic packages, (3) Create a new abstraction package
 - **Severity**: Always a finding. Always fix.
 
-### SDP — Stable Dependencies Principle
+### SDP – Stable Dependencies Principle
 > Depend in the direction of stability.
 
 Volatile packages must not be depended upon by stable packages. A stable package depending on a volatile one inherits that volatility.
@@ -78,13 +78,13 @@ Volatile packages must not be depended upon by stable packages. A stable package
 - **Review question**: Does this dependency arrow point from lower-I toward higher-I?
 - **Fix**: Introduce an abstraction (interface) that inverts the dependency direction
 
-### SAP — Stable Abstractions Principle
+### SAP – Stable Abstractions Principle
 > A package should be as abstract as it is stable.
 
 Stability should be achieved through abstraction, not by freezing concrete implementations. Heavily-depended-upon packages should contain primarily interfaces.
 
 - **Measurement**: For packages with I < 0.3, check A > 0.3. Stable-but-concrete = SAP violation.
-- **Review question**: For heavily depended-upon packages — are they abstract enough to extend without modification?
+- **Review question**: For heavily depended-upon packages – are they abstract enough to extend without modification?
 - **Connection**: SAP + SDP together enforce DIP at the package level
 
 ---
@@ -95,8 +95,8 @@ Stability should be achieved through abstraction, not by freezing concrete imple
 
 | Metric | Formula | Range | Meaning |
 |--------|---------|-------|---------|
-| Ca (Afferent) | Count of packages depending on this one | 0..N | "Responsibility" — high = heavily depended upon |
-| Ce (Efferent) | Count of packages this one depends on | 0..N | "Dependence" — high = reaches into many modules |
+| Ca (Afferent) | Count of packages depending on this one | 0..N | "Responsibility" – high = heavily depended upon |
+| Ce (Efferent) | Count of packages this one depends on | 0..N | "Dependence" – high = reaches into many modules |
 
 ### Instability
 
@@ -104,8 +104,8 @@ Stability should be achieved through abstraction, not by freezing concrete imple
 I = Ce / (Ca + Ce)     range: [0, 1]
 ```
 
-- **I = 0**: Maximally stable — many dependents, no dependencies. Difficult to change. Should be abstract.
-- **I = 1**: Maximally unstable — no dependents, many dependencies. Easy to change. Should be concrete.
+- **I = 0**: Maximally stable – many dependents, no dependencies. Difficult to change. Should be abstract.
+- **I = 1**: Maximally unstable – no dependents, many dependencies. Easy to change. Should be concrete.
 
 ### Abstractness
 
@@ -133,8 +133,8 @@ D = 0 means the package sits on the ideal main sequence. D > 0 means it's drifti
 The ideal: **A + I ≈ 1**
 
 Packages should be either:
-- **Stable and abstract** (I ≈ 0, A ≈ 1): core interfaces, domain models — heavily depended upon, extended without modification
-- **Volatile and concrete** (I ≈ 1, A ≈ 0): implementations, adapters, plugins — free to change because nothing depends on them
+- **Stable and abstract** (I ≈ 0, A ≈ 1): core interfaces, domain models – heavily depended upon, extended without modification
+- **Volatile and concrete** (I ≈ 1, A ≈ 0): implementations, adapters, plugins – free to change because nothing depends on them
 
 ---
 
@@ -149,7 +149,7 @@ Concrete and stable. Heavily depended upon but cannot be abstracted or extended.
 - **Fix**: Extract interfaces. Move concrete implementations behind abstractions.
 
 ### Zone of Uselessness (I ≈ 1, A ≈ 1)
-Abstract and volatile. Nobody depends on it — the abstraction serves no consumer.
+Abstract and volatile. Nobody depends on it – the abstraction serves no consumer.
 
 - **Characteristics**: Orphaned interfaces, unused abstract base classes, speculative generalization
 - **When acceptable**: During active design/prototyping (temporary). Not acceptable in production.
@@ -196,4 +196,4 @@ From John Lakos's "Large-Scale C++ Software Design." Computable from any depende
 | Package LOC | < 3000 | 3000 – 10000 | > 10000 |
 | Consumer waste | < 30% | 30 – 50% | > 50% (split signal) |
 
-These thresholds are guidelines, not laws. Context matters — a core utility package will naturally have high Ca. The question is whether high Ca is justified by the package's role and whether it's abstract enough (SAP).
+These thresholds are guidelines, not laws. Context matters – a core utility package will naturally have high Ca. The question is whether high Ca is justified by the package's role and whether it's abstract enough (SAP).

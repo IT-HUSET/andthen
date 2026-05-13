@@ -1,20 +1,20 @@
-# UI/UX — Design System Mode
+# UI/UX – Design System Mode
 
 Transform feature requirements into a focused design system with essential visual language, design tokens, component styles, and documentation.
 
 **Platform-agnostic**: Design tokens and styles serve as the canonical reference for ALL platforms (web, mobile, desktop). They will be adapted to platform-specific implementations later.
 
-**Inputs/destinations**: `REQUIREMENTS`, `CONCEPT_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (with per-token binding type — required input, optional contextual input, or default destination).
+**Inputs/destinations**: `REQUIREMENTS`, `CONCEPT_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (with per-token binding type – required input, optional contextual input, or default destination).
 
 ## Principles
 
-- **Design system only** — no wireframes or page layouts (use the `wireframes` mode for that)
-- **Start minimal** — essential tokens/components only; avoid premature complexity
-- **Use CSS custom properties** — everything should be themeable; no hardcoded values in component styles
+- **Design system only** – no wireframes or page layouts (use the `wireframes` mode for that)
+- **Start minimal** – essential tokens/components only; avoid premature complexity
+- **Use CSS custom properties** – everything should be themeable; no hardcoded values in component styles
 
 ## Phase 1: Input Analysis
 
-1. **Validate inputs**: verify `REQUIREMENTS` is provided — stop with a missing-input error if not. If `CONCEPT_DIR` is provided, verify it exists and catalog its contents (mockups, brand guidelines, existing design system).
+1. **Validate inputs**: verify `REQUIREMENTS` is provided – stop with a missing-input error if not. If `CONCEPT_DIR` is provided, verify it exists and catalog its contents (mockups, brand guidelines, existing design system).
 2. **Extract requirements**: identify all UI components needed, key user actions and visual hierarchy, content types, brand/mood requirements, platform targets, and accessibility requirements.
 
 **Gate**: Requirements understood, design inputs cataloged
@@ -31,7 +31,7 @@ Save research to `<project_root>/.agent_temp/research/design/` only if substanti
 
 ## Phase 3: Design Token Creation
 
-Create essential design tokens using CSS custom properties — start minimal, avoid premature complexity.
+Create essential design tokens using CSS custom properties – start minimal, avoid premature complexity.
 
 **Naming conventions:**
 - Colors: `--color-{role}[-{variant}]` (e.g. `--color-primary`, `--color-primary-dark`, `--color-gray-50` through `--color-gray-900`, `--color-success`, `--color-error`)
@@ -44,7 +44,7 @@ Create essential design tokens using CSS custom properties — start minimal, av
 - Use system fonts unless brand requires otherwise
 - Define semantic colors (success, error, warning) only if needed
 - 3 shadow levels and 3 border radius variants are sufficient for most projects
-- Choose typography with character when the brief warrants it — don't default to safe/generic
+- Choose typography with character when the brief warrants it – don't default to safe/generic
 
 **Gate**: Core tokens defined
 
@@ -58,9 +58,9 @@ For each component: base styles using design tokens, variant styles, state style
 
 ## Phase 5: Documentation & Showcase
 
-**5.1 Style Guide** — Create `OUTPUT_DIR/style-guide.md` documenting colors, typography, spacing, components (with usage notes), and breakpoints.
+**5.1 Style Guide** – Create `OUTPUT_DIR/style-guide.md` documenting colors, typography, spacing, components (with usage notes), and breakpoints.
 
-**5.2 Interactive Showcase** — Create `OUTPUT_DIR/showcase.html` demonstrating all color swatches with hex values, typography scale, spacing visualization, every component variant with live examples, interactive states, light/dark theme toggle (if applicable), and code snippets.
+**5.2 Interactive Showcase** – Create `OUTPUT_DIR/showcase.html` demonstrating all color swatches with hex values, typography scale, spacing visualization, every component variant with live examples, interactive states, light/dark theme toggle (if applicable), and code snippets.
 
 **Gate**: Documentation complete
 
@@ -90,4 +90,4 @@ OUTPUT_DIR/
 - [ ] Documentation is complete but concise
 - [ ] Accessibility considerations addressed
 
-Goal is a pragmatic, implementable design system — not perfection. Focus on what developers need to build the product.
+Goal is a pragmatic, implementable design system – not perfection. Focus on what developers need to build the product.

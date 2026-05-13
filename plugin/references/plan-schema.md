@@ -2,11 +2,11 @@
 
 Canonical schema for the local `plan.json` artifact written by `andthen:plan` and read by `andthen:exec-plan`, `andthen:ops`, `andthen:review --mode gap`, and `andthen:now-what`. The schema is inlined into the `plan`, `exec-plan`, `ops`, and `review` skill bundles (the writers, validators, and gap reviewer); `now-what` only checks file existence and deserializes without needing the schema reference. The plan is data, not prose: the PRD carries narrative, the plan is a typed manifest of stories, dependencies, and runtime state.
 
-**Single source of truth.** This file is the authoritative definition. Updates to top-level fields, sub-object shapes, the status enum, writability rules, digest enforcement, file location, formatting conventions, migration prose, or the canonical example MUST land here — not in `data-contract.md` (which defers to this file for plan-shape questions) and not duplicated into skill prompts (which reference this file). Drift across consumers is a maintenance bug, not a feature.
+**Single source of truth.** This file is the authoritative definition. Updates to top-level fields, sub-object shapes, the status enum, writability rules, file location, formatting conventions, migration prose, or the canonical example MUST land here – not in `data-contract.md` (which defers to this file for plan-shape questions) and not duplicated into skill prompts (which reference this file). Drift across consumers is a maintenance bug, not a feature.
 
-> **Why JSON, not markdown?** Frontier models edit markdown more freely than JSON — markdown invites "rephrasing", JSON does not. The Story Catalog contract (closed status enum, machine-readable dependencies, unique FIS paths) is data wearing a markdown costume; this schema makes the typing explicit and removes the regex parser.
+> **Why JSON, not markdown?** Frontier models edit markdown more freely than JSON – markdown invites "rephrasing", JSON does not. The Story Catalog contract (closed status enum, machine-readable dependencies, unique FIS paths) is data wearing a markdown costume; this schema makes the typing explicit and removes the regex parser.
 
-GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body shape from [`plan-issue-shape.md`](plan-issue-shape.md) — JSON is the local runtime ledger; markdown is the GitHub transport. When `--from-issue` is set, `andthen:exec-plan` materializes a local `plan.json` from the issue body once, then drives execution from the local ledger. See [`from-issue-mode.md`](../skills/exec-plan/references/from-issue-mode.md).
+GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body shape from [`plan-issue-shape.md`](plan-issue-shape.md) – JSON is the local runtime ledger; markdown is the GitHub transport. When `--from-issue` is set, `andthen:exec-plan` materializes a local `plan.json` from the issue body once, then drives execution from the local ledger. See [`from-issue-mode.md`](../skills/exec-plan/references/from-issue-mode.md).
 
 
 ## Document shape
@@ -26,8 +26,7 @@ GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body sha
   "bindingConstraints": [],
   "stories": [],
   "riskSummary": [],
-  "executionNotes": "",
-  "metadata": { "immutableDigest": "sha256:..." }
+  "executionNotes": ""
 }
 ```
 
@@ -44,7 +43,6 @@ GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body sha
 | `stories` | array of objects | yes | The Story Catalog. Order conveys human reading order; consumers MUST look up stories by `id`, never by array index. |
 | `riskSummary` | array of objects | no | Structured replacement for the legacy `## Risk Summary` markdown table. Empty array when none. |
 | `executionNotes` | string | no | Short narrative on how to run the plan. Replaces the legacy `## Execution Guide` prose section. Empty string when none. |
-| `metadata` | object | yes | Tooling-managed sub-object. Currently holds `immutableDigest` (see **Writability rules**). Never user-edited; rewritten by `andthen:plan` (initial creation, full regeneration), by `andthen:ops` after every authorized mutation, and by `andthen:exec-plan --from-issue` reconciliation (full regeneration of the materialized ledger). |
 
 ### `overview` object
 
@@ -75,9 +73,9 @@ Each phase:
 |---|---|---|---|
 | `featureId` | string | yes | PRD feature ID (e.g. `"FR-2"`). |
 | `anchor` | string | yes | PRD heading anchor (e.g. `"prd.md#export-rules"`). |
-| `verbatim` | string | yes | Verbatim PRD span — flows unchanged into FIS Required Context. |
+| `verbatim` | string | yes | Verbatim PRD span – flows unchanged into FIS Required Context. |
 
-### `stories[]` object — the Story Catalog
+### `stories[]` object – the Story Catalog
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
@@ -121,42 +119,21 @@ Forward transitions are skill-implicit per the write-authority table below. Back
 
 ## Writability rules
 
-A plan in flight is treated as a **runtime ledger** — the persistent state file the agent reads at session start to resume work. Agents are forbidden from rewriting the plan in flight; only the **state-tracking fields** are mutable, and only via the `andthen:ops` skill. This is a named contract, not a convention.
+A plan in flight is treated as a **runtime ledger** – the persistent state file the agent reads at session start to resume work. Only the **state-tracking fields** (`stories[].status`, `stories[].fis`) are mutable in flight, and the authorized path is `andthen:ops`. Other skills (`exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`, `now-what`) **must not** write to `plan.json`.
 
 | Field | Initial writer | Subsequent mutator |
 |---|---|---|
-| `schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, story `id`/`name`/`phase`/`wave`/`dependsOn`/`parallel`/`risk`/`scope`/`sourceRefs`/`provenance`/`assetRefs`/`notes`, `riskSummary`, `executionNotes` | `andthen:plan` (initial creation) | `andthen:plan` rerun only — full regeneration that **preserves** existing `status`/`fis` for stories whose FIS is intact |
+| `schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, story `id`/`name`/`phase`/`wave`/`dependsOn`/`parallel`/`risk`/`scope`/`sourceRefs`/`provenance`/`assetRefs`/`notes`, `riskSummary`, `executionNotes` | `andthen:plan` (initial creation) | `andthen:plan` rerun – full regeneration that **preserves** existing `status`/`fis` per the predicate below |
 | `stories[].status` | `andthen:plan` (`"pending"`) | `andthen:ops update-plan <plan> <id> <status>` |
 | `stories[].fis` | `andthen:plan` after FIS write (or `null`) | `andthen:ops update-plan-fis <plan> <id> <fis-path>` |
 
-`andthen:exec-spec`, `andthen:exec-plan`, `andthen:review`, `andthen:quick-review`, `andthen:remediate-findings`, etc. **read** `plan.json` and **must not write to it directly**. Required mutations go through `andthen:ops`. Exception: `andthen:exec-plan --from-issue` reconciliation rewrites `.agent_temp/from-issue-<N>/plan.json` as a full regeneration — see [`from-issue-mode.md`](../skills/exec-plan/references/from-issue-mode.md).
+**Preservation predicate** (full regeneration): a story's existing `status` and `fis` are preserved only when ALL hold – `id` survives regeneration; `scope` is string-equal; `sourceRefs` is set-equal; `assetRefs` is set-equal; `provenance` is string-equal; the preserved `fis` path still resolves to an existing file. Content-equality (not name) is the load-bearing guard: a same-id story whose content-defining fields drifted would otherwise graft a stale FIS onto new content. Stories failing any clause reset to `status: "pending"`, `fis: null`.
 
-> **Concurrency**: single-writer assumption. Concurrent `andthen:ops` calls on the same `plan.json` last-writer-wins silently — `status`/`fis` mutations leave the digest unchanged, so BLOCKED does not fire. Do not run concurrent orchestrators against the same file.
+Exception: `andthen:exec-plan --from-issue` reconciliation rewrites `.agent_temp/from-issue-<N>/plan.json` as a full regeneration – see [`from-issue-mode.md`](../skills/exec-plan/references/from-issue-mode.md).
 
-### Enforcement: `metadata.immutableDigest`
+User-initiated hand edits to `plan.json` are allowed and trusted – the contract is a guardrail for agent behavior, not a tamper-detection mechanism. If a user edits the file, they own the consequences. Pre-existing `metadata` blocks (legacy 0.19.x with `immutableDigest`) are ignored on read and dropped on the next regeneration.
 
-The "modified outside of `andthen:ops`" check needs a durable baseline. The schema reserves `metadata.immutableDigest` for this — a sha256 hex of the document's *immutable subset* in canonical form. `andthen:plan` writes it on initial creation and on full regeneration. `andthen:ops` validates it before every write and recomputes it after every authorized mutation.
-
-**Canonical form** (the bytes that get hashed):
-
-1. Start from the in-memory parsed document.
-2. Drop the top-level `metadata` field.
-3. For every entry in `stories[]`, replace `status` and `fis` with `null` (these are the mutable fields — they must not contribute to the digest).
-4. Serialize with the formatting conventions below: 2-space indent, schema key order, trailing newline.
-5. **Unicode policy**: serialize without escaping non-ASCII characters — emit raw UTF-8. A story name containing `São Paulo` must serialize as `"São Paulo"`, not as `"São Paulo"`. This pins the byte form across runtimes (Python's `json.dumps` defaults to `ensure_ascii=True` and would emit the `ã` form; pass `ensure_ascii=False`. JavaScript's `JSON.stringify` and `jq` already emit literal characters).
-6. Compute `sha256` over the UTF-8 bytes; format as `"sha256:" + lowercase-hex`.
-
-**Validation flow in `andthen:ops`** (both `update-plan` and `update-plan-fis`):
-
-1. Read `plan.json`. Extract `metadata.immutableDigest` (call it `stored`).
-2. Recompute the digest from the on-disk document using the canonical form above (call it `recomputed`).
-3. If `stored` is missing or `stored !== recomputed` → `BLOCKED: plan.json was modified outside of andthen:ops. Re-run /andthen:plan to regenerate, or revert the unauthorized edit.`
-4. Apply the authorized mutation (`stories[<id>].status` or `stories[<id>].fis`).
-5. Recompute the digest from the post-mutation document (the mutable fields are still excluded by the canonical-form rules, so this digest equals `recomputed`); write it back into `metadata.immutableDigest` and persist the document.
-
-Because the canonical form excludes `status` and `fis`, an authorized status/fis mutation does not change the digest — the digest only changes when `andthen:plan` regenerates the document. Any change to `name`, `dependsOn`, `scope`, etc. flips the digest and `ops` refuses the next write.
-
-All other consumers (`exec-plan`, `exec-spec`, `review`, `quick-review`, `remediate-findings`, `now-what`, and external orchestrators) are read-only — required mutations route through `andthen:ops`. A non-`ops` writer that bypasses this loop trips the digest check on the next authorized write.
+> **Concurrency**: single-writer assumption. Concurrent `andthen:ops` calls on the same `plan.json` last-writer-wins silently. Do not run concurrent orchestrators against the same file.
 
 
 ## File location
@@ -169,9 +146,9 @@ When `--from-issue <N>` is set, `andthen:exec-plan` materializes a per-issue led
 ## Formatting conventions
 
 - **Indent**: 2 spaces.
-- **Key order**: schema-document order (top-level: `schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, `stories`, `riskSummary`, `executionNotes`, `metadata`; story object: `id`, `name`, `phase`, `wave`, `dependsOn`, `parallel`, `risk`, `status`, `fis`, `scope`, `sourceRefs`, `provenance`, `assetRefs`, `notes`).
+- **Key order**: schema-document order (top-level: `schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, `stories`, `riskSummary`, `executionNotes`; story object: `id`, `name`, `phase`, `wave`, `dependsOn`, `parallel`, `risk`, `status`, `fis`, `scope`, `sourceRefs`, `provenance`, `assetRefs`, `notes`).
 - **Trailing newline** at EOF.
-- **Sorted-by-schema** writes mean diffs reflect *content* changes, not *ordering* drift — important for PR review and for the writability check.
+- **Sorted-by-schema** writes mean diffs reflect *content* changes, not *ordering* drift – important for PR review.
 
 
 ## Migration from legacy `plan.md`
@@ -187,7 +164,7 @@ When `andthen:plan` is rerun in a directory that contains a legacy `plan.md` but
 | `Skipped` | `skipped` |
 | `Blocked` | `blocked` |
 
-Any unrecognized legacy value (e.g. `Retired` from earlier enums) maps to `skipped` with a one-line annotation appended to `executionNotes` describing the rename. The annotation is intentionally durable — left in `executionNotes` as an audit trail of the migration, not removed on subsequent reruns.
+Any unrecognized legacy value (e.g. `Retired` from earlier enums) maps to `skipped` with a one-line annotation appended to `executionNotes` describing the rename. The annotation is intentionally durable – left in `executionNotes` as an audit trail of the migration, not removed on subsequent reruns.
 
 For each migrated story whose `FIS` cell pointed at an existing file, the path and the migrated status are preserved and **FIS regeneration is skipped**. Stories with sentinel or missing FIS paths get `fis: null`, `status: "pending"`, and FIS generation runs as in a fresh plan. The legacy `plan.md` is left in place for the user to delete; downstream consumers ignore it.
 
@@ -247,9 +224,6 @@ A minimal valid `plan.json`:
   "riskSummary": [
     { "story": "S02", "risk": "medium", "mitigation": "Add property tests around classifier thresholds." }
   ],
-  "executionNotes": "Run S01 to clean schema before parallelizing S02 against any sibling stories.",
-  "metadata": {
-    "immutableDigest": "sha256:<computed at write time per the Enforcement section>"
-  }
+  "executionNotes": "Run S01 to clean schema before parallelizing S02 against any sibling stories."
 }
 ```

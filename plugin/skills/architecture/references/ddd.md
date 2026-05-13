@@ -1,8 +1,8 @@
-# Domain-Driven Design — Architecture Reference
+# Domain-Driven Design – Architecture Reference
 
 Design, evaluate, and evolve bounded contexts and the models inside them. Synthesizes Eric Evans (DDD blue book), Vaughn Vernon (*Implementing DDD* red book, *DDD Distilled*, *Effective Aggregate Design* I–III), Vlad Khononov (*Learning DDD*), Scott Wlaschin (*Domain Modeling Made Functional*), the DDD Crew community (context mapping, bounded context canvas, core domain charts), and Alberto Brandolini (Event Storming).
 
-Operates at C4 **Context / Container / Component** level — strategic design picks bounded contexts and their relationships; tactical design shapes the model inside one. Complements the Ford/Richards decomposition lens and the Ousterhout in-process lens — use all three where they fit.
+Operates at C4 **Context / Container / Component** level – strategic design picks bounded contexts and their relationships; tactical design shapes the model inside one. Complements the Ford/Richards decomposition lens and the Ousterhout in-process lens – use all three where they fit.
 
 Use this reference when:
 - Discovering or evaluating bounded contexts
@@ -21,9 +21,9 @@ Not the right lens for: pure in-process class/module API design (use `ousterhout
 
 Three types (Evans; Khononov ch. 1):
 
-- **Core** — the differentiated business capability; where competitive advantage lives. Invest maximally: full tactical DDD, best engineers, richest model.
-- **Supporting** — necessary but undifferentiated. Keep fit for purpose with simpler patterns (Active Record, transaction script, thin domain model). Don't over-model.
-- **Generic** — commodity (auth, billing, CMS). Prefer off-the-shelf; integrate, don't build.
+- **Core** – the differentiated business capability; where competitive advantage lives. Invest maximally: full tactical DDD, best engineers, richest model.
+- **Supporting** – necessary but undifferentiated. Keep fit for purpose with simpler patterns (Active Record, transaction script, thin domain model). Don't over-model.
+- **Generic** – commodity (auth, billing, CMS). Prefer off-the-shelf; integrate, don't build.
 
 **Core Domain Chart** (DDD Crew, Nick Tune): plot each subdomain on *Business Differentiation* × *Model Complexity*. High-differentiation + high-complexity = Core. Low-differentiation + low-complexity = Generic. The value is the cross-discipline conversation it triggers with product.
 
@@ -31,10 +31,10 @@ Three types (Evans; Khononov ch. 1):
 
 ### 1.2 Bounded Contexts
 
-A bounded context is a **linguistic boundary** within which each term has one unambiguous meaning. It is owned by at most one team, carries its own model and schema, and enforces its own ubiquitous language. Context maps are **logical** — they apply equally to microservices and to modules inside a modular monolith.
+A bounded context is a **linguistic boundary** within which each term has one unambiguous meaning. It is owned by at most one team, carries its own model and schema, and enforces its own ubiquitous language. Context maps are **logical** – they apply equally to microservices and to modules inside a modular monolith.
 
 Sizing heuristics:
-- One team → one or more contexts; never split a context across teams. Upper bound on contexts per team follows cognitive-load guidance (2–3 low-complexity domains per team — see `decomposition.md` Sizing Heuristics).
+- One team → one or more contexts; never split a context across teams. Upper bound on contexts per team follows cognitive-load guidance (2–3 low-complexity domains per team – see `decomposition.md` Sizing Heuristics).
 - If the same term is used two ways, you have two contexts (or a failure to distinguish them).
 - If a single aggregate becomes the "God object" of the context, the context is probably too broad.
 
@@ -44,7 +44,7 @@ Eight canonical patterns from Evans, plus Big Ball of Mud as a quarantine strate
 
 | Pattern | Coupling | Team relationship | Choose when |
 |---|---|---|---|
-| **Partnership** | High | Mutual, synchronized releases | Teams succeed or fail together; shared fate on a specific capability. *Tension: reduces deployment independence — use sparingly.* |
+| **Partnership** | High | Mutual, synchronized releases | Teams succeed or fail together; shared fate on a specific capability. *Tension: reduces deployment independence – use sparingly.* |
 | **Shared Kernel** | High | Shared ownership of a model subset | Closely related contexts, stable shared model, strong communication; keep the kernel small. |
 | **Customer/Supplier** | Negotiated | Upstream/downstream, downstream has leverage | Downstream needs factor into upstream planning. |
 | **Conformist** | Medium | Upstream authoritative | Upstream is external or can't be influenced; simplicity wins over autonomy. |
@@ -52,7 +52,7 @@ Eight canonical patterns from Evans, plus Big Ball of Mud as a quarantine strate
 | **Open Host Service** | Low | Upstream serves many | Upstream publishes a stable API for multiple consumers; standardize once. |
 | **Published Language** | Low | Shared exchange format | Common integration format (schemas, event envelopes); often pairs with OHS. |
 | **Separate Ways** | None | Explicit non-integration | Integration cost exceeds value; duplication is cheaper and faster. |
-| **Big Ball of Mud** _(quarantine, not Evans canon)_ | Variable | Quarantine | Legacy or entangled system; never let its model contaminate neighbors — wrap with an ACL. |
+| **Big Ball of Mud** _(quarantine, not Evans canon)_ | Variable | Quarantine | Legacy or entangled system; never let its model contaminate neighbors – wrap with an ACL. |
 
 ### 1.4 Team Topology Alignment
 
@@ -77,13 +77,13 @@ When team boundaries cut across context boundaries (Conway's Law violated), the 
 
 From *Effective Aggregate Design* I–III (dddcommunity.org) and IDDD ch. 10.
 
-**Rule 1 — Model true invariants in consistency boundaries.** An invariant is a business rule enforced *at commit*. If the rule only needs to hold eventually, it is not a reason to widen the aggregate.
+**Rule 1 – Model true invariants in consistency boundaries.** An invariant is a business rule enforced *at commit*. If the rule only needs to hold eventually, it is not a reason to widen the aggregate.
 
-**Rule 2 — Design small aggregates.** Observation: most aggregates are a single root with value-typed properties. Large clusters usually reflect false invariants or navigational convenience, not real consistency needs. If you cannot state the invariant that forces two objects into one transaction, they belong in separate aggregates.
+**Rule 2 – Design small aggregates.** Observation: most aggregates are a single root with value-typed properties. Large clusters usually reflect false invariants or navigational convenience, not real consistency needs. If you cannot state the invariant that forces two objects into one transaction, they belong in separate aggregates.
 
-**Rule 3 — Reference other aggregates by identity only.** Hold the other aggregate's ID (typically wrapped in a Value Object), not a direct object reference. Direct references allow unintended modifications and force co-loading.
+**Rule 3 – Reference other aggregates by identity only.** Hold the other aggregate's ID (typically wrapped in a Value Object), not a direct object reference. Direct references allow unintended modifications and force co-loading.
 
-**Rule 4 — Use eventual consistency outside the aggregate boundary.** When a business rule spans aggregates, publish a domain event and let a subscriber update the other aggregate in a separate transaction. Vernon's test: *"if another user or system could reasonably handle this update, eventual consistency is fine here."*
+**Rule 4 – Use eventual consistency outside the aggregate boundary.** When a business rule spans aggregates, publish a domain event and let a subscriber update the other aggregate in a separate transaction. Vernon's test: *"if another user or system could reasonably handle this update, eventual consistency is fine here."*
 
 **Discovery heuristic** (community practice, extends Rule 2): list the aggregates modified in one use case; for each grouping, name the true invariant that requires them in one transaction. No invariant → break the cluster.
 
@@ -93,14 +93,14 @@ Prefer Value Objects unless continuity demands otherwise.
 
 - **Integer test**: replace the concept with an integer. If you care that "5" here is the *same* "5" there, it is an Entity. If two instances with identical attributes are interchangeable, it is a Value Object.
 - **Immutability is necessary.** If a concept cannot be immutable, it is not a VO.
-- **Lifecycle** — Entities have continuity across state changes; VOs are created-and-discarded.
+- **Lifecycle** – Entities have continuity across state changes; VOs are created-and-discarded.
 - **Concentration of behavior.** VOs naturally gather business logic (`Money`, `DateRange`, `EmailAddress`). Don't scatter the logic across callers.
 
 ### 2.3 Domain Events
 
 Immutable facts that something happened, named in past-tense ubiquitous language (`OrderPlaced`, `InventoryReserved`). Include: aggregate root ID, timestamp, event ID (UUID), relevant state at time of occurrence.
 
-**Domain events ≠ integration events** — the most common event-driven + DDD mistake is treating them as one thing.
+**Domain events ≠ integration events** – the most common event-driven + DDD mistake is treating them as one thing.
 
 | | Domain event | Integration event |
 |---|---|---|
@@ -123,14 +123,14 @@ Frequently confused; the split is high-leverage.
 | Depends on infrastructure | No | Yes (repositories, brokers, APIs) |
 | Purpose | Business operation with no natural entity home | Orchestrate a use case |
 
-**Three-Phase Pattern** for application services: (1) load aggregate(s) from repositories; (2) invoke domain logic; (3) persist and publish. No `if`-branches expressing business rules in the application layer — those belong in the domain.
+**Three-Phase Pattern** for application services: (1) load aggregate(s) from repositories; (2) invoke domain logic; (3) persist and publish. No `if`-branches expressing business rules in the application layer – those belong in the domain.
 
 ### 2.5 Factories and Repositories
 
-- **Factory** — creates *new* aggregates. Use when creation requires business logic, structural variation, or cross-context translation; otherwise the root constructor suffices. Factories must leave the aggregate in an invariant-valid state.
-- **Repository** — reconstitutes *existing* aggregates. One repository per aggregate root. Returns fully-hydrated, invariant-valid roots. **No** query methods returning non-root types (`FindOrderItemsByProductId` on `OrderRepository` is a bypass).
+- **Factory** – creates *new* aggregates. Use when creation requires business logic, structural variation, or cross-context translation; otherwise the root constructor suffices. Factories must leave the aggregate in an invariant-valid state.
+- **Repository** – reconstitutes *existing* aggregates. One repository per aggregate root. Returns fully-hydrated, invariant-valid roots. **No** query methods returning non-root types (`FindOrderItemsByProductId` on `OrderRepository` is a bypass).
 - Do not conflate the two. Evans is explicit: Factory = birth, Repository = persistence.
-- **CQRS consequence** — query-side read models bypass repositories entirely. Repositories belong to the write side.
+- **CQRS consequence** – query-side read models bypass repositories entirely. Repositories belong to the write side.
 
 ### 2.6 Module Layout Inside a Bounded Context
 
@@ -171,22 +171,22 @@ Vernon treats Hexagonal as the default shape for a bounded context (IDDD ch. 4).
 
 CQRS (Command Query Responsibility Segregation; Young) separates the write model (rich, invariant-enforcing) from the read model (flat, query-optimized projections). Justified when read and write shapes genuinely diverge, query performance is a real constraint, or different teams own the two paths. Not justified for simple CRUD.
 
-Granularity is a scale-tuning choice — apply per aggregate inside one service (a light-touch read projection) or across services (dedicated query side). CQRS does not require event sourcing; event sourcing nearly always requires CQRS.
+Granularity is a scale-tuning choice – apply per aggregate inside one service (a light-touch read projection) or across services (dedicated query side). CQRS does not require event sourcing; event sourcing nearly always requires CQRS.
 
-### 3.3 Event Sourcing — Decision Criteria
+### 3.3 Event Sourcing – Decision Criteria
 
 **Use when** the audit trail or temporal queries (*what was the state at time T?*) are first-class domain requirements, or the aggregate's state is fully derivable from its event history.
 
-**Do not use when** events are merely DB change logs, the team lacks experience, or simple CRUD covers the domain. Schema versioning becomes a permanent operational concern. Not a default — always a deliberate decision.
+**Do not use when** events are merely DB change logs, the team lacks experience, or simple CRUD covers the domain. Schema versioning becomes a permanent operational concern. Not a default – always a deliberate decision.
 
 ### 3.4 Sagas and Process Managers
 
 Long-running workflows spanning aggregates or contexts. Two forms worth distinguishing in a DDD setting:
 
-- **Saga** — no durable state; reacts to events and issues compensating actions. Simpler to reason about; limited memory.
-- **Process Manager** — a durable state machine coordinating a workflow across multiple aggregates or contexts. More powerful; more to maintain.
+- **Saga** – no durable state; reacts to events and issues compensating actions. Simpler to reason about; limited memory.
+- **Process Manager** – a durable state machine coordinating a workflow across multiple aggregates or contexts. More powerful; more to maintain.
 
-**Orchestration vs. choreography** — orchestration (a process manager directing participants) is easier to trace but centralizes coupling; choreography (saga-style event chains) distributes coupling but is harder to observe. See `quanta.md` for Ford/Richards' 8-pattern saga classification and `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` for reliability framing.
+**Orchestration vs. choreography** – orchestration (a process manager directing participants) is easier to trace but centralizes coupling; choreography (saga-style event chains) distributes coupling but is harder to observe. See `quanta.md` for Ford/Richards' 8-pattern saga classification and `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` for reliability framing.
 
 ---
 
@@ -197,9 +197,9 @@ Long-running workflows spanning aggregates or contexts. Two forms worth distingu
 A collaborative workshop for exploring complex domains. Participants place sticky notes on a large surface: **orange** domain events (past tense), **blue** commands, **yellow** actors, **lilac** policies, **purple** hotspots, **green** read models.
 
 Three levels:
-1. **Big Picture** — map the domain end-to-end; discover bounded contexts from language conflicts and pivotal events.
-2. **Process Modeling** — zoom into a workflow; identify command → aggregate → event → policy chains.
-3. **Design Level** — detail aggregates and transactional boundaries.
+1. **Big Picture** – map the domain end-to-end; discover bounded contexts from language conflicts and pivotal events.
+2. **Process Modeling** – zoom into a workflow; identify command → aggregate → event → policy chains.
+3. **Design Level** – detail aggregates and transactional boundaries.
 
 Event Storming is primarily a **discovery** technique. Invoke the `andthen:clarify` skill for the Big Picture and Process levels; the Design level feeds directly into the `andthen:architecture` skill's `decompose` mode.
 
@@ -209,11 +209,11 @@ One-page template for designing or auditing a single bounded context. Sections: 
 
 ### 4.3 Context Map as an Artifact
 
-The context map is not just the pattern list — it is a maintained diagram of all bounded contexts and their labeled integration relationships. Keep it alongside the codebase (e.g., in the Project Document Index's architecture location) and update when team or integration relationships change. Render with the `andthen:excalidraw-diagram` skill.
+The context map is not just the pattern list – it is a maintained diagram of all bounded contexts and their labeled integration relationships. Keep it alongside the codebase (e.g., in the Project Document Index's architecture location) and update when team or integration relationships change. Render with the `andthen:excalidraw-diagram` skill.
 
 ---
 
-## 5. Ubiquitous Language — Operationalizing
+## 5. Ubiquitous Language – Operationalizing
 
 UL is a living artifact, not a glossary document (Vernon IDDD ch. 1–2).
 
@@ -222,7 +222,7 @@ UL is a living artifact, not a glossary document (Vernon IDDD ch. 1–2).
 - **Model-code gap is a smell.** If translating between code names and business terms adds cognitive overhead in every conversation, the UL is not operational.
 - Maintain a living glossary **per bounded context**, including candidate terms, rejected terms (and why), and terms that changed meaning.
 
-The `andthen:ubiquitous-language` skill is the operational arm — invoke it to extract and maintain the glossary.
+The `andthen:ubiquitous-language` skill is the operational arm – invoke it to extract and maintain the glossary.
 
 ---
 
@@ -236,19 +236,19 @@ Complement, not replacement, for OO DDD. Useful when the target language is FP-f
 
 ## 7. DDD Anti-Patterns
 
-Retain from prior coverage: **Anemic Domain Model**, **Leaky Abstraction**, **Context Explosion**, **Generic Subdomains as Core**, **Big Ball of Mud**. Additions from this reference (DDD-specific; not in the general `anti-patterns.md` catalog — review under `review` or `decompose` mode should consult this section when the target is aggregate- or event-heavy):
+Retain from prior coverage: **Anemic Domain Model**, **Leaky Abstraction**, **Context Explosion**, **Generic Subdomains as Core**, **Big Ball of Mud**. Additions from this reference (DDD-specific; not in the general `anti-patterns.md` catalog – review under `review` or `decompose` mode should consult this section when the target is aggregate- or event-heavy):
 
-- **False Invariant Aggregates** — aggregate grouped by navigational convenience, not a true commit-time invariant. Symptom: multiple use cases only touch a subset. Fix: apply the Whiteboard Test; split.
-- **Leaky Integration Events** — internal aggregate structure exposed as a public event contract. Symptom: downstream consumers break when internal refactors ship. Fix: publish a purpose-built integration event via outbox; keep domain events internal.
-- **Model-Code Gap** — domain experts and code disagree on names and boundaries. Symptom: constant translation overhead in design conversations. Fix: rename to UL; feed glossary discipline via the `andthen:ubiquitous-language` skill.
+- **False Invariant Aggregates** – aggregate grouped by navigational convenience, not a true commit-time invariant. Symptom: multiple use cases only touch a subset. Fix: apply the Whiteboard Test; split.
+- **Leaky Integration Events** – internal aggregate structure exposed as a public event contract. Symptom: downstream consumers break when internal refactors ship. Fix: publish a purpose-built integration event via outbox; keep domain events internal.
+- **Model-Code Gap** – domain experts and code disagree on names and boundaries. Symptom: constant translation overhead in design conversations. Fix: rename to UL; feed glossary discipline via the `andthen:ubiquitous-language` skill.
 
 ---
 
 ## 8. When to Bend the Rules
 
 - Aggregate rules describe the *steady state*. Legitimate migration steps may temporarily violate them; the goal is to converge back.
-- Separate Ways is not failure — when integration cost exceeds value, duplication is the right answer.
-- Conformist is not surrender — it is an explicit decision to spend no design energy on a boundary that does not deserve it.
+- Separate Ways is not failure – when integration cost exceeds value, duplication is the right answer.
+- Conformist is not surrender – it is an explicit decision to spend no design energy on a boundary that does not deserve it.
 - Partnership is powerful but fragile. Prefer Customer/Supplier or OHS when deployment independence matters more than tight collaboration.
 
 ---
@@ -260,7 +260,7 @@ Retain from prior coverage: **Anemic Domain Model**, **Leaky Abstraction**, **Co
 - Khononov, *Learning Domain-Driven Design* (2021).
 - Wlaschin, *Domain Modeling Made Functional* (2018).
 - Brandolini, *Introducing EventStorming* (Leanpub, ongoing).
-- DDD Crew community — `github.com/ddd-crew/context-mapping`, `bounded-context-canvas`, `core-domain-charts`.
+- DDD Crew community – `github.com/ddd-crew/context-mapping`, `bounded-context-canvas`, `core-domain-charts`.
 - Kaiser, *Architecture for Flow* (2021); Tune, bounded context canvas blog series.
-- Khorikov, *enterprisecraftsmanship.com* — entity vs. VO, domain vs. application service, UL naming.
-- de la Torre, Microsoft DevBlogs — domain events vs. integration events.
+- Khorikov, *enterprisecraftsmanship.com* – entity vs. VO, domain vs. application service, UL naming.
+- de la Torre, Microsoft DevBlogs – domain events vs. integration events.

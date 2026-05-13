@@ -22,15 +22,15 @@ Use when the source is a Product Requirements Document. Detection: H1 contains "
 | [ Note ] [ <> ]                                             |
 +-------------------------------------------------------------+
 | ## User Flows                                               |
-| [ Inline SVG flowchart — see diagrams.md#flowchart ]        |
+| [ Inline SVG flowchart – see diagrams.md#flowchart ]        |
 | [ Note ] [ <> ]                                             |
 +-------------------------------------------------------------+
 | ## Decisions Log                                            |
-| [ Inline SVG timeline — see diagrams.md#timeline ]          |
+| [ Inline SVG timeline – see diagrams.md#timeline ]          |
 | [ Note ] [ <> ]                                             |
 +-------------------------------------------------------------+
 | ## Dependencies                                             |
-| [ Cards grid — see diagrams.md#list-graph ]                 |
+| [ Cards grid – see diagrams.md#list-graph ]                 |
 | [ Note ] [ <> ]                                             |
 +-------------------------------------------------------------+
 | ## Success Metrics                                          |
@@ -38,6 +38,20 @@ Use when the source is a Product Requirements Document. Detection: H1 contains "
 | [ Note ] [ <> ]                                             |
 +-------------------------------------------------------------+
 ```
+
+
+## KPI Cells
+
+The four-cell `.kpi-band` (rendered per the SKILL.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. PRD cells in source order:
+
+| Cell | Label | Source |
+|---|---|---|
+| 1 | Capabilities | Count of items in Executive Summary's "Capabilities at a Glance" list/table |
+| 2 | Stories | Count of rows in the Functional Requirements user-stories table |
+| 3 | Open Questions | Count of bullets under `## Open Questions` not marked `(resolved)` / `lean:` / `→` |
+| 4 | Risks | Precedence: if a Risks table is present, count its data rows. Else fall back to the count of Dependencies-table rows with a non-empty Risk column. Never sum the two – pick one source |
+
+Auto-`.attention`: cell 3 when count > 0; cell 4 when count > 0.
 
 
 ## Section Renderers
@@ -73,9 +87,9 @@ Parse H3 subsections under `## Scope`. Typical headings: "In Scope", "Out of Sco
 .scope-kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
 .scope-column { background: var(--panel); border-radius: 8px; padding: 1rem; }
 .scope-column h3 { margin-top: 0; }
-.scope-column.in-scope h3 { color: #1a7f37; }   /* green */
+.scope-column.in-scope h3 { color: var(--ok); }       /* olive – resolved/in-scope */
 .scope-column.out-scope h3 { color: var(--text-muted); }
-.scope-column.mvp h3 { color: #bf8700; }        /* amber */
+.scope-column.mvp h3 { color: var(--warn); }          /* amber – caution */
 .scope-column ul { padding-left: 1.2rem; margin: 0.5rem 0; }
 ```
 
@@ -103,9 +117,17 @@ Story card:
 </article>
 ```
 
-### User Flows → flowchart
+### User Flows → flowchart · walkthrough · module map
 
-For each numbered flow (H3 under `## User Flows`), generate one inline SVG flowchart. See `diagrams.md#flowchart` for the layout algorithm. Each flow gets its own diagram + Note affordance attached to the flow's parent section.
+Dispatch (per the SKILL.md cross-artifact dispatch table, priority order):
+
+1. If the section body contains a fenced `mapviz` block → **Module Map** (see `diagrams.md#module-map`). The module map renders alongside any flow-specific prose; the verbatim `mapviz` block appears in `View source`.
+2. Else if the section has 2–9 H3 substeps **and every substep's body character-count ≥ 50** → **Walkthrough** (see `diagrams.md#walkthrough`). Numbered step badges, file-path mono headers, `<details class="snippet">` per source-listing.
+3. Else → **Flowchart** (see `diagrams.md#flowchart`). Existing box-and-arrow chain renderer.
+
+**Character-count rule (deterministic):** for each H3 substep, take every line of body text between this H3 and the next H3 (or section end); strip leading/trailing whitespace, markdown markers (`>` `*` `-` `_` backticks `[]()`), and join with single spaces; count Unicode code points. The substep qualifies when the count is ≥ 50. "Every substep qualifies" means the *minimum* across substeps must clear the threshold – one short H3 disqualifies the section from Walkthrough.
+
+Note affordance attaches to the parent `## User Flows` H2; per-step H3 sub-anchors are URL-navigation only.
 
 ### Decisions Log → table + timeline
 

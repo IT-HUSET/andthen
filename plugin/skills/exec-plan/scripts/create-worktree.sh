@@ -108,7 +108,7 @@ WORKTREE_PATH="$CODE_DIR_ABS/.claude/worktrees/$BRANCH"
 # Pre-existing branch is an explicit failure: a leftover from a previous run
 # means teardown didn't complete. Surfacing this loudly is the contract.
 if git -C "$CODE_DIR_ABS" show-ref --verify --quiet "refs/heads/$BRANCH"; then
-  echo "Error: branch '$BRANCH' already exists in $CODE_DIR_ABS — run teardown-worktrees.sh first, or remove it manually" >&2
+  echo "Error: branch '$BRANCH' already exists in $CODE_DIR_ABS – run teardown-worktrees.sh first, or remove it manually" >&2
   exit 3
 fi
 
@@ -126,7 +126,7 @@ ADD_ERR=""
 if ! ADD_ERR=$(git -C "$CODE_DIR_ABS" worktree add "$WORKTREE_PATH" -b "$BRANCH" "$BASE_BRANCH" 2>&1); then
   echo "Error: git worktree add failed: $ADD_ERR" >&2
   # Best-effort cleanup of an empty .claude/worktrees parent we may have just
-  # created. rmdir refuses non-empty dirs — safe under concurrent runs sharing
+  # created. rmdir refuses non-empty dirs – safe under concurrent runs sharing
   # the dir.
   rmdir "$CODE_DIR_ABS/.claude/worktrees" 2>/dev/null || true
   exit 3
@@ -136,7 +136,7 @@ fi
 # worktree add` does not do this automatically (per upstream design). Without
 # this step a submodule-using repo would land in the worktree with empty
 # submodule directories and any build/test in exec-spec would fail mysteriously
-# — exactly the failure mode this step exists to prevent. Failure here must
+# – exactly the failure mode this step exists to prevent. Failure here must
 # abort and roll back, not warn-and-proceed: a half-initialized worktree
 # trips exec-spec on the implementer side, where the diagnostic chain is
 # much longer.
@@ -153,14 +153,14 @@ fi
 
 # Add .claude/worktrees/ to local exclude AFTER the worktree exists so a
 # failed `git worktree add` doesn't leave a stale .gitignore-equivalent entry
-# behind. .git/info/exclude is local-only and never committed — appropriate
+# behind. .git/info/exclude is local-only and never committed – appropriate
 # for ephemeral, per-checkout state like this.
 #
 # This step IS load-bearing: without the exclude, the newly created linked
 # worktree at $CODE_DIR/.claude/worktrees/story-XX/ appears as an untracked
 # directory in the main checkout's `git status --porcelain`. Both
 # merge-worktree.sh's PRECONDITION and team-mode-orchestration.md's per-wave
-# main-checkout audit fail-the-wave on non-empty porcelain — so a silent
+# main-checkout audit fail-the-wave on non-empty porcelain – so a silent
 # exclude failure would misfire as `FAILED:main-checkout-leak` against every
 # completed impl-* in the wave. Fail-fast with rollback (mirrors the
 # submodule-init handler above) instead of swallowing the error.

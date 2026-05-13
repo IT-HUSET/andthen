@@ -5,7 +5,7 @@ Domain-specific calibration for reviewing specifications, plans, PRDs, and other
 > **Core principle**: A document finding is severe when it would cause an implementer to build the wrong thing, miss a critical requirement, or make an irreversible decision based on incomplete information.
 
 
-## Severity Calibration — Contrastive Examples
+## Severity Calibration – Contrastive Examples
 
 Each pair shows what IS and is NOT that severity level. Use these to calibrate your severity assignments.
 
@@ -24,7 +24,7 @@ Why: Contradictory definitions of a core domain entity. An implementer would bui
 **is NOT Critical (common over-escalation):**
 > The spec for a developer CLI tool doesn't include a rollback strategy or deployment plan.
 
-Why: A CLI tool distributed via package manager doesn't need a rollback strategy — users install a new version or pin the old one. This is not a gap; it's an inapplicable concern. Flag only if the project's nature actually requires it.
+Why: A CLI tool distributed via package manager doesn't need a rollback strategy – users install a new version or pin the old one. This is not a gap; it's an inapplicable concern. Flag only if the project's nature actually requires it.
 
 **is NOT Critical:**
 > The spec uses "user" in some places and "account" in others but context makes the meaning clear each time.
@@ -52,7 +52,7 @@ Why: For an internal tool used by a small team, accessibility may genuinely not 
 **is NOT High:**
 > The spec doesn't specify exact error message wording for validation failures.
 
-Why: Error message copy is a detail that can be decided during implementation without architectural impact. This is Low — a nice-to-have level of specification detail.
+Why: Error message copy is a detail that can be decided during implementation without architectural impact. This is Low – a nice-to-have level of specification detail.
 
 
 ### Proportionality Calibration
@@ -76,7 +76,7 @@ Common patterns that look like document issues but aren't:
 
 2. **Demanding implementation-level detail in a high-level document.** Example: flagging a PRD for not specifying database indexes or API response schemas. PRDs define *what*, not *how*. Match your expectations to the document type.
 
-3. **Flagging intentional scope exclusions as gaps.** Example: the spec explicitly says "Push notifications are out of scope for v1" and the reviewer flags "Missing: push notification specification." The spec addressed this — it's a scope decision, not an oversight.
+3. **Flagging intentional scope exclusions as gaps.** Example: the spec explicitly says "Push notifications are out of scope for v1" and the reviewer flags "Missing: push notification specification." The spec addressed this – it's a scope decision, not an oversight.
 
 4. **Treating brevity as incompleteness.** Example: flagging a concise, clear requirement ("Users can export data as CSV") as "underspecified" when the implementation path is obvious. Not every requirement needs a paragraph of elaboration.
 

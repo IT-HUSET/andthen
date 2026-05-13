@@ -41,7 +41,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--update` before interpreting
 - Domain model files (entities, value objects, aggregates, services)
 - API endpoints and route definitions
 - Database schemas and migrations
-- Documentation (README, PRD, specs, architecture docs)
+- Documentation: the `Product` document and the `Architecture` document (see **Project Document Index**), PRDs, specs, README
 - Test descriptions (often reveal intended behavior in domain terms)
 
 Use Explore (or general-purpose) sub-agent for large codebases.

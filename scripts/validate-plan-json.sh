@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# validate-plan-json.sh — schema invariant + digest validator for plan.json
+# validate-plan-json.sh – schema invariant + digest validator for plan.json
 #
 # Checks a plan.json file against this machine-checkable subset of the
 # invariants in plugin/references/plan-schema.md:
@@ -8,7 +8,7 @@
 #   - stories[].id present and unique
 #   - stories[].status in {pending, spec-ready, in-progress, done, skipped, blocked}
 #   - every dependsOn[] element matches some stories[].id
-#   - stories[].fis paths unique (non-null only — multiple null values are valid)
+#   - stories[].fis paths unique (non-null only – multiple null values are valid)
 #   - metadata.immutableDigest matches the recomputed canonical-form digest
 #   - top-level and per-story keys are within the schema-named set
 #     (extra unknown keys fail loudly rather than silently propagating into the digest)
@@ -112,7 +112,7 @@ for i, s in enumerate(stories):
 
 id_set = set(ids)
 
-# Reject unknown top-level keys and unknown story keys — they would silently
+# Reject unknown top-level keys and unknown story keys – they would silently
 # alter the canonical-form digest if propagated.
 known_top = set(TOP_LEVEL_ORDER)
 extra_top = [k for k in doc.keys() if k not in known_top]

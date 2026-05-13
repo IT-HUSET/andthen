@@ -1,18 +1,18 @@
-# Architecture — Fitness Mode
+# Architecture – Fitness Mode
 
 Propose fitness functions for architectural governance and ADR enforcement.
 
 **Supporting references**: `fitness-functions.md`, `package-principles.md`, `quanta.md`.
 
-## Step 1 — Analyze Current Architecture
+## Step 1 – Analyze Current Architecture
 
 Identify which architectural properties are currently protected (existing tests, CI checks, lint rules) and which are unprotected.
 
-## Step 2 — Map ADRs
+## Step 2 – Map ADRs
 
 If ADRs exist, check which ones have corresponding automated enforcement. An ADR without a fitness function is a governance gap.
 
-## Step 3 — Propose Functions
+## Step 3 – Propose Functions
 
 Organize proposals by the 4-level governance stack:
 - **Level 1** (every commit, <30s): fast deterministic checks
@@ -22,7 +22,7 @@ Organize proposals by the 4-level governance stack:
 
 For each proposal provide: name, what it checks, threshold, implementation approach (language-specific tooling), which ADR it enforces (if any), and severity if violated.
 
-## Step 4 — Prioritize
+## Step 4 – Prioritize
 
 Rank proposals by: (1) blast radius if violated, (2) likelihood of accidental violation, (3) implementation effort. Recommend starting with 3 fitness functions and growing.
 

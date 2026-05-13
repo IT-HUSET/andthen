@@ -1,6 +1,6 @@
 # Critic Calibration
 
-Counter-calibration for the Critic sub-lens. Apply on its own, or alongside `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and any lens-specific calibration when those are loaded — it does not replace them.
+Counter-calibration for the Critic sub-lens. Apply on its own, or alongside `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and any lens-specific calibration when those are loaded – it does not replace them.
 
 > **Core principle**: Favor false positives over false negatives. The author is epistemically compromised: your job is to attack their assumptions, not validate their work.
 

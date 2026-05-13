@@ -17,7 +17,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 
 ## INSTRUCTIONS
 
-- **Fully** read and understand the **Workflow Rules, Guardrails and Guidelines** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
+- **Fully** read and understand the **Project-Specific Guidelines and Rules** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work
 - **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
 - **Read-only analysis** – No code changes, commits, or modifications
 - **Delegate heavily** – Spawn parallel sub-agents for codebase analysis

@@ -6,7 +6,7 @@ Lightweight starter templates for the supplementary project documents referenced
 
 ## STATE.md
 
-> Cross-session state tracking — a snapshot of _current_ state, not a history log. Keep under ~60 lines so agents can consume it quickly.
+> Cross-session state tracking – a snapshot of _current_ state, not a history log. Keep under ~60 lines so agents can consume it quickly.
 
 ```markdown
 # Project State
@@ -20,7 +20,7 @@ Phase: ...
 Status: On Track | At Risk | Blocked
 
 ## Active Stories
-<!-- Only currently in-progress work. Remove completed stories — they go to Recently Completed. -->
+<!-- Only currently in-progress work. Remove completed stories – they go to Recently Completed. -->
 
 | Story | Status | FIS | Notes |
 |-------|--------|-----|-------|
@@ -111,7 +111,7 @@ Status: On Track | At Risk | Blocked
 
 ## TECH-DEBT-BACKLOG.md
 
-> Known technical debt grouped by severity. Append-only run blocks (`### Run: {timestamp} — tech-debt`) are written under the matching severity heading by `andthen:ops update-tech-debt append`. The placeholder line is removed on the first write per section.
+> Known technical debt grouped by severity. Append-only run blocks (`### Run: {timestamp} – tech-debt`) are written under the matching severity heading by `andthen:ops update-tech-debt append`. The placeholder line is removed on the first write per section.
 
 ```markdown
 # Technical Debt Backlog
@@ -130,6 +130,46 @@ _No tech debt recorded yet._
 <!-- Severity: cosmetic, minor consistency, or opportunistic cleanup. Address when convenient. -->
 
 _No tech debt recorded yet._
+```
+
+---
+
+## PRODUCT.md
+
+> Product vision and high-level requirements – the "what and why" agents read before product-shaping work. Richer detail belongs in a PRD (`andthen:prd`); this document is the durable orientation layer above any single PRD.
+
+```markdown
+# Product
+
+## Vision
+<!-- One paragraph: what this product is, who it's for, and why it exists. -->
+
+## Target Users
+<!-- Primary user segments / personas and what they're trying to accomplish. -->
+
+- **[Segment]**: [Job-to-be-done / core need]
+
+## Value Propositions
+<!-- The specific value delivered to each user segment. Keep concrete. -->
+
+- ...
+
+## Key Capabilities
+<!-- High-level capability list – not features, capabilities. Link to PRDs for detail. -->
+
+| Capability | Description | Status |
+|------------|-------------|--------|
+| ...        | ...         | Planned / In Progress / Shipped |
+
+## Non-Goals
+<!-- Explicit scope boundaries – what this product is deliberately NOT. Prevents drift. -->
+
+- ...
+
+## Success Metrics
+<!-- How we'll know the product is working. Qualitative is fine if quantitative isn't available yet. -->
+
+- ...
 ```
 
 ---

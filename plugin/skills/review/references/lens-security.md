@@ -57,7 +57,7 @@ Other security tooling that the project already wires up (`npm audit`, `pip-audi
 
 ## Critic Sub-Lens (Always On)
 
-Run [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md) against the same security scope as an always-on sub-lens. Posture for the security context: assume the attacker, not just the careless developer. Walk each entry point with malicious input, partial trust, replay, race, and resource-exhaustion intent. Attack assumptions about what an upstream layer guarantees — these are the assumptions where exploitable gaps hide.
+Run [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md) against the same security scope as an always-on sub-lens. Posture for the security context: assume the attacker, not just the careless developer. Walk each entry point with malicious input, partial trust, replay, race, and resource-exhaustion intent. Attack assumptions about what an upstream layer guarantees – these are the assumptions where exploitable gaps hide.
 
 Merge Critic findings into the OWASP/trust-boundary categories before the Findings Filter runs. Do not treat the Critic as a separate mode or an optional escalation.
 
@@ -66,7 +66,7 @@ Merge Critic findings into the OWASP/trust-boundary categories before the Findin
 
 Calibrate severity with [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) (universal) and `security-review-calibration.md` (security-specific contrastive examples and false-positive traps). Load [`critic-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md) while running the always-on Critic sub-lens; use the security-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
 
-Security severity is more sensitive to *exposure* than code-lens severity — the same code defect can be CRITICAL on a public unauthenticated endpoint and MEDIUM behind admin-only VPN access. The calibration reference's contrastive examples make this explicit.
+Security severity is more sensitive to *exposure* than code-lens severity – the same code defect can be CRITICAL on a public unauthenticated endpoint and MEDIUM behind admin-only VPN access. The calibration reference's contrastive examples make this explicit.
 
 
 ## Verification Evidence
@@ -105,7 +105,7 @@ Categorize findings using the unified severity scale from `review-verdict.md`:
 
 **Pre-existing-issue calibration**: an "out of scope" or "did not touch pre-existing X" disclaimer applied to security issues sitting *inside the changed files* is itself a finding (default HIGH for any auth/injection/secret issue, MEDIUM otherwise). Issues in *unchanged* files remain out of scope.
 
-**Readiness label**: `Ready` / `Needs Fixes` / `Blocked` — per the verdict reference (security mode reuses the code-mode readiness scale; CRITICAL findings → `Blocked`).
+**Readiness label**: `Ready` / `Needs Fixes` / `Blocked` – per the verdict reference (security mode reuses the code-mode readiness scale; CRITICAL findings → `Blocked`).
 
 
 ## Report Sections
@@ -134,7 +134,7 @@ Categorize findings using the unified severity scale from `review-verdict.md`:
 - Scanners skipped/unavailable: [with reason]
 
 ## Readiness
-Ready / Needs Fixes / Blocked — with severity counts
+Ready / Needs Fixes / Blocked – with severity counts
 
 ## Next Steps
 1. [Prioritized action items, sequenced by exposure level]
@@ -146,4 +146,4 @@ Ready / Needs Fixes / Blocked — with severity counts
 Filename and directory resolve per [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md). This lens contributes:
 - **`<feature-name>` token**: the feature or primary changed-area name (e.g. `payments`, `auth-refresh`, `webhook-handler`)
 - **Report suffix**: `security-review` (canonical source: the `andthen:review` skill's mode table)
-- **Target nature**: source-code. The location reference's source-code subdirectory guard applies — tier-2 "next to target" is disabled, so without a resolvable spec directory, current feature directory, or `--output-dir`, the report lands in `<agent-temp>/reviews/`.
+- **Target nature**: source-code. The location reference's source-code subdirectory guard applies – tier-2 "next to target" is disabled, so without a resolvable spec directory, current feature directory, or `--output-dir`, the report lands in `<agent-temp>/reviews/`.

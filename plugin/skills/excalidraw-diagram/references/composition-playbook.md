@@ -46,7 +46,7 @@ All recipes assume the **Hand-drawn Blueprint** aesthetic, fontFamily 5 (Excalif
 - **Zone A** (primary flow): `x: 40, y: 140, width: 1320, height: 400, bg: blue[0], opacity: 50`
 - **Stages**: 5 primary ellipses or rectangles, `180 × 90` each, y: 200, x-spacing `260` (80px gap between shapes). Row spans x: 80 → 1280. Primary row ends at y=290.
   - Exactly ONE stage is the hero → upsize to `220 × 110`, shift its y to 190, and shift neighboring x positions by ±20 to preserve the 80px gap
-- **Primary flow arrow**: single bold (`strokeWidth: 4`) arrow binding stage 1 through stage 5 — or 4 bold arrows end-to-start-bound between stages
+- **Primary flow arrow**: single bold (`strokeWidth: 4`) arrow binding stage 1 through stage 5 – or 4 bold arrows end-to-start-bound between stages
 - **Secondary nodes** under stages: `120 × 60`, y: 320 (30px gap below primary row), connected with thin arrows. Ends at y=380.
 - **Evidence artifact**: one dark rectangle, `240 × 120`, y: 400, positioned under the most interesting stage. Ends at y=520, inside Zone A (140–540).
 - **Zone B** (detail / appendix): `x: 40, y: 580, width: 1320, height: 180, bg: bronze[0], opacity: 50`
@@ -88,10 +88,10 @@ All recipes assume the **Hand-drawn Blueprint** aesthetic, fontFamily 5 (Excalif
 Asymmetric three-zone layout so the hero gets room to breathe:
 
 - **Client zone** (left, sparse): `x: 40, y: 140, width: 380, height: 800`
-- **Core zone** (center, hero): `x: 460, y: 140, width: 680, height: 800` — wide enough for a `320 × 160` hero with 180px breathing room on each side
+- **Core zone** (center, hero): `x: 460, y: 140, width: 680, height: 800` – wide enough for a `320 × 160` hero with 180px breathing room on each side
 - **Data zone** (right, dense): `x: 1180, y: 140, width: 380, height: 800`
 - Total canvas: 1600 wide with 40px outer padding both sides and 40px inter-zone gaps.
-- **Hero**: API gateway at `x: 640, y: 380, width: 320, height: 160` — centered in the core zone. Horizontal breathing room: `(680 − 320)/2 = 180px` on each side inside the zone.
+- **Hero**: API gateway at `x: 640, y: 380, width: 320, height: 160` – centered in the core zone. Horizontal breathing room: `(680 − 320)/2 = 180px` on each side inside the zone.
 - **Satellites around the hero**: 3 small ellipses (auth / rate-limit / log), `120 × 60`, arranged below the hero at y: 600, with radiating thin arrows from the hero.
 - **Client nodes** (left zone): 3 rectangles, `180 × 90`, stacked vertically, each arrow-bound to the hero.
 - **Data nodes** (right zone): 3 rectangles with mixed fill styles (`solid` for services, `hachure` for one of the DBs), `180 × 90`.
@@ -137,7 +137,7 @@ Asymmetric three-zone layout so the hero gets room to breathe:
 
 - **Zones overlap or abut**. Use rounded rectangles with `opacity: 50`, shade[0] backgrounds.
 - **Category name**: free-floating text (no box), `fontSize: 28`, zone stroke color (shade[4]) at full opacity (100). Positioned top-center of each zone. This is the "continent name" – dominant, not boxed. Use the zone color itself for visual recession, not a lowered text opacity.
-- **Items inside zones**: free-floating text at `fontSize: 18`. No boxes unless the item is connectable. **This is the key variance** — a taxonomy is NOT a grid of boxes.
+- **Items inside zones**: free-floating text at `fontSize: 18`. No boxes unless the item is connectable. **This is the key variance** – a taxonomy is NOT a grid of boxes.
 - **Overlap items**: place them straddling the zone boundary.
 - **No primary-flow arrow.** Relationships, if any, use dotted thin lines.
 - **Evidence artifacts**: optional – one per zone showing a canonical example.
@@ -179,7 +179,7 @@ Asymmetric three-zone layout so the hero gets room to breathe:
 
 - 4 states arranged at corners of a square (centers at `(300, 200), (700, 200), (700, 600), (300, 600)`).
 - Each state is an **ellipse** (ellipse = state, per shape vocabulary), `180 × 90`, but upsize **one** state that's the entry point to `240 × 120` (the hero).
-- Arrows between states curve slightly (3-point `points` array) — not straight lines. The curvature makes the loop visible at a glance.
+- Arrows between states curve slightly (3-point `points` array) – not straight lines. The curvature makes the loop visible at a glance.
 - Label each arrow with the **action** that triggers the transition (2–3 words), `fontSize: 14`, placed outside the curve.
 - Center of canvas reserved for the diagram title and a 1-sentence description – this is the visual anchor of the loop.
 

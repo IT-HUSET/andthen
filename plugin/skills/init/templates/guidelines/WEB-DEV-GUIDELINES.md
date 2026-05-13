@@ -4,7 +4,7 @@ Web-platform-specific standards. For architecture and coding practices, see `DEV
 
 
 ## HTML & Semantics
-- Use semantic HTML5 elements (`<header>`, `<nav>`, `<main>`, `<article>`, `<section>`) — not generic `<div>` soup
+- Use semantic HTML5 elements (`<header>`, `<nav>`, `<main>`, `<article>`, `<section>`) – not generic `<div>` soup
 - Headings in logical order (`<h1>`–`<h6>`). Group related content with semantic containers
 - Descriptive `alt` text for images; `alt=""` for purely decorative ones
 - Keep content (HTML), presentation (CSS), and behavior (JS) separate
@@ -26,7 +26,7 @@ Web-platform-specific standards. For architecture and coding practices, see `DEV
 
 ## Security
 - **HTTPS everywhere**
-- Validate and sanitize all inputs — prevent XSS and injection attacks
+- Validate and sanitize all inputs – prevent XSS and injection attacks
 - Set Content-Security-Policy headers to restrict resource origins
 - Secure cookies: `HttpOnly`, `Secure`, `SameSite`
 - Never commit secrets (API keys, tokens, credentials). Use `.env` files (gitignored)

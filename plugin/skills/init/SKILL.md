@@ -54,7 +54,7 @@ Classify into one of three paths:
 
 Ask the user for basic project context (or accept from `PROJECT_NAME`): project name, brief description, primary tech stack (if not auto-detected).
 
-Generate the root agent instruction file(s) using `templates/CLAUDE.template.md` as the base. Create `CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents, and both when the target agent is unclear. Fill in the Project Overview section; keep the Project Document Index and Workflow Rules sections intact; remove TODO comments from filled sections. When creating both files, keep the shared workflow sections byte-equivalent so agents read the same document contract.
+Generate the root agent instruction file(s) using `templates/CLAUDE.template.md` as the base. Create `CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents, and both when the target agent is unclear. Fill in the Project Overview section; keep the Project Document Index and Project-Specific Guidelines and Rules sections intact; remove TODO comments from filled sections. When creating both files, keep the shared workflow sections byte-equivalent so agents read the same document contract.
 
 Create base directory structure:
 ```
@@ -65,15 +65,15 @@ docs/
 
 Because the generated root agent instruction template references the starter guideline filenames directly, copy any missing files from `templates/guidelines/` into `docs/guidelines/` as part of baseline setup. Never overwrite existing guideline files; preserve project-specific files.
 
-Present the following options together. **STOP and WAIT** for the user's selection before creating any optional files:
+Scaffold the **Core orientation stubs by default** – the four documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). The user can fill them in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
 
-- **Core** (recommended): `Learnings` (docs/LEARNINGS.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md)
-- **Planning**: `State` (docs/STATE.md), `Product Backlog` (docs/PRODUCT-BACKLOG.md), `Roadmap` (docs/ROADMAP.md)
-- **Architecture**: `Architecture` document (or generate later via the `andthen:map-codebase` skill)
-- **Domain**: `Ubiquitous Language` document (or generate later via the `andthen:ubiquitous-language` skill)
+Then present the **optional documents** together. **STOP and WAIT** for the user's selection before creating any of these:
+
+- **Planning** (optional): `State` (docs/STATE.md), `Product Backlog` (docs/PRODUCT-BACKLOG.md), `Roadmap` (docs/ROADMAP.md), `Learnings` (docs/LEARNINGS.md)
+- **Domain** (optional): `Ubiquitous Language` document (or generate later via the `andthen:ubiquitous-language` skill)
 - **Monorepo** (if `IS_MONOREPO = true`): offer per-sub-project agent instruction files matching the root file choice
 
-Ask: _"Which would you like to create? (e.g. 'Learnings, Stack' or 'all core' or 'none for now')"_
+Ask: _"Which optional documents would you like to create alongside the Core stubs? (e.g. 'State, Roadmap' or 'all planning' or 'none for now')"_
 
 For each confirmed document type, generate the file from templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`, using the location from the **Project Document Index** or the default path above. Pre-fill what's auto-detectable (e.g., the `Stack` document from package config).
 
@@ -84,9 +84,10 @@ For each confirmed sub-project agent instruction file, generate a lightweight fi
 
 ### 2b. Partial Setup (CLAUDE.md and/or AGENTS.md exists)
 
-Read the existing root agent instruction file(s) and check for: Project Document Index (table present? which rows exist?), Workflow Rules section, Project Overview filled in, and referenced documents that actually exist. If both `CLAUDE.md` and `AGENTS.md` exist, check both and keep shared workflow sections aligned. If only one exists, repair that file and offer to create the missing counterpart for cross-agent portability.
+Read the existing root agent instruction file(s) and check for: Project Document Index (table present? which rows exist?), Project-Specific Guidelines and Rules section, Project Overview filled in, the Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md` – same set Step 2a scaffolds by default), and referenced documents that actually exist. If both `CLAUDE.md` and `AGENTS.md` exist, check both and keep shared workflow sections aligned. If only one exists, repair that file and offer to create the missing counterpart for cross-agent portability.
 
-Present findings and offer fixes:
+Present findings and offer fixes. **Missing Core orientation stubs are scaffolded by default** (consistent with Step 2a) – not listed as optional. Only Planning / Domain / Monorepo docs are offered interactively.
+
 ```
 Current setup analysis:
 
@@ -94,15 +95,17 @@ Current setup analysis:
 ✓ Project Document Index present
   - 8/13 document types configured
   - Missing: State, Requirements, Roadmap, Learnings, Conventions
-✓ Workflow Rules section configured
+✓ Project-Specific Guidelines and Rules section configured
 ✗ Required starter guideline files are missing from docs/guidelines/
+✗ Core orientation stubs missing: PRODUCT.md, ARCHITECTURE.md (will be scaffolded by default)
 ✗ `Learnings` document is listed in the **Project Document Index** but the file doesn't exist
 
-Would you like to:
+Will scaffold by default: missing Core orientation stubs, missing starter guideline files.
+
+Would you also like to:
 1. Add missing Document Index rows
-2. Create missing referenced documents
-3. Copy missing starter guidelines
-4. All of the above
+2. Create missing referenced documents (optional ones)
+3. All of the above
 ```
 
 If the `Architecture` document, the `Stack` document, or a Conventions section in the root agent instruction file(s) are missing and the codebase has 20+ files, also suggest:
@@ -112,10 +115,11 @@ Run the `andthen:map-codebase` skill to auto-generate from codebase analysis? (r
 ```
 
 Wait for user response, then execute confirmed actions:
+- **Missing Core orientation stubs** (default): Scaffold from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` – same set and behavior as Step 2a. Pre-fill what's auto-detectable.
 - **Missing Index rows**: Append to existing table (don't rewrite the whole table)
 - **Missing documents**: Generate from templates, pre-fill where possible
 - **Missing guidelines**: Copy any missing starter guideline files referenced by the generated template from `templates/guidelines/`; never overwrite existing files
-- **Missing sections**: Add to the root agent instruction file(s) at the appropriate location. If this adds the template's Workflow Rules section or creates a missing counterpart file from the template, also copy any missing starter guideline files so the new references resolve.
+- **Missing sections**: Add to the root agent instruction file(s) at the appropriate location. If this adds the template's Project-Specific Guidelines and Rules section or creates a missing counterpart file from the template, also copy any missing starter guideline files so the new references resolve.
 - **map-codebase**: Invoke the `andthen:map-codebase` skill; skip creating the `Architecture` and `Stack` documents from templates since map-codebase produces them from actual analysis
 
 **Gate**: All selected gaps filled
@@ -141,21 +145,25 @@ Wait for response. If yes: invoke the `andthen:map-codebase` skill, then proceed
 
 ### 3. Final Summary
 
-Print a summary of everything created:
+Print a summary listing **only what this run actually created**. Group by Core orientation stubs (always scaffolded by default in 2a/2b), starter guidelines, and any optional documents the user confirmed. Omit groups that were already in place. Example:
 
 ```
 Project initialized:
 
 Created:
-  CLAUDE.md / AGENTS.md                  – Project configuration
-  [Learnings document path]             – Project knowledge (empty)
-  [Stack document path]                 – Technology stack (pre-filled)
+  CLAUDE.md / AGENTS.md                       – Project configuration
+  docs/PRODUCT.md                             – Product vision (stub)
+  docs/ARCHITECTURE.md                        – System architecture (stub)
+  docs/STACK.md                               – Technology stack (pre-filled from package config)
+  docs/KEY_DEVELOPMENT_COMMANDS.md            – Dev / test / build commands (stub)
   docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md
+  docs/guidelines/DEVELOPMENT-ARCHITECTURE-GUIDELINES.md
+  [+ any optional documents the user selected, e.g. docs/STATE.md, docs/ROADMAP.md, …]
 
 Next steps:
   1. Review and customize CLAUDE.md / AGENTS.md (especially Project Overview)
   2. Not sure where to start? Run /andthen:now-what (or $andthen:now-what)
-     — it inspects state and routes to the right skill (clarify, spec, plan,
+     – it inspects state and routes to the right skill (clarify, spec, plan,
      architecture, ui-ux-design, etc.). Pass your idea inline if you have one.
   3. Already know what you need? Jump straight to /andthen:spec, /andthen:plan,
      /andthen:quick-implement, /andthen:architecture, etc.

@@ -2,12 +2,12 @@
 
 Multi-perspective code or security review: 5-7 specialized reviewers find issues, a Critic Reviewer attacks assumptions, and findings-filter roles prune weak findings. Load this reference when running the `andthen:review` skill with `--council`, or when code/security mode auto-escalates to council because the scope spans multiple concerns (security, performance, architecture, UX), the surface is high-risk (auth, payments, data integrity), or the user asked for "multi-perspective" / "adversarial" / "critic" / "skeptic" / "thorough" review.
 
-Council mode augments **code mode** and **security mode** (or those sub-passes of mixed mode) — it does not apply to `doc` or `gap` alone. In a chain that includes both code and security, council runs once per applicable lens with reviewers selected for that lens's focus, and writes one council section per lens.
+Council mode augments **code mode** and **security mode** (or those sub-passes of mixed mode) – it does not apply to `doc` or `gap` alone. In a chain that includes both code and security, council runs once per applicable lens with reviewers selected for that lens's focus, and writes one council section per lens.
 
 Companion references:
-- `reviewer-roster.md` — reviewer catalog and selection examples (security-mode councils lean heavily on Security Sentinel plus 1-2 surface specialists)
-- `lens-code.md` — the code-review rubric each code-mode specialist applies
-- `lens-security.md` — the security-review rubric each security-mode specialist applies (OWASP applicability gate, trust-boundary analysis, scanners)
+- `reviewer-roster.md` – reviewer catalog and selection examples (security-mode councils lean heavily on Security Sentinel plus 1-2 surface specialists)
+- `lens-code.md` – the code-review rubric each code-mode specialist applies
+- `lens-security.md` – the security-review rubric each security-mode specialist applies (OWASP applicability gate, trust-boundary analysis, scanners)
 - [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md) and [`critic-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md): Critic Reviewer posture and calibration
 - [`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md): Findings Filter prompt templates for Devil's Advocate and Synthesis Challenger
 
@@ -18,7 +18,7 @@ Companion references:
 - Skipping the Critic Reviewer under context pressure: this removes the primary assumption-attack pass
 - Skipping Devil's Advocate under context pressure: this removes the Findings Filter
 - Reviewers agreeing too easily: if no findings survive filtering, the review was too shallow
-- Forcing `--team` when Agent Teams are unavailable — fall back to sub-agents unless `--team` was explicit
+- Forcing `--team` when Agent Teams are unavailable – fall back to sub-agents unless `--team` was explicit
 
 
 ## 1. Determine Execution Mode
@@ -35,7 +35,7 @@ Choose 5-7 reviewers from `reviewer-roster.md` based on the review scope (see th
 
 For **security-mode councils**, the 2-4 specialists added on top of the three fixed roles should center on the security surface: always include **Security Sentinel**; pick 1-3 more matched to the OWASP applicability gate (e.g. **API Designer** for API surfaces, **Frontend Specialist** for browser/XSS surfaces, **Backend Specialist** for server-side logic, **Database Specialist** for SQLi / data-layer concerns, **Architecture Strategist** for trust-boundary structure). Each specialist applies the `lens-security.md` rubric in their focus area.
 
-For **code-mode councils**, select 2-4 specialists matched to the code-lens applicable subset (quality, architecture, domain language, UI/UX) — Security Sentinel is optional here since the code lens runs only the thin awareness pass; if security depth is wanted, the chain should include `security` and run a separate security-mode council.
+For **code-mode councils**, select 2-4 specialists matched to the code-lens applicable subset (quality, architecture, domain language, UI/UX) – Security Sentinel is optional here since the code lens runs only the thin awareness pass; if security depth is wanted, the chain should include `security` and run a separate security-mode council.
 
 When a chain runs council on both lenses, the two councils have distinct reviewer rosters but share the Critic Reviewer / Devil's Advocate / Synthesis Challenger pattern. Run them sequentially (security after code) so security findings can reference code-quality issues without double-counting.
 
@@ -82,7 +82,7 @@ PHASE 3 - Synthesis Review:
 After all Findings Filter debates complete, Synthesis Challenger should:
 - Review ALL validated findings holistically
 - Question severity consistency, merged issues, missed patterns, false positives
-- Act as quality gate — only findings surviving both phases get reported
+- Act as quality gate – only findings surviving both phases get reported
 
 Final output: Unified findings validated through specialist review, Findings Filter, and synthesis.
 ```
@@ -145,7 +145,7 @@ Apply the verdicts to the findings list. **Gate:** findings filtered, verdicts a
 
 ## 4. Report Structure
 
-When the caller writes a consolidated report, use this structure — only findings that survived both debate phases appear in the severity sections:
+When the caller writes a consolidated report, use this structure – only findings that survived both debate phases appear in the severity sections:
 
 ```markdown
 # Review Council Report: {Scope}

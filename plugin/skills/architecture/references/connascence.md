@@ -6,9 +6,9 @@ Connascence (Page-Jones, 1992; refined by Weirich) is a coupling quality metric.
 
 Every connascence instance has three orthogonal properties:
 
-- **Strength** — How hard to detect and refactor. Static (compile-time) < Dynamic (runtime-only). Determines priority.
-- **Degree** — How many entities are involved. More = worse. Scales the impact.
-- **Locality** — How close the coupled elements are. Same class < same package < cross-package. Modulates severity.
+- **Strength** – How hard to detect and refactor. Static (compile-time) < Dynamic (runtime-only). Determines priority.
+- **Degree** – How many entities are involved. More = worse. Scales the impact.
+- **Locality** – How close the coupled elements are. Same class < same package < cross-package. Modulates severity.
 
 ### Severity Formula
 
@@ -29,16 +29,16 @@ Example: CoN (strength=1) within a class (degree=2, locality=3) → severity = (
 
 ```
 CoN → CoT → CoM → CoP → CoA → CoE → CoTm → CoV → CoI
- ←——————— Static ————————→  ←————————— Dynamic ——————————→
+ ←––––––– Static ––––––––→  ←––––––––– Dynamic ––––––––––→
 ```
 
-**Critical axiom**: Any dynamic connascence is categorically worse than any static connascence, regardless of specific types. Dynamic forms require runtime reasoning to detect — invisible to static analysis, harder to test, harder to review.
+**Critical axiom**: Any dynamic connascence is categorically worse than any static connascence, regardless of specific types. Dynamic forms require runtime reasoning to detect – invisible to static analysis, harder to test, harder to review.
 
 ---
 
 ## Static Connascence
 
-### CoN — Connascence of Name (Strength: 1, Weakest)
+### CoN – Connascence of Name (Strength: 1, Weakest)
 
 Multiple components must agree on the name of an entity.
 
@@ -48,10 +48,10 @@ session.startSession();
 ```
 
 - **Why problematic across boundaries**: Renames propagate to all callers across packages. Public API renames require coordinated consumer updates.
-- **Detection**: Unavoidable — all code has it. Flag only when names are ambiguous or inconsistent across packages (package A says `startSession`, B says `beginSession` for the same concept).
+- **Detection**: Unavoidable – all code has it. Flag only when names are ambiguous or inconsistent across packages (package A says `startSession`, B says `beginSession` for the same concept).
 - **Refactoring target**: This IS the target. All other reductions should aim to reach CoN.
 
-### CoT — Connascence of Type (Strength: 2)
+### CoT – Connascence of Type (Strength: 2)
 
 Multiple components must agree on the type of an entity.
 
@@ -61,21 +61,21 @@ void processUser(String userId) { ... }
 ```
 
 - **Why problematic across boundaries**: Type changes in shared models require recompilation of all consumers. In dynamic languages, invisible until runtime.
-- **Detection**: Flag runtime type checks (`is`, `as`), wide use of `dynamic` or `Object` — these indicate CoT the type system isn't enforcing.
+- **Detection**: Flag runtime type checks (`is`, `as`), wide use of `dynamic` or `Object` – these indicate CoT the type system isn't enforcing.
 - **Refactoring**: Consolidate shared types into a dedicated models package. Use sealed interfaces for enumerated types. Replace `dynamic` with proper types.
 
-### CoM — Connascence of Meaning (Strength: 3)
+### CoM – Connascence of Meaning (Strength: 3)
 
 Multiple components must agree on the meaning of specific values. Also called Connascence of Convention.
 
 ```dart
-// Magic number — "1" means admin, "0" means user (implicit)
+// Magic number – "1" means admin, "0" means user (implicit)
 if (user.role == 1) grantAdminAccess();
 
-// Boolean positional parameter — what does `true` mean?
+// Boolean positional parameter – what does `true` mean?
 PStore.new("demo.store", true);
 
-// Sentinel value — "-1" means "not found"
+// Sentinel value – "-1" means "not found"
 if (userId == -1) insertUser(user);
 ```
 
@@ -83,21 +83,21 @@ if (userId == -1) insertUser(user);
 - **Detection**: Flag magic numbers, boolean positional params, sentinel return values, undocumented string constants used as identifiers.
 - **Refactoring**: Extract to enums, named constants, keyword arguments, or typed result types.
 
-### CoP — Connascence of Position (Strength: 4)
+### CoP – Connascence of Position (Strength: 4)
 
 Multiple components must agree on the order of values.
 
 ```dart
 // Caller must know: first=firstName, second=lastName, third=age
 void createUser(String firstName, String lastName, int age) { ... }
-createUser("Löfstrand", "Tobias", 40); // SILENT BUG — compiles, wrong semantics
+createUser("Löfstrand", "Tobias", 40); // SILENT BUG – compiles, wrong semantics
 ```
 
 - **Why problematic across boundaries**: Same-type positional parameters are invisible errors. Reordering compiles but corrupts data.
 - **Detection**: Flag methods with 3+ positional parameters. Flag 2+ positional parameters of the same type in public APIs.
 - **Refactoring**: Use named/keyword parameters, data classes, or builder pattern.
 
-### CoA — Connascence of Algorithm (Strength: 5, Strongest Static)
+### CoA – Connascence of Algorithm (Strength: 5, Strongest Static)
 
 Multiple components must independently implement the same algorithm.
 
@@ -105,7 +105,7 @@ Multiple components must independently implement the same algorithm.
 // Encrypter in service layer
 String encrypt(String value) => sha256.convert(utf8.encode(value)).toString();
 
-// Validator in another package — must use IDENTICAL algorithm
+// Validator in another package – must use IDENTICAL algorithm
 bool validate(String raw, String hash) =>
   sha256.convert(utf8.encode(raw)).toString() == hash;
 ```
@@ -118,7 +118,7 @@ bool validate(String raw, String hash) =>
 
 ## Dynamic Connascence
 
-### CoE — Connascence of Execution (Strength: 6)
+### CoE – Connascence of Execution (Strength: 6)
 
 The order of execution must be correct for the system to behave correctly.
 
@@ -127,25 +127,25 @@ article.publish();   // BUG: must call generate() first
 article.generate();
 ```
 
-- **Why problematic across boundaries**: Callers must know the internal operation order of the callee — an implementation detail leaked into orchestration.
+- **Why problematic across boundaries**: Callers must know the internal operation order of the callee – an implementation detail leaked into orchestration.
 - **Detection**: Look for `init()` methods, ordered multi-step setup without builder/factory, ordering documented only in comments.
 - **Refactoring**: Template Method pattern, factory methods, state machines that make valid transitions explicit.
 
-### CoTm — Connascence of Timing (Strength: 7)
+### CoTm – Connascence of Timing (Strength: 7)
 
-Timing of execution (not just order) affects correctness — race conditions, timeouts, cache TTLs.
+Timing of execution (not just order) affects correctness – race conditions, timeouts, cache TTLs.
 
 ```dart
 cache.write(key, data);
 await Future.delayed(Duration(seconds: 61));
-cache.read(key); // null — TTL expired
+cache.read(key); // null – TTL expired
 ```
 
 - **Why problematic across boundaries**: Timing assumptions are invisible in code. A cache consumer in one package assumes a TTL set in another.
 - **Detection**: Flag hardcoded `sleep`/`delay` for coordination. Flag retry logic with magic delay constants. Flag cache interactions with assumed-but-unhandled TTL.
 - **Refactoring**: Use `async/await` to declare temporal dependencies. Add explicit timeout handling. Use circuit breakers for cross-service timing.
 
-### CoV — Connascence of Values (Strength: 8)
+### CoV – Connascence of Values (Strength: 8)
 
 Multiple values across components are related by a constraint and must change together.
 
@@ -154,14 +154,14 @@ Multiple values across components are related by a constraint and must change to
 // Package A:
 const defaultPageSize = 100;
 // Package B:
-const maxResultsPerPage = 100; // Same constraint, different name — will drift
+const maxResultsPerPage = 100; // Same constraint, different name – will drift
 ```
 
 - **Why problematic across boundaries**: Partial updates create inconsistent state. Root cause of distributed transaction complexity.
 - **Detection**: Flag duplicate constant definitions across packages. Flag multi-step operations that must succeed atomically but have no rollback.
 - **Refactoring**: Centralize related constants in a shared package. Use Saga pattern for distributed value constraints. Use event sourcing.
 
-### CoI — Connascence of Identity (Strength: 9, Strongest)
+### CoI – Connascence of Identity (Strength: 9, Strongest)
 
 Multiple components must reference the exact same object instance.
 
@@ -181,9 +181,9 @@ subscriber.consume(publisher); // Works only if same queue
 ## Guiding Principles
 
 ### Page-Jones's Three Guidelines
-1. **Minimize overall connascence** — encapsulate to reduce total coupling surface
-2. **Minimize connascence crossing encapsulation boundaries** — cross-package coupling should be CoN or CoT only
-3. **Maximize connascence within encapsulation boundaries** — high internal connascence IS cohesion
+1. **Minimize overall connascence** – encapsulate to reduce total coupling surface
+2. **Minimize connascence crossing encapsulation boundaries** – cross-package coupling should be CoN or CoT only
+3. **Maximize connascence within encapsulation boundaries** – high internal connascence IS cohesion
 
 ### Weirich's Two Rules
 1. **Rule of Degree**: Convert strong forms into weaker forms (CoP → CoN via named params)
@@ -191,7 +191,7 @@ subscriber.consume(publisher); // Works only if same queue
 
 ### Decision Framework for Package Boundaries
 - If all cross-boundary coupling is CoN/CoT: boundary is healthy. Keep it.
-- If cross-boundary coupling includes CoM/CoP/CoA: medium severity — refactoring targets before boundary can be considered stable.
+- If cross-boundary coupling includes CoM/CoP/CoA: medium severity – refactoring targets before boundary can be considered stable.
 - If ANY cross-boundary coupling is dynamic (CoE/CoTm/CoV/CoI): strong merge signal or must-fix refactoring target.
 
 ---

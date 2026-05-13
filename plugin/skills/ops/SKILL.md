@@ -33,21 +33,21 @@ Reliable, template-driven operations for state management, git conventions, and 
 
 ### Append-Run Block Protocol
 
-Applies to the `observations`, `discovered-requirements`, and `update-tech-debt append` forms. `<markdown-body>` is freeform multi-line markdown passed verbatim — quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape. Each form names its own tag suffix, target section, and body-constraint variant — the following protocol is common to all three:
+Applies to the `observations`, `discovered-requirements`, and `update-tech-debt append` forms. `<markdown-body>` is freeform multi-line markdown passed verbatim – quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape. Each form names its own tag suffix, target section, and body-constraint variant – the following protocol is common to all three:
 
 - **Empty/whitespace-only body**: no-op; do not append a run block and do not create the target file (for `update-tech-debt append`).
-- **Body constraints**: `<markdown-body>` MUST use `####`-or-deeper headings only. The body MUST NOT contain `## ` headings or another `### Run:` line — these would visually close the section and break the append protocol.
+- **Body constraints**: `<markdown-body>` MUST use `####`-or-deeper headings only. The body MUST NOT contain `## ` headings or another `### Run:` line – these would visually close the section and break the append protocol.
 - **Placeholder removal**: if the placeholder line `_No observations recorded yet._` or `_No tech debt recorded yet._` is present in the target section, remove it (exact-string match only; no-op otherwise).
 - **Timestamp resolution**: resolve a timestamp via `date -u +"%Y-%m-%d %H:%M UTC"` so all run blocks share a single timezone and ordering is unambiguous.
 - **Whitespace normalization**: ensure exactly one blank line precedes the new run block and the previous block ends with a trailing newline.
 - **Run-block frame**: append the run block tagged with the form's own suffix:
   ```
-  ### Run: {YYYY-MM-DD HH:MM UTC} — {tag}
+  ### Run: {YYYY-MM-DD HH:MM UTC} – {tag}
 
   {markdown-body}
   ```
 - **Append-only**: never rewrite or remove prior `### Run:` blocks.
-- **Idempotent retry** (2-minute window): if the most recent existing `### Run: ... — {tag}` block (matched by tag suffix) has identical body content (whitespace-normalized; for `update-tech-debt append` compare the per-severity filtered body against the matching severity block, not the full body) AND its timestamp is within 2 minutes of the resolved timestamp, no-op for that block. Compare only against same-tag blocks — an intervening block with a different tag suffix does not affect the decision.
+- **Idempotent retry** (2-minute window): if the most recent existing `### Run: ... – {tag}` block (matched by tag suffix) has identical body content (whitespace-normalized; for `update-tech-debt append` compare the per-severity filtered body against the matching severity block, not the full body) AND its timestamp is within 2 minutes of the resolved timestamp, no-op for that block. Compare only against same-tag blocks – an intervening block with a different tag suffix does not affect the decision.
 
 ### 1. State File Operations
 
@@ -80,7 +80,7 @@ Supported fields:
 After any update, set `Last Updated` to current timestamp.
 
 **Maintenance rules** (apply automatically on every write):
-- **Active Stories table**: remove rows with status `Done` (they belong in `plan.json`, not state). This section tracks only _currently in-progress_ work — never accumulate completed milestone summaries here.
+- **Active Stories table**: remove rows with status `Done` (they belong in `plan.json`, not state). This section tracks only _currently in-progress_ work – never accumulate completed milestone summaries here.
 - **Recently Completed**: keep only the **last 2 milestones/releases**. Older milestones should already be captured in CHANGELOG.md. Use a one-line summary per milestone (not full release notes). If there are older milestones beyond the kept 2, condense into a single trailing line: `Previous: 0.14, 0.13, 0.12, ...`
 - **Blockers**: remove entries that are no longer relevant (e.g. the blocking condition has been resolved, the related story is `Done`, or the blocker is older than 14 days with no recent activity)
 - **Recent Decisions**: keep only the **last 10** entries; graduate older items to ADRs if warranted
@@ -97,8 +97,7 @@ Mutate `stories[].status` in `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_
 Actions:
 - Read `plan.json`, locate the entry in `stories[]` whose `id === <story_id>`, validate `<status>` against the closed enum (`pending` / `spec-ready` / `in-progress` / `done` / `skipped` / `blocked`), set the field, write back with deterministic formatting (2-space indent, schema key order, trailing newline).
 - Forward transitions are skill-implicit per the schema's Write Authority; backward transitions (e.g. `done → spec-ready`) are valid only via explicit `update-plan` calls.
-- **Writability enforcement** — before write, validate `metadata.immutableDigest` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) **Enforcement** section: recompute the digest of the on-disk document's immutable subset (drop `metadata`, null out every story's `status` and `fis`, serialize per the formatting conventions, sha256). If the recomputed digest does not match `metadata.immutableDigest` (or the field is missing), refuse with `BLOCKED: plan.json was modified outside of andthen:ops. Re-run /andthen:plan to regenerate, or revert the unauthorized edit.` After applying the authorized mutation, recompute the digest from the post-mutation document (it equals the pre-mutation digest because `status` is excluded from the canonical form) and persist it in `metadata.immutableDigest`. This is the load-bearing contract: agents must not rewrite plans in flight.
-- Reject unknown status values with `BLOCKED: invalid status "<value>" — must be one of pending, spec-ready, in-progress, done, skipped, blocked`.
+- Reject unknown status values with `BLOCKED: invalid status "<value>" – must be one of pending, spec-ready, in-progress, done, skipped, blocked`.
 - No-op when `status` already equals the target value.
 
 #### Update Plan FIS
@@ -108,12 +107,11 @@ Mutate `stories[].fis` in `plan.json`.
 
 Actions:
 - Read `plan.json`, locate the entry in `stories[]` whose `id === <story_id>`, set `fis` to `<fis_path>` (relative POSIX), write back.
-- Same `metadata.immutableDigest` enforcement as `update-plan`: validate the digest before write; refuse with `BLOCKED: plan.json was modified outside of andthen:ops. ...` on mismatch; recompute and persist after the authorized mutation.
-- Reject duplicates: if any other story already has `fis === <fis_path>`, refuse with `BLOCKED: fis path "<fis_path>" already used by story <other-id> — the 1:1 story↔FIS invariant must hold`.
+- Reject duplicates: if any other story already has `fis === <fis_path>`, refuse with `BLOCKED: fis path "<fis_path>" already used by story <other-id> – the 1:1 story↔FIS invariant must hold`.
 - No-op when `fis` already equals `<fis_path>` (path-normalized).
 
 #### Update FIS
-Mutate a FIS document — mark checkboxes, append implementation observations, or append discovered requirements.
+Mutate a FIS document – mark checkboxes, append implementation observations, or append discovered requirements.
 
 **Usage**:
 - Mark checkboxes: `update-fis <fis_path> <task_id|all>`
@@ -123,16 +121,16 @@ Mutate a FIS document — mark checkboxes, append implementation observations, o
 Actions for `<task_id|all>` form:
 - When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
 - When `task_id` is `all`: Mark ALL unchecked task checkboxes (`- [ ]` → `- [x]`), all success criteria checkboxes, and all Final Validation Checklist items in one pass
-- Before marking done, verify that evidence of completion exists — the calling skill should have already performed verification; do not re-run it. When all tasks are done (or using `all`): also mark success criteria and Final Validation Checklist items.
+- Before marking done, verify that evidence of completion exists – the calling skill should have already performed verification; do not re-run it. When all tasks are done (or using `all`): also mark success criteria and Final Validation Checklist items.
 
 Actions for `observations` form:
-- Body constraint variant: MUST use `####`-or-deeper headings (typically `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)`). MUST NOT contain `#### DISCOVERED REQUIREMENTS` — that subsection belongs in the `discovered-requirements` form so tagged-lane separation holds. Reject (no-op + `BLOCKED: invalid observations body`) if violated.
-- Tag suffix: `— observations`. Target section: `## Implementation Observations`. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
+- Body constraint variant: MUST use `####`-or-deeper headings (typically `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)`). MUST NOT contain `#### DISCOVERED REQUIREMENTS` – that subsection belongs in the `discovered-requirements` form so tagged-lane separation holds. Reject (no-op + `BLOCKED: invalid observations body`) if violated.
+- Tag suffix: `– observations`. Target section: `## Implementation Observations`. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
 - Apply the Append-Run Block Protocol above.
 
 Actions for `discovered-requirements` form:
 - Body constraint variant: MUST contain `#### DISCOVERED REQUIREMENTS`. Reject (no-op + `BLOCKED: invalid discovered-requirements body`) if the body lacks `#### DISCOVERED REQUIREMENTS`.
-- Tag suffix: `— discovered-requirements`. Target section: `## Implementation Observations`. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
+- Tag suffix: `– discovered-requirements`. Target section: `## Implementation Observations`. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
 - Apply the Append-Run Block Protocol above.
 
 #### Update Tech Debt
@@ -144,9 +142,9 @@ Resolve the target file path from the **Project Document Index** `Tech Debt` row
 
 Actions for `append` form:
 - Body constraint variant: MUST use `####`-or-deeper headings (typically `#### DEFERRED FINDINGS`). Reject (no-op + `BLOCKED: invalid tech-debt body`) if violated.
-- **File creation exception** (the *one* documented deviation from "ops never creates target files" — see GOTCHAS): if the resolved target file does not exist, scaffold it from the `# Technical Debt Backlog` template defined in `project-state-templates.md` (H1 `# Technical Debt Backlog` + H2 `## High` / `## Medium` / `## Low` in fixed order, each carrying placeholder line `_No tech debt recorded yet._`) before appending. Do not extend this exception to any other ops form.
-- **Severity routing**: each entry is a top-level `- **{title}** ...` bullet with its `Severity:` line nested as a sub-bullet. Parse the `Severity:` value and route the entry to the matching H2 section (`High` / `Medium` / `Low`). Default to `Medium` when the severity is missing or unrecognized. When a single body batches mixed severities, split into per-severity run blocks sharing one timestamp — one new run block under each affected severity H2.
-- Tag suffix: `— tech-debt`. Idempotency lane scoped per severity H2.
+- **File creation exception** (the *one* documented deviation from "ops never creates target files" – see GOTCHAS): if the resolved target file does not exist, scaffold it from the `# Technical Debt Backlog` template defined in `project-state-templates.md` (H1 `# Technical Debt Backlog` + H2 `## High` / `## Medium` / `## Low` in fixed order, each carrying placeholder line `_No tech debt recorded yet._`) before appending. Do not extend this exception to any other ops form.
+- **Severity routing**: each entry is a top-level `- **{title}** ...` bullet with its `Severity:` line nested as a sub-bullet. Parse the `Severity:` value and route the entry to the matching H2 section (`High` / `Medium` / `Low`). Default to `Medium` when the severity is missing or unrecognized. When a single body batches mixed severities, split into per-severity run blocks sharing one timestamp – one new run block under each affected severity H2.
+- Tag suffix: `– tech-debt`. Idempotency lane scoped per severity H2.
 - Apply the Append-Run Block Protocol above (once per affected severity section).
 
 

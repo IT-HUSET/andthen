@@ -1,11 +1,11 @@
-# UI/UX — Review Mode
+# UI/UX – Review Mode
 
-Validate an existing UI implementation — capture states, assess quality against intended design and UX principles, and report issues with evidence and fix recommendations.
+Validate an existing UI implementation – capture states, assess quality against intended design and UX principles, and report issues with evidence and fix recommendations.
 
 ## Inputs
 
 - implementation URL, running app, or screenshots
-- intended design reference (wireframes, design system, mockups) — optional but strengthens the review
+- intended design reference (wireframes, design system, mockups) – optional but strengthens the review
 - scope (which screens, which states, which breakpoints)
 
 ## Process
@@ -54,7 +54,7 @@ Recommend specific changes: exact components, styles, spacing, typography, state
 ## Output
 
 Return:
-- **Validation scope** — screens/states/breakpoints reviewed
-- **Overall quality assessment** — one paragraph
-- **Prioritized issues** — P1/P2/P3, each with evidence (screenshot or description) and a recommended fix
-- **Next steps** — remaining gaps or retest needs
+- **Validation scope** – screens/states/breakpoints reviewed
+- **Overall quality assessment** – one paragraph
+- **Prioritized issues** – P1/P2/P3, each with evidence (screenshot or description) and a recommended fix
+- **Next steps** – remaining gaps or retest needs

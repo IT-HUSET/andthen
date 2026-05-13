@@ -14,31 +14,31 @@ Gather evidence before forming hypotheses. Run diagnostic commands in parallel w
 
 Apply "5 Whys" reasoning to each identified error:
 
-1. **Why did this error occur?** — identify the immediate trigger
-2. **Why did that trigger exist?** — find the underlying condition
-3. **Why did that condition develop?** — trace state changes
-4. **Why wasn't this prevented?** — examine validation gaps
-5. **Why isn't this detectable earlier?** — identify monitoring opportunities
+1. **Why did this error occur?** – identify the immediate trigger
+2. **Why did that trigger exist?** – find the underlying condition
+3. **Why did that condition develop?** – trace state changes
+4. **Why wasn't this prevented?** – examine validation gaps
+5. **Why isn't this detectable earlier?** – identify monitoring opportunities
 
 **Hypothesis ranking**: for each error, rank hypotheses by probability (most likely → possible → less likely). Fix in probability order; stop when the root cause is confirmed.
 
-**Parallel investigation**: run multiple diagnostic streams simultaneously — don't wait for one hypothesis to be disproved before starting the next. Converge on the root cause from multiple angles.
+**Parallel investigation**: run multiple diagnostic streams simultaneously – don't wait for one hypothesis to be disproved before starting the next. Converge on the root cause from multiple angles.
 
 ## Phase 3: Build-Specific Techniques
 
 For build, compile, dependency, and configuration failures specifically:
 
 - **Dependency chain analysis**: trace error propagation through build dependencies; version conflicts are often the root cause of cascading failures
-- **Clean build**: eliminate cached corruption before diagnosing — many issues disappear on a clean build, confirming cache corruption
+- **Clean build**: eliminate cached corruption before diagnosing – many issues disappear on a clean build, confirming cache corruption
 - **Environment comparison**: diff the working vs failing environment systematically (env vars, tool versions, paths)
 - **Minimal reproducible case**: strip down to the simplest failing configuration to isolate the issue
 
 ## Phase 4: Resolution
 
-1. **Fix foundational issues first** — symptoms of the same root cause resolve together
-2. **Test each fix incrementally** — verify the fix resolves the issue without introducing regressions
-3. **Binary search when stuck** — isolate by systematically eliminating components
-4. **Minimal reproducible case** — strip down to the simplest failing configuration when the issue is hard to locate
+1. **Fix foundational issues first** – symptoms of the same root cause resolve together
+2. **Test each fix incrementally** – verify the fix resolves the issue without introducing regressions
+3. **Binary search when stuck** – isolate by systematically eliminating components
+4. **Minimal reproducible case** – strip down to the simplest failing configuration when the issue is hard to locate
 
 ## Build Success Criteria
 

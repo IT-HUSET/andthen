@@ -28,7 +28,7 @@ GPT-5.x+ specific behaviors, optimizations, and patterns.
 
 GPT-5.4 is a **unified frontier model** that absorbed GPT-5.3-Codex coding capabilities. It marginally beats GPT-5.3-Codex on SWE-Bench Pro (57.7% vs 56.8%) at lower cost.
 
-GPT-5.3-Codex retains a small edge on **Terminal-Bench 2.0** (77.3% vs 75.1%) — relevant for terminal-heavy/CLI-scripting workflows. For most tasks, **GPT-5.4 is the recommended default**.
+GPT-5.3-Codex retains a small edge on **Terminal-Bench 2.0** (77.3% vs 75.1%) – relevant for terminal-heavy/CLI-scripting workflows. For most tasks, **GPT-5.4 is the recommended default**.
 
 ### Core Capabilities
 
@@ -105,8 +105,8 @@ Loop:
 <persistence>
 - You are agent - keep going until user's query completely resolved before ending turn
 - Only terminate when sure problem is solved
-- Never stop when encountering uncertainty — research or deduce most reasonable approach and continue
-- Do not ask human to confirm assumptions — decide most reasonable, proceed, document for user's reference after finishing
+- Never stop when encountering uncertainty – research or deduce most reasonable approach and continue
+- Do not ask human to confirm assumptions – decide most reasonable, proceed, document for user's reference after finishing
 </persistence>
 ```
 
@@ -172,7 +172,7 @@ providing temperature in both Fahrenheit and Celsius."
 - **`none`/`low`**: Simple lookups, routing, classification
 - **`medium`**: Standard tasks, clear instructions
 - **`high`**: Complex multi-step reasoning, analysis
-- **`xhigh`** (GPT-5.2+): Critical tasks requiring maximum depth — research, complex debugging, architectural decisions
+- **`xhigh`** (GPT-5.2+): Critical tasks requiring maximum depth – research, complex debugging, architectural decisions
 
 ### Peak Performance
 Break separable tasks across multiple turns (one turn per task) rather than increasing reasoning effort for compound tasks.
@@ -215,7 +215,7 @@ GPT-5.1+ supersedes the `system` role with `developer` in the Responses API.
 - Lower costs
 - More efficient token usage
 - Reasoning context persisted between tool calls
-- Encrypted reasoning items — model can reference its own reasoning without exposing it to the caller
+- Encrypted reasoning items – model can reference its own reasoning without exposing it to the caller
 
 **Performance Gains**:
 Example: Tau-Bench Retail score 73.9% → 78.2% by:
@@ -226,13 +226,13 @@ Example: Tau-Bench Retail score 73.9% → 78.2% by:
 
 **Context Compaction**: Use the `/responses/compact` endpoint to shrink context mid-session without losing the conversation thread. Useful for long-running agent sessions approaching context limits.
 
-**For long sessions**: Prefer the Conversations API (below) over chaining `previous_response_id` — conversations have no TTL and provide durable state management.
+**For long sessions**: Prefer the Conversations API (below) over chaining `previous_response_id` – conversations have no TTL and provide durable state management.
 
 ---
 
 ## Conversations API
 
-Durable conversation threads with no TTL — preferred over `previous_response_id` for long-running sessions.
+Durable conversation threads with no TTL – preferred over `previous_response_id` for long-running sessions.
 
 **When to use**:
 - Multi-turn agent sessions requiring persistent state
@@ -277,13 +277,13 @@ Always set `strict: true` on all function/tool definitions:
 }
 ```
 
-**Why**: Enables constrained decoding — model output guaranteed to match schema. Eliminates JSON parsing errors and schema violations.
+**Why**: Enables constrained decoding – model output guaranteed to match schema. Eliminates JSON parsing errors and schema violations.
 
 ---
 
 ## Scope Discipline (GPT-5.2+)
 
-GPT-5.2 can over-generate — producing more output than requested. Use scope constraints:
+GPT-5.2 can over-generate – producing more output than requested. Use scope constraints:
 
 ```xml
 <design_and_scope_constraints>
@@ -360,7 +360,7 @@ For inputs exceeding ~10K tokens, add explicit re-grounding to prevent drift:
 ### Uncertainty Protocol
 ```xml
 <uncertainty_and_ambiguity>
-- When uncertain about facts, say so explicitly — never fabricate
+- When uncertain about facts, say so explicitly – never fabricate
 - When multiple interpretations exist, state the most likely and proceed
 - When referencing external APIs/docs, verify against provided context
 - Distinguish between "I know" and "I infer" in reasoning
@@ -413,7 +413,7 @@ Use self-reflection for quality:
 <code_editing_rules>
 <guiding_principles>
 - Clarity and Reuse: Every component modular and reusable. Avoid duplication.
-- Consistency: Adhere to design system—color tokens, typography, spacing unified
+- Consistency: Adhere to design system–color tokens, typography, spacing unified
 - Simplicity: Small, focused components. Avoid unnecessary complexity
 - Demo-Oriented: Structure allows quick prototyping
 - Visual Quality: High visual quality bar (spacing, padding, hover states)
@@ -533,7 +533,7 @@ Allows clear referencing of previous categories elsewhere in prompt.
 When upgrading between GPT-5.x models, follow this 5-step process:
 
 1. **Switch model ID**: Update `model` parameter (e.g., `gpt-5` → `gpt-5.2`)
-2. **Pin reasoning effort**: Explicitly set `reasoning_effort` — don't rely on defaults (changed from `medium` to `none` in 5.1+)
+2. **Pin reasoning effort**: Explicitly set `reasoning_effort` – don't rely on defaults (changed from `medium` to `none` in 5.1+)
 3. **Run evals**: Compare output quality on your test suite before and after
 4. **Use Prompt Optimizer**: OpenAI's built-in tool to adapt prompts for new model behavior
 5. **Iterate**: Adjust prompts based on eval results; most prompts need only minor tuning

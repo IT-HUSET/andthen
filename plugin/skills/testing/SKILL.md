@@ -1,12 +1,12 @@
 ---
-description: "Use when you need test strategy, coverage assessment, test authoring, or test-first (red-green-refactor) discipline — including the Prove-It bugfix flow and FIS scenario → test mapping. Covers unit and integration levels; defer persistent end-to-end suites to the `andthen:e2e-test` skill. Trigger on 'write tests for this', 'cover this module', 'TDD this', 'test-first', 'red-green-refactor', 'prove it with a test', 'assess test coverage', 'improve coverage', 'test strategy for this'."
+description: "Use when you need test strategy, coverage assessment, test authoring, or test-first (red-green-refactor) discipline – including the Prove-It bugfix flow and FIS scenario → test mapping. Covers unit and integration levels; defer persistent end-to-end suites to the `andthen:e2e-test` skill. Trigger on 'write tests for this', 'cover this module', 'TDD this', 'test-first', 'red-green-refactor', 'prove it with a test', 'assess test coverage', 'improve coverage', 'test strategy for this'."
 argument-hint: "[--mode strategy|write|tdd|prove-it] [target/scope]"
 user-invocable: true
 ---
 
 # Testing
 
-Prove behavior with the smallest tests that prove it. Cover what matters, at the lowest effective level, in tests that describe behavior — not implementation.
+Prove behavior with the smallest tests that prove it. Cover what matters, at the lowest effective level, in tests that describe behavior – not implementation.
 
 
 ## VARIABLES
@@ -16,7 +16,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode` before interpreting t
 
 ## PHILOSOPHY
 
-- **Testability is a proxy for modularity** (Farley). Hard-to-test code is coupled code — test friction is architectural feedback.
+- **Testability is a proxy for modularity** (Farley). Hard-to-test code is coupled code – test friction is architectural feedback.
 - **Tests are executable specifications** (Beck, North). Pin observable behavior, not private structure.
 - **Prove-It before claiming a fix.** A failing test that goes green is the only proof.
 
@@ -37,7 +37,7 @@ Always cross-load `test-design.md` when writing assertions and `levels-and-strat
 
 ## DECISION FRAMEWORK
 
-1. **Inspect existing test infrastructure** — frameworks, fixtures, helpers, naming conventions. Extend before inventing.
+1. **Inspect existing test infrastructure** – frameworks, fixtures, helpers, naming conventions. Extend before inventing.
 2. **Rank by risk.** Highest-risk unproven behavior first. See `levels-and-strategy.md` §"Coverage strategy".
 3. **Pick the lowest effective level.** Default to integration when a unit test needs heavy mocking. See `levels-and-strategy.md` §"The three levels".
 4. **Test-first** for `tdd` and `prove-it`; retro-fit for `write`.
@@ -65,11 +65,11 @@ Every important scenario needs at least one test or a documented proof artifact.
 
 ## CALLER INTEGRATION
 
-Callers (`exec-spec`, `triage`, `e2e-test`) invoke this skill as `/andthen:testing <target/scope>`. Runs in the caller's context by default — continuity matters for `tdd` and `prove-it`. For fresh-context isolation, the caller wraps the invocation in a sub-agent.
+Callers (`exec-spec`, `triage`, `e2e-test`) invoke this skill as `/andthen:testing <target/scope>`. Runs in the caller's context by default – continuity matters for `tdd` and `prove-it`. For fresh-context isolation, the caller wraps the invocation in a sub-agent.
 
 Output is advisory for `strategy`; the tests themselves are the artifact for `write` / `tdd` / `prove-it`.
 
-Persistent E2E suites are out of scope — hand off to the `andthen:e2e-test` skill.
+Persistent E2E suites are out of scope – hand off to the `andthen:e2e-test` skill.
 
 
 ## OUTPUT FORMAT
@@ -89,8 +89,8 @@ Remaining critical gaps; next-best additions; coupling signals surfaced by test 
 
 ## REFERENCES
 
-- `tdd-discipline.md` — Red/Green/Refactor, Tidy First, triangulation, anti-rationalization (Beck, Farley).
-- `prove-it-pattern.md` — failing-test-first bugfix flow, characterization tests, Beyonce Rule (Feathers; *Software Engineering at Google*, 2020).
-- `test-design.md` — behavior over implementation, Beck's Test Desiderata, diagnosability, mock minimization (Freeman & Pryce, Dodds, Farley, Beck).
-- `levels-and-strategy.md` — unit/integration/E2E by trust boundary, Testing Trophy, risk×change matrix (Dodds, Farley).
-- `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` — testability-as-modularity anchor.
+- `tdd-discipline.md` – Red/Green/Refactor, Tidy First, triangulation, anti-rationalization (Beck, Farley).
+- `prove-it-pattern.md` – failing-test-first bugfix flow, characterization tests, Beyonce Rule (Feathers; *Software Engineering at Google*, 2020).
+- `test-design.md` – behavior over implementation, Beck's Test Desiderata, diagnosability, mock minimization (Freeman & Pryce, Dodds, Farley, Beck).
+- `levels-and-strategy.md` – unit/integration/E2E by trust boundary, Testing Trophy, risk×change matrix (Dodds, Farley).
+- `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` – testability-as-modularity anchor.

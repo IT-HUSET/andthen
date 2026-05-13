@@ -10,7 +10,7 @@
 Every element should be self-evident within 5 seconds. Use universally recognized icons and patterns. Never create novel interactions that need explanation.
 
 ### 2. Visual Hierarchy Rules All
-Primary action must be the largest, brightest element. Follow F-pattern (content) or Z-pattern (landing pages). Use size ratios of 3:2:1 for headline:subhead:body. **Test**: squint at screen — if primary action isn't obvious, fix hierarchy.
+Primary action must be the largest, brightest element. Follow F-pattern (content) or Z-pattern (landing pages). Use size ratios of 3:2:1 for headline:subhead:body. **Test**: squint at screen – if primary action isn't obvious, fix hierarchy.
 
 ### 3. Touch/Click Targets Are Sacred
 
@@ -44,7 +44,7 @@ Prevent errors with constraints (disable invalid actions). Use inline validation
 - Regular text: 4.5:1 minimum contrast (WCAG AA)
 - Large text (18pt+ or 14pt+ bold): 3:1 minimum
 - Interactive elements: 3:1 minimum; hover darkens 10% or adds shadow
-- Color must never be the sole indicator — always pair with icons or patterns
+- Color must never be the sole indicator – always pair with icons or patterns
 
 ### Spacing
 Use an 8px base grid. Related items: 8px apart. Unrelated sections: 24px+. Card padding: 16px. Gutters: 16px mobile, 24px desktop.
@@ -66,7 +66,7 @@ Use an 8px base grid. Related items: 8px apart. Unrelated sections: 24px+. Card 
 ### Micro-interactions
 - Hover: `pointer` cursor, subtle `scale(1.02)` or `translateY(-2px)`, 200ms ease-out
 - Active: `scale(0.98)`, slightly darker, instant feedback
-- Focus: 2px outline with 2px offset, high contrast — never remove focus indicators
+- Focus: 2px outline with 2px offset, high contrast – never remove focus indicators
 
 
 ## Mobile-First Design
@@ -102,7 +102,7 @@ For platform-specific patterns (iOS HIG, Material Design), consult the platform'
 
 
 ## Animation Performance
-- Target 60fps (16ms per frame). Use only `transform` and `opacity` — avoid layout triggers
+- Target 60fps (16ms per frame). Use only `transform` and `opacity` – avoid layout triggers
 - Micro: 100–200ms. Standard: 200–300ms. Complex: 300–500ms
 
 
@@ -118,4 +118,4 @@ Before marking UI work complete:
 - [ ] Responsive across all target breakpoints
 - [ ] Platform conventions followed
 
-**The best interface is invisible — users achieve their goals without noticing the UI.**
+**The best interface is invisible – users achieve their goals without noticing the UI.**

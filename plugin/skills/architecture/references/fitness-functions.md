@@ -1,6 +1,6 @@
 # Architectural Fitness Functions
 
-"Any mechanism that provides an objective integrity assessment of some architectural characteristic(s)." — Ford, Parsons, Kua
+"Any mechanism that provides an objective integrity assessment of some architectural characteristic(s)." – Ford, Parsons, Kua
 
 Fitness functions are to architectural properties what unit tests are to domain behavior.
 
@@ -33,28 +33,28 @@ Every fitness function is classified across these dimensions:
 
 Organize fitness functions into four levels by execution frequency and cost:
 
-### Level 1 — Fast Deterministic (every commit, < 30s)
+### Level 1 – Fast Deterministic (every commit, < 30s)
 - Dependency direction rules (no upward imports)
 - Cycle detection (zero tolerance)
 - Naming conventions
 - Import restriction (no internal package access from outside)
 - Dependency age / CVE scan
 
-### Level 2 — Structural (every PR, 1-5 min)
+### Level 2 – Structural (every PR, 1-5 min)
 - Layer violation tests
 - Module boundary assertions
 - Coupling metric thresholds (Ca, Ce, I, D)
 - Interface/implementation isolation checks
 - Test ratio regression check
 
-### Level 3 — Integrative (nightly/weekly)
+### Level 3 – Integrative (nightly/weekly)
 - Contract tests and schema compatibility
 - DORA metric trends (change failure rate, lead time)
 - Build time budget
 - Full dependency graph analysis with NCCD
 - Consumer waste analysis
 
-### Level 4 — Continual (always running in production)
+### Level 4 – Continual (always running in production)
 - Latency budgets (p99)
 - Error rate thresholds
 - SLO compliance
@@ -99,7 +99,7 @@ For each dependency edge A → B: assert I(A) ≥ I(B).
 Flag modules where Ce > threshold (default: 10) for review.
 
 **Afferent coupling with low abstractness**
-Flag modules where Ca > 10 AND A < 0.1 — concrete hotspot in Zone of Pain.
+Flag modules where Ca > 10 AND A < 0.1 – concrete hotspot in Zone of Pain.
 
 ### Cohesion
 
@@ -161,8 +161,8 @@ An ADR records the decision; a fitness function enforces it. They are complement
 ### Pipeline
 1. **ADR authored** with concrete prohibitions ("We will use X. We will not use Y.")
 2. **Fitness function written** in the same PR as the ADR
-3. **CI enforces** on every PR — violations block merge or require sign-off
-4. **Bidirectional linking** — test references ADR number; ADR references test location
+3. **CI enforces** on every PR – violations block merge or require sign-off
+4. **Bidirectional linking** – test references ADR number; ADR references test location
 
 ### Governance Gap Check
 For each active ADR, verify at least one corresponding automated check exists. An ADR without a fitness function is a finding.
@@ -185,33 +185,33 @@ This prevents the "too many violations to fix, so we won't start" paralysis.
 ## Tooling by Language
 
 ### Java
-- **ArchUnit** — architecture tests as JUnit tests. Layer enforcement, cycle detection, coding rules, PlantUML compliance.
+- **ArchUnit** – architecture tests as JUnit tests. Layer enforcement, cycle detection, coding rules, PlantUML compliance.
 
 ### .NET
-- **NetArchTest** — fluent API for namespace-based rules, naming conventions, dependency restrictions.
+- **NetArchTest** – fluent API for namespace-based rules, naming conventions, dependency restrictions.
 
 ### JavaScript / TypeScript
-- **dependency-cruiser** — rule engine with JSON config. Forbidden/allowed/required dependency patterns. `--output-type metrics` for numeric data.
-- **ts-arch / ArchUnitTS** — ArchUnit-style declarative rules for TS.
+- **dependency-cruiser** – rule engine with JSON config. Forbidden/allowed/required dependency patterns. `--output-type metrics` for numeric data.
+- **ts-arch / ArchUnitTS** – ArchUnit-style declarative rules for TS.
 
 ### Python
-- **Pyarchtest** — ArchUnit-style rules.
-- **Deptry** — unused, missing, or transitive dependency detection.
-- **import-linter** — contract-based import rules.
+- **Pyarchtest** – ArchUnit-style rules.
+- **Deptry** – unused, missing, or transitive dependency detection.
+- **import-linter** – contract-based import rules.
 
 ### Dart
 No dedicated ArchUnit equivalent exists. Compose from:
-- **`lakos`** — CCD, ACD, NCCD, instability per node, cycle detection, Graphviz DOT output
-- **`dart pub deps --json`** — machine-readable package dependency graph
-- **`dart analyze`** — static analysis with configurable severity
-- **`custom_lint`** — write custom lint rules checking import patterns and structure
-- **Custom `tool/arch_check.dart`** — use the `analyzer` package to walk AST, extract imports, assert layer rules
+- **`lakos`** – CCD, ACD, NCCD, instability per node, cycle detection, Graphviz DOT output
+- **`dart pub deps --json`** – machine-readable package dependency graph
+- **`dart analyze`** – static analysis with configurable severity
+- **`custom_lint`** – write custom lint rules checking import patterns and structure
+- **Custom `tool/arch_check.dart`** – use the `analyzer` package to walk AST, extract imports, assert layer rules
 
 ### Rust
-- **`cargo tree`** — dependency tree
-- **`cargo udeps`** — unused dependency detection
-- **`cargo deny`** — license and advisory checks
+- **`cargo tree`** – dependency tree
+- **`cargo udeps`** – unused dependency detection
+- **`cargo deny`** – license and advisory checks
 
 ### Go
-- **`go mod graph`** — dependency graph
-- **`depguard`** — import allowlist/denylist linter
+- **`go mod graph`** – dependency graph
+- **`depguard`** – import allowlist/denylist linter

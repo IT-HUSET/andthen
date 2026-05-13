@@ -1,12 +1,12 @@
 ---
-description: Use when reviewing a PRD, requirements-clarification, architecture trade-off report, or architecture strategic-design report visually. Renders a self-contained HTML view in the user's browser, captures section-anchored notes, and exports them as a markdown payload via clipboard. Trigger on 'review visually', 'visualize this prd', 'visualize this clarification', 'visualize trade-off', 'visualize strategic-design', 'andthen visualize'.
-argument-hint: "<path-to-artifact-markdown>"
+description: Use when reviewing a PRD, plan.json, requirements-clarification, architecture trade-off report, or architecture strategic-design report visually. Renders a self-contained HTML view in the user's browser, captures section-anchored notes, and exports them as a markdown payload via clipboard. Trigger on 'review visually', 'visualize this prd', 'visualize this plan', 'visualize this clarification', 'visualize trade-off', 'andthen visualize'.
+argument-hint: "<path-to-artifact>"
 user-invocable: true
 ---
 
 # Visualize Workflow Artifact
 
-A self-contained HTML view of an AndThen artifact (PRD, `requirements-clarification.md`, architecture trade-off report, or architecture strategic-design report) opened in the user's browser, with section-anchored notes that export as a markdown payload downstream skills consume as conversational input.
+A self-contained HTML view of an AndThen artifact (PRD, `plan.json`, `requirements-clarification.md`, architecture trade-off report, or architecture strategic-design report) opened in the user's browser, with section-anchored notes that export as a markdown payload downstream skills consume as conversational input.
 
 Open-loop by design: emit HTML, open browser, exit. The skill does not block waiting for user interaction.
 
@@ -14,6 +14,7 @@ Open-loop by design: emit HTML, open browser, exit. The skill does not block wai
 ## When to Use
 
 - Reviewing a PRD before handing to the `andthen:plan` skill
+- Reviewing `plan.json` before the `andthen:exec-plan` skill or a final `andthen:review --mode gap`
 - Reviewing `requirements-clarification.md` before the `andthen:prd` skill
 - Reviewing trade-off analysis before ADR formalization
 - Reviewing a strategic-design report before refining or chaining into `--mode fitness` / `--mode decompose`
@@ -26,10 +27,13 @@ Open-loop by design: emit HTML, open browser, exit. The skill does not block wai
 2. Detect the artifact type by content (filename advisory only).
 3. Load the matching template from `templates/`:
    - `templates/prd.md` for PRDs
+   - `templates/plan.md` for local `plan.json` bundles
    - `templates/clarification.md` for `requirements-clarification.md`
    - `templates/tradeoff.md` for architecture trade-off reports
-   - `templates/diagrams.md` for inline-SVG diagram patterns referenced by the templates above
-   - **No specialized template** for `strategic-design` — fall back to **generic-prose rendering** (the same fallback `templates/prd.md` describes for unmatched H2 sections): emit one `<section data-anchor=...>` per H2, with the section body rendered as styled markdown. The Note affordance and View-source toggle apply per section, identical to template-driven types. Specialized renderers (e.g. context-map visual, subdomain-tree card grid) are deferred until visual polish is requested.
+   - `templates/adr.md` for ADRs (Architecture Decision Records)
+   - `templates/strategic-design.md` for architecture strategic-design reports
+   - `templates/diagrams.md` for inline-SVG diagram patterns (`flowchart`, `timeline`, `tree`, `radar`, `list-graph`, `module-map`, `walkthrough`) referenced by the templates above
+   - `templates/js-helpers.md` for the four IIFE interactive-affordance helpers (`pulseAnchor`, `copySectionWithNote`, walkthrough snippet toggle, `wireModuleMap`)
 4. Generate a single self-contained HTML file at `.agent_temp/visualize/<slug>-<timestamp>.html`. Resolve the path against the repo root (`git rev-parse --show-toplevel`) when inside a git working tree, falling back to CWD when there is no repo. This matches the `.agent_temp/` convention other AndThen skills use, so artifacts land predictably regardless of which subdirectory the user invoked from. `<slug>` is the basename without extension; `<timestamp>` is `YYYYMMDD-HHMMSS`.
 5. Open the file in the user's browser via the OS-detected command (see Browser-Open Detection below).
 6. Print the output path and exit. Do not block on user interaction.
@@ -37,25 +41,27 @@ Open-loop by design: emit HTML, open browser, exit. The skill does not block wai
 
 ## Artifact Type Detection
 
-Run heuristics in order; first match wins. **Filename hints are advisory only — content decides.**
+Run heuristics in order; first match wins. **Filename hints are advisory only – content decides.**
 
 | Type | Markers |
 |---|---|
+| `plan` | Valid JSON object with `schemaVersion === "1"`, `overview`, and `stories` array. *Ordered before markdown heuristics because `plan.json` has no H1/H2 headings. If JSON parses but these keys are missing, do not fall through to markdown detection – report unsupported JSON artifact shape. If the keys are present but `schemaVersion` is not `"1"`, stop with `andthen:visualize: unsupported plan.json schemaVersion "<value>"` and write no HTML.* |
 | `prd` | H1 contains "PRD" or "Product Requirements"; H2 contains both "Executive Summary" and "Functional Requirements" |
 | `clarification` | H1 starts with "Requirements Clarification"; H2 contains "Decisions Log" |
-| `strategic-design` | H1 contains "Strategic Design" / "Strategic-Design"; OR H2 set contains both "Subdomains" and "Context Map" (case-insensitive). Routes to generic-prose rendering — no specialized template. *Ordered before `tradeoff` because both report shapes share `Executive Summary` + `How to Read This Report`; the more-specific marker pair wins under first-match-wins.* |
+| `strategic-design` | H1 contains "Strategic Design" / "Strategic-Design"; OR H2 set contains both "Subdomains" and "Context Map" (case-insensitive). *Ordered before `tradeoff` because both report shapes share `Executive Summary` + `How to Read This Report`; the more-specific marker pair wins under first-match-wins.* |
+| `adr` | H1 matches `/^ADR[-\s]?\d/` (e.g. "ADR-011:", "ADR 11:", "ADR011:"); OR (H2 set contains "Decision" AND ("Consequences" OR "Alternatives Considered") AND **no scoring-matrix table is present**) (case-insensitive). *Ordered before `tradeoff` because both share the "Decision" concept. The scoring-matrix exclusion in the H2-set branch is what disambiguates: trade-off reports always carry a scoring matrix, ADRs never do.* |
 | `tradeoff` | H1 or H2 contains "Trade-off" / "Trade off" / "Decision Analysis"; presence of a scoring matrix table (rows = options, columns = criteria) |
 
-If no match, exit with the message *"andthen:visualize: cannot detect artifact type. Supported: PRD (`prd.md`), `requirements-clarification.md`, architecture strategic-design reports, architecture trade-off reports."* and write no HTML.
+If no match, exit with the message *"andthen:visualize: cannot detect artifact type. Supported: PRD (`prd.md`), `plan.json`, `requirements-clarification.md`, architecture strategic-design reports, architecture trade-off reports, ADRs (`NNN-title.md` with `# ADR-NNN:` H1)."* and write no HTML.
 
 
 ## Core Requirements (every render)
 
 - **Single self-contained HTML file.** All CSS, JS, and SVG inlined. No external scripts, fonts, stylesheets, icons. Must work from `file://` with no network access.
-- **Dark theme.** System font for UI, monospace for code/values. Use the theme tokens below.
+- **Warm light theme (Anthropic-style).** Ivory background, warm-dark slate text, clay coral accent, olive for resolved/done. Serif for headlines, sans for body, mono for code and metadata. Use the theme tokens below.
 - **Two-pane layout.** Left = scrollable artifact content; right = sticky sidebar holding the **Copy notes** button (top), section navigator with note-count badges, and a unified note list. The sidebar is always visible at viewports ≥1100px and collapses to a top drawer below that. *Why:* the floating-TOC-only pattern hid navigation on common laptop widths and put the affordances at the bottom of each section card where users miss them.
-- **Static affordances, JS-attached handlers.** The `+ Note` button, `View source` toggle, and per-section note-count span MUST be present in the static HTML body of each `<section>`. JavaScript only attaches click handlers and renders the dynamic note list. *Why:* if JS fails, errors out, or is delayed, the user must still see *that* notes are possible. Empty `<div class="sec-actions"></div>` placeholders waiting for JS injection are a known regression — never ship them.
-- **Read-only render + section-anchored notes.** No structured editing. One Note affordance + one View-source toggle per H2 section. Diagrams do not get their own Note affordance — the parent section's Note covers any diagram inside it.
+- **Static affordances, JS-attached handlers.** The `+ Note` button, `View source` toggle, and per-section note-count span MUST be present in the static HTML body of each `<section>`. JavaScript only attaches click handlers and renders the dynamic note list. *Why:* if JS fails, errors out, or is delayed, the user must still see *that* notes are possible. Empty `<div class="sec-actions"></div>` placeholders waiting for JS injection are a known regression – never ship them.
+- **Read-only render + section-anchored notes.** No structured editing. One Note affordance + one View-source toggle per H2 section. Diagrams do not get their own Note affordance – the parent section's Note covers any diagram inside it.
 - **Notes payload via clipboard.** "Copy notes" writes a markdown payload via `navigator.clipboard.writeText`; on failure, reveals a textarea with payload pre-selected for manual copy.
 - **LocalStorage persistence.** Notes survive refresh; "Restore previous notes?" prompt on reload when a matching prior session exists.
 - **`beforeunload` warning.** Fires when notes exist and have not been copied since last edit.
@@ -65,36 +71,40 @@ If no match, exit with the message *"andthen:visualize: cannot detect artifact t
 
 ```css
 :root {
-  /* Surfaces — three-tier depth (page → main panel → inset card) */
-  --bg: #0b0f15;
-  --panel: #141a22;
-  --panel-2: #1b232d;
-  --panel-3: #232c38;
-  --border: #2a323d;
-  --border-soft: #1e252f;
+  /* Surfaces – warm-light, three-tier depth (ivory page → white card → oat inset) */
+  --bg: #FAF9F5;        /* warm ivory page */
+  --panel: #FFFFFF;     /* card surface */
+  --panel-2: #F5F1E6;   /* warm oat – inset, code, textarea */
+  --panel-3: #EBE5D2;   /* deeper oat – chip surface, hover */
+  --border: #D9D2BE;    /* warm gray border */
+  --border-soft: #E8E2D0;
 
-  /* Text */
-  --text: #e1e6ec;
-  --text-muted: #8a94a3;
-  --text-faint: #5d6675;
+  /* Text – warm dark */
+  --text: #1F1B17;        /* near-black with warm tint */
+  --text-muted: #6B6557;
+  --text-faint: #9C9583;
 
-  /* Accents */
-  --accent: #6ea8ff;          /* primary action, links, current-section */
-  --accent-soft: rgba(110, 168, 255, 0.12);
-  --accent-strong: #8ab9ff;   /* hover */
-  --ok: #4cc38a;
-  --warn: #e4b06a;
-  --danger: #f87171;
+  /* Accents – clay coral for active/interactive, olive for resolved/done.
+     Hex values are deepened for AA contrast against the ivory background
+     (deeper than the dark-theme variants we used previously). */
+  --accent: #C15F3C;                          /* clay coral; ~5.0:1 on #FAF9F5 */
+  --accent-soft: rgba(193, 95, 60, 0.10);     /* hover surface, soft fills */
+  --accent-strong: #A04A2A;                   /* darker for hover text */
+  --ok: #6B8049;                              /* deep olive; resolved / done */
+  --ok-soft: rgba(107, 128, 73, 0.10);
+  --warn: #B07E2B;                            /* deep amber */
+  --danger: #B5482B;                          /* rust – failure path semantics */
 
-  /* Type */
-  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Type – serif for headlines (Anthropic-warm), sans for body, mono for code/metadata */
+  --serif: "Tiempos Headline", "Charter", "Iowan Old Style", Georgia, "Times New Roman", serif;
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* Geometry */
   --radius: 10px;
   --radius-sm: 6px;
-  --shadow-1: 0 1px 0 rgba(255,255,255,0.02) inset, 0 1px 2px rgba(0,0,0,0.3);
-  --shadow-2: 0 6px 24px rgba(0,0,0,0.35);
+  --shadow-1: 0 1px 0 rgba(255,255,255,0.6) inset, 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-2: 0 6px 24px rgba(0,0,0,0.06);
 }
 * { box-sizing: border-box; }
 html, body { background: var(--bg); color: var(--text); }
@@ -102,7 +112,9 @@ body { font-family: var(--ui); margin: 0; line-height: 1.55; font-size: 15px; }
 code, pre { font-family: var(--mono); }
 ```
 
-The palette is GitHub-dark-derived but slightly warmer (text shifts toward `#e1e6ec`, accent toward `#6ea8ff`) so the page reads as a *review surface* rather than an IDE pane. Keep the three-tier surface system (`--bg → --panel → --panel-2`) for clear visual depth between page, section card, and inset elements.
+The palette is a warm-ivory light theme inspired by Anthropic's product surfaces: ivory background (`#FAF9F5`), warm-dark slate text (`#1F1B17`), clay coral accent (`#C15F3C`), and deep olive (`#6B8049`) for resolved/done. The page reads as a *review surface* — editorial rather than IDE-shaped. Keep the three-tier surface system (`--bg → --panel → --panel-2`) for clear depth: ivory page, white card, warm oat inset for nested content (textareas, code blocks, secondary panels). Color is **load-bearing**: clay = active/interactive, olive = resolved/done, amber (`--warn`) = caution, rust (`--danger`) = failure, muted gray = structural. The reviewer's eye learns this within seconds and can navigate by color signal. **Headlines use `--serif`** (`.doc-title`, `.card-head h2`); body prose uses `--ui` sans; code, metadata pills, and KPI labels use `--mono`. This three-family typography is part of the Anthropic-warm aesthetic — drop one family and the visual identity flattens.
+
+**Tokenization rule:** CSS variables cannot be interpolated inside `rgba()`. Where a soft-fill alpha variant is needed (e.g. chip backgrounds, sticky-topbar translucency), use the corresponding `*-soft` token (`--accent-soft`, `--ok-soft`) or a literal `rgba(R,G,B,A)` matching the parent token's RGB. Do **not** hardcode arbitrary hex/rgba values in renderers – pre-flight audit with `rg '#[0-9a-fA-F]{3,6}|rgba?\('` before shipping a palette change.
 
 
 ## Layout Skeleton (every render)
@@ -116,8 +128,21 @@ The palette is GitHub-dark-derived but slightly warmer (text shifts toward `#e1e
     </header>
 
     <main class="content">
-      <h1 class="doc-title">{{H1}}</h1>
-      <div class="doc-meta">{{meta}}</div>
+      <header class="doc-header">
+        <div class="eyebrow">{{ARTIFACT_TYPE_UPPERCASE}} · {{SUBTYPE}}</div>
+        <h1 class="doc-title">{{H1}}</h1>
+        <div class="doc-meta">
+          <span class="meta-pill filled status-{{STATUS_KEBAB}}">
+            <span class="k">status</span> <span class="v">{{STATUS}}</span>
+          </span>
+          <span class="meta-pill"><span class="k">sections</span> <span class="v">{{SECTION_COUNT}}</span></span>
+          <span class="meta-pill"><span class="k">open Qs</span> <span class="v">{{OPEN_Q_COUNT}}</span></span>
+          <span class="meta-pill"><span class="k">updated</span> <span class="v">{{LAST_UPDATED}}</span></span>
+          <span class="meta-pill"><span class="k">sha</span> <span class="v">{{SHA1_SHORT}}</span></span>
+        </div>
+      </header>
+      <!-- optional .kpi-band (see KPI Summary Band below) -->
+      <!-- optional .focus-band (see Where-to-Focus Priority Section below) -->
       <!-- one <section class="card"> per H2, see Section Block below -->
     </main>
 
@@ -160,20 +185,143 @@ CSS grid for the shell:
   .app { grid-template-columns: 1fr; grid-template-areas: "topbar" "sidebar" "content"; }
   .sidebar { position: static; height: auto; border-left: 0; border-bottom: 1px solid var(--border); }
 }
+
+/* Scroll hygiene – smooth in-page navigation and 24px breathing room above
+   anchored elements so a freshly-scrolled-to target doesn't kiss the topbar. */
+html { scroll-behavior: smooth; }
+section.card { scroll-margin-top: 24px; }
+.doc-header, .kpi-band, .focus-band { scroll-margin-top: 24px; }
+
+/* Document header: eyebrow (artifact type) + H1 + status pill row.
+   Survives scrolling past the topbar because it's part of the page header. */
+.doc-header { margin: 0 0 1.25rem; }
+.eyebrow {
+  font-family: var(--mono); font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-faint); margin-bottom: 0.4rem;
+}
+.doc-title { margin: 0 0 0.7rem; font-size: 1.75rem; line-height: 1.2; font-family: var(--serif); font-weight: 600; letter-spacing: -0.005em; }
+.doc-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.meta-pill {
+  display: inline-flex; align-items: baseline; gap: 0.35rem;
+  font-family: var(--mono); font-size: 0.74rem;
+  padding: 0.18rem 0.55rem; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--text-muted);
+}
+.meta-pill .k { color: var(--text-faint); }
+.meta-pill .v { color: var(--text); }
+/* Filled status pills – semantic per status-kebab class. */
+.meta-pill.filled { border-color: transparent; }
+.meta-pill.filled .k, .meta-pill.filled .v { color: inherit; }
+/* Filled status pills carry ivory text against deepened accent fills (AA pass on warm-light theme). */
+.meta-pill.status-draft      { background: var(--warn);       color: #FAF9F5; }
+.meta-pill.status-review     { background: var(--accent);     color: #FAF9F5; }  /* clay – under active review */
+.meta-pill.status-approved   { background: var(--ok);         color: #FAF9F5; }  /* olive – approved / accepted = resolved */
+.meta-pill.status-done       { background: var(--ok);         color: #FAF9F5; }
+.meta-pill.status-deferred   { background: var(--text-faint); color: var(--text); }
+.meta-pill.status-deprecated { background: var(--danger);     color: #FAF9F5; }  /* rust – do not follow */
 ```
+
+
+## KPI Summary Band (every render)
+
+Sits between `.doc-header` and the first `<section class="card">`. Four-cell grid showing the document's most navigation-relevant counts. Per-artifact KPI cells are defined in each template's `## KPI Cells` section (PRD, plan, clarification, trade-off, strategic-design, ADR). One-glance picture of *what am I about to read*.
+
+```html
+<aside class="kpi-band" aria-label="Document KPIs">
+  <div class="kpi-card">
+    <div class="kpi-label">{{cell 1 label}}</div>
+    <div class="kpi-value">{{N}}</div>
+  </div>
+  <div class="kpi-card">…</div>
+  <div class="kpi-card attention">  <!-- .attention applied auto by renderer; see rule below -->
+    <div class="kpi-label">{{cell 4 label}}</div>
+    <div class="kpi-value">{{N}}</div>
+  </div>
+</aside>
+```
+
+```css
+.kpi-band { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; margin: 0 0 1.5rem; }
+.kpi-card { background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+            padding: 0.7rem 0.9rem; }
+.kpi-card.attention { border-left: 3px solid var(--accent); padding-left: calc(0.9rem - 3px); }
+.kpi-label { font-family: var(--mono); font-size: 0.7rem; color: var(--text-faint);
+             text-transform: uppercase; letter-spacing: 0.06em; }
+.kpi-value { font-size: 1.4rem; font-weight: 600; color: var(--text); margin-top: 0.15rem; }
+@media (max-width: 700px) { .kpi-band { grid-template-columns: repeat(2, 1fr); } }
+```
+
+**Auto-attention rule:** the renderer adds `.attention` to a KPI card when the cell semantically signals "needs review" – any non-zero count for Risks / Open Questions, or a value matching `/^high/i` for Risk Level. The rule is deterministic and per-cell: same source → same `.attention` placement.
+
+**Source consumption:** KPI cells read **counts** (or a single recommended label) from already-structured source content (tables, bullet lists). They do **not** consume source spans – the Renderer Discipline section-dedup rule is unaffected. The same Risks table that drives a KPI count still renders as risk cards below.
+
+
+## Where-to-Focus Priority Section (every render)
+
+Sits in the main column between the `.kpi-band` and the first `<section class="card">`. Turns a 12-section document into a 3-priority walk by naming the *most important things to review and why*. It is **not** a Section Block: no `+ Note` affordance, no `View source`, no TOC entry, no `id` carrying a section anchor. The band is metadata *about* other sections and references them by anchor.
+
+```html
+<aside class="focus-band" aria-label="Where to focus your review">
+  <h2 class="focus-band-title">Where to focus your review</h2>
+  <ol class="focus-list">
+    <li class="focus-item" data-priority="open-question">
+      <div class="n">1</div>
+      <div>
+        <div class="t">Open question: How does retry interact with idempotency keys?</div>
+        <div class="d">Unresolved – section <a href="#design-decisions">Design Decisions</a>. <code>owner: @tobias</code></div>
+      </div>
+    </li>
+    <li class="focus-item" data-priority="high-risk">…</li>
+    <li class="focus-item" data-priority="out-of-scope">…</li>
+  </ol>
+</aside>
+```
+
+```css
+.focus-band { background: var(--panel-2); border: 1px solid var(--border-soft);
+              border-radius: var(--radius); padding: 0.9rem 1.1rem 1.1rem; margin: 0 0 1.5rem; }
+.focus-band-title { margin: 0 0 0.7rem; font-size: 0.85rem; text-transform: uppercase;
+                    letter-spacing: 0.08em; color: var(--text-faint); font-family: var(--mono); }
+.focus-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+.focus-item { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 0.7rem; align-items: start; }
+.focus-item .n { width: 26px; height: 26px; border-radius: 999px;
+                 background: var(--accent); color: var(--bg);
+                 font-family: var(--mono); font-size: 0.78rem; font-weight: 700;
+                 display: inline-flex; align-items: center; justify-content: center; }
+.focus-item .t { color: var(--text); font-weight: 600; }
+.focus-item .d { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.15rem; }
+.focus-item .d a { color: var(--accent); }
+.focus-item .d code { font-size: 0.78rem; color: var(--text-muted); background: var(--panel-3);
+                       padding: 0.05rem 0.35rem; border-radius: 4px; }
+```
+
+**Deterministic priority heuristic** (cap 5 items; order = kind-priority, then source order within a kind):
+
+1. **Unresolved Open Questions** – any bullet under `## Open Questions` not marked `(resolved)` / `→` / `lean:`, or any `**Open question:**` substring in a section body. Label: *"Open question: <text>"*.
+2. **High-severity items** – `severity: high` / `risk: high` (regex `/(severity|risk):\s*high/i` on source line), or a Risks-table row whose Risk column starts with "High" (case-insensitive). Label: *"High risk: <row text>"*.
+3. **Recommended trade-off with caveat** – the recommended option's body contains a line beginning `caveat:` / `risk:` / `however`. Label: *"Caveat on chosen option: <caveat text>"*.
+4. **Long sections** – word count > 500 in the rendered section body. Label: *"Deep read: <heading> (~N words)"*.
+5. **Out-of-Scope / Deliberately-Not-Doing** – bullets under H3 "Out of Scope" / "Not Doing". Label: *"<bullet text>"*.
+
+**Omission rule:** if fewer than 2 items would render, omit the band entirely. A one-item focus list reads as noise.
+
+**Source consumption:** the band is **read-only** with respect to source – it references headings via anchor links, never consumes spans. Renderer Discipline section-dedup is unaffected.
 
 
 ## Section Block (static HTML, per H2)
 
-Each H2 renders to this exact shape — the affordances are part of the static markup, not JS-injected.
+Each H2 renders to this exact shape – the affordances are part of the static markup, not JS-injected. `plan.json` has no markdown headings, so `templates/plan.md` derives virtual H2 sections from top-level JSON fields and then emits this same shape.
 
 ```html
 <section class="card" id="{{anchor}}" data-anchor="{{anchor}}" data-heading="{{verbatim H2}}">
   <header class="card-head">
+    <span class="h2-number">{{TWO_DIGIT_INDEX}}</span>
     <h2>{{verbatim H2}}</h2>
     <div class="card-actions">
-      <button type="button" class="btn-note"   data-act="note">+ Note <span class="note-count" data-role="count">0</span></button>
-      <button type="button" class="btn-source" data-act="src">View source</button>
+      <button type="button" class="btn-note"     data-act="note">+ Note <span class="note-count" data-role="count">0</span></button>
+      <button type="button" class="btn-source"   data-act="src">View source</button>
+      <button type="button" class="btn-copy-sect" data-act="copy-sect">Copy section</button>
     </div>
   </header>
 
@@ -195,16 +343,28 @@ Each H2 renders to this exact shape — the affordances are part of the static m
 </section>
 ```
 
-**Two non-negotiables in this block:**
+**Three non-negotiables in this block:**
 
-1. **Both `id` and `data-anchor`** carry the same kebab value. `id` makes URL-fragment navigation work for the sidebar TOC and any linked-deep usage. `data-anchor` stays as the JS hook (cleaner querySelector, survives any future id-mangling). Without `id`, TOC links navigate the URL but don't scroll — a known regression.
-2. **`+ Note` and `View source` buttons are present in the static HTML**, with the inline `note-count` span starting at `0`. JS only flips the `hidden` attribute on `.note-area` / `.src-area`, populates the source on first open, and updates the count. *Why both:* an empty `<div class="sec-actions">` placeholder is invisible at parse time and gone if JS fails. Inline buttons render in either case.
+1. **Both `id` and `data-anchor`** carry the same kebab value. `id` makes URL-fragment navigation work for the sidebar TOC and any linked-deep usage. `data-anchor` stays as the JS hook (cleaner querySelector, survives any future id-mangling). Without `id`, TOC links navigate the URL but don't scroll – a known regression.
+2. **`+ Note`, `View source`, and `Copy section` buttons are present in the static HTML**, with the inline `note-count` span starting at `0`. JS only flips the `hidden` attribute on `.note-area` / `.src-area`, populates the source on first open, updates the count, and (for `Copy section`) writes the section payload to clipboard. *Why static:* an empty `<div class="sec-actions">` placeholder is invisible at parse time and gone if JS fails. Inline buttons render in either case. With JS disabled, `Copy section` is visible but inert – acceptable per the Section Block contract: affordance present, interactivity gracefully degraded.
+3. **`{{TWO_DIGIT_INDEX}}` is zero-padded, 1-based, source-order**. Determinism rule: the badge index must reflect the source's H2 ordinal at emission time. The same artifact rendered twice must produce identical badges (`01 02 03 …`). Re-orders in source change badges; nothing else does.
 
 The `.note-area` and `.src-area` use the native `hidden` attribute (not `display: none` via class) so the toggle is a single attribute flip and the initial state is unambiguous in the markup.
 
-**Affordance CSS (canonical — copy verbatim):**
+**Renderer-specific modifier classes** may extend the base markup — e.g. ADR Alternatives emit `<section class="option adr-alt" …>` so a single CSS rule (`.option.adr-alt .option-body { grid-template-columns: 1fr; }`) can collapse the option-body's empty radar column without overriding `.option`'s base grid. The base Section Block contract (id + data-anchor + static affordances + numbered badge) is unchanged; per-renderer modifiers come from the artifact's template. Consult the active artifact template for its modifier list.
+
+**Affordance CSS (canonical – copy verbatim):**
 
 ```css
+.card-head { display: flex; align-items: baseline; gap: 0.65rem; }
+.card-head h2 { flex: 1; margin: 0; font-family: var(--serif); font-weight: 600; font-size: 1.15rem; line-height: 1.3; letter-spacing: -0.005em; }
+.h2-number {
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+  background: var(--panel-3); color: var(--text-muted);
+  padding: 0.15rem 0.45rem; border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+  align-self: center; flex-shrink: 0;
+}
 .card-actions { display: flex; gap: 0.45rem; align-items: center; }
 .card-actions button {
   border-radius: var(--radius-sm);
@@ -213,15 +373,15 @@ The `.note-area` and `.src-area` use the native `hidden` attribute (not `display
   font-family: var(--ui); cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-/* Primary affordance — accent-bordered, accent text. */
+/* Primary affordance – accent-bordered, accent text. */
 .btn-note {
   background: transparent; color: var(--accent);
-  border: 1px solid rgba(110, 168, 255, 0.32);
+  border: 1px solid rgba(193, 95, 60, 0.32);  /* clay – matches --accent rgb */
   font-weight: 600;
 }
 .btn-note:hover { background: var(--accent-soft); color: var(--accent-strong); border-color: var(--accent); }
 .btn-note .note-count {
-  background: var(--accent); color: #061121;
+  background: var(--accent); color: #FAF9F5;
   font-family: var(--mono); font-size: 0.68rem; font-weight: 700;
   min-width: 1.1rem; height: 1.1rem; padding: 0 0.32rem;
   border-radius: 999px;
@@ -231,12 +391,13 @@ The `.note-area` and `.src-area` use the native `hidden` attribute (not `display
   background: transparent; color: var(--text-faint);
   border: 1px solid var(--border);
 }
-/* Secondary affordance — muted, no fill. */
-.btn-source {
+/* Secondary affordance – muted, no fill. */
+.btn-source, .btn-copy-sect {
   background: transparent; color: var(--text-muted);
   border: 1px solid var(--border);
 }
-.btn-source:hover { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+.btn-source:hover, .btn-copy-sect:hover { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+.btn-copy-sect[data-copied="1"] { color: var(--ok); border-color: var(--ok); }
 ```
 
 This locks the primary/secondary distinction so neither button drifts into "subtle muted gray" territory in future renders. Per-renderer per-section CSS may extend other classes; **don't override** `.btn-note` / `.btn-source` style.
@@ -245,14 +406,14 @@ This locks the primary/secondary distinction so neither button drifts into "subt
 ## Sidebar Behavior
 
 - **Copy button** at the top is the primary action. Disabled when `state.notes.length === 0`. Pill shows current note total. Inline feedback (`Copied · N notes`) appears below for 2.2s after a successful copy.
-- **Section navigator** (`<ol id="toc-list">`) is JS-built from `section.card[id]` elements. Each `<a href="#{{anchor}}">` shows the heading text and a `note-count` badge that hides itself when count is 0 (`badge.empty { display: none }`). The currently-visible section gets `aria-current="true"` via `IntersectionObserver`.
+- **Section navigator** (`<ol id="toc-list">`) is JS-built from `section.card[id]` elements. Each `<a href="#{{anchor}}">` shows the heading text and a `note-count` badge that hides itself when count is 0 (`badge.empty { display: none }`). The currently-visible section gets `aria-current="true"` via `IntersectionObserver`. **H3 sub-anchors** (per Section Anchor Scheme below) appear as nested `<li class="l2">` children indented under the parent H2 entry; clicking one navigates by anchor only (no Note affordance, no count badge). Style: `.toc li.l2 { padding-left: 1.1rem; font-size: 0.85em; color: var(--text-muted); }`.
 - **All notes list** (`<ol id="all-notes-list">`) appears below the navigator only when `state.notes.length > 0` (`hidden` attribute toggled by JS). Each entry is a clickable card: heading verbatim, note text, timestamp, and a delete `×`. Click the heading to scroll to that section.
-- **Sidebar visibility:** always visible ≥1100px; collapses to a stacked drawer at the top of the page below that. Never `display: none` the sidebar entirely — that re-introduces the original "TOC missing on laptops" bug.
+- **Sidebar visibility:** always visible ≥1100px; collapses to a stacked drawer at the top of the page below that. Never `display: none` the sidebar entirely – that re-introduces the original "TOC missing on laptops" bug.
 
 
 ## Renderer Discipline
 
-Each H2 section dispatches to **one** specialized renderer (defined per artifact type in `templates/`) chosen by case-insensitive substring match on the heading. **Schema mismatch is the failure mode to avoid:** if a section's content does not fit a renderer's shape, fall back to **Generic Prose** (rendered markdown with `<h3>`/`<h4>`/`<p>`/`<ul>`/`<ol>`/`<table>`). Never repurpose a renderer for a different schema just because the heading sits in a similar position. Past renders have shipped Non-Functional Requirements as five empty `story-card` placeholders because the user-stories renderer was reused for a Category/Requirement/Threshold table.
+Each markdown H2 section, or plan virtual H2 section, dispatches to **one** specialized renderer (defined per artifact type in `templates/`) chosen by case-insensitive substring match on the heading. **Schema mismatch is the failure mode to avoid:** if a section's content does not fit a renderer's shape, fall back to **Generic Prose** (rendered markdown with `<h3>`/`<h4>`/`<p>`/`<ul>`/`<ol>`/`<table>`). Never repurpose a renderer for a different schema just because the heading sits in a similar position. Past renders have shipped Non-Functional Requirements as five empty `story-card` placeholders because the user-stories renderer was reused for a Category/Requirement/Threshold table.
 
 **Per-section schema contract (PRD-shaped artifacts):**
 
@@ -268,9 +429,32 @@ Each H2 section dispatches to **one** specialized renderer (defined per artifact
 | Success Metrics (top-level) | Metric tiles | Metric/Target table |
 | (anything else) | Generic Prose | as-is markdown |
 
-*Source-schema notes:* renderer **names** match `templates/prd.md` headings; **column shapes** above match the canonical PRD template (`plugin/references/prd-template.md`). When the source markdown's columns don't match the documented shape, fall back to Generic Prose rather than ad-hoc-mapping unfamiliar columns into renderer slots — that's the regression this section exists to prevent. Trade-off, strategic-design, and clarification artifacts have their own per-section renderers in `templates/tradeoff.md` and `templates/clarification.md`; this table covers PRDs only.
+*Source-schema notes:* renderer **names** match `templates/prd.md` headings; **column shapes** above match the canonical PRD template (`plugin/references/prd-template.md`). When the source markdown's columns don't match the documented shape, fall back to Generic Prose rather than ad-hoc-mapping unfamiliar columns into renderer slots – that's the regression this section exists to prevent. Trade-off, strategic-design, and clarification artifacts have their own per-section renderers in `templates/tradeoff.md`, `templates/strategic-design.md`, and `templates/clarification.md`; this table covers PRDs only.
 
-**Section-block wrapper is universal.** Every H2 produces a `<section class="card" id="{anchor}">` block with the standard affordances (Note button, View source toggle, count span) per the *Section Block* contract above — that's true regardless of which renderer matched. The renderer choice only changes what fills `.card-body`. Generic Prose is **not** a permission to skip the wrapper or the affordances; it is a body-level fallback only.
+**Cross-artifact dispatch (renderers shared across templates).** Three structural renderers live in `templates/diagrams.md` and may be dispatched from any artifact's template based on the heading + source-shape conditions below. Heading-substring match still wins over shape detection; mapviz wins over walkthrough wins over flowchart for the same heading.
+
+| Artifact | Section heading (substring) | Renderer dispatch (priority order) |
+|---|---|---|
+| Plan | Overview | Summary prose + phase/wave timeline from `overview.phases[]` |
+| Plan | Story Catalog | Story cards with status/risk/FIS/dependency chips; `.risk-map` links to story sub-anchors |
+| Plan | Dependency Graph | Phase/wave lanes plus dependency edge list; invalid `dependsOn` references surface as inline comments and attention styling |
+| Plan | Shared Decisions / Binding Constraints / Risk Summary / Execution Notes | Purpose-built card renderers from `templates/plan.md`; omit optional virtual sections when source arrays/strings are empty |
+| PRD | User Flows | (1) `mapviz` fenced block → Module Map · (2) 2–9 H3 substeps where **every** substep's stripped body char-count ≥ 50 → Walkthrough · (3) else → Flowchart. (Character count: strip whitespace and markdown markers, count Unicode code points — see `templates/prd.md` for the rule.) |
+| PRD | Risks | Risk rows + `.risk-map` chips + `<details class="analysis">` collapse |
+| Clarification | Design Decisions → Resolved Decisions H3 | If ≤5 rows AND every Rationale's stripped char-count ≥ 60 → Walkthrough; else current tree+notes+table |
+| Trade-off | Options → all option H3s together | If **every** option H3 carries ≥ 2 of {`What changes`, `Where it changes`, `Risk` / `Trade-off`} H4 substring → Walkthrough alongside radar for every option; else prose+radar for every option. All-or-nothing per section – never mixed |
+| Trade-off | Options summary | `.risk-map` chips above the H3 list |
+| Strategic-design | Context Map | `mapviz` → Module Map + interactive node→panel binding; else Generic Prose |
+| Strategic-design | Bounded Contexts | per-context `mapviz` → Module Map; else card grid |
+| Strategic-design | Subdomains | Card grid (reuse `list-graph` styling); else Generic Prose |
+| ADR | Context | Generic Prose; inline `**Status:** …` / `**Date:** …` / `**Deciders:** …` / `**Related:** …` metadata consumed into eyebrow + pill row |
+| ADR | Decision | Recommendation-styled accent box (reuse `templates/tradeoff.md` `.recommendation` styling); code blocks render verbatim |
+| ADR | Alternatives Considered | Option cards (reuse `templates/tradeoff.md` `.option` layout, **no radar** since ADRs lack scoring matrices); emit each alternative as `<section class="option adr-alt" data-anchor-parent="alternatives-considered">` so `.option.adr-alt .option-body { grid-template-columns: 1fr; }` collapses the absent-radar column. One H3 per alternative |
+| ADR | Consequences | Semantic three-bucket layout (Positive / Negative / Neutral) when H3 subsections match `/^(positive|negative|neutral|trade.?offs?)/i`; else Generic Prose with H3 carrying olive / danger / muted accents |
+
+**DDD relationship vocabulary** recognized in `mapviz` edge labels (annotated, not parsed for layout): `Customer-Supplier`, `Conformist`, `Anti-Corruption Layer`, `Open Host`, `Published Language`, `Partnership`, `Shared Kernel`, `Separate Ways`. Convention: `Separate Ways` → dashed edge style; `Anti-Corruption Layer` target node should be `terminal`.
+
+**Section-block wrapper is universal.** Every markdown H2, plus every plan virtual H2, produces a `<section class="card" id="{anchor}">` block with the standard affordances (Note button, View source toggle, count span) per the *Section Block* contract above – that's true regardless of which renderer matched. The renderer choice only changes what fills `.card-body`. Generic Prose is **not** a permission to skip the wrapper or the affordances; it is a body-level fallback only.
 
 **NFR Renderer (canonical):**
 
@@ -300,14 +484,95 @@ Each H2 section dispatches to **one** specialized renderer (defined per artifact
 @media (max-width: 700px) { .nfr-row { grid-template-columns: 1fr; gap: 0.4rem; } }
 ```
 
+**Risk-map chips (summary-of-many).** Above any section that summarizes a list of items (trade-off Options, PRD Risks, clarification Open Questions), emit a `<nav class="risk-map">` row of `<a class="risk-map-chip">` anchor links – one chip per item. Chips are color-semantic: `.safe` (olive) for resolved / low-risk, `.medium` (warn amber), `.attention` (clay) for items needing review, `.neutral` (gray) for everything else. Each chip's `href` points to its target's anchor (`#options-foo`, etc.) and clicking pulses the target via the delegated `pulseAnchor` handler in the IIFE.
+
+**Emission-time gap check (two-pass renderer required):** the gap check is against a pre-built anchor index, **not** the partially-emitted HTML stream. Pass 1 walks the parsed source, collects every section/H3 anchor it will eventually emit, and produces an anchor set. Pass 2 emits HTML; when it reaches a `.risk-map-chip`, it looks up the target href in the set built by Pass 1. When the target is missing (typo, dropped section, broken cross-reference), emit an inline HTML comment `<!-- risk-map: chip target "#X" not found -->` adjacent to the chip so the View-source panel surfaces the gap, and add `aria-disabled="true"` (plus `pointer-events: none` via the `.risk-map-chip[aria-disabled="true"]` CSS rule below) to the chip itself. A single-pass renderer cannot satisfy this rule – chips are emitted *above* the H3 list they reference, so the target IDs don't exist in the emitted stream yet.
+
+```html
+<nav class="risk-map" aria-label="{{section name}} overview">
+  <a class="risk-map-chip safe"      href="#options-foo">Option Foo</a>
+  <a class="risk-map-chip medium"    href="#options-bar">Option Bar</a>
+  <a class="risk-map-chip attention" href="#options-baz">Option Baz</a>
+</nav>
+```
+
+```css
+.risk-map { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 0.9rem; }
+.risk-map-chip {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-family: var(--mono); font-size: 0.78rem;
+  padding: 0.25rem 0.65rem; border-radius: 999px;
+  text-decoration: none; border: 1px solid transparent;
+}
+.risk-map-chip.safe      { background: var(--ok-soft);     color: var(--ok);     border-color: var(--ok); }
+.risk-map-chip.medium    { background: rgba(176, 126, 43, 0.10); color: var(--warn);   border-color: var(--warn); }   /* matches --warn rgb */
+.risk-map-chip.attention { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.risk-map-chip.neutral   { background: var(--panel-2);     color: var(--text-muted); border-color: var(--border); }
+.risk-map-chip[aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
+```
+
+
+**Supporting-detail collapse (`<details class="analysis">`).** Inside section bodies that have a clear primary "verdict" followed by extended analysis (trade-off Option bodies, PRD Risk rows), wrap the *secondary* prose in a `<details class="analysis">` block. Native HTML, zero JS. Two conservative triggers – primary content stays uncollapsed by default:
+
+1. An explicit `<!-- analysis -->` HTML comment marker in the source separates primary from secondary, OR
+2. An H4 named `Detailed analysis`, `Notes`, or `Background` introduces the secondary block.
+
+Without either marker, **nothing collapses** – never auto-split on heuristic content length.
+
+```html
+<details class="analysis">
+  <summary>Show detailed analysis</summary>
+  <!-- secondary prose / tables / nested elements -->
+</details>
+```
+
+```css
+.analysis { margin-top: 0.7rem; border-top: 1px dashed var(--border); padding-top: 0.5rem; }
+.analysis > summary {
+  cursor: pointer; font-family: var(--mono); font-size: 0.78rem;
+  color: var(--text-muted); padding: 0.2rem 0; list-style: none;
+}
+.analysis > summary::before { content: '▸ '; color: var(--accent); }
+.analysis[open] > summary::before { content: '▾ '; }
+.analysis[open] { background: var(--panel-2); border-radius: var(--radius-sm);
+                  padding: 0.5rem 0.7rem 0.7rem; }
+```
+
+
+**Light TL;DR callout (per-section).** Emit a `.tldr-light` block as the first child of `.card-body` **only** when the section's first body content matches one of two conservative patterns:
+
+1. An explicit `> TL;DR:` blockquote line, OR
+2. A *full italic paragraph* — a single line of the form `*Whole sentence.*` (or `_Whole sentence._`), followed by a blank line. A mid-prose italicized phrase does **not** match.
+
+If matched, the source span is **consumed** (removed from the prose-fallback queue per the section-dedup rule below). If no match, no callout is emitted – never auto-extract an arbitrary leading sentence. Applies wherever a "verdict in one glance" surface is wanted: trade-off Option H3 cards, PRD Risk rows, clarification Open Question H3 blocks. Other sections may include one too if explicitly authored.
+
+```html
+<div class="tldr-light">
+  <span class="k">TL;DR</span>
+  <span class="v">{{verbatim summary sentence}}</span>
+</div>
+```
+
+```css
+.tldr-light {
+  display: flex; gap: 0.7rem; align-items: baseline;
+  background: var(--panel-2); border-left: 3px solid var(--accent);
+  padding: 0.6rem 0.9rem; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin: 0 0 0.85rem;
+}
+.tldr-light .k { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em;
+                 text-transform: uppercase; color: var(--accent); flex-shrink: 0; }
+.tldr-light .v { color: var(--text); font-size: 0.95rem; line-height: 1.5; }
+```
+
 **Section-deduplication rule:** when a renderer consumes a structured part of a section (e.g. Executive Summary's `Success Metrics` table → metric tiles), *that part must not be emitted a second time as fallback prose*. The Executive Summary template rendering metric tiles AND a duplicate `<table>` AND an orphan `<ul><li><strong>Success Metrics</strong>:</li></ul>` is the named regression. **Mechanism:** the specialized renderer records the **source line range** it consumed (or the exact verbatim source text); the Generic Prose pass that fills the rest of `.card-body` skips any line range / text span already claimed. A renderer that consumes "the bullet whose text starts with `**Success Metrics**:` and the immediately-following pipe-table" must report both spans as consumed before prose fallback runs.
 
 
 ## JavaScript Authoring Discipline
 
-The `<script>` block is the most fragile part of the render — a single SyntaxError disables every interactive affordance on the page (buttons stop responding, TOC stays empty, copy never wires). Three rules are non-negotiable:
+The `<script>` block is the most fragile part of the render – a single SyntaxError disables every interactive affordance on the page (buttons stop responding, TOC stays empty, copy never wires). Three rules are non-negotiable:
 
-1. **Never put literal newlines inside regex literals or single/double-quoted string literals.** `/.../` regex literals are syntactically single-line; `'...'` and `"..."` strings cannot contain raw newlines. Use `\n` (escape sequence) always. Template literals `` `...` `` *can* span lines, but inside them, newlines that need to appear in the output value must still be written as `\n` if you intend them as data — raw newlines become part of the literal value in ways that look fine but break adjacent regex/string code.
+1. **Never put literal newlines inside regex literals or single/double-quoted string literals.** `/.../` regex literals are syntactically single-line; `'...'` and `"..."` strings cannot contain raw newlines. Use `\n` (escape sequence) always. Template literals `` `...` `` *can* span lines, but inside them, newlines that need to appear in the output value must still be written as `\n` if you intend them as data – raw newlines become part of the literal value in ways that look fine but break adjacent regex/string code.
 
    **Anti-pattern (the regression):**
    ```javascript
@@ -326,7 +591,12 @@ The `<script>` block is the most fragile part of the render — a single SyntaxE
 
 2. **Wrap the whole script in an IIFE** (`(function(){'use strict'; ... })();`) so a typo in one helper doesn't pollute window globals or silently shadow built-ins. The `'use strict'` directive surfaces accidental implicit-global assignments at parse time rather than as quiet bugs at runtime.
 
-3. **Compose, don't re-derive.** The helpers under *Notes State Shape*, *Clipboard Write with Fallback*, *LocalStorage*, and *`beforeunload` Warning* below are the building blocks — the script body is one IIFE that wires them together with a small DOM layer (event handlers per `data-act` button, IntersectionObserver for `aria-current`, TOC builder over `section.card[id]`, all-notes list mirroring `state.notes`). Use the helpers as written; don't rename `state` / `notesDirty` / payload shape to fit a slicker style. The DOM-wiring layer is small but easy to get wrong — favor `hidden`-attribute toggles (Section Block contract), single-event-listener delegation per list, and `IntersectionObserver` with `rootMargin: '-20% 0px -70% 0px'` so the active-section indicator updates before the user reads the section heading.
+3. **Compose, don't re-derive.** The helpers under *Notes State Shape*, *Clipboard Write with Fallback*, *LocalStorage*, *`beforeunload` Warning*, and `templates/js-helpers.md` (interactive-affordance helpers: `pulseAnchor`, `copySectionWithNote`, walkthrough snippet toggle, `wireModuleMap`) are the building blocks – the script body is one IIFE that wires them together with a small DOM layer (event handlers per `data-act` button, IntersectionObserver for `aria-current`, TOC builder over `section.card[id]`, all-notes list mirroring `state.notes`). Use the helpers as written; don't rename `state` / `notesDirty` / payload shape to fit a slicker style. The DOM-wiring layer is small but easy to get wrong – favor `hidden`-attribute toggles (Section Block contract), single-event-listener delegation per list, and `IntersectionObserver` with `rootMargin: '-20% 0px -70% 0px'` so the active-section indicator updates before the user reads the section heading.
+
+
+## IIFE Helper Library
+
+The four interactive-affordance helpers (`pulseAnchor`, `copySectionWithNote`, walkthrough one-at-a-time snippet toggle, `wireModuleMap`) live in `templates/js-helpers.md` – copy them verbatim into the page-level IIFE alongside `state`, `copyNotes`, `flashInline`, `saveToLocalStorage`, and the `beforeunload` handler. Each helper is `try/catch`-wrapped so one handler failure cannot disable any other. See `templates/js-helpers.md` for the code, the JSON-in-attribute discipline (no raw newlines in `data-nodes`), and binding-site comments.
 
 
 ## Section Anchor Scheme
@@ -337,7 +607,9 @@ Anchor key = lowercase-kebab of the verbatim H2 text:
 
 Collisions resolved by suffix (`-2`, `-3`). Anchors are stable across re-runs as long as headings don't change.
 
-The **payload uses the verbatim heading text**, not the kebab anchor — downstream skills match against their own headings without slug normalization.
+The **payload uses the verbatim heading text**, not the kebab anchor – downstream skills match against their own headings without slug normalization.
+
+**Nested H3 sub-anchors.** Each H3 inside a `.card-body` gets `id="{parent-anchor}-{h3-kebab}"` (e.g. `risks-database-timeout`). Same collision-suffix scheme as for H2 (`-2`, `-3`) keeps duplicate H3s across cards distinct. The TOC builder uses these to emit indented `<li class="l2">` children under each parent H2 entry in the sidebar nav. H3 IDs are **URL-navigation-only**: H3s do **not** get a `+ Note` affordance, do not appear in the all-notes payload, and do not enter the IntersectionObserver active-section logic. The contract remains "one Note per H2."
 
 **Nested H3 cards** (e.g. per-option cards inside a trade-off `## Options` section) carry `data-anchor-parent="<parent-anchor>"` purely as a CSS / DOM hook for layout; only H2 sections carry `data-anchor` and a Note affordance. One Note per H2 covers the whole section regardless of how many H3 cards it contains.
 
@@ -348,7 +620,7 @@ Single state object. Every interaction reads/writes through it. Persist on every
 
 ```javascript
 const state = {
-  artifactPath: '<the path the user passed to the skill>',  // use as-given (typically project-relative); do NOT canonicalize to absolute — downstream skills receive this in the payload header and match against their own working-tree paths
+  artifactPath: '<the path the user passed to the skill>',  // use as-given (typically project-relative); do NOT canonicalize to absolute – downstream skills receive this in the payload header and match against their own working-tree paths
   artifactSha1: '<sha-1 hex of artifactPath>',
   tabUuid: sessionStorage.getItem('andthen-visualize-tab-uuid') || (() => {
     const u = crypto.randomUUID();
@@ -367,7 +639,7 @@ const state = {
 };
 ```
 
-**`notesDirty` write sites** — set to `true` in every code path that mutates `state.notes` (add note, edit note text, delete note). The reset to `false` lives in the success branch of `copyNotes()` only. A second edit after a copy MUST flip the flag back to `true` so `beforeunload` re-arms.
+**`notesDirty` write sites** – set to `true` in every code path that mutates `state.notes` (add note, edit note text, delete note). The reset to `false` lives in the success branch of `copyNotes()` only. A second edit after a copy MUST flip the flag back to `true` so `beforeunload` re-arms.
 
 
 ## Notes Payload Format (exact)
@@ -388,6 +660,36 @@ When the user clicks "Copy notes" with N>0 notes attached, write this to clipboa
 Group consecutive notes by `sectionAnchor`, but use `headingVerbatim` in the rendered `## Section: ...` line. Preserve note order within each section.
 
 If `notes.length === 0`, do not write to clipboard. Show inline "No notes to copy" near the button.
+
+**Canonical formatters** (compose, don't re-derive — `copySectionWithNote` in `templates/js-helpers.md` reuses `buildSectionBlock`):
+
+```javascript
+function buildSectionBlock(headingVerbatim, notesForSection) {
+  // One '## Section: …' block. Empty-notes case = heading line only, no bullets.
+  var lines = ['## Section: ' + headingVerbatim.trim(), ''];
+  notesForSection.forEach(function (n) {
+    // Multi-line notes: continuation lines indent by 2 spaces (markdown list-item continuation).
+    lines.push('- ' + n.text.replace(/\n/g, '\n  '));
+  });
+  return lines.join('\n');
+}
+function buildPayload(notes, artifactPath) {
+  var header = '# andthen:visualize notes for ' + artifactPath + '\n';
+  // Group by sectionAnchor, preserve first-seen order, use headingVerbatim from the first note in each group.
+  var groups = [];
+  var byAnchor = Object.create(null);
+  notes.forEach(function (n) {
+    if (!byAnchor[n.sectionAnchor]) {
+      byAnchor[n.sectionAnchor] = { heading: n.headingVerbatim, items: [] };
+      groups.push(byAnchor[n.sectionAnchor]);
+    }
+    byAnchor[n.sectionAnchor].items.push(n);
+  });
+  return header + '\n' + groups.map(function (g) {
+    return buildSectionBlock(g.heading, g.items);
+  }).join('\n\n') + '\n';
+}
+```
 
 
 ## Clipboard Write with Fallback
@@ -430,9 +732,9 @@ function saveToLocalStorage() {
 }
 ```
 
-On load, scan for any keys matching `andthen:visualize:<artifactSha1>:` from a *different* tabUuid. If found, prompt *"Restore previous notes?"* — accept copies them into `state.notes` and **sets `state.notesDirty = true`** so the `beforeunload` warning re-arms (the restored notes were never copied to clipboard *in this tab*; treating them as already-saved would let the user lose them on accidental tab close).
+On load, scan for any keys matching `andthen:visualize:<artifactSha1>:` from a *different* tabUuid. If found, prompt *"Restore previous notes?"* – accept copies them into `state.notes` and **sets `state.notesDirty = true`** so the `beforeunload` warning re-arms (the restored notes were never copied to clipboard *in this tab*; treating them as already-saved would let the user lose them on accidental tab close).
 
-If LocalStorage is unavailable (private browsing): show a one-time warning at top of page — *"Note persistence disabled (private browsing?). Notes won't survive refresh."* Render proceeds.
+If LocalStorage is unavailable (private browsing): show a one-time warning at top of page – *"Note persistence disabled (private browsing?). Notes won't survive refresh."* Render proceeds.
 
 
 ## `beforeunload` Warning
@@ -446,7 +748,7 @@ window.addEventListener('beforeunload', (e) => {
 });
 ```
 
-The standard browser warning shows. We don't customize the message — most browsers ignore custom strings.
+The standard browser warning shows. We don't customize the message – most browsers ignore custom strings.
 
 
 ## Browser-Open Detection (Bash)
@@ -476,8 +778,8 @@ fi
 - **Markdown italicizes `_blank` in `target="_blank"`** → unescaped underscores in raw markdown that pass through a Markdown→HTML pipeline get parsed as emphasis, leaving `target="<em>blank"` and `target="</em>blank"` in the output. Either emit the anchors directly as HTML (skip Markdown for the doc-meta block), or wrap underscore-bearing identifiers in code spans / HTML-escape the underscores. Same trap applies to any `snake_case` identifier in prose.
 - **JS-injecting the `+ Note` / `View source` buttons** → they MUST be in the static HTML per the Section Block contract. An empty `<div class="sec-actions"></div>` placeholder renders nothing at parse time and stays invisible if JS fails. Past renders shipped this regression and users reported "no visible way to add notes."
 - **Sections with `data-anchor` but no `id`** → URL-fragment navigation (TOC clicks, deep links) silently no-ops because `#anchor` resolves against `id`, not `data-*`. Always emit both attributes with the same kebab value.
-- **TOC behind a `min-width: 1400px` media query** → hides the only navigation on every common laptop. The sidebar must remain reachable on narrow viewports — collapse it into a drawer above the content rather than display-none-ing it.
-- **Subtle muted gray for primary affordances** → `+ Note` is the page's primary interaction; `View source` is secondary. The Section Block's *Affordance CSS* canonical block locks this — copy it verbatim and don't override `.btn-note` / `.btn-source` per-section.
+- **TOC behind a `min-width: 1400px` media query** → hides the only navigation on every common laptop. The sidebar must remain reachable on narrow viewports – collapse it into a drawer above the content rather than display-none-ing it.
+- **Subtle muted gray for primary affordances** → `+ Note` is the page's primary interaction; `View source` is secondary. The Section Block's *Affordance CSS* canonical block locks this – copy it verbatim and don't override `.btn-note` / `.btn-source` per-section.
 - **External resources** (CDN scripts, web fonts, hosted icons) → must work from `file://`, inline everything.
 - **`agent-browser`** → wrong tool. It's used by the `andthen:excalidraw-diagram` skill for *automation*. Visualize wants the user's *primary* browser.
 - **Non-deterministic class names or DOM ordering** → keep section blocks ordered as in the source; class names follow the section anchor scheme.
@@ -490,13 +792,14 @@ fi
 
 ## FOLLOW-UP ACTIONS
 
-Skip this section when `AUTO_MODE=true` — print only the output path.
+Skip this section when `AUTO_MODE=true` – print only the output path.
 
 After the user reviews the rendered artifact and copies notes:
 
-1. **Apply notes via downstream skill** — paste the clipboard payload into the chat when invoking the relevant downstream skill:
+1. **Apply notes via downstream skill** – paste the clipboard payload into the chat when invoking the relevant downstream skill:
    - PRD review notes → `andthen:prd` (amendment context) or as conversational input to a fresh `andthen:plan` invocation
+   - Plan review notes → `andthen:plan` for regeneration, `andthen:exec-plan` for execution caveats, or `andthen:review --mode gap` for plan-level review context
    - Clarification review notes → `andthen:clarify` amendment mode
    - Trade-off review notes → next `andthen:architecture` invocation (e.g. ADR formalization)
    - Strategic-design review notes → next `andthen:architecture` invocation (e.g. `--mode strategic-design` for refinement, `--mode fitness` to formalize, or `--mode decompose` for a contested boundary)
-2. **Re-visualize after edits** — re-run `/andthen:visualize <path>` on the updated artifact to verify changes landed.
+2. **Re-visualize after edits** – re-run `/andthen:visualize <path>` on the updated artifact to verify changes landed.

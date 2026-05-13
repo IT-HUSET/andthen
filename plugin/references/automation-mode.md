@@ -5,7 +5,7 @@ Shared automation rules for AndThen skills. Referenced from each skill's `INSTRU
 
 ## Headless-First (Default)
 
-Skills run to completion without pausing for routine clarification, even without `--auto`. Make reasonable conservative assumptions, document them in the skill's primary output, and surface unresolved questions explicitly. Stop only on **true contract failures** — missing required input, incompatible artifacts, unsafe external actions, or ambiguity so severe no defensible output is producible.
+Skills run to completion without pausing for routine clarification, even without `--auto`. Make reasonable conservative assumptions, document them in the skill's primary output, and surface unresolved questions explicitly. Stop only on **true contract failures** – missing required input, incompatible artifacts, unsafe external actions, or ambiguity so severe no defensible output is producible.
 
 `--auto` / `--headless` is the *strict* form of this rule (below).
 
@@ -16,7 +16,7 @@ When `AUTO_MODE=true`:
 
 - **Never ask the user what to do next**, not even once. No arrow prompts, no "Which approach?" pauses.
 - **Make the most conservative assumption** that preserves a coherent output. Record it in the artifact (FIS / PRD / plan / completion report) so the chain remains auditable.
-- **Return a deterministic completion summary** the orchestrator can parse — artifact paths, status, blockers.
+- **Return a deterministic completion summary** the orchestrator can parse – artifact paths, status, blockers.
 - **Stop only with `BLOCKED:`** for the failure conditions below; never silently degrade.
 
 ### `BLOCKED:` Triggers (generic)
@@ -34,7 +34,7 @@ The `BLOCKED:` line lists the **minimum** missing inputs / decisions so the orch
 
 ## `--auto` Propagation
 
-When `AUTO_MODE=true`, propagate `--auto` to **every nested AndThen skill invocation that accepts it**. This is universal — do not restate at each call site.
+When `AUTO_MODE=true`, propagate `--auto` to **every nested AndThen skill invocation that accepts it**. This is universal – do not restate at each call site.
 
 **Exemption**: the `andthen:ops` skill is deterministic; it does not accept `--auto` and does not need it.
 

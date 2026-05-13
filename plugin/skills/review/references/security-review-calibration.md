@@ -5,26 +5,26 @@ Domain-specific calibration for reviewing implementation through a security lens
 The defining feature of security severity is **exposure**: the same code-level defect can sit at different severity levels depending on who can reach the sink, with what preconditions, and through what authentication or trust gate. The contrastive examples below pin severity to exposure rather than to the shape of the defect alone.
 
 
-## Severity Calibration — Contrastive Examples
+## Severity Calibration – Contrastive Examples
 
 Each pair shows what IS and is NOT that severity level. Use these to calibrate your severity assignments.
 
 ### Critical
 
 **IS Critical:**
-> The `/api/products/:id` GET handler concatenates `req.params.id` directly into a raw SQL string passed to `pool.query`. The route is public (no auth middleware), and `id` is reflected into a `WHERE` clause. A union-based injection lifts the `users.password_hash` column. — `routes/products.ts:42`
+> The `/api/products/:id` GET handler concatenates `req.params.id` directly into a raw SQL string passed to `pool.query`. The route is public (no auth middleware), and `id` is reflected into a `WHERE` clause. A union-based injection lifts the `users.password_hash` column. – `routes/products.ts:42`
 
 Why: Exploitable on a public endpoint, with a clear path to the most sensitive data in the system. Source (untrusted public input) → sink (raw SQL) with no escape, no parameterization, no allowlist.
 
 **IS Critical:**
-> AWS access key and secret are committed in `config/dev.env` and the file is tracked by git. The keys grant `s3:*` on the production bucket per the IAM policy attached to that user. — `config/dev.env:4-5`
+> AWS access key and secret are committed in `config/dev.env` and the file is tracked by git. The keys grant `s3:*` on the production bucket per the IAM policy attached to that user. – `config/dev.env:4-5`
 
 Why: Secret with broad production access committed to the repo. Exposure = anyone with read access to the repo (or anyone who clones from a fork that re-pushes the file's history).
 
 **is NOT Critical (common over-escalation):**
 > Missing CSRF token check on `/admin/internal/cache-flush`. The route requires admin SSO, sits behind a corporate VPN, and the only effect is clearing an in-memory cache.
 
-Why: Exposure is internal admin only, with two trust gates (VPN + SSO) and a low-impact effect. This is MEDIUM — defense-in-depth gap, not an exploitable critical.
+Why: Exposure is internal admin only, with two trust gates (VPN + SSO) and a low-impact effect. This is MEDIUM – defense-in-depth gap, not an exploitable critical.
 
 **is NOT Critical:**
 > The login endpoint returns a slightly different error message for "user does not exist" vs "wrong password", enabling username enumeration.
@@ -35,14 +35,14 @@ Why: Information disclosure, not an exploit. Without rate limiting on the same e
 ### High
 
 **IS High:**
-> The webhook signature verification in `verifyStripeSignature` compares `expected !== received` with `!==` instead of a constant-time comparator. An attacker with network access can timing-attack the signature byte-by-byte. — `lib/webhooks/stripe.ts:67`
+> The webhook signature verification in `verifyStripeSignature` compares `expected !== received` with `!==` instead of a constant-time comparator. An attacker with network access can timing-attack the signature byte-by-byte. – `lib/webhooks/stripe.ts:67`
 
 Why: Real exploitation path with concrete preconditions (network observability of the webhook endpoint). Constant-time comparison is the standard mitigation; the gap is named, well-understood, and not academic.
 
 **IS High:**
-> The `<img src={user.profileUrl}>` JSX renders a user-controlled URL without scheme validation. A `javascript:` URL turns into stored XSS the next time the profile is viewed. — `components/Profile.tsx:23`
+> The `<img src={user.profileUrl}>` JSX renders a user-controlled URL without scheme validation. A `javascript:` URL turns into stored XSS the next time the profile is viewed. – `components/Profile.tsx:23`
 
-Why: Stored injection on an authenticated surface. Exposure is "any user who can view another user's profile"; the sink is a DOM context that historically permits `javascript:` URLs unless framework-escaped (and React does not escape `src` attributes for the `javascript:` scheme automatically — verified, not assumed).
+Why: Stored injection on an authenticated surface. Exposure is "any user who can view another user's profile"; the sink is a DOM context that historically permits `javascript:` URLs unless framework-escaped (and React does not escape `src` attributes for the `javascript:` scheme automatically – verified, not assumed).
 
 **is NOT High (common over-escalation):**
 > The `package-lock.json` shows a transitive dependency at a version with a known CVE. The CVE describes a denial-of-service in a parser, but the project never calls the affected code path.
@@ -58,12 +58,12 @@ Why: Information disclosure on an endpoint that is by design publicly readable. 
 ### Medium
 
 **IS Medium:**
-> The admin user-creation form accepts a `role` field directly from the request body without an allowlist. Only admin SSO can reach this form, so privilege escalation requires another admin first; but a compromised admin session could mint a backdoor admin in one request. — `routes/admin/users.ts:55`
+> The admin user-creation form accepts a `role` field directly from the request body without an allowlist. Only admin SSO can reach this form, so privilege escalation requires another admin first; but a compromised admin session could mint a backdoor admin in one request. – `routes/admin/users.ts:55`
 
 Why: Real defect with a concrete (though narrow) exploitation path. Exposure is admin-only, but the impact (backdoor admin creation) means it deserves a real fix.
 
 **IS Medium:**
-> Logged user objects in `logger.info('user authenticated', user)` include `user.email` and `user.passwordHash` (bcrypt). The hash is computationally expensive to crack, but its presence in log files widens the secret-storage surface. — `auth/login.ts:34`
+> Logged user objects in `logger.info('user authenticated', user)` include `user.email` and `user.passwordHash` (bcrypt). The hash is computationally expensive to crack, but its presence in log files widens the secret-storage surface. – `auth/login.ts:34`
 
 Why: Defense-in-depth gap. The hash is not directly exploitable (bcrypt with a good cost factor), but log files often have wider read access than the auth database, so removing it tightens the trust boundary.
 
@@ -78,7 +78,7 @@ Why: Hardening gap with a narrow preconditions (active MITM on first visit). Wor
 **IS Low:**
 > JWT `aud` claim is not validated, but the issuer (`iss`) is, and tokens are minted by a single internal service for this single audience.
 
-Why: Defense-in-depth — `aud` validation is the right pattern, but the practical exposure is zero today.
+Why: Defense-in-depth – `aud` validation is the right pattern, but the practical exposure is zero today.
 
 
 ## Exposure Modifiers
@@ -102,7 +102,7 @@ Common patterns that look like security issues but aren't. Check for these befor
 
 2. **Intentional eval / shell in admin tooling.** Example: a developer-only diagnostic endpoint that runs `child_process.exec` against a controlled allowlist. The allowlist is the security control; flagging the `exec` call alone misreads the threat model. Read the surrounding validation before flagging.
 
-3. **Framework-provided escapes mistaken for absent escapes.** Example: flagging `{userInput}` rendered in JSX as XSS — React escapes interpolated children by default. The bug exists for `dangerouslySetInnerHTML`, `href` schemes, `src` attributes, and `style` strings. Verify the framework's actual escape behavior for the specific sink before flagging.
+3. **Framework-provided escapes mistaken for absent escapes.** Example: flagging `{userInput}` rendered in JSX as XSS – React escapes interpolated children by default. The bug exists for `dangerouslySetInnerHTML`, `href` schemes, `src` attributes, and `style` strings. Verify the framework's actual escape behavior for the specific sink before flagging.
 
 4. **CVE-by-vulnerability-database without an exploitable path.** Example: flagging a transitive dependency CVE when the affected function is never imported. Note as MEDIUM hardening, not as HIGH active risk.
 

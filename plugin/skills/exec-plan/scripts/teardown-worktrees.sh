@@ -207,7 +207,7 @@ for RECORD in "${RECORDS[@]}"; do
   # Test B: SHA ancestry fallback (for --no-ff merges from older runs).
   # Empty branches (tip == merge-base, no commits beyond) are *vacuously*
   # ancestors of BASE_BRANCH and would be misclassified MERGED by a bare
-  # is-ancestor check — but they carry no work to claim merged. The marker
+  # is-ancestor check – but they carry no work to claim merged. The marker
   # short-circuit above catches G1-detected empties, but a hand-cleared
   # marker (or an empty branch from outside merge-worktree.sh) would slip
   # past it; gating on "carries ≥1 commit beyond merge-base" closes that hole.
@@ -242,7 +242,7 @@ for RECORD in "${RECORDS[@]}"; do
     # 1 (diff present), or ≥128 on a git error (lock contention, missing tree
     # in a partially deleted worktree, etc). Treating every non-zero exit as
     # "diff present" would misclassify clean merged worktrees as MERGED_DIRTY
-    # on transient git noise — preserving orphans the orchestrator already
+    # on transient git noise – preserving orphans the orchestrator already
     # moved on from.
     if [[ -n "$SQUASH_SHA" ]]; then
       diff_rc=0

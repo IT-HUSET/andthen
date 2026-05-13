@@ -25,7 +25,7 @@ Six drivers that justify breaking a component apart (Ford/Richards). Score each 
 ### 1. Service Scope and Function
 The component handles unrelated responsibilities.
 - **Review question**: Does this module violate SRP? Would a change in domain A force redeployment for domain B?
-- **Never sufficient alone** — needs at least one other driver
+- **Never sufficient alone** – needs at least one other driver
 
 ### 2. Code Volatility
 Parts change at different rates.
@@ -35,7 +35,7 @@ Parts change at different rates.
 ### 3. Scalability and Throughput
 Parts have different performance profiles.
 - **Review question**: Does one subsystem need 10x the resources of others?
-- **Limitation**: Premature optimization risk — measure actual load first
+- **Limitation**: Premature optimization risk – measure actual load first
 
 ### 4. Fault Tolerance
 Parts have different availability requirements.
@@ -74,7 +74,7 @@ Foreign keys, referential integrity, views.
 - **Review question**: Can data consistency be maintained across the boundary? Does the data share a lifecycle?
 
 ### Decision Heuristic
-When disintegrators and integrators are in tension, weigh coupling cost (instability, blast radius) against coordination cost (distributed transactions, eventual consistency). There is no correct granularity — the goal is "the least worst combination of trade-offs."
+When disintegrators and integrators are in tension, weigh coupling cost (instability, blast radius) against coordination cost (distributed transactions, eventual consistency). There is no correct granularity – the goal is "the least worst combination of trade-offs."
 
 ---
 
@@ -82,10 +82,10 @@ When disintegrators and integrators are in tension, weigh coupling cost (instabi
 
 ### Component-Based Decomposition
 For codebases with existing modular structure.
-1. Identify and size components — target 1-2 std devs from mean
-2. Gather common domain components — consolidate shared logic
-3. Flatten component domains — group into domain groupings
-4. Extract domain services — promote to separately deployable units
+1. Identify and size components – target 1-2 std devs from mean
+2. Gather common domain components – consolidate shared logic
+3. Flatten component domains – group into domain groupings
+4. Extract domain services – promote to separately deployable units
 5. Verify quantum independence before finalizing
 6. Check dependency direction (SDP) in the new graph
 
@@ -113,7 +113,7 @@ Split but still coupled.
 - **Root cause**: Split without severing the architectural quantum
 
 ### Microservices Premium
-The fixed cost of running any distributed architecture — tracing, latency, service discovery, serialization, operational complexity.
+The fixed cost of running any distributed architecture – tracing, latency, service discovery, serialization, operational complexity.
 - **Only justified when**: independent scaling, deployment, or team autonomy is actually needed and measurable
 - **Not justified when**: team < 8 engineers, domain unclear/greenfield, no independent scaling needed
 
@@ -126,7 +126,7 @@ A concrete, metrics-based approach to evaluating decomposition (from DartClaw SD
 ### Process
 1. Define 5-7 concrete consumer profiles (actual use cases with code examples)
 2. For each profile, trace the dependency tree to identify forced subsystems
-3. Calculate "forced LOC waste" — LOC imported but not used
+3. Calculate "forced LOC waste" – LOC imported but not used
 4. Compute the "true shared kernel" across all profiles
 
 ### Waste Thresholds
@@ -176,7 +176,7 @@ For each split candidate, check all four:
 ## Split and Merge Signals
 
 ### Signals to Split
-- Module description requires "and" — it does X **and** Y
+- Module description requires "and" – it does X **and** Y
 - Different subsets have different change frequencies
 - Different consumers use disjoint subsets (CRP violation)
 - Consumer waste > 50%
@@ -187,13 +187,13 @@ For each split candidate, check all four:
 - Two packages always change together (coordinated releases)
 - Packages form a cycle in the dependency graph
 - One package is only accessed transitively through another
-- Package has very high Ca but is tiny — may be over-extracted
+- Package has very high Ca but is tiny – may be over-extracted
 
 ---
 
 ## DDD Bounded Contexts
 
-A bounded context is a linguistic boundary — within it, all terms have a single unambiguous meaning. Each bounded context maps to at most one architectural quantum. Context maps are **logical**: they apply equally to microservices and to modules inside a modular monolith.
+A bounded context is a linguistic boundary – within it, all terms have a single unambiguous meaning. Each bounded context maps to at most one architectural quantum. Context maps are **logical**: they apply equally to microservices and to modules inside a modular monolith.
 
 ### Context Mapping Patterns
 

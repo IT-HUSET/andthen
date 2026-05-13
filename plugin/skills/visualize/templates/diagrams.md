@@ -9,7 +9,7 @@ Inline-SVG diagrams generated at HTML emission time. All diagrams use:
 
 ## Shared Container
 
-Each diagram emitter calls `wrapSvg(type, width, height, body)` to produce the container below — `type` selects the `diagram-{type}` class, `width`/`height` set the `viewBox`, and `body` is substituted for the `<!-- nodes, lines, text -->` slot.
+Each diagram emitter calls `wrapSvg(type, width, height, body)` to produce the container below – `type` selects the `diagram-{type}` class, `width`/`height` set the `viewBox`, and `body` is substituted for the `<!-- nodes, lines, text -->` slot.
 
 ```html
 <svg class="diagram diagram-{{type}}"
@@ -111,7 +111,7 @@ function emitTimeline(decisions) {
 
 ## #list-graph
 
-**Source**: rows of `| Dependency | Purpose | Risk |` (PRD Dependencies). MVP renders as a card grid (no edges — the data doesn't capture inter-dependency relationships).
+**Source**: rows of `| Dependency | Purpose | Risk |` (PRD Dependencies). MVP renders as a card grid (no edges – the data doesn't capture inter-dependency relationships).
 
 ```html
 <div class="dep-grid">
@@ -129,9 +129,9 @@ function emitTimeline(decisions) {
 .dep-card h4 { margin: 0 0 0.4rem; }
 .dep-card p { color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.5rem; }
 .risk { display: inline-block; font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 12px; font-family: var(--mono); }
-.risk-low { color: #1a7f37; background: rgba(26, 127, 55, 0.15); }
-.risk-medium { color: #bf8700; background: rgba(191, 135, 0, 0.15); }
-.risk-high { color: var(--accent-warn); background: rgba(248, 81, 73, 0.15); }
+.risk-low { color: var(--ok); background: var(--ok-soft); }
+.risk-medium { color: var(--warn); background: rgba(176, 126, 43, 0.10); }   /* matches --warn rgb on light bg */
+.risk-high { color: var(--danger); background: rgba(181, 72, 43, 0.10); }    /* matches --danger rgb on light bg */
 ```
 
 Risk-level inference: scan the risk-column text case-insensitively for "low" / "medium" / "high"; default to "medium" if ambiguous.
@@ -314,12 +314,192 @@ function emitRadar(criteria, scores, weights, maxScore = 5) {
 
 ---
 
+## #module-map
+
+**Source**: fenced DSL block tagged `mapviz`. Unambiguous to parse, trivial to re-emit verbatim in `View source`, ignored cleanly by other renderers, familiar shape (Mermaid-derived).
+
+````markdown
+```mapviz
+[CustomerAPI] "REST · /v1/orders"
+[OrdersSvc] "core domain" hot
+[BillingSvc] "supplier"
+[StripeAdapter] "ACL" terminal
+{Decision: payment_ok?}
+
+CustomerAPI -> OrdersSvc : "POST order"
+OrdersSvc -> BillingSvc : "Customer-Supplier"
+OrdersSvc -.-> StripeAdapter : "async webhook"
+BillingSvc =success=> Decision
+Decision =fail=> StripeAdapter
+```
+````
+
+**Lexicon**:
+
+- `[Name] "sub-text"` – rectangular component node. Trailing keywords (space-separated):
+  - `hot` – clay highlight (active/important node)
+  - `terminal` – rounded-rect shape (boundary / external system)
+  - `chosen` – accent-fill (decision result)
+- `{Name: text?}` – diamond decision node.
+- Edges (left node → right node, `: "label"` optional):
+  - `->`           gray solid (default sync request/response)
+  - `-.->`         dashed clay (async / fan-out)
+  - `=success=>`   olive solid (success path)
+  - `=fail=>`      rust dashed (failure path)
+
+**Output HTML** wraps a standard Section Block (`id`, `data-anchor`, static affordances per SKILL.md *Section Block* contract). The SVG and its detail-panel aside live inside `.card-body`:
+
+```html
+<div class="card-body">
+  <p class="diagram-caption">Solid = sync. Dashed clay = async. Olive = success. Rust = failure.</p>
+  <svg class="diagram diagram-module-map" viewBox="0 0 {{W}} {{H}}" role="img" aria-label="Module map for {{section}}">
+    <defs>
+      <marker id="arrow-gray"  viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--text-muted)"/></marker>
+      <marker id="arrow-clay"  viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker>
+      <marker id="arrow-olive" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--ok)"/></marker>
+      <marker id="arrow-rust"  viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--danger)"/></marker>
+    </defs>
+    <g class="node"          data-k="customer-api">…</g>
+    <g class="node hot"      data-k="orders-svc">…</g>
+    <g class="node term"     data-k="stripe-adapter">…</g>
+    <g class="node gate"     data-k="decision-payment-ok"><path class="diamond" d="…"/>…</g>
+    <g class="edges">
+      <path class="edge"         d="…" marker-end="url(#arrow-gray)"/>
+      <path class="edge async"   d="…" marker-end="url(#arrow-clay)"/>
+      <path class="edge success" d="…" marker-end="url(#arrow-olive)"/>
+      <path class="edge fail"    d="…" marker-end="url(#arrow-rust)"/>
+    </g>
+  </svg>
+  <!-- Paired aside.map-detail (see `templates/js-helpers.md` for the `wireModuleMap` binding contract) -->
+  <pre class="src-area" hidden><!-- verbatim mapviz block --></pre>
+</div>
+```
+
+**SVG layout pseudocode** – follows the determinism rules of every other diagram emitter (no `Math.random()`, output identical from same source):
+
+```
+function emitModuleMap(graph):
+  ranks = layeredBFS(graph)                 # node.rank = longest-path-from-source
+  for node n at (col, row) = position(n):    # within-rank order = source-declared order
+    emit shape (rect | rounded-rect | diamond) + label + sub-text
+    if n.hot:       add .hot   class
+    if n.terminal:  add .term  class
+    if n.chosen:    add .chosen class
+    annotate g.node data-k = kebab(n.name)
+  for edge e:
+    pathD = orthogonalRoute(layout, e.from, e.to)
+    emit <path class="edge {kind}" marker-end="url(#arrow-{kind || gray})"/>
+  return wrappedSvg
+```
+
+```css
+.diagram-module-map { background: var(--panel); }
+.diagram-module-map .node rect      { fill: var(--panel-2); stroke: var(--border); stroke-width: 1.2; }
+.diagram-module-map .node text      { fill: var(--text); }
+.diagram-module-map .node.hot rect  { stroke: var(--accent); stroke-width: 2; fill: var(--accent-soft); }
+.diagram-module-map .node.term rect { rx: 14; stroke-dasharray: 4 3; }
+.diagram-module-map .node.chosen rect { fill: var(--accent); }
+.diagram-module-map .node.chosen text { fill: var(--bg); font-weight: 600; }
+.diagram-module-map .node.gate .diamond { fill: var(--panel-2); stroke: var(--warn); stroke-width: 1.5; }
+.diagram-module-map .node.active rect,
+.diagram-module-map .node.active .diamond { stroke: var(--accent); stroke-width: 2.5; filter: drop-shadow(0 0 0 var(--accent)); }
+.diagram-module-map .node[data-k] { cursor: pointer; }
+.diagram-module-map .edge         { fill: none; stroke: var(--text-muted); stroke-width: 1.2; }
+.diagram-module-map .edge.async   { stroke: var(--accent); stroke-dasharray: 5 4; }
+.diagram-module-map .edge.success { stroke: var(--ok); }
+.diagram-module-map .edge.fail    { stroke: var(--danger); stroke-dasharray: 5 4; }
+.diagram-caption { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.6rem; }
+
+.map-detail { background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: var(--radius-sm);
+              padding: 0.8rem 1rem; margin-top: 0.8rem; }
+.map-detail .hint { font-size: 0.75rem; color: var(--text-faint); font-family: var(--mono); margin-bottom: 0.5rem; }
+.map-detail .md-title { margin: 0 0 0.35rem; font-size: 1rem; color: var(--accent); }
+.map-detail .md-meta  { font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+.map-detail .md-body  { color: var(--text); font-size: 0.92rem; line-height: 1.5; }
+```
+
+**Empty-graph mitigation:** if the parsed `mapviz` block yields zero nodes (parse failure or empty body), fall back to Generic Prose for the section AND emit the verbatim DSL block inside a `<pre>` so the reviewer can see what was authored. Same shape as the existing `## Common Pitfalls` rule "*Empty source section → if there are zero items, skip the diagram entirely*."
+
+**Detail-panel aside** (Phase 3.4 contract). The paired aside is rendered statically with a default-selected node so JS-disabled environments still see *some* content. The `data-nodes` JSON attribute is serialized with `JSON.stringify` – never raw newlines – per the JS Authoring Discipline. See `wireModuleMap` in `templates/js-helpers.md`.
+
+```html
+<aside class="map-detail" id="map-detail-{{section-anchor}}" data-default-node="{{first-node-key}}" data-nodes='{{JSON.stringify(detailDict)}}'>
+  <div class="hint">Click a node in the diagram →</div>
+  <div class="map-detail-body">
+    <h3 class="md-title" data-role="title">{{DEFAULT_NODE_TITLE}}</h3>
+    <div class="md-meta" data-role="meta">{{DEFAULT_NODE_META}}</div>
+    <div class="md-body" data-role="body">{{DEFAULT_NODE_BODY_HTML}}</div>
+  </div>
+</aside>
+```
+
+
+---
+
+
+## #walkthrough
+
+**Source trigger** (per the SKILL.md cross-artifact dispatch table):
+- PRD User Flows: 2–9 H3 substeps where **every** substep's stripped body char-count ≥ 50 (see `prd.md#User Flows` for the stripping rule)
+- Trade-off Options: **every** option's H3 body carries ≥ 2 of `What changes` / `Where it changes` / `Risk` / `Trade-off` H4 substring (all-or-nothing per section – see `tradeoff.md#Options`)
+- Clarification Resolved Decisions: ≤ 5 rows AND every Rationale's stripped char-count ≥ 60
+
+**Layout**: vertical list of numbered steps. Each step: 34 px clay/oat circular badge, optional file-path mono line (when the first paragraph under the H3 is a single inline-code reference like `` `src/middleware/auth.ts`:14-31 ``), 2–3 sentences of prose, optional `<details class="snippet">` collapsible source listing. The one-at-a-time toggle (`templates/js-helpers.md`) closes other open snippets in the same `.walk` container.
+
+```html
+<div class="walk">
+  <div class="step" data-step="1">  <!-- add .hot class when source has `_priority: hot_` or `<!-- hot -->` marker -->
+    <div class="badge">1</div>
+    <div class="step-body">
+      <div class="step-loc"><code>{{file path}}</code><span class="range">{{:N-M}}</span></div>
+      <p>{{prose paragraph(s)}}</p>
+      <details class="snippet">
+        <summary>show source</summary>
+        <pre class="code">{{verbatim code}}</pre>
+      </details>
+    </div>
+  </div>
+  <!-- more steps … -->
+</div>
+```
+
+```css
+.walk { display: flex; flex-direction: column; gap: 0.85rem; margin: 0.5rem 0; }
+.walk .step { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 0.85rem; align-items: start; }
+.walk .badge { width: 34px; height: 34px; border-radius: 999px;
+               background: var(--panel-3); color: var(--text-muted);
+               font-family: var(--mono); font-size: 0.85rem; font-weight: 700;
+               display: inline-flex; align-items: center; justify-content: center; }
+.walk .step.hot .badge { background: var(--accent); color: var(--bg); }
+.walk .step-body { min-width: 0; }
+.walk .step-loc { font-family: var(--mono); font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+.walk .step-loc code { background: var(--panel-2); padding: 0.1rem 0.35rem; border-radius: 4px; }
+.walk .step-loc .range { color: var(--text-faint); margin-left: 0.3rem; }
+.walk .snippet { margin-top: 0.5rem; }
+.walk .snippet > summary { cursor: pointer; font-family: var(--mono); font-size: 0.78rem;
+                            color: var(--text-muted); list-style: none; padding: 0.2rem 0; }
+.walk .snippet > summary::before { content: '▸ '; color: var(--accent); }
+.walk .snippet[open] > summary::before { content: '▾ '; }
+.walk .snippet pre.code { background: var(--panel-2); border: 1px solid var(--border-soft);
+                          border-radius: var(--radius-sm); padding: 0.7rem 0.9rem; overflow-x: auto;
+                          font-size: 0.82rem; line-height: 1.45; margin: 0.3rem 0 0; }
+```
+
+**Section-dedup:** the walkthrough renderer consumes the line range from the first H3 substep to the last H3 substep's last child block. Generic Prose fallback must skip those lines (existing Renderer Discipline section-dedup mechanism).
+
+
+---
+
+
 ## Common Pitfalls
 
 - **Negative or NaN coordinates** → clamp with `Math.max(0, ...)` on score ratios; treat unparseable cells as 0 and emit a warning.
-- **Empty source section** → if there are zero items, skip the diagram entirely (don't emit empty SVG with a single "no data" message — let the section's text content carry that).
+- **Empty source section** → if there are zero items, skip the diagram entirely (don't emit empty SVG with a single "no data" message – let the section's text content carry that).
 - **Long axis labels overlapping** → truncate to ~14 chars; full label in `<title>`.
 - **Date parsing for timeline** → accept `YYYY-MM-DD`. For other formats, fall back to lexical sort. Don't throw.
 - **Tree depth >2** → MVP supports root → dimensions → options. Deeper hierarchies aren't expected; if encountered, render the top two levels and emit a "deeper levels truncated" footer text inside the diagram container.
 - **N criteria < 3 for radar** → radar is undefined; render a simple bar comparison instead, or skip the diagram and emit an inline note.
+- **Empty `mapviz` block** → falls back to Generic Prose + verbatim `<pre>` in `.card-body` (see `#module-map` empty-graph mitigation). Never emit an empty SVG shell – it reads as a broken diagram.
+- **Walkthrough `<details>` interfering with `View source`** → the one-at-a-time toggle in the `templates/js-helpers.md` is scoped to `.walk details.snippet`, **never** bare `details`. A bare-`details` listener would close the section's `.src-area` source panel whenever a snippet opens.
+- **JSON in `data-nodes` attribute** → must be `JSON.stringify`-encoded so multi-line content is `\n`-escaped. A raw newline kills `JSON.parse` and disables the entire module-map binding (per `wireModuleMap` contract).
 - **Determinism** → never use `Math.random()` for layout; always derive coordinates from input data + fixed constants. The same source must produce identical SVG output.

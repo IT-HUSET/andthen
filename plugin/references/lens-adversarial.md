@@ -27,7 +27,7 @@ Attack the target from these angles:
 
 ## Anti-Leniency Rules
 
-Anti-Leniency Protocol: see [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) — find pass favors false positives; filter pass dismisses findings that do not hold up.
+Anti-Leniency Protocol: see [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) – find pass favors false positives; filter pass dismisses findings that do not hold up.
 
 
 ## Review Instructions
@@ -54,4 +54,4 @@ Merge Critic findings into the same severity and report sections as the primary 
 
 ## Sub-agent dispatch
 
-Consuming skills pass this file (and its calibration peers `critic-calibration.md` and `review-calibration.md`) by path tokens in the sub-agent prompt body. The host prompt MUST open with an explicit instruction to read all three referenced files before applying the rubric — without that instruction, the sub-agent may silently skip the calibration files and apply a generic adversarial posture, losing the Anti-Leniency Protocol and the find-pass calibration this lens depends on. The `andthen:quick-review` skill's sub-agent prompt is the reference implementation of the read-first instruction. Applies to every consuming lens (code, doc, gap, security) and to every council-mode reviewer that runs the find-time Critic pass.
+Consuming skills pass this file (and its calibration peers `critic-calibration.md` and `review-calibration.md`) by path tokens in the sub-agent prompt body. The host prompt MUST open with an explicit instruction to read all three referenced files before applying the rubric – without that instruction, the sub-agent may silently skip the calibration files and apply a generic adversarial posture, losing the Anti-Leniency Protocol and the find-pass calibration this lens depends on. The `andthen:quick-review` skill's sub-agent prompt is the reference implementation of the read-first instruction. Applies to every consuming lens (code, doc, gap, security) and to every council-mode reviewer that runs the find-time Critic pass.

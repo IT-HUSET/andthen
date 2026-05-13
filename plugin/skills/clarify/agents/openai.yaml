@@ -1,7 +1,7 @@
 interface:
-  display_name: "AndThen - Clarify Requirements"
-  short_description: "Clarify requirements, scope, and edge cases"
-  default_prompt: "Discover requirement gaps, edge cases, and scope boundaries. Produce a structured requirements clarification document. Requirements to clarify: "
+  display_name: "AndThen - Clarify Requirements (Discovery & Ideation)"
+  short_description: "Discovery & Ideation for requirements – feature or product scope"
+  default_prompt: "Discovery & Ideation for requirements. Probe latent gaps, edge cases, scope boundaries; propose alternatives the user hadn't considered (alternative MVPs, anti-goals, pruning candidates). Always interactive – questions cannot be skipped. Pass `--mode product` for overall product vision / personas / value props / anti-goals / metrics; default `--mode feature` for a single capability or epic. Produces a structured clarification document. Requirements to clarify: "
 
 policy:
   allow_implicit_invocation: true

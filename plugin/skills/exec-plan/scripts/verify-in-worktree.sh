@@ -67,7 +67,7 @@ EXPECTED_BRANCH="story-$STORY_ID"
 # Canonicalize EXPECTED_PATH the same way we canonicalize observed paths, so a
 # trailing-slash difference or symlink doesn't trigger a false negative. The
 # explicit cd-failure branch covers the narrow window between the -d check and
-# the canonicalize call (mid-call removal, permission flip) — without it, the
+# the canonicalize call (mid-call removal, permission flip) – without it, the
 # substitution would silently yield empty and downstream comparisons would
 # misfire as pwd_mismatch against an empty expected path.
 if [[ ! -d "$EXPECTED_PATH" ]]; then

@@ -1,4 +1,4 @@
-# Architecture — Advise Mode
+# Architecture – Advise Mode
 
 Design or refactor guidance for architectural questions, greenfield systems, service boundaries, bounded contexts, and pattern selection. Covers both **Design** (creating new architectures, making significant decisions) and **Advisory** (answering questions, mentoring refactors).
 
@@ -55,11 +55,11 @@ Use CUPID (https://cupid.dev/) as an assessment lens, not a pass/fail checklist.
 
 Rate each property 1-5 with concrete observations when doing a CUPID assessment:
 
-- Composable: _/5 — dependencies, coupling, reusability
-- Unix Philosophy: _/5 — single responsibility, scope, granularity
-- Predictable: _/5 — consistency, failure modes, operational clarity
-- Idiomatic: _/5 — convention adherence, team fit, cognitive load
-- Domain-based: _/5 — business alignment, domain expression, ubiquitous language
+- Composable: _/5 – dependencies, coupling, reusability
+- Unix Philosophy: _/5 – single responsibility, scope, granularity
+- Predictable: _/5 – consistency, failure modes, operational clarity
+- Idiomatic: _/5 – convention adherence, team fit, cognitive load
+- Domain-based: _/5 – business alignment, domain expression, ubiquitous language
 
 Use CUPID to compare options, identify weak properties, give the team shared vocabulary, and target refactoring.
 
@@ -79,22 +79,22 @@ Use DDD to sharpen boundaries and create shared language between business and en
 | **Application Service** | Orchestrates a use case (load aggregate → invoke domain op → persist); no branching business rules |
 | **Repository** | Collection-like interface over aggregate roots only |
 
-**Assessment questions** — Strategic: are bounded contexts clearly defined, appropriately sized, and owned by at most one team? Does the context map reflect real relationships? Is investment proportionate across core / supporting / generic? Tactical: do aggregates enforce true invariants (not navigational convenience)? Are domain events distinguished from integration events? Is business logic kept in domain objects rather than drifting into application services? Is the ubiquitous language visible in code?
+**Assessment questions** – Strategic: are bounded contexts clearly defined, appropriately sized, and owned by at most one team? Does the context map reflect real relationships? Is investment proportionate across core / supporting / generic? Tactical: do aggregates enforce true invariants (not navigational convenience)? Are domain events distinguished from integration events? Is business logic kept in domain objects rather than drifting into application services? Is the ubiquitous language visible in code?
 
-**For full depth — four aggregate design rules, domain vs. integration events, the 9-pattern context-mapping catalog with selection guidance, Event Storming, Bounded Context Canvas, Hexagonal as the bounded-context skeleton, CQRS/Event Sourcing decision criteria, domain vs. application service distinction, module layout, and DDD anti-patterns — load `ddd.md`.** Cross-link to the `andthen:ubiquitous-language` skill for glossary operationalization and `andthen:clarify` for Event Storming.
+**For full depth – four aggregate design rules, domain vs. integration events, the 9-pattern context-mapping catalog with selection guidance, Event Storming, Bounded Context Canvas, Hexagonal as the bounded-context skeleton, CQRS/Event Sourcing decision criteria, domain vs. application service distinction, module layout, and DDD anti-patterns – load `ddd.md`.** Cross-link to the `andthen:ubiquitous-language` skill for glossary operationalization and `andthen:clarify` for Event Storming.
 
 ## Ousterhout Module-Design Lens
 
 For questions about **in-process** module, class, or public-API design (not service boundaries), load `ousterhout-modules.md` and apply its heuristics alongside CUPID and DDD:
 
-- **Deep vs. shallow modules** — prefer a small interface over a powerful implementation; beware "classitis" (many trivial modules each with near-equivalent interface and implementation complexity).
-- **Information leakage** — each non-trivial design decision (format, protocol, data layout, algorithm) should be reflected in exactly one interface.
-- **Different layer, different abstraction** — a layer that only forwards calls with the same parameters is not earning its existence.
-- **Pull complexity downward** — when complexity must live somewhere, keep it in the implementation; a simpler interface is worth a more complex implementation.
-- **Define errors out of existence** — prefer abstractions that make error cases disappear over abstractions that require handling them, when the "no-op" case is legitimate state (not a masked fault).
-- **Design it twice** — for any non-trivial new API, require a genuinely different alternative considered and rejected with reason.
+- **Deep vs. shallow modules** – prefer a small interface over a powerful implementation; beware "classitis" (many trivial modules each with near-equivalent interface and implementation complexity).
+- **Information leakage** – each non-trivial design decision (format, protocol, data layout, algorithm) should be reflected in exactly one interface.
+- **Different layer, different abstraction** – a layer that only forwards calls with the same parameters is not earning its existence.
+- **Pull complexity downward** – when complexity must live somewhere, keep it in the implementation; a simpler interface is worth a more complex implementation.
+- **Define errors out of existence** – prefer abstractions that make error cases disappear over abstractions that require handling them, when the "no-op" case is legitimate state (not a masked fault).
+- **Design it twice** – for any non-trivial new API, require a genuinely different alternative considered and rejected with reason.
 
-**Reconciling with CUPID Unix Philosophy**: "prefer fewer, deeper modules" does not contradict "do one thing well." Unix Philosophy is about focused *scope*, not small *size* — `grep` does one thing and is a deep module. Use CUPID to check whether the module has a single coherent purpose; use Ousterhout to check whether its interface is simpler than its implementation. Both must hold.
+**Reconciling with CUPID Unix Philosophy**: "prefer fewer, deeper modules" does not contradict "do one thing well." Unix Philosophy is about focused *scope*, not small *size* – `grep` does one thing and is a deep module. Use CUPID to check whether the module has a single coherent purpose; use Ousterhout to check whether its interface is simpler than its implementation. Both must hold.
 
 **Boundary with Speculative Generality**: Ousterhout's "general-purpose interfaces" means *slightly* more general than one caller, not speculative. When only one consumer exists and no second is visible, the Speculative Generality anti-pattern (`anti-patterns.md`) wins.
 
@@ -131,7 +131,7 @@ What are we doing?
 What becomes easier or harder?
 
 ## Alternatives Considered
-1. **{Alt}** — rejected: {reason}
+1. **{Alt}** – rejected: {reason}
 
 ## Project Compliance
 How does this align with project-specific architectural guidelines?

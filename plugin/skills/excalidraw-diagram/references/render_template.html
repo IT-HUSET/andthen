@@ -124,7 +124,7 @@
       } else if (!Array.isArray(data.elements)) {
         errors.push('"elements" must be an array');
       } else if (data.elements.length === 0) {
-        errors.push('"elements" array is empty — nothing to render');
+        errors.push('"elements" array is empty – nothing to render');
       }
 
       return errors.length === 0
@@ -252,7 +252,7 @@
       const canvasBbox = bboxOfAll(convertedElements);
       const canvasArea = Math.max(1, canvasBbox.width * canvasBbox.height);
 
-      // Signal palette (per style-guide.md §1 Signal Colors) — badges use these fills
+      // Signal palette (per style-guide.md §1 Signal Colors) – badges use these fills
       const SIGNAL_FILLS = new Set([
         "#ffc9c9", "#ffec99", "#b2f2bb",  // light signal fills
         "#e03131", "#f08c00", "#2f9e44"   // stroke variants if used as fill
@@ -265,7 +265,7 @@
       // Zone classification is two-phase:
       //   1. Explicit zones: opacity < 100 (style-guide default)
       //   2. Implicit zones: large shape (area ≥ 15% of canvas) that *contains*
-      //      ≥ 3 other shapes — catches the case where a user forgot opacity:50.
+      //      ≥ 3 other shapes – catches the case where a user forgot opacity:50.
       // An "almost-covering" shape with no children is NOT a zone (e.g. a large
       // hero element) and must remain subject to overlap checks.
       const zones = shapes.filter(s => (s.opacity ?? 100) < 100);
@@ -331,7 +331,7 @@
         for (const [sig, ids] of sigs) {
           if (ids.length >= 6) {
             push("major", "uniform_grid",
-              `${ids.length} shapes in zone "${zoneId}" share signature "${sig}" — break with an anchor, alternating row heights, or an evidence artifact`,
+              `${ids.length} shapes in zone "${zoneId}" share signature "${sig}" – break with an anchor, alternating row heights, or an evidence artifact`,
               { zone: zoneId, signature: sig, count: ids.length, ids });
           }
         }
@@ -378,7 +378,7 @@
         const ratio = maxA / avgA;
         if (ratio < 2.0) {
           push("major", "no_hero",
-            `No clear hero — largest shape is only ${ratio.toFixed(1)}× the average area (expected ≥ 2.0×). Upsize the single most important shape to ~320×160.`,
+            `No clear hero – largest shape is only ${ratio.toFixed(1)}× the average area (expected ≥ 2.0×). Upsize the single most important shape to ~320×160.`,
             { ratio: +ratio.toFixed(2) });
         }
       }
@@ -504,7 +504,7 @@
 
     // Signal ready
     window.__moduleReady = true;
-    document.getElementById("status").textContent = "Ready — call renderDiagram(data)";
+    document.getElementById("status").textContent = "Ready – call renderDiagram(data)";
   </script>
 </body>
 </html>

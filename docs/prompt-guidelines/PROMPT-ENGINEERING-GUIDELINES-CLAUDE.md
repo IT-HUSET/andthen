@@ -70,7 +70,7 @@ Only proceed with edits when explicitly requested.
 ## Breaking Changes in Claude 4.6
 
 ### Prefill Removal
-Claude 4.6 no longer supports assistant message prefill — requests with prefilled assistant content return HTTP 400.
+Claude 4.6 no longer supports assistant message prefill – requests with prefilled assistant content return HTTP 400.
 
 **Migration paths**:
 - **Structured output**: Use `output_config.format` with `json_schema` type
@@ -79,12 +79,12 @@ Claude 4.6 no longer supports assistant message prefill — requests with prefil
 
 ### Parameter Restrictions
 - `temperature` + `top_p` together now returns an error on Claude 4+ (pick one)
-- Tool parameter JSON escaping behavior differs — test tool schemas after upgrading
+- Tool parameter JSON escaping behavior differs – test tool schemas after upgrading
 
 ### New Stop Reasons
 Claude 4.5+ introduces two new stop reasons:
-- `refusal` — model declined the request
-- `model_context_window_exceeded` — input exceeded context limit
+- `refusal` – model declined the request
+- `model_context_window_exceeded` – input exceeded context limit
 
 ---
 
@@ -187,13 +187,13 @@ Opus models can overtrigger on emphatic instructions. Dial back aggressive langu
 
 ✅ **Balanced**: `Search for relevant context before responding. Skip only when the answer is clearly within your training data.`
 
-Strong models follow instructions well without aggressive emphasis — excessive `MUST`/`NEVER`/`CRITICAL` can cause rigid, suboptimal behavior.
+Strong models follow instructions well without aggressive emphasis – excessive `MUST`/`NEVER`/`CRITICAL` can cause rigid, suboptimal behavior.
 
 ---
 
 ## Extended Thinking
 
-### Adaptive Thinking (Claude 4.6 — Recommended)
+### Adaptive Thinking (Claude 4.6 – Recommended)
 
 Opus 4.6 deprecates `budget_tokens` in favor of adaptive thinking:
 
@@ -225,7 +225,7 @@ Sonnet 4.6 supports both adaptive and manual extended thinking:
 | `high` | Complex reasoning, debugging, architecture | Deep analysis (API default) | Opus 4.6, Sonnet 4.6, Opus 4.5 |
 | `max` | Critical decisions, hardest problems | No constraints on thinking | **Opus 4.6 only** (error on other models) |
 
-> **Note**: Haiku 4.5 does **not** support the effort parameter. Effort is a behavioral signal, not a hard token cap — even at `low`, the model will still think on genuinely hard problems.
+> **Note**: Haiku 4.5 does **not** support the effort parameter. Effort is a behavioral signal, not a hard token cap – even at `low`, the model will still think on genuinely hard problems.
 
 ### Recommended Configurations
 
@@ -243,7 +243,7 @@ Sonnet 4.6 supports both adaptive and manual extended thinking:
 ```json
 {"thinking": {"type": "adaptive"}, "output_config": {"effort": "high"}}
 ```
-Use adaptive thinking for agents — the model allocates more thinking for complex steps and less for simple ones, optimizing cost across long trajectories.
+Use adaptive thinking for agents – the model allocates more thinking for complex steps and less for simple ones, optimizing cost across long trajectories.
 
 ### When to Use Adaptive Thinking
 - Autonomous agents with variable task complexity
@@ -261,7 +261,7 @@ Consider multiple approaches, show complete reasoning.
 **Why**: Claude's creativity may exceed a human's ability to prescribe optimal thinking process. Add specifics only if thinking output shows gaps.
 
 ### Multishot Pattern
-Include examples using `<thinking>` or `<scratchpad>` tags — Claude generalizes the pattern.
+Include examples using `<thinking>` or `<scratchpad>` tags – Claude generalizes the pattern.
 
 ---
 
@@ -308,7 +308,7 @@ Set `strict: true` on tool `input_schema` for guaranteed schema compliance:
 }
 ```
 
-> **Deprecation**: `output_format` parameter is deprecated — use `output_config.format` instead.
+> **Deprecation**: `output_format` parameter is deprecated – use `output_config.format` instead.
 
 ---
 
@@ -409,7 +409,7 @@ Throughout execution:
 | Model | Best For |
 |-------|----------|
 | **Haiku 4.5** | Simple tasks, subagents, high-volume parallel work. No effort param support. |
-| **Sonnet 4.6** | Most daily coding — within 1.2% of Opus at 60% cost. Sweet spot for implementation, review, testing. |
+| **Sonnet 4.6** | Most daily coding – within 1.2% of Opus at 60% cost. Sweet spot for implementation, review, testing. |
 | **Opus 4.6** | Planning, specs, ADRs, trade-off analysis, security audits, complex debugging. Only model supporting `max` effort. |
 
 See also: [Model & Effort Selection Guide](../../MODEL-EFFORT-SELECTION-GUIDE.md) for detailed task-specific recommendations.

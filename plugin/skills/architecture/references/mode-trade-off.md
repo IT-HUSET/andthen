@@ -1,6 +1,6 @@
-# Architecture — Trade-off Mode
+# Architecture – Trade-off Mode
 
-**Trade-off analysis** — research technical options, compare them systematically against weighted criteria, and deliver an evidence-based recommendation the user can act on. Optionally formalize the decision as an ADR. Use this mode to make architectural decisions defensible rather than opinion-based.
+**Trade-off analysis** – research technical options, compare them systematically against weighted criteria, and deliver an evidence-based recommendation the user can act on. Optionally formalize the decision as an ADR. Use this mode to make architectural decisions defensible rather than opinion-based.
 
 **Shared reference**: `${CLAUDE_PLUGIN_ROOT}/references/design-tree.md` for multi-dimensional decomposition.
 
@@ -12,7 +12,7 @@
 - Favor the simplest option that satisfies the decision constraints.
 - Do not research extra options, skip weighting, or recommend based on popularity alone.
 
-## Step 1 — Define the Decision Space
+## Step 1 – Define the Decision Space
 
 ### 1a. Clarify Decision Context
 
@@ -45,7 +45,7 @@ Choose only the criteria that matter for this decision. Typical examples:
 
 Ask the user to confirm the options and the weighted criteria before deep research.
 
-## Step 2 — Design It Twice _(optional)_
+## Step 2 – Design It Twice _(optional)_
 
 Use this only when the design space is still fuzzy or heavily contested.
 
@@ -56,9 +56,9 @@ Use this only when the design space is still fuzzy or heavily contested.
 
 Skip this phase for simple technology choices or well-understood options.
 
-## Step 3 — Parallel Deep Research
+## Step 3 – Parallel Deep Research
 
-Focus on contested dimensions and risky conditions, not the whole design space — dimensions where every surviving option meets the criteria need no deep research.
+Focus on contested dimensions and risky conditions, not the whole design space – dimensions where every surviving option meets the criteria need no deep research.
 
 For each option, launch a parallel sub-agent to investigate:
 - Core capabilities and hard limitations
@@ -74,7 +74,7 @@ Each option should return:
 - Concrete evidence
 - Critical warnings
 
-## Step 4 — Analysis
+## Step 4 – Analysis
 
 Produce a compact comparison that includes:
 - Option strengths, weaknesses, and best-fit scenarios
@@ -85,7 +85,7 @@ Produce a compact comparison that includes:
 
 Focus on the decision factors that actually move the recommendation.
 
-## Step 5 — Recommendation
+## Step 5 – Recommendation
 
 Write the recommendation with:
 - Chosen option
@@ -97,7 +97,7 @@ Write the recommendation with:
 
 Present it to the user and confirm whether they want refinement, deeper analysis, or a formal ADR.
 
-## Step 6 — Documentation
+## Step 6 – Documentation
 
 Store artifacts in `OUTPUT_DIR/[topic-slug]/`:
 - `design-tree.md` for multi-dimensional decisions
