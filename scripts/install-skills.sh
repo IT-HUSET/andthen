@@ -9,17 +9,21 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Install AndThen skills into an agent skills directory.
+Install AndThen skills into an agent skills directory and install review agents.
 
 Usage:
   ./scripts/install-skills.sh [options]
 
 Options:
   --skills-dir PATH         Destination for skill directories (default: ~/.agents/skills)
+  --codex-agents-dir PATH   Destination for Codex agent TOML files (default: ~/.codex/agents)
+  --no-codex-agents         Skip Codex agent installation
   --claude                  Also install skills for Claude Code at the user-level
-                            default (~/.claude/skills), using the same <prefix>
-                            so invocation is /<prefix><name>.
-                            (Set implicitly by --claude-skills-dir.)
+                            defaults (~/.claude/skills and ~/.claude/agents),
+                            using the same <prefix> so invocation is
+                            /<prefix><name>.
+                            (Set implicitly by --claude-skills-dir or
+                            --claude-agents-dir.)
                             Alternative to the Claude Code plugin. Safe to combine
                             with the plugin only when --prefix differs from the
                             default (andthen-); same prefix would expose duplicate
@@ -28,15 +32,18 @@ Options:
                             Claude Code install). Use to target a project-local
                             location like <project>/.claude/skills for downstream
                             toolkits that bundle AndThen with their own --prefix.
+  --claude-agents-dir PATH  Override the Claude Code agents destination (implies a
+                            Claude Code install). For a clean project-local install
+                            pass both --claude-skills-dir and --claude-agents-dir.
   --skills LIST             Comma-separated source skill names to install
                             (default: all). Example: clarify,prd,review.
                             Names may be unprefixed or use the current exported
                             prefix (e.g. andthen-prd with the default prefix).
-  --prefix PREFIX           Prefix for exported names (must end with '-';
-                            default: andthen-)
+  --prefix PREFIX           Prefix for exported names (letters, numbers, '_',
+                            and '-' only; must end with '-'; default: andthen-)
   --display-brand BRAND     Human-readable brand name substituted for "AndThen"
-                            in installed skill agents/openai.yaml files
-                            (display_name, short_description, default_prompt).
+                            in installed skill agents/openai.yaml files and
+                            generated/copied agent prompts.
                             Default: AndThen (no rewrite). Use for white-label
                             installs where the namespace prefix is not
                             "andthen-" (e.g. --prefix dartclaw- pairs with
@@ -46,6 +53,12 @@ Options:
 
 Notes:
   - All skills are exported as directories named <prefix><skill-name>/
+  - Codex agents are generated at install time from plugin/agents/*.md
+    (Claude Code agent files are the source of truth) and written as
+    <prefix><agent-name>.toml into --codex-agents-dir.
+  - Claude Code agents installed through --claude / --claude-user or
+    --claude-agents-dir are plain .md copies of plugin/agents/*.md, with
+    the frontmatter `name:` prefixed to match the installed filename.
   - When --skills is set, only those source skills are exported. Missing names
     fail before any install work starts.
   - Skills are fully self-contained at install time: each skill owns its
@@ -53,11 +66,17 @@ Notes:
     plugin/references/ are inlined into each consuming skill's references/
     and ${CLAUDE_PLUGIN_ROOT} paths are rewritten to local-relative form,
     alongside the andthen: → <prefix> namespace rewrite.
-  - Existing files are overwritten in place, but stale files are not deleted.
+  - Existing skill and agent files are overwritten in place, but stale files
+    are not deleted.
   - Skipping the Claude Code install on a later run does NOT remove previously
-    installed <claude-skills-dir>/<prefix>* –
+    installed <claude-skills-dir>/<prefix>* or
+    <claude-agents-dir>/<prefix>*.md –
     delete those manually if switching back to the Claude Code plugin as the
     primary path or relocating the install.
+  - Removing, renaming, or deselecting agents does NOT remove previously
+    generated <codex-agents-dir>/<prefix>*.toml or
+    <claude-agents-dir>/<prefix>*.md – delete stale generated agents manually
+    if you need the visible agent set to exactly match plugin/agents/.
 EOF
 }
 
@@ -66,7 +85,10 @@ repo_root=$(
 )
 
 skills_dir="${HOME}/.agents/skills"
+codex_agents_dir="${HOME}/.codex/agents"
 claude_skills_dir="${HOME}/.claude/skills"
+claude_agents_dir="${HOME}/.claude/agents"
+install_codex_agents=1
 install_claude_user=0
 prefix="andthen-"
 display_brand="AndThen"
@@ -74,18 +96,61 @@ dry_run=0
 selected_skills_raw=""
 selected_skills=""
 
+require_option_value() {
+  _rov_option="$1"
+  _rov_value="${2-}"
+  if [ -z "$_rov_value" ]; then
+    printf 'error: %s requires a value\n' "$_rov_option" >&2
+    exit 1
+  fi
+}
+
+validate_prefix() {
+  case "$prefix" in
+    *-)
+      ;;
+    *)
+      printf 'error: --prefix must end with `-` (got %s)\n' "$prefix" >&2
+      exit 1
+      ;;
+  esac
+  case "$prefix" in
+    *[!a-zA-Z0-9_-]*)
+      printf 'error: --prefix may only contain letters, numbers, `_`, and `-` (got %s)\n' "$prefix" >&2
+      exit 1
+      ;;
+  esac
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --skills-dir)
+      require_option_value "$1" "${2-}"
       skills_dir="$2"
       shift 2
+      ;;
+    --codex-agents-dir)
+      require_option_value "$1" "${2-}"
+      codex_agents_dir="$2"
+      shift 2
+      ;;
+    --no-codex-agents)
+      install_codex_agents=0
+      shift
       ;;
     --claude|--claude-user)
       install_claude_user=1
       shift
       ;;
     --claude-skills-dir)
+      require_option_value "$1" "${2-}"
       claude_skills_dir="$2"
+      install_claude_user=1
+      shift 2
+      ;;
+    --claude-agents-dir)
+      require_option_value "$1" "${2-}"
+      claude_agents_dir="$2"
       install_claude_user=1
       shift 2
       ;;
@@ -98,10 +163,12 @@ while [ "$#" -gt 0 ]; do
       shift 2
       ;;
     --prefix)
+      require_option_value "$1" "${2-}"
       prefix="$2"
       shift 2
       ;;
     --display-brand)
+      require_option_value "$1" "${2-}"
       display_brand="$2"
       if [ -z "$display_brand" ]; then
         printf 'error: --display-brand requires a non-empty value\n' >&2
@@ -124,6 +191,8 @@ while [ "$#" -gt 0 ]; do
       ;;
   esac
 done
+
+validate_prefix
 
 _available_skills() {
   find "$repo_root/plugin/skills" -mindepth 1 -maxdepth 1 -type d \
@@ -201,8 +270,8 @@ _normalize_selected_skills "$selected_skills_raw" || exit 1
 # a relative --skills-dir would produce broken bash invocations at runtime
 # (the agent's cwd at invocation time is not guaranteed to be the directory
 # install-skills.sh ran from). The default values are already absolute
-# (${HOME}/...); this only matters when the user passes --skills-dir or
-# --claude-skills-dir with a relative argument.
+# (${HOME}/...); this only matters when the user passes a destination flag with
+# a relative argument.
 _canonicalize_dir() {
   _cd_path="$1"
   # Empty input would silently fall through: bash treats `cd ""` as a no-op
@@ -210,7 +279,7 @@ _canonicalize_dir() {
   # install proceeds to write into whatever directory it was launched from
   # (typically the repo root). Reject up-front so the failure is loud.
   if [ -z "$_cd_path" ]; then
-    printf 'error: cannot canonicalize empty path (got empty --skills-dir or --claude-skills-dir argument)\n' >&2
+    printf 'error: cannot canonicalize empty path (got empty destination argument)\n' >&2
     return 1
   fi
   case "$_cd_path" in
@@ -244,12 +313,17 @@ _canonicalize_dir() {
 }
 skills_dir=$(_canonicalize_dir "$skills_dir") || exit 1
 
+if [ "$install_codex_agents" -eq 1 ]; then
+  codex_agents_dir=$(_canonicalize_dir "$codex_agents_dir") || exit 1
+fi
+
 if [ "$install_claude_user" -eq 1 ]; then
   # Canonicalize only when the Claude user-tier install is requested. Otherwise
-  # the call would pre-create ~/.claude/skills (via mkdir -p inside
+  # the calls would pre-create ~/.claude/skills and ~/.claude/agents (via mkdir -p inside
   # _canonicalize_dir) on every install, even for plugin-only / Codex-only
   # invocations that never write there.
   claude_skills_dir=$(_canonicalize_dir "$claude_skills_dir") || exit 1
+  claude_agents_dir=$(_canonicalize_dir "$claude_agents_dir") || exit 1
 
   # Claude Code plugin cache layout is not a stable public contract. Check the
   # current (cache/<marketplace>/andthen) layout plus a direct cache/andthen
@@ -264,13 +338,23 @@ if [ "$install_claude_user" -eq 1 ]; then
   done
   # Only warn when prefixes would actually collide AND both install paths are
   # going to the user-tier defaults. Downstream tools that wrap this installer
-  # with their own --prefix (e.g. dartclaw-) or redirect --claude-skills-dir
+  # with their own --prefix (e.g. dartclaw-) or redirect --claude-*-dir
   # coexist with the AndThen plugin under disjoint namespaces or scopes and
   # shouldn't see this warning.
   if [ "$_plugin_found" -eq 1 ] \
      && [ "$prefix" = "andthen-" ] \
-     && [ "$claude_skills_dir" = "${HOME}/.claude/skills" ]; then
-    printf 'warning: --claude enabled with the default prefix and user-tier path but an andthen Claude Code plugin install appears present under ~/.claude/plugins/. Running both will create duplicate skills under andthen:<name> (plugin) and andthen-<name> (user). Uninstall the plugin (/plugin uninstall andthen) before using --claude, pass a distinct --prefix, or target project-local --claude-skills-dir to coexist.\n' >&2
+     && [ "$claude_skills_dir" = "${HOME}/.claude/skills" ] \
+     && [ "$claude_agents_dir" = "${HOME}/.claude/agents" ]; then
+    printf 'warning: --claude enabled with the default prefix and user-tier paths but an andthen Claude Code plugin install appears present under ~/.claude/plugins/. Running both will create duplicate skills under andthen:<name> (plugin) and andthen-<name> (user). Uninstall the plugin (/plugin uninstall andthen) before using --claude, pass a distinct --prefix, or target project-local --claude-skills-dir / --claude-agents-dir to coexist.\n' >&2
+  fi
+
+  _claude_skills_default=0
+  _claude_agents_default=0
+  [ "$claude_skills_dir" = "${HOME}/.claude/skills" ] && _claude_skills_default=1
+  [ "$claude_agents_dir" = "${HOME}/.claude/agents" ] && _claude_agents_default=1
+  if [ "$_claude_skills_default" -ne "$_claude_agents_default" ]; then
+    printf 'warning: --claude-skills-dir and --claude-agents-dir are split between project and user tier (skills=%s, agents=%s). For a clean project-local install pass both; for a user-tier install pass neither.\n' \
+      "$claude_skills_dir" "$claude_agents_dir" >&2
   fi
 fi
 
@@ -302,6 +386,7 @@ _skill_assets_e2e_test="trust-boundaries.md"
 _skill_assets_triage="execution-named-blocks.md github-publish.md trust-boundaries.md"
 _skill_assets_init="project-state-templates.md"
 _skill_assets_map_codebase="project-state-templates.md"
+_skill_assets_simplify_code="automation-mode.md"
 _skill_assets_refactor="automation-mode.md"
 _skill_assets_remediate_findings="automation-mode.md"
 
@@ -326,6 +411,7 @@ _get_skill_assets() {
     triage)   printf '%s' "$_skill_assets_triage" ;;
     init)     printf '%s' "$_skill_assets_init" ;;
     map-codebase) printf '%s' "$_skill_assets_map_codebase" ;;
+    simplify-code) printf '%s' "$_skill_assets_simplify_code" ;;
     refactor) printf '%s' "$_skill_assets_refactor" ;;
     remediate-findings) printf '%s' "$_skill_assets_remediate_findings" ;;
     *)        printf '' ;;
@@ -556,6 +642,38 @@ rewrite_namespace_dir() {
   done
 }
 
+rewrite_review_agent_names_file() {
+  _rranf_md="$1"
+  # Review persona agent source names are intentionally unprefixed for the
+  # Claude Code plugin tier. Installed Codex / Claude user-tier agents are
+  # generated or copied with the selected install prefix, so installed skill
+  # prompts must name those prefixed agents when they ask for custom agents.
+  for _rranf_agent in \
+    review-agent-workflow \
+    review-architecture \
+    review-correctness \
+    review-critic \
+    review-devils-advocate \
+    review-product-requirements \
+    review-project-standards \
+    review-security \
+    review-synthesis-challenger \
+    review-testing
+  do
+    sed -i.bak "s|\`${_rranf_agent}\`|\`${prefix}${_rranf_agent}\`|g" "$_rranf_md"
+    rm -f "$_rranf_md.bak"
+  done
+}
+
+rewrite_review_agent_names_dir() {
+  _rrand_dir="$1"
+  _rrand_list=$(find "$_rrand_dir" -name '*.md' -type f | LC_ALL=C sort)
+  [ -z "$_rrand_list" ] && return 0
+  printf '%s\n' "$_rrand_list" | while IFS= read -r _rrand_md; do
+    rewrite_review_agent_names_file "$_rrand_md"
+  done
+}
+
 # Rewrite the brand-cased token "AndThen" → <display_brand> in the installed
 # skill's agents/openai.yaml (display_name, short_description, default_prompt).
 # No-op when the brand is the default.
@@ -573,13 +691,55 @@ rewrite_namespace_dir() {
 rewrite_display_brand_dir() {
   _rdb_dir="$1"
   _rdb_brand="$2"
-  [ "$_rdb_brand" = "AndThen" ] && return 0
   _rdb_yaml="$_rdb_dir/agents/openai.yaml"
   [ -f "$_rdb_yaml" ] || return 0
+  rewrite_display_brand_file "$_rdb_yaml" "$_rdb_brand"
+}
+
+rewrite_display_brand_file() {
+  _rdb_file="$1"
+  _rdb_brand="$2"
+  [ "$_rdb_brand" = "AndThen" ] && return 0
   _rdb_brand_esc=$(printf '%s' "$_rdb_brand" \
     | sed -e 's/\\/\\\\/g' -e 's/|/\\|/g' -e 's/&/\\&/g')
-  sed -i.bak "s|AndThen|${_rdb_brand_esc}|g" "$_rdb_yaml"
-  rm -f "$_rdb_yaml.bak"
+  sed -i.bak "s|AndThen|${_rdb_brand_esc}|g" "$_rdb_file"
+  rm -f "$_rdb_file.bak"
+}
+
+install_claude_agent() {
+  _ica_src="$1"
+  _ica_dst="$2"
+
+  if [ "$dry_run" -eq 1 ]; then
+    printf 'mkdir -p %s\n' "$(dirname "$_ica_dst")"
+    printf 'cp %s %s\n' "$_ica_src" "$_ica_dst"
+    printf '# then prefix frontmatter name, rewrite namespace refs, and apply display brand\n'
+    return 0
+  fi
+
+  mkdir -p "$(dirname "$_ica_dst")"
+  cp "$_ica_src" "$_ica_dst"
+
+  if awk -v p="$prefix" '
+    NR == 1 && $0 == "---" { in_fm = 1; print; next }
+    in_fm && $0 == "---" { in_fm = 0; print; next }
+    in_fm && !done && /^name: / {
+      sub(/^name: /, "name: " p)
+      done = 1
+    }
+    { print }
+    END { exit done ? 0 : 1 }
+  ' "$_ica_dst" > "$_ica_dst.tmp"; then
+    mv "$_ica_dst.tmp" "$_ica_dst"
+  else
+    rm -f "$_ica_dst.tmp" "$_ica_dst"
+    printf 'error: %s has no frontmatter `name:` line; cannot install as Claude Code user agent.\n' "$_ica_src" >&2
+    return 1
+  fi
+
+  rewrite_namespace_file "$_ica_dst" "/"
+  rewrite_review_agent_names_file "$_ica_dst"
+  rewrite_display_brand_file "$_ica_dst" "$display_brand"
 }
 
 # Run strict-syntax and canonical-asset checks before any copy.
@@ -616,6 +776,7 @@ for dir in "$repo_root/plugin/skills"/*; do
     rewrite_plugin_root_dir "$skills_dir/$target_name"
     rewrite_skill_dir_dir "$skills_dir/$target_name" "$skills_dir/$target_name"
     rewrite_namespace_dir "$skills_dir/$target_name" '$'
+    rewrite_review_agent_names_dir "$skills_dir/$target_name"
     rewrite_display_brand_dir "$skills_dir/$target_name" "$display_brand"
   else
     inline_canonical_assets "$skills_dir/$target_name" "$name"
@@ -631,6 +792,7 @@ for dir in "$repo_root/plugin/skills"/*; do
       inline_canonical_assets "$claude_skills_dir/$target_name" "$name"
       rewrite_plugin_root_dir "$claude_skills_dir/$target_name"
       rewrite_namespace_dir "$claude_skills_dir/$target_name" '/'
+      rewrite_review_agent_names_dir "$claude_skills_dir/$target_name"
       rewrite_display_brand_dir "$claude_skills_dir/$target_name" "$display_brand"
     else
       inline_canonical_assets "$claude_skills_dir/$target_name" "$name"
@@ -639,8 +801,39 @@ for dir in "$repo_root/plugin/skills"/*; do
   fi
 done
 
+codex_agents_count=0
+if [ "$install_codex_agents" -eq 1 ] && [ -d "$repo_root/plugin/agents" ]; then
+  codex_agents_count=$(find "$repo_root/plugin/agents" -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')
+  if [ "$dry_run" -eq 1 ]; then
+    printf '%s/scripts/generate-codex-agents.sh --agents-src %s/plugin/agents --out-dir %s --prefix %s --display-brand %s\n' \
+      "$repo_root" "$repo_root" "$codex_agents_dir" "$prefix" "$display_brand"
+  else
+    "$repo_root/scripts/generate-codex-agents.sh" \
+      --agents-src "$repo_root/plugin/agents" \
+      --out-dir "$codex_agents_dir" \
+      --prefix "$prefix" \
+      --display-brand "$display_brand" >/dev/null
+  fi
+fi
+
+claude_agents_count=0
+if [ "$install_claude_user" -eq 1 ] && [ -d "$repo_root/plugin/agents" ]; then
+  for agent in "$repo_root/plugin/agents"/*.md; do
+    [ -f "$agent" ] || continue
+    agent_name=$(basename "$agent" .md)
+    install_claude_agent "$agent" "$claude_agents_dir/${prefix}${agent_name}.md"
+    claude_agents_count=$((claude_agents_count + 1))
+  done
+fi
+
 printf 'Installed %s skills into %s\n' "$skills_count" "$skills_dir"
+if [ "$codex_agents_count" -gt 0 ]; then
+  printf 'Installed %s Codex agents into %s\n' "$codex_agents_count" "$codex_agents_dir"
+fi
 if [ "$claude_skills_count" -gt 0 ]; then
   printf 'Installed %s Claude Code user skills into %s\n' "$claude_skills_count" "$claude_skills_dir"
+fi
+if [ "$claude_agents_count" -gt 0 ]; then
+  printf 'Installed %s Claude Code user agents into %s\n' "$claude_agents_count" "$claude_agents_dir"
 fi
 exit 0

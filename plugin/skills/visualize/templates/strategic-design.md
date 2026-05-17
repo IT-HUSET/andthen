@@ -55,7 +55,7 @@ Each H2 dispatches to **one** renderer per the SKILL.md cross-artifact dispatch 
 
 ### Context Map → Module Map + interactive node panel
 
-If the section body contains a fenced `mapviz` block → render via `diagrams.md#module-map`, paired with the static `aside.map-detail` panel. The `wireModuleMap` helper (`templates/js-helpers.md`) binds node-clicks to the panel; the JSON-in-attribute discipline applies.
+If the section body contains a fenced `mapviz` block → render via `diagrams.md#module-map`, paired with the static `aside.map-detail` panel. The `wireModuleMap` helper (`templates/js-helpers.md`) binds node-clicks to the panel; the module-map JSON script discipline applies (paired `<script type="application/json" data-role="nodes">` block, never artifact-derived JSON inside an HTML attribute).
 
 **Paired-H3 detail convention** – each `[NodeName]` declared in the `mapviz` block may have a matching H3 in the same section body whose heading text equals the node label (case-insensitive, after stripping `[]`). The paired H3's body becomes the node's detail-panel content:
 
@@ -83,7 +83,7 @@ fulfillment. Holds the only writes to the orders table.
 `packages/orders/src/index.ts`
 ````
 
-The renderer serializes the paired-H3 dictionary into the `data-nodes` JSON attribute. The default-selected node is the first one declared in the DSL – the panel is never empty. A node without a paired H3 emits `<!-- module-map: no detail for node "X" -->` adjacent to the diagram so the gap surfaces in `View source`; clicking that node activates it in the SVG but leaves the panel content unchanged (early-return in `wireModuleMap`).
+The renderer serializes the paired-H3 dictionary into a paired `<script type="application/json" data-role="nodes">` block adjacent to the `aside.map-detail`, with `<` escaped as `\u003c` in the JSON text so a value containing `</script>` cannot terminate the block; title, meta, and body values are rendered as text (never `innerHTML`) per the `templates/diagrams.md` and `templates/js-helpers.md` discipline. The default-selected node is the first one declared in the DSL – the panel is never empty. A node without a paired H3 emits `<!-- module-map: no detail for node "X" -->` adjacent to the diagram so the gap surfaces in `View source`; clicking that node activates it in the SVG but leaves the panel content unchanged (early-return in `wireModuleMap`).
 
 If no `mapviz` block is present → fall back to Generic Prose. The Context Map H2 still renders with full Section Block affordances.
 

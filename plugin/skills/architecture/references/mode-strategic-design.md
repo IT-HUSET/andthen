@@ -81,7 +81,7 @@ Synthesize: which subdomains warrant immediate investment (core), which integrat
 - Strategic decisions need fitness-function enforcement → invoke the `andthen:architecture` skill in `--mode fitness`.
 - Per-context UL extraction → invoke the `andthen:ubiquitous-language` skill.
 - Subdomain-tree, context-map, or team-topology diagram → invoke the `andthen:excalidraw-diagram` skill (the textual report is the source of truth; the diagram is for human review).
-- Visual review of the textual report itself – section-anchored notes that round-trip via clipboard back into a follow-up architecture run – invoke the `andthen:visualize` skill.
+- Visual review of the textual report itself – section-anchored notes that round-trip via clipboard back into a follow-up architecture run – invoke the `andthen:visualize` skill on the report path, or use `andthen:architecture --visual` while producing the report.
 - Big-picture event-storming as upstream input when the domain is unfamiliar – invoke the `andthen:architecture` skill in `--mode event-storming` first, then chain back into `--mode strategic-design`.
 
 ## Greenfield vs. Brownfield Cheat Sheet

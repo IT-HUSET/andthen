@@ -18,7 +18,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, or
 
 ## INSTRUCTIONS
 
-- Read the Project-Specific Guidelines and Rules section, and relevant project guidelines, before starting.
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
 - **Autonomously and iteratively** implement with comprehensive verification
 - **Iterate** until all requirements met, no defects remain, all reviews pass
 - Use GitHub CLI (`gh`) for GitHub operations

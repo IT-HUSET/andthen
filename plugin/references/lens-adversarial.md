@@ -2,7 +2,7 @@
 
 Canonical Critic rubric. Always-on finding pass that attacks assumptions, unhappy paths, hidden coupling, and places where the author may have guessed. Produces findings; later filter passes prune weak ones – do not do that pruning here.
 
-The role-noun **Critic** derives from the ASDLC Critic Agent pattern; the posture and calibration also align with Anthropic's Find/Verify split and Epsilla's Generator/Evaluator framing.
+The role-noun is **Critic**. "Adversarial review", "red-team review", and "skeptic review" are trigger phrases for the same posture, not separate roles. This avoids overlapping concepts while keeping the behavior explicit.
 
 
 ## Posture
@@ -41,10 +41,17 @@ Anti-Leniency Protocol: see [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/refe
 
 Every Critic finding must include:
 
+- **Reviewer**: usually `Critic` or `review-critic`
+- **Severity**: CRITICAL / HIGH / MEDIUM / LOW
+- **Confidence**: 0 / 25 / 50 / 75 / 100
 - **Location**: file:line, document section, requirement, or review artifact
+- **Scope relation**: primary / secondary / pre_existing
+- **Finding**: concise statement of the problem
 - **Threatened assumption or invariant**: what the target silently relies on
-- **Trigger**: the path, input, state, or missing requirement that exposes the weakness
+- **Evidence**: concrete observed support, including the path, input, state, or missing requirement that exposes the weakness
 - **Impact**: what breaks, misleads, or becomes unsafe
+- **Suggested fix**: minimal corrective direction
+- **Verification needed**: command, check, manual proof, or `none`
 
 
 ## Integration
@@ -54,4 +61,6 @@ Merge Critic findings into the same severity and report sections as the primary 
 
 ## Sub-agent dispatch
 
-Consuming skills pass this file (and its calibration peers `critic-calibration.md` and `review-calibration.md`) by path tokens in the sub-agent prompt body. The host prompt MUST open with an explicit instruction to read all three referenced files before applying the rubric – without that instruction, the sub-agent may silently skip the calibration files and apply a generic adversarial posture, losing the Anti-Leniency Protocol and the find-pass calibration this lens depends on. The `andthen:quick-review` skill's sub-agent prompt is the reference implementation of the read-first instruction. Applies to every consuming lens (code, doc, gap, security) and to every council-mode reviewer that runs the find-time Critic pass.
+Consuming skills pass this file (and its calibration peers `critic-calibration.md` and `review-calibration.md`) by path tokens in the sub-agent prompt body. Prefer the installed `review-critic` custom agent when available; otherwise use a generic fresh-context sub-agent. Both paths MUST receive an explicit instruction to read all three referenced files before applying the rubric – custom agent instructions are not a substitute for calibration. Without that read-first task prompt, the sub-agent may silently skip the calibration files and apply a generic adversarial posture, losing the Anti-Leniency Protocol and the find-pass calibration this lens depends on.
+
+If no sub-agent mechanism is available, apply the rubric inline and include a short `Critic Coverage` note naming the assumptions, unhappy paths, and hidden coupling attacked. This proof-of-work matters most when no findings survive filtering.

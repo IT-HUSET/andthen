@@ -415,21 +415,22 @@ function emitModuleMap(graph):
 .map-detail .hint { font-size: 0.75rem; color: var(--text-faint); font-family: var(--mono); margin-bottom: 0.5rem; }
 .map-detail .md-title { margin: 0 0 0.35rem; font-size: 1rem; color: var(--accent); }
 .map-detail .md-meta  { font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-.map-detail .md-body  { color: var(--text); font-size: 0.92rem; line-height: 1.5; }
+.map-detail .md-body  { color: var(--text); font-size: 0.92rem; line-height: 1.5; white-space: pre-line; }
 ```
 
 **Empty-graph mitigation:** if the parsed `mapviz` block yields zero nodes (parse failure or empty body), fall back to Generic Prose for the section AND emit the verbatim DSL block inside a `<pre>` so the reviewer can see what was authored. Same shape as the existing `## Common Pitfalls` rule "*Empty source section → if there are zero items, skip the diagram entirely*."
 
-**Detail-panel aside** (Phase 3.4 contract). The paired aside is rendered statically with a default-selected node so JS-disabled environments still see *some* content. The `data-nodes` JSON attribute is serialized with `JSON.stringify` – never raw newlines – per the JS Authoring Discipline. See `wireModuleMap` in `templates/js-helpers.md`.
+**Detail-panel aside** (Phase 3.4 contract). The paired aside is rendered statically with a default-selected node so JS-disabled environments still see *some* content. All artifact-derived values use context-appropriate escaping: `id`, `data-default-node`, and SVG `data-k` values are HTML-attribute escaped; static title/meta/body placeholders are HTML text escaped; detail JSON is written as inert `<script type="application/json">` text with `<` escaped as `\u003c` so `</script>` cannot terminate the block. Node detail bodies are escaped text with preserved line breaks, not trusted HTML. See `wireModuleMap` in `templates/js-helpers.md`.
 
 ```html
-<aside class="map-detail" id="map-detail-{{section-anchor}}" data-default-node="{{first-node-key}}" data-nodes='{{JSON.stringify(detailDict)}}'>
+<aside class="map-detail" id="map-detail-{{section-anchor-attr}}" data-default-node="{{first-node-key-attr}}">
   <div class="hint">Click a node in the diagram →</div>
   <div class="map-detail-body">
-    <h3 class="md-title" data-role="title">{{DEFAULT_NODE_TITLE}}</h3>
-    <div class="md-meta" data-role="meta">{{DEFAULT_NODE_META}}</div>
-    <div class="md-body" data-role="body">{{DEFAULT_NODE_BODY_HTML}}</div>
+    <h3 class="md-title" data-role="title">{{DEFAULT_NODE_TITLE_ESCAPED_TEXT}}</h3>
+    <div class="md-meta" data-role="meta">{{DEFAULT_NODE_META_ESCAPED_TEXT}}</div>
+    <div class="md-body" data-role="body">{{DEFAULT_NODE_BODY_ESCAPED_TEXT}}</div>
   </div>
+  <script type="application/json" data-role="nodes">{{DETAIL_DICT_JSON_ESCAPED_TEXT}}</script>
 </aside>
 ```
 
@@ -501,5 +502,6 @@ function emitModuleMap(graph):
 - **N criteria < 3 for radar** → radar is undefined; render a simple bar comparison instead, or skip the diagram and emit an inline note.
 - **Empty `mapviz` block** → falls back to Generic Prose + verbatim `<pre>` in `.card-body` (see `#module-map` empty-graph mitigation). Never emit an empty SVG shell – it reads as a broken diagram.
 - **Walkthrough `<details>` interfering with `View source`** → the one-at-a-time toggle in the `templates/js-helpers.md` is scoped to `.walk details.snippet`, **never** bare `details`. A bare-`details` listener would close the section's `.src-area` source panel whenever a snippet opens.
-- **JSON in `data-nodes` attribute** → must be `JSON.stringify`-encoded so multi-line content is `\n`-escaped. A raw newline kills `JSON.parse` and disables the entire module-map binding (per `wireModuleMap` contract).
+- **Module-map detail JSON in an HTML attribute** → don't put the node dictionary in `data-nodes`. Attribute JSON is fragile because quote-bearing artifact text can break the attribute before JS parses it. Use the paired `script[type="application/json"][data-role="nodes"]` block and escape `<` as `\u003c` in the JSON text.
+- **Module-map detail XSS** → node keys, title, meta, and body values are artifact-derived content and must render through attribute escaping, text escaping, or `textContent` only. Do not use `innerHTML` unless a strict sanitizer is added first.
 - **Determinism** → never use `Math.random()` for layout; always derive coordinates from input data + fixed constants. The same source must produce identical SVG output.

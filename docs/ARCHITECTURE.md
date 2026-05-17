@@ -31,6 +31,29 @@ Each skill lives in `plugin/skills/<name>/` and contains:
 ---
 
 
+## Plugin Agents
+
+Agents live in `plugin/agents/*.md`. These markdown files are the source of truth for both Claude Code plugin-tier agents and generated Codex agents.
+
+Current agent families:
+
+- `documentation-lookup` – documentation retrieval specialist.
+- `review-*` – review council persona agents. They are deliberately review-scoped, not a broad agent zoo: Critic, Devil's Advocate, Synthesis Challenger, and a small set of specialist reviewers.
+
+Install targets:
+
+| Target | Agent behavior |
+|---|---|
+| Claude Code plugin tier | Reads `plugin/agents/*.md` directly as plugin-provided agents. |
+| `--claude-user` | Copies `plugin/agents/*.md` to `~/.claude/agents`, prefixing frontmatter `name:` to match the installed filename. |
+| Default / Codex | Runs `scripts/generate-codex-agents.sh`, converting each markdown agent into a TOML file with `developer_instructions`. |
+
+Claude markdown remains canonical because it maps directly to custom sub-agent prompts; Codex TOMLs are generated artifacts and should not be edited by hand.
+
+
+---
+
+
 ## Self-Contained Skills
 
 Skills are fully self-contained: each skill owns its `references/`, `templates/`, and `scripts/` locally. Skill files never reach into sibling skills (no `../<other-skill>/...` paths).
@@ -50,7 +73,7 @@ The 19 shared assets live at `plugin/references/` – a single canonical locatio
 | Asset | Consumed by |
 |---|---|
 | `adversarial-challenge.md` | review, architecture |
-| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, refactor, remediate-findings |
+| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, simplify-code, refactor, remediate-findings |
 | `critic-calibration.md` | review, quick-review |
 | `data-contract.md` | ops, plan, spec, exec-spec, exec-plan, review |
 | `design-tree.md` | clarify, architecture |
@@ -95,3 +118,7 @@ Both forms require the strict braces in their contexts (canonicals always; `${CL
 | Plugin install (Claude Code plugin tier) | No rewrite – resolves at runtime | No rewrite – resolves at runtime |
 | `--claude-user` (Claude Code user tier) | Inline canonical into skill's `references/`; rewrite path to local-relative form | No rewrite – Claude Code substitutes natively |
 | Default / Codex (`~/.agents/skills/`) | Inline canonical into skill's `references/`; rewrite path to local-relative form | Replace with absolute install path of the skill |
+
+The installer also propagates `plugin/agents/*.md`: Claude user-tier installs get prefixed markdown agents, and Codex installs get generated TOMLs via `scripts/generate-codex-agents.sh`. `--no-codex-agents` skips Codex agent generation; `--claude-agents-dir` overrides the Claude agent destination alongside `--claude-skills-dir`.
+
+Agent propagation is overwrite-only. Removing or renaming a source agent does not delete stale generated `<prefix>*.toml` or copied `<prefix>*.md` files from prior installs; users must remove obsolete generated agents when they need the visible set to exactly match `plugin/agents/`.

@@ -16,8 +16,8 @@ SCOPE: $ARGUMENTS (screens, states, URLs, screenshots, wireframes, baselines, or
 
 ## INSTRUCTIONS
 
-- Fully read the project's `Project-Specific Guidelines and Rules` section, and relevant UI guidelines, before starting.
-- Check for a `Visual Validation Workflow` section in `CLAUDE.md` / `AGENTS.md` first (at any heading level – templates may nest it as H3 under `## Project-Specific Guidelines and Rules`). If one exists, follow it as the primary workflow.
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work** – including any UI guidelines.
+- Check for a `Visual Validation Workflow` section in `CLAUDE.md` / `AGENTS.md` first (at any heading level). If one exists, follow it as the primary workflow.
 - Use the fallback workflow below only when no project-specific workflow is defined.
 - Choose tools already available in the project environment before introducing new ones.
 - Validate the states users depend on, not only the default state.

@@ -1,6 +1,6 @@
 ---
 description: Discovery & Ideation for requirements at feature or product scope – clarify requirements, product vision, and overall product requirements through systematic discovery of gaps, edge cases, scope boundaries, and alternatives the user hadn't considered. Trigger on 'clarify this', 'clarify requirements', 'what are the requirements', 'discover requirements', 'product vision', 'clarify the product', 'product-level requirements'.
-argument-hint: "[requirements source: description or file path | --issue <number>] [--mode product|feature] [--to-issue]"
+argument-hint: "[requirements source: description or file path | --issue <number>] [--mode product|feature] [--to-issue] [--visual]"
 ---
 
 # Clarify Requirements
@@ -17,7 +17,7 @@ Refine fuzzy inputs into clarified requirements through **Discovery** (probing l
 ## VARIABLES
 
 _Requirements to clarify (**required**):_
-INPUT: $ARGUMENTS (strip any flag tokens like `--issue`, `--mode`, or `--to-issue` before interpreting the remainder as the requirements source – description or file path)
+INPUT: $ARGUMENTS (strip any flag tokens like `--issue`, `--mode`, `--to-issue`, or `--visual` before interpreting the remainder as the requirements source – description or file path)
 
 _Scope mode:_
 MODE: `feature | product` – resolved in Step 1 substep 0. Default `feature`. Explicit `--mode` flag wins over inference.
@@ -26,6 +26,7 @@ MODE: `feature | product` – resolved in Step 1 substep 0. Default `feature`. E
 - `--issue <number>` → Fetch and use a GitHub issue as requirements input
 - `--mode product|feature` → MODE override; explicit value wins over inference. `product` runs the skill at overall-product scope (vision, personas, value props, anti-goals, metrics) and writes to the Project Document Index `Product` location.
 - `--to-issue` → After Step 4 Validation, save the clarification doc locally (as today), then create a NEW GitHub issue with the doc body via `gh issue create --title "Requirements Clarification: <name>" --body-file <path>`. When an input issue was supplied (via `--issue <N>` or a GitHub issue URL), append `Refs #<N>` as the last line of the issue body. The flag never comments on or edits the input issue. Print the new issue URL.
+- `--visual` → After the clarification or product vision document is written and validated, invoke the `andthen:visualize` skill on the produced artifact.
 
 _Output directory for clarified requirements (branched by MODE):_
 - **Feature mode** – OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Document Index**)_. Output path: `OUTPUT_DIR/<feature-name>/requirements-clarification.md`.
@@ -34,10 +35,12 @@ _Output directory for clarified requirements (branched by MODE):_
 
 ## INSTRUCTIONS
 
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
 - Require `INPUT`. Stop if missing.
 - **Interactive-by-Contract** (see **OPERATING PRINCIPLE**) – ask questions iteratively and wait for user input before proceeding. Recommending an answer is allowed (see Step 2); treating it as confirmed without user input is not. No `AUTO_MODE` bypass for this skill; no exception for "the input looks complete."
 - **`AskUserQuestion` is the default question mechanism in Claude Code** – its chip UI is the operational realization of *Recommend, don't decide* (first option = recommendation; rest = alternatives; `Other` = free-form). Markdown questions are the Codex / non-Claude-Code fallback. Step 2 has the how.
 - **Ideation alongside Discovery** – propose alternative MVPs, surface anti-goals, suggest pruning candidates, and offer adjacent capability spaces in or out of scope. Discovery probes what the user stated; Ideation surfaces what they didn't.
+- **Visual review is a post-validation handoff.** When `--visual` is present, complete the normal clarification/product-vision gate first, then invoke the `andthen:visualize` skill on the produced artifact; the visualizer owns HTML rendering, note export, browser-open behavior, and `.agent_temp/visual-review/` output.
 - **Check before asking** – if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. In **feature mode**, the `Product` document (see **Project Document Index**) is the upstream framing – vision, personas, anti-goals; feature requirements should anchor to it, not contradict it. State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm. *Exception:* a prior clarification doc is a baseline to amend (see Step 1 *Amendment check*), not a lookup that closes discovery.
 - Challenge assumptions, find edge cases, identify ambiguities.
 - Clarify requirements, do not design solutions.
@@ -144,6 +147,13 @@ After the local clarification doc is written and validated, publish per **Patter
 The flag is additive – the local doc is the source of truth; the issue is a durable transport record for downstream skills (`andthen:prd --issue <N>`).
 
 **Gate**: Issue created (or skipped when `--to-issue` is absent)
+
+
+### 4c. Visual Review _(only when `--visual`)_
+
+After the local document is written and Step 4 Validation passes, invoke the `andthen:visualize` skill on the produced artifact. Feature mode passes `requirements-clarification.md`; product mode passes the resolved Product document. Print both the artifact path and the visualizer's output path.
+
+**Gate**: HTML rendered and browser-open attempted, or fallback path printed
 
 
 ### 5. Domain Language Extraction _(if domain complexity warrants)_
@@ -298,7 +308,7 @@ Skip this section when `AUTO_MODE=true` – print only the output path and compl
 After completion, ask user if they'd like to:
 
 ### Feature mode follow-ups
-1. **Review visually** – invoke the `andthen:visualize` skill on `requirements-clarification.md` to spot scope and edge-case issues a markdown view obscures.
+1. **Review visually** – run `andthen:visualize <requirements-clarification.md>` when a browser review would help spot scope and edge-case issues a markdown view obscures.
 2. **Create feature spec** – invoke the `andthen:spec` skill on the output directory to generate a FIS from the clarified requirements.
 3. **Create a PRD** – invoke the `andthen:prd` skill on the output directory before planning a multi-feature effort.
 4. **Proceed to planning** – invoke the `andthen:prd` skill, then the `andthen:plan` skill on the output directory for multi-feature / MVP scope.
@@ -306,7 +316,7 @@ After completion, ask user if they'd like to:
 6. Share with stakeholders for validation.
 
 ### Product mode follow-ups
-1. **Review visually** – invoke the `andthen:visualize` skill on `PRODUCT.md` to spot vision and anti-goal issues a markdown view obscures.
+1. **Review visually** – run `andthen:visualize <PRODUCT.md>` when a browser review would help spot vision and anti-goal issues a markdown view obscures.
 2. **Strategic decomposition** – invoke the `andthen:architecture` skill in `--mode strategic-design` to derive bounded contexts and subdomains from the product vision.
 3. **First PRD** – invoke the `andthen:prd` skill on a specific epic/feature carved from a Roadmap Theme.
 4. **Domain language** – invoke the `andthen:ubiquitous-language` skill to extract a product-wide glossary.

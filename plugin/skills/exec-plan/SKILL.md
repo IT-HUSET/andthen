@@ -23,17 +23,18 @@ PLAN_PATH: resolved in Step 1, used unchanged in Steps 3, 4, 5. Local-directory 
 Require `PLAN_DIR` unless `--from-issue <N>` is set. Stop if the required plan source is missing. **You are the orchestrator.** Parse the plan, run the per-story pipeline (`exec-spec` → `quick-review` per story, then one final `review --mode gap`), verify writes landed, handle phase transitions, manage failures, run final verification. Delegate story code to `exec-spec` (sub-agent, teammate, or sequential fallback); take over locally when a story returns partial or non-green and the repair is clearly bounded. In `AUTO_MODE`, persistent story failures are recorded and reported at the end.
 
 ### Rules
-- **Plan is source of truth** – `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md). Follow phase ordering, `dependsOn`, and `parallel` exactly. In local-directory mode, every schedulable story (`status` ∈ {`pending`, `spec-ready`, `in-progress`}) must carry an existing `fis` path; abort if missing – no auto-recovery. `done` and `skipped` are terminal; `blocked` is a manual escape hatch – consumers skip with a warning per `plan-schema.md`. The `--from-issue` mode relaxes the FIS requirement because FIS files are generated just-in-time.
-- **Execution discipline** – Stop-the-Line on red gates per [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md). See the **Status-Write Contract** below for orchestrator-side specifics (story-scoped containment, no-double-write, worktree deferral).
-- **Automation rules** – see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions.
-- **Status updates are gates** – plan and FIS checkpoint updates block the next phase; do not defer. `plan.json` is mutated only via `andthen:ops update-plan` / `update-plan-fis` (writability rules in `plan-schema.md`).
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- **Plan is source of truth** – `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) (referenced below as *The Plan Schema*). Follow phase ordering, `dependsOn`, and `parallel` exactly. In local-directory mode, every schedulable story (`status` ∈ {`pending`, `spec-ready`, `in-progress`}) must carry an existing `fis` path; abort if missing – no auto-recovery. `done` and `skipped` are terminal; `blocked` is a manual escape hatch – consumers skip with a warning per *The Plan Schema*. The `--from-issue` mode relaxes the FIS requirement because FIS files are generated just-in-time.
+- **Execution discipline** – Stop-the-Line on red gates per [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (referenced below as *The Execution-Discipline Rules*). See the **Status-Write Contract** below for orchestrator-side specifics (story-scoped containment, no-double-write, worktree deferral).
+- **Automation rules** – see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md) (referenced below as *The Automation-Mode Rules*). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions.
+- **Status updates are gates** – plan and FIS checkpoint updates block the next phase; do not defer. `plan.json` is mutated only via `andthen:ops update-plan` / `update-plan-fis` (writability rules in *The Plan Schema*).
 - **Story failure containment** – `done` still means fully green. Failed stories transition to `skipped` (dependency-chain containment) or remain `in-progress` until repaired; never skip the enum.
 - **State document updates are gated** – update on phase transitions and blocker discovery (see **Project Document Index**).
 
 
 ### Status-Write Contract (Multi-Story Orchestration)
 
-Orchestrator-side rules that extend the universal Stop-the-Line gate (see [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md)).
+Orchestrator-side rules that extend the universal Stop-the-Line gate (see *The Execution-Discipline Rules*).
 
 - **Story-scoped containment** – A failed story is not `Done`, not merged as complete, and does not unblock dependents. In `AUTO_MODE`, record the failure, preserve partial work, skip dependents, continue independent stories, and finish with an aggregate failed-run report. When stories share a checkout, continue only after preserving the failed story's partial work off the active checkout and proving the active checkout is clean.
 
@@ -61,7 +62,7 @@ Orchestrator-side rules that extend the universal Stop-the-Line gate (see [`exec
 
 3. Read `PLAN_DIR/plan.json` _(local-directory mode)_. If only `plan.md` is present and `plan.json` is not, stop with: `BLOCKED: plan.md is no longer consumed by exec-plan. Run /andthen:plan {PLAN_DIR} to migrate to plan.json (existing FIS files are preserved).` If `plan.json` is missing entirely, stop – a valid plan artifact is required upstream (the `andthen:plan` skill). On success, set `PLAN_PATH` to the absolute path of the resolved file (in `--from-issue` mode, `references/from-issue-mode.md` materialization sets `PLAN_PATH` to `.agent_temp/from-issue-<N>/plan.json`).
 4. **Validate against schema** – confirm `schemaVersion === "1"`; if not, `BLOCKED: unsupported plan.json schemaVersion – re-run /andthen:plan to regenerate`. On parse error, `BLOCKED: malformed plan.json – re-run /andthen:plan`. Validate `dependsOn` closure: every element in every story's `dependsOn` array must match an `id` in `stories[]`. On unknown IDs, stop with `BLOCKED: invalid dependency in {story_id}: "{value}" – story not in catalog`. Validate the status enum: each story's `status` must be one of `pending`, `spec-ready`, `in-progress`, `done`, `skipped`, `blocked`.
-5. **Verify FIS files exist** _(local-directory mode only; relaxed under `--from-issue`)_: every story whose `status` is `pending`, `spec-ready`, or `in-progress` must carry a `fis` path that points at an existing file. This matches the schedulable set in item 6, so an interrupted local bundle with `pending` / `fis: null` stories aborts cleanly here instead of failing mid-pipeline. `blocked` stories are skipped at scheduling time and are not gated here (manual escape hatch – `consumers skip and warn` per `plan-schema.md`). If any story fails this check, abort with: `Plan bundle has stories with missing FIS – run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` Do not proceed (same in `--auto` mode – no auto-recovery). The `--from-issue` JIT exception lives in Step 3b.
+5. **Verify FIS files exist** _(local-directory mode only; relaxed under `--from-issue`)_: every story whose `status` is `pending`, `spec-ready`, or `in-progress` must carry a `fis` path that points at an existing file. This matches the schedulable set in item 6, so an interrupted local bundle with `pending` / `fis: null` stories aborts cleanly here instead of failing mid-pipeline. `blocked` stories are skipped at scheduling time and are not gated here (manual escape hatch – `consumers skip and warn` per *The Plan Schema*). If any story fails this check, abort with: `Plan bundle has stories with missing FIS – run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` Do not proceed (same in `--auto` mode – no auto-recovery). The `--from-issue` JIT exception lives in Step 3b.
 6. Build the execution plan declaratively from the JSON: respect phase ordering (`overview.phases[]`), dependency chains (`dependsOn`), wave grouping (`stories[].wave`), and parallel markers (`stories[].parallel`). Schedulable: `stories.filter(s => s.status !== 'done' && s.status !== 'skipped' && s.status !== 'blocked' && depsSatisfied(s))`. For each story dropped because `status === 'blocked'`, log `WARNING: story {id} is blocked – skipping` and record it in the run ledger's `skipped` list with reason `manually blocked`.
 
 **Gate**: Plan parsed (from local `plan.json` or materialized ledger); schema valid; in local mode FIS files exist on disk; phases identified
@@ -113,7 +114,7 @@ Compose the per-story sub-agent prompt by substituting the canonical **Per-Story
 - `{BASE_BRANCH}` = resolved at run start
 - `{AUTO_SUFFIX}` = `" --auto"` when `AUTO_MODE=true`, else `""`
 - `{SHARED_WRITE_SUFFIX}` = `" --defer-shared-writes"` when `--from-issue` is set, else `""`
-- Apply `--auto` propagation per `${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md` when `AUTO_MODE=true`
+- Apply `--auto` propagation per *The Automation-Mode Rules* when `AUTO_MODE=true`
 
 **Model assignment**: Use a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar).
 
@@ -121,9 +122,9 @@ Compose the per-story sub-agent prompt by substituting the canonical **Per-Story
 
 Run immediately after each story – not as a batch. Worker self-reports do not count. Enter this gate only after exec-spec succeeded and per-story quick-review has no accepted findings.
 
-**Green gate**: build clean, targeted tests pass, lint/types clean, no broken intermediate state. Fail → Stop-the-Line per `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`; repair locally, re-delegate, or invoke the `andthen:triage` skill; iterate until green.
+**Green gate**: build clean, targeted tests pass, lint/types clean, no broken intermediate state. Fail → Stop-the-Line per *The Execution-Discipline Rules*; repair locally, re-delegate, or invoke the `andthen:triage` skill; iterate until green.
 
-In `AUTO_MODE`, a story that remains non-green after bounded repair, returns `BLOCKED:`, or fails its Success Criteria becomes a contained story failure:
+In `AUTO_MODE`, a story that remains non-green after bounded repair, returns `BLOCKED:`, or fails its Acceptance Scenarios or Structural Criteria becomes a contained story failure:
 - Record story id, FIS path, failure summary, verification evidence, changed files/worktree path, and any `exec-spec` `## Failed Story Report`.
 - Do not invoke `quick-review`, mark `Done`, or blindly rerun in the same dirty worktree.
 - In shared-checkout mode, preserve partial work off the active checkout, prove the checkout clean, then skip dependents and continue independent stories. If isolation cannot be proven, emit `BLOCKED:` instead of continuing.
@@ -132,7 +133,7 @@ Pass → run the **Writes-Landed Checklist** below. This is a structured re-read
 
 **Writes-Landed Checklist** (per story just completed):
 
-- [ ] **FIS** – open the FIS at `{fis_path}`. Every task checkbox is `[x]`. Final Validation Checklist items are `[x]`. Success criteria are `[x]`.
+- [ ] **FIS** – open the FIS at `{fis_path}`. Every task checkbox is `[x]`. Every Acceptance Scenario checkbox is `[x]` (canonical shape per fis-authoring-guidelines.md). Every Structural Criteria checkbox is `[x]`. Final Validation Checklist items are `[x]` when the section is present.
 - [ ] **`plan.json` story status** – open `{PLAN_PATH}`. The story object with `id === {story_id}` shows `status: "done"` and its `fis` field points at `{fis_path}`.
 - [ ] **State document** _(local-directory mode only, if it exists per **Project Document Index**)_ – `{story_id}` is no longer in the Active Stories table.
 
@@ -222,7 +223,7 @@ If any story failed or was skipped:
 
 ## FAILURE HANDLING
 
-- **Story pipeline fails / non-green** → Stop-the-Line per `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md` within that story. In `AUTO_MODE`, persistent failure is recorded, dependent stories are skipped, independent stories continue, and Step 6 reports the aggregate failure.
+- **Story pipeline fails / non-green** → Stop-the-Line per *The Execution-Discipline Rules* within that story. In `AUTO_MODE`, persistent failure is recorded, dependent stories are skipped, independent stories continue, and Step 6 reports the aggregate failure.
 - **Final review fails** → one remediation pass (subjective-finding policy); escalate if issues persist
 - **Dependent stories blocked** when predecessor fails; **>50% of a phase fails** → record skips/failures and return them in the aggregate report. Do not pause in `AUTO_MODE`.
 - **Update the `State` document on failure** (see **Project Document Index**): `update-state status "At Risk"` or `"Blocked"`

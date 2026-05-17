@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Simplify Code"
+  short_description: "Simplify and clean up code"
+  default_prompt: "Simplify code for clarity, reuse, quality, and efficiency while preserving behavior. Scope: "
+
+policy:
+  allow_implicit_invocation: true

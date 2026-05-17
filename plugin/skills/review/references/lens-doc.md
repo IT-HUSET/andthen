@@ -27,6 +27,8 @@ If the document is a FIS, verify it still follows the structure and intent-first
 
 Run `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` against the document as an always-on sub-lens. Attack ambiguous requirements, missing unhappy paths, hidden implementation guesses, contradiction-prone terminology, and places where an implementer would have to infer behavior not stated in the artifact.
 
+When available, use the installed `review-critic` custom agent for the Critic pass, but still supply a read-first task prompt for `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`. If unavailable, use a generic fresh-context sub-agent with the same read-first instruction. Inline fallback must include `Critic Coverage` in the report.
+
 Merge Critic findings into the normal document review findings before calibration and filtering. Do not treat the Critic as a separate mode or an optional escalation.
 
 
@@ -104,6 +106,9 @@ Overall assessment, high-level findings, Findings Filter stats, key recommendati
 ## Over-Engineering Analysis
 
 ## Stakeholder Alignment
+
+## Critic Coverage
+[Ambiguities, unhappy paths, hidden implementation guesses, and contradiction-prone terms attacked. Required when Critic ran inline.]
 
 ## Prioritized Recommendations
 Critical / High / Medium / Low

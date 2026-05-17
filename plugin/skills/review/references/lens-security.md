@@ -59,6 +59,8 @@ Other security tooling that the project already wires up (`npm audit`, `pip-audi
 
 Run [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md) against the same security scope as an always-on sub-lens. Posture for the security context: assume the attacker, not just the careless developer. Walk each entry point with malicious input, partial trust, replay, race, and resource-exhaustion intent. Attack assumptions about what an upstream layer guarantees – these are the assumptions where exploitable gaps hide.
 
+When available, use the installed `review-critic` custom agent for the Critic pass and `review-security` for the specialist security pass, but still supply the Critic with a read-first task prompt for [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md), [`critic-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md), and [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md). If unavailable, use generic fresh-context sub-agents with the same read-first instructions. Inline Critic fallback must include `Critic Coverage` in the report.
+
 Merge Critic findings into the OWASP/trust-boundary categories before the Findings Filter runs. Do not treat the Critic as a separate mode or an optional escalation.
 
 
@@ -128,6 +130,9 @@ Categorize findings using the unified severity scale from `review-verdict.md`:
 
 ## Trust-Boundary Map
 - [Source → validation → sink, per analyzed flow]
+
+## Critic Coverage
+[Attacker paths, trust-boundary assumptions, unhappy paths, replay/race/resource-exhaustion paths attacked. Required when Critic ran inline.]
 
 ## Verification Evidence
 - Scanners run: [with result]

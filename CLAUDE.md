@@ -33,7 +33,7 @@ For the deeper architectural picture (skill anatomy, shared-asset propagation, r
 - `plugin/skills/<name>/SKILL.md` – canonical skill prompts.
 - `plugin/skills/<name>/agents/openai.yaml` – Codex/OpenAI metadata for a skill.
 - `plugin/references/` – shared canonical reference files consumed by multiple skills.
-- `plugin/agents/documentation-lookup.md` – the single Claude Code plugin-tier AndThen agent.
+- `plugin/agents/*.md` – Claude Code plugin-tier agents: `documentation-lookup` plus review persona agents.
 - `scripts/install-skills.sh` – install-time portability rewrites and shared reference inlining.
 - `README.md` – public intro and one-line skill purposes only.
 - `plugin/README.md` – canonical user-facing skill reference with flags, modes, options, and edge-case behavior.
@@ -71,15 +71,17 @@ _**Always apply the following rules whenever modifying or creating skills, skill
 Modern frontier models understand *why* things matter. Skills should express **intent** – goals, outcomes, and verification criteria – not micro-managed procedures, if-then chains, or exhaustive enumerations.
 
 **Core principles:**
-- **Why over what**: Explain the reasoning behind non-obvious rules so the model can generalize to novel situations. A rule without a "why" is followed rigidly; a rule with a "why" is followed intelligently. (Aligned with Anthropic's own principle: *"AI models need to understand why we want them to behave in certain ways, rather than merely specifying what we want them to do."*)
+- **Why over what**: Explain the reasoning behind non-obvious rules so the model can generalize to novel situations. A rule without a "why" is followed rigidly; a rule with a "why" is followed intelligently.
 - **Right altitude**: Use heuristics and principles, not step-by-step prescriptions. If a frontier model would naturally do something, don't instruct it. Be specific about counter-intuitive behaviors, cross-skill integration contracts, and named failure modes. Be general about standard engineering practices.
 - **Named principles over unnamed rules**: A named principle (Chesterton's Fence, Prove-It Pattern, Proof-of-Work, Stop-the-Line) gives the model a conceptual anchor for *when* and *why* the principle applies. An unnamed rule is just a constraint to follow or ignore.
 - **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens – it prevents the model from rationalizing its way past the step.
 - **Headless by default**: Skills should run to completion without waiting for another user turn unless they are explicitly interactive by nature (for example `clarify` or `init`) or blocked by a real contract failure. Prefer explicit assumptions, conservative defaults, and documented open questions over `STOP and WAIT` patterns in execution-oriented skills.
 - **Brevity and clear language**: Pragmatic, actionable, plain. Skills are part of every prompt – words cost tokens.
 - **Repetition is dilution**: When a rule feels weak, name the failure mode at the right altitude. More restatements just compete with each other for attention.
-- **AI agents are the intended audience for skills and reference files**: Write for the model, not for human readers. Avoid over-explaining – be direct and precise.
+- **AI agents are the intended audience for skills and reference files**: Write for agents, not for human readers. Avoid over-explaining – be direct and precise.
 - **Avoid external URLs**: Do not place external URLs in shipped skill content (unless explicitly instructed to).
+
+For the deeper skill-authoring craft (frontmatter, progressive disclosure, description engineering, anti-patterns, evaluation-driven authoring), read _`docs/guidelines/SKILL-AUTHORING-GUIDELINES.md`_ when actually editing a skill.
 
 ### Prompt engineering guidelines
 See _`docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md`_ for more detailed prompt engineering guidelines.
@@ -92,6 +94,7 @@ Always fully read relevant guidelines below as needed, based on the type of work
 - _`docs/guidelines/DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`_ when doing development work (coding, architecture, etc.)
 - _`docs/guidelines/UX-UI-GUIDELINES.md`_ when doing UX/UI related work
 - _`docs/guidelines/WEB-DEV-GUIDELINES.md`_ when doing web development work
+- _`docs/guidelines/SKILL-AUTHORING-GUIDELINES.md`_ when authoring or modifying skills (SKILL.md bundles)
 
 ### Before Editing
 
@@ -108,8 +111,8 @@ Always fully read relevant guidelines below as needed, based on the type of work
 ## Skill And Agent Model
 
 - AndThen capabilities are skills by default. Invoke the `andthen:<name>` skill with `/andthen:<name>` or the Skill tool.
-- Do not pass skill names as `subagent_type`. The only `andthen:*` agent is the `andthen:documentation-lookup` agent, and it exists only in Claude Code plugin-tier installs.
-- Outside the Claude Code plugin tier, documentation lookup is ordinary sub-agent work: spawn a sub-agent and have it consult this file's "Documentation Lookup Tools" section.
+- Do not pass skill names as agent types. Plugin-tier agents are limited to `documentation-lookup` and the review persona agents under `plugin/agents/review-*.md`; user-tier and Codex installs prefix/generate those agents at install time.
+- Outside the Claude Code plugin tier, documentation lookup is ordinary sub-agent work unless generated agents are installed: spawn a sub-agent and have it consult this file's "Documentation Lookup Tools" section.
 - Skills with `context: fork` isolate automatically when invoked. Other skills that need fresh context should be run by a generic sub-agent whose prompt invokes the relevant `/andthen:<name>` command.
 - In prose, every `andthen:<name>` reference must have the type noun adjacent: write "the `andthen:<name>` skill" or "the `andthen:<name>` agent". Avoid the known-bad wording "Spawn `andthen:<skill-name>` sub-agent" because it primes agents to pass skill names as agent types.
 
@@ -190,8 +193,8 @@ See also this skill: `chrome-devtools`
 AndThen has no traditional build/test cycle – it's a skill bundle. The commands that matter:
 
 ```bash
-# Audit andthen:<name> wording across the repo (catches the known-bad
-# "subagent_type: andthen:<name>" anti-pattern and other drift):
+# Audit andthen:<name> wording across the repo (catches skill-as-agent
+# anti-patterns and other drift):
 rg 'andthen:[a-z-]+' CLAUDE.md plugin/ docs/
 
 # Install skills locally for testing:

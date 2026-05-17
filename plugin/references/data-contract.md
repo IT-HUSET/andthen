@@ -4,10 +4,20 @@ This document is the **single canonical source** for the FIS data contract and f
 
 > Skills that reference this document: `ops`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`.
 
+## Contents
+
+- FIS Mutability Contract – read-only execution input + the sanctioned write paths via `andthen:ops`
+- Plan Schema – pointer to `plan-schema.md` (single source of truth for `plan.json` shape)
+- Plan Issue Catalog (markdown) – column-to-JSON-field mapping for `--to-issue` / `--from-issue` transport
+- FIS-Unset Sentinel (markdown rendering only) – regex for the `FIS` cell `null` rendering
+- FIS Structural Integrity Contract – the two gate conditions enforced before `exec-spec` destructive work
+- FIS Filename Convention – `s{NN}-{name}.md` rules
+- FIS Provenance Fields – the `**Plan**:` / `**Story-ID**:` header pair
+
 
 ## FIS Mutability Contract
 
-FIS spec content – Required Context, Success Criteria, Scenarios, Scope, Architecture Decision, Implementation Plan, Testing Strategy, and Validation – is read-only input to the `andthen:exec-spec` skill during execution.
+All FIS spec content – every H2 from `## Feature Overview and Goal` through `## Final Validation Checklist` – is read-only input to the `andthen:exec-spec` skill during execution. Sections that ship empty in the typical case (Technical Overview, Testing Strategy, Validation, Execution Contract, Final Validation Checklist) are still read; an empty body means "standard handling applies" per the section's own prompt. Required Context and Deeper Context are content-conditional: emitted with inlined blocks/pointers when upstream sources exist, omitted entirely otherwise.
 
 The FIS itself is mutable only through the `andthen:ops` skill's `update-fis <path> <task_id|all>`, `update-fis <path> observations <markdown-body>`, and `update-fis <path> discovered-requirements <markdown-body>` forms. No other write path is sanctioned.
 
@@ -63,15 +73,14 @@ This covers: ASCII hyphen `-` (U+002D), en-dash `–` (U+2013), em-dash `–` (U
 
 ## FIS Structural Integrity Contract
 
-Before executing destructive work, `exec-spec` Step 2 verifies the FIS is structurally well-formed. The three required conditions:
+Before executing destructive work, `exec-spec` Step 2 verifies the FIS is structurally well-formed. The two required conditions:
 
-1. **`## Success Criteria` heading exists** – matched by `^## Success Criteria` – and its span (heading line through the next `^## ` heading or EOF) contains at least one `- [ ] ` checkbox line.
+1. **`## Acceptance Scenarios` heading exists** – matched by `^## Acceptance Scenarios` – and its span (heading line through the next `^## ` heading or EOF) contains at least one `- [ ] ` checkbox line.
 2. **`## Implementation Plan` heading exists** – matched by `^## Implementation Plan` – and its span contains at least one task with a Verify line (matched by `Verify:` or `**Verify**:` anywhere in the span).
-3. **`## Final Validation Checklist` heading exists** – presence-only check; matched by `^## Final Validation Checklist`.
 
-Failure on any condition: emit `BLOCKED: <fis-path> missing: <comma-separated section list>` and exit before Step 3. Do not enter Step 3 on a failed structural check.
+Failure on any condition: emit `BLOCKED: <fis-path> missing: <comma-separated section list>` (the list only ever names `## Acceptance Scenarios` and/or `## Implementation Plan`) and exit before Step 3. Do not enter Step 3 on a failed structural check.
 
-> Older FIS files lacking the required structural sections (Success Criteria, Implementation Plan, Final Validation Checklist) fail this check intentionally. The `BLOCKED:` message instructs the user to re-spec.
+> FIS files lacking `## Acceptance Scenarios` (typically older files predating the current contract – e.g. those carrying `## Success Criteria` instead) fail this check intentionally. The `BLOCKED:` message instructs the user to re-spec. `## Final Validation Checklist` ships visible-empty in the template (heading present, body typically empty per the section's "**Leave empty** when…" prompt) and is not gated by this contract – authors may also omit the heading when no feature-specific final gates apply.
 
 
 ## FIS Filename Convention

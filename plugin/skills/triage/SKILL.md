@@ -21,8 +21,8 @@ ARGUMENTS: `$ARGUMENTS` (strip any flag tokens like `--plan-only`, `--investigat
 
 ## INSTRUCTIONS
 
-- Read the project rules and relevant guidelines before starting.
-- **Automation mode** (`--auto` / `--headless`) – never ask the user what to do next. Resolve routine ambiguity by picking the most conservative fix-forward option and recording it as an assumption in the completion report or fix plan. Do not emit arrow-prompts – replace each `-> Which approach?` / `-> Want me to create tasks?` / `-> Which behavior?` with an explicit assumption or, when no safe option exists, stop with `BLOCKED:` listing the minimum missing decisions. Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt – it is deterministic).
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- **Automation mode** (`--auto` / `--headless`) – never ask the user what to do next. Resolve routine ambiguity conservatively; record as an assumption in the completion report. Do not emit arrow-prompts; replace with an explicit assumption or stop with `BLOCKED:` when no safe option exists. Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt – it is deterministic).
 - Troubleshoot systematically across build, runtime, tests, quality, config, and integration layers.
 - Apply the diagnostic methodology from `references/diagnostic.md` before applying fixes. It covers both runtime/regression triage and build/configuration failures.
 - Read the `Learnings` document and the `State` document (see **Project Document Index**) if they exist.

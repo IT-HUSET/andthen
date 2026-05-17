@@ -46,7 +46,17 @@ If no implementation target exists yet, stop and report that gap analysis cannot
 
 ## 1. Compile Requirements
 
-Gather the requirements baseline from docs, issues, comments, and caller context. Build a concise view of expected behavior, success criteria, constraints, and non-functional requirements. Verify external technical claims against authoritative docs when needed.
+Gather the requirements baseline from docs, issues, comments, and caller context. Build a concise view of expected behavior, acceptance criteria, constraints, and non-functional requirements. Verify external technical claims against authoritative docs when needed.
+
+### FIS baseline (when a FIS is in scope)
+
+When the requirements baseline includes a FIS, compile the three proof surfaces by their distinct roles:
+
+- **Acceptance Scenarios** as behavioral requirements – each canonical `- [ ] **S<NN> [TI<NN>] <description>**` checkbox is one behavioral requirement; the nested Given/When/Then is the contract. Canonical shape: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#acceptance-scenarios-and-proof-of-work). A concrete instance reads like `- [ ] **S01 [TI01,TI03] Happy path — user can export filtered results**`.
+- **Structural Criteria** as non-behavioral proof requirements – each checkbox names a verifiable structural property that must hold (e.g. "existing tests pass", "API contract unchanged"). These are proved by task Verify lines, not scenarios.
+- **Work Areas** as forward-coverage anchors – each bullet names a component, file, or surface that must be covered by at least one task or scenario. A Work Area with no implementing task, scenario, or implementation evidence is a gap (see Forward-coverage gaps in Step 4).
+
+Where the lens elsewhere refers to "acceptance criteria" generically, those are the Acceptance Scenarios above when the baseline is a FIS. Generic language continues to apply for non-FIS baselines (PRDs, issues, ad-hoc requirements).
 
 
 ## 2. Inspect Current Implementation
@@ -77,6 +87,8 @@ Compare requirements to the implementation and record gaps in the categories bel
 
 - **Functionality gaps** – missing or incomplete features, unfulfilled acceptance criteria, absent error handling, unhandled edge cases, weak input validation, missing user-facing feedback for failure paths.
 
+- **Forward-coverage gaps** _(FIS baselines)_ – Work Areas declared in the FIS that lack any corresponding task, scenario proof, or implementation evidence in the changed files. Distinct from missing-test or missing-feature gaps: a Work Area declares a surface that must be exercised; if nothing proves it was touched, the scope was claimed but not delivered.
+
 - **Integration gaps** – missing or broken integration points (API endpoints, database migrations, configuration, feature flags, jobs, workers, CLI entry points). Incomplete data flows between modules, broken or stale dependencies, contract mismatches at module boundaries, missing wiring for new components into the system.
 
 - **Requirement mismatches** – behavior or logic that does not match what the requirements specify. Incorrect defaults, inverted conditions, misinterpreted acceptance criteria. Unmet non-functional requirements: performance, security, accessibility, internationalization, observability, compatibility.
@@ -96,7 +108,9 @@ Compare requirements to the implementation and record gaps in the categories bel
 
 ## 5. Critic Sub-Lens (Always On): Behavioral Dry-Run Walkthrough
 
-Use `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md` for the posture of this walkthrough. The rubric below is the canonical gap-review Critic work.
+Use `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` for the posture of this walkthrough. The rubric below is the canonical gap-review Critic work.
+
+When available, use the installed `review-critic` custom agent for this behavioral dry-run, but still supply a read-first task prompt for `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`. If unavailable, use a generic fresh-context sub-agent with the same read-first instruction. Inline fallback must include `Critic Coverage` in the report.
 
 Methodically simulate how the implementation actually runs against each requirement, one path at a time. This surfaces issues that mechanical file-vs-spec comparison misses: latent state bugs, incorrect logic, fragile assumptions, missing defensive behavior, and requirements filled in by guessing.
 
@@ -216,6 +230,9 @@ overview, verdict table, high-level findings, Findings Filter stats
 
 ## Behavioral Dry-Run Findings
 (issues surfaced by the Step 5 walkthrough that are not already covered above – logic flaws, unstated assumptions, unhappy-path and edge-case gaps, fragile composition)
+
+## Critic Coverage
+(assumptions, requirements paths, unhappy paths, hidden coupling, and incomplete wiring attacked. Required when Critic ran inline.)
 
 ## Remediation Plan
 Critical / High / Medium / Low, dependencies, sequencing, acceptance criteria

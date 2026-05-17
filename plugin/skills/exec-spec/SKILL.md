@@ -23,14 +23,15 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 ## INSTRUCTIONS
 
 ### Core Rules
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
 - Require `FIS_FILE_PATH`. Stop if missing.
 - **Complete implementation** – reporting incomplete work with a caveat is **not** completion.
 - **FIS is source of truth** – follow it exactly.
-- **Execution discipline** – Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
+- **Execution discipline** – Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (referenced below as *The Execution-Discipline Rules*).
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
 - **Retry-safe dirty worktrees** – before editing, classify existing dirty paths. Resume only when they clearly belong to this FIS; preserve unrelated edits; `BLOCKED:` on ambiguous overlap. Never discard or overwrite pre-existing edits.
 - **Direct execution** – implement the code yourself. Sub-agents are for advisory work, review, and validation only.
-- **Surgical scope; surface – don't fix** – every changed line should trace to a FIS task. Clean only orphans your own changes caused (an import you made unused, a helper your refactor stranded). Pre-existing issues outside that orphan radius – including lint/analyzer warnings, dead code, typos, and small co-located bugs *inside files you touch* – go into a `NOTICED BUT NOT TOUCHING` block in working notes during the run, are persisted to the FIS's `## Implementation Observations` section at completion (Step 5b), and are surfaced as a brief pointer (not a full duplicate) from the completion report; do not fix inline. Boy Scout cleanup is reserved for review/refactor skills (the `andthen:review`, `andthen:quick-review`, `andthen:refactor`, and `andthen:architecture` skills), not exec-spec. See **Project-Specific Guidelines and Rules** in the project's root agent instruction file (`CLAUDE.md` / `AGENTS.md`).
+- **Surgical scope; surface – don't fix** – every changed line should trace to a FIS task. Clean only orphans your own changes caused (e.g. an import you made unused). Pre-existing issues go into a `NOTICED BUT NOT TOUCHING` block during the run, persist to the FIS's `## Implementation Observations` at completion (Step 5b), and pointer from the completion report. Boy Scout cleanup is reserved for review-, cleanup-, and remediation-driven skills, not exec-spec.
 - **Anti-rationalization** – reject rationalizations for skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate (e.g. *"I'll verify after the next group"*, *"this failing check is unrelated"*, *"I'll batch status updates at the end"*, *"completing with a caveat is fine"*). Broken is not Done; Stop-the-Line applies.
 
 ### Proactive Sub-Agents
@@ -78,10 +79,9 @@ Usage rules:
 
 1. Read the full FIS at `FIS_FILE_PATH`.
 
-2. **Structural integrity guard** – verify the FIS is well-formed before any destructive work. Apply the three conditions from [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (FIS Structural Integrity Contract section):
-   - `## Success Criteria` heading exists and its span contains at least one `- [ ] ` line.
+2. **Structural integrity guard** – verify the FIS is well-formed before any destructive work. Apply the two conditions from [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (FIS Structural Integrity Contract section):
+   - `## Acceptance Scenarios` heading exists and its span contains at least one `- [ ] ` line.
    - `## Implementation Plan` heading exists and its span contains at least one task with a Verify line.
-   - `## Final Validation Checklist` heading exists.
 
    On any failure: emit `BLOCKED: <FIS_FILE_PATH> missing: <comma-separated list of failed sections>` and stop. Do not read upstream documents, do not enter Step 3.
 
@@ -91,7 +91,7 @@ Usage rules:
    - Unrelated: record `BASELINE_DIRTY=<paths>`; preserve and exclude from `changed-files`.
    - Ambiguous overlap: stop before editing. In `AUTO_MODE`, emit `BLOCKED: dirty worktree overlaps {STORY_ID}: <paths>`; otherwise surface `CONFUSION:`.
 
-4. Understand the sections that define execution: Success Criteria, Scenarios, Scope & Boundaries, Architecture Decision, Technical Overview, Implementation Plan, Testing Strategy, Validation, and Final Validation Checklist.
+4. Understand the sections that define execution: Required Context, Acceptance Scenarios, Structural Criteria, Scope & Boundaries, Architecture Decision, Code Patterns & External References, Constraints & Gotchas, and Implementation Plan. Visible-empty sub-sections (Testing Strategy, Validation, Execution Contract) plus Technical Overview and Final Validation Checklist usually ship empty per the template's "**Leave empty** when…" prompts – read them when present, treat empty bodies as "standard handling applies."
 
 5. **Process Required / Deeper Context** – the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution; do not re-read source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional – read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source and warn (do not stop) on broken anchors.
 
@@ -105,7 +105,7 @@ Usage rules:
 
 10. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
 
-11. **Scaffold scenario tests** – if the FIS has **Scenarios** and/or **Testing Strategy**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
+11. **Scaffold scenario tests** – if the FIS has **Acceptance Scenarios**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
 
 12. **UI design contract** – if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
 
@@ -137,7 +137,7 @@ For each task:
 Every test and motivated source-code change must trace to a requirement already present in the FIS or appended through the sanctioned Discovered Requirements path. Apply these friction tiers:
 
 - **Tier A – free pass**: Tidy First refactors, helper extractions transitively traced through a parent test, renames, formatting, and type-narrowing need no extra note when behavior is unchanged.
-- **Tier B – inline trace**: each new test names the scenario or success-criterion ID it satisfies via test name, comment, or task report line; each new code path is motivated by a currently-failing test.
+- **Tier B – inline trace**: each new test names the Acceptance Scenario ID or Structural Criterion it satisfies via test name, comment, or task report line; each new code path is motivated by a currently-failing test.
 - **Tier C – stop-and-amend**: discovered edge cases, failure modes, or scenario ambiguities must be appended through the `andthen:ops` skill's `update-fis <path> discovered-requirements <body>` form before writing the test or code that addresses them. Mark the entry persisted in working notes only after `update-fis` returns success – Step 5b's catch-up pass relies on the unpersisted-list being truthful. For regression-style discoveries (a defect surfaced mid-run, not a missing edge case), follow the Prove-It path: the first dependent test pins the defect and stays as a regression guard.
 
 On `BLOCKED: invalid discovered-requirements body` from this op, reformat per the ops skill's body constraints and retry once. Persistent failure: do not write the dependent test or code (Tier C's "append before dependent change" temporal invariant). Surface as `CONFUSION` (interactive) or `BLOCKED:` in the completion report (`AUTO_MODE`).
@@ -146,7 +146,7 @@ For Tier C in `AUTO_MODE`, pick the conservative interpretation, append the disc
 
 Implementation rules:
 - When stuck, emit named output blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:` → `-> Which approach?`, `NOTICED BUT NOT TOUCHING:` → `-> Want me to create tasks?`, `MISSING REQUIREMENT:` → `-> Which behavior?`. Under `AUTO_MODE`, see the reference's AUTO_MODE Override section.
-- Spawn proactive sub-agents when the need arises, but keep ownership of the code changes locally
+- Spawn proactive sub-agents for advisory work; retain code ownership locally
 - If `changed-files` becomes incomplete or ambiguous, derive it from the current worktree diff before Step 4, subtracting `BASELINE_DIRTY`
 
 ### Step 4: Validate
@@ -174,14 +174,14 @@ Steps 4b and 4c can run in parallel.
 
 #### 4d. Remediation
 
-Apply the Gate Classes policy from `${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md`.
+Apply the Gate Classes policy from *The Execution-Discipline Rules*.
 
 1. **Collect** – combine required failures from 4a with findings from 4b/4c. A failed build/test/lint/format/stub/wiring check is a remediation input even if the code review does not flag it separately.
 2. **Triage** – severity scale: CRITICAL/HIGH must fix, MEDIUM should fix, LOW optional.
 3. **Objective red gates (4a)** – iterate until green, invoking the `andthen:triage` skill when iteration stalls.
 4. **Subjective findings (4b/4c)** – one pass on CRITICAL/HIGH, re-run the affected lens (`/andthen:review --mode code` or visual validation) on the touched scope; escalate if they persist.
 
-If a gate or Success Criterion stays red after repair, do not mark completion.
+If a gate, Acceptance Scenario, or Structural Criterion stays red after repair, do not mark completion.
 
 **Persistent-failure State writes** (plan-backed FIS; State document exists; **skip if `DEFER_SHARED_WRITES=true`** – orchestrator owns aggregate health):
 1. `andthen:ops update-state blocker "{STORY_ID}: exec-spec persistent-failure"` – stable description so a later successful re-run of this story can remove this exact entry per Step 5b.3's "Clear prior blocker" call. Failure detail lives in the Failed Story Report below, not in the blocker text.
@@ -199,7 +199,7 @@ All substeps below are gates – complete them before finishing.
 Status writes are gates, not bookkeeping. Run each substep in order, then verify before reporting completion. Do not collapse this into a single hand-wave invocation – the failure mode for this step is _silent partial execution at end of context_.
 
 1. **FIS** (always) – invoke the `andthen:ops` skill:
-   - `update-fis {FIS_FILE_PATH} all` – Marks task checkboxes, success criteria, and Final Validation Checklist items in one pass.
+   - `update-fis {FIS_FILE_PATH} all` – Marks task checkboxes, every Acceptance Scenario checkbox (canonical shape per fis-authoring-guidelines.md), every Structural Criteria checkbox, and Final Validation Checklist items (when the section is present) in one pass.
    - **Persist observations** (if any): if working notes contain `NOTICED BUT NOT TOUCHING` items or AUTO_MODE `ASSUMPTION` records, format them as a markdown body with `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)` subsections (each item one line, file:line if applicable), then invoke `update-fis {FIS_FILE_PATH} observations '{body}'`. Skip when both lists are empty. The ops skill appends a timestamped `### Run:` block to the FIS's `## Implementation Observations` section (creating the section if absent).
    - **Persist Discovered Requirements** (if any remain unpersisted): Tier C normally appends before dependent tests/code in Step 3. If working notes still contain unpersisted Discovered Requirements entries, format them as a markdown body with a `#### DISCOVERED REQUIREMENTS` subsection using the FIS template entry shape, then invoke `update-fis {FIS_FILE_PATH} discovered-requirements '{body}'`. Skip when the unpersisted list is empty.
 
@@ -223,7 +223,7 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
       - else → `On Track`
 
 4. **Verify** – re-read each updated file:
-   - **FIS**: every task checkbox `[x]`; Final Validation Checklist `[x]`; success criteria `[x]`. If observations or Discovered Requirements were persisted, the `## Implementation Observations` section contains a new `### Run:` block dated to this run.
+   - **FIS**: every task checkbox `[x]`; every Acceptance Scenario checkbox `[x]`; every Structural Criteria checkbox `[x]`; Final Validation Checklist `[x]` when the section is present. If observations or Discovered Requirements were persisted, the `## Implementation Observations` section contains a new `### Run:` block dated to this run.
    - **Plan** (if 5b.2 ran): the story's `status` is `"done"` and `fis` points at `{FIS_FILE_PATH}`.
    - **State** (if 5b.3 ran): story absent from Active Stories.
    - Any miss → retry the matching `update-*` once. Persistent failure is Stop-the-Line – do not report completion on missing writes.
@@ -246,7 +246,7 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
 
 
 #### 5c. Completion Report
-**Gate** (uses Step 4a results, does not re-run checks): verify all success criteria met, all task checkboxes marked, and Final Validation Checklist items satisfied.
+**Gate** (uses Step 4a results, does not re-run checks): verify all Acceptance Scenarios and Structural Criteria met (every checkbox `[x]`), all task checkboxes marked, and Final Validation Checklist items satisfied when the section is present.
 
 Any miss is not a completion-report caveat. Return to Step 4d; if the miss persists in `AUTO_MODE`, use the Failed Story Report shape above.
 

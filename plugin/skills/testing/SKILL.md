@@ -35,6 +35,11 @@ Default to `write` when unsure.
 Always cross-load `test-design.md` when writing assertions and `levels-and-strategy.md` when picking a level.
 
 
+## INSTRUCTIONS
+
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+
+
 ## DECISION FRAMEWORK
 
 1. **Inspect existing test infrastructure** – frameworks, fixtures, helpers, naming conventions. Extend before inventing.

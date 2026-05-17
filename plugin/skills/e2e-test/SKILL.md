@@ -18,7 +18,7 @@ FOCUS: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-- **Fully** read and understand the **Project-Specific Guidelines and Rules** section in CLAUDE.md / AGENTS.md (or system prompt) before starting work, including any Visual Validation Workflow sections
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work** – including any Visual Validation Workflow sections.
 - **Fix bugs found during testing** – this skill is not read-only; fix and document issues discovered
 - Use the `agent-browser` skill for all browser automation (snapshots, clicks, form fills, screenshots)
 - If `agent-browser` is unavailable, warn the user and stop

@@ -44,7 +44,7 @@ Modes `research` and `review` describe inputs in prose – see their mode refere
 
 - When `ARGUMENTS` is empty or ambiguous, start with guided setup (Phase 0). Do not pick a mode by default.
 - **Automation mode** (`--auto` / `--headless`) – never ask the user what to do next. Infer mode and inputs from the arguments via the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` listing the minimum missing inputs. Propagate `--auto` to nested `andthen:*` skill invocations that accept it.
-- Read the Project-Specific Guidelines and Rules section, and relevant guidelines (UX/UI and Web Dev as applicable), before starting.
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work** – including relevant UX/UI and Web Dev guidelines.
 - **Favor simplicity** – recommend simplest solution (KISS, YAGNI, DRY). Start minimal; add only what's needed.
 - **Intentional visual direction** – avoid generic AI aesthetics and default stacks. Choose typography with character. Use color intentionally with a dominant direction and clear accents.
 - **Platform-agnostic canonical reference** – design tokens, wireframes, and style decisions serve as the canonical reference for ALL target platforms (web, mobile, desktop). Platform-specific implementation happens downstream.

@@ -1,7 +1,7 @@
 ---
 description: "The default review skill - start here for all reviews. Runs code, doc, gap, security, or mixed review - single lens or `--mode a,b` chains - plus multi-perspective council mode via `--council`. Trigger on 'review this', 'review this PR/spec/PRD', 'audit this', 'security review', 'OWASP review', 'does this match the spec', 'council review', 'adversarial review', 'critic review', 'red-team review', 'skeptic review', 'multi-reviewer'."
 user-invocable: true
-argument-hint: "[--mode <mode>[,<mode>...]] [--council] [--team] [--fix] [--inline-findings] [--output-dir <path>] [--from-pr <number>] [--to-pr <number>] [--worktree] [--auto|--headless] [target/files/PR/spec path]"
+argument-hint: "[--mode <mode>[,<mode>...]] [--council] [--team] [--fix] [--inline-findings] [--output-dir <path>] [--from-pr <number>] [--to-pr <number>] [--worktree] [--visual] [--auto|--headless] [target/files/PR/spec path]"
 ---
 
 # Review
@@ -9,11 +9,11 @@ argument-hint: "[--mode <mode>[,<mode>...]] [--council] [--team] [--fix] [--inli
 Unified review skill. Determine what is actually being reviewed, run the right lens inline, and produce one consolidated result.
 
 ## VARIABLES
-ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--council`, `--team`, `--fix`, `--inline-findings`, `--output-dir`, `--from-pr`, `--to-pr`, `--worktree`, `--auto`, or `--headless` before interpreting the remainder as target/path/PR/focus)
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--council`, `--team`, `--fix`, `--inline-findings`, `--output-dir`, `--from-pr`, `--to-pr`, `--worktree`, `--visual`, `--auto`, or `--headless` before interpreting the remainder as target/path/PR/focus)
 
 ### Optional Mode Flags
 - `--mode <mode>[,<mode>...]` → comma-separated list. Values: `code`, `doc`, `gap`, `security`, `mixed`. Single value runs that lens. Multiple values chain in declared order with shared context, producing one combined report. `mixed` auto-resolves (Step 2) and cannot be combined with explicit lenses. Absent → auto-detect per Step 2 routing.
-- `--council` → multi-perspective review with debate (5-7 specialists, Findings Filter, synthesis). Augments the **code** and **security** lenses only; behavior depends on which applicable lenses are in scope:
+- `--council` → multi-perspective review with debate (5-7 specialists, structured findings, Findings Filter, synthesis). Augments the **code** and **security** lenses only; behavior depends on which applicable lenses are in scope:
 
   | Chain shape | Council behavior |
   |---|---|
@@ -31,18 +31,22 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--council`, `--team
 - `--worktree` → opt-in for full-fidelity local review of `--from-pr`: `gh pr checkout <N>` into a temp worktree (reuse the pattern from `plugin/skills/exec-plan/references/team-mode-orchestration.md`) and review from there. Use only when a lens genuinely needs project analyzers/build state at the PR HEAD.
 - `--to-pr <number>` → post the consolidated report as a PR comment
 - `--fix` → after the report is written, hand it to the `andthen:remediate-findings` skill to address actionable findings. **Incompatible with `--inline-findings`** – reject up-front, before running any review work. When combined with `--to-pr <number>`, post the PR comment first (so the comment reflects the original findings), then run remediation.
+- `--visual` → VISUAL_MODE: after the consolidated report file is written (and any `--to-pr` / `--fix` actions land), invoke the `andthen:visualize` skill on the produced report. Convenience handoff – the visualizer owns HTML rendering, severity-coded risk-map chips, finding-card navigation, note export, and `.agent_temp/visual-review/` output. **Incompatible with `--inline-findings`** – no report file to visualize; reject up-front.
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
 
-- Read the Project-Specific Guidelines and Rules section, and relevant project guidelines, before starting.
-- Review is read-only; editing only runs in Step 5 (`--fix`) via the `andthen:remediate-findings` skill.
-- Reject up-front: `--fix` + `--inline-findings` (remediation needs a file); `--output-dir` + `--inline-findings` (no file to apply to); any chain containing `mixed` (e.g. `--mode mixed,gap`) – `mixed` is a resolver, print correction and stop. `--worktree` without `--from-pr` is also rejected up-front (`BLOCKED: --worktree requires --from-pr` in `AUTO_MODE`); the flag has no other meaning in this skill (do not confuse with the `andthen:exec-plan` skill's `--worktree` semantics).
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- **Guardrails pass** – a lens-independent finding axis run once per review. Procedure lives in Step 3; findings and the coverage line land in the consolidated report's **Guardrails** section.
+- Review is read-only; editing only runs in Step 6 (`--fix`) via the `andthen:remediate-findings` skill.
+- Reject up-front: `--fix` + `--inline-findings` (remediation needs a file); `--output-dir` + `--inline-findings` (no file to apply to); `--visual` + `--inline-findings` (no file to visualize); any chain containing `mixed` (e.g. `--mode mixed,gap`) – `mixed` is a resolver, print correction and stop. `--worktree` without `--from-pr` is also rejected up-front (`BLOCKED: --worktree requires --from-pr` in `AUTO_MODE`); the flag has no other meaning in this skill (do not confuse with the `andthen:exec-plan` skill's `--worktree` semantics).
 - **Explicit `--mode code` rule**: Explicit lens sets are honored – no silent broadening. See the Step 2 mixed-resolver carve-out for the canonical statement and HIGH finding contract.
 - Default to the minimum correct lens; load lens references before running; chains run in declared order with shared target map – never re-classify or re-scan.
 - **Anti-leniency**: `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` § Anti-Leniency Protocol – record findings at find time; severity and dismissal belong to calibration and the Findings Filter, not to ad-hoc rationalization.
 - **Calibration-first**: Always load `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (universal) plus the lens-specific calibration (cited by each lens reference) before categorising findings. The Critic sub-lens also loads `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`; the Findings Filter uses `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` after findings are collected.
+- **Structured findings**: Code, doc, gap, security, and council findings use the contract from `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` / `references/council-mode.md`: reviewer, severity, confidence, location, scope relation, finding, threatened assumption or invariant, evidence, impact, suggested fix, verification needed. Lens reports may render this as markdown, but the fields must be present.
+- **Critic enforcement**: Every selected lens runs the Critic posture as an actual finding pass. When sub-agents are supported, dispatch a read-first Critic task that explicitly includes `lens-adversarial.md`, `critic-calibration.md`, and `review-calibration.md`; prefer the installed `review-critic` agent for that task when the host can select it, otherwise use a generic fresh-context sub-agent. Inline fallback is allowed only when sub-agents are unavailable, and the report must include a short `Critic Coverage` note naming what assumptions, unhappy paths, and hidden coupling were attacked.
 - **FIS Required / Deeper Context handling** (when a FIS is in scope): see `references/lens-doc.md` and `references/lens-gap.md` for the authoritative handling rules (treat Required Context as upstream intent; warn on broken Deeper Context anchors; legacy FIS fallback).
 - **Default output is a report file.** `--inline-findings` is the explicit opt-out; without it, always write the consolidated report to disk.
 - **Automation mode** (`--auto` / `--headless`) – never ask the user what to do next; auto-detect the minimum correct lens; write the normal report artifact; propagate `--auto` to nested `andthen:*` skill invocations (the `andthen:ops` skill is exempt – it is deterministic). Stop with `BLOCKED:` only when the requested mode cannot resolve a required target/baseline, an external action is unsafe, or report publication fails.
@@ -107,7 +111,19 @@ A "usable baseline" is a spec/FIS/PRD/plan that genuinely scopes the implementat
 **Gate**: Lens set is resolved (single lens or ordered chain) and justified
 
 
-### 3. Run the Selected Lens(es)
+### 3. Guardrails Pass
+
+Run once against the change set, before any lens executes. Produces lens-independent findings that land in the consolidated report's **Guardrails** section.
+
+1. Enumerate the project's rules, guardrails, principles and guidelines from your context (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files).
+2. Filter to those a diff can verify (skip process-only rules like *"verify before claiming done"* that aren't observable in the artifact).
+3. For each applicable rule, check the change set; record violations as findings with the rule cited by source (file and section).
+4. Report `Guardrails Coverage: N checked, M findings`; carry the line and any findings into Step 5 for the consolidated report.
+
+**Gate**: Guardrails pass complete; coverage line and any findings ready for the consolidated report
+
+
+### 4. Run the Selected Lens(es)
 
 Load the lens reference(s) for the resolved lens set and run each lens inline. References carry the rubric, dimensions, calibration pointers, and report format:
 
@@ -120,7 +136,12 @@ Load the lens reference(s) for the resolved lens set and run each lens inline. R
 
 Unified severity and verdict: `references/review-verdict.md` – CRITICAL / HIGH / MEDIUM / LOW; per-mode readiness/verdict rules defined there.
 
-Each lens reference includes the always-on Critic sub-lens (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`) and its calibration (`${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`). This is not a separate mode token.
+Each lens reference includes the always-on Critic sub-lens (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`) plus its finding calibration (`${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`) and anti-leniency calibration (`${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`). This is not a separate mode token.
+
+**Critic pass execution**: For `code`, `doc`, `gap`, and `security`, run or simulate a separate Critic pass before filtering:
+- Preferred: installed `review-critic` custom agent, selected as the executor for a read-first task prompt supplied with the target map, lens scope, relevant lens reference, `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`.
+- Fallback: generic fresh-context sub-agent with the same read-first instruction.
+- Last resort: inline application of the Critic rubric with a required `Critic Coverage` note in the report.
 
 **Single lens**: load its reference and run the lens.
 
@@ -130,12 +151,12 @@ Each lens reference includes the always-on Critic sub-lens (`${CLAUDE_PLUGIN_ROO
 
 **Security lens**: run the applicability gate (OWASP checklists for the surface), then checklists, trust-boundary analysis, scanners, and the always-on Critic sub-lens. Parallel per checklist when sub-agents are available.
 
-**Council mode** (`--council`): load `references/council-mode.md`; council scopes to `code` and `security` and owns reviewer selection, debate, and report structure.
+**Council mode** (`--council`): load `references/council-mode.md`; council scopes to `code` and `security` and owns reviewer selection, custom-agent preference, debate, structured findings, and report structure.
 
 **Gate**: All declared lenses complete
 
 
-### 4. Synthesize One Final Result
+### 5. Synthesize One Final Result
 
 **Default path – write a consolidated markdown report file.** Use this deterministic suffix mapping (downstream skills parse the filename – do not vary):
 
@@ -154,7 +175,7 @@ The mode token (third column) is the canonical, parseable string downstream cons
 
 **Filename and directory** – resolve per [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md); pass the suffix from the table above and `--output-dir` when set.
 
-Report/inline content: **Scope** · **Review mode used** (canonical token – exactly one, parseable line) · **Resolved chain** (when `mixed`) · **Per-lens findings** by severity · **Overall readiness/verdict** per `references/review-verdict.md`.
+Report/inline content: **Scope** · **Review mode used** (canonical token – exactly one, parseable line) · **Resolved chain** (when `mixed`) · **Guardrails** (`Guardrails Coverage: N checked, M findings` line + any guardrail-violation findings with rule cited by source) · **Per-lens findings** by severity · **Overall readiness/verdict** per `references/review-verdict.md`.
 
 `--inline-findings`: skip the file; return the same structured content inline.
 
@@ -165,11 +186,18 @@ For **chains**: one combined result with per-lens sections; merge overlapping fi
 **Gate**: One consolidated result delivered
 
 
-### 5. Remediate _(only when `--fix`)_
+### 6. Remediate _(only when `--fix`)_
 
 Invoke the `andthen:remediate-findings` skill with the report path (append `--auto` when `AUTO_MODE=true`). Skip only when nothing is actionable – a single-lens `gap` PASS, or a clean report with no findings across any lens.
 
 **Gate**: Remediation invoked or explicitly skipped with reason
+
+
+### 7. Visual Review _(only when `--visual`)_
+
+After the consolidated report is written and any `--to-pr` / `--fix` actions land, invoke the `andthen:visualize` skill on the report path. Print both the report path and the visualizer's output path. The visualizer renders findings as severity-coded cards with a risk-map chip row above the Findings section, surfaces the verdict/readiness as the status pill, and exposes the gap-mode PASS/FAIL block as the section TL;DR callout.
+
+**Gate**: Visualization invoked or explicitly skipped with reason
 
 
 ## FOLLOW-UP ACTIONS
@@ -181,3 +209,4 @@ After the report, ask whether the user wants to:
 2. Focus on a narrower area
 3. When the lens set includes **doc** and the doc lens produced a requirement-gap cluster – offer to run the `andthen:clarify` skill against the listed gaps (skip when `--fix` already ran)
 4. For FAIL / `Needs Significant Rework` / `Not Ready` / CRITICAL outcomes – run the `andthen:remediate-findings` skill with the report path (skip when `--fix` already ran)
+5. **Review visually** – run `andthen:visualize <report-path>` to triage findings by severity, navigate via the risk-map chips, and copy section-anchored notes (skip when `--visual` already ran)

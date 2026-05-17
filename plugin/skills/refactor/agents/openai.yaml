@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Refactor"
-  short_description: "Refactor or clean up code"
-  default_prompt: "Systematically improve and simplify code for clarity, consistency, and maintainability. Scope: "
+  short_description: "Alias for simplify-code"
+  default_prompt: "Compatibility alias for simplify-code. Scope: "
 
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

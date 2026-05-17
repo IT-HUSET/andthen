@@ -154,7 +154,7 @@ Source of truth for the checklist depends on mode:
 - **Worktree** – primary writes come from the Merge Wave step's post-review "apply deferred shared writes" substep, not from inside the worktree branch. Run the checklist after the deferred writes are applied and committed (single-repo: read from `{BASE_BRANCH}`; multi-repo: read directly from `PLAN_DIR`). Any miss after that is a real loss → repair via the matching `andthen:ops update-*` once.
 - **No worktree** – `exec-spec` Step 5b writes status in-place. Run the checklist as in Step 3c; one-shot repair on miss.
 
-Additionally verify the **Plan Acceptance Gate** before accepting `Done`: each FIS success criterion is demonstrably satisfied, implementation observations are present when the FIS narrowed scope, and the story's `review-*` task completed without accepted quick-review findings.
+Additionally verify the **Plan Acceptance Gate** before accepting `Done`: every FIS Acceptance Scenario and Structural Criteria checkbox is `[x]` (with Final Validation Checklist items satisfied when the section is present), implementation observations are present when the FIS narrowed scope, and the story's `review-*` task completed without accepted quick-review findings.
 
 Checklist pass → record the story in the orchestrator run ledger's `completed` list.
 

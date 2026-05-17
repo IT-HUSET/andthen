@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Plan"
-  short_description: "Create an implementation plan with FIS specs for every story"
-  default_prompt: "Create an implementation plan with story breakdown and FIS specs for every story. Requires an existing prd.md in the input directory. Plan directory: "
+  short_description: "Create an implementation plan with FIS specs for every story; `--visual` delegates to andthen:visualize"
+  default_prompt: "Create an implementation plan with story breakdown and FIS specs for every story. Requires an existing prd.md in the input directory. Pass `--visual` to hand the produced local `plan.json` bundle to `andthen:visualize` after validation. Plan directory: "
 
 policy:
   allow_implicit_invocation: true

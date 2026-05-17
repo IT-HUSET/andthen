@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Spec"
-  short_description: "Generate a new spec or FIS file before implementation"
-  default_prompt: "Generate a complete Feature Implementation Specification – analyze the codebase first, then write the FIS using the template. Feature: "
+  short_description: "Generate a new spec or FIS file before implementation; `--visual` delegates the produced FIS to andthen:visualize"
+  default_prompt: "Generate a complete Feature Implementation Specification – analyze the codebase first, then write the FIS using the template. Pass `--visual` to hand the produced FIS to `andthen:visualize` after saving. Feature: "
 
 policy:
   allow_implicit_invocation: true

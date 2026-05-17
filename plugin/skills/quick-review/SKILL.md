@@ -24,6 +24,8 @@ FOCUS: $ARGUMENTS (strip any flag tokens like `--inline`, `--fix`, `--auto`, or 
 
 ## INSTRUCTIONS
 
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- **Guardrails pass** – runs once per review alongside the Critic rubric: rule violations become findings cited by source, plus a `Guardrails Coverage: N checked, M findings` line. Procedure lives in Phase 3 (sub-agent dispatch and `--inline` branch).
 - This is a **lightweight mid-conversation review** – a fast, focused checkpoint scoped to recent changes rather than a full formal pass.
 - **Default mode is read-only.** Without `--fix`, this skill must not modify any files – it reviews and reports, nothing else. The reviewer (sub-agent under default dispatch, the outer skill under `--inline`) and any wrapping logic are read-only unless `--fix` is set. The outer skill may edit files only in Phase 4, and only when `--fix` is set on the **current** invocation. If the user wants fixes applied after seeing the report, they must re-invoke with `--fix` – an in-conversation reply alone never unlocks editing.
 - Bias reduction comes from **fresh context** – provided by the sub-agent under default dispatch, by the calling conversation under `--inline`. If the calling conversation is not in fact fresh w.r.t. the change set, the `--inline` branch in Phase 3 falls back to default dispatch.
@@ -74,7 +76,7 @@ Determine what type of work was done to frame the review appropriately:
 
 Apply the canonical Critic rubric to the change set. Default execution dispatches to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; `--inline` applies the rubric directly when the calling conversation is already fresh.
 
-**Default – sub-agent dispatch.** The outer skill loads the same three references itself before dispatch so it can apply the same calibration in Phase 4. Spawn a **single sub-agent** with a prompt of this shape, filled in from the scope and classification steps above:
+**Default – sub-agent dispatch.** The outer skill loads the same three references itself before dispatch so it can apply the same calibration in Phase 4. It also collects a compact **Project Rules Context** from root `CLAUDE.md` / `AGENTS.md` files and the local rule / guideline files they reference that apply to this change set; include source paths so Guardrails findings can cite them. Dispatch a **single Critic pass** with the prompt shape below; prefer the installed `review-critic` custom agent when the host can select it, otherwise use a generic fresh-context sub-agent. The installed-agent path still receives the same read-first prompt – custom agent instructions are not a substitute for calibration.
 
 ```
 Read all three references before applying the rubric:
@@ -82,7 +84,11 @@ Read all three references before applying the rubric:
 - ${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md – find-pass calibration and contrastive examples
 - ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md – Anti-Leniency Protocol
 
+Also read the Project Rules Context below before the Guardrails pass; treat it as the evidence set for project rules, guardrails, principles, and guidelines.
+
 Apply the Critic posture to the change set below.
+
+Also run a **Guardrails pass**: enumerate project rules, guardrails, principles and guidelines from your context (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files); filter to those a diff can verify (skip process-only rules); for each applicable rule, check the change set and report violations as findings with the rule cited by source (file and section). Report `Guardrails Coverage: N checked, M findings` alongside the Critic findings.
 
 ## Context
 {what was done and why – brief description of the task/goal}
@@ -90,17 +96,20 @@ Apply the Critic posture to the change set below.
 ## Review Lens
 {applicable lens from classification step}
 
+## Project Rules Context
+{source-path-labeled rule / guardrail / guideline excerpts collected by the outer skill}
+
 ## Changes to Review
 {the change set – diffs, file contents, or artifact content}
 
 ## Output
 
-Report findings as a concise list using the **Finding Shape** from `lens-adversarial.md`. No preamble, no summary section, no severity table. If no weakness survives the attack, say so explicitly using the wording in that file's Review Instructions.
+Report findings as a concise list using the **Finding Shape** from `lens-adversarial.md` (reviewer, severity, confidence, location, scope relation, finding, threatened assumption or invariant, evidence, impact, suggested fix, verification needed). No preamble, no summary section, no severity table. If no weakness survives the attack, say so explicitly using the wording in that file's Review Instructions. Include the `Guardrails Coverage` line and any guardrail-violation findings (cited by rule source) inline with the rest.
 ```
 
 Provide enough inline context (diffs, file excerpts, project framing) that the sub-agent does not need to explore the codebase extensively.
 
-**`--inline` – in-context application.** Read the same three reference files directly, adopt the Critic posture, and apply it to the change set in the current conversation. Use the same Finding Shape and anti-leniency rules.
+**`--inline` – in-context application.** Read the same three reference files directly, adopt the Critic posture, and apply it to the change set in the current conversation. Run the same Guardrails pass alongside (per INSTRUCTIONS). Use the same Finding Shape and anti-leniency rules; report `Guardrails Coverage: N checked, M findings` alongside the Critic findings.
 
 Before applying the rubric, verify the calling conversation has not produced or substantively reasoned about the change set. If it has, emit `FALLBACK: --inline rejected, dispatching sub-agent (calling conversation not fresh w.r.t. change set)` and continue with default dispatch – surface the fallback in the final report so the caller knows the flag was overridden. In `AUTO_MODE`, the fallback is reported the same way; never silently swap mechanisms.
 

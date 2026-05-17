@@ -1,6 +1,6 @@
 # Clarification Template
 
-Use when the source is a `requirements-clarification.md` from `andthen:clarify`. Detection: H1 starts with "Requirements Clarification"; H2 contains "Decisions Log".
+Use when the source is a `requirements-clarification.md` or product vision artifact from `andthen:clarify`. Detection: H1 starts with "Requirements Clarification"; or product-vision detection from SKILL.md matches.
 
 
 ## Layout
@@ -50,6 +50,10 @@ Auto-`.attention`: cell 1 when count > 0.
 
 
 ## Section Renderers
+
+Dispatch to **Feature Clarification Renderer** when detected type is `clarification`; dispatch to **Product Vision Renderer** when detected type is `product-vision`. Do not treat product vision as a PRD: it is upstream framing, not a feature requirements document.
+
+### Feature Clarification Renderer
 
 ### Scope → 4-column kanban
 
@@ -117,6 +121,23 @@ Render the `| Decision | Rationale | Date |` table; date column muted.
 ```css
 .decisions-log td:last-child { color: var(--text-muted); font-family: var(--mono); white-space: nowrap; }
 ```
+
+
+### Product Vision Renderer
+
+Render the product-scope document (`PRODUCT.md` by default) as a strategic review surface. KPI cells: Personas, Value Propositions, Anti-Goals, Open Questions. Add attention styling when Anti-Goals or Open Questions is non-zero.
+
+Section dispatch:
+- `Vision` and `Problem Statement` → Generic Prose with optional light TL;DR callout when authored.
+- `Target Users & Personas` → persona cards with role/context/jobs-to-be-done.
+- `Value Propositions` → outcome cards; preserve testable phrasing and avoid inventing metrics.
+- `Product Principles` → decision-rule list with mono labels when bullets use `**Name** – rationale`.
+- `Anti-Goals` → caution cards using warn/danger styling; these are load-bearing boundaries.
+- `Success Metrics` → North Star tile plus Leading Indicator tiles.
+- `Strategic Constraints` → grouped constraint cards for Business, Regulatory, Technical.
+- `Roadmap Themes` → theme cards; themes are not feature commitments.
+- `Open Questions` and `Decisions Log` → risk-map chips plus table/list renderers.
+- Anything else → Generic Prose.
 
 
 ## Pre-population

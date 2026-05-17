@@ -82,7 +82,7 @@ try {
 
 ## `wireModuleMap(svgEl)` – interactive context-map binding
 
-Each emitted `svg.diagram-module-map` is paired with an `aside.map-detail` containing a `data-nodes` JSON dictionary (`{nodeKey: {title, meta, body}}`). Clicking an SVG node activates that node and updates the detail panel.
+Each emitted `svg.diagram-module-map` is paired with an `aside.map-detail` containing a `script[type="application/json"][data-role="nodes"]` JSON dictionary (`{nodeKey: {title, meta, body}}`). Clicking an SVG node activates that node and updates the detail panel. Treat title, meta, and body as text, not HTML: artifact-derived detail content must never flow into `innerHTML`.
 
 ```javascript
 function wireModuleMap(svgEl) {
@@ -91,17 +91,21 @@ function wireModuleMap(svgEl) {
     if (!section) return;
     var panel = section.querySelector(':scope .map-detail');
     if (!panel) return;
-    var dataByKey = JSON.parse(panel.getAttribute('data-nodes') || '{}');
+    var dataEl = panel.querySelector('script[type="application/json"][data-role="nodes"]');
+    var dataByKey = JSON.parse((dataEl && dataEl.textContent) || '{}');
     function activate(k) {
       try {
         svgEl.querySelectorAll('.node.active').forEach(function (n) { n.classList.remove('active'); });
-        var node = svgEl.querySelector('.node[data-k="' + k + '"]');
+        var node = null;
+        svgEl.querySelectorAll('.node[data-k]').forEach(function (n) {
+          if (n.getAttribute('data-k') === k) node = n;
+        });
         if (node) node.classList.add('active');
         var d = dataByKey[k];
         if (!d) return;
         var t = panel.querySelector('[data-role="title"]'); if (t) t.textContent = d.title || k;
         var m = panel.querySelector('[data-role="meta"]');  if (m) m.textContent  = d.meta  || '';
-        var b = panel.querySelector('[data-role="body"]');  if (b) b.innerHTML    = d.body  || '';
+        var b = panel.querySelector('[data-role="body"]');  if (b) b.textContent  = d.body  || '';
       } catch (err) { /* swallow */ }
     }
     svgEl.querySelectorAll('.node[data-k]').forEach(function (n) {
@@ -114,4 +118,4 @@ function wireModuleMap(svgEl) {
 document.querySelectorAll('svg.diagram-module-map').forEach(wireModuleMap);
 ```
 
-**JSON-in-attribute discipline:** the `data-nodes` value is emitted via `JSON.stringify` at HTML-generation time. **No raw newlines** ever appear inside the attribute value – multi-line body text must be `\n`-escaped in the JSON (`JSON.stringify` does this automatically). Per SKILL.md *JavaScript Authoring Discipline* rule 1, a single raw newline in this attribute is a SyntaxError on `JSON.parse` and kills all interactivity for that map. **Name-mismatch handling:** a node whose `data-k` has no entry in `dataByKey` simply early-returns; the panel keeps the previous selection. The renderer emits `<!-- module-map: no detail for node "X" -->` for each unpaired node so the gap surfaces in `View source`.
+**JSON script discipline:** the detail dictionary is emitted via `JSON.stringify` inside the inert application/json script block. Escape `<` as `\u003c` in that JSON text so a value containing `</script>` cannot terminate the block. Multi-line body text remains JSON `\n` data. **Name-mismatch handling:** a node whose `data-k` has no entry in `dataByKey` simply early-returns; the panel keeps the previous selection. The renderer emits `<!-- module-map: no detail for node "X" -->` for each unpaired node so the gap surfaces in `View source`. **Security:** if richer formatting is needed later, add a strict sanitizer first; until then, title, meta, and body text are assigned with `textContent`, and body line breaks are preserved with CSS.

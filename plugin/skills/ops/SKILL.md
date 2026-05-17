@@ -120,8 +120,11 @@ Mutate a FIS document – mark checkboxes, append implementation observations, o
 
 Actions for `<task_id|all>` form:
 - When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
-- When `task_id` is `all`: Mark ALL unchecked task checkboxes (`- [ ]` → `- [x]`), all success criteria checkboxes, and all Final Validation Checklist items in one pass
-- Before marking done, verify that evidence of completion exists – the calling skill should have already performed verification; do not re-run it. When all tasks are done (or using `all`): also mark success criteria and Final Validation Checklist items.
+- When `task_id` is `all`: Mark ALL unchecked task checkboxes (`- [ ]` → `- [x]`) plus every proof-surface checkbox set in one pass:
+  - **`## Acceptance Scenarios`** – each scenario is one canonical-shape checkbox; the canonical scenario shape is defined in [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) under *Acceptance Scenarios and Proof-of-Work*. Flip each scenario's `- [ ]` to `- [x]` while preserving the bold-label content. Example: `- [ ] **S01 [TI01,TI03] Happy path**` → `- [x] **S01 [TI01,TI03] Happy path**`.
+  - **`## Structural Criteria`** – each checkbox flips `- [ ]` to `- [x]`.
+  - **`## Final Validation Checklist`** – only when the section exists (it is optional content). When present, each checkbox flips `- [ ]` to `- [x]`.
+- Before marking done, verify that evidence of completion exists – the calling skill should have already performed verification; do not re-run it. When all tasks are done (or using `all`): also mark Acceptance Scenarios, Structural Criteria, and Final Validation Checklist items (when present).
 
 Actions for `observations` form:
 - Body constraint variant: MUST use `####`-or-deeper headings (typically `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)`). MUST NOT contain `#### DISCOVERED REQUIREMENTS` – that subsection belongs in the `discovered-requirements` form so tagged-lane separation holds. Reject (no-op + `BLOCKED: invalid observations body`) if violated.

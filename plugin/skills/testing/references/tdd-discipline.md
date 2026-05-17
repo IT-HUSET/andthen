@@ -41,7 +41,7 @@ If the "minimum code" is a full algorithm, the test is too big.
 
 ### 3. Refactor – with tests green
 
-Tidy *the code you just wrote in this red-green cycle* – and the tests that drove it – while green. Pre-existing duplication, naming, or seams co-located in the same files but outside this cycle's edits go into the completion report (`NOTICED BUT NOT TOUCHING`), not into this commit. Standalone Boy Scout cleanup of unrelated co-located code is the job of the `andthen:refactor` skill (surgical scope – see CRITICAL RULES). Typical moves on the just-written code:
+Tidy *the code you just wrote in this red-green cycle* – and the tests that drove it – while green. Pre-existing duplication, naming, or seams co-located in the same files but outside this cycle's edits go into the completion report (`NOTICED BUT NOT TOUCHING`), not into this commit. Standalone Boy Scout cleanup of unrelated co-located code is the job of the `andthen:simplify-code` skill (surgical scope – see CRITICAL RULES). Typical moves on the just-written code:
 
 - **Remove duplication** (tests↔production, tests↔tests) *that this cycle introduced or exposed*. Beck's **Once and Only Once** drives the refactor step: duplication names an abstraction that hasn't emerged yet.
 - **Rename for intent.** Test names carry domain vocabulary first – migrate them into production code along with the just-written change.

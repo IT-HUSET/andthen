@@ -6,6 +6,38 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.21.0] – 2026-05-14
+
+### Added
+- **`andthen:simplify-code` skill** – canonical behavior-preserving cleanup skill for clarity, reuse, quality, and efficiency. The `andthen:refactor` skill is now a deprecated redirect to it; legacy `/andthen:refactor` invocations keep working but new work should target `andthen:simplify-code` directly.
+- **Review persona agents restored** – `plugin/agents/` now includes focused review agents for Critic, council filtering/synthesis, correctness, security, architecture, testing, project standards, product requirements, and agent workflow review. Claude markdown is the source of truth; Codex TOMLs are generated at install time.
+- **Skill-authoring guidelines doc** – new `docs/guidelines/SKILL-AUTHORING-GUIDELINES.md` consolidates generic skill-authoring craft (frontmatter, progressive disclosure, description engineering, workflows and feedback loops, output patterns, scripts, anti-patterns, evaluation-driven authoring) with a publish checklist. Wired into `CLAUDE.md`'s foundational guidelines list so it loads when editing a skill.
+
+### Changed
+- **Simplification workflow sharpened** – no-argument scope now defaults to current branch changes, analysis is organized around reuse / quality / efficiency lenses, verification favors full lint/typecheck plus risk-scaled tests, and the `andthen:now-what` skill plus model/effort guide route cleanup/refactor cues to the new skill.
+- **Review council now uses structured persona findings** – council mode prefers installed review agents, keeps Critic / Devil's Advocate / Synthesis Challenger as the fixed spine, and requires proof of attacked coverage when no findings survive filtering. Non-council reviews also prefer the `review-critic` agent for the always-on Critic pass.
+- **Installer propagates agents again** – `scripts/install-skills.sh` restores `--codex-agents-dir`, `--no-codex-agents`, and `--claude-agents-dir`; `scripts/generate-codex-agents.sh` maps Claude agent markdown to Codex TOMLs.
+- **Installer validation tightened** – missing option values and invalid custom prefixes now fail with explicit errors before copy or generation starts.
+- **Standalone visualizer restored as visual review owner** – `andthen:visualize` is again the canonical read-only renderer; producer `--visual` flags remain convenience handoffs that delegate to it.
+- **`andthen:visualize` supports every AndThen artifact type** – new first-class renderers for FIS, review reports (any lens), and architecture fitness / decompose / event-storming reports. Adds to existing support for PRD, `plan.json`, clarification, product vision, trade-off, strategic-design, and ADR.
+- **Producer `--visual` flags extended to match** – `andthen:spec --visual` (FIS) and `andthen:review --visual` (consolidated report) are new; `andthen:architecture --visual` now covers every mode's primary report (was: trade-off / strategic-design / ADR only).
+- **FIS format v2 (breaking)** – the structural-integrity contract now gates on `## Acceptance Scenarios` + `## Implementation Plan`; the v1 `## Success Criteria` heading no longer satisfies the gate, and `## Final Validation Checklist` is dropped from required sections to optional content. Older v1 FIS files fail intentionally – re-spec them.
+- **Canonical scenario shape** – every Acceptance Scenario is a top-level checkbox `- [ ] **S<NN> [TI<NN>(,TI<NN>)*] <description>**` with nested Given/When/Then, so `ops update-fis all`, the spec/plan generation prompts, and review-tier verification can mark and audit scenarios per-line. The template, authoring guidelines, data contract, and consuming skills (`exec-spec`, `ops`, `spec`, `plan`, `review`, `now-what`, `exec-plan`) all ship aligned in this release.
+- **FIS template tightened** – `### In Scope` becomes `### Work Areas` (forward-coverage inventory). Architecture Decision capped at 3-4 lines with optional `**Why this over alternatives**:`; longer trade-off analysis routes upstream to `andthen:architecture --mode trade-off`. Template-explainer blockquote callouts and HTML-commented stubs are gone.
+- **Section-pattern model codified** – three patterns: *always-present* (heading + body always emitted), *visible-empty with prompt* (heading always emitted, body carries a "**Leave empty** when…" blockquote – Technical Overview, Testing Strategy, Validation, Execution Contract, Final Validation Checklist), and *content-conditional omit* (Required Context, Deeper Context – heading dropped entirely when there is nothing to inline). See plugin/README §0.21.0 for the full surface.
+- **Authoring discipline named** – the FIS authoring guidelines now name the `unavailability test`, outcome-shape audit, Verify prescribed-detail audit, and forward-coverage check. Self-Check gains anchor + Verify dry-run audit, cross-consumer surface inventory, prose-vs-Verify scope alignment, and empty-section discipline.
+- **Authoring guidelines trimmed** – symbol-anchor ladder collapsed into a heuristic, canonical scenario shape deduplicated to a single home, Self-Check compressed into named principles.
+- **No format versions in skills or references** – stripped `v1`/`v2` qualifiers from skill prompts and shared references (template, authoring guidelines, data contract, ops/spec/visualize/review skills). Version history lives in README and CHANGELOG only. The visualizer drops legacy `## Success Criteria` / `## Scenarios` rendering paths; the structural-integrity gate already rejects those FIS files at execution time.
+- **`remediate-findings` severity policy tightened** – fix is the default for every reviewer-flagged finding (all severities, including INFO with a remediation suggestion); defer only with a named blocker. The `out-of-scope file` blocker now explicitly excludes upstream IO carve-outs – a file the reviewer cited is in-scope here, regardless of prior-pass scope decisions.
+- **CRITICAL-RULES de-named** – surgical-scope and Boy Scout rules no longer enumerate specific skills; mode is determined by the active skill's *job* (review-, cleanup-, or remediation-driven vs implementation-driven). Adding or renaming skills no longer requires CRITICAL-RULES edits.
+- **Guardrails pass in the `andthen:review` skill and the `andthen:quick-review` skill** – before the lens / Critic rubric, both skills enumerate the project's rules / guardrails / principles / guidelines from context, filter to diff-verifiable rules, and emit findings citing each violated rule by source, plus a `Guardrails Coverage: N checked, M findings` line in the consolidated report. Converts long-conversation rule decay from an invisible failure mode into a named, verifiable axis.
+- **Project-rule preamble broadened across 18 skills** – implementation, authoring, and review skills now explicitly read project rules, guardrails, principles, and guidelines from `CLAUDE.md` / `AGENTS.md` and referenced files before starting. Drops the assumption of a single `## Project-Specific Guidelines and Rules` section name; covers all four rule classes generically.
+
+### Fixed
+- **Visualizer module-map detail bodies are inert text** – strategic-design node detail content now renders as escaped text with preserved line breaks instead of flowing artifact-derived content into raw `innerHTML`.
+
+---
+
 ## [0.20.0] – 2026-05-12
 
 ### Added

@@ -42,7 +42,7 @@ Same as `tdd` mode:
 
 ### 3. Refactor – on green
 
-Polish your *just-changed* code now that the test is green: extract a helper from the modified function, tighten the new assertion, rename a local you introduced. Pre-existing issues co-located in the same files – even minor ones – go into the completion report (`NOTICED BUT NOT TOUCHING`), not into this commit. Standalone Boy Scout cleanup of unrelated co-located code is the job of the `andthen:refactor` skill, not Prove-It (surgical scope – see CRITICAL RULES).
+Polish your *just-changed* code now that the test is green: extract a helper from the modified function, tighten the new assertion, rename a local you introduced. Pre-existing issues co-located in the same files – even minor ones – go into the completion report (`NOTICED BUT NOT TOUCHING`), not into this commit. Standalone Boy Scout cleanup of unrelated co-located code is the job of the `andthen:simplify-code` skill, not Prove-It (surgical scope – see CRITICAL RULES).
 
 ### 4. Keep the test
 

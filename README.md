@@ -16,11 +16,11 @@ AndThen brings spec-driven development to AI coding agents – lightweight, open
 > **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal.
 
 > [!WARNING]
-> **Recent breaking changes.** 0.19.0 flips `andthen:plan` output from `plan.md` to a typed `plan.json`; re-run `/andthen:plan <dir>` to migrate (existing FIS preserved). 0.18.0 removed `plan --skip-specs` / `--stories` / `--phase`. Earlier: 0.14.0 made `plan` stories strictly 1:1 with FIS files; 0.13.0 reshaped the plan and review surface. See [Breaking Changes](plugin/README.md#breaking-changes) or [CHANGELOG.md](CHANGELOG.md).
+> **Recent breaking changes.** 0.21.0 restructures the FIS format (`Success Criteria` → `Acceptance Scenarios`, FVC now optional) – re-spec older FIS files; 0.19.0 flips `andthen:plan` output from `plan.md` to a typed `plan.json`; 0.18.0 removed `plan --skip-specs` / `--stories` / `--phase`; 0.14.0 made `plan` stories strictly 1:1 with FIS files; 0.13.0 reshaped the plan and review surface. See [Breaking Changes](plugin/README.md#breaking-changes) or [CHANGELOG.md](CHANGELOG.md).
 
 **Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` available when you want that flow orchestrated for you (add `--team` for Agent Teams parallelism). `review` runs a single lens per call (code, doc, gap, or mixed) selected automatically or via `--mode`. Skills read a lightweight Document Index in your `CLAUDE.md` / `AGENTS.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
 
-Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** – falling back to direct execution when sub-agents aren't available.
+Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** – falling back to direct execution when sub-agents aren't available. Review council mode also ships focused review persona agents for Critic, filtering, synthesis, and specialist perspectives.
 
 [Get started →](#installation) · [Skills reference →](#skills)
 
@@ -176,15 +176,17 @@ claude plugin install ./plugin
 Skills use capability detection and work without the plugin infrastructure. Use the installer to export skills with `andthen-`-prefixed names to the agent skills directory:
 
 ```bash
-# Install skills, references, and helper scripts
+# Install skills, generated Codex agents, references, and helper scripts
 ./scripts/install-skills.sh
 
 # Optional overrides
 ./scripts/install-skills.sh --dry-run
 ./scripts/install-skills.sh --skills-dir ~/.agents/skills
+./scripts/install-skills.sh --codex-agents-dir ~/.codex/agents
+./scripts/install-skills.sh --no-codex-agents
 ```
 
-This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-prd/`, `andthen-spec/`, `andthen-plan/`, `andthen-review/`). Plugin reference docs, shared templates, and helper scripts are also copied.
+This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-prd/`, `andthen-spec/`, `andthen-plan/`, `andthen-review/`) and generates `andthen-`-prefixed Codex agent TOMLs from `plugin/agents/*.md` (e.g., `andthen-review-critic.toml`). Plugin reference docs, shared templates, and helper scripts are also copied. Reinstalls overwrite matching generated files but do not delete stale `<prefix>*.toml` agent files; remove old generated agents manually if you need the visible agent set to exactly match the current release.
 
 Invoke with `/andthen:<skill>` in Claude Code, or `$andthen-<skill>` in Codex and other agents.
 
@@ -202,12 +204,13 @@ git clone --depth 1 https://github.com/IT-HUSET/andthen /tmp/andthen
 
 # Project-local Claude Code install (target <project>/.claude/):
 /tmp/andthen/scripts/install-skills.sh --prefix dartclaw- \
-  --claude-skills-dir "$PWD/.claude/skills"
+  --claude-skills-dir "$PWD/.claude/skills" \
+  --claude-agents-dir "$PWD/.claude/agents"
 ```
 
 Each downstream picks its own `--prefix` (must end with `-`). Skills install as `<prefix><name>` and on Claude Code are invokable as `/<prefix><name>`. The AndThen Claude Code plugin can be installed alongside without conflict as long as the prefixes differ.
 
-`--claude-skills-dir` overrides the Claude-side skill destination and implies a Claude Code user-tier install (no separate `--claude-user` needed). The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too if you want a fully project-local bundle.
+`--claude-skills-dir` overrides the Claude-side skill destination and implies a Claude Code user-tier install (no separate `--claude-user` needed). Pair it with `--claude-agents-dir` for fully project-local Claude agents. The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too if you want a fully project-local bundle.
 
 
 ## Setup
@@ -280,7 +283,7 @@ You can also start directly from a GitHub issue:
 /andthen:clarify --issue 42
 ```
 
-**Optional review checkpoint:** `/andthen:visualize docs/specs/data-export/requirements-clarification.md` opens a browser HTML view of the artifact for review.
+**Optional review checkpoint:** `/andthen:visualize docs/specs/data-export/requirements-clarification.md` opens a browser HTML view of the artifact for review. Producer skills also support `--visual` as a convenience handoff after they write the artifact.
 
 **Step 2a: Create a spec** *(single feature)*
 
@@ -409,15 +412,16 @@ Use these individually for everyday development – no setup, no pipeline, no pr
 | `triage` | Investigate, diagnose, and fix issues |
 | `quick-implement` | Fast path for small features/fixes |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |
-| `review` | Smart review entrypoint – code, docs, spec/requirements alignment, single or multi-perspective |
-| `refactor` | Code improvement and simplification |
-| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions |
+| `review` | Smart review entrypoint – code, docs, spec/requirements alignment, single or multi-perspective (`--visual` delegates the consolidated report to `andthen:visualize`) |
+| `simplify-code` | Behavior-preserving code simplification and cleanup |
+| `refactor` | Deprecated – redirects to `simplify-code` (kept for legacy invocations only) |
+| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, and event storming (`--visual` delegates every mode's primary report to `andthen:visualize`) |
 | `ui-ux-design` | UI/UX work – research, design systems, wireframes, design review |
 | `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs |
 | `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
 | `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
 | `visual-validation` | Validate UI screenshots and implementations against visual, responsive, and design expectations (`andthen:visual-validation` skill) |
-| `visualize` | Render PRD / `plan.json` / requirements-clarification / trade-off report as a self-contained HTML view with section-anchored notes |
+| `visualize` | Render any AndThen artifact (PRD, `plan.json`, FIS, requirements-clarification, product vision, review report, architecture trade-off / strategic-design / fitness / decompose / event-storming report, or ADR) as a self-contained HTML view with section-anchored notes |
 | `e2e-test` | End-to-end browser testing for web applications |
 | `testing` | Test strategy, coverage, authoring, and test-first / red-green-refactor discipline |
 
@@ -428,11 +432,11 @@ These compose into structured workflows – from requirements through implementa
 | Skill | Purpose |
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
-| `clarify` | Discovery & Ideation for requirements at feature or product scope |
-| `prd` | Create a Product Requirements Document from requirements |
-| `spec` | Generate Feature Implementation Specification from requirements |
+| `clarify` | Discovery & Ideation for requirements at feature or product scope (`--visual` delegates the output to `andthen:visualize`) |
+| `prd` | Create a Product Requirements Document from requirements (`--visual` delegates `prd.md` to `andthen:visualize`) |
+| `spec` | Generate Feature Implementation Specification from requirements (`--visual` delegates the produced FIS to `andthen:visualize`) |
 | `exec-spec` | Execute a FIS – direct implementation with validation |
-| `plan` | Full plan bundle: story breakdown + FIS for every story + cross-cutting review. Requires `prd.md` input |
+| `plan` | Full plan bundle: story breakdown + FIS for every story + cross-cutting review. Requires `prd.md` input; `--visual` delegates the local `plan.json` bundle to `andthen:visualize` |
 | `exec-plan` | Execute a fully-specced plan bundle – exec-spec + quick-review per story, final gap review |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
@@ -440,9 +444,14 @@ These compose into structured workflows – from requirements through implementa
 
 ## Agents
 
-AndThen ships one agent: the `andthen:documentation-lookup` agent for Claude Code plugin-tier installs only. Other install paths use equivalent skill-prompt routing through the project's `## Documentation Lookup Tools` section.
+AndThen ships a small agent set:
 
-Architecture, UI/UX design, build/test diagnosis, and visual validation are **skills** – use `/andthen:architecture`, `/andthen:ui-ux-design`, `/andthen:triage`, and `/andthen:visual-validation` where relevant. Research is inline sub-agent guidance embedded in the skill prompts that need it (no standalone skill or agent).
+- `andthen:documentation-lookup` agent for documentation retrieval.
+- Review persona agents for council and Critic review: `review-critic`, `review-devils-advocate`, `review-synthesis-challenger`, plus focused correctness, security, architecture, testing, project-standards, product-requirements, and agent-workflow reviewers.
+
+Agent names are tier-specific: Claude Code plugin sources use unprefixed `review-*` names inside `plugin/agents/`; Codex and Claude user-tier installs generate/copy prefixed names such as `andthen-review-critic` or `<custom-prefix>review-critic`.
+
+Architecture, UI/UX design, build/test diagnosis, visual validation, and visual artifact review are **skills** – use `/andthen:architecture`, `/andthen:ui-ux-design`, `/andthen:triage`, `/andthen:visual-validation`, and `/andthen:visualize` where relevant. Research outside documentation lookup remains inline sub-agent guidance embedded in the skill prompts that need it.
 
 
 ## Docs

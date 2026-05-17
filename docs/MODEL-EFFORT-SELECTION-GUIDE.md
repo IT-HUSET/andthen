@@ -100,8 +100,8 @@ Effort is a **behavioral signal, not a hard token cap**. Even at `low`, the mode
 | Frontend components (React/Vue/CSS) | `sonnet` @ `medium` | `gpt-5.4` @ `medium` |
 | Debugging (clear errors, stack traces) | `sonnet` @ `medium` | `gpt-5.4` @ `medium` |
 | Debugging (subtle, race conditions) | `opus` @ `high` (or `sonnet` + "ultrathink") | `gpt-5.4` @ `high` |
-| Single-file refactoring | `sonnet` @ `medium` | `gpt-5.4` @ `medium` |
-| Cross-file / large-scale refactoring | `opus` @ `high` | `gpt-5.4` @ `high` |
+| Single-file code simplification | `sonnet` @ `medium` | `gpt-5.4` @ `medium` |
+| Cross-file / large-scale code simplification | `opus` @ `high` | `gpt-5.4` @ `high` |
 | Architecture / system design | `opus` @ `high`–`max` | `gpt-5.4` @ `high`–`xhigh` |
 | Security review / vulnerability audit | `opus` @ `high`–`max` | `gpt-5.4` @ `high`–`xhigh` |
 | ADR / trade-off analysis | `opus` @ `high`–`max` | `gpt-5.4` @ `high`–`xhigh` |
@@ -144,7 +144,7 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 | `/exec-plan` | Execute a fully-specced plan bundle (exec-spec → quick-review per story, final gap review) | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
 | `/quick-implement` | Quick path for small features/fixes | `sonnet` | `medium` | Small scope, speed matters |
 | `/remediate-findings` | Apply validated review findings and update workflow status | `sonnet` | `medium`–`high` | Must distinguish stale vs valid findings, keep scope tight, and re-validate |
-| `/refactor` | Code improvement and simplification | `sonnet` | `medium`–`high` | Medium for localized, high for cross-file |
+| `/simplify-code` | Code simplification and cleanup | `sonnet` | `medium`–`high` | Medium for localized, high for cross-file |
 | `/triage` | Investigate, diagnose, and fix issues | `sonnet` | `medium`–`high` | Medium for clear issues, high for subtle root cause analysis |
 
 #### Review & Validation Phase
@@ -159,12 +159,18 @@ Commands are grouped by workflow phase. Recommendations assume Claude Code with 
 | `/ubiquitous-language` | Extract and maintain domain glossary | `sonnet` | `medium` | Analytical extraction and resolution, not deep reasoning |
 | `/testing` | Test strategy, coverage, authoring, TDD (red-green-refactor, Prove-It) | `sonnet` | `medium` | Formulaic craft with domain knowledge; test-first benefits from focused sub-context |
 
-#### Other Agents (Claude Code plugin tier only)
+#### Other Agents
 
 | Agent | Description | Model | Effort | Rationale |
 |-------|-------------|-------|--------|-----------|
-| `documentation-lookup` | Fetch up-to-date library/API docs; Claude Code plugin tier only | `haiku` | `low` | Retrieval task, no reasoning needed |
+| `documentation-lookup` | Fetch up-to-date library/API docs | `haiku` | `low` | Retrieval task, no reasoning needed |
+| `review-critic` | Adversarial finding pass for assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring | `opus` | `high` | High-recall review benefits from deeper reasoning before filtering |
+| `review-security` | Security-focused review for auth, trust boundaries, injection, secrets, LLM/agent attack paths, and supply-chain risk | `opus` | `high` | Attacker-path analysis is reasoning-heavy |
+| `review-correctness` | Correctness review for behavior, data flow, edge cases, error handling, and tests | `opus` | `high` | Subtle failure paths and invariants need depth |
+| Review filter/specialist agents | `review-devils-advocate`, `review-synthesis-challenger`, `review-architecture`, `review-testing`, `review-project-standards`, `review-product-requirements`, `review-agent-workflow` | `sonnet` | `medium` | Focused persona work; the council gains depth through parallel perspectives |
 | Subagents (general parallel work) | Delegated subtasks | `haiku` or `sonnet` | `low` | Cost multiplies with parallelism |
+
+Claude Code plugin sources use the unprefixed names above. Codex and Claude user-tier installs generate/copy prefixed names such as `andthen-review-critic` or `<custom-prefix>review-critic`.
 
 > Architecture, UI/UX, and build/test diagnosis used to be agents (`solution-architect`, `ui-ux-designer`, `build-troubleshooter`); as of 0.13 they are **skills** — see `/architecture`, `/ui-ux-design`, and `/triage` in the tables above.
 
@@ -184,7 +190,7 @@ Skills are agent-agnostic – the same files work across all agents. Recommendat
 | `andthen-ui-ux-design` | UI/UX research, design systems, wireframes, review | `gpt-5.4` | `medium` | Pattern-following with design knowledge |
 | `andthen-visual-validation` | Validate screenshots and UI implementations against design references, baselines, and responsive expectations | `gpt-5.4` | `medium` | Visual comparison and issue classification benefit from focused perception and design judgment |
 | `andthen-architecture` | Architecture design, review, decomposition, trade-off analysis, fitness functions | `gpt-5.4` | `high` | Core reasoning task, decision quality matters |
-| `andthen-refactor` | Code simplification and cleanup | `gpt-5.4` | `medium`–`high` | Medium for localized, high for cross-file |
+| `andthen-simplify-code` | Code simplification and cleanup | `gpt-5.4` | `medium`–`high` | Medium for localized, high for cross-file |
 | `andthen-quick-implement` | Fast path for small features/fixes | `gpt-5.4` | `medium` | Bounded scope, standard implementation |
 | `andthen-e2e-test` | End-to-end browser testing | `gpt-5.4` | `medium` | Sequential test execution |
 | `andthen-testing` | Test strategy, coverage, authoring, TDD | `gpt-5.4` | `medium` | Formulaic craft with domain knowledge |

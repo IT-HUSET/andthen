@@ -1,46 +1,42 @@
 # Shared Review Council Reviewer Roster
 
-Total council size is 5–7. Three roles are always included; pick 2–4 scope-relevant specialists on top.
+Total council size is 5-7. Three roles are always included; pick 2-4 scope-relevant specialists on top. Prefer the installed custom agent name when available; otherwise use the focus text here as the inline persona prompt.
 
 ## Always Include
 
 The find/filter/synthesize spine of the council:
 
-- **Critic Reviewer**: primary finding role that attacks fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring. Applies `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` and `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`.
-- **Devil's Advocate**: findings-filter role that pressure-tests collected findings for false positives and weak severity.
-- **Synthesis Challenger**: final filter pass for consistency, overlap, and missed systemic patterns.
+| Council role | Installed agent | Focus |
+|---|---|---|
+| **Critic Reviewer** | `review-critic` | Primary finding role that attacks fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring. Applies `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`. |
+| **Devil's Advocate** | `review-devils-advocate` | Findings-filter role that validates, downgrades, withdraws, or disputes collected findings. Does not add findings. |
+| **Synthesis Challenger** | `review-synthesis-challenger` | Final filter pass for severity consistency, overlap, systemic framing, clean-result proof, and false positives. Does not add unrelated findings. |
 
-## Specialists (pick by scope)
+## Specialists
 
-### Product & Requirements
-- **Product Manager**: user value, scope fit, business logic, feature intent
-- **Requirements Analyst**: acceptance criteria, edge cases, completeness, spec compliance
-
-### Technical
-- **Security Sentinel**: auth, validation, trust boundaries, secrets, exploitability
-- **Performance Oracle**: latency, query efficiency, rendering cost, scaling risk
-- **Architecture Strategist**: coupling, boundaries, abstractions, maintainability
-- **Database Specialist**: schema design, migrations, constraints, data integrity
-- **API Designer**: contracts, versioning, compatibility, boundary quality
-- **Frontend Specialist**: component design, state, rendering, client-side behavior
-- **Backend Specialist**: business logic, error handling, integration behavior
-
-### Quality & Experience
-- **UX/Accessibility Advocate**: usability, accessibility, error states, responsive quality
-- **Test Strategist**: test coverage, missing scenarios, maintainability of tests
-- **Code Maintainer**: long-term clarity, documentation, onboarding, technical debt
-- **Content Designer**: prompt quality, technical writing, user-facing copy, tone consistency
+| Council role | Installed agent | Focus |
+|---|---|---|
+| **Correctness Reviewer** | `review-correctness` | Behavior, data flow, edge cases, error handling, concurrency, and tests that prove intent. |
+| **Security Sentinel** | `review-security` | Auth, authorization, validation, trust boundaries, secrets, exploitability, LLM/agent attack paths, and supply-chain risk. |
+| **Architecture Strategist** | `review-architecture` | Boundaries, coupling, abstractions, domain alignment, resilience, and maintainability. |
+| **Test Strategist** | `review-testing` | Coverage quality, missing scenarios, weak assertions, verification gaps, and regression proof. |
+| **Project Standards Reviewer** | `review-project-standards` | Local conventions, repo guidelines, naming, maintainability, documentation drift, and agent-instruction compliance. |
+| **Product Requirements Reviewer** | `review-product-requirements` | User value, scope fit, acceptance criteria, edge cases, feature intent, and requirements gaps. |
+| **Agent Workflow Reviewer** | `review-agent-workflow` | Skills, prompts, custom agents, install-time rewrites, routing contracts, and AI workflow ergonomics. |
 
 ## Selection Examples
 
-Code-mode councils (security depth handled by separate security-mode council when applicable):
-- **Product feature**: Product Manager, Requirements Analyst, Architecture Strategist, Content Designer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
-- **Backend/API work**: Performance Oracle, API Designer, Backend Specialist, Architecture Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
-- **Frontend/UI work**: UX/Accessibility Advocate, Frontend Specialist, Performance Oracle, Architecture Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
-- **Infrastructure/config** (smaller scope, 5 reviewers): Architecture Strategist, Backend Specialist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+Code-mode councils:
 
-Security-mode councils (Security Sentinel always included):
-- **Web app surface**: Security Sentinel, Frontend Specialist, Backend Specialist, Architecture Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
-- **API / network-exposed**: Security Sentinel, API Designer, Backend Specialist, Database Specialist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
-- **LLM / agent flows**: Security Sentinel, Backend Specialist, Architecture Strategist, Content Designer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
-- **Supply chain / CI/CD / IaC** (smaller scope, 5 reviewers): Security Sentinel, Architecture Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Product feature**: Product Requirements Reviewer, Correctness Reviewer, Architecture Strategist, Project Standards Reviewer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Backend/API work**: Correctness Reviewer, Architecture Strategist, Test Strategist, Project Standards Reviewer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Frontend/UI work**: Product Requirements Reviewer, Correctness Reviewer, Test Strategist, Project Standards Reviewer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Prompt/skill/agent workflow**: Agent Workflow Reviewer, Project Standards Reviewer, Test Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Small infrastructure/config change**: Architecture Strategist, Project Standards Reviewer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+
+Security-mode councils:
+
+- **Web app surface**: Security Sentinel, Correctness Reviewer, Architecture Strategist, Test Strategist, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **API / network-exposed**: Security Sentinel, Correctness Reviewer, Architecture Strategist, Project Standards Reviewer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **LLM / agent flows**: Security Sentinel, Agent Workflow Reviewer, Architecture Strategist, Project Standards Reviewer, Critic Reviewer, Devil's Advocate, Synthesis Challenger
+- **Supply chain / CI/CD / IaC**: Security Sentinel, Agent Workflow Reviewer, Project Standards Reviewer, Critic Reviewer, Devil's Advocate, Synthesis Challenger

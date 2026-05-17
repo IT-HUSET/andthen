@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Clarify Requirements (Discovery & Ideation)"
-  short_description: "Discovery & Ideation for requirements – feature or product scope"
-  default_prompt: "Discovery & Ideation for requirements. Probe latent gaps, edge cases, scope boundaries; propose alternatives the user hadn't considered (alternative MVPs, anti-goals, pruning candidates). Always interactive – questions cannot be skipped. Pass `--mode product` for overall product vision / personas / value props / anti-goals / metrics; default `--mode feature` for a single capability or epic. Produces a structured clarification document. Requirements to clarify: "
+  short_description: "Discovery & Ideation for requirements – feature or product scope; `--visual` delegates to andthen:visualize"
+  default_prompt: "Discovery & Ideation for requirements. Probe latent gaps, edge cases, scope boundaries; propose alternatives the user hadn't considered (alternative MVPs, anti-goals, pruning candidates). Always interactive – questions cannot be skipped. Pass `--mode product` for overall product vision / personas / value props / anti-goals / metrics; default `--mode feature` for a single capability or epic. Produces a structured clarification document. Pass `--visual` to hand the produced artifact to `andthen:visualize` after validation. Requirements to clarify: "
 
 policy:
   allow_implicit_invocation: true

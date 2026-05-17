@@ -1,6 +1,6 @@
 # ADR Template
 
-Architecture Decision Record. Detection per SKILL.md: H1 `/^ADR[-\s]?\d/` or H2 set containing `Decision` + (`Consequences` | `Alternatives Considered`). Renderers reuse `templates/tradeoff.md` (`.option` cards, `.recommendation` accent box) — see that file for the shared CSS. This template documents only ADR-specific deltas: inline-metadata parsing, status semantics, KPI cells, and the `## Consequences` three-bucket layout.
+Architecture Decision Record. Detection per SKILL.md: H1 matches `/^ADR[-\s]?\d/` (e.g. `ADR-011:`, `ADR 11:`, `ADR011:`); or H2 set contains `Decision` + (`Consequences` or `Alternatives Considered`). Renderers reuse `templates/tradeoff.md` (`.option` cards, `.recommendation` accent box) — see that file for the shared CSS. This template documents only ADR-specific deltas: inline-metadata parsing, status semantics, KPI cells, and the `## Consequences` three-bucket layout.
 
 
 ## Inline metadata (prologue only)
@@ -43,7 +43,7 @@ All five classes ship in SKILL.md's base style block – no conditional CSS inje
 | 3 | Consequences | Count of bullets / H3 under `## Consequences` |
 | 4 | Related | Count of comma-separated entries in `**Related:**` |
 
-Auto-`.attention`: cell 1 when Status matches `/^(deprecated|rejected|superseded)/i`.
+Auto-`.attention`: cell 1 when Status starts with `deprecated`, `rejected`, or `superseded` (case-insensitive).
 
 
 ## Section dispatch
@@ -53,7 +53,7 @@ Auto-`.attention`: cell 1 when Status matches `/^(deprecated|rejected|superseded
 | Context | Generic Prose (H3 subsections like "Prior Art" get standard `.l2` sub-anchors) |
 | Decision | Reuse `tradeoff.md` `.recommendation` accent box. Code blocks render verbatim inside `<pre><code>` |
 | Alternatives Considered | Reuse `tradeoff.md` `.option` card layout, **no radar** (ADRs lack scoring matrices). Emit each alternative as `<section class="option adr-alt" data-anchor-parent="alternatives-considered">`; the extra `.adr-alt` class triggers `.option.adr-alt .option-body { grid-template-columns: 1fr; }` so the absent radar doesn't leave an empty 320 px column. One H3 per alternative |
-| Consequences | **Three-bucket layout** when H3s match `/^(positive|negative|neutral|trade.?offs?)/i`; else Generic Prose with semantically colored H3 |
+| Consequences | **Three-bucket layout** when H3s match `/^(positive|negative|neutral|trade.?offs?)/i` (covers `Positive`, `Negative`, `Neutral`, `Trade-off`, `Tradeoff`, `Trade-offs`, `Tradeoffs`); else Generic Prose with semantically colored H3 |
 | (anything else) | Generic Prose |
 
 `<details class="analysis">` collapse, Light TL;DR callout, and the per-section affordances apply unchanged per their SKILL.md contracts.
@@ -84,7 +84,7 @@ Auto-`.attention`: cell 1 when Status matches `/^(deprecated|rejected|superseded
 @media (max-width: 760px) { .adr-consequences { grid-template-columns: 1fr; } }
 ```
 
-When the bucket regex doesn't match (e.g. consequences as one flat list, or unfamiliar grouping), render Generic Prose with the same semantic colors applied to H3 headings via inline class on heading-text match.
+When the three-bucket H3 pattern doesn't match (e.g. consequences as one flat list, or unfamiliar grouping), render Generic Prose with the same semantic colors applied to H3 headings via inline class on heading-text match.
 
 
 ## Edge cases

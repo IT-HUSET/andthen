@@ -41,7 +41,7 @@ The four-cell `.kpi-band` (rendered per the SKILL.md *KPI Summary Band* contract
 | 3 | Effort | Source's effort estimate (label from a `Effort:` line in the recommendation, or "—") |
 | 4 | Risk Level | Source's risk indicator (`Low` / `Medium` / `High` from recommendation prose, or "—") |
 
-Auto-`.attention`: cell 4 when value matches `/^high/i`.
+Auto-`.attention`: cell 4 when value starts with `high` (case-insensitive).
 
 
 ## Section Renderers
@@ -70,7 +70,7 @@ Each option in the source's `## Options` section (typically as H3 subsections pe
 
 **Above the H3 list:** emit a `<nav class="risk-map">` summary row (per the SKILL.md *Risk-map chips* contract). One chip per option, color-coded: recommended option → `.attention`, deferred/rejected options → `.neutral`, options with `risk: high` or `caveat:` in the body → `.medium`. Each chip's `href` points at the option's H3 sub-anchor (`#options-{option-kebab}`); click pulses the target.
 
-**Option-body rendering (all-or-nothing per `## Options` section):** when **every** H3 option's body carries ≥ 2 H4 subheadings matching `/^(What changes|Where it changes|Risk|Trade-off)/i`, render every option as a **Walkthrough** (see `diagrams.md#walkthrough`) alongside its radar – Step 1 = What changes, Step 2 = Where, Step 3 = Risk. If even one option doesn't have the H4 set, render *every* option as prose-only body. Mixing Walkthrough and prose within the same `## Options` section is disallowed – it reads as a renderer bug, and the SKILL.md *Renderer Discipline* "one renderer per H2" rule applies per-section, not per-H3. Secondary detail (anything after the primary verdict paragraph, or content under an H4 named `Detailed analysis` / `Notes` / `Background`) wraps in `<details class="analysis">` (SKILL.md *Supporting-detail collapse* contract). Light TL;DR (SKILL.md contract) emits as the first child of each option's `.card-body` when the source authored one.
+**Option-body rendering (all-or-nothing per `## Options` section):** when **every** H3 option's body carries ≥ 2 H4 subheadings starting with `What changes`, `Where it changes`, `Risk`, or `Trade-off` (case-insensitive), render every option as a **Walkthrough** (see `diagrams.md#walkthrough`) alongside its radar – Step 1 = What changes, Step 2 = Where, Step 3 = Risk. If even one option doesn't have the H4 set, render *every* option as prose-only body. Mixing Walkthrough and prose within the same `## Options` section is disallowed – it reads as a renderer bug, and the SKILL.md *Renderer Discipline* "one renderer per H2" rule applies per-section, not per-H3. Secondary detail (anything after the primary verdict paragraph, or content under an H4 named `Detailed analysis` / `Notes` / `Background`) wraps in `<details class="analysis">` (SKILL.md *Supporting-detail collapse* contract). Light TL;DR (SKILL.md contract) emits as the first child of each option's `.card-body` when the source authored one.
 
 ```html
 <section class="option" data-anchor-parent="options">

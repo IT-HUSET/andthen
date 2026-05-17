@@ -8,6 +8,16 @@ Canonical schema for the local `plan.json` artifact written by `andthen:plan` an
 
 GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body shape from [`plan-issue-shape.md`](plan-issue-shape.md) – JSON is the local runtime ledger; markdown is the GitHub transport. When `--from-issue` is set, `andthen:exec-plan` materializes a local `plan.json` from the issue body once, then drives execution from the local ledger. See [`from-issue-mode.md`](../skills/exec-plan/references/from-issue-mode.md).
 
+## Contents
+
+- Document shape – top-level fields, `overview`, `sharedDecisions[]`, `bindingConstraints[]`, `stories[]`, `riskSummary[]`
+- Status enum (closed) – the six valid `status` values and their semantics
+- Writability rules – which fields each skill may write; the Preservation predicate
+- File location – where `plan.json` lives relative to `prd.md`
+- Formatting conventions – indent, key order, POSIX paths
+- Migration from legacy `plan.md` – one-shot migration semantics
+- Example – canonical worked example
+
 
 ## Document shape
 
@@ -110,7 +120,7 @@ Each phase:
 | `pending` | `andthen:plan` (initial) | Story exists; FIS not yet generated. |
 | `spec-ready` | `andthen:plan` after FIS write | FIS file exists; ready to be executed. |
 | `in-progress` | Explicit `andthen:ops update-plan <id> in-progress` (or future exec-spec entry hook) | Exec started; dependents must wait. Available in the enum for orchestrators that want explicit in-flight signaling; the bundled exec-spec flow currently transitions `spec-ready → done` directly. |
-| `done` | `andthen:exec-spec` after success criteria met (via `andthen:ops`) | Story complete. |
+| `done` | `andthen:exec-spec` after Acceptance Scenarios and Structural Criteria pass (via `andthen:ops`) | Story complete. |
 | `skipped` | `andthen:exec-plan --auto` failure-containment path | Dependency-chain failed upstream; story not attempted. |
 | `blocked` | Explicit `andthen:ops update-plan <id> blocked` | Manual block; consumers skip and warn. |
 

@@ -47,7 +47,7 @@
 
 ### Story S01: [Story Name]
 
-**Scope**: [1-2 sentences covering the intended outcome, what is included, and what is excluded. Detailed success criteria and scenarios belong in the JIT-generated story FIS.]
+**Scope**: [1-2 sentences covering the intended outcome, what is included, and what is excluded. Detailed Acceptance Scenarios and Structural Criteria belong in the JIT-generated story FIS.]
 **Source refs**: [PRD feature IDs and anchors, e.g. FR-2, FR-5 – `prd.md#export-rules`]
 **Asset refs**: [Wireframe refs, ADR refs, design-system refs if any – omit when none]
 

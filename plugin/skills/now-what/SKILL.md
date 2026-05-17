@@ -96,6 +96,7 @@ This is where users get lost: AndThen is set up, they have an idea, but they do 
 | Build a single feature | "add X", "implement Y", "I want users to be able to Z" | → the `andthen:clarify` skill (default feature mode) |
 | Build a bigger initiative | "build a whole X", multiple capabilities mentioned, "platform", "system" | → the `andthen:clarify` skill (default feature mode; entry point for the multi-feature `prd → plan → exec-plan` chain). If the framing carries architectural ambiguity ("multi-tenant", "real-time", "how should I structure a..."), use Step 3 to disambiguate between `clarify` and the `andthen:architecture` skill in `--mode advise`. |
 | Quick fix / small change | "fix typo", "rename X", "bump version" | → the `andthen:quick-implement` skill |
+| Simplify existing code | "simplify this code", "clean this up", "refactor this", "reduce complexity" | → the `andthen:simplify-code` skill |
 | How should I structure X? | "should I split", "how do I organize", "what's the right pattern for" | → the `andthen:architecture` skill in `--mode advise` |
 | Compare two approaches | "X vs Y", "should we use A or B" | → the `andthen:architecture` skill in `--mode trade-off` |
 | Module split / merge decision | "should we split this", "decompose", "boundaries" | → the `andthen:architecture` skill in `--mode decompose` |
@@ -127,11 +128,11 @@ When state shows the user is mid-flow, do not onboard. Just route. Output: 1–3
 
 **Freshness gate**: if the user's framing suggests new work ("I want to add a new feature", "let's start something new") and the mid-flow signal is from an old artifact (stale `STATE.md`, paused FIS), treat as Branch C instead. When in doubt, ask one question: "Continuing previous work, or starting something new?"
 
-**Match rule**: read top-down; first matching row wins. Order rows from most-specific to most-generic so a more-specific match (e.g. an architecture report *plus* pasted visualize notes) fires before a generic one (architecture report alone).
+**Match rule**: read top-down; first matching row wins. Order rows from most-specific to most-generic so a more-specific match (e.g. an architecture report *plus* pasted visual review notes) fires before a generic one (architecture report alone).
 
 | Detected state | Recommended next |
 |---|---|
-| `requirements-clarification.md` just produced, before `prd` / `spec` | offer the `andthen:visualize` skill (review checkpoint) → then the next workflow skill |
+| `requirements-clarification.md` just produced, before `prd` / `spec` | offer the `andthen:visualize` skill as a review checkpoint, or route to the next workflow skill |
 | `prd.md` exists, no `plan.json` | the `andthen:plan` skill (or offer the `andthen:visualize` skill as a review checkpoint first) |
 | `plan.json` exists, FIS files missing | the `andthen:plan` skill to resume the bundle and fill missing FIS files (or offer the `andthen:visualize` skill first when the user wants to inspect the incomplete bundle) |
 | Legacy `plan.md` exists, no `plan.json` | the `andthen:plan` skill – re-running migrates `plan.md` → `plan.json` and preserves existing FIS files |
@@ -139,8 +140,10 @@ When state shows the user is mid-flow, do not onboard. Just route. Output: 1–3
 | Implementation done, no review on this branch | the `andthen:review` skill |
 | Review done, findings unaddressed | the `andthen:remediate-findings` skill |
 | Triage report (`andthen:triage --plan-only`) present, fix not yet applied | re-invoke the `andthen:triage` skill to apply the fix, or the `andthen:remediate-findings` skill if the report has actionable findings rather than a single fix |
-| Architecture report present AND user signals visualize notes ("notes copied", pasted markdown payload starting with `# andthen:visualize notes for …`) | re-invoke the `andthen:architecture` skill in the matching mode (read the report's H1/H2 to identify trade-off / strategic-design / etc.) with the notes pasted as conversational input |
-| Architecture report present (review / decompose / advise / fitness / trade-off / strategic-design / event-storming), no obvious follow-on | ask one question to scope the next step – formalize as ADR (a fresh `andthen:architecture` invocation in `--mode trade-off` for the decision), feed into `andthen:clarify` (when discovery surfaced requirement gaps), or chain to `--mode strategic-design` / `--mode decompose` (when boundaries are still contested) |
+| Architecture report present AND user signals visual review notes ("notes copied", pasted markdown payload starting with `# andthen:architecture visual review notes for …`) | re-invoke the `andthen:architecture` skill in the matching mode (read the report's H1/H2 to identify trade-off / strategic-design / etc.) with the notes pasted as conversational input |
+| Architecture report present (review / decompose / advise / fitness / trade-off / strategic-design / event-storming), no obvious follow-on | offer the `andthen:visualize` skill as a review checkpoint, then ask one question to scope the next step – formalize as ADR (a fresh `andthen:architecture` invocation in `--mode trade-off` for the decision), feed into `andthen:clarify` (when discovery surfaced requirement gaps), or chain to `--mode strategic-design` / `--mode decompose` (when boundaries are still contested) |
+| FIS present, not yet executed | the `andthen:exec-spec` skill (or offer the `andthen:visualize` skill as a scenario/task review checkpoint first) |
+| Review report present (any lens), findings unaddressed | the `andthen:remediate-findings` skill (or offer the `andthen:visualize` skill first for severity-coded triage) |
 | UI/UX wireframes or design-system output present, no implementation | the `andthen:exec-spec` skill (single screen / FIS) or the `andthen:exec-plan` skill (full plan) |
 | UI/UX wireframes implemented, no design-review on this branch | the `andthen:ui-ux-design` skill in `--mode review` |
 | User says "stuck" with mid-flow state | Ask one question: "What did you last do, and what's not behaving as expected?" |
@@ -174,22 +177,22 @@ Analyzes an existing codebase to produce structured documentation (Architecture,
 
 ### `andthen:clarify`
 Discovery & Ideation for requirements at feature or product scope. Refines fuzzy inputs into clarified requirements through systematic questioning – gaps, edge cases, scope boundaries, alternatives the user hadn't considered. Always interactive (Interactive-by-Contract). `--mode product|feature`, inferred from INPUT (e.g. a `PRODUCT*.md` path → product mode).
-**Use when:** the user has an idea but the requirements aren't yet pinned down – at feature scope, or at overall-product scope before specific features are planned. **Typical next step:** `andthen:spec` for one feature, `andthen:prd` for a multi-feature initiative, or (product mode) `andthen:architecture --mode strategic-design` for bounded-context decomposition.
+**Use when:** the user has an idea but the requirements aren't yet pinned down – at feature scope, or at overall-product scope before specific features are planned. `--visual` delegates the produced clarification or product vision to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:spec` for one feature, `andthen:prd` for a multi-feature initiative, or (product mode) `andthen:architecture --mode strategic-design` for bounded-context decomposition.
 
 ### `andthen:prd`
 Creates a Product Requirements Document (`prd.md`) from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue.
-**Use when:** scoping a multi-feature initiative. **Typical next step:** `andthen:plan` to break the PRD into stories with FIS specs.
+**Use when:** scoping a multi-feature initiative. `--visual` delegates `prd.md` to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:plan` to break the PRD into stories with FIS specs.
 
 ### `andthen:plan`
 Consumes an existing `prd.md` and produces the full plan bundle: `plan.json` (typed story manifest, canonical) plus one FIS file per story. Re-running on an interrupted bundle fills missing FIS files; re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files.
-**Use when:** turning a PRD into an executable, story-by-story plan. **Typical next step:** `andthen:exec-plan` to implement the bundle.
+**Use when:** turning a PRD into an executable, story-by-story plan. `--visual` delegates the local `plan.json` bundle to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-plan` to implement the bundle.
 
 ### `andthen:spec`
 Produces a single Feature Implementation Specification (FIS) for one execution-sized feature. If the feature exceeds size thresholds, escalates – standalone inputs route to the `andthen:prd → andthen:plan → andthen:exec-plan` chain; plan-story inputs go upstream for plan decomposition.
-**Use when:** a single feature is clear enough to specify but isn't part of a multi-feature plan. **Typical next step:** `andthen:exec-spec` to implement the FIS.
+**Use when:** a single feature is clear enough to specify but isn't part of a multi-feature plan. `--visual` delegates the produced FIS to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-spec` to implement the FIS.
 
 ### `andthen:exec-spec`
-Implements code from a single FIS – code, tests, and verification. Honors the FIS contract (Required Context, Scenarios, Success Criteria) and surfaces named blocks (`CONFUSION:`, `NOTICED BUT NOT TOUCHING:`, `MISSING REQUIREMENT:`) when stuck.
+Implements code from a single FIS – code, tests, and verification. Honors the FIS contract (Required Context, Acceptance Scenarios, Structural Criteria) and surfaces named blocks (`CONFUSION:`, `NOTICED BUT NOT TOUCHING:`, `MISSING REQUIREMENT:`) when stuck.
 **Typical next step:** `andthen:review` (or `andthen:quick-review` mid-flow) before committing.
 
 ### `andthen:exec-plan`
@@ -202,7 +205,11 @@ Fast implementation path for small features, bug fixes, or GitHub issues – byp
 
 ### `andthen:architecture`
 Architecture design and analysis. Seven modes – `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming`. Outputs vary by mode (review reports, ADRs, fitness functions, trade-off analyses, strategic-design reports, event-storming boards). No code changes.
-**Use when:** structural questions, comparing options, mapping a domain end-to-end, or before committing to a decomposition. **Typical next step:** back to `andthen:now-what` once the design question is resolved.
+**Use when:** structural questions, comparing options, mapping a domain end-to-end, or before committing to a decomposition. `--visual` delegates every mode's primary report (`review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, ADR) to the `andthen:visualize` skill for browser review. **Typical next step:** back to `andthen:now-what` once the design question is resolved.
+
+### `andthen:visualize`
+Renders any AndThen artifact – PRD, `plan.json`, FIS, requirements-clarification, product vision, review report (any lens), architecture trade-off / strategic-design / fitness / decompose / event-storming report, or ADR – as a self-contained HTML review surface with section-anchored notes. Read-only – writes HTML under `.agent_temp/visual-review/` and never edits the source artifact.
+**Use when:** the user wants to inspect an existing artifact visually, copy review notes, or re-check an artifact after edits. **Typical next step:** paste copied notes into the owning skill (`andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:clarify`, `andthen:review`, or `andthen:architecture`) or proceed to the next workflow skill.
 
 ### `andthen:ui-ux-design`
 UI/UX work across the lifecycle. Four modes – `research`, `design-system` (tokens, style guide), `wireframes` (screens, user flows), `review` (validate implementation).
@@ -220,16 +227,12 @@ Extracts and maintains the project's `Ubiquitous Language` document (glossary) u
 Creates high-quality Excalidraw diagrams – workflows, architectures, concepts. Output is JSON renderable in any Excalidraw editor.
 **Use when:** visualizing structure or flow as part of design or documentation.
 
-### `andthen:visualize`
-Renders a PRD, `plan.json`, `requirements-clarification.md`, architecture trade-off report, or architecture strategic-design report as a self-contained HTML view (inline CSS+JS+SVG, no external deps), opens it in the user's browser, and exports section-anchored notes via clipboard as a markdown payload that downstream skills (`prd`, `plan`, `exec-plan`, `review`, `clarify`, `architecture`) consume as conversational input. Open-loop: emits HTML, opens browser, exits.
-**Use when:** at workflow inflection points (post-`clarify`, post-`plan`, post-`architecture --mode trade-off`, post-`architecture --mode strategic-design`, on an existing PRD or plan) to spot scope, sequencing, dependency, risk, and edge-case issues a raw artifact view obscures. **Typical next step:** paste the copied notes into the next workflow skill's chat as conversational input.
-
 ### `andthen:review`
-The default review skill. Lenses: `code` (correctness, patterns), `doc` (clarity, completeness), `gap` (spec-vs-implementation), `security` (OWASP, exposure tier), `mixed` (chain). Multi-perspective `--council` mode runs multiple reviewer roles in debate.
-**Use when:** before committing or merging significant changes. **Typical next step:** `andthen:remediate-findings` if findings need addressing.
+The default review skill. Lenses: `code` (correctness, patterns), `doc` (clarity, completeness), `gap` (spec-vs-implementation), `security` (OWASP, exposure tier), `mixed` (chain). Critic posture is always on; multi-perspective `--council` mode uses review persona agents when available, then filters and synthesizes structured findings.
+**Use when:** before committing or merging significant changes. `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage. **Typical next step:** `andthen:remediate-findings` if findings need addressing.
 
 ### `andthen:quick-review`
-Lightweight mid-conversation review of recent changes, dispatched to a fresh-context sub-agent (or `--inline` when the calling conversation is itself fresh). Read-only by default; `--fix` applies accepted findings.
+Lightweight mid-conversation Critic review of recent changes, dispatched to the `review-critic` agent when available (or a fresh-context sub-agent / `--inline` when appropriate). Read-only by default; `--fix` applies accepted findings.
 **Use when:** sanity-check before moving on, mid-flow.
 
 ### `andthen:remediate-findings`
@@ -248,8 +251,8 @@ End-to-end browser testing for web apps. Discovers user journeys, runs interacti
 Investigates and fixes issues – build failures, configuration errors, runtime bugs, regressions, test failures. With `--plan-only` produces a fix plan without applying; with `--to-issue` files the diagnosis as a GitHub issue.
 **Use when:** something is broken and the root cause isn't obvious. **Typical next step:** verify the fix; commit when stable.
 
-### `andthen:refactor`
-Improves, simplifies, and refactors code for clarity, consistency, and maintainability without changing behavior.
+### `andthen:simplify-code`
+Simplifies and cleans up code for clarity, reuse, quality, and efficiency without changing behavior. Accepts `'refactor this'` and `'clean this up'` cues as well as the literal `'simplify'` framing; the deprecated `andthen:refactor` skill is a thin redirect to this one and is never routed to from `andthen:now-what`.
 **Use when:** code is becoming hard to maintain, or after a feature lands and a cleanup pass is warranted.
 
 ### `andthen:ops`

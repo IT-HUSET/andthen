@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants a PRD. Creates a Product Requirements Document from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue. Trigger on 'create a PRD', 'write a PRD', 'draft a PRD', 'PRD from clarify output'.
-argument-hint: "[--to-issue] [--auto|--headless] [specs directory or requirements source | --issue <number>]"
+argument-hint: "[--to-issue] [--visual] [--auto|--headless] [specs directory or requirements source | --issue <number>]"
 ---
 
 # Create Product Requirements Document
@@ -16,7 +16,7 @@ Upstream of the `andthen:plan` skill. The PRD created here is the required input
 ## VARIABLES
 
 _Requirements source (**required**):_
-INPUT: $ARGUMENTS (strip any flag tokens like `--issue`, `--to-issue`, `--auto`, or `--headless` before interpreting the remainder as the requirements source)
+INPUT: $ARGUMENTS (strip any flag tokens like `--issue`, `--to-issue`, `--visual`, `--auto`, or `--headless` before interpreting the remainder as the requirements source)
 
 _Output directory (derived from INPUT type – see Step 1 dispatch table):_
 OUTPUT_DIR: _(resolved per Step 1)_
@@ -24,16 +24,19 @@ OUTPUT_DIR: _(resolved per Step 1)_
 ### Optional Flags
 - `--issue <number>` → Fetch and use a GitHub issue as requirements input
 - `--to-issue` → PUBLISH_ISSUE: Publish PRD as a GitHub issue after saving locally
+- `--visual` → VISUAL_MODE: after `prd.md` is saved and validated, invoke the `andthen:visualize` skill on the produced `prd.md`.
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
 
+- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
 - Require `INPUT`. Stop if missing.
 - Delegate research and exploration to sub-agents to protect the main context window.
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` triggers: missing input; ambiguity so severe two or more incompatible PRDs are equally plausible; unsafe external actions on `--to-issue`.
+- **Visual review is a post-validation handoff.** In `AUTO_MODE`, run it only when `--visual` is present. When present, complete the normal PRD gate first, then invoke the `andthen:visualize` skill on the produced `prd.md`; the visualizer owns HTML rendering, note export, browser-open behavior, and `.agent_temp/visual-review/` output.
 - Focus on "what" not "how". Replace vague terms with measurable criteria. Record rationale and trade-offs.
-- Keep implementation-level details (architecture patterns, library choices, API protocol specifics, internal code organization) out of the PRD. Capture significant technical constraints in `Constraints & Assumptions`; route unresolved architecture/UX decisions to their upstream skills and leave unfamiliar API/library lookup to execution (see Philosophy above).
+- Keep implementation-level details out (architecture patterns, library choices, API specifics, code organization). Capture significant technical constraints in `Constraints & Assumptions`; defer unresolved architecture/UX decisions upstream and API/library lookup to execution.
 
 
 ## GOTCHAS
@@ -144,6 +147,9 @@ When complete, print the output's **relative path from the project root**. Do no
 ### Publish to GitHub _(if --to-issue)_
 If `PUBLISH_ISSUE` is `true`, publish `prd.md` per **Pattern A** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Title: `[PRD] {project-name}: Product Requirements Document`. Labels: `prd`, `andthen-artifact`. Body temp file: `.agent_temp/prd/<feature-slug>-issue-body.md` when `Refs #<N>` is appended (input issue supplied via `--issue <N>` or a GitHub issue URL); otherwise pass `prd.md` directly to `--body-file`. Print the local path (`prd.md`) alongside the issue URL.
 
+### Visual Review _(if --visual)_
+After `prd.md` is saved and Step 5 Validation passes, invoke the `andthen:visualize` skill on the produced `prd.md`. Print both the PRD path and the visualizer's output path.
+
 
 ## FOLLOW-UP ACTIONS
 
@@ -151,7 +157,7 @@ Skip this section when `AUTO_MODE=true`; print only the output path and completi
 
 After completion, suggest the following next steps. **Recommend a clean session** for the context-intensive downstream skills.
 
-1. **Review visually** – invoke the `andthen:visualize` skill on `prd.md` to spot scope and edge-case issues a markdown view obscures.
+1. **Review visually** – run `andthen:visualize <prd.md>` to spot scope and edge-case issues a markdown view obscures.
 2. **Create implementation plan** _(clean session recommended)_: Invoke the `andthen:plan` skill on the PRD directory – it produces the full plan bundle (`plan.json` + all FIS).
 3. **Review the PRD**: Invoke the `andthen:review --mode doc` skill on `prd.md`.
 4. **Initialize project state** (if not already tracking): Create the `State` document via the `andthen:init` skill.

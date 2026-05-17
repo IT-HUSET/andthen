@@ -27,6 +27,8 @@ When the review touches browser state, AI/agent flows, logs, stack traces, error
 
 Run `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` against the same code scope as an always-on sub-lens. This is the finding pass for fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring that constructive review can miss.
 
+When available, use the installed `review-critic` custom agent for the whole-change-set Critic pass, but still supply a read-first task prompt for `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`. If unavailable, use a generic fresh-context sub-agent with the same read-first instruction. Inline fallback must include `Critic Coverage` in the report.
+
 When code review delegates specialist lenses to sub-agents, each specialist runs the Critic sub-lens against its own focus area, **and** a single sub-agent runs the Critic sub-lens against the **whole** change set in parallel. Specialists optimize for depth-within-concern; the generalist catches cross-concern issues that fall between specialist scopes – e.g. a security-shaped quirk inside an architecture slice that neither lens claims as theirs. Without the generalist pass, the find-time isolation the `andthen:quick-review` skill relies on is absent from the bigger review. The generalist is an **additional** sub-agent – not a replacement for any specialist (see *Parallelization* below for fan-out accounting). The synthesis merges all Critic findings into the normal severity sections before any Findings Filter runs.
 
 
@@ -98,6 +100,9 @@ Also flag obsolete files, unmotivated complexity, and cleanup candidates.
 - [UI/UX if applicable]: [Assessment]
 
 _Security awareness covers obvious smells only; defer to the security lens for depth when applicable._
+
+## Critic Coverage
+[Assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring attacked. Required when Critic ran inline; concise when a sub-agent produced findings.]
 
 ## Verification Evidence
 - Commands run: [with result]
