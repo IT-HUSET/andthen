@@ -372,7 +372,7 @@ _canonical_assets="adversarial-challenge.md automation-mode.md critic-calibratio
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
 _skill_assets_prd="automation-mode.md github-publish.md prd-template.md"
 _skill_assets_plan="automation-mode.md data-contract.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md plan-schema.md"
-_skill_assets_spec="automation-mode.md data-contract.md fis-authoring-guidelines.md fis-template.md"
+_skill_assets_spec="automation-mode.md data-contract.md execution-named-blocks.md fis-authoring-guidelines.md fis-template.md"
 _skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md"
 _skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md"
 _skill_assets_ops="data-contract.md plan-schema.md"

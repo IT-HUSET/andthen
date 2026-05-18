@@ -6,6 +6,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.21.2] – 2026-05-18
+
+### Changed
+- **Shared-reference prose trim** – `plan-schema.md`, `plan-issue-shape.md`, `data-contract.md`, `github-publish.md`, and `exec-plan/references/worktree-merge-resolve.md` compressed for token efficiency (-7% to -11% per file; `worktree-merge-resolve.md` held at -2% to keep its bash steps, output-contract values, and Absolute prohibitions intact). Parser-facing headings, contract tokens, JSON examples, tables, regexes, schema fields, status enum values, and parser anchor names preserved verbatim.
+- **Core FIS/plan skill prose trim** – the `andthen:spec`, `andthen:exec-spec`, `andthen:plan`, `andthen:exec-plan` skill bundles plus `fis-authoring-guidelines.md` and the skill-scoped references (`from-issue-mode.md`, `team-mode-orchestration.md`, `to-issue-mode.md`) compressed ~17%–31% per file (~21% aggregate, 26,599 → 21,172 words). Structure held: parser-facing headings and contract anchors, contract tokens (`BLOCKED:`, `OVERSIZE:`, `andthen-finalizing`, `DEFER_SHARED_WRITES`, `update-plan-fis`, etc.), exact failure strings, audit-block field shapes, status-derivation rules, and JSON field names preserved verbatim.
+
+
+---
+
 ## [0.21.1] – 2026-05-18
 
 ### Changed

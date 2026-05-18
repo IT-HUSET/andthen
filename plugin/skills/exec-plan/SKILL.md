@@ -14,36 +14,36 @@ PLAN_PATH: resolved in Step 1, used unchanged in Steps 3, 4, 5. Local-directory 
 ### Optional Flags
 - `--team` → USE_TEAM: force Agent Teams mode; error if unavailable
 - `--worktree` → USE_WORKTREE: enable isolated git worktrees for parallel execution (team mode only; default: `false`)
-- `--from-issue <number>` → ISSUE_INPUT: Use a GitHub plan issue as input (`gh issue view <N>`). Auto-detects single-issue vs granular shape per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md), extracts `## Shared Decisions`, `## Binding Constraints`, and the PRD source for inlining into per-story FIS context, generates each story's FIS just-in-time by invoking the `andthen:spec` skill with a temp story-source file (single-issue: extracted from the story section in the parent body; granular: fetched via `gh issue view <story-N> --json body` from the linked story issue), then runs the existing per-story exec-spec + quick-review pipeline against the materialized FIS with shared local writes deferred. Posts shape-appropriate closure comments after Step 5. **Mutually exclusive with `--team`** (parallel JIT FIS generation is not supported under this flag) – reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop in default mode.
-- `--to-pr <number>` → PUBLISH_PR: after Step 5 Final Verification, post the existing rolled-up completion summary plus final gap verdict as a PR comment via `gh pr comment <number> --body-file <summary-path>`. No new content generation. Composes with `--from-issue <N>` (the same flag works whether the plan came from a local directory or a GitHub issue). See Step 5 Publish to PR sub-step.
+- `--from-issue <number>` → ISSUE_INPUT: use a GitHub plan issue as input (`gh issue view <N>`). Auto-detects single-issue vs granular shape per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md), extracts `## Shared Decisions`, `## Binding Constraints`, and the PRD source for per-story FIS context, generates each story's FIS just-in-time via `andthen:spec` with a temp story-source file, then runs the per-story exec-spec + quick-review pipeline with shared local writes deferred. Posts shape-appropriate closure comments after Step 5. **Mutually exclusive with `--team`** (parallel JIT FIS generation not supported) – reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop otherwise.
+- `--to-pr <number>` → PUBLISH_PR: after Step 5 Final Verification, post the rolled-up completion summary + final gap verdict as a PR comment via `gh pr comment <number> --body-file <summary-path>`. Composes with `--from-issue`. See Step 5b.
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 ## INSTRUCTIONS
 
-Require `PLAN_DIR` unless `--from-issue <N>` is set. Stop if the required plan source is missing. **You are the orchestrator.** Parse the plan, run the per-story pipeline (`exec-spec` → `quick-review` per story, then one final `review --mode gap`), verify writes landed, handle phase transitions, manage failures, run final verification. Delegate story code to `exec-spec` (sub-agent, teammate, or sequential fallback); take over locally when a story returns partial or non-green and the repair is clearly bounded. In `AUTO_MODE`, persistent story failures are recorded and reported at the end.
+Require `PLAN_DIR` unless `--from-issue <N>` is set. **You are the orchestrator.** Parse the plan, run the per-story pipeline (`exec-spec` → `quick-review`, then one final `review --mode gap`), verify writes landed, handle phase transitions, manage failures, run final verification. Delegate story code to `exec-spec` (sub-agent, teammate, or sequential fallback); take over locally when a story returns partial/non-green and the repair is bounded. In `AUTO_MODE`, persistent failures are recorded and reported at the end.
 
 ### Rules
 - **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
-- **Plan is source of truth** – `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) (referenced below as *The Plan Schema*). Follow phase ordering, `dependsOn`, and `parallel` exactly. In local-directory mode, every schedulable story (`status` ∈ {`pending`, `spec-ready`, `in-progress`}) must carry an existing `fis` path; abort if missing – no auto-recovery. `done` and `skipped` are terminal; `blocked` is a manual escape hatch – consumers skip with a warning per *The Plan Schema*. The `--from-issue` mode relaxes the FIS requirement because FIS files are generated just-in-time.
-- **Execution discipline** – Stop-the-Line on red gates per [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (referenced below as *The Execution-Discipline Rules*). See the **Status-Write Contract** below for orchestrator-side specifics (story-scoped containment, no-double-write, worktree deferral).
+- **Plan is source of truth** – `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) (referenced below as *The Plan Schema*). Follow phase ordering, `dependsOn`, `parallel` exactly. In local-directory mode, every schedulable story (`status` ∈ {`pending`, `spec-ready`, `in-progress`}) must carry an existing `fis`; abort otherwise – no auto-recovery. `done`/`skipped` are terminal; `blocked` is a manual escape hatch. `--from-issue` relaxes the FIS requirement (JIT generation).
+- **Execution discipline** – Stop-the-Line on red gates per [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (referenced below as *The Execution-Discipline Rules*). See **Status-Write Contract** below.
 - **Automation rules** – see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md) (referenced below as *The Automation-Mode Rules*). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions.
-- **Status updates are gates** – plan and FIS checkpoint updates block the next phase; do not defer. `plan.json` is mutated only via `andthen:ops update-plan` / `update-plan-fis` (writability rules in *The Plan Schema*).
-- **Story failure containment** – `done` still means fully green. Failed stories transition to `skipped` (dependency-chain containment) or remain `in-progress` until repaired; never skip the enum.
+- **Status updates are gates** – plan and FIS checkpoint updates block the next phase. `plan.json` is mutated only via `andthen:ops update-plan` / `update-plan-fis`.
+- **Story failure containment** – `done` means fully green. Failed stories go to `skipped` (containment) or stay `in-progress` until repaired; never skip the enum.
 - **State document updates are gated** – update on phase transitions and blocker discovery (see **Project Document Index**).
 
 
 ### Status-Write Contract (Multi-Story Orchestration)
 
-Orchestrator-side rules that extend the universal Stop-the-Line gate (see *The Execution-Discipline Rules*).
+Orchestrator-side rules extending the universal Stop-the-Line gate.
 
-- **Story-scoped containment** – A failed story is not `Done`, not merged as complete, and does not unblock dependents. In `AUTO_MODE`, record the failure, preserve partial work, skip dependents, continue independent stories, and finish with an aggregate failed-run report. When stories share a checkout, continue only after preserving the failed story's partial work off the active checkout and proving the active checkout is clean.
+- **Story-scoped containment** – a failed story is not `Done`, not merged as complete, and does not unblock dependents. `AUTO_MODE`: record the failure, preserve partial work, skip dependents, continue independent stories, finish with aggregate report. In shared checkouts, continue only after preserving partial work off the active checkout and proving the checkout clean.
 
-- **Authoritative writes (no double-write)** – `exec-spec` Step 5b writes the per-story status (FIS checkboxes, `plan.json` story `status`, State active-story) via `andthen:ops`. Sub-agents and teammates **do not** additionally call `andthen:ops update-*` on top of the executing skill – that duplicates writes. The orchestrator writes cross-story state only (phase transitions, overall status, session notes) plus *repair writes* when a Step 3c Writes-Landed Checklist item is missing (one `andthen:ops update-*` per missing item).
+- **Authoritative writes (no double-write)** – `exec-spec` Step 5b writes per-story status (FIS checkboxes, `plan.json` `status`, State active-story) via `andthen:ops`. Sub-agents/teammates **do not** call `andthen:ops update-*` on top of exec-spec. The orchestrator writes cross-story state (phase transitions, overall status, session notes) plus *repair writes* when a Step 3c Writes-Landed Checklist item is missing.
 
-- **Worktree deferral** – Under `--worktree`, `exec-spec` runs with `--defer-shared-writes`: it writes only the FIS (story-local, merges cleanly) and emits a `## Deferred Shared Writes` audit block (`Story`, `Plan`, `FIS`, `Completion summary`). The orchestrator constructs the `andthen:ops update-*` calls from its own `STORY_ID` / `FIS_FILE_PATH` / `PLAN_FILE_PATH` plus the audit's `Completion summary` and applies them as the **primary** write path immediately after merging that worktree, before the next merge or Wave N+1 creation.
+- **Worktree deferral** – under `--worktree`, `exec-spec` runs with `--defer-shared-writes`: writes only the FIS (story-local) and emits a `## Deferred Shared Writes` audit block. The orchestrator constructs the `andthen:ops update-*` calls from its own `STORY_ID` / `FIS_FILE_PATH` / `PLAN_FILE_PATH` plus the audit's `Completion summary` and applies them as the **primary** write path immediately after merging that worktree.
   - Repo placement: single-repo writes land on `{BASE_BRANCH}`; multi-repo writes land in `PLAN_DIR` (committed there if it's a git repo) and leave `CODE_DIR` untouched.
-  - Missing audit block → fall back to a generated `Completion summary` and proceed; log the miss but don't Stop-the-Line.
-  - The Writes-Landed Checklist runs *after* deferred writes are applied; any miss there is a real loss → one-shot repair.
+  - Missing audit block → fall back to a generated `Completion summary`; log the miss, not Stop-the-Line.
+  - The Writes-Landed Checklist runs *after* deferred writes; any miss → one-shot repair.
 
 
 ## WORKFLOW
@@ -53,34 +53,34 @@ Orchestrator-side rules that extend the universal Stop-the-Line gate (see *The E
 > **When `--from-issue <N>` is set**: load `references/from-issue-mode.md`. That reference covers the flag-combination guard, the plan-issue body fetch, shape detection, materialization of a local `plan.json` ledger at `.agent_temp/from-issue-<N>/plan.json`, and reconciliation on rerun. After materialization, this Step 1 falls through to validation against the local ledger (items 4–6 below) using the materialized path as `{PLAN_PATH}`. The FIS-existence check (item 5) is relaxed for `--from-issue` because FIS files are generated just-in-time in Step 3.
 
 1. **Resolve CODE_DIR** _(skip if `--team` not set and no second positional arg)_:
-   - If provided: verify git repository, resolve to absolute path
-   - If not provided: auto-detect from PLAN_DIR's git root (when set) vs CWD's git root. Same repo → use that root. Different repos → use CWD's git root.
-   - Resolve `BASE_BRANCH`: `git -C {CODE_DIR} rev-parse --abbrev-ref HEAD`.
-   - **Log + non-default warning** _(only when CODE_DIR was resolved above; default no-team runs do not branch off `BASE_BRANCH` and skip this step)_: print `BASE_BRANCH={value}` explicitly. Resolve `DEFAULT_BRANCH` from the most authoritative source available – `git symbolic-ref refs/remotes/origin/HEAD --short` (strip `origin/` prefix), else a local `main`, else a local `master`. If none resolve, skip the warning (no nag in repos without a clear default). When `BASE_BRANCH ≠ DEFAULT_BRANCH`: confirm in default mode; in `AUTO_MODE`, proceed but log `WARNING: BASE_BRANCH={value} is not the repo's default branch ({DEFAULT_BRANCH}) – all stories will land here.`. Catches the "I thought I was on a different branch" silent-corruption case.
+   - Provided → verify git repo, resolve absolute path.
+   - Not provided → auto-detect from PLAN_DIR's git root (when set) vs CWD's git root. Same repo → use that root. Different → CWD's git root.
+   - Resolve `BASE_BRANCH = git -C {CODE_DIR} rev-parse --abbrev-ref HEAD`.
+   - **Log + non-default warning** _(only when CODE_DIR was resolved)_: print `BASE_BRANCH={value}`. Resolve `DEFAULT_BRANCH` from `git symbolic-ref refs/remotes/origin/HEAD --short` (strip `origin/`), else local `main`, else local `master`. None resolve → skip the warning (no nag in repos without a clear default). When `BASE_BRANCH ≠ DEFAULT_BRANCH`: confirm in default mode; `AUTO_MODE` proceeds with `WARNING: BASE_BRANCH={value} is not the repo's default branch ({DEFAULT_BRANCH}) – all stories will land here.` Catches the silent "wrong branch" case.
 
-2. **Load session state** – Read the `State` document (see **Project Document Index**; default: `docs/STATE.md`) if it exists. Extract session continuity notes, active stories, blockers, and current phase.
+2. **Load session state** – read `State` document (default: `docs/STATE.md`) if present. Extract continuity notes, active stories, blockers, current phase.
 
-3. Read `PLAN_DIR/plan.json` _(local-directory mode)_. If only `plan.md` is present and `plan.json` is not, stop with: `BLOCKED: plan.md is no longer consumed by exec-plan. Run /andthen:plan {PLAN_DIR} to migrate to plan.json (existing FIS files are preserved).` If `plan.json` is missing entirely, stop – a valid plan artifact is required upstream (the `andthen:plan` skill). On success, set `PLAN_PATH` to the absolute path of the resolved file (in `--from-issue` mode, `references/from-issue-mode.md` materialization sets `PLAN_PATH` to `.agent_temp/from-issue-<N>/plan.json`).
-4. **Validate against schema** – confirm `schemaVersion === "1"`; if not, `BLOCKED: unsupported plan.json schemaVersion – re-run /andthen:plan to regenerate`. On parse error, `BLOCKED: malformed plan.json – re-run /andthen:plan`. Validate `dependsOn` closure: every element in every story's `dependsOn` array must match an `id` in `stories[]`. On unknown IDs, stop with `BLOCKED: invalid dependency in {story_id}: "{value}" – story not in catalog`. Validate the status enum: each story's `status` must be one of `pending`, `spec-ready`, `in-progress`, `done`, `skipped`, `blocked`.
-5. **Verify FIS files exist** _(local-directory mode only; relaxed under `--from-issue`)_: every story whose `status` is `pending`, `spec-ready`, or `in-progress` must carry a `fis` path that points at an existing file. This matches the schedulable set in item 6, so an interrupted local bundle with `pending` / `fis: null` stories aborts cleanly here instead of failing mid-pipeline. `blocked` stories are skipped at scheduling time and are not gated here (manual escape hatch – `consumers skip and warn` per *The Plan Schema*). If any story fails this check, abort with: `Plan bundle has stories with missing FIS – run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` Do not proceed (same in `--auto` mode – no auto-recovery). The `--from-issue` JIT exception lives in Step 3b.
-6. Build the execution plan declaratively from the JSON: respect phase ordering (`overview.phases[]`), dependency chains (`dependsOn`), wave grouping (`stories[].wave`), and parallel markers (`stories[].parallel`). Schedulable: `stories.filter(s => s.status !== 'done' && s.status !== 'skipped' && s.status !== 'blocked' && depsSatisfied(s))`. For each story dropped because `status === 'blocked'`, log `WARNING: story {id} is blocked – skipping` and record it in the run ledger's `skipped` list with reason `manually blocked`.
+3. Read `PLAN_DIR/plan.json` _(local-directory mode)_. If only `plan.md` is present, stop with: `BLOCKED: plan.md is no longer consumed by exec-plan. Run /andthen:plan {PLAN_DIR} to migrate to plan.json (existing FIS files are preserved).` If `plan.json` is missing entirely, stop – a valid plan artifact is required upstream (the `andthen:plan` skill). Set `PLAN_PATH` to the absolute path; `--from-issue` mode materializes it via `references/from-issue-mode.md`.
+4. **Validate against schema** – `schemaVersion === "1"` (else `BLOCKED: unsupported plan.json schemaVersion – re-run /andthen:plan to regenerate`). Parse error → `BLOCKED: malformed plan.json – re-run /andthen:plan`. Validate `dependsOn` closure: every element matches an `id` in `stories[]`. Unknown IDs → `BLOCKED: invalid dependency in {story_id}: "{value}" – story not in catalog`. Status must be in the closed enum.
+5. **Verify FIS files exist** _(local-directory mode only; relaxed under `--from-issue`)_: every story with `status` ∈ {`pending`, `spec-ready`, `in-progress`} must carry an existing `fis`. Matches the schedulable set in item 6, so interrupted bundles abort cleanly here, not mid-pipeline. `blocked` stories are not gated (manual escape hatch). Failure: `Plan bundle has stories with missing FIS – run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` No auto-recovery in `--auto`. JIT exception → Step 3b.
+6. Build the execution plan from JSON: phase ordering (`overview.phases[]`), dependency chains (`dependsOn`), wave grouping (`stories[].wave`), parallel markers. Schedulable: `stories.filter(s => s.status !== 'done' && s.status !== 'skipped' && s.status !== 'blocked' && depsSatisfied(s))`. For each `blocked` story, log `WARNING: story {id} is blocked – skipping` and record it in the ledger's `skipped` list with reason `manually blocked`.
 
 **Gate**: Plan parsed (from local `plan.json` or materialized ledger); schema valid; in local mode FIS files exist on disk; phases identified
 
 
 ### Step 2: Determine Execution Mode
 
-**Pre-validate flag combinations**: `--worktree` requires `--team` (worktree isolation is a team-mode feature; sub-agent mode runs sequentially in the orchestrator's CWD and has no worktrees to merge). If `USE_WORKTREE=true` and `USE_TEAM=false`, stop. In default mode, inform the user that `--worktree` is only meaningful with `--team` and ask whether to proceed with `--team` added or drop `--worktree`. In `AUTO_MODE`, emit `BLOCKED: --worktree requires --team` and exit.
+**Pre-validate**: `--worktree` requires `--team` (worktree isolation is team-only). `USE_WORKTREE=true` + `USE_TEAM=false`: default mode asks whether to add `--team` or drop `--worktree`; `AUTO_MODE` emits `BLOCKED: --worktree requires --team`.
 
-Check whether Agent Teams are available by verifying that team creation tools exist (e.g. `TeamCreate`).
+Check Agent Teams availability by verifying team creation tools (e.g. `TeamCreate`).
 
-- **`--team` AND available** → Team mode (Step 3T)
-- **`--team` AND unavailable** → stop. In default mode, inform the user it requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`; in `AUTO_MODE`, emit `BLOCKED: Agent Teams unavailable (requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)` and exit.
-- **No `--team`** → Sub-agent mode (Step 3). Mention `--team` is available if the user wants team execution, unless `AUTO_MODE=true`.
+- **`--team` + available** → Team mode (Step 3T).
+- **`--team` + unavailable** → stop. Default mode informs that `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is required. `AUTO_MODE`: `BLOCKED: Agent Teams unavailable (requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)`.
+- **No `--team`** → Sub-agent mode (Step 3). Mention `--team` is available unless `AUTO_MODE=true`.
 
-**Gate**: Execution mode determined
+**Gate**: execution mode determined
 
-Before story execution (Step 3 or Step 3T), initialize a run ledger: `completed`, `failed`, `skipped`, and `blocked_by`. `plan.json` records successful `done` transitions; the ledger feeds the aggregate report.
+Before story execution, initialize a run ledger: `completed`, `failed`, `skipped`, `blocked_by`. `plan.json` records successful `done` transitions; the ledger feeds the aggregate report.
 
 
 ### Step 3: Phase Loop
@@ -89,157 +89,156 @@ For each phase in the plan:
 
 #### 3a. Phase Transition
 
-**Update project state** (if the `State` document exists; see **Project Document Index**): invoke the `andthen:ops` skill with `update-state phase "{Phase N}: {phase_name}"` and `update-state status "On Track"`.
+**Update project state** (if `State` exists): `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `update-state status "On Track"`.
 
-In local-directory mode, FIS files were verified to exist in Step 1, item 5; re-read `plan.json` if any status updates from a prior phase may have landed during execution. In `--from-issue` mode, the materialized local ledger (`.agent_temp/from-issue-<N>/plan.json`) is reread the same way – `--from-issue` and local-directory mode share a single execution path after Step 1.
+Re-read `plan.json` (local-directory mode) or the materialized ledger (`--from-issue`) – both modes share one execution path after Step 1.
 
-**Gate**: Phase context loaded, `plan.json` current
+**Gate**: phase context loaded, `plan.json` current
 
 #### 3b. Execute Story Pipelines
 
-> **JIT FIS layer** _(only when `--from-issue` is set)_: load `references/from-issue-mode.md` for the per-story FIS materialization recipe (story-body extraction, temp-file invocation form, and the `andthen:spec` failure policy). The orchestrator (this skill) is the actor that injects `**Plan**: github://issue/<plan-N>` and `**Story-ID**: <S0N>` provenance fields into each materialized FIS – `andthen:spec`'s file-reference branch does not auto-emit them. After provenance injection and ledger update, fall through to the standard per-story pipeline below using the captured FIS path as `{fis_path}`.
+> **JIT FIS layer** _(only when `--from-issue` is set)_: load `references/from-issue-mode.md` for per-story FIS materialization (story-body extraction, temp-file invocation, `andthen:spec` failure policy). The orchestrator injects `**Plan**: github://issue/<plan-N>` and `**Story-ID**: <S0N>` provenance fields into each materialized FIS – `andthen:spec`'s file-reference branch does not auto-emit them. After provenance + ledger update, fall through to the per-story pipeline below using the captured FIS path.
 
-**Per-story pipeline** (one FIS per story, so each story gets its own exec-spec + quick-review run):
-1. **Implement**: `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{SHARED_WRITE_SUFFIX}`. When `--from-issue` is set, `{SHARED_WRITE_SUFFIX}` is ` --defer-shared-writes`; the local `plan.json` ledger update is handled by the orchestrator after the worktree merges, and issue-side closure is handled in Step 5c. There is no local `State` status target in `--from-issue` mode.
-2. **Review**: only after exec-spec succeeds, run `/andthen:quick-review{AUTO_SUFFIX}` on the story's changes. Accepted findings are a story gate: remediate once, re-run quick-review, and do not enter the Writes-Landed Checklist until findings are cleared. Persistent findings become a contained story failure in `AUTO_MODE`.
+**Per-story pipeline** (one FIS per story):
+1. **Implement**: `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{SHARED_WRITE_SUFFIX}`. Under `--from-issue`, `{SHARED_WRITE_SUFFIX}` = ` --defer-shared-writes`; the orchestrator updates the local ledger post-merge, and Step 5c handles issue-side closure. No local `State` target in `--from-issue` mode.
+2. **Review**: after exec-spec succeeds, run `/andthen:quick-review{AUTO_SUFFIX}` on the story's changes. Accepted findings are a story gate: remediate once, re-run, do not enter the Writes-Landed Checklist until clear. Persistent findings → contained story failure in `AUTO_MODE`.
 
-**Wave-based execution**: W1 in parallel (via sub-agents), then W2, etc. Fall back to sequential in-orchestrator execution if sub-agents are unavailable or delegated execution stalls / returns partial / non-green.
+**Wave-based execution**: W1 in parallel (sub-agents), then W2, etc. Fall back to sequential in-orchestrator execution if sub-agents are unavailable or delegated execution stalls/returns partial/non-green.
 
-Before scheduling a story, check its dependencies against the run ledger. If any dependency is failed or skipped, skip this story, record `blocked_by`, and do not invoke `exec-spec`. In `AUTO_MODE`, continue with other stories whose dependencies are satisfied; in default mode, include the skip in the next progress/failure summary.
+Before scheduling, check dependencies against the run ledger. Any dependency failed/skipped → skip the story, record `blocked_by`, do not invoke `exec-spec`. `AUTO_MODE`: continue with independent stories; default mode: include skips in the next summary.
 
-Compose the per-story sub-agent prompt by substituting the canonical **Per-Story Worker Prompt** block (see bottom of this file) with `{MODE}=default` and overrides:
-- `{STORY_ID}` = the story's plan identifier (e.g. `S03`)
-- `{FIS_PATH}` = absolute path to the story's FIS
-- `{PLAN_PATH}` = absolute path to `PLAN_DIR/plan.json` (local-directory mode) or to the materialized ledger `.agent_temp/from-issue-<N>/plan.json` (`--from-issue`)
+Compose the per-story sub-agent prompt by substituting the canonical **Per-Story Worker Prompt** block (bottom of this file) with `{MODE}=default` and:
+- `{STORY_ID}` = story plan identifier (e.g. `S03`)
+- `{FIS_PATH}` = absolute path to the FIS
+- `{PLAN_PATH}` = absolute path to `PLAN_DIR/plan.json` or, under `--from-issue`, the materialized ledger
 - `{BASE_BRANCH}` = resolved at run start
 - `{AUTO_SUFFIX}` = `" --auto"` when `AUTO_MODE=true`, else `""`
-- `{SHARED_WRITE_SUFFIX}` = `" --defer-shared-writes"` when `--from-issue` is set, else `""`
+- `{SHARED_WRITE_SUFFIX}` = `" --defer-shared-writes"` when `--from-issue`, else `""`
 - Apply `--auto` propagation per *The Automation-Mode Rules* when `AUTO_MODE=true`
 
-**Model assignment**: Use a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar).
+**Model**: capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar).
 
 #### 3c. Verify Green, Confirm Writes Landed (**Gate**)
 
-Run immediately after each story – not as a batch. Worker self-reports do not count. Enter this gate only after exec-spec succeeded and per-story quick-review has no accepted findings.
+Run immediately after each story – not as a batch. Worker self-reports do not count. Enter only after exec-spec succeeded and per-story quick-review has no accepted findings.
 
-**Green gate**: build clean, targeted tests pass, lint/types clean, no broken intermediate state. Fail → Stop-the-Line per *The Execution-Discipline Rules*; repair locally, re-delegate, or invoke the `andthen:triage` skill; iterate until green.
+**Green gate**: build clean, targeted tests pass, lint/types clean, no broken intermediate state. Fail → Stop-the-Line; repair locally, re-delegate, or invoke `andthen:triage`; iterate until green.
 
-In `AUTO_MODE`, a story that remains non-green after bounded repair, returns `BLOCKED:`, or fails its Acceptance Scenarios or Structural Criteria becomes a contained story failure:
-- Record story id, FIS path, failure summary, verification evidence, changed files/worktree path, and any `exec-spec` `## Failed Story Report`.
-- Do not invoke `quick-review`, mark `Done`, or blindly rerun in the same dirty worktree.
-- In shared-checkout mode, preserve partial work off the active checkout, prove the checkout clean, then skip dependents and continue independent stories. If isolation cannot be proven, emit `BLOCKED:` instead of continuing.
+`AUTO_MODE`: a story non-green after bounded repair, returning `BLOCKED:`, or failing its scenarios/criteria becomes a contained story failure:
+- Record story id, FIS path, failure summary, verification evidence, changed files/worktree path, and any `## Failed Story Report`.
+- Do not invoke `quick-review`, mark `Done`, or rerun in a dirty worktree.
+- Shared-checkout: preserve partial work off the active checkout, prove clean, skip dependents, continue independent stories. If isolation cannot be proven, emit `BLOCKED:` instead of continuing.
 
-Pass → run the **Writes-Landed Checklist** below. This is a structured re-read, not a glance. Outside this repair path and Post-Completion bookkeeping, the orchestrator does not write story-level status.
+Pass → run the **Writes-Landed Checklist** below. Outside this repair path and Post-Completion bookkeeping, the orchestrator does not write story-level status.
 
-**Writes-Landed Checklist** (per story just completed):
+**Writes-Landed Checklist** (per story):
 
-- [ ] **FIS** – open the FIS at `{fis_path}`. Every task checkbox is `[x]`. Every Acceptance Scenario checkbox is `[x]` (canonical shape per fis-authoring-guidelines.md). Every Structural Criteria checkbox is `[x]`. Final Validation Checklist items are `[x]` when the section is present.
-- [ ] **`plan.json` story status** – open `{PLAN_PATH}`. The story object with `id === {story_id}` shows `status: "done"` and its `fis` field points at `{fis_path}`.
-- [ ] **State document** _(local-directory mode only, if it exists per **Project Document Index**)_ – `{story_id}` is no longer in the Active Stories table.
+- [ ] **FIS** – every task / Acceptance Scenario / Structural Criteria checkbox `[x]`; Final Validation Checklist `[x]` when present.
+- [ ] **`plan.json` story status** – the story object with `id === {story_id}` shows `status: "done"` and `fis` points at `{fis_path}`.
+- [ ] **State document** _(local-directory mode only, when it exists)_ – `{story_id}` no longer in Active Stories.
 
-In `--from-issue` mode, the State checklist item is skipped (no local State target); the `plan.json` story-status check applies to the materialized ledger (`.agent_temp/from-issue-<N>/plan.json`). The generated FIS carries `**Plan**: github://issue/<plan-N>` for traceability – Step 5c posts the issue-side completion record.
+`--from-issue` mode: skip the State item; the `plan.json` check applies to the materialized ledger. The FIS carries `**Plan**: github://issue/<plan-N>` for traceability; Step 5c posts the issue-side completion record.
 
-Missing item → call the matching `andthen:ops update-*` once to repair, then re-read that item only. Persistent miss after one repair pass is Stop-the-Line – do not advance the wave on unverified status.
+Missing item → call the matching `andthen:ops update-*` once, then re-read that item only. Persistent miss is Stop-the-Line – do not advance on unverified status.
 
-Checklist pass → append story id, FIS path, and verification summary to the run ledger's `completed` list.
+Pass → append story id, FIS path, verification summary to the ledger's `completed` list.
 
-**Re-delegation** (remediation via sub-agent): compose the per-story sub-agent prompt by substituting the canonical **Per-Story Worker Prompt** block with `{MODE}=re-delegation` and overrides:
+**Re-delegation** (sub-agent remediation): substitute the **Per-Story Worker Prompt** block with `{MODE}=re-delegation` and:
 - `{STORY_ID}`, `{FIS_PATH}`, `{PLAN_PATH}`, `{BASE_BRANCH}` as above
-- `{AUTO_SUFFIX}` = `" --auto"` when `AUTO_MODE=true`, else `""`
-- `{SHARED_WRITE_SUFFIX}` as above
+- `{AUTO_SUFFIX}`, `{SHARED_WRITE_SUFFIX}` as above
 - `{REVIEW_FINDINGS_PATH}` = path to prior review findings
-- Add a `Failure list:` section with the specific failures before the main prompt block
+- Prepend a `Failure list:` section with specific failures
 
-**Gate**: All schedulable stories in the current phase are either verified green or recorded failed/skipped in the run ledger; successful stories have FIS writes confirmed and, in local-directory mode, `plan.json` / State writes confirmed or repaired.
+**Gate**: every schedulable story in the phase is verified green or recorded failed/skipped; successful stories have FIS writes confirmed and (local-directory mode) `plan.json` / State writes confirmed or repaired.
 
-**Gate**: All phases complete, or remaining work is blocked only by recorded failed/skipped stories.
+**Gate**: all phases complete, or remaining work is blocked only by recorded failed/skipped stories.
 
 
 ### Step 3T: Phase Loop (Team Mode)
 
-> **This step replaces Step 3 when `--team` is active.** Steps 4–6 are shared.
+> **Replaces Step 3 when `--team` is active.** Steps 4–6 are shared.
 
-Load `references/team-mode-orchestration.md` for the full orchestration content (team setup, implementer/reviewer prompts, task management, merge wave, status updates gate, monitoring, and Final Worktree Teardown).
+Load `references/team-mode-orchestration.md` for full orchestration (team setup, implementer/reviewer prompts, task management, merge wave, status updates gate, monitoring, Final Worktree Teardown).
 
-For each phase: update project state (same as Step 3a), then create and manage the Agent Team pipeline per `team-mode-orchestration.md`. The bundle is already fully specced – no per-phase spec generation step.
+Per phase: update project state (Step 3a), then create and manage the Agent Team pipeline per `team-mode-orchestration.md`. The bundle is already specced – no per-phase spec generation.
 
-**Pre-create-and-verify isolation** _(when `USE_WORKTREE=true`)_: worktree lifecycle runs through bash scripts, never through `EnterWorktree` / `ExitWorktree` / `Agent({isolation:"worktree"})` – harness isolation is unreliable under `team_name`. Flow: `create-worktree.sh` (orchestrator, pre-spawn per `impl-*`) → `verify-in-worktree.sh` (implementer HARD GATE, first action every turn) → `merge-worktree.sh` with guards G1/G2/G3 (orchestrator, Merge Wave) → `teardown-worktrees.sh` (Final Worktree Teardown). See `references/team-mode-orchestration.md`.
+**Pre-create-and-verify isolation** _(when `USE_WORKTREE=true`)_: worktree lifecycle runs through bash scripts, never `EnterWorktree` / `ExitWorktree` / `Agent({isolation:"worktree"})` – harness isolation is unreliable under `team_name`. Flow: `create-worktree.sh` (orchestrator, pre-spawn) → `verify-in-worktree.sh` (implementer HARD GATE, first action every turn) → `merge-worktree.sh` with guards G1/G2/G3 (orchestrator, Merge Wave) → `teardown-worktrees.sh`. See `references/team-mode-orchestration.md`.
 
-**Gate**: All phases complete, or remaining work is blocked only by recorded failed/skipped stories.
+**Gate**: all phases complete, or remaining work blocked only by recorded failed/skipped stories.
 
 
 ### Step 4: Final Review
 
-If the run ledger contains failed or skipped stories, skip the final gap review. A whole-plan gap verdict on an incomplete plan is noise; Step 6 will emit the aggregate failure report instead.
+If the ledger has failed/skipped stories, skip the final gap review – a verdict on an incomplete plan is noise; Step 6 emits the aggregate failure report instead.
 
-Spawn a sub-agent with fresh context (the orchestrator is biased by construction context). **Model**: use a strong reasoning model (`model: "opus"`, `gpt-5.4`, or similar) – gap review is cross-cutting, not routine pattern-matching.
+Spawn a fresh-context sub-agent (orchestrator is biased by construction context). **Model**: strong reasoning (`model: "opus"`, `gpt-5.4`, or similar) – gap review is cross-cutting.
 
-Resolve `CODE_DIR` to an absolute path before composing the prompt. Compose by substituting the canonical **Per-Story Worker Prompt** block (bottom of this file) with `{MODE}=final-review` and overrides:
-- `{PLAN_PATH}` = the session-level `PLAN_PATH` resolved in Step 1 (local-directory: `PLAN_DIR_ABS/plan.json`; `--from-issue`: `.agent_temp/from-issue-<N>/plan.json` – the materialized ledger). Do not re-derive from `PLAN_DIR` here; in `--from-issue` mode `PLAN_DIR` is empty.
+Resolve `CODE_DIR` to an absolute path before composing. Substitute the **Per-Story Worker Prompt** block with `{MODE}=final-review`:
+- `{PLAN_PATH}` = session-level `PLAN_PATH` from Step 1. Do not re-derive from `PLAN_DIR` (empty in `--from-issue`).
 - `{CODE_DIR_ABS}` = resolved absolute code directory
-- `{STORY_ID}` and `{FIS_PATH}` empty/omitted; apply `--auto` propagation when `AUTO_MODE=true`
+- `{STORY_ID}` / `{FIS_PATH}` empty; apply `--auto` propagation when `AUTO_MODE=true`
 
-Verify the sub-agent returned both a verdict and a readable report path. If either is missing: `BLOCKED: final gap review returned malformed output` in `AUTO_MODE`; stop in default mode.
+Verify the sub-agent returned a verdict and a readable report path. Missing → `BLOCKED: final gap review returned malformed output` in `AUTO_MODE`; stop in default mode.
 
-If the verdict is FAIL: invoke `/andthen:remediate-findings {absolute_report_path}` in the orchestrator (not a sub-agent). Scope narrowly to gap report findings. Escalate if issues persist after one remediation pass.
+FAIL verdict → invoke `/andthen:remediate-findings {absolute_report_path}` in the orchestrator (not a sub-agent). Scope to gap findings. Escalate after one remediation pass.
 
-**Gate**: Final gap review complete
+**Gate**: final gap review complete
 
 ### Step 5: Final Verification
 
-If the run ledger contains failed or skipped stories, skip final verification as a success gate and proceed to Step 6. The aggregate report must still include any per-story verification that did run.
+If the ledger has failed/skipped stories, skip final verification as a success gate and proceed to Step 6. The aggregate report still includes any per-story verification that ran.
 
-Run build, run tests, review cross-story integration. Include verification evidence: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts).
+Run build, tests, cross-story integration. Include: **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts).
 
-**Gate**: Build, tests, integration pass
+**Gate**: build, tests, integration pass
 
 #### 5b. Publish to PR _(only when `--to-pr <number>`)_
 
-After Final Verification has passed, post the rolled-up summary (per-story completion + final gap verdict from Step 4) per **Pattern B** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Summary temp file: `.agent_temp/exec-plan-completion-{plan-slug}.md` – in `--from-issue` mode where `PLAN_DIR` is empty, `{plan-slug}` resolves to `issue-<N>` (full path: `.agent_temp/exec-plan-completion-issue-<N>.md`).
+After Final Verification passes, post the rolled-up summary (per-story completion + Step 4 gap verdict) per **Pattern B** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Summary temp file: `.agent_temp/exec-plan-completion-{plan-slug}.md`. In `--from-issue` mode, `{plan-slug}` = `issue-<N>`.
 
-**Failure-handling override of Pattern B (only when `--from-issue` is also set)**: on `gh` failure here, record the error verbatim and **continue to Step 5c** so issue-side closure still runs – skipping it on a PR-side failure would leave granular story issues unclosed. Surface in the final completion report as `BLOCKED: gh pr comment failed for #<number>` (recorded but non-fatal at this step).
+**Pattern B failure-handling override (only when `--from-issue` is also set)**: on `gh` failure, record verbatim and **continue to Step 5c** so issue-side closure still runs – skipping would leave granular story issues unclosed. Surface as `BLOCKED: gh pr comment failed for #<number>` in the final report (non-fatal here).
 
-When `--from-issue` is NOT set, Pattern B's default applies: surface the `gh` error verbatim and stop. There is no Step 5c to protect, so the override would silently mask a transport failure as success – fall through to the default stop.
+Without `--from-issue`, Pattern B's default applies: surface the error and stop. No Step 5c to protect.
 
-**Gate**: PR comment posted (default `--to-pr` only); or PR comment posted / surfaced as deferred failure with Step 5c continuing (when `--from-issue` is also set)
+**Gate**: PR comment posted (default `--to-pr` only); or posted / deferred-failure with Step 5c continuing (when `--from-issue` is also set)
 
 #### 5c. Issue Closure Comments _(only when `--from-issue <N>` was set)_
 
-Load `references/from-issue-mode.md` for the shape-appropriate closure protocol – single-issue posts N+1 comments on the plan issue; granular uses the deliberate comment-then-close 2-call pattern per story plus a rolled-up summary on the plan issue. Use the existing per-story completion summaries (already produced by `andthen:exec-spec` Step 5c) and the rolled-up plan summary (Step 5).
+Load `references/from-issue-mode.md` for the shape-appropriate closure protocol (single-issue: N+1 comments on the plan issue; granular: comment-then-close 2-call pattern per story plus a rolled-up summary). Use existing per-story summaries (from `andthen:exec-spec` Step 5c) and the rolled-up plan summary (Step 5).
 
-**Gate**: Closure comments posted per shape (or skipped when `--from-issue` is absent)
+**Gate**: closure comments posted per shape (or skipped when `--from-issue` is absent)
 
 ### Step 6: Aggregate Completion Report
 
-Always write a deterministic summary. On success, include completed stories, total phases, execution mode, review/verification results, and path to `PLAN_DIR/plan.json`.
+Always write a deterministic summary. On success: completed stories, total phases, execution mode, review/verification results, path to `PLAN_DIR/plan.json`.
 
-If any story failed or was skipped:
-- Emit `BLOCKED: exec-plan completed with failed stories` in `AUTO_MODE`; in default mode, print the same aggregate summary without asking for a mid-run decision.
-- Include `Completed`, `Failed`, `Skipped`, and `Blocked by` sections with story ids, FIS paths, failure evidence, preserved worktree/branch paths, and report/artifact paths.
-- Update the `State` document when present: status `"At Risk"` when independent work completed but failures remain, or `"Blocked"` when no remaining schedulable story can proceed; add blockers for failed stories with one-line evidence.
-- Do not run success-only PR publishing. For issue-backed runs, comment on failures without closing unfinished story records.
+If any story failed/skipped:
+- `AUTO_MODE` emits `BLOCKED: exec-plan completed with failed stories`; default mode prints the same aggregate summary without asking for a mid-run decision.
+- Include `Completed`, `Failed`, `Skipped`, `Blocked by` sections: story ids, FIS paths, failure evidence, preserved worktree/branch paths, report/artifact paths.
+- Update `State` when present: `"At Risk"` when independent work completed but failures remain, or `"Blocked"` when no schedulable story can proceed; add blockers with one-line evidence.
+- No success-only PR publishing. For issue-backed runs, comment on failures without closing unfinished story records.
 
-**Gate**: Aggregate report exists and unresolved failures are visible to the next orchestrator run.
+**Gate**: aggregate report exists; unresolved failures visible to the next orchestrator run.
 
 ## FAILURE HANDLING
 
-- **Story pipeline fails / non-green** → Stop-the-Line per *The Execution-Discipline Rules* within that story. In `AUTO_MODE`, persistent failure is recorded, dependent stories are skipped, independent stories continue, and Step 6 reports the aggregate failure.
-- **Final review fails** → one remediation pass (subjective-finding policy); escalate if issues persist
-- **Dependent stories blocked** when predecessor fails; **>50% of a phase fails** → record skips/failures and return them in the aggregate report. Do not pause in `AUTO_MODE`.
-- **Update the `State` document on failure** (see **Project Document Index**): `update-state status "At Risk"` or `"Blocked"`
+- **Story pipeline fails / non-green** → Stop-the-Line within that story. `AUTO_MODE`: persistent failure recorded, dependents skipped, independent stories continue, Step 6 reports aggregate.
+- **Final review fails** → one remediation pass; escalate if it persists.
+- **Dependents blocked** when predecessor fails; **>50% of a phase fails** → record skips/failures in the aggregate report. No pause in `AUTO_MODE`.
+- **Update `State` on failure**: `update-state status "At Risk"` or `"Blocked"`.
 - **Always run Final Worktree Teardown before exiting** (see `references/team-mode-orchestration.md`), including failure exits – unmerged worktrees are preserved and listed in the failure summary.
 
 ## Per-Story Worker Prompt
 
-Single canonical prompt template for all per-story sub-agent invocation sites. Placeholders:
-- `{STORY_ID}`, `{FIS_PATH}`, `{PLAN_PATH}`, `{BASE_BRANCH}` – plan/story identity (FIS, plan, branch as absolute path/value).
+Single canonical template for all per-story sub-agent invocations. Placeholders:
+- `{STORY_ID}`, `{FIS_PATH}`, `{PLAN_PATH}`, `{BASE_BRANCH}` – plan/story identity (absolute paths/values).
 - `{MODE}` – `default` / `team` / `re-delegation` / `final-review`.
-- `{WORKTREE_PATH_ABS}` – absolute worktree path captured from `create-worktree.sh` (team + worktree only; empty otherwise).
-- `{WORKTREE_PRELUDE}` – orchestrator-composed block injected ahead of the per-story body. When `{WORKTREE_PATH_ABS}` is non-empty: the substituted value is a leading blank line + `cd {WORKTREE_PATH_ABS}` + `bash ${CLAUDE_SKILL_DIR}/scripts/verify-in-worktree.sh {STORY_ID} {WORKTREE_PATH_ABS}` + STOP-on-anything-other-than-`VERIFY_OK` + absolute-paths-only mandate + trailing blank line. Empty for non-worktree runs (template collapses flush – see the template below). **Kept in sync** with the Implementer system-prompt step 1 in `references/team-mode-orchestration.md` (`## Implementer Prompt` → `Per task, worktree mode` → step 1): the prelude is the per-task injection, the system-prompt step is the durable rule; both encode the same verify-first-or-STOP contract. Edit both together.
+- `{WORKTREE_PATH_ABS}` – absolute worktree path from `create-worktree.sh` (team + worktree only; empty otherwise).
+- `{WORKTREE_PRELUDE}` – orchestrator-composed block injected ahead of the body. When `{WORKTREE_PATH_ABS}` is non-empty: blank line + `cd {WORKTREE_PATH_ABS}` + `bash ${CLAUDE_SKILL_DIR}/scripts/verify-in-worktree.sh {STORY_ID} {WORKTREE_PATH_ABS}` + STOP-on-anything-other-than-`VERIFY_OK` + absolute-paths-only mandate + blank line. Empty for non-worktree runs. **Kept in sync** with `references/team-mode-orchestration.md` `## Implementer Prompt` → `Per task, worktree mode` → step 1 – the prelude is the per-task injection, the system-prompt step is the durable rule. Edit both together.
 - `{AUTO_SUFFIX}` – `" --auto"` when `AUTO_MODE=true`, else `""`.
-- `{WORKTREE_SUFFIX}` / `{SHARED_WRITE_SUFFIX}` – `" --defer-shared-writes"` when defer applies (worktree mode or `--from-issue`), else `""`.
+- `{WORKTREE_SUFFIX}` / `{SHARED_WRITE_SUFFIX}` – `" --defer-shared-writes"` when defer applies (worktree or `--from-issue`), else `""`.
 - `{REVIEW_FINDINGS_PATH}` – prior review findings (re-delegation only).
-- `{CODE_DIR_ABS}` – absolute code repo path (final-review mode).
+- `{CODE_DIR_ABS}` – absolute code repo path (final-review only).
 
 For the no-double-write contract, see **Status-Write Contract** above.
 

@@ -1,39 +1,39 @@
 # `--to-issue` Mode (GitHub Output)
 
-GitHub-output sibling of Step 4 in `andthen:plan`. Load this reference when running the `andthen:plan` skill with `--to-issue` set, or when implementing changes to the plan-issue body shape.
+GitHub-output sibling of Step 4 in `andthen:plan`. Load when running with `--to-issue`, or when changing the plan-issue body shape.
 
-**Nothing is written to disk** – no `plan.json`, no FIS files. The plan content is rendered from the in-memory plan object (built in Step 2–3 of the parent skill) into a GitHub issue body per the canonical shape in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). Steps 5 (FIS generation) and 6 (cross-cutting review) are skipped.
+**Nothing is written to disk** – no `plan.json`, no FIS. The in-memory plan object (built in Steps 2–3) renders to a GitHub issue body per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). Steps 5–6 are skipped.
 
 
 ## 1. Build the plan-issue body
 
-Render the in-memory plan object using the markdown shape in [`templates/plan-template-issue.md`](../templates/plan-template-issue.md). This is the GitHub-transport view of the plan – the canonical local artifact remains JSON. Body skeleton: `> **PRD**:` source header (`github://issue/<input-issue-N>` for issue input, otherwise the local PRD path) → plan summary → optional `## Shared Decisions` → optional `## Binding Constraints` → `## Story Catalog` table → one `### Story S0N: <name>` per story → `Refs #<input-issue-N>` footer line when an input issue was supplied.
+Render the in-memory plan using [`templates/plan-template-issue.md`](../templates/plan-template-issue.md). This is the GitHub-transport view; the canonical local artifact remains JSON. Body skeleton: `> **PRD**:` header (`github://issue/<input-issue-N>` for issue input, else local PRD path) → plan summary → optional `## Shared Decisions` → optional `## Binding Constraints` → `## Story Catalog` → one `### Story S0N: <name>` per story → `Refs #<input-issue-N>` footer (when an input issue was supplied).
 
-`sharedDecisions` and `bindingConstraints` come straight from the in-memory plan object – same extraction (in Step 2 of the parent skill) feeds both the local-output path (Step 4) and the GitHub-output path here. Omit either section when the corresponding array is empty.
+`sharedDecisions` / `bindingConstraints` come straight from the in-memory plan – same extraction feeds both the local path (Step 4) and here. Omit either section when its array is empty.
 
-Story Catalog columns and compact story brief fields are the markdown rendering of `stories[]` from the plan object – see the [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) Plan Issue Catalog (markdown) section for column ordering and the dependency-cell contract. The Story Catalog `Dependencies` column uses only `-` or comma-separated Story IDs; granular story issue bodies may use optional `Depends on #<sibling-issue-N>` navigation only after the two-pass rewrite. Story Catalog `FIS` cells stay unset (`-`); FIS files are generated just-in-time by `andthen:exec-plan --from-issue`.
+Story Catalog columns and brief fields render `stories[]` per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) Plan Issue Catalog. `Dependencies` cells use `-` or comma-separated Story IDs. `FIS` cells stay `-` (JIT in `exec-plan --from-issue`).
 
 
 ## 2. Create the plan issue (single-issue mode, default)
 
 When `--create-story-issues` is **not** set, publish per **Pattern A** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Title: `[Plan] <feature-name>`. Labels: `plan`, `andthen-artifact`. Body temp file: `.agent_temp/plan-issue-<feature-slug>.md`.
 
-After success: **Stop** – do not run Steps 5, 6. The local working tree contains no new plan/FIS files.
+Success → **Stop** (Steps 5–6 do not run; no local files).
 
 
 ## 3. Create plan + story issues (granular mode, `--create-story-issues`)
 
-When `--create-story-issues` is set, use the **granular shape** from [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). Each issue creation below follows **Pattern A** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md); the orchestration around them is granular-specific:
+Use the **granular shape** from [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). Each create follows **Pattern A**:
 
-1. **Build the plan-issue body** with the granular shape: `> **PRD**:` source header (`github://issue/<input-issue-N>` for issue input, otherwise the local PRD path) → plan summary → optional `## Shared Decisions` → optional `## Binding Constraints` (with internal H2s downshifted to H3 – see the Shape Detection note in `plan-issue-shape.md`) → `## Story Catalog` → `## Story Issues` (placeholder bullets – real issue numbers fill in step 4 below) → `Refs #<input-issue-N>` footer.
-2. **Create the plan issue first** (Pattern A – title `[Plan] <feature-name>`, labels `plan` + `andthen-artifact` + **`andthen-finalizing`**) with placeholder `## Story Issues` bullets. Capture its number `<plan-N>`. The `andthen-finalizing` label is the producer/consumer race-window gate – consumers (`andthen:exec-plan --from-issue`) refuse to parse a plan issue carrying this label.
-3. **For each story (in catalog order)**: build the story-issue body per the granular **Story Issue Body Skeleton** in `plan-issue-shape.md`. Create per Pattern A with title `S0N: <story name>` and labels `story` + `andthen-artifact`. Capture each new issue number.
-4. **Rewrite the plan issue's `## Story Issues` section** with the real `#<S-N>` references via `gh issue edit <plan-N> --body-file <updated-body-path>` – one bullet per story in catalog order using the canonical 3-field shape from [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md): `- #<story-issue-N> – <story name> – <one-line scope>`. Optional inter-story `Depends on #<sibling-N>` navigation: a story whose dependencies point at later-catalog stories temporarily uses placeholder text, then a second `gh issue edit <story-N>` rewrites the navigation note once all sibling numbers exist. (`gh issue edit` is the granular two-pass rewrite vehicle – Pattern A covers create-new only.)
-5. **Remove the `andthen-finalizing` label** from the plan issue: `gh issue edit <plan-N> --remove-label andthen-finalizing`. This is the finalization signal – only after this call may consumers parse the plan issue. If this call fails, surface the failure but leave the label in place (consumers will refuse to parse, which is the safe default – surface the error so the user can manually remove the label after verifying).
-6. Print the plan issue URL and a one-line `<N> story issues created` summary with their URLs.
-7. **Stop** – Steps 5, 6 of the parent skill do not run; the local working tree contains no new files.
+1. **Build the plan-issue body** (granular shape): `> **PRD**:` header → plan summary → optional `## Shared Decisions` → optional `## Binding Constraints` (internal H2s downshifted to H3 per the Shape Detection note) → `## Story Catalog` → `## Story Issues` (placeholder bullets – filled in step 4) → `Refs #<input-issue-N>` footer.
+2. **Create the plan issue first** (Pattern A – title `[Plan] <feature-name>`, labels `plan` + `andthen-artifact` + **`andthen-finalizing`**). Capture `<plan-N>`. The `andthen-finalizing` label is the consumer race-window gate – `exec-plan --from-issue` refuses to parse issues carrying it.
+3. **For each story (catalog order)**: build the story-issue body per granular Story Issue Body Skeleton. Create with title `S0N: <story name>`, labels `story` + `andthen-artifact`. Capture each issue number.
+4. **Rewrite the plan issue's `## Story Issues` section** with real `#<S-N>` references via `gh issue edit <plan-N> --body-file <updated-body-path>` – one bullet per story in catalog order: `- #<story-issue-N> – <story name> – <one-line scope>`. Optional inter-story `Depends on #<sibling-N>` navigation: stories whose dependencies point at later-catalog stories use placeholder text initially, then a second `gh issue edit <story-N>` rewrites navigation once all sibling numbers exist. (`gh issue edit` is the granular two-pass rewrite vehicle.)
+5. **Remove `andthen-finalizing`** from the plan issue: `gh issue edit <plan-N> --remove-label andthen-finalizing`. Finalization signal. If this call fails, surface and leave the label in place (consumers refuse to parse – safe default).
+6. Print the plan issue URL and a one-line `<N> story issues created` summary with URLs.
+7. **Stop** – Steps 5–6 do not run.
 
-On `gh` failure mid-creation, Pattern A's "surface and stop" applies. Already-created issues are left in place – surface their URLs so the user can act manually rather than attempting a destructive rollback. The `andthen-finalizing` label remaining on the plan issue is the consumer-side block that prevents partial state from being treated as final.
+On `gh` failure mid-creation, Pattern A's "surface and stop" applies. Already-created issues stay – surface URLs for manual cleanup. The `andthen-finalizing` label remaining is the consumer block preventing partial state from being read as final.
 
 
 ## Gate

@@ -13,11 +13,11 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 ### Optional Flags
 - `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
 - `--tdd` → TDD_MODE: strict TDD execution mode. Scaffold exactly one scenario test, observe it fail, drive red→green→refactor, then advance to the next scenario. The TDD canon – Anti-Cheat Invariant, Living Test List, Horizontal Slicing as Anti-Pattern, red→green→refactor discipline – is owned by the `andthen:testing` skill; load it via `/andthen:testing --mode tdd` (or the Skill tool) for canon depth, but the executor remains the test author – this is canon consultation, not delegation of test writing. `AUTO_MODE` honors `--tdd` without confirmation gates. Default off; opt in for logic-heavy or bug-mode FISes.
-- `--defer-shared-writes` → DEFER_SHARED_WRITES (boolean; default `false`; set to `true` iff this flag is passed at invocation; immutable for the run):
-  - When `true`: skip the `State` write in Step 2.12, the `plan.json` write in Step 5b.2, the `State` writes in Step 5b.3, and the `State` writes in Step 4d's failure path; FIS writes (Step 5b.1) still run; emit a `## Deferred Shared Writes` audit block in the completion report (Step 5b.5) so the caller can apply the deferred writes itself.
-  - When `false` (standalone default): Step 5b.2 / 5b.3 perform the per-story `plan.json` and `State` writes (story `status: "done"`, `fis` field, removal from Active Stories) **plus** plan-level `status` derived from `plan.json` on success (Step 5b.3 Plan health) and a per-story blocker + derived `status` on persistent failure (Step 4d). Together these match what `andthen:exec-plan` writes per-story and at phase boundaries, so a user running stories one at a time via exec-spec keeps the plan and State documents consistent. The audit block is not emitted.
-  - Auto-propagated to `true` by `andthen:exec-plan --team --worktree` (prevents concurrent worktree merges from colliding on shared files) and by `andthen:exec-plan --from-issue` (orchestrator drives ledger updates against the materialized local `plan.json`). Intended for orchestrated use – pass standalone only when you explicitly want the writes deferred (see Step 5b.5 standalone-use note).
-- `--to-pr <number>` → PUBLISH_PR: after Step 5b status writes succeed, post the existing completion summary (the report produced by Step 5c) as a PR comment via `gh pr comment <number> --body-file <summary-path>`. No new content generation – the comment body is the local summary verbatim. Explicit number only; no auto-detect from the current branch. See Step 5d for emission details.
+- `--defer-shared-writes` → DEFER_SHARED_WRITES (boolean; default `false`; immutable for the run):
+  - **`true`**: skip the `State` write in Step 2.13, the `plan.json` write in Step 5b.2, the `State` writes in Step 5b.3, and the `State` writes in Step 4d's failure path. FIS writes (Step 5b.1) still run; emit a `## Deferred Shared Writes` audit block in Step 5b.5 so the caller can apply the writes.
+  - **`false`** (standalone default): Step 5b.2 / 5b.3 run the per-story `plan.json` and `State` writes (story `done`, `fis` field, Active Stories removal) plus plan-level `status` derivation on success (Step 5b.3) and a per-story blocker + derived status on persistent failure (Step 4d). Mirrors `andthen:exec-plan`'s per-story and phase-boundary writes so story-by-story standalone use keeps plan/State consistent. No audit block.
+  - Auto-propagated to `true` by `andthen:exec-plan --team --worktree` (prevents concurrent worktree merges colliding on shared files) and by `andthen:exec-plan --from-issue` (orchestrator owns the materialized local `plan.json`). Pass standalone only when you explicitly want the writes deferred (see Step 5b.5 standalone-use note).
+- `--to-pr <number>` → PUBLISH_PR: after Step 5b status writes succeed, post the Step 5c summary verbatim as a PR comment via `gh pr comment <number> --body-file <summary-path>`. Explicit number only; no auto-detect. See Step 5d.
 
 
 ## INSTRUCTIONS
@@ -29,32 +29,32 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 - **FIS is source of truth** – follow it exactly.
 - **Execution discipline** – Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (referenced below as *The Execution-Discipline Rules*).
 - **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
-- **Retry-safe dirty worktrees** – before editing, classify existing dirty paths. Resume only when they clearly belong to this FIS; preserve unrelated edits; `BLOCKED:` on ambiguous overlap. Never discard or overwrite pre-existing edits.
-- **Direct execution** – implement the code yourself. Sub-agents are for advisory work, review, and validation only.
-- **Surgical scope; surface – don't fix** – every changed line should trace to a FIS task. Clean only orphans your own changes caused (e.g. an import you made unused). Pre-existing issues go into a `NOTICED BUT NOT TOUCHING` block during the run, persist to the FIS's `## Implementation Observations` at completion (Step 5b), and pointer from the completion report. Boy Scout cleanup is reserved for review-, cleanup-, and remediation-driven skills, not exec-spec.
-- **Anti-rationalization** – reject rationalizations for skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate (e.g. *"I'll verify after the next group"*, *"this failing check is unrelated"*, *"I'll batch status updates at the end"*, *"completing with a caveat is fine"*). Broken is not Done; Stop-the-Line applies.
+- **Retry-safe dirty worktrees** – classify existing dirty paths before editing. Resume only when they clearly belong to this FIS; preserve unrelated edits; `BLOCKED:` on ambiguous overlap. Never discard pre-existing edits.
+- **Direct execution** – implement code yourself. Sub-agents are advisory/review only.
+- **Surgical scope; surface – don't fix** – every changed line traces to a FIS task. Clean only orphans your own changes caused. Pre-existing issues go into `NOTICED BUT NOT TOUCHING` during the run, persist to `## Implementation Observations` in Step 5b, and pointer from the completion report. Boy Scout cleanup is reserved for review/cleanup/remediation skills, not exec-spec.
+- **Anti-rationalization** – reject rationalizations for skipping test scaffolding, deferring verification, batching status updates, or pushing past a red gate (*"I'll verify after the next group"*, *"this failing check is unrelated"*, *"completing with a caveat is fine"*). Broken is not Done.
 
 ### Proactive Sub-Agents
-Spawn narrow sub-agents when they materially improve a coding decision. Their output is advisory; the FIS remains the contract.
+Spawn narrow sub-agents when they materially improve a coding decision. Output is advisory; the FIS remains the contract.
 
 **Documentation lookup and research**:
 
-- External API/library docs are **not** pre-resolved at spec time. Spawn a documentation-lookup sub-agent whenever you encounter unfamiliar API surface, library/framework behavior, migration details, or version-specific questions – do not pause and ask. The sub-agent consults the project's `## Documentation Lookup Tools` section in `CLAUDE.md` / `AGENTS.md`. Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly for the same behavior.
-- For external best-practice research or context not available in the codebase, do research in a sub-agent. Prefer official sources and separate evidence from inference.
+- External API/library docs are **not** pre-resolved at spec time. Spawn a documentation-lookup sub-agent for unfamiliar API surface, library/framework behavior, migration details, or version-specific questions – do not pause and ask. The sub-agent consults `## Documentation Lookup Tools` in `CLAUDE.md` / `AGENTS.md`. Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly.
+- For external best-practice research, use a sub-agent. Prefer official sources; separate evidence from inference.
 
-**Skills** (invoke as `/andthen:<name>`; when you want fresh-context isolation, spawn a sub-agent whose prompt runs the skill):
+**Skills** (invoke as `/andthen:<name>`; for fresh-context isolation, spawn a sub-agent whose prompt runs the skill):
 
-- the `andthen:testing` skill – test strategy, coverage assessment, test-first / red-green-refactor discipline, Prove-It bugfix flow, or unfamiliar test-harness patterns
-- the `andthen:architecture` skill (`--mode advise` or `--mode trade-off`) – unresolved architectural trade-offs or integration-pattern ambiguity not settled by the FIS
-- the `andthen:ui-ux-design` skill – UI layout, interaction, accessibility, or responsive-pattern advice when the FIS needs a design contract
-- the `andthen:visual-validation` skill – visual/design compliance against wireframes, screenshots, or baselines
-- the `andthen:triage` skill – non-trivial build failures, dependency conflicts, or cascading test failures
+- the `andthen:testing` skill – test strategy, coverage, TDD / red-green-refactor, Prove-It bugfix flow, unfamiliar test-harness patterns
+- the `andthen:architecture` skill (`--mode advise` or `--mode trade-off`) – unresolved trade-offs or integration-pattern ambiguity
+- the `andthen:ui-ux-design` skill – UI layout, interaction, accessibility, responsive patterns
+- the `andthen:visual-validation` skill – visual/design compliance against wireframes, screenshots, baselines
+- the `andthen:triage` skill – non-trivial build failures, dependency conflicts, cascading test failures
 
-For advisory analysis, use a capable reasoning model (`model: "sonnet"` or stronger, `gpt-5.4`, or similar); for retrieval and routine lookups, haiku-class is sufficient.
+Use a capable reasoning model (`model: "sonnet"` or stronger, `gpt-5.4`, or similar) for advisory analysis; haiku-class for retrieval.
 
-Usage rules:
+Rules:
 - Prefer multiple narrow questions over one broad prompt
-- Spawn early when the need appears; do not wait until you are fully blocked
+- Spawn early; do not wait until fully blocked
 - If sub-agent guidance conflicts with the FIS, follow the FIS
 - Do not spawn a sub-agent for coding work you should do directly
 
@@ -66,14 +66,14 @@ Usage rules:
 ## WORKFLOW
 
 ### Step 1: Resolve FIS and Story Context
-1. Require a local `FIS_FILE_PATH`. Stop if the argument is missing or does not resolve to a readable file.
-2. Read the FIS header (lines between the H1 and the first `## ` heading) and extract `STORY_ID` from `**Story-ID**:` and `PLAN_FILE_PATH` from `**Plan**:`. These provenance fields are the authoritative source.
-   - **Legacy `**Plan**: …/plan.md` rewrite**: if the extracted `PLAN_FILE_PATH` ends with `.md` AND a sibling `.json` exists (replace the trailing `.md` segment with `.json`), prefer the sibling `.json` regardless of whether the legacy `.md` still resolves. The migration in the `andthen:plan` skill does not auto-delete `plan.md`, so a populated `**Plan**: docs/specs/feature/plan.md` value can still resolve to an existing file post-migration; preferring the live ledger when both are present is the right behavior. Emit to stdout: `WARN: FIS **Plan**: provenance points at legacy plan.md; using sibling plan.json (re-spec to upgrade).` If the path ends with `.md` and no sibling `.json` exists but the `.md` does not resolve either, fall through to the missing-fields branch below.
-   - If either field is absent (older FIS without provenance fields): fall back to filename-prefix extraction (e.g. `s01-feature-name.md` → `S01`) and sibling-plan lookup for `plan.json` only. Emit to stdout: `WARN: FIS missing **Plan**:/**Story-ID**: provenance fields; using filename/sibling fallback (re-spec to upgrade)`. If only a legacy `plan.md` sibling exists (no `plan.json`), emit `BLOCKED: legacy plan.md found alongside FIS but plan.json is required. Run /andthen:plan in <plan-dir> to migrate (existing FIS files are preserved).` and stop. For single-feature specs not derived from a plan, leave `STORY_ID` empty.
-3. Record `PLAN_FILE_PATH` for Step 5b updates when the FIS is plan-backed.
-   - **`github://issue/<N>` provenance**: when `PLAN_FILE_PATH` starts with `github://`, there is no on-disk `plan.json`. With `DEFER_SHARED_WRITES=true`, proceed (Step 5b.2 already skips). With `DEFER_SHARED_WRITES=false`, stop with `BLOCKED: FIS provenance points at github://issue/<N>; no local plan.json to update. Re-invoke with --defer-shared-writes, or supply a materialized ledger path explicitly.`
+1. Require a local `FIS_FILE_PATH`. Stop if missing or unreadable.
+2. Read the FIS header (lines between the H1 and the first `## ` heading) and extract `STORY_ID` from `**Story-ID**:` and `PLAN_FILE_PATH` from `**Plan**:`. These provenance fields are authoritative.
+   - **Legacy `**Plan**: …/plan.md` rewrite**: if `PLAN_FILE_PATH` ends with `.md` AND a sibling `.json` exists, prefer the sibling `.json` regardless of whether the `.md` still resolves (the plan migration does not auto-delete `plan.md`). Emit: `WARN: FIS **Plan**: provenance points at legacy plan.md; using sibling plan.json (re-spec to upgrade).` If `.md` and no sibling `.json` exists, fall through to the missing-fields branch.
+   - **Missing fields** (older FIS): fall back to filename-prefix extraction (`s01-feature-name.md` → `S01`) and sibling `plan.json` lookup. Emit: `WARN: FIS missing **Plan**:/**Story-ID**: provenance fields; using filename/sibling fallback (re-spec to upgrade)`. If only legacy `plan.md` exists, stop with: `BLOCKED: legacy plan.md found alongside FIS but plan.json is required. Run /andthen:plan in <plan-dir> to migrate (existing FIS files are preserved).` For non-plan single-feature specs, leave `STORY_ID` empty.
+3. Record `PLAN_FILE_PATH` for Step 5b updates when plan-backed.
+   - **`github://issue/<N>` provenance**: no on-disk `plan.json`. With `DEFER_SHARED_WRITES=true`, proceed (Step 5b.2 skips). With `DEFER_SHARED_WRITES=false`, stop with `BLOCKED: FIS provenance points at github://issue/<N>; no local plan.json to update. Re-invoke with --defer-shared-writes, or supply a materialized ledger path explicitly.`
 
-**Gate**: `FIS_FILE_PATH` exists; `STORY_ID` and `PLAN_FILE_PATH` captured when the FIS is plan-backed
+**Gate**: `FIS_FILE_PATH` exists; `STORY_ID` and `PLAN_FILE_PATH` captured when plan-backed
 
 ### Step 2: Read and Prepare
 
@@ -91,31 +91,31 @@ Usage rules:
    - Unrelated: record `BASELINE_DIRTY=<paths>`; preserve and exclude from `changed-files`.
    - Ambiguous overlap: stop before editing. In `AUTO_MODE`, emit `BLOCKED: dirty worktree overlaps {STORY_ID}: <paths>`; otherwise surface `CONFUSION:`.
 
-4. Understand the sections that define execution: **Feature Overview and Goal** (Intent + Expected Outcomes – the in-FIS intent anchor), Required Context, Acceptance Scenarios, Structural Criteria, Scope & Boundaries, Architecture Decision, Code Patterns & External References, Constraints & Gotchas, and Implementation Plan. Visible-empty sub-sections (Testing Strategy, Validation, Execution Contract) plus Technical Overview and Final Validation Checklist usually ship empty per the template's "**Leave empty** when…" prompts – read them when present, treat empty bodies as "standard handling applies."
+4. Understand the execution-defining sections: **Feature Overview and Goal** (Intent + Expected Outcomes – the in-FIS intent anchor), Required Context, Acceptance Scenarios, Structural Criteria, Scope & Boundaries, Architecture Decision, Code Patterns & External References, Constraints & Gotchas, Implementation Plan. Visible-empty sections (Testing Strategy, Validation, Execution Contract, Technical Overview, Final Validation Checklist) usually ship empty per "**Leave empty** when…" prompts – read when present, treat empty as "standard handling applies."
 
-   **Intent as in-FIS tie-breaker** – when an Acceptance Scenario or task is ambiguous, the Expected Outcome(s) it tags (`[OC<NN>]`) resolve the ambiguity in favor of the named success condition before raising `CONFUSION:`. For *behavioral* tasks, walk the indirection: collect scenarios whose `[TI<NN>]` set includes the task, read those scenarios' `[OC<NN>]` tags, then read the matching Expected Outcomes. For *structural* tasks (no scenario tags this task; the task's Verify line proves a Structural Criterion), the resolving anchor is the matched Structural Criterion's text, not Expected Outcomes. If the tagged Expected Outcome (behavioral path) or the matched Structural Criterion (structural path) is itself ambiguous, raise `CONFUSION:` – do not pick by guess. The tie-breaker resolves *referent* ambiguity, not *outcome-text* or *criterion-text* ambiguity.
+   **Intent as in-FIS tie-breaker** – when a scenario or task is ambiguous, its tagged Expected Outcome(s) resolve ambiguity in favor of the named success condition before raising `CONFUSION:`. For *behavioral* tasks, walk the indirection: scenarios whose `[TI<NN>]` includes the task → those scenarios' `[OC<NN>]` tags → matching Expected Outcomes. For *structural* tasks (no scenario tags it; its Verify line proves a Structural Criterion), the resolving anchor is the matched Structural Criterion's text. If the resolving outcome/criterion is itself ambiguous, raise `CONFUSION:` – do not guess. The tie-breaker resolves *referent* ambiguity, not *text* ambiguity.
 
-   **Legacy-FIS notice**: when the loaded FIS has no `**Expected Outcomes**:` sub-block under `## Feature Overview and Goal`, emit `WARN: FIS predates Expected Outcomes; in-FIS tie-breaker inactive (re-spec to upgrade).` The structural-integrity contract is unchanged so execution proceeds; the in-FIS tie-breaker and Step 5a upper-chain attestation are silently no-ops on this FIS until re-spec.
+   **Legacy-FIS notice**: when no `**Expected Outcomes**:` sub-block exists under `## Feature Overview and Goal`, emit `WARN: FIS predates Expected Outcomes; in-FIS tie-breaker inactive (re-spec to upgrade).` The structural-integrity contract is unchanged so execution proceeds; the in-FIS tie-breaker and Step 5a upper-chain attestation are silent no-ops.
 
-5. **Process Required / Deeper Context** – the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution; do not re-read source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional – read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source and warn (do not stop) on broken anchors.
+5. **Process Required / Deeper Context** – `Required Context` blocks are authoritative; do not re-read source documents to reconfirm. `Deeper Context` pointers (`path#anchor`) are optional, on-demand reads when Required Context has gaps. Verify each followed anchor resolves; warn (do not stop) on broken anchors.
 
-6. Read the `Learnings` document (see **Project Document Index**) if it exists and is relevant.
+6. Read the `Learnings` document (see **Project Document Index**) when present and relevant.
 
-7. Read the `Ubiquitous Language` document (see **Project Document Index**) if it exists and is relevant. Use canonical terms in code and avoid listed synonyms.
+7. Read the `Ubiquitous Language` document (see **Project Document Index**) when present. Use canonical terms; avoid listed synonyms.
 
-8. Read the `Architecture` document (see **Project Document Index**) if it exists and the FIS touches structural or cross-component code. The FIS `Required Context` (from item 5) is authoritative for execution; the `Architecture` document provides the system-shape baseline so implementations stay aligned with documented component boundaries and patterns.
+8. Read the `Architecture` document (see **Project Document Index**) when the FIS touches structural or cross-component code. Required Context (item 5) is authoritative for execution; Architecture provides the system-shape baseline.
 
-9. Read the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) if it exists. It is the canonical source for build, format, lint/type-check, test, and run commands. Use these whenever a FIS task `Verify` line does not already specify the command. If the document is missing, fall back to discovery and language / tech stack conventions.
+9. Read the `Key Dev Commands` document (default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) – canonical source for build, format, lint/type-check, test, run commands. Use these whenever a Verify line does not specify its own. If missing, fall back to discovery and language conventions.
 
-10. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then stop broad discovery and focus on the files the FIS actually touches.
+10. Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then focus on the files the FIS touches.
 
-11. **Scaffold scenario tests** – if the FIS has **Acceptance Scenarios**, scaffold the minimum high-signal scenario-test skeletons inline using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
+11. **Scaffold scenario tests** – if the FIS has Acceptance Scenarios, scaffold minimum high-signal scenario-test skeletons using nearby test patterns. When `TDD_MODE=true`, scaffold exactly one scenario test, observe it fail for the right reason, then proceed to Step 3 for that scenario only. When practical, confirm tests fail before implementation. If the test harness is unclear after one bounded pass, note the skip and continue.
 
-12. **UI design contract** – if the FIS has UI work and no adequate design contract is already referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, and responsive breakpoints. Source from FIS → project design system → UX guidelines → reasonable defaults.
+12. **UI design contract** – if the FIS has UI work and no adequate design contract is referenced, create a short `.agent_temp/ui-spec-{feature-name}.md` covering spacing, typography, color, component patterns, responsive breakpoints. Source: FIS → design system → UX guidelines → defaults.
 
-13. **Update project state** (if the `State` document exists per **Project Document Index**, the FIS originated from a plan, and `DEFER_SHARED_WRITES=false`): restore story context from `STORY_ID` and mark it as the active story. When shared writes are deferred, do not mutate the State document at start; the orchestrator or issue workflow owns shared status surfaces.
+13. **Update project state** (if `State` exists, FIS is plan-backed, and `DEFER_SHARED_WRITES=false`): restore story context from `STORY_ID` and mark active. When deferred, the orchestrator owns shared status surfaces.
 
-14. Initialize working notes you will maintain during the run:
+14. Initialize working notes:
     - Per-task status
     - `changed-files`
     - Pre-existing dirty baseline classification, if any
@@ -138,120 +138,120 @@ For each task:
 
 #### Traceability Gate: Requirement-Anchored Implementation
 
-Every test and motivated source-code change must trace to a requirement already present in the FIS or appended through the sanctioned Discovered Requirements path. Apply these friction tiers:
+Every test and motivated source-code change must trace to an existing FIS requirement or one appended through Discovered Requirements. Friction tiers:
 
-- **Tier A – free pass**: Tidy First refactors, helper extractions transitively traced through a parent test, renames, formatting, and type-narrowing need no extra note when behavior is unchanged.
+- **Tier A – free pass**: Tidy First refactors, helper extractions transitively traced through a parent test, renames, formatting, type-narrowing. No extra note when behavior is unchanged.
 - **Tier B – inline trace**: each new test names the Acceptance Scenario ID or Structural Criterion it satisfies via test name, comment, or task report line; each new code path is motivated by a currently-failing test.
-- **Tier C – stop-and-amend**: discovered edge cases, failure modes, or scenario ambiguities must be appended through the `andthen:ops` skill's `update-fis <path> discovered-requirements <body>` form before writing the test or code that addresses them. Mark the entry persisted in working notes only after `update-fis` returns success – Step 5b's catch-up pass relies on the unpersisted-list being truthful. For regression-style discoveries (a defect surfaced mid-run, not a missing edge case), follow the Prove-It path: the first dependent test pins the defect and stays as a regression guard.
+- **Tier C – stop-and-amend**: discovered edge cases, failure modes, or scenario ambiguities are appended via `andthen:ops update-fis <path> discovered-requirements <body>` *before* the dependent test or code lands. Mark the entry persisted in working notes only after `update-fis` returns success – Step 5b's catch-up pass relies on the unpersisted-list being truthful. For regression-style discoveries (defect surfaced mid-run), follow Prove-It: the first dependent test pins the defect and stays as a regression guard.
 
-On `BLOCKED: invalid discovered-requirements body` from this op, reformat per the ops skill's body constraints and retry once. Persistent failure: do not write the dependent test or code (Tier C's "append before dependent change" temporal invariant). Surface as `CONFUSION` (interactive) or `BLOCKED:` in the completion report (`AUTO_MODE`).
+On `BLOCKED: invalid discovered-requirements body`, reformat per ops body constraints and retry once. Persistent failure: do not write the dependent test or code (Tier C's "append before dependent change" temporal invariant). Surface as `CONFUSION` (interactive) or `BLOCKED:` in the completion report (`AUTO_MODE`).
 
-For Tier C in `AUTO_MODE`, pick the conservative interpretation, append the discovered requirement with rationale, write the test traced to that appended requirement, implement, and surface the full Discovered Requirements block in the completion report.
+In `AUTO_MODE` Tier C: pick the conservative interpretation, append with rationale, write the test traced to the appended requirement, implement, surface the full Discovered Requirements block in the completion report.
 
 Implementation rules:
-- When stuck, emit named output blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:` → `-> Which approach?`, `NOTICED BUT NOT TOUCHING:` → `-> Want me to create tasks?`, `MISSING REQUIREMENT:` → `-> Which behavior?`. Under `AUTO_MODE`, see the reference's AUTO_MODE Override section.
-- Spawn proactive sub-agents for advisory work; retain code ownership locally
-- If `changed-files` becomes incomplete or ambiguous, derive it from the current worktree diff before Step 4, subtracting `BASELINE_DIRTY`
+- When stuck, emit named output blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:` → `-> Which approach?`, `NOTICED BUT NOT TOUCHING:` → `-> Want me to create tasks?`, `MISSING REQUIREMENT:` → `-> Which behavior?`. `AUTO_MODE`: see reference's AUTO_MODE Override.
+- Spawn proactive sub-agents for advisory work; retain code ownership.
+- If `changed-files` is incomplete/ambiguous, derive from the worktree diff before Step 4, subtracting `BASELINE_DIRTY`.
 
 ### Step 4: Validate
-Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues – integration, security, architectural coherence, and spec drift – that can still survive per-task Verify lines.
+Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues – integration, security, architectural coherence, spec drift – that survive per-task Verify lines.
 
 #### 4a. Direct Checks
-Use the canonical commands from the `Key Dev Commands` document (read in Step 2.7) for build/format/lint/type-check/test invocations below; if the document was not present, the discovery fallback from Step 2.7 stands. The per-task `Verify` lines (Step 3.2) drive Step 3's inner-loop checks; 4a runs the cross-cutting project-wide pass *in addition* (per the Step 4 framing above), not instead.
+Use canonical commands from `Key Dev Commands` (Step 2.9); if absent, the discovery fallback from Step 2.9 stands. Per-task `Verify` lines drive Step 3's inner loop; 4a is the *additional* cross-cutting project-wide pass.
 
-1. **Build**: run the project's applicable build/package checks; every available build step relevant to the feature must succeed
-2. **Tests**: run the applicable test suites; all relevant tests must pass (or pre-existing failures documented)
-3. **Lint/types**: run the applicable static analysis checks; no new violations introduced by your changes. Pre-existing violations inside `changed-files` are surfaced under `NOTICED BUT NOT TOUCHING`, not fixed inline (surgical scope – Core Rules).
-4. **Format**: prefer a formatter *check* mode (e.g. `prettier --check`, `ruff format --check`, `gofmt -l`) over a write mode so pre-existing formatting drift in `changed-files` does not get bundled into the diff. Treat any *new* formatting violations introduced by your edits as remediation inputs; surface pre-existing drift on touched files under `NOTICED BUT NOT TOUCHING` (surgical scope – Core Rules), not as inline fixes. Never run a project-wide format pass. When formatter and linter overlap (e.g. `ruff format` + `ruff check`), running both is fine.
-5. **Stub detection**: grep `changed-files` for incomplete-implementation markers (`TODO`, `FIXME`, `XXX`, `NotImplementedError`, language-appropriate `pass`/empty-body/`throw.*not implemented` patterns). Triage each hit – intentional (e.g. a `pass` in an abstract stub) vs. forgotten – and remediate the forgotten ones.
-6. **Wiring check**: for each new file in `changed-files`, confirm at least one other file imports or references it (language-appropriate import/require/include grep on the basename or module path). Isolated new files are a Stop-the-Line signal unless the FIS explicitly justifies them.
-7. **Spec compliance spot-check**: extract prescriptive details from the FIS (output format strings, column name lists, file paths for new artifacts, exact error messages, UI elements like buttons/controls) and grep/verify each against the implementation – any mismatch is a remediation input
-8. **Tautology check**: for each test added or modified in `changed-files`, inspect the test source – the unit under test must be imported and called without being replaced by a mock/stub; assertions must reference its return value or an observable effect, not mock call arguments; fixtures must not substitute for the production computation (captured golden outputs are fine). A test that would still pass if the asserted behavior were removed is tautological and is a remediation input.
+1. **Build**: every applicable build/package step succeeds.
+2. **Tests**: all relevant tests pass (or pre-existing failures documented).
+3. **Lint/types**: no new violations from your changes. Pre-existing violations inside `changed-files` surface under `NOTICED BUT NOT TOUCHING` (surgical scope).
+4. **Format**: prefer formatter *check* mode (`prettier --check`, `ruff format --check`, `gofmt -l`) so pre-existing drift in `changed-files` is not bundled. New violations are remediation inputs; pre-existing drift on touched files surfaces under `NOTICED BUT NOT TOUCHING`. Never run a project-wide format pass. Formatter + linter overlap (e.g. `ruff format` + `ruff check`) is fine.
+5. **Stub detection**: grep `changed-files` for incomplete-implementation markers (`TODO`, `FIXME`, `XXX`, `NotImplementedError`, language-appropriate `pass`/empty-body/`throw.*not implemented`). Triage intentional vs. forgotten; remediate forgotten.
+6. **Wiring check**: for each new file in `changed-files`, confirm ≥1 other file imports/references it. Isolated new files are Stop-the-Line unless the FIS justifies them.
+7. **Spec compliance spot-check**: grep each prescribed detail from the FIS (format strings, column lists, file paths for new artifacts, exact error messages, UI elements) against the implementation – any mismatch is a remediation input.
+8. **Tautology check**: for each test added/modified, the unit under test must be imported and called (not replaced by a mock); assertions must reference its return value or observable effect, not mock call arguments; fixtures must not substitute for the production computation (golden outputs are fine). Tests that pass with the asserted behavior removed are tautological – remediation input.
 
 #### 4b. Code Review (mandatory fresh-context review)
-Run the `andthen:review` **skill** with `--mode code` for independent fresh-context review covering: static analysis, linting, formatting, type checking, code quality, architecture, security, domain language, stub detection, wiring verification, and simplification opportunities (unnecessary complexity, duplication, over-abstraction introduced during implementation). Prefer to invoke it in a fresh-context sub-agent: spawn a sub-agent whose prompt runs `/andthen:review --mode code`. Do not pass `andthen:review` as `subagent_type` – it is a skill, not an agent type.
+Run the `andthen:review` **skill** with `--mode code` for independent review (static analysis, lint, format, types, code quality, architecture, security, domain language, stub detection, wiring, simplification opportunities). Prefer a fresh-context sub-agent whose prompt runs `/andthen:review --mode code`. Do not pass `andthen:review` as `subagent_type` – it is a skill.
 
 #### 4c. Visual Validation (if UI)
-Invoke the `andthen:visual-validation` **skill** in a sub-agent per any Visual Validation Workflow defined in `CLAUDE.md` / `AGENTS.md`.
+Invoke the `andthen:visual-validation` **skill** in a sub-agent per any Visual Validation Workflow in `CLAUDE.md` / `AGENTS.md`.
 
-Steps 4b and 4c can run in parallel.
+4b and 4c can run in parallel.
 
 #### 4d. Remediation
 
-Apply the Gate Classes policy from *The Execution-Discipline Rules*.
+Apply Gate Classes from *The Execution-Discipline Rules*.
 
-1. **Collect** – combine required failures from 4a with findings from 4b/4c. A failed build/test/lint/format/stub/wiring check is a remediation input even if the code review does not flag it separately.
-2. **Triage** – severity scale: CRITICAL/HIGH must fix, MEDIUM should fix, LOW optional.
-3. **Objective red gates (4a)** – iterate until green, invoking the `andthen:triage` skill when iteration stalls.
-4. **Subjective findings (4b/4c)** – one pass on CRITICAL/HIGH, re-run the affected lens (`/andthen:review --mode code` or visual validation) on the touched scope; escalate if they persist.
+1. **Collect** – combine 4a required failures with 4b/4c findings. A failed build/test/lint/format/stub/wiring check is a remediation input even if not separately flagged in review.
+2. **Triage** – CRITICAL/HIGH must fix, MEDIUM should fix, LOW optional.
+3. **Objective red gates (4a)** – iterate until green; invoke `andthen:triage` when iteration stalls.
+4. **Subjective findings (4b/4c)** – one pass on CRITICAL/HIGH, re-run the affected lens on touched scope; escalate if they persist.
 
-If a gate, Acceptance Scenario, or Structural Criterion stays red after repair, do not mark completion.
+If any gate, Acceptance Scenario, or Structural Criterion stays red after repair, do not mark completion.
 
-**Persistent-failure State writes** (plan-backed FIS; State document exists; **skip if `DEFER_SHARED_WRITES=true`** – orchestrator owns aggregate health):
-1. `andthen:ops update-state blocker "{STORY_ID}: exec-spec persistent-failure"` – stable description so a later successful re-run of this story can remove this exact entry per Step 5b.3's "Clear prior blocker" call. Failure detail lives in the Failed Story Report below, not in the blocker text.
-2. Apply the **Plan-level status derivation rule** (defined in Step 5b.3) and write via `andthen:ops update-state status "{derived}"`.
+**Persistent-failure State writes** (plan-backed FIS; State exists; **skip if `DEFER_SHARED_WRITES=true`**):
+1. `andthen:ops update-state blocker "{STORY_ID}: exec-spec persistent-failure"` – stable description so Step 5b.3's "Clear prior blocker" can match on a later successful re-run. Failure detail lives in the Failed Story Report, not the blocker text.
+2. Apply the **Plan-level status derivation rule** (Step 5b.3) and write via `andthen:ops update-state status "{derived}"`.
 
-The story's `plan.json` status is unchanged – the bundled exec-spec flow goes `spec-ready → done` directly (per `plan-schema.md`), so a failed story stays at its pre-run status (typically `spec-ready`); exec-spec does not flip it to `blocked` (manual escape hatch). The blocker entry carries the failure signal.
+The story's `plan.json` status is unchanged – the bundled flow goes `spec-ready → done` directly, so failed stories stay at their pre-run status. The blocker entry carries the failure signal.
 
-In `AUTO_MODE`, emit `BLOCKED: exec-spec failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report` with Story/FIS, failing gates, verification evidence, changed files, and preserved partial-work location.
+In `AUTO_MODE`, emit `BLOCKED: exec-spec failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report` with Story/FIS, failing gates, verification evidence, changed files, preserved partial-work location.
 
 ### Step 5: Complete
-All substeps below are gates – complete them before finishing. Chain Attestation (5a) is a proof gate and runs **before** any status writes; `andthen:ops update-fis` and the plan/state writes in 5b are intentionally append-only, so a failed attestation after writes would leave the FIS, plan, and State in a green-on-paper, problem-in-prose configuration.
+All substeps are gates. Chain Attestation (5a) is a proof gate and runs **before** any status writes – `andthen:ops update-fis` and the plan/state writes in 5b are append-only, so a failed attestation after writes leaves the FIS/plan/State green-on-paper, problem-in-prose.
 
 #### 5a. Chain Attestation gate
 
-Before any status writes (5b) or completion-report writes (5c), walk Intent → Outcomes → Scenarios → Tasks backwards and articulate each link with evidence. The named principle is **Chain Attestation**: a frontier model that has to put words to each link with evidence cannot easily fake it. Articulation IS the gate, not paperwork beside it.
+Before status writes (5b) or completion-report writes (5c), walk Intent → Outcomes → Scenarios → Tasks backwards and articulate each link with evidence. The named principle is **Chain Attestation**: a frontier model that has to put words to each link cannot easily fake it. Articulation IS the gate.
 
 One line of evidence-anchored prose per link – not a checkbox flip:
-- **Task → Scenario** (behavioral tasks): for each behavioral `TI<NN>` (referenced by ≥1 Acceptance Scenario `[TI<NN>]` tag), name the scenario(s) it produces evidence for and confirm those scenario tests are green (file:test-name or behavioral assertion). Task Verify passing is necessary but not sufficient – the tagged scenario must also exercise the outcome. **Structural/setup tasks** (no scenario `[TI<NN>]` references this task; the task's `Verify` line proves a Structural Criterion) attest differently: name the Structural Criterion this task proves (matched by reading the task's Verify-line text against the criterion text – no syntactic suffix is required on Structural Criteria) and confirm the Verify command passes. Force-fitting a structural task into a fake scenario weakens the FIS ontology – do not do it. Any task that fits neither category (no scenario tag, no Structural Criterion linkage) is an orphan and is Stop-the-Line. Any Structural Criterion with no proving task is also Stop-the-Line – the criterion is unproven scope.
-- **Scenario → Outcome**: for each scenario, name how its Given/When/Then exercises the `[OC<NN>]` tag(s) – the *user-observable* success condition, not an internal proxy. Scenarios passing via mocks or tautologies cannot attest their outcomes (this overlaps with Step 4a item 8 *Tautology check*; here it is named at the chain level).
-- **Outcome → Intent**: for each Expected Outcome, name the passing scenarios that collectively prove it and confirm it serves the Intent stated in `## Feature Overview and Goal`. An outcome whose proof relies on scenarios that exercise a different condition is unproven.
+- **Task → Scenario** (behavioral tasks): for each behavioral `TI<NN>` (referenced by ≥1 scenario `[TI<NN>]` tag), name the scenario(s) it evidences and confirm those scenario tests are green (file:test-name or behavioral assertion). Task Verify passing is necessary but not sufficient – the tagged scenario must also exercise the outcome. **Structural/setup tasks** (no scenario tag; task's Verify proves a Structural Criterion) attest differently: name the Structural Criterion this task proves (matched by Verify-line text against criterion text; no syntactic suffix required) and confirm the Verify command passes. Do not force-fit a structural task into a fake scenario. Any task fitting neither category is an orphan and Stop-the-Line. Any Structural Criterion with no proving task is also Stop-the-Line.
+- **Scenario → Outcome**: for each scenario, name how its Given/When/Then exercises the `[OC<NN>]` tag(s) – the *user-observable* success condition, not an internal proxy. Mock/tautology-driven scenario passes cannot attest outcomes (overlaps Step 4a #8 Tautology check; named here at the chain level).
+- **Outcome → Intent**: for each Expected Outcome, name the passing scenarios that collectively prove it and confirm it serves the Intent in `## Feature Overview and Goal`.
 
-Legacy FIS without `[OC<NN>]` tags degrade gracefully: attest the Task → Scenario link only (behavioral tasks) plus the structural-task branch when applicable, and note "FIS lacks outcome anchors – upper-chain attestation skipped". Not a failure, just narrower coverage.
+Legacy FIS without `[OC<NN>]` tags degrade gracefully: attest Task → Scenario only (plus structural-task branch), and note "FIS lacks outcome anchors – upper-chain attestation skipped". Narrower coverage, not failure.
 
-Orphan tasks – behavioral `TI<NN>` referenced by no scenario `[TI<NN>]` tag and no Structural Criterion Verify line – cannot be evidenced and are **Stop-the-Line**. Any other link that cannot be evidenced is also Stop-the-Line – return to Step 4d. Wave-of-hand attestation ("scenarios pass, so outcomes are met") defeats the gate; articulate or fix. This is the constructive flip of the Anti-rationalization rule above.
+Orphan tasks – behavioral `TI<NN>` referenced by no scenario tag and no Structural Criterion Verify line – are **Stop-the-Line**. Any other un-evidenced link is also Stop-the-Line – return to Step 4d. "Scenarios pass, so outcomes are met" wave-of-hand attestation defeats the gate; articulate or fix.
 
-In `AUTO_MODE`, persistent attestation failure follows the same Failed Story Report path as Step 4d's persistent objective-red-gate failure: emit `BLOCKED: exec-spec attestation failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report`. The Failed Story Report includes the **partial chain articulation** – whatever links were evidenced before Stop-the-Line, and which link the gate failed on – so a downstream remediator can pick up the failed link without re-walking the chain. Do not degrade the report to a single `Chain Attestation: FAILED` line.
+In `AUTO_MODE`, persistent attestation failure follows the Failed Story Report path: emit `BLOCKED: exec-spec attestation failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report` including the **partial chain articulation** (links evidenced before Stop-the-Line, and which link failed) so a downstream remediator can resume. Do not degrade to a single `Chain Attestation: FAILED` line.
 
-Hold the per-link articulation lines for inclusion in the 5c completion report (or the Failed Story Report on failure).
+Hold per-link articulation lines for the 5c report (or Failed Story Report on failure).
 
-**Gate**: every link is evidenced (or its legacy-graceful note recorded); structural-task branch applied for non-behavioral tasks; no Stop-the-Line return outstanding.
+**Gate**: every link evidenced (or legacy-graceful note recorded); structural-task branch applied; no Stop-the-Line outstanding.
 
 #### 5b. Update FIS, Source Plan, and Project State
 
-Status writes are gates, not bookkeeping. Run each substep in order, then verify before reporting completion. Do not collapse this into a single hand-wave invocation – the failure mode for this step is _silent partial execution at end of context_.
+Status writes are gates, not bookkeeping. Run each substep in order then verify. Do not collapse – the failure mode is _silent partial execution at end of context_.
 
 1. **FIS** (always) – invoke the `andthen:ops` skill:
-   - `update-fis {FIS_FILE_PATH} all` – Marks task checkboxes, every Acceptance Scenario checkbox (canonical shape per fis-authoring-guidelines.md), every Structural Criteria checkbox, and Final Validation Checklist items (when the section is present) in one pass.
-   - **Persist observations** (if any): if working notes contain `NOTICED BUT NOT TOUCHING` items or AUTO_MODE `ASSUMPTION` records, format them as a markdown body with `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)` subsections (each item one line, file:line if applicable), then invoke `update-fis {FIS_FILE_PATH} observations '{body}'`. Skip when both lists are empty. The ops skill appends a timestamped `### Run:` block to the FIS's `## Implementation Observations` section (creating the section if absent).
-   - **Persist Discovered Requirements** (if any remain unpersisted): Tier C normally appends before dependent tests/code in Step 3. If working notes still contain unpersisted Discovered Requirements entries, format them as a markdown body with a `#### DISCOVERED REQUIREMENTS` subsection using the FIS template entry shape, then invoke `update-fis {FIS_FILE_PATH} discovered-requirements '{body}'`. Skip when the unpersisted list is empty.
+   - `update-fis {FIS_FILE_PATH} all` – marks task checkboxes, every Acceptance Scenario checkbox (canonical shape per fis-authoring-guidelines.md), every Structural Criteria checkbox, and Final Validation Checklist items (when present) in one pass.
+   - **Persist observations**: when working notes hold `NOTICED BUT NOT TOUCHING` items or AUTO_MODE `ASSUMPTION` records, format as a markdown body with `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)` subsections (each item one line, file:line if applicable), then invoke `update-fis {FIS_FILE_PATH} observations '{body}'`. Skip when both lists are empty. Ops appends a timestamped `### Run:` block to `## Implementation Observations` (creating the section if absent).
+   - **Persist Discovered Requirements**: Tier C normally appends before dependent tests/code in Step 3. If unpersisted entries remain, format as `#### DISCOVERED REQUIREMENTS` using the FIS template shape, then `update-fis {FIS_FILE_PATH} discovered-requirements '{body}'`. Skip when empty.
 
-2. **Source plan** (plan-backed FIS only; **skip if `DEFER_SHARED_WRITES=true`** – defer to orchestrator):
+2. **Source plan** (plan-backed FIS only; **skip if `DEFER_SHARED_WRITES=true`**):
    - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} done` – sets `stories[].status` to `done`.
-   - If the story's `fis` is `null` or differs from `{FIS_FILE_PATH}` after path normalization: `andthen:ops update-plan-fis {PLAN_FILE_PATH} {STORY_ID} {FIS_FILE_PATH}`.
+   - If the story's `fis` is `null` or differs from `{FIS_FILE_PATH}` after normalization: `andthen:ops update-plan-fis {PLAN_FILE_PATH} {STORY_ID} {FIS_FILE_PATH}`.
 
-3. **State document** (if it exists per **Project Document Index**; **skip if `DEFER_SHARED_WRITES=true`** – defer to orchestrator):
-   - `andthen:ops update-state active-story {STORY_ID} Done` – removes the story from Active Stories.
+3. **State document** (if it exists; **skip if `DEFER_SHARED_WRITES=true`**):
+   - `andthen:ops update-state active-story {STORY_ID} Done` – removes from Active Stories.
    - `andthen:ops update-state note "{one-line completion summary}"`.
-   - **Clear prior blocker for this story** (plan-backed FIS only): `andthen:ops update-state blocker remove "{STORY_ID}: exec-spec persistent-failure"`. Best-effort – ignore "not found" returns from a clean run; this clears any blocker a prior failed exec-spec run wrote in Step 4d so the derivation below can downgrade `"At Risk"` once nothing else is open.
-   - **Plan health** (plan-backed FIS only): apply the **Plan-level status derivation rule** (defined immediately below) and write via `andthen:ops update-state status "{derived}"`. Mirrors exec-plan's phase-boundary `status` write so story-by-story standalone runs keep plan-level health current.
+   - **Clear prior blocker** (plan-backed): `andthen:ops update-state blocker remove "{STORY_ID}: exec-spec persistent-failure"`. Best-effort – ignore "not found" returns; this clears any blocker a prior failed run wrote in Step 4d so the derivation below can downgrade `"At Risk"`.
+   - **Plan health** (plan-backed): apply the **Plan-level status derivation rule** (below) and write via `andthen:ops update-state status "{derived}"`. Mirrors exec-plan's phase-boundary write so standalone runs keep plan-level health current.
 
-   **Plan-level status derivation rule** (shared by Step 5b.3 success path and Step 4d failure path; failure path appends its blocker before applying, success path removes its prior blocker before applying). Output is one of the bare literals `On Track`, `At Risk`, `Blocked` – quote at the invocation site (`status "{derived}"`):
+   **Plan-level status derivation rule** (shared by 5b.3 success and 4d failure; failure path appends its blocker before applying, success path removes its prior blocker first). Output is one of `On Track`, `At Risk`, `Blocked` – quote at invocation:
    1. Re-read `{PLAN_FILE_PATH}` and the State document.
-   2. `schedulable` = count of stories where `status` ∈ {`pending`, `spec-ready`} AND every `dependsOn` ID resolves to `status` ∈ {`done`, `skipped`}.
-   3. Derive in order – first match wins:
+   2. `schedulable` = stories where `status` ∈ {`pending`, `spec-ready`} AND every `dependsOn` ID resolves to `status` ∈ {`done`, `skipped`}.
+   3. Derive (first match wins):
       - any plan.json story `status === "blocked"` → `Blocked`
       - else `schedulable == 0` AND (any plan.json story is not in {`done`, `skipped`} OR any State blocker exists) → `Blocked`
       - else (any State blocker exists OR any plan.json story `status === "skipped"`) → `At Risk`
       - else → `On Track`
 
 4. **Verify** – re-read each updated file:
-   - **FIS**: every task checkbox `[x]`; every Acceptance Scenario checkbox `[x]`; every Structural Criteria checkbox `[x]`; Final Validation Checklist `[x]` when the section is present. If observations or Discovered Requirements were persisted, the `## Implementation Observations` section contains a new `### Run:` block dated to this run.
-   - **Plan** (if 5b.2 ran): the story's `status` is `"done"` and `fis` points at `{FIS_FILE_PATH}`.
+   - **FIS**: every task / Acceptance Scenario / Structural Criteria checkbox `[x]`; Final Validation Checklist `[x]` when present. If observations or Discovered Requirements were persisted, `## Implementation Observations` has a new `### Run:` block dated to this run.
+   - **Plan** (if 5b.2 ran): the story's `status` is `"done"`; `fis` points at `{FIS_FILE_PATH}`.
    - **State** (if 5b.3 ran): story absent from Active Stories.
-   - Any miss → retry the matching `update-*` once. Persistent failure is Stop-the-Line – do not report completion on missing writes.
+   - Any miss → retry the matching `update-*` once. Persistent failure is Stop-the-Line.
 
-5. **Deferred shared writes** – when `DEFER_SHARED_WRITES=true` (typically under `/andthen:exec-plan --team --worktree`, or under `/andthen:exec-plan --from-issue` where the source plan is a GitHub issue), substeps 2 and 3 are deferred so the executor does not mutate shared local status surfaces. Skip those invocations and emit this **audit block** in the completion report:
+5. **Deferred shared writes** – when `DEFER_SHARED_WRITES=true` (typically under `/andthen:exec-plan --team --worktree` or `--from-issue`), substeps 2 and 3 are deferred so the executor does not mutate shared local status. Skip those invocations and emit this **audit block** in the completion report:
 
    ```
    ## Deferred Shared Writes
@@ -261,24 +261,24 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
    Completion summary: {one-line completion summary}
    ```
 
-   Substitute literal values before emitting. The block is an **audit record and summary source** – in worktree mode the orchestrator constructs the actual `andthen:ops update-*` invocations from these values plus its own knowledge of single-repo vs multi-repo layout, and applies them post-merge (see `andthen:exec-plan` Step 3T Merge Wave). In `--from-issue` mode, the orchestrator owns the materialized local ledger (`.agent_temp/from-issue-<N>/plan.json`) and must update that ledger's story `status` to `done` after exec-spec succeeds and quick-review is clear; issue closure comments are the GitHub-side completion record, not a replacement for the local ledger write. Do not emit a list of `andthen:ops` lines as the consumption format; the orchestrator does not parse it that way.
+   Substitute literal values. The orchestrator constructs the actual `andthen:ops update-*` invocations from these values plus its single-repo vs multi-repo knowledge: in worktree mode applied post-merge (see `andthen:exec-plan` Step 3T Merge Wave); in `--from-issue` mode against `.agent_temp/from-issue-<N>/plan.json` after exec-spec + quick-review clear. Issue closure comments are the GitHub-side completion record, not a replacement for the ledger write. Do not emit a list of `andthen:ops` lines – the orchestrator does not parse that.
 
-   Substeps 1 and 4's FIS verification still run in-worktree (FIS is story-local and merges cleanly).
+   Substeps 1 and 4's FIS verification still run in-worktree (FIS is story-local).
 
-   **Standalone use** (no orchestrator above): when `Plan` is a local path, the audit block tells the user what to apply – after committing FIS changes, run the same `andthen:ops update-plan` and `update-state` calls listed in 5b.2 and 5b.3. When `Plan` is `github://issue/<N>`, there is no discoverable local ledger path in the FIS header; do not run local `ops update-plan` unless the caller explicitly supplies the materialized ledger path. Post or close the relevant issue record instead. Standalone `--defer-shared-writes` is intended only for users who explicitly want this deferral; do not set it without one.
+   **Standalone use** (no orchestrator): when `Plan` is a local path, the user applies the deferred writes (the same `update-plan` / `update-state` calls listed in 5b.2 / 5b.3) after committing FIS changes. When `Plan` is `github://issue/<N>`, do not run local `ops update-plan` unless the caller supplies the materialized ledger path; post or close the issue record instead. Standalone `--defer-shared-writes` is for users who explicitly want this deferral – do not set it without one.
 
 
 #### 5c. Completion Report
 
-**Checkbox gate** (uses Step 4a results, does not re-run checks): verify all Acceptance Scenarios and Structural Criteria met (every checkbox `[x]`), all task checkboxes marked, and Final Validation Checklist items satisfied when the section is present. Any miss is not a completion-report caveat. Return to Step 4d; if the miss persists in `AUTO_MODE`, use the Failed Story Report shape above. Chain Attestation already passed in Step 5a – do not re-run it here.
+**Checkbox gate** (uses Step 4a results, no re-run): verify all Acceptance Scenarios, Structural Criteria, task checkboxes, and Final Validation Checklist items (when present) are `[x]`. Any miss returns to Step 4d; persistent miss in `AUTO_MODE` uses the Failed Story Report shape. Chain Attestation already passed in 5a.
 
-Report: per-task status, files created/modified, verification evidence – **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts), **Format** (clean/violations); add **Visual validation** and **Runtime** for UI/runtime stories – the **Chain Attestation** per-link articulation lines from Step 5a, and a brief summary of any persisted observations or Discovered Requirements. Full `NOTICED BUT NOT TOUCHING`, `ASSUMPTIONS`, and Discovered Requirements details live in the FIS's `## Implementation Observations` section (written in Step 5b.1) – reference the section, duplicating only the full Discovered Requirements block when `AUTO_MODE` Tier C required it.
+Report: per-task status, files created/modified, verification evidence – **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts), **Format** (clean/violations); add **Visual validation** and **Runtime** for UI/runtime stories – the **Chain Attestation** per-link articulation lines from 5a, and a brief summary of any persisted observations or Discovered Requirements. Full `NOTICED BUT NOT TOUCHING`, `ASSUMPTIONS`, and Discovered Requirements details live in `## Implementation Observations` – reference the section. Duplicate the full Discovered Requirements block only when `AUTO_MODE` Tier C required it.
 
 #### 5d. Publish to PR _(only when `--to-pr <number>`)_
 
-After Step 5b status writes have verified, post the Step 5c completion summary per **Pattern B** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Summary temp file: `.agent_temp/exec-spec-completion-{STORY_ID-or-feature-slug}.md`. Pattern B's default failure handling applies (surface and stop).
+After 5b status writes verified, post the 5c summary per **Pattern B** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Summary temp file: `.agent_temp/exec-spec-completion-{STORY_ID-or-feature-slug}.md`. Pattern B's default failure handling applies.
 
-**Gate**: PR comment posted (or skipped when `--to-pr` is absent)
+**Gate**: PR comment posted (or skipped when `--to-pr` absent)
 
 ## Post-Completion
-If the `Learnings` document (see **Project Document Index**) exists, capture story-level traps, domain knowledge, procedural knowledge, and error patterns. Organize by topic, not chronology. Keep entries brief (1-2 sentences). Do not create a new `Learnings` document unless one already exists.
+If the `Learnings` document exists, capture story-level traps, domain knowledge, procedural knowledge, and error patterns. Organize by topic, not chronology. Keep entries brief (1-2 sentences). Do not create a `Learnings` document if one does not already exist.

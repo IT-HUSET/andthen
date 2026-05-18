@@ -1,11 +1,11 @@
 # Worktree Merge Resolve
 
-Sub-agent procedure for resolving conflict markers produced by a squash-merge into `BASE_BRANCH`. Invoked from team-mode Merge Wave when `merge-worktree.sh` emits `SQUASH_CONFLICT`. **All-or-nothing**: resolve every marker, run the project's verification chain, commit with the load-bearing `Squashed-story:` trailer – or emit `outcome: failed` and leave the resolved index for inspection.
+Sub-agent procedure for resolving squash-merge conflict markers into `BASE_BRANCH`. Invoked from team-mode Merge Wave when `merge-worktree.sh` emits `SQUASH_CONFLICT`. **All-or-nothing**: resolve every marker, run verification, commit with the `Squashed-story:` trailer – or emit `outcome: failed` and leave the resolved index for inspection.
 
 ## Inputs (orchestrator-supplied)
 
-- `STORY_ID`, `BASE_BRANCH`, `WORKTREE_PATH_ABS` (the source worktree, read-only here)
-- `SUMMARY` – one-line completion summary used as the commit subject body in Step 5. Either the literal string or the path to a summary file (`.agent_temp/merge-summary-<STORY_ID>.txt`) the orchestrator already wrote. Empty / unreadable → fall back to `"<STORY_ID>: completed (worktree merge)"`.
+- `STORY_ID`, `BASE_BRANCH`, `WORKTREE_PATH_ABS` (source worktree, read-only here)
+- `SUMMARY` – one-line completion summary used as Step 5's commit subject body. Either a literal string or the path to a summary file (`.agent_temp/merge-summary-<STORY_ID>.txt`) the orchestrator wrote. Empty / unreadable → fall back to `"<STORY_ID>: completed (worktree merge)"`.
 - Project verification commands (build / lint / type-check / test) from `CLAUDE.md` → `Key Dev Commands`
 
 ## Procedure
@@ -46,9 +46,9 @@ After resolving every file, `git diff --name-only --diff-filter=U` must be empty
 
 ### 4. Verify
 
-Run every command from `Key Dev Commands`. Pre-existing failures unrelated to this merge are explicitly noted in `resolution_summary`, not swallowed. New failures attributable to the merge → fix-forward, re-run the entire verification chain, retry at most twice. Still failing → `outcome: failed`, `error: verification_failed:<which>:<output-tail>`, leave the index resolved, stop.
+Run every command from `Key Dev Commands`. Pre-existing failures unrelated to this merge are explicitly noted in `resolution_summary`, not swallowed. New failures attributable to the merge → fix-forward, re-run the full chain, retry at most twice. Still failing → `outcome: failed`, `error: verification_failed:<which>:<output-tail>`, leave the index resolved, stop.
 
-**Inter-attempt state contract.** Retries stack on prior fixes – the index + working tree carry over (rollback paths are prohibited, see below). If each retry surfaces a new downstream regression, the right move is `outcome: failed`, not continued drift: the orchestrator's post-failure rollback discards the accumulated state. Before emitting `outcome: failed`, preserve the staged resolution as `git diff --staged > .agent_temp/merge-resolve-{STORY_ID}.patch` and reference the file in `resolution_summary` – gives the user a replayable artifact for forensic / manual recovery.
+**Inter-attempt state contract.** Retries stack on prior fixes – the index + working tree carry over (rollback paths are prohibited, see below). If each retry surfaces a new downstream regression, the right move is `outcome: failed`, not continued drift: the orchestrator's post-failure rollback discards the accumulated state. Before emitting `outcome: failed`, preserve the staged resolution as `git diff --staged > .agent_temp/merge-resolve-{STORY_ID}.patch` and reference it in `resolution_summary` – gives the user a replayable artifact for forensic / manual recovery.
 
 ### 5. Commit (all-or-nothing – only after verification passes)
 
@@ -65,7 +65,7 @@ printf 'story-%s: %s\n\nSquashed-story: %s\n' "$STORY_ID" "$SUMMARY" "$STORY_ID"
   | git commit --cleanup=verbatim -F -
 ```
 
-`git commit -F -` so `SUMMARY` never reaches the shell argument vector. `--cleanup=verbatim` keeps `#`-led lines intact (default `strip` cleanup would drop a `# headline` SUMMARY's first line). Then emit `outcome: resolved`.
+`git commit -F -` keeps `SUMMARY` off the shell argument vector. `--cleanup=verbatim` preserves `#`-led lines (default `strip` would drop a `# headline` SUMMARY's first line). Then emit `outcome: resolved`.
 
 ## Absolute prohibitions
 

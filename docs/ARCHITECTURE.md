@@ -78,7 +78,7 @@ The 19 shared assets live at `plugin/references/` – a single canonical locatio
 | `data-contract.md` | ops, plan, spec, exec-spec, exec-plan, review |
 | `design-tree.md` | clarify, architecture |
 | `execution-discipline.md` | exec-spec, exec-plan |
-| `execution-named-blocks.md` | exec-spec, quick-implement, triage |
+| `execution-named-blocks.md` | spec, exec-spec, quick-implement, triage |
 | `farley-framework.md` | architecture, testing |
 | `fis-authoring-guidelines.md` | spec, plan, review |
 | `fis-template.md` | spec |
