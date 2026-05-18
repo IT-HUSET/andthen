@@ -94,9 +94,15 @@ Auto-`.attention`: cell 3 when count > 0; cell 4 when count > 0.
 
 Each H2 dispatches to **one** renderer per the SKILL.md cross-artifact dispatch table; Generic Prose is the fallback. Section Block wrapper (id + data-anchor + static affordances) is universal.
 
-### Feature Overview and Goal → Generic Prose
+### Feature Overview and Goal → Intent + OC-anchored bullets
 
-Short prose (1-2 sentences). Use `.tldr-light` callout when the source authors one explicitly per the SKILL.md *Light TL;DR callout* contract.
+A specialized renderer (not Generic Prose) because the Expected Outcomes bullets need to emit anchor IDs that scenario-card outcome chips backlink to. Two short blocks render in order:
+- `**Intent**:` (one sentence) – emit as a paragraph (no special parsing).
+- `**Expected Outcomes**:` (2-4 bullets, each starting with an `[OC<NN>]` token) – for each bullet, extract the leading `[OC<NN>]` token, emit the bullet as `<li id="feature-overview-and-goal-oc<nn>">` (lowercase OC ID) with the token rendered inline at the start of the bullet text. Scenario-card outcome chips backlink to these IDs (`href="#feature-overview-and-goal-oc01"`).
+
+If the FIS is legacy (no `**Expected Outcomes**:` sub-block), fall back to Generic Prose for the section body and skip OC ID emission – there is nothing to anchor.
+
+Use `.tldr-light` callout when the source authors one explicitly per the SKILL.md *Light TL;DR callout* contract.
 
 ### Required Context → Source-pinned block cards
 
@@ -139,15 +145,18 @@ Bullet list of `path#anchor – description`. Render each entry with the path/an
 
 ### Acceptance Scenarios → Checkbox cards with Given/When/Then walk
 
-**Canonical shape** – defined in `plugin/references/fis-authoring-guidelines.md` *Acceptance Scenarios and Proof-of-Work*; worked example below. Each canonical scenario is one top-level checkbox whose bold label is `S` + two digits, a space, `[TI` + two digits (optionally comma-joined repeats) `]`, a space, then the description – followed by nested Given/When/Then bullets. The structural-integrity gate in `data-contract.md` is loose (one `- [ ]` anywhere in the section span); strict canonical-shape enforcement lives in authoring discipline.
+**Canonical shape** – defined in `plugin/references/fis-authoring-guidelines.md` *Acceptance Scenarios and Proof-of-Work*; worked example below. Each canonical scenario is one top-level checkbox whose bold label is `S` + two digits, a space, an outcome-tag set `[OC` + two digits (optionally comma-joined repeats) `]`, a space, a task-tag set `[TI` + two digits (optionally comma-joined repeats) `]`, a space, then the description – followed by nested Given/When/Then bullets. Outcome tags precede task tags; the two groups have distinct semantics (outcome tags anchor the scenario to Expected Outcomes in *Feature Overview and Goal*; task tags backlink to Implementation Tasks that prove the scenario). The structural-integrity gate in `data-contract.md` is loose (one `- [ ]` anywhere in the section span); strict canonical-shape enforcement lives in authoring discipline.
 
-Render each scenario as a card. Extract the scenario ID, the bracketed task tag list, the description, and the checked state from the bold label. Nested Given/When/Then bullets become a three-step **walkthrough** (reuse `diagrams.md#walkthrough`).
+Render each scenario as a card. Extract the scenario ID, the outcome-tag set, the task-tag set, the description, and the checked state from the bold label. Nested Given/When/Then bullets become a three-step **walkthrough** (reuse `diagrams.md#walkthrough`).
 
 ```html
 <article class="fis-scenario" data-anchor-parent="acceptance-scenarios" data-checked="{{1|0}}">
   <header class="fis-scenario-head">
     <span class="fis-scen-id">S01</span>
-    <span class="fis-scen-desc">Happy path — user can export filtered results</span>
+    <span class="fis-scen-desc">Happy path – user can export filtered results</span>
+    <span class="fis-scen-oc-tags">
+      <a class="fis-scen-oc-tag" href="#feature-overview-and-goal-oc01">OC01</a>
+    </span>
     <span class="fis-scen-tags">
       <a class="fis-scen-tag" href="#implementation-plan-ti01">TI01</a>
       <a class="fis-scen-tag" href="#implementation-plan-ti03">TI03</a>
@@ -173,7 +182,11 @@ Render each scenario as a card. Extract the scenario ID, the bracketed task tag 
                background: var(--panel-3); color: var(--text-muted);
                padding: 0.1rem 0.4rem; border-radius: var(--radius-sm); }
 .fis-scen-desc { font-weight: 600; color: var(--text); flex: 1; min-width: 0; }
-.fis-scen-tags { display: inline-flex; gap: 0.3rem; }
+.fis-scen-oc-tags, .fis-scen-tags { display: inline-flex; gap: 0.3rem; }
+.fis-scen-oc-tag { font-family: var(--mono); font-size: 0.72rem; color: var(--text-muted);
+                   text-decoration: none; border: 1px dashed var(--text-muted);
+                   padding: 0.05rem 0.4rem; border-radius: 999px; }
+.fis-scen-oc-tag:hover { background: var(--panel-3); }
 .fis-scen-tag { font-family: var(--mono); font-size: 0.72rem; color: var(--accent);
                 text-decoration: none; border: 1px solid var(--accent);
                 padding: 0.05rem 0.4rem; border-radius: 999px; }
@@ -186,7 +199,7 @@ Render each scenario as a card. Extract the scenario ID, the bracketed task tag 
 .fis-scen-body { color: var(--text); font-size: 0.92rem; }
 ```
 
-Each scenario card gets `id="acceptance-scenarios-s01"` (lowercase ID), so the task-tag chips can backlink (`href="#implementation-plan-ti01"`).
+Each scenario card gets `id="acceptance-scenarios-s01"` (lowercase ID). Task-tag chips backlink to Implementation Plan tasks (`href="#implementation-plan-ti01"`); outcome-tag chips backlink to Expected Outcome bullets in Feature Overview and Goal (`href="#feature-overview-and-goal-oc01"`). Only task tags participate in the *Where-to-Focus* task-state mismatch check; outcome tags are anchors, not state.
 
 **Non-canonical fallback** – when a `## Acceptance Scenarios` section contains plain `- [ ]` checkboxes that do *not* match the canonical shape above, render each line as a single-line scenario card (description-only, no walk) and leave a `<!-- fis-scenario: non-canonical shape -->` HTML comment in `View source` so the gap surfaces. Do not silently coerce.
 
@@ -365,7 +378,7 @@ Per SKILL.md *Where-to-Focus Priority Section* heuristic, in source-relevance or
 1. **Unchecked task with a `**Verify**:` line referencing a TODO, FIXME, placeholder, or "not implemented" marker** → "Verify command unresolved: TI<NN>".
 2. **Constraint or Gotcha tagged `Critical`** → "Critical constraint: <body>".
 3. **Discovered Requirements entries from a recent date** (within source's most-recent date among entries) → "Discovered after spec: <Title>".
-4. **Unchecked Acceptance Scenario whose tag list references no implemented task** (a tag chip whose target task is checked but the scenario is unchecked, or vice versa – tag/state mismatch) → "Scenario/task state mismatch: S<NN>".
+4. **Unchecked Acceptance Scenario whose task-tag set references no implemented task** (a `[TI<NN>]` chip whose target task is checked but the scenario is unchecked, or vice versa – task/state mismatch). Outcome `[OC<NN>]` chips are anchors only and do not participate in this check. → "Scenario/task state mismatch: S<NN>".
 5. **Unchecked Structural Criteria while every Implementation-Plan task is checked** → "Structural Criteria open after tasks complete: <criterion text>". Surfaces the non-behavioral proof surface a reviewer is most likely to skim past after seeing all tasks green.
 6. **Oversize fallback** – if Implementation Plan has > 12 tasks, flag once with "Long execution: N tasks – consider splitting".
 

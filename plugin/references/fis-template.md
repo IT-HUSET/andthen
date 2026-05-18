@@ -4,7 +4,13 @@
 **Story-ID**: <S##>
 
 ## Feature Overview and Goal
-{{1-2 sentences: what needs to be built and why}}
+
+**Intent**: {{1 sentence – why this feature exists, the problem it solves or the user/business value it unlocks}}
+
+**Expected Outcomes** (2-4 user- or business-observable success conditions, each `[OC<NN>]`-tagged; scenarios anchor to these via `[OC<NN>]`):
+
+- [OC01] {{observable success condition}}
+- [OC02] {{observable success condition}}
 
 
 ## Required Context
@@ -26,12 +32,12 @@
 
 ## Acceptance Scenarios
 
-- [ ] **S01 [TI01] {{Happy path – short outcome description}}**
+- [ ] **S01 [OC01] [TI01] {{Happy path – short outcome description}}**
   - **Given** {{precondition / system state}}
   - **When** {{triggering action or event}}
   - **Then** {{observable outcome}}
 
-- [ ] **S02 [TI01,TI02] {{Edge case or error scenario}}**
+- [ ] **S02 [OC01,OC02] [TI01,TI02] {{Edge case or error scenario}}**
   - **Given** {{precondition or boundary state}}
   - **When** {{boundary condition or error trigger}}
   - **Then** {{expected handling behavior}}

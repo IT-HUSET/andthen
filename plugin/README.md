@@ -285,16 +285,22 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 
 **GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --to-pr` and `architecture --to-pr` post reports as PR comments. Everything else is local – use a branch + PR as the transport.
 
-## Breaking Changes
+## Migration Notes
 
-See [CHANGELOG.md](../CHANGELOG.md) for full release notes. Entries below cover the migration steps for the recent breaks.
+See [CHANGELOG.md](../CHANGELOG.md) for full release notes. Entries below cover migration steps for recent releases – both breaking changes and non-breaking shape additions that affect the FIS or plan surfaces consumers parse.
+
+### 0.21.1 – FIS Intent + Expected Outcomes (non-breaking shape addition)
+
+`## Feature Overview and Goal` now carries two load-bearing sub-blocks: `**Intent**:` (one sentence) and `**Expected Outcomes**:` (2-4 bullets, each `[OC<NN>]`-tagged). The canonical Acceptance Scenario shape gains an outcome-tag set: `- [ ] **S<NN> [OC<NN>(,OC<NN>)*] [TI<NN>(,TI<NN>)*] <description>**`. The FIS structural-integrity contract is unchanged so legacy 0.21.0 FIS files keep executing under the `andthen:exec-spec` skill; the `andthen:review --mode doc` skill flags them on the new Self-Check gates (`Intent vs. scope`, `Outcome ↔ Scenario coverage`, `Task ↔ Scenario coverage`).
+
+**To migrate**, run `/andthen:spec` (or `/andthen:plan` for a multi-story bundle) to regenerate, or hand-edit `## Feature Overview and Goal` and add `[OC<NN>]` tags to scenarios.
 
 ### 0.21.0 – FIS format v2
 
 The FIS structural-integrity contract now gates on `## Acceptance Scenarios` + `## Implementation Plan`; the v1 `## Success Criteria` heading no longer satisfies the gate, and `## Final Validation Checklist` is dropped from required sections to optional content. Older v1 FIS files fail the gate intentionally.
 
 **Section-pattern surface**:
-- *Always-present* (heading + body always emitted): Acceptance Scenarios, Structural Criteria, Work Areas, What We're NOT Doing, Architecture Decision, Code Patterns, Constraints & Gotchas, Implementation Tasks, Implementation Observations.
+- *Always-present* (heading + body always emitted): Feature Overview and Goal, Acceptance Scenarios, Structural Criteria, Work Areas, What We're NOT Doing, Architecture Decision, Code Patterns, Constraints & Gotchas, Implementation Tasks, Implementation Observations.
 - *Visible-empty with prompt* (heading always emitted, body carries a "**Leave empty** when…" blockquote): Technical Overview, Testing Strategy, Validation, Execution Contract, Final Validation Checklist.
 - *Content-conditional omit* (heading dropped entirely when there is nothing to inline): Required Context, Deeper Context.
 - *Off-template* (overlaps with exec-spec's named-blocks runtime escalation): `### Agent Decision Authority`.

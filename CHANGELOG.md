@@ -6,6 +6,21 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.21.1] – 2026-05-18
+
+### Changed
+- **FIS Intent → Outcomes → Scenarios → Tasks anchoring made explicit** – `## Feature Overview and Goal` now carries two load-bearing sub-blocks (`**Intent**:` + `**Expected Outcomes**:`); the canonical scenario shape gains an outcome-tag set so each scenario tags the outcome(s) it exemplifies (`- [ ] **S<NN> [OC<NN>(,OC<NN>)*] [TI<NN>(,TI<NN>)*] <description>**`). Closes the chain from why-the-feature-exists through to which-task-proves-it.
+- **The `andthen:spec` skill reorders to outcome-first** – new Step 3 *Articulate Intent and Expected Outcomes* precedes Step 4 *Write Acceptance Scenarios*, so outcomes anchor scenarios rather than being back-described to fit them. For plan-story / clarify-output inputs, intent and outcomes are distilled from upstream rather than authored blank-slate.
+- **The `andthen:exec-spec` skill adopts Expected Outcomes as in-FIS tie-breaker** – when a scenario or task is ambiguous, the Expected Outcome(s) it tags resolve the ambiguity before raising `CONFUSION:`. Feature Overview and Goal is now first in the Step 2.4 section-reading list. Legacy FIS without an `**Expected Outcomes**:` sub-block emit a `WARN: FIS predates Expected Outcomes` line and the tie-breaker is a no-op.
+- **The `andthen:exec-spec` skill gains a Chain Attestation gate at Step 5a** – before any status writes, the executor walks Intent → Outcomes → Scenarios → Tasks backwards and articulates each link with evidence; any link that cannot be evidenced is Stop-the-Line. Structural/setup tasks attest via the Structural Criterion branch; legacy FIS without `[OC<NN>]` tags degrade to Task → Scenario only; persistent `AUTO_MODE` failure emits a Failed Story Report including the partial chain articulation.
+- **FIS authoring gates** – Self-Check gains *Intent vs. scope*, *Outcome ↔ Scenario coverage*, and *Task ↔ Scenario coverage* (every behavioral task referenced by ≥1 scenario or named in ≥1 Structural Criterion Verify line). Enforcement is authoring/review-time only; the FIS Structural Integrity Contract is unchanged so legacy FIS files keep executing under the `andthen:exec-spec` skill.
+- **Consuming-skill alignment** – the `andthen:spec`, `andthen:exec-spec`, `andthen:plan`, `andthen:ops`, `andthen:review --mode gap`, and `andthen:visualize` skills all ship aligned with the new scenario shape and Feature Overview and Goal sub-blocks. The `andthen:visualize` skill's FIS template renders outcome chips on scenario cards (anchor-only, distinct styling from task chips) and emits `id="feature-overview-and-goal-oc<nn>"` on Expected Outcome bullets so scenario-card outcome chips backlink correctly.
+- **`plugin/README.md ## Breaking Changes` renamed to `## Migration Notes`** – the section already covered non-breaking-but-parser-relevant shape additions; the new name matches its actual purpose. README WARNING anchor updated to `#migration-notes`.
+
+**To migrate**: existing FIS files still execute; the `andthen:review --mode doc` skill will flag them on the new Self-Check gates. Re-spec via `/andthen:spec` (or `/andthen:plan` for a multi-story bundle), or hand-edit `## Feature Overview and Goal` and add `[OC<NN>]` tags to scenarios.
+
+---
+
 ## [0.21.0] – 2026-05-14
 
 ### Added

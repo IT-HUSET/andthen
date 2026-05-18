@@ -52,7 +52,7 @@ Gather the requirements baseline from docs, issues, comments, and caller context
 
 When the requirements baseline includes a FIS, compile the three proof surfaces by their distinct roles:
 
-- **Acceptance Scenarios** as behavioral requirements – each canonical `- [ ] **S<NN> [TI<NN>] <description>**` checkbox is one behavioral requirement; the nested Given/When/Then is the contract. Canonical shape: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#acceptance-scenarios-and-proof-of-work). A concrete instance reads like `- [ ] **S01 [TI01,TI03] Happy path — user can export filtered results**`.
+- **Acceptance Scenarios** as behavioral requirements – each canonical `- [ ] **S<NN> [OC<NN>(,OC<NN>)*] [TI<NN>(,TI<NN>)*] <description>**` checkbox is one behavioral requirement; the nested Given/When/Then is the contract. Canonical shape: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#acceptance-scenarios-and-proof-of-work). A concrete instance reads like `- [ ] **S01 [OC01] [TI01,TI03] Happy path – user can export filtered results**`.
 - **Structural Criteria** as non-behavioral proof requirements – each checkbox names a verifiable structural property that must hold (e.g. "existing tests pass", "API contract unchanged"). These are proved by task Verify lines, not scenarios.
 - **Work Areas** as forward-coverage anchors – each bullet names a component, file, or surface that must be covered by at least one task or scenario. A Work Area with no implementing task, scenario, or implementation evidence is a gap (see Forward-coverage gaps in Step 4).
 

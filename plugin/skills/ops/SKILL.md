@@ -121,7 +121,7 @@ Mutate a FIS document – mark checkboxes, append implementation observations, o
 Actions for `<task_id|all>` form:
 - When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
 - When `task_id` is `all`: Mark ALL unchecked task checkboxes (`- [ ]` → `- [x]`) plus every proof-surface checkbox set in one pass:
-  - **`## Acceptance Scenarios`** – each scenario is one canonical-shape checkbox; the canonical scenario shape is defined in [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) under *Acceptance Scenarios and Proof-of-Work*. Flip each scenario's `- [ ]` to `- [x]` while preserving the bold-label content. Example: `- [ ] **S01 [TI01,TI03] Happy path**` → `- [x] **S01 [TI01,TI03] Happy path**`.
+  - **`## Acceptance Scenarios`** – each scenario is one canonical-shape checkbox; the canonical scenario shape is defined in [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) under *Acceptance Scenarios and Proof-of-Work*. Flip each scenario's `- [ ]` to `- [x]` while preserving the bold-label content. Example: `- [ ] **S01 [OC01] [TI01,TI03] Happy path**` → `- [x] **S01 [OC01] [TI01,TI03] Happy path**`.
   - **`## Structural Criteria`** – each checkbox flips `- [ ]` to `- [x]`.
   - **`## Final Validation Checklist`** – only when the section exists (it is optional content). When present, each checkbox flips `- [ ]` to `- [x]`.
 - Before marking done, verify that evidence of completion exists – the calling skill should have already performed verification; do not re-run it. When all tasks are done (or using `all`): also mark Acceptance Scenarios, Structural Criteria, and Final Validation Checklist items (when present).

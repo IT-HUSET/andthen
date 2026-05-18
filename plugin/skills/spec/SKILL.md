@@ -31,7 +31,9 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--he
 
 ## GOTCHAS
 
-**Generating a FIS without orienting in the codebase first** – the quick codebase scan in Step 1 must precede specification (Step 4), but deep file-pattern exploration waits until `exec-spec`.
+**Generating a FIS without orienting in the codebase first** – the quick codebase scan in Step 1 must precede specification (Step 5), but deep file-pattern exploration waits until `exec-spec`.
+
+**Writing scenarios before intent is locked down** – Step 3 (Articulate Intent and Expected Outcomes) must precede Step 4 (Write Acceptance Scenarios). Scenarios are concrete BDD examples of how Expected Outcomes are met; without outcomes named first, scenarios drift into describing implementation paths rather than success conditions.
 
 **Undefined behavior** – surface ambiguity and missing requirements rather than silently inventing answers. Emit named output blocks:
 - `CONFUSION:` – ambiguity + labeled options + `-> Which approach?`
@@ -80,16 +82,24 @@ Do **not** invoke architecture / UI / documentation-lookup sub-agents from spec.
 Only stop for ambiguity when it blocks a defensible specification. In that case, return the minimum missing decisions required rather than pausing for routine clarification.
 
 
-### 3. Write Acceptance Scenarios
+### 3. Articulate Intent and Expected Outcomes
 
-Before generating the full FIS, write the **Acceptance Scenarios** section first. Scenarios are concrete examples of expected behavior (BDD-style Given/When/Then) that serve triple duty: requirement, test specification, and proof-of-work contract. Start with the happy path, then edge cases, then error cases. 3-7 scenarios is the sweet spot. After drafting, apply the **negative-path checklist** from *The Authoring Guidelines* – verify coverage for omitted optional inputs, no-match selectors/filters, and rejection paths. See *Scenario Authoring Principles* for detailed guidance.
+Lock down the FIS's intent anchor *before* writing scenarios; the outcomes are what Step 4's scenarios will tag into. For plan-story or clarify-output inputs, distil intent and outcomes from the upstream goal/value statement and the story's scope rather than authoring from scratch. See *Feature Overview and Goal Authoring* in *The Authoring Guidelines* for the full rule set.
 
-**Emit the canonical scenario shape** per *Acceptance Scenarios and Proof-of-Work* in *The Authoring Guidelines* – top-level checkbox with a bold scenario-ID label and nested Given/When/Then; the template carries the worked examples.
+- **Intent** – one sentence: why this feature exists, the problem it solves or the user/business value it unlocks.
+- **Expected Outcomes** – 2-4 user- or business-observable success conditions, each `[OC<NN>]`-tagged.
 
-**Lock down proof-of-work**: every Acceptance Scenario must have a proof path – the scenario's nested Given/When/Then IS the proof contract; Structural Criteria use task Verify lines. If an outcome has no proof path after writing scenarios, either add a scenario or flag it for a Structural Criterion + Verify line during FIS generation.
+
+### 4. Write Acceptance Scenarios
+
+Write the **Acceptance Scenarios** section next. Scenarios are concrete examples of expected behavior (BDD-style Given/When/Then) that serve triple duty: requirement, test specification, and proof-of-work contract. Each scenario tags the Expected Outcome(s) from Step 3 it exemplifies via `[OC<NN>]` – this closes the chain Intent → Outcomes → Scenarios. Start with the happy path, then edge cases, then error cases. 3-7 scenarios is the sweet spot. After drafting, apply the **negative-path checklist** from *The Authoring Guidelines* – verify coverage for omitted optional inputs, no-match selectors/filters, and rejection paths. See *Scenario Authoring Principles* and *Feature Overview and Goal Authoring* (Outcome ↔ Scenario coverage rule) for detailed guidance.
+
+**Emit the canonical scenario shape** per *Acceptance Scenarios and Proof-of-Work* in *The Authoring Guidelines* – top-level checkbox with a bold scenario-ID label carrying outcome-tag set then task-tag set, followed by nested Given/When/Then; the template carries the worked examples.
+
+**Lock down proof-of-work**: every Acceptance Scenario's nested Given/When/Then IS the proof contract; Structural Criteria use task Verify lines.
 
 
-### 4. Generate FIS
+### 5. Generate FIS
 
 #### Gather Context
 - ADRs and the `Architecture` document (see **Project Document Index**); `file#symbol` references for patterns to follow (see *Cross-Document References* rule #1 for the symbol-anchor ladder)
@@ -113,7 +123,7 @@ Use the template in the **Appendix** below. Then read and follow *The Authoring 
 
 The emitted FIS uses the canonical shape:
 
-- `## Acceptance Scenarios` – behavioral requirements, each in the canonical checkbox shape from Step 3 (no `### S<NN>` headers).
+- `## Acceptance Scenarios` – behavioral requirements, each in the canonical checkbox shape from Step 4 (no `### S<NN>` headers).
 - `## Structural Criteria` – non-behavioral proof requirements (regression guards, invariants); each checkbox is proved by a task Verify line.
 - `### Work Areas` under the `## Scope & Boundaries` parent – 3-7 bullets inventorying components, files, or surfaces being changed. Each Work Area maps to at least one task or scenario.
 - `## Architecture Decision` capped at 3-4 lines max (one `**Approach**:` line, optional `**Why this over alternatives**:` line). Longer trade-off analysis routes upstream to the `andthen:architecture` skill in `--mode trade-off`.

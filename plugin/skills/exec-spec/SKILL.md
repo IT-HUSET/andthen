@@ -91,7 +91,11 @@ Usage rules:
    - Unrelated: record `BASELINE_DIRTY=<paths>`; preserve and exclude from `changed-files`.
    - Ambiguous overlap: stop before editing. In `AUTO_MODE`, emit `BLOCKED: dirty worktree overlaps {STORY_ID}: <paths>`; otherwise surface `CONFUSION:`.
 
-4. Understand the sections that define execution: Required Context, Acceptance Scenarios, Structural Criteria, Scope & Boundaries, Architecture Decision, Code Patterns & External References, Constraints & Gotchas, and Implementation Plan. Visible-empty sub-sections (Testing Strategy, Validation, Execution Contract) plus Technical Overview and Final Validation Checklist usually ship empty per the template's "**Leave empty** when…" prompts – read them when present, treat empty bodies as "standard handling applies."
+4. Understand the sections that define execution: **Feature Overview and Goal** (Intent + Expected Outcomes – the in-FIS intent anchor), Required Context, Acceptance Scenarios, Structural Criteria, Scope & Boundaries, Architecture Decision, Code Patterns & External References, Constraints & Gotchas, and Implementation Plan. Visible-empty sub-sections (Testing Strategy, Validation, Execution Contract) plus Technical Overview and Final Validation Checklist usually ship empty per the template's "**Leave empty** when…" prompts – read them when present, treat empty bodies as "standard handling applies."
+
+   **Intent as in-FIS tie-breaker** – when an Acceptance Scenario or task is ambiguous, the Expected Outcome(s) it tags (`[OC<NN>]`) resolve the ambiguity in favor of the named success condition before raising `CONFUSION:`. For *behavioral* tasks, walk the indirection: collect scenarios whose `[TI<NN>]` set includes the task, read those scenarios' `[OC<NN>]` tags, then read the matching Expected Outcomes. For *structural* tasks (no scenario tags this task; the task's Verify line proves a Structural Criterion), the resolving anchor is the matched Structural Criterion's text, not Expected Outcomes. If the tagged Expected Outcome (behavioral path) or the matched Structural Criterion (structural path) is itself ambiguous, raise `CONFUSION:` – do not pick by guess. The tie-breaker resolves *referent* ambiguity, not *outcome-text* or *criterion-text* ambiguity.
+
+   **Legacy-FIS notice**: when the loaded FIS has no `**Expected Outcomes**:` sub-block under `## Feature Overview and Goal`, emit `WARN: FIS predates Expected Outcomes; in-FIS tie-breaker inactive (re-spec to upgrade).` The structural-integrity contract is unchanged so execution proceeds; the in-FIS tie-breaker and Step 5a upper-chain attestation are silently no-ops on this FIS until re-spec.
 
 5. **Process Required / Deeper Context** – the FIS's `Required Context` blocks are inlined verbatim from upstream documents at spec time and are authoritative for execution; do not re-read source documents just to reconfirm inlined content. `Deeper Context` pointers (`path#anchor`) are optional – read on demand only if the inlined Required Context leaves a gap. When following a Deeper Context anchor, verify it resolves in the source and warn (do not stop) on broken anchors.
 
@@ -192,7 +196,26 @@ The story's `plan.json` status is unchanged – the bundled exec-spec flow goes 
 In `AUTO_MODE`, emit `BLOCKED: exec-spec failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report` with Story/FIS, failing gates, verification evidence, changed files, and preserved partial-work location.
 
 ### Step 5: Complete
-All substeps below are gates – complete them before finishing.
+All substeps below are gates – complete them before finishing. Chain Attestation (5a) is a proof gate and runs **before** any status writes; `andthen:ops update-fis` and the plan/state writes in 5b are intentionally append-only, so a failed attestation after writes would leave the FIS, plan, and State in a green-on-paper, problem-in-prose configuration.
+
+#### 5a. Chain Attestation gate
+
+Before any status writes (5b) or completion-report writes (5c), walk Intent → Outcomes → Scenarios → Tasks backwards and articulate each link with evidence. The named principle is **Chain Attestation**: a frontier model that has to put words to each link with evidence cannot easily fake it. Articulation IS the gate, not paperwork beside it.
+
+One line of evidence-anchored prose per link – not a checkbox flip:
+- **Task → Scenario** (behavioral tasks): for each behavioral `TI<NN>` (referenced by ≥1 Acceptance Scenario `[TI<NN>]` tag), name the scenario(s) it produces evidence for and confirm those scenario tests are green (file:test-name or behavioral assertion). Task Verify passing is necessary but not sufficient – the tagged scenario must also exercise the outcome. **Structural/setup tasks** (no scenario `[TI<NN>]` references this task; the task's `Verify` line proves a Structural Criterion) attest differently: name the Structural Criterion this task proves (matched by reading the task's Verify-line text against the criterion text – no syntactic suffix is required on Structural Criteria) and confirm the Verify command passes. Force-fitting a structural task into a fake scenario weakens the FIS ontology – do not do it. Any task that fits neither category (no scenario tag, no Structural Criterion linkage) is an orphan and is Stop-the-Line. Any Structural Criterion with no proving task is also Stop-the-Line – the criterion is unproven scope.
+- **Scenario → Outcome**: for each scenario, name how its Given/When/Then exercises the `[OC<NN>]` tag(s) – the *user-observable* success condition, not an internal proxy. Scenarios passing via mocks or tautologies cannot attest their outcomes (this overlaps with Step 4a item 8 *Tautology check*; here it is named at the chain level).
+- **Outcome → Intent**: for each Expected Outcome, name the passing scenarios that collectively prove it and confirm it serves the Intent stated in `## Feature Overview and Goal`. An outcome whose proof relies on scenarios that exercise a different condition is unproven.
+
+Legacy FIS without `[OC<NN>]` tags degrade gracefully: attest the Task → Scenario link only (behavioral tasks) plus the structural-task branch when applicable, and note "FIS lacks outcome anchors – upper-chain attestation skipped". Not a failure, just narrower coverage.
+
+Orphan tasks – behavioral `TI<NN>` referenced by no scenario `[TI<NN>]` tag and no Structural Criterion Verify line – cannot be evidenced and are **Stop-the-Line**. Any other link that cannot be evidenced is also Stop-the-Line – return to Step 4d. Wave-of-hand attestation ("scenarios pass, so outcomes are met") defeats the gate; articulate or fix. This is the constructive flip of the Anti-rationalization rule above.
+
+In `AUTO_MODE`, persistent attestation failure follows the same Failed Story Report path as Step 4d's persistent objective-red-gate failure: emit `BLOCKED: exec-spec attestation failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report`. The Failed Story Report includes the **partial chain articulation** – whatever links were evidenced before Stop-the-Line, and which link the gate failed on – so a downstream remediator can pick up the failed link without re-walking the chain. Do not degrade the report to a single `Chain Attestation: FAILED` line.
+
+Hold the per-link articulation lines for inclusion in the 5c completion report (or the Failed Story Report on failure).
+
+**Gate**: every link is evidenced (or its legacy-graceful note recorded); structural-task branch applied for non-behavioral tasks; no Stop-the-Line return outstanding.
 
 #### 5b. Update FIS, Source Plan, and Project State
 
@@ -246,11 +269,10 @@ Status writes are gates, not bookkeeping. Run each substep in order, then verify
 
 
 #### 5c. Completion Report
-**Gate** (uses Step 4a results, does not re-run checks): verify all Acceptance Scenarios and Structural Criteria met (every checkbox `[x]`), all task checkboxes marked, and Final Validation Checklist items satisfied when the section is present.
 
-Any miss is not a completion-report caveat. Return to Step 4d; if the miss persists in `AUTO_MODE`, use the Failed Story Report shape above.
+**Checkbox gate** (uses Step 4a results, does not re-run checks): verify all Acceptance Scenarios and Structural Criteria met (every checkbox `[x]`), all task checkboxes marked, and Final Validation Checklist items satisfied when the section is present. Any miss is not a completion-report caveat. Return to Step 4d; if the miss persists in `AUTO_MODE`, use the Failed Story Report shape above. Chain Attestation already passed in Step 5a – do not re-run it here.
 
-Report: per-task status, files created/modified, verification evidence – **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts), **Format** (clean/violations); add **Visual validation** and **Runtime** for UI/runtime stories – and a brief summary of any persisted observations or Discovered Requirements. Full `NOTICED BUT NOT TOUCHING`, `ASSUMPTIONS`, and Discovered Requirements details live in the FIS's `## Implementation Observations` section (written in Step 5b.1) – reference the section, duplicating only the full Discovered Requirements block when `AUTO_MODE` Tier C required it.
+Report: per-task status, files created/modified, verification evidence – **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts), **Format** (clean/violations); add **Visual validation** and **Runtime** for UI/runtime stories – the **Chain Attestation** per-link articulation lines from Step 5a, and a brief summary of any persisted observations or Discovered Requirements. Full `NOTICED BUT NOT TOUCHING`, `ASSUMPTIONS`, and Discovered Requirements details live in the FIS's `## Implementation Observations` section (written in Step 5b.1) – reference the section, duplicating only the full Discovered Requirements block when `AUTO_MODE` Tier C required it.
 
 #### 5d. Publish to PR _(only when `--to-pr <number>`)_
 

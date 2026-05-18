@@ -5,6 +5,7 @@ Shared authoring guidelines for generating Feature Implementation Specifications
 ## Contents
 
 - FIS Authoring Principles
+- Feature Overview and Goal Authoring – Intent + Expected Outcomes; outcomes as scenario anchor
 - Cross-Document References – two-tier model + authoring rules + why inlined text is authoritative
 - Acceptance Scenarios and Proof-of-Work – canonical shape, BDD principles, negative-path checklist
 - Architecture Decision Authoring – 3-4 line cap, ADR escalation
@@ -22,6 +23,20 @@ Shared authoring guidelines for generating Feature Implementation Specifications
 FIS is an executable spec: intent over implementation, references over content, decisions not explanations.
 
 > **FIS Mutability**: see [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) – *FIS Mutability Contract*.
+
+
+## Feature Overview and Goal Authoring
+
+The `## Feature Overview and Goal` section is the FIS's intent anchor. It carries two load-bearing sub-blocks – do not collapse them into a single prose paragraph.
+
+- **Intent** – one sentence naming *why* the feature exists: the problem solved or the user/business value unlocked. Not a scope summary, not a restatement of the title. If the intent reads identically to the feature name, it is missing.
+- **Expected Outcomes** – 2-4 bulleted user- or business-observable success conditions, each `[OC<NN>]`-tagged. `OC<NN>` follows the same two-digit zero-padded convention as `S<NN>` and `TI<NN>`. These are the FIS's own internal contract – distinct from upstream PRD outcomes (which are inlined into Required Context) and distinct from Acceptance Scenarios (which are concrete BDD examples of how each outcome is exemplified).
+
+**Outcome ↔ Scenario coverage** – every Expected Outcome must be exemplified by at least one Acceptance Scenario tagged with its `[OC<NN>]`; every Acceptance Scenario must tag at least one outcome. An untagged scenario is decoupled from intent; an unexemplified outcome is unproven.
+
+**Outcomes vs. Structural Criteria** – Expected Outcomes are *behavioral* and user-/business-facing (proved by scenarios). Structural Criteria are *non-behavioral* invariants and regression guards (proved by task Verify lines). Do not duplicate one as the other. Worked boundary case: "User can export filtered results as CSV" is an Expected Outcome (user-observable behavior, scenario-provable); "Existing `/users` API contract is unchanged" is a Structural Criterion (regression invariant, Verify-line-provable). If a candidate criterion reads like a behavior the user would notice, it is an Outcome; if it reads like an invariant the user only notices when it breaks, it is a Structural Criterion.
+
+**In-FIS tie-breaker** – when a scenario or task is ambiguous at execution time, Expected Outcomes resolve the ambiguity in favor of the named success condition before the executor raises `CONFUSION:`. For *behavioral* tasks, the lookup is indirect: the task's tag set on scenarios (`[TI<NN>]` on scenarios → those scenarios' `[OC<NN>]` set → matching outcomes) yields the resolving outcome. For *structural* tasks (no scenario `[TI<NN>]` references the task; the task's Verify line proves a Structural Criterion), the resolving anchor is the Structural Criterion's text, not Expected Outcomes. If the tagged Expected Outcome (behavioral path) or the matched Structural Criterion (structural path) is itself ambiguous against the scenario or task, raise `CONFUSION:` – do not pick by guess. The tie-breaker resolves *referent* ambiguity, not *outcome-text* or *criterion-text* ambiguity.
 
 
 ## Cross-Document References
@@ -62,7 +77,7 @@ A FIS is a contract with the executor. If the author pulls text from `prd.md` or
 
 Each scenario: one behavior, concrete Given/When/Then using actual codebase identifiers. Cover happy path first, then edge cases, then at least one error case. 3-7 scenarios is the sweet spot. If you can't write the **Then** clause, surface it as ambiguity.
 
-**Canonical shape** – every scenario is a single top-level checkbox under `## Acceptance Scenarios` whose bold label carries a stable scenario ID and a comma-separated task-tag list, followed by nested Given/When/Then bullets. The bold label functions as a pseudo-heading while remaining a checkbox – satisfying the structural-integrity gate (any `- [ ] ` in span) and letting `ops update-fis all` flip checkboxes per scenario. See [`fis-template.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-template.md) for the display form and worked example. Do NOT emit scenarios as `### S<NN> ...` markdown headers – that breaks the checkbox proof shape.
+**Canonical shape** – every scenario is a single top-level checkbox under `## Acceptance Scenarios` whose bold label carries a stable scenario ID, a comma-separated outcome-tag list `[OC<NN>(,OC<NN>)*]`, and a comma-separated task-tag list `[TI<NN>(,TI<NN>)*]`, followed by nested Given/When/Then bullets. The two tag groups appear as separate bracketed tokens in that order: outcomes before tasks. The bold label functions as a pseudo-heading while remaining a checkbox – satisfying the structural-integrity gate (any `- [ ] ` in span) and letting `ops update-fis all` flip checkboxes per scenario. See [`fis-template.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-template.md) for the display form and worked example. Do NOT emit scenarios as `### S<NN> ...` markdown headers – that breaks the checkbox proof shape.
 
 ### Scenario Authoring Principles
 
@@ -78,7 +93,7 @@ Dan North's "Introducing BDD" (2006) anchors scenarios as Given/When/Then exampl
 - **No-match cases**: selectors, filters, or lookups where "nothing matches" falls through to an unintended default?
 - **Rejection paths**: external integration points where unmatched/invalid input should be explicitly ignored or rejected?
 
-**Proof-of-Work**: each Acceptance Scenario's nested Given/When/Then IS the proof contract – the test/verification the executor produces must satisfy it. Each Structural Criterion is proved by a task Verify line. The scenario's `[TI<NN>]` tag set maps proofs to the tasks that produce them, so proof is produced incrementally.
+**Proof-of-Work**: each Acceptance Scenario's nested Given/When/Then IS the proof contract – the test/verification the executor produces must satisfy it. Each Structural Criterion is proved by a task Verify line. The scenario's `[OC<NN>]` tag set anchors the proof to the Expected Outcome(s) it exemplifies; the `[TI<NN>]` tag set maps the proof to the tasks that produce it. Together they close the chain Intent → Expected Outcomes → Scenarios → Tasks.
 
 **Traceability**: if a legacy plan includes **Key Scenarios** or acceptance criteria, treat them as seeds and map each retained seed to at least one FIS Acceptance Scenario – don't silently drop them.
 
@@ -131,6 +146,8 @@ Forward coverage (Work Areas → tasks) catches plan criteria the FIS misses. Re
 
 For each FIS Acceptance Scenario and Structural Criterion, name the plan story scope, Source ref, Binding Constraint, PRD outcome, or (standalone) feature-request element it serves. Any unnamed criterion is **phantom scope**.
 
+The internal Outcome ↔ Scenario coverage rule (see *Feature Overview and Goal Authoring*) is enforced separately by the Self-Check; it is not part of phantom-scope tracing.
+
 **Resolution depends on mode:**
 
 - **Batch sub-agent mode** (from the `andthen:plan` skill) – check against plan-level sources plus the `bindingConstraints[]` array in `plan.json` (each entry's `verbatim` text and `anchor` are the binding source). Only criteria with no plan-level *and* no Binding Constraints source are candidates for phantom-scope reporting. For each candidate: (a) remove, or (b) return a `PHANTOM_SCOPE` entry in your completion summary so the orchestrator can escalate. **Do not edit `plan.json` or `prd.md` from a sub-agent** – phantom-scope resolution flows through the orchestrator.
@@ -149,8 +166,14 @@ Named principles to verify before saving. Each names a failure mode; treat the n
 
 - **Template structure** – follows Key Generation Guidelines (Architecture Decision in 3-4 lines max, no over-specification, code snippets ≤5 lines).
 - **Size signal** – if oversized per Key Generation Guidelines #7, emit the `OVERSIZE:` signal.
+- **Intent vs. scope** – Feature Overview and Goal carries a non-empty `**Intent**:` sentence that names *why* the feature exists; it is not a restatement of the feature title or scope summary.
+- **Outcome ↔ Scenario coverage** – every Expected Outcome `[OC<NN>]` is exemplified by ≥1 Acceptance Scenario tagging it; every Acceptance Scenario carries ≥1 `[OC<NN>]` tag. No untagged scenarios; no unexemplified outcomes.
+- **Task ↔ Scenario coverage**:
+    - *Rule*: every Implementation Task `[TI<NN>]` is either (a) referenced by ≥1 Acceptance Scenario `[TI<NN>]` tag (behavioral task) or (b) carries a `Verify` line that proves a Structural Criterion (structural / setup task). Every scenario `[TI<NN>]` tag must resolve to a real Implementation Task.
+    - *Failure modes*: an unreferenced task that proves no Structural Criterion is unproven scope; a scenario tag pointing at a missing task is broken wiring; a task that fits neither path is decoupled from the chain and must be split, removed, or anchored.
+    - *Classification note*: the behavioral/structural split is exhaustive and is established by the author at authoring time (re-asserted by the executor at Step 5a Chain Attestation). No syntactic suffix on Structural Criteria is required – the linkage lives in the task's Verify-line text matching the criterion.
 - **Scope-consistency** – every Work Area exercised by a scenario or Verify line. See Reverse Coverage Check + Forward Coverage – Work Areas.
-- **Canonical scenario shape** – every scenario line matches the canonical shape in *Acceptance Scenarios and Proof-of-Work* above; no `### S<NN>` headers within `## Acceptance Scenarios`; negative-path checklist applied; every prescribed value appears verbatim in ≥1 Verify line.
+- **Canonical scenario shape** – every scenario line matches the canonical shape in *Acceptance Scenarios and Proof-of-Work* above (outcome-tag set before task-tag set); no `### S<NN>` headers within `## Acceptance Scenarios`; negative-path checklist applied; every prescribed value appears verbatim in ≥1 Verify line.
 - **Outcome-shape audit on task titles** – no titles starting with `Replace`, `Refactor`, `Update`, `Modify`, or `Add to`.
 - **Anchor and Verify dry-run audit** – every cited `path#anchor` resolves against the actual source heading slug; every `rg`/`grep`/shell command in a Verify line was actually executed against the current source state and its prose claim matches the command's actual output. Catches `rg -c` exit-semantics traps (no match exits 1, does not print `0`), case-sensitivity mismatches, and stale line numbers.
 - **Cross-consumer surface inventory** (for cross-cutting contract changes that rename or restructure something referenced by multiple consuming skills/references) – before writing tasks, sweep with `grep -rni` for every literal string being renamed; the resulting inventory IS the rename surface; every match maps to a task or a documented exclusion. Skip when the FIS is local to one file or surface.
