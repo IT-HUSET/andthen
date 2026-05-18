@@ -157,7 +157,7 @@ Skip this section when `AUTO_MODE=true`; print only the output path and completi
 
 After completion, suggest the following next steps. **Recommend a clean session** for the context-intensive downstream skills.
 
-1. **Review visually** – run `andthen:visualize <prd.md>` to spot scope and edge-case issues a markdown view obscures.
+1. **Review visually** – run `andthen:visualize <prd.md>` to spot scope and edge-case issues a markdown view obscures (skip when `--visual` already ran).
 2. **Create implementation plan** _(clean session recommended)_: Invoke the `andthen:plan` skill on the PRD directory – it produces the full plan bundle (`plan.json` + all FIS).
 3. **Review the PRD**: Invoke the `andthen:review --mode doc` skill on `prd.md`.
 4. **Initialize project state** (if not already tracking): Create the `State` document via the `andthen:init` skill.

@@ -308,7 +308,7 @@ Skip this section when `AUTO_MODE=true` – print only the output path and compl
 After completion, ask user if they'd like to:
 
 ### Feature mode follow-ups
-1. **Review visually** – run `andthen:visualize <requirements-clarification.md>` when a browser review would help spot scope and edge-case issues a markdown view obscures.
+1. **Review visually** – run `andthen:visualize <requirements-clarification.md>` when a browser review would help spot scope and edge-case issues a markdown view obscures (skip when `--visual` already ran).
 2. **Create feature spec** – invoke the `andthen:spec` skill on the output directory to generate a FIS from the clarified requirements.
 3. **Create a PRD** – invoke the `andthen:prd` skill on the output directory before planning a multi-feature effort.
 4. **Proceed to planning** – invoke the `andthen:prd` skill, then the `andthen:plan` skill on the output directory for multi-feature / MVP scope.
@@ -316,7 +316,7 @@ After completion, ask user if they'd like to:
 6. Share with stakeholders for validation.
 
 ### Product mode follow-ups
-1. **Review visually** – run `andthen:visualize <PRODUCT.md>` when a browser review would help spot vision and anti-goal issues a markdown view obscures.
+1. **Review visually** – run `andthen:visualize <PRODUCT.md>` when a browser review would help spot vision and anti-goal issues a markdown view obscures (skip when `--visual` already ran).
 2. **Strategic decomposition** – invoke the `andthen:architecture` skill in `--mode strategic-design` to derive bounded contexts and subdomains from the product vision.
 3. **First PRD** – invoke the `andthen:prd` skill on a specific epic/feature carved from a Roadmap Theme.
 4. **Domain language** – invoke the `andthen:ubiquitous-language` skill to extract a product-wide glossary.

@@ -349,7 +349,7 @@ After completion, suggest the following next steps. **Recommend starting a clean
 1. **Execute the plan** _(clean session)_: Invoke the `andthen:exec-plan` skill – the bundle is fully specced.
 2. **Execute story by story**: Invoke the `andthen:exec-spec` skill per story for more control.
 3. **Review the bundle**: Invoke the `andthen:review --mode doc` skill on `plan.json` or `--mode gap` once implementation begins.
-4. **Review visually**: Run `andthen:visualize <plan.json>` when a browser review of story sequencing, dependencies, and risk would help.
+4. **Review visually**: Run `andthen:visualize <plan.json>` when a browser review of story sequencing, dependencies, and risk would help (skip when `--visual` already ran).
 5. **Initialize project state** (if not already tracking): Create the `State` document via the `andthen:init` skill.
 
 

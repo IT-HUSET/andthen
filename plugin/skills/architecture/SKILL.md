@@ -176,7 +176,7 @@ Offer:
 3. **Create fitness function implementations** from proposals
 4. **Formalize an ADR** from a `trade-off` recommendation or an `advise` decision
 5. **Code-level review** for correctness, style, security (invoke the `andthen:review` skill with `--mode code`)
-6. **Review visually** – _every mode's primary report is supported (`review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, ADR); OMIT this entry only after a pure `advise` run (no structured report)_. Run `andthen:visualize <report-path>` to spot scope and edge-case issues a markdown view obscures.
+6. **Review visually** – _every mode's primary report is supported (`review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, ADR); OMIT this entry only after a pure `advise` run (no structured report)_. Run `andthen:visualize <report-path>` to spot scope and edge-case issues a markdown view obscures (skip when `--visual` already ran).
 7. **End session** – finalize the report and stop
 - **Common chains**: `review → decompose → fitness`; `advise → trade-off → ADR`; `review → advise → fitness`; `fitness → review`; `event-storming → strategic-design → decompose` _(end-to-end discovery into decomposition)_; `strategic-design → fitness` _(formalize strategic decisions as fitness functions)_; `strategic-design,trade-off` _(weighted-criteria comparison when an integration-pattern choice is contested)_
 

@@ -163,7 +163,7 @@ After the FIS is saved, suggest:
 
 1. **Implement the FIS**: Invoke the `andthen:exec-spec` skill.
 2. **Review first**: Invoke the `andthen:review` skill with `--mode doc` on the FIS before implementation.
-3. **Review visually**: Run `andthen:visualize <fis-path>` to spot scenario/task coverage and verify-line issues a markdown view obscures.
+3. **Review visually**: Run `andthen:visualize <fis-path>` to spot scenario/task coverage and verify-line issues a markdown view obscures (skip when `--visual` already ran).
 
 > **Session tip**: The `andthen:exec-spec` skill is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
 

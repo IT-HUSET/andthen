@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.21.3] – 2026-05-18
+
+### Changed
+- **`--visual`-supporting skills gate the visualize follow-up** – the `andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:clarify`, and `andthen:architecture` skills now mark the "Review visually" follow-up as `(skip when --visual already ran)`, matching the existing precedent in `andthen:review`. Prevents the redundant "now run `andthen:visualize`" suggestion after a `--visual` run that already invoked the visualizer.
+
+
+---
+
 ## [0.21.2] – 2026-05-18
 
 ### Changed
