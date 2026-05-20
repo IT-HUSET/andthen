@@ -146,6 +146,14 @@ Store artifacts in `OUTPUT_DIR/[topic-slug]/`:
   - *Project Compliance*: alignment with project-specific architectural guidelines (see `mode-advise.md`); `N/A` if the project has none
   - *References*: link to the trade-off report files (`research.md`, `tradeoff-matrix.md`, `recommendation.md`)
 
+**Register in `DECISIONS.md`** (same gate – only when the user chose "Proceed with ADR creation"):
+
+- Resolve the `Decisions` location from the **Project Document Index** (default: `docs/DECISIONS.md`).
+- If the file does not exist, create it from the `DECISIONS.md` template in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`.
+- Append a row to **Current ADRs** with `ID` (e.g. `ADR-001`), `Title`, `Status: Proposed`, and `Scope` (one-phrase summary of where the decision applies). Link the ID cell to the ADR file.
+- If the new ADR supersedes a prior decision, **move** the prior row from **Current ADRs** to **Superseded**: leave the new row in Current, add a row to Superseded with `Prior Decision` (linked) / `Superseded By` (linked to the new ADR) / `Notes` (one-line reason). Never delete – the lineage is load-bearing.
+- **Idempotent on ADR ID**: if a row with the same ID already exists in Current, update its fields in place rather than appending a duplicate.
+
 See `adr-template.md` for the canonical ADR template.
 
 ## Report Contents

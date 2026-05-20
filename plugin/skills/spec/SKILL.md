@@ -68,7 +68,9 @@ Quick `tree -d` + `git ls-files | head -250` scan to orient. Stop there – file
 
 ### 2. Identify Required Inputs
 
-Walk the references the FIS will need (`Product`, PRD, plan, ADRs, `Architecture`, `Stack`, design system, wireframes, glossary, `Ubiquitous Language` – per **Project Document Index** where applicable). Confirm existence or note absence. The `Product` and `Architecture` documents anchor feature scope and structural patterns respectively when standalone PRD/ADR coverage is thin; the `Stack` document pins language/framework/runtime/DB/testing baseline when Architecture coverage is thin.
+Walk the references the FIS will need (`Product`, PRD, plan, ADRs, `Decisions`, `Architecture`, `Stack`, design system, wireframes, glossary, `Ubiquitous Language` – per **Project Document Index** where applicable). Confirm existence or note absence. The `Product` and `Architecture` documents anchor feature scope and structural patterns respectively when standalone PRD/ADR coverage is thin; the `Stack` document pins language/framework/runtime/DB/testing baseline when Architecture coverage is thin; the `Decisions` document indexes ADRs and load-bearing non-ADR choices, so a row in **Current ADRs** or **Still Current** narrows the option space before the FIS is written.
+
+Contradictions between the feature request and a row in `DECISIONS.md` surface in the FIS Constraints/Context section as `NOTICED:` observations, not Stop-the-Line – `DECISIONS.md` is a registry, not a gate, and the user owns reconciliation.
 
 If an obviously-needed input is missing (e.g. FIS needs an architectural trade-off and no ADR exists, or UI work and no wireframe), surface as `MISSING REQUIREMENT:` (interactive) or `BLOCKED:` (`AUTO_MODE`) with a redirect to the upstream skill (`andthen:architecture --mode trade-off`, `andthen:ui-ux-design --mode wireframes`, etc.). Keep this check **light** – flag obvious gaps only.
 
@@ -97,7 +99,7 @@ Concrete BDD examples (Given/When/Then) serving triple duty: requirement, test s
 ### 5. Generate FIS
 
 #### Gather Context
-- ADRs and the `Architecture` document (see **Project Document Index**); `file#symbol` references for patterns to follow (see *Cross-Document References* rule #1 for the symbol-anchor ladder)
+- ADRs, the `Decisions` registry, and the `Architecture` document (see **Project Document Index**); `file#symbol` references for patterns to follow (see *Cross-Document References* rule #1 for the symbol-anchor ladder)
 - `Stack` document (see **Project Document Index**) when present – language, framework, runtime, DB, and testing-library baseline; FIS Approach, Code Patterns, and Testing Strategy must align with it
 - UI wireframes/mockups; design system references; external documentation URLs
 - `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions

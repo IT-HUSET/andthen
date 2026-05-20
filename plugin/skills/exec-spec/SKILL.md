@@ -45,7 +45,7 @@ Spawn narrow sub-agents when they materially improve a coding decision. Output i
 **Skills** (invoke as `/andthen:<name>`; for fresh-context isolation, spawn a sub-agent whose prompt runs the skill):
 
 - the `andthen:testing` skill – test strategy, coverage, TDD / red-green-refactor, Prove-It bugfix flow, unfamiliar test-harness patterns
-- the `andthen:architecture` skill (`--mode advise` or `--mode trade-off`) – unresolved trade-offs or integration-pattern ambiguity
+- the `andthen:architecture` skill in `--mode trade-off` – unresolved trade-offs with concrete competing options; in `--mode advise` – open design-pattern or integration-pattern ambiguity without crystallized options
 - the `andthen:ui-ux-design` skill – UI layout, interaction, accessibility, responsive patterns
 - the `andthen:visual-validation` skill – visual/design compliance against wireframes, screenshots, baselines
 - the `andthen:triage` skill – non-trivial build failures, dependency conflicts, cascading test failures

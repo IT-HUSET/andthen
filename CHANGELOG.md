@@ -6,6 +6,17 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.22.1] – 2026-05-20
+
+### Added
+- **`DECISIONS.md` registry wired through the workflow** – `andthen:init` and `andthen:map-codebase` scaffold `docs/DECISIONS.md` by default (template in `plugin/references/project-state-templates.md`); `andthen:architecture` `--mode trade-off` Step 6 auto-registers accepted ADRs into **Current ADRs**, moving prior rows to **Superseded** on supersession (idempotent on ADR ID). `andthen:prd` and `andthen:spec` read it as context; spec contradictions surface as `NOTICED:` observations, not Stop-the-Line. `andthen:map-codebase` also emits `decisions-discovered.md` for brownfield validation.
+
+### Fixed
+- **`--mode advise` routing audit** – `andthen:now-what` Step 4 drops `"should I split"` from the advise row (belongs to `--mode decompose`); `andthen:exec-spec`'s upstream skill list splits `--mode trade-off` (concrete competing options) from `--mode advise` (open pattern ambiguity).
+
+
+---
+
 ## [0.22.0] – 2026-05-18
 
 ### Added

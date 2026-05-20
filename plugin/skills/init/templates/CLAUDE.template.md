@@ -68,6 +68,7 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
 | Product Backlog      | `docs/PRODUCT-BACKLOG.md`           | Product backlog for future work (REQ-IDs) |
 | Roadmap              | `docs/ROADMAP.md`                   | Phase structure with success criteria   |
 | Specs & Plans        | `docs/specs/<version-or-feature>/`  | PRDs, implementation plans, FIS, story breakdowns &dagger; |
+| Decisions            | `docs/DECISIONS.md`                 | Decisions registry – ADR index + Still Current notes; points into `docs/adrs/` |
 | ADRs                 | `docs/adrs/`                        | Architecture Decision Records           |
 | Research             | `docs/research/`                    | Trade-off analysis output               |
 | Architecture         | `docs/ARCHITECTURE.md`              | System architecture overview            |

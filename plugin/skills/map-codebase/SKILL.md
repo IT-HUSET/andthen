@@ -73,7 +73,7 @@ Output: the `Key Dev Commands` document (see **Project Document Index**; default
 **Gate**: All analysis sub-agents complete
 
 
-### 3. Requirements Discovery
+### 3. Requirements & Decisions Discovery
 
 Spawn a sub-agent (capable coding model) to reverse-engineer a discovered requirements document by analyzing:
 
@@ -81,6 +81,8 @@ Spawn a sub-agent (capable coding model) to reverse-engineer a discovered requir
 - **Implicit Requirements**: validation rules, business logic, access control, data integrity rules
 - **External Dependencies**: third-party API contracts, infrastructure requirements, environment requirements
 - **Non-Functional Characteristics**: caching, rate limiting, error handling, logging, performance optimizations
+
+Extend the same sub-agent's brief to also identify **load-bearing implicit decisions** visible in the codebase – framework choice, persistence shape, boundary lines between modules, build/test tooling, deployment topology – and any in-tree ADRs already present under the `ADRs` location. These are decisions worth surfacing because they constrain future work, even when no ADR was ever written.
 
 Output: `OUTPUT_DIR/requirements-discovered.md` in a format compatible with the `andthen:plan` skill input. Required sections and entry shapes:
 
@@ -100,7 +102,9 @@ Output: `OUTPUT_DIR/requirements-discovered.md` in a format compatible with the 
 ## Gaps & Uncertainties
 ```
 
-**Gate**: Requirements discovery complete
+Also emit `OUTPUT_DIR/decisions-discovered.md` using the `DECISIONS.md` template shape from `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`, with the header `> Status: Discovered – requires validation by team` (same convention as `requirements-discovered.md`). Place existing in-tree ADRs in **Current ADRs**; place implicit load-bearing decisions in **Still Current** with brief evidence (file path or pattern). Leave **Superseded** and **Pending** empty unless evidence supports an entry.
+
+**Gate**: Requirements and decisions discovery complete
 
 
 ### 4. Output Summary
@@ -108,11 +112,11 @@ Output: `OUTPUT_DIR/requirements-discovered.md` in a format compatible with the 
 1. Write all documents to `OUTPUT_DIR/`
 2. Print summary listing all generated files with brief descriptions
 3. If `IS_MONOREPO = true`: generate lightweight sub-project agent instruction file(s) that match the root file choice (`CLAUDE.md`, `AGENTS.md`, or both) for each sub-project that doesn't already have them (under ~40 lines: name/description, key development commands inline table, sub-project-specific notes)
-4. Suggest next steps: review discovered requirements with team, invoke the `andthen:plan` skill: `/andthen:plan docs/requirements-discovered.md`
+4. Suggest next steps: review discovered requirements and decisions with team (validate `decisions-discovered.md` and promote to `DECISIONS.md` when confirmed), invoke the `andthen:plan` skill: `/andthen:plan docs/requirements-discovered.md`
 
 
 ## OUTPUT
 
-Files written to `OUTPUT_DIR/`: `STACK.md`, `ARCHITECTURE.md` (+ testing overview), `KEY_DEVELOPMENT_COMMANDS.md`, `requirements-discovered.md`. A `## Conventions` section is appended to the project's root agent instruction file(s), or reported for `andthen:init` to insert when no root file exists yet; monorepo: matching per-sub-project agent instruction files are generated in each sub-project directory.
+Files written to `OUTPUT_DIR/`: `STACK.md`, `ARCHITECTURE.md` (+ testing overview), `KEY_DEVELOPMENT_COMMANDS.md`, `requirements-discovered.md`, `decisions-discovered.md`. A `## Conventions` section is appended to the project's root agent instruction file(s), or reported for `andthen:init` to insert when no root file exists yet; monorepo: matching per-sub-project agent instruction files are generated in each sub-project directory.
 
 When complete, print each output file's **relative path from the project root**.

@@ -175,7 +175,7 @@ Offer:
 1. **Continue with another mode** – carry forward current session context
 2. **Deep-dive into a specific finding** – zoom into a single package, boundary, or option
 3. **Create fitness function implementations** from proposals
-4. **Formalize an ADR** – primary path for an `advise` decision; for `trade-off`, Step 6 already produced the ADR unless the user opted out, so this is a late-add backstop only
+4. **Formalize an ADR** – primary path for an `advise` decision; for `trade-off`, Step 6 already produced the ADR unless the user opted out, so this is a late-add backstop only. Formalizing an ADR runs the same `DECISIONS.md` registration logic defined in `references/mode-trade-off.md` Step 6.
 5. **Code-level review** for correctness, style, security (invoke the `andthen:review` skill with `--mode code`)
 6. **Review visually** – _every mode's primary report is supported (`review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, ADR); OMIT this entry only after a pure `advise` run (no structured report)_. Run `andthen:visualize <report-path>` to spot scope and edge-case issues a markdown view obscures (skip when `--visual` already ran).
 7. **End session** – finalize the report and stop

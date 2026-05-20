@@ -97,7 +97,7 @@ This is where users get lost: AndThen is set up, they have an idea, but they do 
 | Build a bigger initiative | "build a whole X", multiple capabilities mentioned, "platform", "system" | → the `andthen:clarify` skill (default feature mode; entry point for the multi-feature `prd → plan → exec-plan` chain). If the framing carries architectural ambiguity ("multi-tenant", "real-time", "how should I structure a..."), use Step 3 to disambiguate between `clarify` and the `andthen:architecture` skill in `--mode advise`. |
 | Quick fix / small change | "fix typo", "rename X", "bump version" | → the `andthen:quick-implement` skill |
 | Simplify existing code | "simplify this code", "clean this up", "refactor this", "reduce complexity" | → the `andthen:simplify-code` skill |
-| How should I structure X? | "should I split", "how do I organize", "what's the right pattern for" | → the `andthen:architecture` skill in `--mode advise` |
+| How should I structure X? | "how do I organize", "what's the right pattern for" | → the `andthen:architecture` skill in `--mode advise` |
 | Compare two approaches | "X vs Y", "should we use A or B" | → the `andthen:architecture` skill in `--mode trade-off` |
 | Module split / merge decision | "should we split this", "decompose", "boundaries" | → the `andthen:architecture` skill in `--mode decompose` |
 | Domain discovery / subdomain mapping / context boundaries | "bounded contexts", "subdomains", "domain map", "what are our domains", "model the domain", "event storming" | → the `andthen:architecture` skill in `--mode strategic-design` _(or `--mode event-storming` when "event storming" is the explicit cue)_ |
