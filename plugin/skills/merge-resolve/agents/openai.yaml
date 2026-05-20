@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Merge Resolve"
+  short_description: "Internal exec-plan worktree merge resolver"
+  default_prompt: "Internal helper for exec-plan team-mode worktree merges. Arguments: "
+
+policy:
+  allow_implicit_invocation: false

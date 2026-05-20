@@ -6,21 +6,42 @@
 
 **Inputs**: `TOPIC`, `COUNT`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES` (Optional Output Flags + Mode-Specific Flags subsections).
 
+## Interactive-by-Contract
+
+Trade-off analysis is a *decision* skill, not an execution skill. **Three hard gates** require user input before the skill can continue:
+
+1. **Step 1a** – decision context (core question, constraints, success criteria, dealbreakers).
+2. **Step 1c** – candidate options + weighted criteria. The most load-bearing gate: wrong criteria/weights → wrong recommendation, and Step 3 deep research is wasted.
+3. **Step 5** – recommendation acceptance + ADR / refinement / deeper-analysis decision.
+
+At each gate, the same mechanical pattern applies: **present a structured proposal back to the user** (recommendation first, one-line rationale, real alternatives, room for free-form input), **ask** using an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, 3–5 numbered markdown questions otherwise), **wait for the response**, then continue. Recommending an answer is allowed and encouraged; treating it as confirmed without user input is not.
+
+### Named failure mode: implicit confirmation from detailed input
+
+A thorough `INPUT` looks like the user has already answered every gate. They haven't – they've given you the *context* the answers should be derived from, not the answers themselves. **Detailed input is never implicit confirmation.** The act of presenting a structured proposal back and getting an explicit confirm-or-adjust *is* the contract; "the prompt was detailed enough, so I recorded assumptions instead of asking" is the rationalization that silently degrades this skill into "ran to completion without asking" – the single most-reported failure mode for this skill across both Claude Code and Codex.
+
+### `--auto` / `--headless` is the only bypass
+
+When set, infer all gate answers from `INPUT` conservatively, record the assumptions in the report under labeled sections (*Decision Context*, *Criteria + Weights*, *ADR decision*), and document open questions. Without the flag, the gates apply regardless of how detailed `INPUT` is.
+
 ## Principles
 
 - Be concise, evidence-based, and proportional to the decision's actual scale.
 - Favor the simplest option that satisfies the decision constraints.
 - Do not research extra options, skip weighting, or recommend based on popularity alone.
+- Don't let a long criteria catalog replace actual judgment – name only the criteria that move the recommendation, and identify which are decisive vs. tie-breakers.
 
 ## Step 1 – Define the Decision Space
 
-### 1a. Clarify Decision Context
+### 1a. Clarify Decision Context _(hard gate – ask, do not infer)_
 
-Get or confirm:
+Even when `INPUT` addresses these explicitly, present them back as a structured proposal and ask the user to confirm or adjust:
 - Core question
 - Constraints
 - Success criteria
 - Dealbreakers
+
+Wait for the response before continuing. Detailed input is not implicit confirmation (see Interactive-by-Contract).
 
 ### 1b. Design Space Decomposition
 
@@ -33,7 +54,7 @@ For multi-dimensional decisions, decompose the space instead of listing flat opt
 
 If the decision is single-dimensional, skip decomposition and list direct options.
 
-### 1c. Define Weighted Criteria
+### 1c. Define Weighted Criteria _(hard gate – ask, do not infer)_
 
 Choose only the criteria that matter for this decision. Typical examples:
 - Developer experience and maintainability
@@ -43,7 +64,7 @@ Choose only the criteria that matter for this decision. Typical examples:
 - Cost and time-to-market
 - Team fit and long-term viability
 
-Ask the user to confirm the options and the weighted criteria before deep research.
+**Present a proposed weighting table** (criterion + suggested weight + one-line rationale) **and the candidate-options list** back to the user, and **ask them to confirm or adjust** before Step 3 deep research begins. Wait for the response. Wrong criteria/weights → wrong recommendation; this is the most load-bearing gate in the skill and the one most often skipped on "detailed input."
 
 ## Step 2 – Design It Twice _(optional)_
 
@@ -85,7 +106,7 @@ Produce a compact comparison that includes:
 
 Focus on the decision factors that actually move the recommendation.
 
-## Step 5 – Recommendation
+## Step 5 – Recommendation _(hard gate – ADR decision; ask, do not infer)_
 
 Write the recommendation with:
 - Chosen option
@@ -95,7 +116,13 @@ Write the recommendation with:
 - Confidence level
 - Alternatives worth reconsidering if conditions change
 
-Present it to the user and confirm whether they want refinement, deeper analysis, or a formal ADR.
+Present it to the user. **Formalizing as an ADR is the default next step** – that is the primary purpose of running trade-off analysis. Ask whether to:
+- **Proceed with ADR creation** _(default; Step 6 produces it)_
+- **Refine first** (adjust criteria, weights, or options and re-run before the ADR)
+- **Deeper analysis** of a specific option before deciding
+- **No ADR** (trade-off report only; recommendation stands as advisory)
+
+Wait for the response. Do not assume – the ADR has organizational implications the user owns.
 
 ## Step 6 – Documentation
 
@@ -105,12 +132,21 @@ Store artifacts in `OUTPUT_DIR/[topic-slug]/`:
 - `tradeoff-matrix.md` for the comparison
 - `recommendation.md` for the final recommendation
 
-If the user wants an ADR:
+**If the user chose "Proceed with ADR creation" in Step 5, produce the ADR** ("Refine first" and "Deeper analysis" loop back to earlier steps before Step 6; "No ADR" skips this block):
 - Use the `ADRs` location from the **Project Document Index** if the project has one; otherwise create the default ADR directory at `docs/adrs/`
 - Follow the existing numbering scheme, or start with `ADR-001`
 - Also keep a copy at `OUTPUT_DIR/[topic-slug]/adr.md`
+- **Populate from trade-off artifacts**:
+  - *Status*: `Proposed` (until the user accepts it)
+  - *Context*: decision context + weighted criteria from Step 1
+  - *Decision*: the chosen option from Step 5 plus its headline rationale
+  - *Consequences*: positive/negative implications drawn from the trade-off matrix for the chosen option
+  - *Alternatives Considered*: the scored non-chosen options with a one-line rejection rationale each
+  - *Implementation Notes*: Step 5's implementation path, risks, and mitigations
+  - *Project Compliance*: alignment with project-specific architectural guidelines (see `mode-advise.md`); `N/A` if the project has none
+  - *References*: link to the trade-off report files (`research.md`, `tradeoff-matrix.md`, `recommendation.md`)
 
-See `mode-advise.md` for the ADR template.
+See `adr-template.md` for the canonical ADR template.
 
 ## Report Contents
 

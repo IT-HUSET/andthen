@@ -158,11 +158,10 @@ fi
 #
 # This step IS load-bearing: without the exclude, the newly created linked
 # worktree at $CODE_DIR/.claude/worktrees/story-XX/ appears as an untracked
-# directory in the main checkout's `git status --porcelain`. Both
-# merge-worktree.sh's PRECONDITION and team-mode-orchestration.md's per-wave
-# main-checkout audit fail-the-wave on non-empty porcelain – so a silent
-# exclude failure would misfire as `FAILED:main-checkout-leak` against every
-# completed impl-* in the wave. Fail-fast with rollback (mirrors the
+# directory in the main checkout's `git status --porcelain`. The merge-resolve
+# skill's PRECONDITION check fails the merge on non-empty porcelain – so a
+# silent exclude failure would misfire as a precondition failure against
+# every completed impl-* in the wave. Fail-fast with rollback (mirrors the
 # submodule-init handler above) instead of swallowing the error.
 EXCLUDE_FILE="$CODE_DIR_ABS/.git/info/exclude"
 EXCLUDE_LINE=".claude/worktrees/"

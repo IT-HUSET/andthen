@@ -1,8 +1,8 @@
 # Council Mode
 
-Multi-perspective code or security review: 5-7 specialized reviewers find issues, a Critic Reviewer attacks assumptions, Devil's Advocate filters weak findings, and Synthesis Challenger produces the final low-noise report. Load this reference when running the `andthen:review` skill with `--council`, or when code/security mode auto-escalates to council because the scope spans multiple concerns, the surface is high-risk, or the user asked for "multi-perspective" / "adversarial" / "critic" / "skeptic" / "thorough" review.
+Multi-perspective review scaled to the chain shape: **within-lens specialist councils** (5-7 reviewers per lens) deepen `code` and `security` reviews, and on any chain of 2+ lenses a **cross-lens Critic + Devil's Advocate + Synthesis Challenger pass** attacks lens-boundary surface (contradictions, silence-licenses-risk, verdict-vs-finding mismatch) over the merged finding set. Load this reference when running the `andthen:review` skill with `--council`, or when code/security mode auto-escalates to council because the scope spans multiple concerns, the surface is high-risk, or the user asked for "multi-perspective" / "adversarial" / "critic" / "skeptic" / "thorough" review.
 
-Council mode augments **code mode** and **security mode** only. In a chain that includes both, run one council per applicable lens with distinct reviewer rosters and shared calibration.
+Within-lens specialist councils apply to `code` and `security` only; on a chain that includes both, run one specialist council per lens with distinct reviewer rosters and shared calibration, then run the cross-lens pass once over all per-lens outputs.
 
 Companion references:
 - `reviewer-roster.md` – reviewer catalog, installed-agent mapping, and selection examples.
@@ -51,6 +51,8 @@ Prefer the strongest available execution path:
 ## 2. Select Council Members
 
 Choose 5-7 reviewers from `reviewer-roster.md`. Always include **Critic Reviewer**, **Devil's Advocate**, and **Synthesis Challenger**.
+
+The 5-7 sweet spot and specialist selection below apply to **within-lens** councils (code or security). The **cross-lens chain pass** (§ *Cross-Lens Chain Mode* below) is fixed at the 3-role spine – no additional specialists – because per-lens reviews already produced the specialist coverage.
 
 For **security-mode councils**, always include **Security Sentinel** and choose 1-3 more specialists from `reviewer-roster.md` matched to the OWASP applicability gate: Correctness Reviewer for API, browser, backend, or data-flow behavior; Architecture Strategist for trust-boundary structure; Project Standards Reviewer for supply-chain, CI/CD, or local convention risk; Test Strategist for security verification gaps; Agent Workflow Reviewer for LLM/agent/tool-call flows.
 
@@ -136,6 +138,47 @@ Apply verdicts to the findings list. **Gate:** findings filtered.
 - **Findings payload**: `{validated, downgraded, and disputed findings from Phase 2 plus clean-coverage statements}`
 
 **Gate:** synthesis complete.
+
+
+## 3c. Cross-Lens Chain Mode
+
+**Trigger**: `--council` AND chain (2+ lenses). Runs once after every per-lens review (and any within-lens council) completes, before the consolidated chain report is written.
+
+**Roles**: the find / filter / synthesize spine only – **Cross-Lens Critic** (finder, primary finding-producing role at this scope), **Devil's Advocate** (filter), **Synthesis Challenger** (filter). No additional specialists – per-lens reviews already produced specialist coverage. Tag every finding produced here with `reviewer: Cross-Lens Critic`, `scope_relation: primary`, and `source_lens: cross-lens` so downstream routing keeps the existing scope contract while filters and the consolidated report can distinguish them from per-lens findings.
+
+**Inputs**: target map + per-lens finding payloads tagged by source lens. Where a within-lens code or security council ran (§3a / §3b), use its **filtered** output (post-Devil's-Advocate, post-Synthesis-Challenger), not raw specialist findings.
+
+**Phase 1 – Cross-Lens Critic** (finder): spawn the installed `review-critic` agent when available; otherwise a generic fresh-context sub-agent. Same agent persona as the within-lens Critic, different task prompt:
+
+```markdown
+You are the Cross-Lens Critic on a Review Council for: {SCOPE}
+
+Lenses run: {ordered lens list, e.g. doc, code, gap}
+Per-lens finding payloads (tagged by source lens):
+{merged findings}
+
+Read first:
+- ${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md
+- ${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md
+- ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md
+
+Attack lens-boundary surface only:
+- Contradictions between lens outputs (lens A passes, lens B's finding implies A should fail).
+- Silence-licenses-risk – one lens's PASS is being used to license another lens's silence.
+- Cross-lens coupling missed by every per-lens scope.
+- Verdict-vs-finding mismatch within or across lenses.
+- Intent gaps visible only when code is read against doc, or doc against code.
+
+Do **not** re-litigate within-lens Critic findings – assume the per-lens Critic pass attacked within-lens scope already. Return findings using the Structured Finding Contract; tag `scope_relation: primary` and `source_lens: cross-lens`. If clean, return the concrete lens-boundary surfaces you attacked.
+```
+
+**Gate:** cross-lens findings (or clean-coverage statement) collected.
+
+**Phase 2 – Devil's Advocate**: reuse the §3a / §3b Devil's Advocate task prompt verbatim. Filter posture is scope-agnostic. Inputs are the per-lens findings (already-filtered when a within-lens council ran) **plus** the cross-lens Critic findings. **Gate:** verdicts applied.
+
+**Phase 3 – Synthesis Challenger**: reuse the §3a / §3b Synthesis Challenger task prompt verbatim. May merge duplicates across lenses, reframe around evidence already present, downgrade, withdraw, or mark disputed; must not invent unrelated findings. **Gate:** final cross-lens payload complete.
+
+The caller (SKILL.md Step 5) renders surviving cross-lens findings in the consolidated chain report's `## Cross-Lens Synthesis` section above the per-lens sections, with a `Coverage attacked:` proof-of-work line. Per-lens sections remain intact.
 
 
 ## 4. Report Structure

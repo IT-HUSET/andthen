@@ -10,7 +10,6 @@
 - Plan Schema – pointer to `plan-schema.md`
 - Plan Issue Catalog (markdown) – column-to-JSON-field mapping for `--to-issue` / `--from-issue`
 - FIS-Unset Sentinel (markdown only) – regex for `FIS` cell `null` rendering
-- FIS Structural Integrity Contract – the two gate conditions before `exec-spec` destructive work
 - FIS Filename Convention – `s{NN}-{name}.md` rules
 - FIS Provenance Fields – the `**Plan**:` / `**Story-ID**:` header pair
 
@@ -69,18 +68,6 @@ In the markdown issue catalog, a `FIS` cell matching this regex renders JSON `nu
 (case-insensitive on `TBD` / `N/A`; applied to normalized cell text)
 
 Covers: ASCII hyphen `-` (U+002D), en-dash `–` (U+2013), em-dash `–` (U+2014, defensive for rich-text paste), `TBD`, `N/A`, empty, whitespace. JSON uses `null` directly – the sentinel is markdown-parse only.
-
-
-## FIS Structural Integrity Contract
-
-Before destructive work, `exec-spec` Step 2 verifies the FIS is structurally well-formed. Two required conditions:
-
-1. **`## Acceptance Scenarios` heading exists** – matched by `^## Acceptance Scenarios` – and its span (heading line through the next `^## ` heading or EOF) contains at least one `- [ ] ` checkbox line.
-2. **`## Implementation Plan` heading exists** – matched by `^## Implementation Plan` – and its span contains at least one task with a Verify line (matched by `Verify:` or `**Verify**:` anywhere in the span).
-
-Failure on any condition: emit `BLOCKED: <fis-path> missing: <comma-separated section list>` (list names only `## Acceptance Scenarios` and/or `## Implementation Plan`) and exit before Step 3. Do not enter Step 3 on a failed structural check.
-
-> FIS lacking `## Acceptance Scenarios` (typically older files carrying `## Success Criteria`) fail this check intentionally; the `BLOCKED:` message instructs the user to re-spec. `## Final Validation Checklist` ships visible-empty in the template and is not gated by this contract – authors may also omit the heading when no feature-specific final gates apply.
 
 
 ## FIS Filename Convention

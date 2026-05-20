@@ -68,7 +68,7 @@ Launch 3 sub-agents concurrently:
 
 ### Phase 4: Environment Setup
 
-1. Identify the dev server start command (from `package.json` scripts, README, CLAUDE.md / AGENTS.md)
+1. Identify the dev server start command – check the `Key Dev Commands` document (see **Project Document Index**) first, then fall back to `package.json` scripts, README, or CLAUDE.md / AGENTS.md
 2. Start the dev server; if startup fails, invoke the `andthen:triage` skill
 3. Confirm application is accessible; note the base URL
 

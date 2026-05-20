@@ -19,6 +19,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--
 ## INSTRUCTIONS
 
 - **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- **Intent + Rules Context** – collect both bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) up-front in Phase 1, after scope is resolved. Behavior-preserving cleanup can still drift the feature when it restructures code the FIS chose a shape for, folds in capabilities the FIS deferred, or pulls in dependencies a Non-Goal forbids. Phase 2 consults the Intent bundle before proposing any structural change; cleanups that contradict the Intent are dropped (surfaced in the completion summary, not applied), even when the code-quality heuristic favors them.
 - **Preserve exact behavior** – change only *how* the code works, never *what* it does, unless explicitly requested
 - **No scope creep** – simplify only the requested or defensibly resolved scope
 - **Tests must pass** before and after simplification
@@ -39,6 +40,8 @@ Favor **readable, explicit code** over compact or clever solutions. Reduce compl
 - Not establishing a baseline (tests pass, build succeeds) before starting
 - Over-simplification that makes code harder to debug or extend
 - Premature abstraction – three similar lines of code is often better than one clever helper
+- **Boy Scout cleanup that crosses Intent boundaries** – behavior-preserving does not mean intent-preserving. Extracting a shared helper across module boundaries, folding duplicate computation into a memoized utility, or pulling in a third-party library can each contradict a stated Non-Goal, implement a deferred outcome, or restructure code the FIS chose a shape for. Phase 2 consults the Intent Context bundle for exactly this reason – drop the cleanup, surface it in the completion summary, do not apply.
+- **Picking up `SURFACED` findings from a prior run of the `andthen:remediate-findings` skill** – those are findings an upstream gate explicitly declined to auto-apply. Cleaning them up here re-introduces the drift the routing gate prevented.
 
 
 ## WORKFLOW
@@ -66,7 +69,13 @@ Favor **readable, explicit code** over compact or clever solutions. Reduce compl
 - Note current state for regression comparison
 - In `AUTO_MODE`, a red baseline triggers `BLOCKED:` (per INSTRUCTIONS) rather than Stop-the-Line iteration – simplify-code never tries to fix the baseline itself
 
-**Gate**: Scope defined, baseline passing
+#### 1.3. Collect Intent + Rules Context
+
+Collect the **Project Rules Context** and **Intent Context** bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md). Walk up from the resolved scope's paths to find the governing FIS, PRD, `clarify` artifact, or active plan story; consult the **Project Document Index** in `CLAUDE.md` when present. Extract Intent, Expected Outcomes, Non-Goals, and any explicit deferrals.
+
+When no governing artifact is discoverable, record `Intent Context: none discoverable` in the completion summary – Phase 2 falls back to code-quality heuristics alone. Do not synthesize intent from the code itself.
+
+**Gate**: Scope defined, baseline passing, Intent + Rules Context bundles collected (or recorded as absent with the reason)
 
 
 ### Phase 2: Analysis
@@ -97,7 +106,15 @@ Before proposing removal of any code, understand why it exists – check callers
 
 Cross-check against the `Architecture` document (see **Project Document Index**) if it exists – simplification should respect documented component boundaries and not silently change architectural shape. A cleanup that crosses boundaries belongs in the `andthen:architecture` skill with `--mode advise` first, not bundled into this run.
 
-Produce a prioritized list of improvements. Ask user for confirmation before proceeding if changes are substantial. In `AUTO_MODE`, do not pause for confirmation – proceed with the conservative, lowest-risk subset (drop genuinely risky or scope-widening items) and record the deferred items in the completion summary.
+**Intent anchor.** When Intent Context was collected in Phase 1.3, consult it for each proposed cleanup. Apply the canonical anchor moves from [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md):
+
+- **Cleanup contradicts a Non-Goal** (e.g. "no external dependencies", "no shared helpers across feature boundaries", "no caching layer in v1") → drop the cleanup; record it in the completion summary as `dropped: contradicts Non-Goal in <FIS path>`.
+- **Cleanup implements behavior the artifact defers to a later story** (folds duplicate computation into a memo when the FIS deferred caching, extracts a façade the FIS deferred to a refactoring story) → drop; record `dropped: implements deferred outcome in <FIS path>`.
+- **Cleanup restructures code the FIS explicitly chose a shape for** (a flat function chosen for hot-path performance, an inlined branch chosen for readability over abstraction) → drop; record `dropped: contradicts Expected Outcome / Structural Criterion in <FIS path>`.
+
+When no Intent Context was collected, proceed on code-quality heuristics alone and note that in the completion summary – do not invent intent to justify or block cleanups.
+
+Produce a prioritized list of improvements. Ask user for confirmation before proceeding if changes are substantial. In `AUTO_MODE`, do not pause for confirmation – proceed with the conservative, lowest-risk subset (drop genuinely risky or scope-widening items and any cleanup the Intent anchor flagged) and record the deferred items in the completion summary.
 
 
 ### Phase 3: Simplification

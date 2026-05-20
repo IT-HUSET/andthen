@@ -22,7 +22,7 @@ For each leftover worktree:
   UNMERGED:<branch>            – not merged; preserved for manual inspection
   UNMERGED:<branch>:<reason>   – not merged AND a guard-failure marker was found (e.g.
                                  G1:empty_branch, G2:<paths>, G3:worktree_dirty written by
-                                 merge-worktree.sh); preserved
+                                 the merge-resolve skill); preserved
   DETACHED:<path>              – detached HEAD (no branch line); preserved
   DETACHED:<path>:<reason>     – detached with a guard-failure marker; preserved
 
@@ -159,7 +159,7 @@ for RECORD in "${RECORDS[@]}"; do
     continue
   fi
 
-  # Marker-file short-circuit: when merge-worktree.sh wrote a guard-failure
+  # Marker-file short-circuit: when the merge-resolve skill's script wrote a guard-failure
   # marker, it explicitly preserved the worktree for inspection. Skip the
   # squash-trailer / ancestry classification entirely and emit UNMERGED with
   # the recorded reason. This is load-bearing: an empty story branch (G1
@@ -209,7 +209,7 @@ for RECORD in "${RECORDS[@]}"; do
   # ancestors of BASE_BRANCH and would be misclassified MERGED by a bare
   # is-ancestor check – but they carry no work to claim merged. The marker
   # short-circuit above catches G1-detected empties, but a hand-cleared
-  # marker (or an empty branch from outside merge-worktree.sh) would slip
+  # marker (or an empty branch from outside the merge-resolve skill) would slip
   # past it; gating on "carries ≥1 commit beyond merge-base" closes that hole.
   if [[ "$MERGED" == false ]]; then
     MERGE_BASE_TB=$(git merge-base "$BASE_BRANCH" "$WORKTREE_BRANCH" 2>/dev/null || true)

@@ -366,7 +366,7 @@ fi
 
 # Names of the canonical shared assets (filenames only).
 # Each must exist at plugin/references/<asset>.md and be consumed by ≥2 skills.
-_canonical_assets="adversarial-challenge.md automation-mode.md critic-calibration.md data-contract.md design-tree.md execution-discipline.md execution-named-blocks.md farley-framework.md fis-authoring-guidelines.md fis-template.md github-publish.md lens-adversarial.md plan-issue-shape.md plan-schema.md prd-template.md project-state-templates.md review-calibration.md review-report-location.md trust-boundaries.md"
+_canonical_assets="adversarial-challenge.md automation-mode.md critic-calibration.md data-contract.md design-tree.md execution-discipline.md execution-named-blocks.md farley-framework.md fis-authoring-guidelines.md fis-template.md github-publish.md intent-and-rules-context.md lens-adversarial.md plan-issue-shape.md plan-schema.md prd-template.md project-state-templates.md review-calibration.md review-report-location.md trust-boundaries.md"
 
 # Map of skill-name → space-separated list of canonical asset names it consumes.
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
@@ -376,8 +376,8 @@ _skill_assets_spec="automation-mode.md data-contract.md execution-named-blocks.m
 _skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md"
 _skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md"
 _skill_assets_ops="data-contract.md plan-schema.md"
-_skill_assets_review="adversarial-challenge.md critic-calibration.md data-contract.md fis-authoring-guidelines.md lens-adversarial.md plan-schema.md review-calibration.md review-report-location.md trust-boundaries.md"
-_skill_assets_quick_review="critic-calibration.md lens-adversarial.md review-calibration.md"
+_skill_assets_review="adversarial-challenge.md critic-calibration.md data-contract.md fis-authoring-guidelines.md intent-and-rules-context.md lens-adversarial.md plan-schema.md review-calibration.md review-report-location.md trust-boundaries.md"
+_skill_assets_quick_review="critic-calibration.md intent-and-rules-context.md lens-adversarial.md review-calibration.md"
 _skill_assets_architecture="adversarial-challenge.md design-tree.md farley-framework.md review-calibration.md review-report-location.md"
 _skill_assets_clarify="design-tree.md github-publish.md"
 _skill_assets_testing="farley-framework.md"
@@ -386,9 +386,9 @@ _skill_assets_e2e_test="trust-boundaries.md"
 _skill_assets_triage="execution-named-blocks.md github-publish.md trust-boundaries.md"
 _skill_assets_init="project-state-templates.md"
 _skill_assets_map_codebase="project-state-templates.md"
-_skill_assets_simplify_code="automation-mode.md"
+_skill_assets_simplify_code="automation-mode.md intent-and-rules-context.md"
 _skill_assets_refactor="automation-mode.md"
-_skill_assets_remediate_findings="automation-mode.md"
+_skill_assets_remediate_findings="automation-mode.md intent-and-rules-context.md"
 
 # Resolve the list of canonical assets for a given skill base name.
 # Prints a space-separated list of asset filenames.

@@ -1,6 +1,8 @@
 # Shared Review Council Reviewer Roster
 
-Total council size is 5-7. Three roles are always included; pick 2-4 scope-relevant specialists on top. Prefer the installed custom agent name when available; otherwise use the focus text here as the inline persona prompt.
+Total council size is 5-7 for **within-lens councils** (code or security). Three roles are always included; pick 2-4 scope-relevant specialists on top. Prefer the installed custom agent name when available; otherwise use the focus text here as the inline persona prompt.
+
+For the **cross-lens chain pass** (`--council` on a 2+ lens chain, see `council-mode.md` § *Cross-Lens Chain Mode*), the council is fixed at the 3-role spine below – no additional specialists – because per-lens reviews already produced specialist coverage.
 
 ## Always Include
 

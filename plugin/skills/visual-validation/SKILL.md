@@ -28,7 +28,7 @@ SCOPE: $ARGUMENTS (screens, states, URLs, screenshots, wireframes, baselines, or
 ### Phase 1: Setup & Inventory
 
 1. Define the screens, states, breakpoints, and platforms that matter.
-2. Identify baselines, wireframes, design references, or acceptance criteria.
+2. Identify baselines, wireframes, design references, or acceptance criteria – consult the `Wireframes` and `Design System` documents (see **Project Document Index**) when the project specifies non-default locations.
 3. Choose available capture and comparison tools.
 4. Build a short validation checklist before collecting evidence.
 

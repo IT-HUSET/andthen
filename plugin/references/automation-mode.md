@@ -3,9 +3,11 @@
 Shared automation rules for AndThen skills. Referenced from each skill's `INSTRUCTIONS` section.
 
 
-## Headless-First (Default)
+## Headless-First (Execution Skills)
 
-Skills run to completion without pausing for routine clarification, even without `--auto`. Make reasonable conservative assumptions, document them in the skill's primary output, and surface unresolved questions explicitly. Stop only on **true contract failures** – missing required input, incompatible artifacts, unsafe external actions, or ambiguity so severe no defensible output is producible.
+This skill runs to completion without pausing for routine clarification, even without `--auto`. Make conservative assumptions, document them in the skill's primary output, and surface unresolved questions explicitly. Stop only on **true contract failures** – missing required input, incompatible artifacts, unsafe external actions, or ambiguity so severe no defensible output is producible.
+
+Scope: this reference applies to execution-oriented skills only (`prd`, `plan`, `spec`, `exec-*`, `simplify-code`, `refactor`, `remediate-findings`). Discovery and design skills (`clarify`, `architecture` trade-off / advise / event-storming / strategic-design modes) declare their own user-input contracts and do not consume this reference.
 
 `--auto` / `--headless` is the *strict* form of this rule (below).
 

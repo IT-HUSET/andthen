@@ -441,11 +441,9 @@ Be aware of execution-environment constraints: some platforms allow package inst
 
 ---
 
-## Headless by Default
+## Execution Skills Run Headless; Discovery Skills Interact
 
-Most skills should **run to completion** without waiting for a user turn. Interactive turns are only justified when the skill's purpose is interaction (clarification, discovery, planning sessions) or when a real contract failure makes progress impossible.
-
-For execution skills, prefer:
+**Execution skills** (skills whose deliverable is implementation, verification, or deterministic operations – the `exec-*`, `quick-implement`, `ops`, `simplify-code`, `refactor`, `remediate-findings` family, plus the artifact-producers like `prd`/`plan`/`spec`) **run to completion** without waiting for a user turn. For these skills, prefer:
 
 - **Explicit assumptions** recorded in the artifact.
 - **Conservative defaults** when input is ambiguous.
@@ -457,7 +455,9 @@ Over:
 - Mid-run confirmation prompts.
 - Asking the user to choose between options the skill could pick reasonably.
 
-When a skill *does* need to gate on user input, name the gate (`BLOCKED:` block) and the exact information that would unblock it.
+When such a skill *does* need to gate on user input, name the gate (`BLOCKED:` block) and the exact information that would unblock it.
+
+**Discovery and design skills** (clarification, product/feature discovery, trade-off analysis, architectural advise, event-storming, strategic design, init) are **interactive by nature**: the user back-and-forth IS the deliverable, not an obstacle to it. These skills declare a named *Interactive-by-Contract* principle, gate the relevant steps explicitly, and use a question tool (`AskUserQuestion` when available, numbered markdown fallback otherwise) – the headless-execution rule above does not apply to them.
 
 ---
 

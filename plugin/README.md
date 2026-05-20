@@ -68,9 +68,9 @@ Use these individually for everyday development – no setup, no pipeline, no pr
 | `now-what` | First-stop router – inspects project state and routes to the right skill (use when starting fresh or unsure what to do next) |
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub → auto-PR) |
-| `quick-review` | Quick in-conversation sanity-check via fresh-context Critic sub-agent; reports Guardrails Coverage for diff-verifiable project rules |
-| `review` | Smart review entrypoint: routes to code, doc, gap, security, mixed, or structured multi-perspective council review (`--council`); reports Guardrails Coverage and `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage |
-| `simplify-code` | Behavior-preserving code simplification and cleanup |
+| `quick-review` | Quick in-conversation sanity-check via fresh-context Critic sub-agent; loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; routes accepted findings into **Fix** (HIGH/CRITICAL, confidence ≥ 75, primary scope) and **Note** buckets so `--fix` only auto-applies the former; reports Guardrails Coverage for diff-verifiable project rules |
+| `review` | Smart review entrypoint: routes to code, doc, gap, security, mixed, or structured multi-perspective council review (`--council` – within-lens specialist debate on `code` / `security`, plus a cross-lens Critic + Devil's Advocate + Synthesis Challenger pass on any chain of 2+ lenses that surfaces lens-boundary contradictions and silence-licenses-risk in a `## Cross-Lens Synthesis` section); loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; routes accepted findings into **Fix** (HIGH/CRITICAL, confidence ≥ 75, primary scope, no scope expansion past Intent) and **Note** buckets so `--fix` only auto-applies the former; emits Guardrails Coverage with per-finding rule citations; `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage |
+| `simplify-code` | Behavior-preserving code simplification and cleanup; loads Intent Context when present and drops cleanups that contradict Non-Goals, implement deferred outcomes, or restructure code the FIS explicitly chose a shape for (Boy Scout cleanup is intent-bounded, not just behavior-preserving) |
 | `refactor` | Deprecated – redirects to `simplify-code` (kept for legacy invocations only) |
 | `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, and event storming (modes: `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming`; `--visual` delegates every mode's primary report – `review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, and ADR – to `andthen:visualize`) |
 | `ui-ux-design` | UI/UX work – research, design systems, wireframes, and design review (modes: `research`, `design-system`, `wireframes`, `review`) |
@@ -95,7 +95,7 @@ These compose into structured workflows – from requirements through implementa
 | `exec-spec` | Execute a FIS – direct implementation with validation |
 | `plan` | Full plan bundle: typed `plan.json` (story manifest per `plan-schema.md`) + FIS for every story + cross-cutting review. Requires `prd.md` input. Re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files. Supports `--visual` as a convenience handoff to `andthen:visualize` for the local plan bundle |
 | `exec-plan` | Execute a fully-specced plan bundle – reads `plan.json`, runs exec-spec + quick-review per story, final gap review. `--from-issue` materializes a local `plan.json` ledger from a GitHub plan issue. Use `--team` for Agent Teams |
-| `remediate-findings` | Implement validated review findings with re-validation and status updates |
+| `remediate-findings` | Implement validated review findings with re-validation and status updates; honors the upstream `Routing: Fix\|Note` tag on each finding and runs a Phase 2a Intent re-anchor against the originating FIS (Non-Goals / deferrals / Expected Outcomes) before any fix is planned – findings that contradict the Intent are surfaced for user decision rather than auto-applied |
 | `ops` | Deterministic state management, git conventions, and progress tracking |
 
 > Both `exec-plan` and `review --council` auto-detect Agent Teams and use them when available. Use `--team` to force Agent Teams mode.
@@ -186,7 +186,7 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 # Design/advisory guidance grounded in CUPID, DDD, and architectural frameworks
 /andthen:architecture --mode advise "should I use event sourcing for the order domain"
 
-# Trade-off analysis – compare options with weighted criteria, produce an evidence-based recommendation or ADR
+# Trade-off analysis – compare options with weighted criteria, produce an evidence-based recommendation and ADR (default; opt out with "No ADR" at Step 5)
 /andthen:architecture --mode trade-off "SQL vs document DB for the events store"
 
 # Strategic design – subdomain classification, bounded contexts, context map, UL touchpoints (greenfield + brownfield)
@@ -215,12 +215,20 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 # Deep security review with multi-perspective council
 /andthen:review --mode security --council
 
+# Chain + council – per-lens reviews plus a cross-lens Critic pass over the
+# merged findings; produces a `## Cross-Lens Synthesis` section above the
+# per-lens sections that surfaces contradictions and silence-licenses-risk
+# (e.g. a doc gap masking a correctness regression).
+/andthen:review --mode doc,code,gap --council
+
 # Reviewers auto-selected based on changes:
 # - Product features → Product Requirements, Correctness, Architecture, Standards
 # - Backend APIs → Correctness, Architecture, Testing, Standards
 # - Prompt/skill changes → Agent Workflow, Standards, Testing
 # - Security-mode councils → Security Sentinel + 1-3 surface specialists
 # - Always includes Critic Reviewer + Devil's Advocate + Synthesis Challenger
+# - Chain + council adds a fixed-spine cross-lens pass (Critic / DA / Synthesis Challenger)
+#   over per-lens outputs; no extra specialists at the cross-lens scope
 
 # OR force Agent Teams for real-time debate (Claude Code only)
 /andthen:review --council --team
@@ -288,6 +296,20 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 ## Migration Notes
 
 See [CHANGELOG.md](../CHANGELOG.md) for full release notes. Entries below cover migration steps for recent releases – both breaking changes and non-breaking shape additions that affect the FIS or plan surfaces consumers parse.
+
+### 0.22.0 – Review reports gain `Routing:` field + `Intent Context:` line (non-breaking shape addition)
+
+The `andthen:review` skill and the `andthen:quick-review` skill now route each accepted finding into a **Fix** or **Note** bucket and emit a `Routing: Fix | Note` field per finding plus a one-line `Intent Context:` line in the report or inline-result header. The `andthen:remediate-findings` skill reads both: `Routing: Note` findings are surfaced (`SURFACED` in the findings re-check) rather than auto-applied, and a new Phase 2a Intent re-anchor demotes findings that contradict Non-Goals or deferrals from the originating FIS – even when upstream tagged them `Routing: Fix`. Reports without these fields (older `andthen:review` skill reports, external reports) execute under the prior behavior; routing degrades to the existing severity policy alone. The `andthen:simplify-code` skill also loads Intent Context and drops cleanups that contradict it (no report consumption, just self-anchoring).
+
+**To migrate**, no action required for existing reports. New reports automatically carry the fields; remediation honors them on first re-run.
+
+### 0.22.0 – `--council` scales with chain shape (behavior change + non-breaking shape addition)
+
+`andthen:review --council` now scales with the chain shape. Single `code` / `security` still run within-lens specialist councils (unchanged). On any chain of 2+ lenses a new **cross-lens Critic + Devil's Advocate + Synthesis Challenger pass** runs after the per-lens reviews and surfaces lens-boundary issues (contradictions, silence-licenses-risk, verdict-vs-finding mismatch) in a new `## Cross-Lens Synthesis` H2 placed above the per-lens sections of the consolidated `mixed-review` report. The mode token stays `mixed` and per-lens sections are unchanged, so the `andthen:remediate-findings` skill and the `andthen:visualize` skill continue to parse and render correctly (the visualizer falls through to its generic-prose renderer for the new H2 until a first-class template lands).
+
+**Behavior change most likely to surprise**: `--council` with a single-lens `--mode doc` or `--mode gap` now rejects up-front (`BLOCKED: --council requires code/security in scope or a chain of 2+ lenses`). Previously the resolver silently appended `code` or `security` so the council ran on an unrelated lens; that "Chain contains neither" auto-append has been dropped in favor of explicit rejection. To get a council over doc/gap-shaped surface, add another lens to the chain (e.g. `--mode doc,code` or `--mode doc,code,gap --council`).
+
+**To migrate**: scripted `--mode doc --council` / `--mode gap --council` invocations need updating to either drop `--council` or add another lens. New chain + `--council` reports automatically carry the `## Cross-Lens Synthesis` section; downstream skills require no changes.
 
 ### 0.21.1 – FIS Intent + Expected Outcomes (non-breaking shape addition)
 

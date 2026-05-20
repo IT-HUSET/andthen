@@ -64,7 +64,7 @@ _Output path resolution – see the dispatch table in Step 1._
    | Other file path, URL, or inline description | Proceed to Step 2 (Synthesis). |
    | `--issue <N>` or GitHub issue URL | Fetch the body with `gh issue view <N>` and use its content as raw requirements input. Store the issue number for reference in the PRD header. Proceed to Step 2 (Synthesis). |
 
-2. **Document optional assets** if present in the resolved directory (Architecture/ADRs, Design system, Wireframes). If the `Product` document exists at the project level (see **Project Document Index**), read it for vision, personas, anti-goals, and success metrics – the PRD is a feature/release-scope derivative within that product framing, not a re-derivation. Keep pointers to in-directory assets; don't inline contents.
+2. **Document optional assets** if present in the resolved directory (Architecture/ADRs, Design system, Wireframes). At the project level (see **Project Document Index**), read the `Product` document for vision/personas/anti-goals/success metrics, the `Architecture` document for structural constraints the PRD must not contradict, and the `Roadmap` document for release phasing the PRD sits within – when each exists. The PRD is a feature/release-scope derivative within these framings, not a re-derivation. Keep pointers to in-directory assets; don't inline contents.
 
 **Gate**: Input validated, dispatch path chosen
 

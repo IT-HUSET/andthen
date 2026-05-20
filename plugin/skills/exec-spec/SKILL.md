@@ -79,11 +79,7 @@ Rules:
 
 1. Read the full FIS at `FIS_FILE_PATH`.
 
-2. **Structural integrity guard** – verify the FIS is well-formed before any destructive work. Apply the two conditions from [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (FIS Structural Integrity Contract section):
-   - `## Acceptance Scenarios` heading exists and its span contains at least one `- [ ] ` line.
-   - `## Implementation Plan` heading exists and its span contains at least one task with a Verify line.
-
-   On any failure: emit `BLOCKED: <FIS_FILE_PATH> missing: <comma-separated list of failed sections>` and stop. Do not read upstream documents, do not enter Step 3.
+2. **Sanity check** – if the file at `FIS_FILE_PATH` isn't an executable FIS (wrong artifact type, no actionable content), stop: surface `CONFUSION: <FIS_FILE_PATH> not an executable FIS – <one-line reason>` interactively, emit `BLOCKED:` with the same content in `AUTO_MODE`. Do not enter Step 3.
 
 3. **Classify pre-existing dirty paths** (`git status --porcelain`) before scaffolding, state writes, or code edits:
    - Clean: record `BASELINE_DIRTY=none`.
@@ -95,7 +91,7 @@ Rules:
 
    **Intent as in-FIS tie-breaker** – when a scenario or task is ambiguous, its tagged Expected Outcome(s) resolve ambiguity in favor of the named success condition before raising `CONFUSION:`. For *behavioral* tasks, walk the indirection: scenarios whose `[TI<NN>]` includes the task → those scenarios' `[OC<NN>]` tags → matching Expected Outcomes. For *structural* tasks (no scenario tags it; its Verify line proves a Structural Criterion), the resolving anchor is the matched Structural Criterion's text. If the resolving outcome/criterion is itself ambiguous, raise `CONFUSION:` – do not guess. The tie-breaker resolves *referent* ambiguity, not *text* ambiguity.
 
-   **Legacy-FIS notice**: when no `**Expected Outcomes**:` sub-block exists under `## Feature Overview and Goal`, emit `WARN: FIS predates Expected Outcomes; in-FIS tie-breaker inactive (re-spec to upgrade).` The structural-integrity contract is unchanged so execution proceeds; the in-FIS tie-breaker and Step 5a upper-chain attestation are silent no-ops.
+   **Legacy-FIS notice**: when no `**Expected Outcomes**:` sub-block exists under `## Feature Overview and Goal`, emit `WARN: FIS predates Expected Outcomes; in-FIS tie-breaker inactive (re-spec to upgrade).` Execution proceeds; the in-FIS tie-breaker and Step 5a upper-chain attestation are silent no-ops.
 
 5. **Process Required / Deeper Context** – `Required Context` blocks are authoritative; do not re-read source documents to reconfirm. `Deeper Context` pointers (`path#anchor`) are optional, on-demand reads when Required Context has gaps. Verify each followed anchor resolves; warn (do not stop) on broken anchors.
 

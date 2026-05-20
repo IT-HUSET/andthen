@@ -42,6 +42,7 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 ## INSTRUCTIONS
 
 - When `ARGUMENTS` is empty or ambiguous (no clear mode or scope), or when a declared chain is missing a required input for one of its modes (decompose boundary, advise question, trade-off topic), start with guided setup (see Phase 0). Do not assume a mode or run a full-project review by default.
+- **Discovery / design modes are interactive.** `trade-off` and `event-storming` declare explicit user-confirmation gates in their mode references (proposed criteria + weights, candidate options, ADR decision, scope confirmation). Honor them: present the proposal back and wait for user input at each gate, using an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, numbered markdown otherwise). Detailed `ARGUMENTS` are never implicit confirmation of these gates – see the *implicit confirmation from detailed input* failure mode in `references/mode-trade-off.md`.
 - **Automation mode** (`--auto` / `--headless`) – never ask the user what to do next. Infer mode and scope from the arguments using the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` and list the minimum missing decisions (mode, scope, decompose boundary, advise question, trade-off topic, or strategic-design / event-storming domain or workflow scope). Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt – it is deterministic).
 - **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
 - Analysis and design only. Do not modify code.
@@ -174,7 +175,7 @@ Offer:
 1. **Continue with another mode** – carry forward current session context
 2. **Deep-dive into a specific finding** – zoom into a single package, boundary, or option
 3. **Create fitness function implementations** from proposals
-4. **Formalize an ADR** from a `trade-off` recommendation or an `advise` decision
+4. **Formalize an ADR** – primary path for an `advise` decision; for `trade-off`, Step 6 already produced the ADR unless the user opted out, so this is a late-add backstop only
 5. **Code-level review** for correctness, style, security (invoke the `andthen:review` skill with `--mode code`)
 6. **Review visually** – _every mode's primary report is supported (`review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, ADR); OMIT this entry only after a pure `advise` run (no structured report)_. Run `andthen:visualize <report-path>` to spot scope and edge-case issues a markdown view obscures (skip when `--visual` already ran).
 7. **End session** – finalize the report and stop

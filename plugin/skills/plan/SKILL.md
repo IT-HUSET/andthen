@@ -91,7 +91,7 @@ Do not author FIS content yourself – delegate to per-story sub-agents in Step 
 
 **Read the resolved PRD source here** (local `prd.md`, or fetched issue body materialized as `OUTPUT_DIR/prd.md`). This is the single PRD read for plan generation – Step 5 sub-agents receive relevant spans as context (no re-read), and Step 6 reads the PRD fresh in its own sub-agent context.
 
-Run a quick `tree -d` + `git ls-files | head -250` inline (no sub-agent) for natural implementation boundaries. Read `State`, `Ubiquitous Language`, and `Architecture` documents (see **Project Document Index**) when present – priorities, canonical terminology, story splits. Do not restate Architecture boundaries in story scope.
+Run a quick `tree -d` + `git ls-files | head -250` inline (no sub-agent) for natural implementation boundaries. Read `State`, `Ubiquitous Language`, `Architecture`, `Stack`, and `Product` documents (see **Project Document Index**) when present – priorities, canonical terminology, story splits, tech-stack constraints story scope must respect, and product anti-goals that bound decomposition. Do not restate Architecture boundaries in story scope.
 
 Synthesize: PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), implementation boundaries, dependencies, complexity/risk areas. Note "must support X" / "must not Y" language for the optional `## Binding Constraints` section in Step 4.
 

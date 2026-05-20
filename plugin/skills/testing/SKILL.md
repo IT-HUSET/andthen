@@ -65,7 +65,7 @@ Every important scenario needs at least one test or a documented proof artifact.
 - Use the project's existing framework and conventions.
 - If no setup exists, pick stack-appropriate defaults that match the repo's tooling.
 - Prefer tools that run in CI without extra ceremony.
-- Check `CLAUDE.md` / `AGENTS.md` and local docs before introducing a new framework.
+- Check the `Key Dev Commands` document (see **Project Document Index**), `CLAUDE.md` / `AGENTS.md`, and local docs before introducing a new framework.
 
 
 ## CALLER INTEGRATION

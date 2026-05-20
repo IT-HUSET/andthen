@@ -68,7 +68,7 @@ Content shared by ≥2 skills lives at `plugin/references/` and is consumed via 
 
 ## Shared Plugin Assets
 
-The 19 shared assets live at `plugin/references/` – a single canonical location consumed by multiple skills.
+The 20 shared assets live at `plugin/references/` – a single canonical location consumed by multiple skills.
 
 | Asset | Consumed by |
 |---|---|
@@ -83,6 +83,7 @@ The 19 shared assets live at `plugin/references/` – a single canonical locatio
 | `fis-authoring-guidelines.md` | spec, plan, review |
 | `fis-template.md` | spec |
 | `github-publish.md` | clarify, prd, triage, exec-spec, exec-plan, plan |
+| `intent-and-rules-context.md` | review, quick-review, remediate-findings, simplify-code |
 | `lens-adversarial.md` | review, quick-review |
 | `plan-issue-shape.md` | plan, exec-plan |
 | `plan-schema.md` | plan, exec-plan, ops, review |

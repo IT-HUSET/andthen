@@ -115,27 +115,7 @@ When analyzing a codebase as part of advisory work:
 
 ## ADR Template
 
-```markdown
-# ADR-{N}: {Short Title}
-
-## Status
-[Proposed | Accepted | Deprecated | Superseded]
-
-## Context
-What is the issue motivating this decision?
-
-## Decision
-What are we doing?
-
-## Consequences
-What becomes easier or harder?
-
-## Alternatives Considered
-1. **{Alt}** – rejected: {reason}
-
-## Project Compliance
-How does this align with project-specific architectural guidelines?
-```
+See `adr-template.md` for the canonical ADR template.
 
 ## Report Contents
 

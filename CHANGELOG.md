@@ -6,6 +6,26 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.22.0] – 2026-05-18
+
+### Added
+- **Internal `andthen:merge-resolve` skill** – `exec-plan --team --worktree` now delegates each story merge to a private helper with a structured outcome contract.
+
+### Changed
+- **Interactive-by-Contract gates in `andthen:architecture` trade-off and event-storming modes** – discovery/design modes now stop for clarification before producing reports, and the shared headless-mode rule is execution-scoped so it no longer silently bypasses them. Fixes "trade-off ran to completion without asking" reproduced across projects. **Trade-off Step 6 now produces an ADR by default** (Step 5's hard gate offers *Proceed* / *Refine first* / *Deeper analysis* / *No ADR*; only the explicit *No ADR* opt-out skips the ADR write, with explicit population guidance per ADR section). The ADR template is extracted to a per-skill canonical (`plugin/skills/architecture/references/adr-template.md`) shared by `trade-off` and `advise` modes.
+- **Intent + Rules Context threads through review → remediate → simplify** – a new shared reference is consumed by `andthen:review`, `andthen:quick-review`, `andthen:remediate-findings`, and `andthen:simplify-code` so Non-Goals / deferrals / Expected Outcomes act as falsifiers at every mutation step. Review findings now carry `Routing: Fix | Note` (only `Fix` auto-applies under `--fix`); remediate re-anchors against Intent and demotes drift to `SURFACED`; simplify drops Boy Scout cleanups that contradict Intent.
+- **Surgical-scope teeth on `--fix`** – `andthen:remediate-findings` adds a per-hunk trace test, names the over-engineering shapes that creep in during remediation, and adds `caller API change required` / `data migration required` as defer-blockers. `andthen:quick-review --fix` is one-pass-only – verification surfacing new issues stops the run instead of looping.
+- **FIS Structural Integrity gate dropped** – `andthen:exec-spec` no longer parser-checks heading shape; substantive FIS in either canonical or legacy shape execute without ceremony, stopping only on wrong-artifact-type.
+- **`andthen:exec-plan` team-mode worktree handling simplified** – merge-time guards own leak detection; team prompts share the Worker Contract with sub-agent mode and only state team-specific overrides; tasks are orchestrator-pre-assigned with same-story self-review blocked at assignment time.
+- **Wider Project Document Index lookups** – `andthen:prd` reads Architecture and Roadmap; `andthen:plan` adds Stack and Product; `andthen:spec` adds Stack; `andthen:visual-validation`, `andthen:e2e-test`, and `andthen:testing` route Wireframes / Design System / Key Dev Commands through the index. All reuse the existing parenthetical pattern – no new shared references.
+- **`andthen:review --council` scales with chain shape** – on any chain of 2+ lenses a cross-lens Critic + Devil's Advocate + Synthesis Challenger pass attacks lens-boundary surface (contradictions, silence-licenses-risk, verdict-vs-finding mismatch) over the merged per-lens findings and surfaces survivors in a new `## Cross-Lens Synthesis` H2 above the per-lens sections of the `mixed-review` report. Within-lens specialist councils for `code` / `security` unchanged. `--mode doc --council` and `--mode gap --council` now reject up-front (previously silently broadened to a code or security council via the dropped "Chain contains neither" auto-append).
+
+### Fixed
+- **`andthen:exec-plan` fans out to sub-agents again** – per-story and final-review prompts now carry explicit "spawn a sub-agent" imperatives; in-orchestrator execution is recovery-only. Fixes silent fall-through to single-context execution under Codex CLI.
+
+
+---
+
 ## [0.21.3] – 2026-05-18
 
 ### Changed

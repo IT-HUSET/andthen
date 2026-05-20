@@ -4,6 +4,10 @@ Run a Brandolini-style event-storming session as a discovery technique – surfa
 
 **Supporting references**: `ddd.md` (section 4.1 – sticky-note vocabulary cross-reference; section 4.3 – context-map artifact when a Big Picture session ends with subdomain candidates).
 
+## Interactive-by-Contract
+
+Event storming is a *discovery* skill – it treats the user as the domain expert. Step 1 (scope + level) and Step 2 (event harvest) ask focused questions when vocabulary or causality is unclear; the headless-execution rule does not apply. Use an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, numbered markdown questions otherwise). `--auto` / `--headless` bypasses these gates – infer from `INPUT` and the project's ubiquitous-language docs conservatively, and record assumptions as purple hotspots.
+
 ## Sticky-Note Vocabulary
 
 Brandolini's color palette – keep colors stable across the report so readers can visually parse the board.

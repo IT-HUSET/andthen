@@ -77,7 +77,7 @@ A FIS is a contract with the executor. The text the author pulled at spec time i
 
 Each scenario: one behavior, concrete Given/When/Then using actual codebase identifiers. Order: happy path, edge cases, ≥1 error case. 3-7 scenarios. If you can't write the **Then**, surface as ambiguity.
 
-**Canonical shape** – every scenario is a single top-level checkbox under `## Acceptance Scenarios` whose bold label carries a scenario ID, `[OC<NN>(,OC<NN>)*]`, then `[TI<NN>(,TI<NN>)*]`, followed by nested Given/When/Then. Tag groups appear as separate bracketed tokens, outcomes before tasks. The bold label functions as a pseudo-heading while remaining a checkbox – satisfying the structural-integrity gate (any `- [ ] ` in span) and letting `ops update-fis all` flip per-scenario checkboxes. See [`fis-template.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-template.md) for the display form. Do NOT emit scenarios as `### S<NN> ...` headers – that breaks the checkbox proof shape.
+**Canonical shape** – every scenario is a single top-level checkbox under `## Acceptance Scenarios` whose bold label carries a scenario ID, `[OC<NN>(,OC<NN>)*]`, then `[TI<NN>(,TI<NN>)*]`, followed by nested Given/When/Then. Tag groups appear as separate bracketed tokens, outcomes before tasks. The bold label functions as a pseudo-heading while remaining a checkbox – letting `ops update-fis all` flip per-scenario checkboxes. See [`fis-template.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-template.md) for the display form. Do NOT emit scenarios as `### S<NN> ...` headers – that breaks the checkbox proof shape.
 
 ### Scenario Authoring Principles
 

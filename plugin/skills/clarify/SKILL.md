@@ -11,7 +11,7 @@ Refine fuzzy inputs into clarified requirements through **Discovery** (probing l
 
 ## OPERATING PRINCIPLE
 
-**Interactive-by-Contract.** This skill's deliverable IS the back-and-forth Discovery & Ideation, not just the document it produces. The repo-wide *Headless by default* principle does NOT apply here – `CLAUDE.md` explicitly names clarify as an exception. Producing a clarification doc without at least one round of user-answered questions is a **contract violation**, not a shortcut. Even when the input "looks complete," the questions still run – that's the agent rationalizing, not a signal the discovery is done.
+**Interactive-by-Contract.** This skill's deliverable IS the back-and-forth Discovery & Ideation – user input is the work, not an obstacle to it. Producing a clarification doc without at least one round of user-answered questions is a contract violation, not a shortcut. The "input looks complete" intuition is the agent rationalizing past the contract; run the interview anyway.
 
 
 ## VARIABLES
@@ -37,8 +37,7 @@ _Output directory for clarified requirements (branched by MODE):_
 
 - **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
 - Require `INPUT`. Stop if missing.
-- **Interactive-by-Contract** (see **OPERATING PRINCIPLE**) – ask questions iteratively and wait for user input before proceeding. Recommending an answer is allowed (see Step 2); treating it as confirmed without user input is not. No `AUTO_MODE` bypass for this skill; no exception for "the input looks complete."
-- **`AskUserQuestion` is the default question mechanism in Claude Code** – its chip UI is the operational realization of *Recommend, don't decide* (first option = recommendation; rest = alternatives; `Other` = free-form). Markdown questions are the Codex / non-Claude-Code fallback. Step 2 has the how.
+- **Interactive-by-Contract** (see **OPERATING PRINCIPLE**) – ask iteratively and wait for user input. Recommending an answer is allowed (see Step 2); treating it as confirmed without user input is not. No `AUTO_MODE` bypass; no exception for "the input looks complete."
 - **Ideation alongside Discovery** – propose alternative MVPs, surface anti-goals, suggest pruning candidates, and offer adjacent capability spaces in or out of scope. Discovery probes what the user stated; Ideation surfaces what they didn't.
 - **Visual review is a post-validation handoff.** When `--visual` is present, complete the normal clarification/product-vision gate first, then invoke the `andthen:visualize` skill on the produced artifact; the visualizer owns HTML rendering, note export, browser-open behavior, and `.agent_temp/visual-review/` output.
 - **Check before asking** – if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. In **feature mode**, the `Product` document (see **Project Document Index**) is the upstream framing – vision, personas, anti-goals; feature requirements should anchor to it, not contradict it. State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm. *Exception:* a prior clarification doc is a baseline to amend (see Step 1 *Amendment check*), not a lookup that closes discovery.
@@ -68,8 +67,7 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 - Jumping to solution design instead of requirement discovery
 - **Skipping Discovery & Ideation because the input "looks complete."** The completeness intuition is the agent rationalizing past the **Interactive-by-Contract** rule. Even a thorough input has gaps the user wants surfaced through questions. Run Step 2 anyway.
 - **Inferring feature mode when product-level intent is present.** If INPUT references a `PRODUCT*.md` path, maps to the Project Document Index `Product` row, or carries product-strategy markers (`vision`, `positioning`, `product strategy`, `overall product`, `product brief`, `product-level`), infer `MODE=product` and surface the inference in the first response so the user can redirect.
-- **Falling back to plain markdown when `AskUserQuestion` is available.** Forces the user to type ratify/redirect text instead of tapping a chip.
-- **Encoding alternatives in prose instead of `AskUserQuestion` options.** "Option A / Option B" inside a markdown question defeats the chip UI – one option per candidate, let `Other` carry user-originated alternatives.
+- **Interactive user input tool (e.g. `AskUserQuestion`) misuse.** Falling back to markdown when the tool is available (forces typing instead of chip-tap), or encoding alternatives in prose ("Option A / Option B") inside a markdown question (defeats the chip UI). One option per candidate; `Other` carries user-originated alternatives.
 
 
 ## WORKFLOW
@@ -113,7 +111,7 @@ Ask targeted questions based on identified gaps, unresolved design dimensions, a
 
 **Ideation moves** – additive to Discovery, not replacement. Propose alternative MVPs (smaller, faster, different shape); surface anti-goals ("things this is explicitly NOT"); suggest pruning candidates (stated requirements that may be deferrable); offer adjacent capability spaces in/out of scope so the user can confirm boundaries explicitly.
 
-**Question delivery – `AskUserQuestion` first.** One question per gap. First option = recommendation (rationale in `description`); remaining options = real alternatives, not throwaways; `Other` is automatic. Tool cap is 4 questions per call – iterate calls if more gaps remain; do not fuse unrelated gaps into one question. Markdown 3–5 question fallback when the tool is unavailable (Codex / generic CLI).
+**Question delivery.** One question per gap; first option = recommendation with rationale; remaining options = real alternatives (not throwaways); leave room for free-form input. Use an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, cap 4 questions per call – iterate if more gaps remain); fall back to 3–5 numbered markdown questions otherwise.
 
 > Stop and wait for user input. Do not proceed to Step 3 until at least one round is answered and no major gaps remain.
 

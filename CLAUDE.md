@@ -75,13 +75,12 @@ Modern frontier models understand *why* things matter. Skills should express **i
 - **Right altitude**: Use heuristics and principles, not step-by-step prescriptions. If a frontier model would naturally do something, don't instruct it. Be specific about counter-intuitive behaviors, cross-skill integration contracts, and named failure modes. Be general about standard engineering practices.
 - **Named principles over unnamed rules**: A named principle (Chesterton's Fence, Prove-It Pattern, Proof-of-Work, Stop-the-Line) gives the model a conceptual anchor for *when* and *why* the principle applies. An unnamed rule is just a constraint to follow or ignore.
 - **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens – it prevents the model from rationalizing its way past the step.
-- **Headless by default**: Skills should run to completion without waiting for another user turn unless they are explicitly interactive by nature (for example `clarify` or `init`) or blocked by a real contract failure. Prefer explicit assumptions, conservative defaults, and documented open questions over `STOP and WAIT` patterns in execution-oriented skills.
 - **Brevity and clear language**: Pragmatic, actionable, plain. Skills are part of every prompt – words cost tokens.
 - **Repetition is dilution**: When a rule feels weak, name the failure mode at the right altitude. More restatements just compete with each other for attention.
 - **AI agents are the intended audience for skills and reference files**: Write for agents, not for human readers. Avoid over-explaining – be direct and precise.
 - **Avoid external URLs**: Do not place external URLs in shipped skill content (unless explicitly instructed to).
 
-For the deeper skill-authoring craft (frontmatter, progressive disclosure, description engineering, anti-patterns, evaluation-driven authoring), read _`docs/guidelines/SKILL-AUTHORING-GUIDELINES.md`_ when actually editing a skill.
+For the deeper skill-authoring craft (frontmatter, progressive disclosure, description engineering, anti-patterns, evaluation-driven authoring), read _`docs/SKILL-AUTHORING-GUIDELINES.md`_ when actually editing a skill.
 
 ### Prompt engineering guidelines
 See _`docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md`_ for more detailed prompt engineering guidelines.
@@ -94,7 +93,7 @@ Always fully read relevant guidelines below as needed, based on the type of work
 - _`docs/guidelines/DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`_ when doing development work (coding, architecture, etc.)
 - _`docs/guidelines/UX-UI-GUIDELINES.md`_ when doing UX/UI related work
 - _`docs/guidelines/WEB-DEV-GUIDELINES.md`_ when doing web development work
-- _`docs/guidelines/SKILL-AUTHORING-GUIDELINES.md`_ when authoring or modifying skills (SKILL.md bundles)
+- _`docs/SKILL-AUTHORING-GUIDELINES.md`_ when authoring or modifying skills (SKILL.md bundles)
 
 ### Before Editing
 
@@ -103,6 +102,15 @@ Always fully read relevant guidelines below as needed, based on the type of work
 - If a referenced guideline file is missing, do not invent its rules. Use the available local docs and the surrounding code.
 - Preserve behavior unless the user explicitly asks for a behavior change.
 - Do not widen a cleanup into adjacent skills, references, or docs just because they are nearby.
+
+### Maintenance Contracts (version bumps, CHANGELOG.md updates)
+
+- When updating **user-invocable skills**, make sure `README.md`, `plugin/README.md`, `CHANGELOG.md`, and the `## Skill Reference` section in `plugin/skills/now-what/SKILL.md` are updated accordingly.
+- When updating **internal-only skills** (`user-invocable: false`), update `agents/openai.yaml`, `CHANGELOG.md`, and the owning caller's skill/reference docs; do not add the skill to public skill inventories unless users invoke it directly.
+- **Keep CHANGELOG.md entries extremely concise**: focus on the user-facing changes and avoid too low level internal implementation details.
+- Adding, renaming, or removing a shared canonical in `plugin/references/` requires updates to `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table AND `scripts/install-skills.sh`'s `_canonical_assets` and the per-skill `_skill_assets_*` arrays of every consuming skill.
+- Bumping the version **always updates all three locations**: `CHANGELOG.md`, `.claude-plugin/marketplace.json`, and `plugin/.claude-plugin/plugin.json`.
+
 
 
 ---
@@ -121,18 +129,6 @@ Audit wording with:
 ```bash
 rg 'andthen:[a-z-]+' CLAUDE.md plugin/ docs/
 ```
-
-
----
-
-
-## Maintenance Contracts
-
-- Adding, renaming, or removing a skill requires updates to `README.md`, `plugin/README.md`, `CHANGELOG.md`, and the `## Skill Reference` section in `plugin/skills/now-what/SKILL.md`.
-- Keep CHANGELOG.md entries tight: focus on the user-facing changes and avoid too low level internal implementation details. 
-- Changing a flag, mode, option, or behavioral nuance belongs in `plugin/README.md`, not `README.md`. Also update `now-what` only when its routing-relevant entry changes.
-- Adding, renaming, or removing a shared canonical in `plugin/references/` requires updates to `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table AND `scripts/install-skills.sh`'s `_canonical_assets` and the per-skill `_skill_assets_*` arrays of every consuming skill.
-- Bumping the version **always updates all three locations**: `CHANGELOG.md`, `.claude-plugin/marketplace.json`, and `plugin/.claude-plugin/plugin.json`.
 
 
 ---
