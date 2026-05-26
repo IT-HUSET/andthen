@@ -37,6 +37,8 @@ ARGUMENTS: $ARGUMENTS _(optional – what the user wants to do, e.g. "build a to
 
 ### Phase 1 – State Detection
 
+**Pre-step – Handoff priming.** Before reading state signals, scan `.agent_temp/handoff/` (resolved against `git rev-parse --show-toplevel`, fallback CWD) for the most recent `handoff-*.md`. If found, read its **Next session focus**, **Open questions**, and **Recommended next skill** lines into priming context and surface one informational line as a statement (e.g. _"Resuming the handoff from <ts> focused on X."_) – never as a question, so it does not consume the two-question budget. State detection runs unchanged; the handoff adds context. When the state-determined route disagrees with the handoff's Recommended next skill, prefer the handoff unless the user's framing or the Phase 4 freshness gate marks it stale. Under `--auto` / `--headless`, the pre-step still runs; handoff context informs routing without asking.
+
 Read these signals **in order; stop at the first state-determining match.** Most paths are deterministic (no question); one row has a fallback question for genuinely ambiguous codebase volume – when used, it counts as the one disambiguation question allowed by the two-question budget, so do not also ask in Step 3. Reuse `init`'s vocabulary (`New project` / `Partial setup` / `Brownfield`) where it overlaps so terms stay consistent across skills.
 
 | Signal | How to read | Outcome |
@@ -164,12 +166,16 @@ Format: _"You're at X – next is the `andthen:<skill>` skill. Run it? (Y/n)"_
 Brief reference for skills `andthen:now-what` recommends. Each entry covers purpose, output, and workflow position. For behavioral depth (flag mechanics, mode internals, decision logic), read the target skill's `SKILL.md` directly – depth lives there, not here. Maintenance contract: see the root agent instruction file's "Skill Reference maintenance" rule – entries are updated whenever a skill's purpose, output, or workflow position changes.
 
 ### `andthen:init`
-Sets up the AndThen workflow structure: `CLAUDE.md` / `AGENTS.md`, Project Document Index, folder layout, optional starter docs (Learnings, Stack, Key Dev Commands, guidelines). Detects new / partial-setup / brownfield projects and adapts non-destructively. Run once per project; re-running fills gaps without overwriting.
+Sets up the AndThen workflow structure: `CLAUDE.md` / `AGENTS.md`, Project Document Index, folder layout, Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md`, `LEARNINGS.md`) scaffolded by default, optional Planning docs (`STATE.md`, `PRODUCT-BACKLOG.md`, `ROADMAP.md`) on user opt-in, starter guidelines. Detects new / partial-setup / brownfield projects and adapts non-destructively. Run once per project; re-running fills gaps without overwriting.
 **Typical next step:** re-invoke `andthen:now-what` to route the first feature.
 
 ### `andthen:now-what`
-This skill – first-stop router for users new to AndThen or unsure what to do next. Inspects project state and routes to the right skill, with heavy onboarding on first-time setup and terse routing mid-flow.
+This skill – first-stop router for users new to AndThen or unsure what to do next. Inspects project state and routes to the right skill, with heavy onboarding on first-time setup and terse routing mid-flow. Phase 1 also scans `.agent_temp/handoff/` for a recent handoff doc and surfaces its priming context.
 **Use when:** unsure which skill to invoke next, or starting fresh on a project.
+
+### `andthen:handoff`
+Compacts the conversation into a handoff doc a fresh agent can resume from. When `STATE.md` / `LEARNINGS.md` exist, auto-routes mid-flow state and clearly-bounded defensive notes there via the `andthen:ops` skill (unless `--no-mutate`); absent files reroute to handoff-doc recommendations. Recommends ADRs via the `andthen:architecture --mode trade-off` skill; writes to `.agent_temp/handoff/handoff-<UTC-ts>.md`. References Project Document Index artifacts by path.
+**Use when:** wrapping up before `/clear`, running low on context, or at a natural session boundary. **Typical next step:** in the fresh session, invoke `andthen:now-what` – it picks up the refreshed `STATE.md` and the handoff doc's priming context.
 
 ### `andthen:map-codebase`
 Analyzes an existing codebase to produce structured documentation (Architecture, Stack, conventions) plus a discovered-requirements doc. Read-only – no code changes.
@@ -256,7 +262,7 @@ Simplifies and cleans up code for clarity, reuse, quality, and efficiency withou
 **Use when:** code is becoming hard to maintain, or after a feature lands and a cleanup pass is warranted.
 
 ### `andthen:ops`
-Deterministic operations on workflow state – `STATE.md` updates, `plan.json` mutations (`update-plan`, `update-plan-fis`), FIS checkboxes, standardized commits. The canonical mutator for `stories[].status` and `stories[].fis`; non-`ops` skills must not write `plan.json` directly.
+Deterministic operations on workflow state – `STATE.md`, `plan.json` (the canonical mutator for `stories[].status` / `stories[].fis`), FIS checkboxes, Tech Debt and `LEARNINGS.md` appends, standardized commits. Non-`ops` skills must not write `plan.json` directly.
 **Use when:** transitioning between workflow phases or marking progress. Often invoked automatically by other skills.
 
 

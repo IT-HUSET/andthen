@@ -233,4 +233,4 @@ Print the Step 6 summary.
 
 ## Post-Completion
 
-Update the `State` document (see **Project Document Index**): on success, set phase/status, mark completed stories `Done`, and add a session continuity note. If the run has failed or skipped stories, preserve Step 6's `"At Risk"` / `"Blocked"` status and blockers; only add the continuity note. If the `Learnings` document exists, capture cross-story insights, traps, and error patterns (brief, by topic; do not create if none exists).
+Update the `State` document (see **Project Document Index**): on success, set phase/status, mark completed stories `Done`, and add a session continuity note. If the run has failed or skipped stories, preserve Step 6's `"At Risk"` / `"Blocked"` status and blockers; only add the continuity note. Capture cross-story insights, traps, and error patterns via the `andthen:ops` skill (`update-learnings add` form, brief, by topic).

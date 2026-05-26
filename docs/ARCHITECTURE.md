@@ -88,7 +88,7 @@ The 20 shared assets live at `plugin/references/` – a single canonical locatio
 | `plan-issue-shape.md` | plan, exec-plan |
 | `plan-schema.md` | plan, exec-plan, ops, review |
 | `prd-template.md` | prd |
-| `project-state-templates.md` | init, map-codebase |
+| `project-state-templates.md` | init, map-codebase, ops (cross-reference only – ops inlines the shape it needs) |
 | `review-calibration.md` | review, quick-review, architecture |
 | `review-report-location.md` | review, architecture |
 | `trust-boundaries.md` | review, e2e-test, triage |

@@ -3,7 +3,7 @@ description: "Deterministic operations: update STATE.md, plan status, FIS checkb
 context: fork
 agent: general-purpose
 user-invocable: true
-argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-fis, update-fis observations, update-fis discovered-requirements, update-tech-debt append, commit, branch, changelog, progress, stale)"
+argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-fis, update-fis observations, update-fis discovered-requirements, update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
 ---
 
 # Deterministic Operations Skill
@@ -150,6 +150,26 @@ Actions for `append` form:
 - Tag suffix: `– tech-debt`. Idempotency lane scoped per severity H2.
 - Apply the Append-Run Block Protocol above (once per affected severity section).
 
+#### Update Learnings
+Append defensive-knowledge entries to the project's Learnings file. **Not a run-block append** – LEARNINGS is a topic-organized knowledge base, not a chronological log (template: `project-state-templates.md` `## LEARNINGS.md`).
+
+**Usage**:
+- Topic entry: `update-learnings add <topic> <entry-markdown>`
+- Error-pattern row: `update-learnings error <error> <type> [conclusion]`
+
+Resolve the target file path from the **Project Document Index** `Learnings` row (default `docs/LEARNINGS.md`). If the file does not exist, refuse with `BLOCKED: Learnings document not found at <path> – run andthen:init to scaffold it`; do not create it (init owns creation).
+
+Actions for `add` form:
+- `<entry-markdown>`: a single bullet. MUST start with `- **{title}**` and be under 200 characters. Reject with `BLOCKED: invalid learnings entry – must start with "- **{title}**" and stay under 200 chars` if violated.
+- Locate `## {topic}` case-insensitively. If absent, create as a new H2 above `## Error Patterns` (or at EOF if Error Patterns is also absent). Append the bullet under the topic.
+- **Idempotency**: no-op if a bullet matching the `- **{title}**` prefix already exists in the topic.
+
+Actions for `error` form:
+- `<type>`: `Deterministic` / `Infrastructure`. Default `Deterministic`.
+- `[conclusion]`: optional; omit or pass `-` for empty.
+- Locate the `## Error Patterns` table. Append `| {error} | {type} | {conclusion} |`. If the section or table is missing, recreate as `## Error Patterns` H2 + header `| Error | Type | Conclusion |` + separator before appending.
+- **Idempotency**: if a row with identical `{error}` exists, update its other columns; do not duplicate.
+- Graduation (row → topic section) is judgment-driven; rows stay until a human promotes them.
 
 ### 2. Git Operations
 

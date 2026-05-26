@@ -241,7 +241,7 @@ Critical / High / Medium / Low, dependencies, sequencing, acceptance criteria
 (when needed)
 ```
 
-If notable recurring traps emerge, append them to an existing learnings file.
+If notable recurring traps emerge, append via the `andthen:ops` skill (`update-learnings add` form).
 
 
 ## Report Output Conventions

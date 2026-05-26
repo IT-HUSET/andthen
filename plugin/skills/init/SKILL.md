@@ -65,11 +65,11 @@ docs/
 
 Because the generated root agent instruction template references the starter guideline filenames directly, copy any missing files from `templates/guidelines/` into `docs/guidelines/` as part of baseline setup. Never overwrite existing guideline files; preserve project-specific files.
 
-Scaffold the **Core orientation stubs by default** – the documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md), `Decisions` (docs/DECISIONS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). For `Decisions`, scaffold an empty `Current ADRs` table plus a single `Still Current` placeholder bullet – the `andthen:architecture` skill in `--mode trade-off` auto-registers ADRs into this file when ADR creation is accepted. The user can fill these in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
+Scaffold the **Core orientation stubs by default** – the documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md), `Decisions` (docs/DECISIONS.md), `Learnings` (docs/LEARNINGS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). For `Decisions`, scaffold an empty `Current ADRs` table plus a single `Still Current` placeholder bullet – the `andthen:architecture` skill in `--mode trade-off` auto-registers ADRs into this file when ADR creation is accepted. The user can fill these in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
 
 Then present the **optional documents** together. **STOP and WAIT** for the user's selection before creating any of these:
 
-- **Planning** (optional): `State` (docs/STATE.md), `Product Backlog` (docs/PRODUCT-BACKLOG.md), `Roadmap` (docs/ROADMAP.md), `Learnings` (docs/LEARNINGS.md)
+- **Planning** (optional): `State` (docs/STATE.md), `Product Backlog` (docs/PRODUCT-BACKLOG.md), `Roadmap` (docs/ROADMAP.md)
 - **Domain** (optional): `Ubiquitous Language` document (or generate later via the `andthen:ubiquitous-language` skill)
 - **Monorepo** (if `IS_MONOREPO = true`): offer per-sub-project agent instruction files matching the root file choice
 
@@ -84,7 +84,7 @@ For each confirmed sub-project agent instruction file, generate a lightweight fi
 
 ### 2b. Partial Setup (CLAUDE.md and/or AGENTS.md exists)
 
-Read the existing root agent instruction file(s) and check for: Project Document Index (table present? which rows exist?), Project-Specific Guidelines and Rules section, Project Overview filled in, the Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md` – same set Step 2a scaffolds by default), and referenced documents that actually exist. If both `CLAUDE.md` and `AGENTS.md` exist, check both and keep shared workflow sections aligned. If only one exists, repair that file and offer to create the missing counterpart for cross-agent portability.
+Read the existing root agent instruction file(s) and check for: Project Document Index (table present? which rows exist?), Project-Specific Guidelines and Rules section, Project Overview filled in, the Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md`, `LEARNINGS.md` – same set Step 2a scaffolds by default), and referenced documents that actually exist. If both `CLAUDE.md` and `AGENTS.md` exist, check both and keep shared workflow sections aligned. If only one exists, repair that file and offer to create the missing counterpart for cross-agent portability.
 
 Present findings and offer fixes. **Missing Core orientation stubs are scaffolded by default** (consistent with Step 2a) – not listed as optional. Only Planning / Domain / Monorepo docs are offered interactively.
 
@@ -93,12 +93,11 @@ Current setup analysis:
 
 ✓ CLAUDE.md / AGENTS.md exists
 ✓ Project Document Index present
-  - 8/13 document types configured
-  - Missing: State, Requirements, Roadmap, Learnings, Conventions
+  - 9/13 document types configured
+  - Missing: State, Requirements, Roadmap, Conventions
 ✓ Project-Specific Guidelines and Rules section configured
 ✗ Required starter guideline files are missing from docs/guidelines/
-✗ Core orientation stubs missing: PRODUCT.md, ARCHITECTURE.md, DECISIONS.md (will be scaffolded by default)
-✗ `Learnings` document is listed in the **Project Document Index** but the file doesn't exist
+✗ Core orientation stubs missing: PRODUCT.md, ARCHITECTURE.md, DECISIONS.md, LEARNINGS.md (will be scaffolded by default)
 
 Will scaffold by default: missing Core orientation stubs, missing starter guideline files.
 
@@ -157,6 +156,7 @@ Created:
   docs/STACK.md                               – Technology stack (pre-filled from package config)
   docs/KEY_DEVELOPMENT_COMMANDS.md            – Dev / test / build commands (stub)
   docs/DECISIONS.md                           – Decisions registry (stub)
+  docs/LEARNINGS.md                           – Defensive knowledge / traps (empty template)
   docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md
   docs/guidelines/DEVELOPMENT-ARCHITECTURE-GUIDELINES.md
   [+ any optional documents the user selected, e.g. docs/STATE.md, docs/ROADMAP.md, …]

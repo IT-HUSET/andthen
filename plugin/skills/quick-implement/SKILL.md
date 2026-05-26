@@ -118,4 +118,4 @@ Include verification evidence: **Build** (exit code/status), **Tests** (pass/fai
 
 
 ## Post-Completion
-If the `State` document (see **Project Document Index**) exists, add a lightweight session note. If the `Learnings` document exists, append brief traps/gotchas. If no `Learnings` document exists and there are noteworthy traps, add a `Learnings` section at the end of the original spec document.
+If the `State` document (see **Project Document Index**) exists, add a lightweight session note. Append brief traps/gotchas via the `andthen:ops` skill (`update-learnings add` form); if ops refuses (no `Learnings` document) and traps are noteworthy, append a `Learnings` section to the original spec document instead.

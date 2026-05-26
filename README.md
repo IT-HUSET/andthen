@@ -149,7 +149,7 @@ See [`plugin/skills/init/templates/CLAUDE.template.md`](plugin/skills/init/templ
 
 **Foundational Rules and Guardrails** – [`plugin/skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md`](plugin/skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) is the source file; `andthen:init` installs it to `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` in your project and the template wires it in by reference. For stronger adherence, prefer copying its contents into your user-level `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` once – this works for both Claude Code and Codex with no per-project setup. Alternatives: `@`-import via `@docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` (Claude Code only – Codex treats `@` as literal text); shell-alias injection into the system prompt (terminal workflows only).
 
-**Optional project docs** – The Document Index includes optional rows for State, Requirements, Roadmap, Architecture, Conventions, Learnings, and Stack documents. Starter templates for these live in [`plugin/references/project-state-templates.md`](plugin/references/project-state-templates.md). You can also auto-generate Architecture, Conventions, and Stack docs from an existing codebase using `/andthen:map-codebase`.
+**Core project docs** – `andthen:init` scaffolds the Core orientation stubs by default (Product, Architecture, Stack, Key Dev Commands, Decisions, Learnings). The Document Index also includes optional rows for State, Requirements, Roadmap, and Conventions documents. Starter templates live in [`plugin/references/project-state-templates.md`](plugin/references/project-state-templates.md). You can also auto-generate Architecture and Stack docs from an existing codebase using `/andthen:map-codebase`.
 
 ### Agent Teams (Optional, Claude Code only)
 
@@ -326,6 +326,7 @@ Use these individually for everyday development – no setup, no pipeline, no pr
 | Skill | Purpose |
 |-------|---------|
 | `now-what` | First-stop router – inspects project state and routes to the right skill |
+| `handoff` | Compact the conversation into a handoff doc for a fresh session – auto-updates `STATE.md` / `LEARNINGS.md` (when present) via `andthen:ops` |
 | `triage` | Investigate, diagnose, and fix issues |
 | `quick-implement` | Fast path for small features/fixes |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |

@@ -263,14 +263,17 @@ _No tech debt recorded yet._
 
 ## LEARNINGS.md
 
-> Accumulated project knowledge – traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically.
+> Defensive knowledge for future contributors – traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically.
+>
+> **Boundary**: LEARNINGS = _"watch out for X"_. `DECISIONS.md` = _"we chose X over Y because…"_. `STATE.md` = _"we're currently doing X"_ (transient). Prefer DECISIONS for choices with rationale, LEARNINGS for traps without.
 
 ```markdown
 # Project Learnings
 
-<!-- Organize by topic. Entries should be brief (1-2 sentences).
-     The bar: "Would a competent developer with code and git access still get bitten?"
-     Actively maintain: merge overlapping entries, remove stale knowledge, split large sections. -->
+<!-- Organize by topic. Entries brief (1-2 sentences).
+     Bar: "Would a competent developer with code and git access still get bitten?"
+     Maintain: merge overlapping entries, remove stale knowledge, split large sections.
+     Append via the `andthen:ops` skill (`update-learnings add` form). -->
 
 ## [Topic Area 1]
 <!-- e.g. "Language Traps", "Framework Patterns", "API Quirks", "Deployment", etc. -->

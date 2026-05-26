@@ -147,7 +147,7 @@ If `--to-issue` is set in fix mode, compose and publish the body in three host-s
 
 ### 6. Documentation and Prevention
 
-If significant non-obvious traps or error patterns were discovered, update the `Learnings` document (if it exists; see **Project Document Index**) with root causes, solutions, and preventive measures. Use the bar: "Would a competent developer with code and git access still get bitten?"
+If significant non-obvious traps or error patterns were discovered, append root causes, solutions, and preventive measures via the `andthen:ops` skill (`update-learnings add` form). Bar: "Would a competent developer with code and git access still get bitten?"
 
 **Gate**: Preventive knowledge captured
 

@@ -277,4 +277,4 @@ After 5b status writes verified, post the 5c summary per **Pattern B** in [`gith
 **Gate**: PR comment posted (or skipped when `--to-pr` absent)
 
 ## Post-Completion
-If the `Learnings` document exists, capture story-level traps, domain knowledge, procedural knowledge, and error patterns. Organize by topic, not chronology. Keep entries brief (1-2 sentences). Do not create a `Learnings` document if one does not already exist.
+Capture story-level traps, domain or procedural knowledge, and error patterns via the `andthen:ops` skill (`update-learnings add` form, brief, by topic).

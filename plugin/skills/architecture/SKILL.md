@@ -48,7 +48,7 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 - Analysis and design only. Do not modify code.
 - Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `references/architecture-calibration.md`.
 - **Visual review is a post-filter handoff.** In `AUTO_MODE`, run it only when `--visual` is present. When present, complete the normal report/filter gate first, then invoke the `andthen:visualize` skill on the produced report; the visualizer owns HTML rendering, note export, browser-open behavior, and `.agent_temp/visual-review/` output. Every architecture mode's primary report is supported (`review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, and ADR outputs); the `advise` mode lacks a dedicated visualize template, so `--visual` on a pure `advise` run is a no-op – print a one-line note instead of falling through to a generic renderer. **Multi-mode chains** (`--mode review,fitness` etc.) produce one combined report; the visualizer detects a single artifact type per file and dispatches first-match-wins, so chain output renders with the renderer for the first-detected mode and other mode sections fall to Generic Prose. When `--visual` is set on a multi-mode chain, print a one-line warning naming which mode's renderer will activate; the user can opt to re-run individual modes with `--output-dir` if per-mode-fidelity rendering is needed.
-- Read project learnings if they exist.
+- Read the `Learnings` document (see **Project Document Index**) before starting.
 - Load only the mode reference and supporting references needed for the selected mode(s) – do not load all references upfront. For multi-mode chains, load the deduplicated union; `advise` supporting references load lazily inside the mode.
 - Adapt all tooling suggestions, metric computation, and fitness function implementations to the detected language.
 - **Evidence over opinion**: compute metrics and analyze structure before forming conclusions. Never report "this module seems too large" – report specific metric values, file paths, and import chains.
@@ -164,6 +164,9 @@ If `PUBLISH_PR` is set, post the report file's contents as a plain PR comment vi
 
 ### Visual Review _(if --visual)_
 After the report is written and Phase 3 findings are filtered, invoke the `andthen:visualize` skill on supported architecture outputs. Print both the report path and the visualizer's output path.
+
+## Post-Completion
+After `trade-off` / `strategic-design` / `decompose` / `event-storming`, append emerging traps or anti-patterns via the `andthen:ops` skill (`update-learnings add` form); choices with rationale go to ADRs instead.
 
 ## FOLLOW-UP ACTIONS
 

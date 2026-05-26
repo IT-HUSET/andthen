@@ -65,7 +65,8 @@ Use these individually for everyday development – no setup, no pipeline, no pr
 
 | Skill | Purpose |
 |-------|---------|
-| `now-what` | First-stop router – inspects project state and routes to the right skill (use when starting fresh or unsure what to do next) |
+| `now-what` | First-stop router – inspects project state and routes to the right skill (use when starting fresh or unsure what to do next; Phase 1 also surfaces a recent handoff doc from `.agent_temp/handoff/` as priming context) |
+| `handoff` | Compact the conversation into a handoff doc a fresh agent can resume from. Triages by durability via the `andthen:ops` skill: mid-flow state (active stories, blockers, decisions, notes) → `STATE.md`; clearly-bounded defensive notes → `LEARNINGS.md` (uncertain entries stay as recommendations); structural decisions → ADR via the `andthen:architecture --mode trade-off` skill. Absent durable files / Index rows reroute to handoff-doc recommendations. Doc lives at `.agent_temp/handoff/handoff-<UTC-ts>.md`; the `andthen:now-what` skill surfaces it on resume. `--no-mutate` opts out of durable writes |
 | `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
 | `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub → auto-PR) |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context Critic sub-agent; loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; routes accepted findings into **Fix** (HIGH/CRITICAL, confidence ≥ 75, primary scope) and **Note** buckets so `--fix` only auto-applies the former; reports Guardrails Coverage for diff-verifiable project rules |
@@ -96,7 +97,7 @@ These compose into structured workflows – from requirements through implementa
 | `plan` | Full plan bundle: typed `plan.json` (story manifest per `plan-schema.md`) + FIS for every story + cross-cutting review. Requires `prd.md` input. Re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files. Supports `--visual` as a convenience handoff to `andthen:visualize` for the local plan bundle |
 | `exec-plan` | Execute a fully-specced plan bundle – reads `plan.json`, runs exec-spec + quick-review per story, final gap review. `--from-issue` materializes a local `plan.json` ledger from a GitHub plan issue. Use `--team` for Agent Teams |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates; honors the upstream `Routing: Fix\|Note` tag on each finding and runs a Phase 2a Intent re-anchor against the originating FIS (Non-Goals / deferrals / Expected Outcomes) before any fix is planned – findings that contradict the Intent are surfaced for user decision rather than auto-applied |
-| `ops` | Deterministic state management, git conventions, and progress tracking |
+| `ops` | Deterministic state management, plan/FIS mutations, Tech Debt and Learnings appends, git conventions, and progress tracking |
 
 > Both `exec-plan` and `review --council` auto-detect Agent Teams and use them when available. Use `--team` to force Agent Teams mode.
 

@@ -6,6 +6,21 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.23.0] – 2026-05-25
+
+### Added
+- **`LEARNINGS.md` promoted to Core orientation stub** – `andthen:init` scaffolds it by default; template clarifies the LEARNINGS-vs-DECISIONS boundary (defensive notes vs. choices with rationale).
+- **`andthen:ops update-learnings` form** – `add <topic> <entry>` (bold-label-deduped, topic-routed) and `error <error> <type> [conclusion]` (Error Patterns table). 300-line size-guard warning. No file-creation exception.
+- **New `andthen:handoff` skill** – Compacts the conversation into `.agent_temp/handoff/handoff-<UTC-ts>.md`; when `STATE.md` / `LEARNINGS.md` exist, auto-routes mid-flow state and clearly-bounded defensive notes there via the `andthen:ops` skill (ADRs recommend-only; missing files reroute to handoff-doc recommendations). The `andthen:now-what` skill surfaces the doc on resume; `--no-mutate` opts out.
+
+### Changed
+- **Primary `Learnings` writes route through `andthen:ops update-learnings`** – `andthen:exec-spec`, `andthen:exec-plan`, `andthen:triage`, `andthen:quick-implement` migrated from direct writes (`quick-implement` retains a spec-document fallback for projects without `Learnings`); `andthen:architecture` (trade-off / strategic-design / decompose / event-storming), `andthen:review` (any lens, generalizing the prior `gap`-only precedent), and `andthen:remediate-findings` (new Phase 6) gain the write hook.
+- **Wider `Learnings` read coverage** – `andthen:prd`, `andthen:clarify`, `andthen:remediate-findings` now read it alongside existing readers in `spec`, `plan`, `exec-spec`, `triage`, `map-codebase`, `architecture`.
+- **`andthen:architecture` `Learnings` phrasing aligned to the canonical Index-driven lookup form.**
+
+
+---
+
 ## [0.22.1] – 2026-05-20
 
 ### Added
