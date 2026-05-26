@@ -88,6 +88,31 @@
       "Bash(find /tmp/at-fake-plugin -delete)"
     ]
   },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "failIfUnavailable": true,
+    "excludedCommands": ["docker *"],
+    "filesystem": {
+      "allowWrite": [
+        "./.agent_temp",
+        "./docs/temp",
+        "./docs/temp/plans",
+        "./docs/temp/research"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "raw.githubusercontent.com",
+        "objects.githubusercontent.com",
+        "codeload.github.com",
+        "docs.anthropic.com"
+      ],
+      "allowLocalBinding": true
+    }
+  },
   "hooks": {
     "PreToolUse": [
       {
