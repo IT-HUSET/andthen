@@ -2,6 +2,11 @@
 
 Rubric for reviewing specifications, implementation plans, PRDs, technical designs, or other requirement documents. Load this reference when running `andthen:review --mode doc` or when the Mixed mode's doc sub-pass runs.
 
+## Contents
+- Scope · Review Dimensions · Critic Sub-Lens · Calibration
+- FIS Upstream-Context Handling · Findings Filter · Findings Output
+- Downstream Routing · Report Sections · Report Output Conventions
+
 
 ## Scope
 
@@ -27,7 +32,7 @@ If the document is a FIS, verify it still follows the structure and intent-first
 
 Run `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` against the document as an always-on sub-lens. Attack ambiguous requirements, missing unhappy paths, hidden implementation guesses, contradiction-prone terminology, and places where an implementer would have to infer behavior not stated in the artifact.
 
-When available, use the installed `review-critic` custom agent for the Critic pass, but still supply a read-first task prompt for `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`. If unavailable, use a generic fresh-context sub-agent with the same read-first instruction. Inline fallback must include `Critic Coverage` in the report.
+Dispatch per `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` § Sub-agent dispatch (prefer the `review-critic` agent with a read-first task prompt for the three calibration files; else a generic fresh-context sub-agent; inline fallback requires a `Critic Coverage` note).
 
 Merge Critic findings into the normal document review findings before calibration and filtering. Do not treat the Critic as a separate mode or an optional escalation.
 
@@ -39,9 +44,7 @@ Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`
 
 ## FIS Upstream-Context Handling
 
-When a FIS is in scope: treat `Required Context` blocks as the authoritative upstream intent – do not re-read source documents just to reconfirm inlined content. For `Deeper Context` anchors that are load-bearing for a finding, verify the anchor resolves in the source and warn (do not stop) on broken anchors. If a `Required Context` block appears to no longer match the current source, that is a doc-review finding (MEDIUM by default – spec should be re-run against the updated source), not an execution blocker.
-
-**Legacy FIS fallback**: a FIS without `Required Context` / `Deeper Context` sections predates them. Fall back to whatever upstream-reference structures it uses: the old `## References & Constraints` heading and its `### Documentation & References` table (rows typed `file|doc|url|wire`), or prose mentions. Do not flag the absence of these sections as a defect on legacy FIS files.
+When a FIS is in scope, apply [`fis-context-handling.md`](fis-context-handling.md) (Required/Deeper Context rules, legacy-FIS fallback).
 
 
 ## Findings Filter

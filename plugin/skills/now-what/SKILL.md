@@ -37,8 +37,6 @@ ARGUMENTS: $ARGUMENTS _(optional – what the user wants to do, e.g. "build a to
 
 ### Phase 1 – State Detection
 
-**Pre-step – Handoff priming.** Before reading state signals, scan `.agent_temp/handoff/` (resolved against `git rev-parse --show-toplevel`, fallback CWD) for the most recent `handoff-*.md`. If found, read its **Next session focus**, **Open questions**, and **Recommended next skill** lines into priming context and surface one informational line as a statement (e.g. _"Resuming the handoff from <ts> focused on X."_) – never as a question, so it does not consume the two-question budget. State detection runs unchanged; the handoff adds context. When the state-determined route disagrees with the handoff's Recommended next skill, prefer the handoff unless the user's framing or the Phase 4 freshness gate marks it stale. Under `--auto` / `--headless`, the pre-step still runs; handoff context informs routing without asking.
-
 Read these signals **in order; stop at the first state-determining match.** Most paths are deterministic (no question); one row has a fallback question for genuinely ambiguous codebase volume – when used, it counts as the one disambiguation question allowed by the two-question budget, so do not also ask in Step 3. Reuse `init`'s vocabulary (`New project` / `Partial setup` / `Brownfield`) where it overlaps so terms stay consistent across skills.
 
 | Signal | How to read | Outcome |
@@ -170,12 +168,12 @@ Sets up the AndThen workflow structure: `CLAUDE.md` / `AGENTS.md`, Project Docum
 **Typical next step:** re-invoke `andthen:now-what` to route the first feature.
 
 ### `andthen:now-what`
-This skill – first-stop router for users new to AndThen or unsure what to do next. Inspects project state and routes to the right skill, with heavy onboarding on first-time setup and terse routing mid-flow. Phase 1 also scans `.agent_temp/handoff/` for a recent handoff doc and surfaces its priming context.
+This skill – first-stop router for users new to AndThen or unsure what to do next. Inspects project state and routes to the right skill, with heavy onboarding on first-time setup and terse routing mid-flow.
 **Use when:** unsure which skill to invoke next, or starting fresh on a project.
 
 ### `andthen:handoff`
 Compacts the conversation into a handoff doc a fresh agent can resume from. When `STATE.md` / `LEARNINGS.md` exist, auto-routes mid-flow state and clearly-bounded defensive notes there via the `andthen:ops` skill (unless `--no-mutate`); absent files reroute to handoff-doc recommendations. Recommends ADRs via the `andthen:architecture --mode trade-off` skill; writes to `.agent_temp/handoff/handoff-<UTC-ts>.md`. References Project Document Index artifacts by path.
-**Use when:** wrapping up before `/clear`, running low on context, or at a natural session boundary. **Typical next step:** in the fresh session, invoke `andthen:now-what` – it picks up the refreshed `STATE.md` and the handoff doc's priming context.
+**Use when:** wrapping up before `/clear`, running low on context, or at a natural session boundary. **Typical next step:** in the fresh session, paste the `Resume from <doc-path>` prompt the skill prints – the doc is self-sufficient.
 
 ### `andthen:map-codebase`
 Analyzes an existing codebase to produce structured documentation (Architecture, Stack, conventions) plus a discovered-requirements doc. Read-only – no code changes.

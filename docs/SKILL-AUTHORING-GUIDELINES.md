@@ -30,7 +30,7 @@ A skill loads in three levels. Treat this as a **file-layout discipline**, not j
 | 2. Body | `SKILL.md` body | When the skill is triggered | Target <500 lines / ~5k tokens |
 | 3. Resources | Reference files, scripts | On demand, via explicit read / execute | Effectively unbounded |
 
-`SKILL.md` serves as a *table of contents* that points to deeper material; it is not a manual.
+`SKILL.md` is an **overview that points to deeper material** – like a table of contents in an onboarding guide. It carries the quick-start and common-path content *inline* and defers advanced, conditional, and reference detail to bundled files. The "table of contents" framing describes its *navigational* role; it is not a license to strip the body to bare links – a body up to ~500 lines is well within budget.
 
 ### Bundle layout rules
 
@@ -105,14 +105,14 @@ For simple edits, modify the XML directly.
 
 | Field | Required | Purpose |
 |-------|----------|---------|
-| `name` | yes | Identity and slash-command trigger. ≤64 chars, lowercase letters/digits/hyphens only. No reserved words ("anthropic", "claude"). |
+| `name` | yes | Skill identity and display label. ≤64 chars, lowercase letters/digits/hyphens only. No reserved words ("anthropic", "claude"). The `/command` name comes from the skill's *directory*, not this field (except a plugin-root `SKILL.md`). |
 | `description` | yes | The discovery trigger. 1–1024 chars. See *Description Engineering* below. |
-| `when_to_use` | no | Extra trigger context, appended to `description` in the skill listing (combined cap ~1,536 chars in Claude Code). |
+| `when_to_use` | no | Extra trigger context, appended to `description` in the skill listing (combined cap 1,536 chars in Claude Code, configurable). |
 | `argument-hint` | no | Shown in autocomplete (e.g. `[issue-number]`). |
 | `allowed-tools` | no | **Pre-approves** tool calls while the skill is active. Does not restrict – session permissions still apply for unlisted tools. |
 | `disable-model-invocation` | no | `true` removes the skill from automatic discovery; only the user can invoke. Use for side-effectful workflows (deploy, send-message, commit) where you don't want the model deciding timing. |
 | `user-invocable` | no | `false` hides the skill from the `/` menu but leaves it in the model's background knowledge. |
-| `context: fork` | no | Runs the skill in an isolated subagent context. The skill body becomes the subagent's prompt – no access to outer conversation. Only useful when the skill contains an actionable task, not bare guidelines. |
+| `context: fork` | no | Runs the skill in an isolated subagent context; the skill body becomes the subagent's prompt – no access to outer conversation. Pair with `agent` to pick the subagent type (`Explore`, `Plan`, custom; default `general-purpose`). Only useful when the skill contains an actionable task, not bare guidelines. |
 | `model`, `effort` | no | Per-skill model and effort overrides; revert on return. |
 | `paths` | no | Glob patterns gating auto-activation to matching files. |
 | `hooks`, `shell` | no | Lifecycle hooks; default shell for embedded `!` blocks. |

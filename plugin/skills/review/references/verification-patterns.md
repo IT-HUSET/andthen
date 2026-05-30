@@ -59,31 +59,12 @@ rg "process\\.env\\.VAR_NAME|env\\(.*VAR_NAME\\)" src/
 
 ## Quick Verification Commands
 
-Use commands that prove the specific claim:
+Beyond the stub-detection and wiring scans above, prove the remaining dimensions directly:
 
-### Existence Check
-```bash
-ls -la path/to/expected/file
-```
+- **Exists**: `ls -la <expected-path>`
+- **Functional**: the project's build / test / type-check (e.g. `npm run build`, `npm test`, `npx tsc --noEmit`)
 
-### Substance Check
-```bash
-rg "TODO|FIXME|placeholder|not[_ -]implemented" <changed-files>
-```
-
-### Wiring Check
-```bash
-rg -l "import.*from.*newFile|<ComponentName|routePath" src/
-```
-
-### Functional Check
-```bash
-npm run build
-npm test
-npx tsc --noEmit
-```
-
-Replace the commands with the project's actual tooling. Generic green checks are weak if they do not exercise the claimed outcome.
+Replace with the project's actual tooling. Generic green checks are weak if they do not exercise the claimed outcome.
 
 ## Applying Verification in FIS Tasks
 

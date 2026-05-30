@@ -91,4 +91,4 @@ Common patterns that look like code issues but aren't. Check for these before re
 
 4. **Optional features flagged as missing.** Example: flagging the absence of dark mode support when the requirements don't mention it. Verify that a finding maps to an actual requirement before recording it as a gap.
 
-5. **Cross-cutting severity inflation.** Example: finding 5 Low-severity style inconsistencies and escalating the group to High because "there are many issues." Severity is per-finding, not cumulative. Five Low issues are five Low issues, not one High issue.
+(Cumulative severity inflation – "five Lows are not one High" – is rule 9 of the universal Anti-Leniency Protocol; it is not repeated here.)

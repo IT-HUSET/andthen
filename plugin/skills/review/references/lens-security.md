@@ -4,6 +4,11 @@ Rubric for reviewing implementation, config, infrastructure, and supply-chain ar
 
 The target is implementation, the same surface as the code lens. The difference is depth and posture: the code lens runs a thin awareness pass for obvious smells; this lens runs the OWASP-aligned checklists, security tooling, and explicit data-flow analysis that depth requires.
 
+## Contents
+- Scope · Applicability Gate · Trust-Boundary Analysis · Tooling
+- Critic Sub-Lens · Calibration · Verification Evidence · Findings Filter
+- Findings Output · Report Sections · Report Output Conventions
+
 
 ## Scope
 
@@ -59,7 +64,7 @@ Other security tooling that the project already wires up (`npm audit`, `pip-audi
 
 Run [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md) against the same security scope as an always-on sub-lens. Posture for the security context: assume the attacker, not just the careless developer. Walk each entry point with malicious input, partial trust, replay, race, and resource-exhaustion intent. Attack assumptions about what an upstream layer guarantees – these are the assumptions where exploitable gaps hide.
 
-When available, use the installed `review-critic` custom agent for the Critic pass and `review-security` for the specialist security pass, but still supply the Critic with a read-first task prompt for [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md), [`critic-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md), and [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md). If unavailable, use generic fresh-context sub-agents with the same read-first instructions. Inline Critic fallback must include `Critic Coverage` in the report.
+Dispatch per [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md) § Sub-agent dispatch; additionally prefer the `review-security` agent for the specialist security pass. The Critic's read-first task prompt covers `lens-adversarial.md`, `critic-calibration.md`, and `review-calibration.md`; inline fallback requires a `Critic Coverage` note.
 
 Merge Critic findings into the OWASP/trust-boundary categories before the Findings Filter runs. Do not treat the Critic as a separate mode or an optional escalation.
 

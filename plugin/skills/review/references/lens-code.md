@@ -2,6 +2,11 @@
 
 Rubric for reviewing implementation, config, tests, and code changes. Load this reference when running `andthen:review --mode code` or when the Mixed mode's code sub-pass runs.
 
+## Contents
+- Scope · Lenses (applicable subset) · Critic Sub-Lens · Calibration
+- Verification Evidence · Parallelization · Refactor Invariants · Large-Diff Fan-Out
+- Findings Output · Report Sections · Report Output Conventions
+
 
 ## Scope
 
@@ -27,7 +32,7 @@ When the review touches browser state, AI/agent flows, logs, stack traces, error
 
 Run `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` against the same code scope as an always-on sub-lens. This is the finding pass for fragile assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring that constructive review can miss.
 
-When available, use the installed `review-critic` custom agent for the whole-change-set Critic pass, but still supply a read-first task prompt for `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`. If unavailable, use a generic fresh-context sub-agent with the same read-first instruction. Inline fallback must include `Critic Coverage` in the report.
+Dispatch per `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` § Sub-agent dispatch (prefer the `review-critic` agent for the whole-change-set pass with a read-first task prompt for the three calibration files; else a generic fresh-context sub-agent; inline fallback requires a `Critic Coverage` note).
 
 When code review delegates specialist lenses to sub-agents, each specialist runs the Critic sub-lens against its own focus area, **and** a single sub-agent runs the Critic sub-lens against the **whole** change set in parallel. Specialists optimize for depth-within-concern; the generalist catches cross-concern issues that fall between specialist scopes – e.g. a security-shaped quirk inside an architecture slice that neither lens claims as theirs. Without the generalist pass, the find-time isolation the `andthen:quick-review` skill relies on is absent from the bigger review. The generalist is an **additional** sub-agent – not a replacement for any specialist (see *Parallelization* below for fan-out accounting). The synthesis merges all Critic findings into the normal severity sections before any Findings Filter runs.
 
@@ -56,15 +61,19 @@ When the review applies two or more lenses from the list above and sub-agents ar
 Total fan-out is N specialists **plus one** generalist Critic sub-agent (per *Critic Sub-Lens (Always On)* above) – the generalist adds to the parallel set, it does not displace a specialist.
 
 
+## Refactor Invariants
+
+When the diff matches any trigger in [`refactor-invariants.md`](refactor-invariants.md) (deletion, rename, lifecycle relocation, cache introduction, codegen, schema migration, parameter threading), load that reference and run the triggered subset as a finding pass. Targets cross-file invariants no individual hunk hosts – the class of issue hunk-by-hunk review structurally misses on refactor-shaped change sets. Findings merge into the severity sections below – this is not a separate report section or mode.
+
+
+## Large-Diff Fan-Out
+
+When the diff exceeds the threshold in [`large-diff-fanout.md`](large-diff-fanout.md) (≥20 files, ≥1000 LOC, 3+ top-level packages, or explicit `--fanout`), partition the diff into 2–5 vertical (feature/concern) slices – never horizontal layers – dispatch one lens sub-agent per partition, then run a boundary pass attacking cross-partition surface. Composes with `--council` and chain dispatch – see [`large-diff-fanout.md`](large-diff-fanout.md) for the partition strategy (and why horizontal slicing hides cross-layer invariants), partition × specialist accounting, and the concurrency model.
+
+
 ## Findings Output
 
-Categorize findings using the unified severity scale from `review-verdict.md`:
-- **CRITICAL**: security vulnerabilities, data loss, or broken core behavior
-- **HIGH**: significant maintainability, performance, or correctness issues
-- **MEDIUM**: non-trivial quality/consistency issues worth addressing
-- **LOW**: worthwhile improvements or cleanup
-
-Also flag obsolete files, unmotivated complexity, and cleanup candidates.
+Categorize findings using the unified severity scale from `review-verdict.md` (CRITICAL / HIGH / MEDIUM / LOW). Also flag obsolete files, unmotivated complexity, and cleanup candidates.
 
 **Pre-existing-issue calibration**: an "out of scope" or "did not touch pre-existing X" disclaimer applied to issues that sit *inside the changed files* is itself a finding (default MEDIUM; raise to HIGH for correctness/security). Issues in *unchanged* files remain out of scope.
 

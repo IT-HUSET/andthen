@@ -1,6 +1,6 @@
 # Council Mode
 
-Multi-perspective review scaled to the chain shape: **within-lens specialist councils** (5-7 reviewers per lens) deepen `code` and `security` reviews, and on any chain of 2+ lenses a **cross-lens Critic + Devil's Advocate + Synthesis Challenger pass** attacks lens-boundary surface (contradictions, silence-licenses-risk, verdict-vs-finding mismatch) over the merged finding set. Load this reference when running the `andthen:review` skill with `--council`, or when code/security mode auto-escalates to council because the scope spans multiple concerns, the surface is high-risk, or the user asked for "multi-perspective" / "adversarial" / "critic" / "skeptic" / "thorough" review.
+Multi-perspective review scaled to the chain shape: **within-lens specialist councils** (5-7 reviewers per lens) deepen `code` and `security` reviews, and on any chain of 2+ lenses a **cross-lens Critic + Devil's Advocate + Synthesis Challenger pass** attacks lens-boundary surface (contradictions, silence-licenses-risk, verdict-vs-finding mismatch) over the merged finding set. Load this reference only when running the `andthen:review` skill with `--council` – council is opt-in via that flag and is not auto-escalated. ("Multi-perspective" / "adversarial" / "critic" / "skeptic" / "thorough" phrasing activates the review skill itself, per its `description`; it does not silently upgrade a review to council.)
 
 Within-lens specialist councils apply to `code` and `security` only; on a chain that includes both, run one specialist council per lens with distinct reviewer rosters and shared calibration, then run the cross-lens pass once over all per-lens outputs.
 
@@ -10,6 +10,11 @@ Companion references:
 - `lens-security.md` – security-review rubric each security-mode specialist applies.
 - [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md), [`critic-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md), and [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) – Critic Reviewer posture and anti-leniency calibration.
 - [`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md) – Findings Filter prompt templates for Devil's Advocate and Synthesis Challenger.
+
+
+## Contents
+
+Gotchas · Structured Finding Contract · 1. Determine Execution Mode · 2. Select Council Members · 3a. Agent Teams Path · 3b. Sub-Agent Path · 3c. Cross-Lens Chain Mode · 4. Report Structure
 
 
 ## Gotchas
@@ -58,7 +63,7 @@ For **security-mode councils**, always include **Security Sentinel** and choose 
 
 For **code-mode councils**, select 2-4 specialists matched to the code-lens applicable subset: correctness, architecture, product/requirements, tests, project standards, UI/UX, prompt/agent workflow, or performance. Security Sentinel is optional in code mode because the code lens runs only thin security awareness; use a security-mode council for depth.
 
-When a chain runs council on both lenses, run code council first and security council second. The rosters may differ, but each council keeps the Critic / Devil's Advocate / Synthesis Challenger spine.
+When a chain runs council on both lenses, the rosters may differ, but each council keeps the Critic / Devil's Advocate / Synthesis Challenger spine. Specialist find-passes for both lenses dispatch together in the chain's single flat batch (SKILL.md Step 4 *Chain*) – they have no cross-lens data dependency; only the per-lens filter (Devil's Advocate → Synthesis Challenger) and the cross-lens pass (§ Cross-Lens Chain Mode) have ordering constraints.
 
 **Gate:** 5-7 reviewers selected per lens.
 

@@ -4,6 +4,11 @@ Domain-specific calibration for reviewing implementation through a security lens
 
 The defining feature of security severity is **exposure**: the same code-level defect can sit at different severity levels depending on who can reach the sink, with what preconditions, and through what authentication or trust gate. The contrastive examples below pin severity to exposure rather than to the shape of the defect alone.
 
+## Contents
+- Severity Calibration – Contrastive Examples (Critical · High · Medium · Low)
+- Exposure Modifiers
+- False Positive Traps
+
 
 ## Severity Calibration – Contrastive Examples
 
@@ -112,4 +117,4 @@ Common patterns that look like security issues but aren't. Check for these befor
 
 7. **Severity inflation from category, not exploitation.** Example: tagging every input-validation gap as HIGH because "input validation = security." Severity is per finding's exposure and impact, not per category label. A missing length cap on an admin-only internal field is MEDIUM, not HIGH.
 
-8. **Cumulative severity inflation.** Example: finding 5 LOW-severity hardening gaps and escalating the group to HIGH because "there are many issues." Severity is per-finding, not cumulative. Five LOWs are five LOWs, not one HIGH.
+(Cumulative severity inflation – "five LOWs are not one HIGH" – is rule 9 of the universal Anti-Leniency Protocol; it is not repeated here.)

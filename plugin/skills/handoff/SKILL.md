@@ -29,7 +29,6 @@ ARGUMENTS: $ARGUMENTS _(optional – free-form focus for the next session)_
 
 ## GOTCHAS
 
-- Writing the handoff anywhere other than `.agent_temp/handoff/` – the `andthen:now-what` skill won't find it.
 - Re-running `/andthen:handoff` in quick succession duplicates `STATE.md` `decision` / `note` entries (`update-learnings add` is idempotent at `ops`; decision/note are not). Re-run only after substantive new conversation.
 - Treating the handoff as a transcript dump – compress to what changes the next session's decisions, not what happened.
 
@@ -58,7 +57,7 @@ Skip if `--no-mutate`. Otherwise, per entry in the first two bins:
 
 ### 3. Write the handoff doc
 
-Resolve project root via `git rev-parse --show-toplevel` (fallback: CWD). Save to `.agent_temp/handoff/handoff-<UTC-ts>.md` where `<UTC-ts>` = `date -u +%Y%m%d-%H%M%S` (UTC → lexicographic = chronological across timezones, matching the `andthen:ops` convention). ALWAYS use this exact template – the `andthen:now-what` skill parses these headings:
+Resolve project root via `git rev-parse --show-toplevel` (fallback: CWD). Save to `.agent_temp/handoff/handoff-<UTC-ts>.md` where `<UTC-ts>` = `date -u +%Y%m%d-%H%M%S` (UTC → lexicographic = chronological across timezones, matching the `andthen:ops` convention). The doc is the resume contract – a fresh agent reads it cold, so ALWAYS use this exact template:
 
 ````markdown
 > Handoff context for a fresh session. May contain conversation excerpts – review before sharing or restoring.
@@ -81,7 +80,7 @@ Resolve project root via `git rev-parse --show-toplevel` (fallback: CWD). Save t
 <omit when empty; otherwise: ADRs to consider via `andthen:architecture --mode trade-off`; LEARNINGS candidates left as recommendations; missing durable files named (e.g. "STATE.md absent – run /andthen:init to enable durable routing")>
 
 ## Recommended next skill
-<usually `/andthen:now-what`; name a specific skill only when one obvious next step exists>
+<workflow skill to run after resuming context; usually `/andthen:now-what`, or a specific skill when one obvious next step exists>
 
 ## Index
 - PRD: <path or omit>
@@ -94,9 +93,12 @@ Resolve project root via `git rev-parse --show-toplevel` (fallback: CWD). Save t
 
 ### 4. Print summary
 
-- The handoff doc path.
 - One line per applied mutation (e.g. `STATE: added active-story s03 "validator hardening" (In Progress)`).
-- The recommended resume command (default: `/andthen:now-what`).
+- The resume prompt, as a fenced block the user pastes into a fresh session:
+
+  ````text
+  Resume from .agent_temp/handoff/handoff-<UTC-ts>.md
+  ````
 
 
 ## OUTPUT
@@ -104,4 +106,4 @@ Resolve project root via `git rev-parse --show-toplevel` (fallback: CWD). Save t
 - `.agent_temp/handoff/handoff-<UTC-ts>.md` – always.
 - Durable mutations to `STATE.md` / `LEARNINGS.md` via the `andthen:ops` skill, when those files exist and `--no-mutate` is unset.
 
-Resume with `/andthen:now-what` – it scans `.agent_temp/handoff/` and surfaces the most recent doc as priming context.
+Resume by pasting `Resume from .agent_temp/handoff/handoff-<UTC-ts>.md` into a fresh session – the doc is self-sufficient; no skill invocation required.

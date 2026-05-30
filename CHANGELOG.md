@@ -6,6 +6,23 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.24.0] – 2026-05-30
+
+### Added
+- **`andthen:review` refactor-invariants pass** – New `refactor-invariants.md`, loaded by the `code`/`gap` lenses on refactor-shaped diffs (deletion, rename, lifecycle relocation, cache, codegen, schema migration, parameter threading). Runs six cross-file invariant checks – the class of issue hunk-by-hunk review misses – with findings merged into the primary lens.
+- **`andthen:review --fanout` large-diff fan-out** – New `--fanout` / `--no-fanout` flags (auto on ≥20 files, ≥1000 LOC, or 3+ packages). Partitions the diff into 2–5 vertical slices, reviews each in a sub-agent, then runs a cross-partition boundary pass. Applies to `code`/`gap`; composes with `--council`.
+
+### Changed
+- **`andthen:review` chains run as one parallel sub-agent batch** – A chain (2+ lenses, incl. resolved `mixed`) now dispatches every lens's find-pass concurrently from the orchestrator instead of sequentially, cutting wall-time and cross-lens anchoring. `--fanout`, `--council`, and chain leaves fire as siblings with no artificial concurrency cap; the host schedules the batch. Falls back to inline when sub-agents are unavailable.
+- **`andthen:review` council is opt-in only** – `--council` is the sole trigger; the "multi-perspective / adversarial / critic / skeptic / thorough" vocabulary activates the review skill itself, not council. Removes the prior auto-escalation wording that contradicted the council load-gate.
+- **`andthen:handoff` resume contract is the doc, not `andthen:now-what`** – The skill prints a copy-pasteable `Resume from <doc-path>` prompt; the self-sufficient doc is the contract. Removed `andthen:now-what`'s Phase 1 handoff-priming auto-detection as redundant.
+
+### Internal
+- **`andthen:review` reference cleanup** – Single-sourced the Critic-dispatch, severity-scale, FIS-context, and PASS/FAIL verdict contracts to one canonical home each (new shared `fis-context-handling.md`); added tables of contents to the long lens/calibration references; trimmed duplicated SKILL.md flag-rejection and verification-pattern wording. No behavior change.
+
+
+---
+
 ## [0.23.0] – 2026-05-25
 
 ### Added
