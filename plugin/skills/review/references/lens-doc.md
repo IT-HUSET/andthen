@@ -1,6 +1,6 @@
 # Lens: Document Review
 
-Rubric for reviewing specifications, implementation plans, PRDs, technical designs, or other requirement documents. Load this reference when running `andthen:review --mode doc` or when the Mixed mode's doc sub-pass runs.
+Rubric for reviewing requirement and design documents (spec, FIS, PRD, plan, ADR). Load this reference when running `andthen:review --mode doc` or when the Mixed mode's doc sub-pass runs.
 
 ## Contents
 - Scope · Review Dimensions · Critic Sub-Lens · Calibration
@@ -12,7 +12,7 @@ Rubric for reviewing specifications, implementation plans, PRDs, technical desig
 
 Specs, FIS, PRDs, plans, ADRs, design docs, prompts, or other written artifacts. Locate the document(s) or focus area from arguments or context. Build context: project type, stage, goals, constraints, existing patterns, and any related docs. Read extra docs only when they materially affect correctness.
 
-Favor **proportional review** – a prototype, library, or MVP should not be judged like an enterprise platform. Favor simplicity – flag over-engineering and recommend the smallest solution that meets the real need.
+Favor **proportional review** – judge a prototype/library/MVP by its scale, not an enterprise platform's. Flag over-engineering; recommend the smallest solution meeting the real need.
 
 
 ## Review Dimensions
@@ -21,11 +21,13 @@ Review the document through these lenses and record only issues relevant to the 
 
 - **Completeness**: functional requirements, important non-functional requirements, integrations, edge cases, testing, and operations where applicable
 - **Clarity**: vague language, contradictions, missing details, inconsistent naming, unclear acceptance criteria, or unclear implementation handoff
-- **Technical accuracy**: outdated APIs, deprecated approaches, infeasible designs, missing standards alignment. When the document names concrete frameworks, APIs, libraries, or version-bound patterns, verify claims against authoritative documentation by consulting the project's `## Documentation Lookup Tools` section; Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly.
+- **Technical accuracy**: outdated APIs, deprecated approaches, infeasible designs, missing standards alignment. When the document names concrete frameworks, APIs, libraries, or version-bound patterns, verify claims against authoritative documentation by consulting the project's `## Documentation Lookup Tools` section or the dedicated `documentation-lookup` agent when available.
 - **Scope and architecture**: explicit in/out-of-scope boundaries, phase boundaries, architecture soundness, and signs of disproportionate complexity
 - **Stakeholder fit**: user needs, success criteria, UX/error-state coverage
+- **FIS / spec quality** _(the primary job when a FIS or spec is reviewed before implementation)_: the FIS is the shared implementer/reviewer contract, so apply [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) as acceptance gates, not a structure checklist. Attack scenario falsifiability – every Expected Outcome traces to ≥1 scenario and back, each Then is observable rather than an implementation detail, edge/failure paths are scenarios not prose. Decisive test: when a requirement *is* a mechanism (an LLM/agent turn, specific algorithm, external call), at least one scenario's Then must assert a mechanism-distinguishing observable a stub, hardcoded value, or verbatim copy would fail – a scenario a trivial substitute could pass does not specify the feature and is a finding.
+- **Fidelity** _(post-implementation – code already landed)_: does the artifact still describe what was built, including the Intent, Expected Outcomes, mechanism assumptions, and ADR-backed decisions? If not, the finding is spec-side – classify it `spec-stale`, `design-changed`, or `ambiguous-intent` so reconciliation is explicit (a wrong implementation is `code-defect`, handled by the gap lens, not here).
 
-If the document is a FIS, verify it still follows the structure and intent-first authoring rules from [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md).
+**Doc-fix routing**: a deterministic, mechanical doc-quality defect classes as `code-defect` (despite the name), so `--fix` can safely remediate it; reserve `ambiguous-intent` for when the document lacks the decision needed to choose the correct requirement or design.
 
 
 ## Critic Sub-Lens (Always On)
@@ -63,9 +65,9 @@ Apply verdicts before writing the final report.
 
 ## Findings Output
 
-Use the unified severity scale from `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
+**Severity scale**: per `review-verdict.md` (see Calibration).
 
-**Readiness label**: `Ready` / `Needs Minor Updates` / `Needs Significant Rework` / `Not Ready` – per the verdict reference (doc-mode readiness scale preserved).
+**Readiness label**: four-value scale per `review-verdict.md` (doc-mode readiness scale preserved); rendered in the Readiness Assessment report section.
 
 
 ## Downstream Routing

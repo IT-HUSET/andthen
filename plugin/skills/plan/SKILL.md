@@ -1,26 +1,22 @@
 ---
-description: Use when the user wants an implementation plan with FIS specs for every story. Trigger on 'create a plan', 'break this into stories', 'plan this feature', 'spec all stories', 'batch spec this plan'. Produces the full plan bundle (`plan.json` + all FIS) from an existing `prd.md`. Requires an existing `prd.md` in the input directory – redirect to `andthen:prd` if missing.
-argument-hint: "[--max-parallel N] [--skip-review] [--issue <number>] [--to-issue] [--create-story-issues] [--visual] [--auto|--headless] <path-to-directory-with-prd.md>"
+description: Use when the user wants an implementation plan with FIS specs for every story. Trigger on 'create a plan', 'break this into stories', 'plan this feature', 'spec all stories', 'batch spec this plan'. Produces the full plan bundle (`plan.json` + all FIS) from an existing local `prd.md`, `--issue <number>`, or a GitHub issue URL. Redirect to `andthen:prd` when no PRD source is resolvable.
+argument-hint: "[--max-parallel N] [--skip-review] [--issue <number>] [--to-issue] [--create-story-issues] [--visual] [--auto] <path-to-directory-with-prd.md | GitHub issue URL>"
 ---
 
 # Create Implementation Plan Bundle
 
 
-Transform a Product Requirements Document (`prd.md`) into a complete implementation plan bundle: a `plan.json` ledger with structured story breakdown **plus** one FIS per story (batch-generated). Runs story breakdown with a consolidation pass, parallel FIS sub-agents, and a cross-cutting review in one flow.
+Produce a complete plan bundle from a PRD: a `plan.json` ledger plus one FIS per story.
 
-The plan is a typed JSON manifest per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) (referenced below as *The Plan Schema*). Status, FIS path, and dependencies are typed fields; downstream consumers (`andthen:exec-plan`, `andthen:ops`, `andthen:review --mode gap`) deserialize declaratively. GitHub-issue mode (`--to-issue`) renders the issue body as markdown – JSON is the local runtime ledger; markdown is the GitHub transport.
-
-**Invariant**: one story → one FIS. Each `stories[].fis` value is unique across the catalog.
-
-**`prd.md` is a required input** – missing PRD → fail fast and redirect to `andthen:prd`. PRD synthesis is not this skill's job.
+The plan is a typed JSON manifest per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) (referenced below as *The Plan Schema*). Status, FIS path, and dependencies are typed fields; `andthen:exec-plan` / `andthen:ops` / `andthen:review --mode gap` deserialize declaratively.
 
 **Philosophy**: story breakdown and detailed specs are co-produced. Specs decay when divorced from the story context that motivated them; batching keeps them aligned and lets a cross-cutting review catch inter-story inconsistencies before execution.
 
 
 ## VARIABLES
 
-_Specs directory containing `prd.md` (**required**):_
-INPUT: $ARGUMENTS (first reject retired flag tokens like `--skip-specs`, `--stories`, or `--phase`; then strip active flag tokens like `--max-parallel`, `--skip-review`, `--issue`, `--to-issue`, `--create-story-issues`, `--visual`, `--auto`, or `--headless` before interpreting the remainder as the specs-directory path)
+_Specs directory containing `prd.md`, or GitHub issue URL (**required**):_
+INPUT: $ARGUMENTS (strip active flag tokens like `--max-parallel`, `--skip-review`, `--issue`, `--to-issue`, `--create-story-issues`, `--visual`, `--auto`, or `--headless` before interpreting the remainder as the specs-directory path or GitHub issue URL; retired tokens are rejected in Step 1.0)
 
 _Output directory (defaults to input directory):_
 OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolved per the input contract below
@@ -29,36 +25,31 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 - `--max-parallel N` → MAX_PARALLEL: concurrency cap per sub-wave (default 5, max 10)
 - `--skip-review` → SKIP_REVIEW: skip the cross-cutting review step
 - `--issue <number>` → ISSUE_INPUT: use a GitHub PRD issue as input (`gh issue view <N>`). In local-output mode, materialize the issue body verbatim as `OUTPUT_DIR/prd.md` so story `Source refs` resolve during FIS generation. `OUTPUT_DIR` = `<base-output-dir>/issue-<N>-<feature-slug>/` (mirrors `clarify` / `prd`). Composes with local bundle output and `--to-issue`.
-- `--to-issue` → PUBLISH_PLAN_ISSUE: render the in-memory plan as a single GitHub issue per the **single-issue shape** in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). **Writes nothing to disk** – skip Steps 4–6.
-- `--create-story-issues` → CREATE_STORY_ISSUES: switch `--to-issue` to **granular shape** – one parent plan issue + N story issues with `Refs #<prd-N>` / `Part of #<plan-N>` links. **Requires `--to-issue`** – reject up-front (`BLOCKED: --create-story-issues requires --to-issue` in `AUTO_MODE`) before any `gh` call.
+- `--to-issue` → PUBLISH_PLAN_ISSUE: render the in-memory plan as a single GitHub issue per the **single-issue shape** in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). **Writes no durable local artifacts** – skip Steps 4–6.
+- `--create-story-issues` → CREATE_STORY_ISSUES: switch `--to-issue` to **granular shape** – one parent plan issue + N story issues with `Refs #<prd-N>` / `Part of #<plan-N>` links. **Requires `--to-issue`** (granular GitHub mode is meaningless without GitHub output) – rejected up-front in Step 1.
 - `--visual` → VISUAL_MODE: after the local bundle is complete and validated, invoke `andthen:visualize` on the produced `plan.json`. Ignored under `--to-issue`.
-- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
+- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - Require `INPUT`. Stop if missing.
-- Delegate research/exploration to sub-agents to protect the main context window.
+- Delegate research/exploration to sub-agents to protect the main context window. Do not author FIS content yourself – Step 5 delegates one sub-agent per story.
 - Stories define scope, not implementation details. Use the minimum number of stories that cover requirements; organize into logical phases.
-- **Automation rules**: see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Plan-specific `BLOCKED:` triggers: missing `prd.md` (redirect to `andthen:prd`), incompatible artifacts, ambiguity so severe no defensible plan can be produced.
-- **Visual review is a post-validation handoff.** Run only when `--visual` is present (same in `AUTO_MODE`). Complete the bundle gates first, then invoke `andthen:visualize` on the produced `plan.json`. Skipped under `--to-issue` (no local `plan.json` produced).
+- **Automation rules**: see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Plan-specific `BLOCKED:` triggers: missing PRD source (redirect to `andthen:prd`), incompatible artifacts, ambiguity so severe no defensible plan can be produced.
+- **Visual review** runs only under `--visual`, after gates – see Step 7.
 - Focus on "what" not "how" at the plan level; detailed decisions live in per-story FIS.
 - **Resume contract**: re-running skips stories whose `stories[].fis` points at an existing file (status `spec-ready` or `done` preserved). Re-runs only fill gaps.
 - **Schema contract**: `plan.json` follows *The Plan Schema*. Initial story `status` is `pending`; transitions to `spec-ready` after FIS generation.
 - Read the `Learnings` document (see **Project Document Index**) before FIS generation, if it exists.
 
 
-### Orchestrator Role
-
-Do not author FIS content yourself – delegate to per-story sub-agents in Step 5.
-
-
 ## GOTCHAS
 - **Carried-forward stories without PRD coverage** – use `provenance`; a story with no PRD feature and no provenance is a traceability gap.
 - **Skipping the Consolidation Pass** – two stories with shared implementation surface produce two specs that drift. Merge at the story level in Step 3.
 - **Status updates dropped at end of context** – `stories[].fis` / `stories[].status` are gates after each sub-wave. Drive them through `andthen:ops update-plan-fis` / `update-plan`; ad-hoc hand-edits bypass the contract.
-- **Prose in `dependsOn` is invalid** – the array is machine-readable scheduler input. Each element is an existing story ID (`"S01"`). Broad sequencing belongs in phase/wave placement or `executionNotes`.
+- **Prose in `dependsOn` is invalid** – the array is machine-readable scheduler input (see Story Definition).
 
 
 ## WORKFLOW
@@ -74,7 +65,7 @@ Do not author FIS content yourself – delegate to per-story sub-agents in Step 
    - **`--issue <N>` (or INPUT is a GitHub issue URL)**: fetch with `gh issue view <N>` and treat as PRD source. Resolve `OUTPUT_DIR` per the dispatch below; in local-output modes use `<base-output-dir>/issue-<N>-<feature-slug>/` (mirrors `clarify` / `prd`) and write the fetched body verbatim to `OUTPUT_DIR/prd.md` before Step 2 so later FIS sub-agents can resolve `Source refs`. Slug = lowercase issue title (alphanumerics + hyphen). Store the issue number for the plan's document-references header. `gh` failure: surface verbatim and stop (`BLOCKED: gh authentication required` / `BLOCKED: PR/issue <N> not found` in `AUTO_MODE`). Proceed to Step 2.
    - **Directory with `prd.md`**: set `OUTPUT_DIR = INPUT`; proceed.
    - **Directory without `prd.md`**: stop and redirect to `andthen:prd`. Print: `andthen:prd <input> → andthen:plan <same-directory>`.
-   - **Any other input** (file, URL, inline): stop and redirect to `andthen:prd`.
+   - **Any other input** (file, non-GitHub URL, inline): stop and redirect to `andthen:prd`.
 
 2. **Document optional assets** in the PRD directory (ADRs/Architecture, Design system, Wireframes). Keep for the plan's `references[]`. In `--issue` mode this is best-effort.
 
@@ -89,7 +80,7 @@ Do not author FIS content yourself – delegate to per-story sub-agents in Step 
 
 ### 2. Requirements Analysis
 
-**Read the resolved PRD source here** (local `prd.md`, or fetched issue body materialized as `OUTPUT_DIR/prd.md`). This is the single PRD read for plan generation – Step 5 sub-agents receive relevant spans as context (no re-read), and Step 6 reads the PRD fresh in its own sub-agent context.
+**Read the resolved PRD source here** (local `prd.md`, or fetched issue body materialized as `OUTPUT_DIR/prd.md`). Single PRD read for plan generation; Step 5 sub-agents get spans only (no re-read), Step 6 re-reads fresh in its own sub-agent context.
 
 Run a quick `tree -d` + `git ls-files | head -250` inline (no sub-agent) for natural implementation boundaries. Read `State`, `Ubiquitous Language`, `Architecture`, `Stack`, and `Product` documents (see **Project Document Index**) when present – priorities, canonical terminology, story splits, tech-stack constraints story scope must respect, and product anti-goals that bound decomposition. Do not restate Architecture boundaries in story scope.
 
@@ -158,14 +149,14 @@ Before finalizing the catalog, sweep draft stories and **merge any set (pair or 
 
 Run pairwise, iterate to a fixed point – 3-way merges compose from successive pair-merges. Merge by union: combine outcomes, reconcile scope into one coherent vertical slice, renumber. The merged story is still one demoable outcome. If a merged story turns out too large for a single FIS, Step 5's spec sub-agent emits the size signal and the orchestrator revisits Step 3 – do not pre-split.
 
-> **Why**: the plan↔FIS join is a single-field contract (`stories[].fis`). Keeping it 1:1 means downstream skills never reason about shared/composite specs. Two stories wanting to share a spec is a signal they were one story.
+> **Why**: the plan↔FIS join is a single-field contract (`stories[].fis`). Keeping it 1:1 means downstream skills never reason about shared/composite specs.
 
 **Gate**: all stories defined; no two stories share a FIS path
 
 
 ### 4. Write `plan.json`
 
-**If `--to-issue` is set**: this step is the GitHub-output branch, not the local-file branch. Do **not** write `plan.json`, update the State document, generate FIS files, or run the cross-cutting review. Render the in-memory plan object built from Steps 2–3 to the markdown issue-body shape per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). Use the issue-body template at [`templates/plan-template-issue.md`](templates/plan-template-issue.md) as the single-issue rendering shape, then load `references/to-issue-mode.md` for the single-issue or granular `gh issue create` flow and its no-local-writes gate. After the issue workflow completes, stop.
+**If `--to-issue` is set**: this step is the GitHub-output branch, not the local-file branch. Do **not** write `plan.json`, update the State document, generate FIS files, or run the cross-cutting review. Render the in-memory plan object built from Steps 2–3 to the markdown issue-body shape per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). Use the issue-body template at [`plan-template-issue.md`](templates/plan-template-issue.md) as the single-issue rendering shape, then load [`to-issue-mode.md`](references/to-issue-mode.md) for the single-issue or granular `gh issue create` flow and its no-local-writes gate. After the issue workflow completes, stop.
 
 Assemble the in-memory plan object per *The Plan Schema* and write it to `OUTPUT_DIR/plan.json`. Use 2-space indentation and the schema's documented key order so diffs reflect content changes, not ordering drift. Initial story `status` is `"pending"`; `fis` is `null` until Step 5 lands each FIS.
 
@@ -194,20 +185,13 @@ Schema invariants:
 - Status values are restricted to the closed enum in *The Plan Schema*.
 
 #### Self-Check (plan.json)
-- [ ] All PRD features have corresponding stories
+- [ ] Every PRD feature maps to a story; cross-cutting concerns (auth, logging, error pages) covered
 - [ ] PRD-backed stories carry `sourceRefs`; stories without PRD coverage carry `provenance`
-- [ ] Stories have clear boundaries (no overlap)
-- [ ] `dependsOn` arrays use only existing story IDs; no prose
-- [ ] `parallel` flags correctly applied
-- [ ] Wave assignments are pre-computed and consistent with dependencies
-- [ ] Risk areas identified (`risk` field on stories; `riskSummary[]` populated where needed)
-- [ ] No missing functionality (cross-cutting concerns like auth, logging, error pages covered)
-- [ ] Not over-granular (combined where sensible)
-- [ ] Document validates against *The Plan Schema*: `schemaVersion: "1"`, status enum values, unique `fis` paths (non-null only – multiple `null` values are valid pre-Step-5), key order matches schema-document order
+- [ ] `parallel` flags and wave assignments consistent with `dependsOn`
+- [ ] `riskSummary[]` populated where stories carry non-low `risk`
+- [ ] Validates against *The Plan Schema* (the schema invariants above), with key order matching schema-document order
 
 If Step 1 detected a legacy `plan.md`, emit the one-line migration note now: `Migrated plan.md → plan.json. plan.md is no longer consumed; delete when ready.`
-
-Optional: Invoke the `andthen:review --mode doc` skill on `plan.json` before continuing.
 
 #### Initialize Project State (if the `State` document exists; see **Project Document Index**)
 If the `State` document exists, update it to reflect the new plan via the `andthen:ops` skill:
@@ -234,7 +218,7 @@ For each in-scope story, spawn a sub-agent that runs `/andthen:spec --auto story
 
 **Additional context for each sub-agent**:
 - Reads `plan.json` (`sharedDecisions`, `bindingConstraints` as structured fields) plus only the PRD anchors in the story's `sourceRefs`. No whole-PRD re-read.
-- Every applicable `bindingConstraints[]` entry flows unchanged into FIS Acceptance Scenarios (behavioral) or Structural Criteria (non-behavioral) – flag the binding type per entry. Do not narrow.
+- Every applicable `bindingConstraints[]` entry flows unchanged into FIS Required Context with its anchor as the source pin. Do not narrow or redistribute into Acceptance Scenarios or Structural Criteria; those proof surfaces may reference the constraint, but the verbatim constraint lives in Required Context.
 - Acceptance Scenarios use the canonical `- [ ] **S<NN> [OC<NN>(,OC<NN>)*] [TI<NN>(,TI<NN>)*] <description>**` shape per *Acceptance Scenarios and Proof-of-Work* in *The Authoring Guidelines* (parser depends on the exact token shape; outcomes before tasks).
 - `## Feature Overview and Goal` carries `**Intent**:` and `**Expected Outcomes**:` sub-blocks per *Feature Overview and Goal Authoring*. Distil intent/outcomes from the story's scope and Source refs. Every `[OC<NN>]` exemplified by ≥1 scenario tagging it; every scenario carries ≥1 `[OC<NN>]` tag.
 - Run Plan-Spec Alignment Check, Self-Check, and Reverse Coverage Check from *The Authoring Guidelines*. Reverse Coverage runs against plan-level sources + `bindingConstraints[]`; PRD-level reverse coverage is the orchestrator's Step 6 job.
@@ -273,7 +257,7 @@ Step 5 (MAX_PARALLEL=4):
 
 > **Skip this step if `--skip-review` flag is set.**
 
-Delegate to one opus sub-agent with the plan path and all FIS paths. This is the **second (and only other) full PRD read** in the flow – the sub-agent reads `prd.md` fresh plus all FIS and `plan.json`, then checks for:
+Delegate to one sub-agent (inheriting the session model) at **high** effort with the plan path and all FIS paths. This is the **second (and only other) full PRD read** in the flow – the sub-agent reads `prd.md` fresh plus all FIS and `plan.json`, then checks for:
 
 1. **Overlapping scope** – multiple stories modifying the same files/abstractions.
 2. **Inconsistent architectural decisions** – contradictory ADR choices across stories.
@@ -320,8 +304,6 @@ OUTPUT_DIR/
 ├── plan.json  # Implementation plan: typed manifest per plan-schema.md
 └── s0N-*.md   # FIS files – one per story, one story per FIS
 ```
-
-A legacy `plan.md` (if one was migrated in Step 1) is left untouched for the user to delete; downstream consumers ignore it.
 
 When complete, print the output's **relative path from the project root**.
 

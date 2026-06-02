@@ -66,13 +66,7 @@ The scenario list changes as learning happens. Beck's Canon TDD keeps discovery 
 
 ### Named principle: *Make it work, make it right, make it fast*
 
-Beck's three-phase order:
-
-1. **Make it work** – pass the test. Any code that moves the bar.
-2. **Make it right** – refactor on green. Remove duplication, rename, clarify.
-3. **Make it fast** – only if measurement shows it matters.
-
-Skipping step 2 ("it works, ship it") or starting at step 3 ("this will be slow") is the source of most TDD mistakes. The loop enforces the order.
+Beck's order maps onto the loop: work = Green, right = Refactor-on-green. The third phase – **make it fast** – applies only when measurement shows it matters; premature "this will be slow" optimization is the common error.
 
 
 ## Anti-rationalization table

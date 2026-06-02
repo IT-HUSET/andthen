@@ -1,6 +1,17 @@
 # Architectural Review Checklist
 
-Concise, actionable checklist for architectural reviews and validation.
+## Sections
+- Pre-Review
+- CUPID Principles Assessment
+- Domain-Driven Design (DDD) Assessment
+- Pattern Adherence & Architecture Compliance
+- Anti-Pattern Detection
+- Performance & Scalability
+- Resilience & Reliability
+- Security Architecture
+- Integration & Communication
+- Deployment & Operations
+- Technical Debt & Maintainability
 
 ---
 

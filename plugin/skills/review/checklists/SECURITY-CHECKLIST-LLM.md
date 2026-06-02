@@ -4,6 +4,8 @@ Concise checklist for security code reviews of applications that integrate Large
 
 **Applies to:** Any codebase that calls an LLM API, embeds a model, uses RAG pipelines, or exposes AI-generated output to users or downstream systems.
 
+**Contents:** Pre-Review · LLM01 Prompt Injection · LLM02 Sensitive Information Disclosure · LLM03 Supply Chain · LLM04 Data and Model Poisoning · LLM05 Improper Output Handling · LLM06 Excessive Agency · LLM07 System Prompt Leakage · LLM08 Vector and Embedding Weaknesses · LLM09 Misinformation · LLM10 Unbounded Consumption · Automated Scanning
+
 ---
 
 ## Pre-Review

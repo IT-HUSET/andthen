@@ -1,6 +1,6 @@
 # Web Development Guidelines
 
-Web-platform-specific standards. For architecture and coding practices, see `DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`. For UI/UX patterns, see `UX-UI-GUIDELINES.md`.
+Web-platform standards. Architecture/coding: `DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`. UI/UX: `UX-UI-GUIDELINES.md`.
 
 
 ## HTML & Semantics

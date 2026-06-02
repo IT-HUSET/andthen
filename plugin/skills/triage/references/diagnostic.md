@@ -36,18 +36,12 @@ For build, compile, dependency, and configuration failures specifically:
 ## Phase 4: Resolution
 
 1. **Fix foundational issues first** – symptoms of the same root cause resolve together
-2. **Test each fix incrementally** – verify the fix resolves the issue without introducing regressions
-3. **Binary search when stuck** – isolate by systematically eliminating components
-4. **Minimal reproducible case** – strip down to the simplest failing configuration when the issue is hard to locate
+2. **Apply fixes one at a time** – so you can attribute the resolution to a specific change
+3. **Binary search when stuck** – isolate by systematically eliminating components; also apply the minimal-reproducible-case technique (Phase 3)
 
 ## Build Success Criteria
 
-When the triage target is a broken build, continue until all pass using project-specific commands (read `CLAUDE.md` / `AGENTS.md` for the correct commands):
-
-1. Clean build completes without errors
-2. Full test suite passes consistently
-3. Application launches and core functionality works
-4. No critical warnings violating project standards
+When the triage target is a broken build, done means – using the project's own build/test/run commands (read `CLAUDE.md` / `AGENTS.md` for the correct commands) – a clean build, the full test suite, and a core-functionality smoke all pass with no warnings violating project standards.
 
 ## Output Format
 

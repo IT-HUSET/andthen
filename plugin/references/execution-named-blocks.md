@@ -1,7 +1,9 @@
 # Named Output Blocks
 
 Shared protocol for surfacing ambiguity, out-of-scope observations, and missing
-requirements during execution. Consumed by `exec-spec`, `quick-implement`, `triage`.
+requirements during execution and specification authoring. Consumed by the
+`andthen:spec`, `andthen:exec-spec`, `andthen:quick-implement`, and
+`andthen:triage` skills.
 
 ## Block Tags
 
@@ -15,12 +17,9 @@ requirements during execution. Consumed by `exec-spec`, `quick-implement`, `tria
   missing, list labeled options. Each consumer supplies its own arrow-prompt
   (e.g. `triage` uses `-> Which behavior?`).
 
-Each block is labeled with concrete choices and (in interactive mode) the
-consumer's arrow-prompt for the user.
-
 ## AUTO_MODE Override
 
-Under `AUTO_MODE=true` (e.g. `--auto` / `--headless` flags – see
+Under `AUTO_MODE=true` (set by `--auto`; see
 [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md)):
 
 - Do NOT emit arrow-prompts.

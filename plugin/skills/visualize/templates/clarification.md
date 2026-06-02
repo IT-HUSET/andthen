@@ -3,6 +3,15 @@
 Use when the source is a `requirements-clarification.md` or product vision artifact from `andthen:clarify`. Detection: H1 starts with "Requirements Clarification"; or product-vision detection from SKILL.md matches.
 
 
+## Contents
+
+- Layout
+- KPI Cells
+- Section Renderers
+- Pre-population
+- Example Use Cases
+
+
 ## Layout
 
 ```
@@ -37,7 +46,7 @@ Use when the source is a `requirements-clarification.md` or product vision artif
 
 ## KPI Cells
 
-The four-cell `.kpi-band` (rendered per the SKILL.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. Clarification cells in source order:
+The four-cell `.kpi-band` (rendered per the render-shell.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. Clarification cells in source order:
 
 | Cell | Label | Source |
 |---|---|---|
@@ -80,7 +89,7 @@ The headline view of clarification documents. Three subsections:
 
 3. **Resolved Decisions** – `| Dimension | Choice | Rationale |` table rendered as-is. **Walkthrough variant:** when the table has ≤ 5 rows AND every Rationale cell's stripped Unicode-code-point count is ≥ 60 (same stripping rule as `prd.md#User Flows` walkthrough trigger – strip leading/trailing whitespace and markdown markers, count code points), render as a numbered **Walkthrough** (see `diagrams.md#walkthrough`) instead of a plain table – each row becomes one step (Dimension as the step title, Choice in mono as the step location, Rationale as the prose).
 
-Open Questions H3 blocks (when present under this section or its own H2) may emit `.risk-map` chips above the list per SKILL.md *Risk-map chips* contract: unresolved → `.attention`, leaning-toward → `.medium`, resolved → `.safe`. Light TL;DR (SKILL.md contract) may appear as the first child of an Open Question H3 block when authored.
+Open Questions H3 blocks (when present under this section or its own H2) may emit `.risk-map` chips above the list per render-shell.md *Risk-map chips* contract: unresolved → `.attention`, leaning-toward → `.medium`, resolved → `.safe`. Light TL;DR (render-shell.md contract) may appear as the first child of an Open Question H3 block when authored.
 
 ### Edge Cases → highlighted table
 

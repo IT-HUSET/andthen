@@ -1,12 +1,12 @@
 ---
 description: Use when the user wants review findings or review comments addressed. Implements actionable findings from a review report with minimal, guideline-aligned fixes across code, specs, plans, PRDs, and documentation, then re-validates the result and updates plan/FIS status. Trigger on 'address these review findings', 'fix review comments', 'remediate findings'.
 user-invocable: true
-argument-hint: "[--auto|--headless] <review-report-path(s) | report URL(s)>"
+argument-hint: "[--auto] <review-report-path(s) | report URL(s)>"
 ---
 
 # Remediate Findings
 
-Implement validated findings from a review report. The goal is to clear real issues with the smallest safe change set across implementation and document artifacts, avoid over-engineering, re-run the right verification, and update workflow state when the reviewed work is now complete.
+Implement validated findings with the smallest safe change set, re-validate, and update workflow state.
 
 
 ## VARIABLES
@@ -14,24 +14,22 @@ Implement validated findings from a review report. The goal is to clear real iss
 REPORT_SOURCE: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` before interpreting the remainder as the report path or URL)
 
 ### Optional Flags
-- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
+- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
-- **Intent + Rules Context** – collect both bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) up-front in Phase 1, using the FIS/PRD/clarify path named in the input report when present. Phase 2a re-anchors findings against the Intent bundle before any fix is planned. A finding flagged for application by the upstream review can still be blocked here if it contradicts a Non-Goal the upstream review missed – this skill is the last gate before mutation.
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
+- **Intent + Rules Context** – collect both bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) up-front in Phase 1, using the FIS/PRD/clarify path named in the input report when present. Phase 2a re-anchors findings against the Intent bundle before any fix is planned (see Phase 2a for the divergence-catch).
 - Read the `Learnings` document (see **Project Document Index**) before Phase 2 – a matching entry's preventive measure informs fix shape.
 - **Honor the upstream `Routing:` tag** – when the input report came from the `andthen:review` skill or the `andthen:quick-review` skill, each finding carries a `Routing: Fix | Note` field. **Fix**-tagged findings are eligible for application (subject to Phase 2 re-validation and Phase 2a Intent re-anchor); **Note**-tagged findings are surfaced in the completion report for the user to decide on – never auto-applied. When the report has no `Routing:` field (older reports, external reports), Phase 2a still runs; routing degrades to severity policy alone.
 - Require `REPORT_SOURCE`. Stop if missing.
 - Treat the review report as an input contract, not unquestionable truth. Re-validate findings against the current workspace before editing artifacts.
 - **FIS Required / Deeper Context handling** (when the remediation target includes a FIS): `Required Context` blocks are inlined verbatim at spec time and are authoritative – do not "fix" by re-fetching against the current source (that silently changes the executor's contract). Drift is a re-spec signal; escalate to the `andthen:spec` skill if fresh content is required. For broken `Deeper Context` anchors: repair the anchor, don't delete silently. **Legacy FIS fallback**: apply the same minimal-fix discipline to whatever upstream-reference structure the legacy FIS uses (old `## References & Constraints` heading, `### Documentation & References` table, or prose mentions). Don't migrate a legacy FIS to the new sections opportunistically – that's a re-spec, not a remediation.
-- Fix validated findings with the smallest coherent patch set that resolves them.
-- Avoid scope creep across files. Apply changes only to issues listed in the findings report; co-located issues you spot while remediating are surfaced in the completion report rather than fixed inline (surgical scope – see CRITICAL RULES). Do not expand into untouched files or rewrite nearby docs unless required to resolve a finding or prevent a regression.
-- Prefer explicit, local fixes over broad rewrites, reorganizations, helpers, or framework layers.
-- If external documentation is needed, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section; Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly.
+- Fix validated findings with the smallest coherent patch set that resolves them, preferring explicit local fixes over broad rewrites (surgical scope – see CRITICAL RULES). Apply changes only to issues listed in the findings report; co-located issues surface in the completion report (Phase 4 trace test). Do not expand into untouched files or rewrite nearby docs unless required to resolve a finding or prevent a regression.
+- If external documentation is needed, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section, or invoke the dedicated `documentation-lookup` agent when available.
 - Invoke the `andthen:ops` skill for deterministic plan/FIS/STATE updates instead of hand-editing those artifacts.
-- **Automation mode** (`--auto` / `--headless`) – never ask the user what to do next. Re-validate and fix all in-policy findings, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt – it is deterministic), and return deterministic status/verification output. Stop with `BLOCKED:` (listing the minimum missing decisions or unresolved findings with evidence) only when the report is invalid, an unsafe external action is required, or a finding requires a product/requirements decision with no defensible local fix.
+- **Automation mode** (`--auto`) – never ask the user what to do next. Re-validate and fix all in-policy findings, propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt – it is deterministic), and return deterministic status/verification output. Stop with `BLOCKED:` (listing the minimum missing decisions or unresolved findings with evidence) only when the report is invalid, an unsafe external action is required, or a finding requires a product/requirements decision with no defensible local fix.
 
 
 ## GOTCHAS
@@ -42,9 +40,9 @@ REPORT_SOURCE: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` b
 - Marking plan or FIS artifacts done before re-validation proves the findings are actually addressed
 - Editing the wrong artifact when the real issue belongs in a spec, plan, PRD, or user-facing document
 - Forcing a speculative doc rewrite when the real issue is an unresolved product or requirements decision that needs escalation
-- Writing `DEFERRED` without citing one of the named blockers from Phase 2's severity policy – that means you are using the Tech Debt Backlog as a parking lot, not as a deferred-work queue
-- **Applying a `Routing: Note` finding** – upstream review (or quick-review) routed it out of the auto-apply path on purpose; remediating it anyway re-introduces the drift the routing gate exists to prevent. Notes are surfaced for the user, not silently fixed.
-- **Skipping Phase 2a Intent re-anchor** – an upstream `Routing: Fix` tag is necessary, not sufficient. If the originating FIS lists the finding's subject as a Non-Goal or deferral, applying it here drifts the feature even though the upstream review approved it. Phase 2a is the last gate.
+- Writing `DEFERRED` without citing one of the named blockers from Phase 2's severity policy – an uncited deferral is the parking-lot anti-pattern
+- **Applying a `Routing: Note` finding** – Notes surface for the user, never auto-fix (see INSTRUCTIONS / Phase 2a).
+- **Skipping Phase 2a Intent re-anchor** – `Routing: Fix` is necessary, not sufficient (see Phase 2a).
 - **Adding abstractions the finding didn't name** – named over-engineering shapes that creep in during remediation: a helper used once, a new config knob, a new wrapper or interface layer, a new error type, defensive validation at the wrong layer. None resolve the finding – they expand the change set under "while I'm here". If the finding doesn't name the abstraction, don't add it.
 
 
@@ -59,7 +57,7 @@ REPORT_SOURCE: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` b
    - Review mode (`gap`, `code`, `doc`, `security`, `mixed`, `architecture`, `council`) – read from the report's mode line or the report filename suffix (e.g. `-gap-review.md` → `gap`, `-security-review.md` → `security`)
    - Report verdict (PASS/FAIL) when present
    - Findings, severity, remediation recommendations, and reviewed scope
-   - **Per-finding `Routing:` tag** when present (`Fix` or `Note`). Reports from the current `andthen:review` skill and the `andthen:quick-review` skill always carry it; older reports and external reports may not – record absence and degrade per the INSTRUCTIONS rule.
+   - **Per-finding `Routing:` tag** (`Fix`/`Note`) when present; record absence and degrade per the INSTRUCTIONS rule.
    - **`Intent Context:` line** when present (path to the governing FIS/PRD/clarify artifact, or `none discoverable`). Used to seed Phase 2a.
    - Referenced implementation targets, requirements baseline, FIS path, `plan.json`, and story IDs when the report names them
 3. Collect the **Intent + Rules Context** bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) – seed with the `Intent Context:` line from step 2 when present; otherwise discover from the report's referenced targets and the **Project Document Index**. When no governing artifact is discoverable, record so explicitly – Phase 2a still runs and falls back to severity policy alone.
@@ -108,14 +106,13 @@ Findings tagged `Routing: Note` upstream remain Note regardless of Phase 2a outc
 
 For reports with no per-finding `Routing:` tag, compute an **effective route** after Phase 2 and Phase 2a: `Fix` when the severity policy says the finding should be fixed and no blocker / Intent demotion applies; `SURFACED` when Phase 2a demotes it; `DEFERRED` only under the named blockers in Phase 2. This preserves older and external report behavior instead of excluding untagged findings from remediation.
 
-**Gate**: Every `valid` finding carries an Intent-anchor classification; the Phase 3 fixable set is bounded to findings whose effective route is `Fix`: upstream `Routing: Fix`, or no upstream routing tag and the severity policy says fix, excluding findings demoted or deferred here
+**Gate**: Every `valid` finding carries an Intent-anchor classification; the Phase 3 fixable set contains only findings whose effective route is `Fix`
 
 
 ### Phase 3: Plan Minimal Remediation
 
 - Group findings by affected area to minimize conflicts and repeated verification
 - Define the smallest change set that resolves the validated findings
-- Favor boring, readable fixes over clever or reusable abstractions
 - Choose the target artifact that actually owns the defect: code/config/tests for implementation problems, specs/plans/PRDs for requirements or design defects, and product/user docs for explanation, usage, or reference defects
 - If a finding reveals an unresolved product decision, missing requirement, or ambiguous source of truth rather than a defect in the reviewed artifacts, stop and escalate instead of forcing a speculative edit. In `AUTO_MODE`, return `BLOCKED:` with the minimum missing decision instead of asking the user.
 - Use parallel sub-agents only for independent fix groups
@@ -145,7 +142,7 @@ When all required findings are resolved and verification is clean, update state 
 
 If the report is tied to a story or FIS and remediation passed validation:
 - Use the `andthen:ops` skill: `update-fis {fis_path} all` when the FIS work is substantively complete and evidence exists
-- Use the `andthen:ops` skill: `update-plan {plan_path} {story_id} Done` only after confirming the FIS Acceptance Scenarios and Structural Criteria satisfy the plan story scope
+- Use the `andthen:ops` skill: `update-plan {plan_path} {story_id} done` only after confirming the FIS Acceptance Scenarios and Structural Criteria satisfy the plan story scope
 - Update the `State` document (see **Project Document Index**) through the `andthen:ops` skill when it exists and the story is now complete
 - Re-read the updated artifacts to verify the status changes applied
 
@@ -168,7 +165,7 @@ Run this step **before** the tech-debt persistence step below. If `REPORT_SOURCE
 
 #### Persist DEFERRED findings to the Tech Debt Backlog
 
-Batch all `DEFERRED` entries into a single `andthen:ops` invocation: `update-tech-debt append <markdown-body>`. Use the `#### DEFERRED FINDINGS` body shape from the `andthen:ops` skill (`update-tech-debt append` form). Normalize upstream severity before populating `Severity:` – `CRITICAL/HIGH → High`, `MEDIUM → Medium`, `LOW → Low`; non-canonical values (e.g. INFO) route to `Low` with a logged note. Each entry requires a `Source report:` back-link. **Every `DEFERRED` entry must include the named blocker from Phase 2 verbatim in the entry body (e.g. as a `Blocker:` line) so the parking-lot rule remains auditable from the backlog alone – an entry with no blocker citation is the anti-pattern itself.** When zero findings are `DEFERRED`, skip this step entirely. The `andthen:ops` skill is deterministic and `--auto` is not propagated to it (per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md)).
+Batch all `DEFERRED` entries into a single `andthen:ops` invocation: `update-tech-debt append <markdown-body>`. Use the `#### DEFERRED FINDINGS` body shape from the `andthen:ops` skill (`update-tech-debt append` form). Normalize upstream severity before populating `Severity:` – `CRITICAL/HIGH → High`, `MEDIUM → Medium`, `LOW → Low`; non-canonical values (e.g. INFO) route to `Low` with a logged note. Each entry requires a `Source report:` back-link. **Every `DEFERRED` entry must include the named blocker from Phase 2 verbatim in the entry body (e.g. as a `Blocker:` line) so the parking-lot rule remains auditable from the backlog alone.** When zero findings are `DEFERRED`, skip this step entirely. The `andthen:ops` skill is deterministic and `--auto` is not propagated to it (per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md)).
 
 **Gate**: Status artifacts reflect the validated post-remediation state; the input report is annotated when writable; deferred findings are persisted to the Tech Debt Backlog when present
 

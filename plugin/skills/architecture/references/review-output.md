@@ -1,6 +1,10 @@
 # Architecture Review Output Format & Severity
 
-Standards for structuring architecture review findings.
+## Contents
+- Finding Structure
+- Severity Classification
+- Report Structure (Executive Summary, How to Read, Metrics Dashboard, Findings, Dependency Graph, Decomposition Recommendations, Proposed Fitness Functions)
+- Actionability Requirements
 
 ## Finding Structure
 
@@ -109,7 +113,7 @@ These rules prevent vague, noisy output that erodes trust:
 
 1. **Every finding needs specific evidence**: package names, metric values, file paths, import chains. Never "this module seems too large."
 2. **Quantify impact**: "Ce=12" not "high coupling." "D=0.95" not "far from main sequence."
-3. **Include fix_prompt**: A copy-pasteable instruction that could be given to an agent or developer to remediate the finding.
+3. **Include the Fix Prompt field**: A copy-pasteable instruction that could be given to an agent or developer to remediate the finding.
 4. **Separate detection from explanation**: Detection is metric-based and objective. Explanation is contextual and qualitative. Label which is which.
 5. **Avoid false positives**: If a metric is borderline, report as INFO with context, not as HIGH. Noisy reviews get ignored.
 6. **Framework attribution**: Every recommendation cites the principle driving it. "Per SAP (Martin)..." not just "you should add interfaces."

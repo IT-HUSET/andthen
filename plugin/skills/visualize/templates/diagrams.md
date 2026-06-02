@@ -7,6 +7,19 @@ Inline-SVG diagrams generated at HTML emission time. All diagrams use:
 - Class hooks that key off the page-level CSS variables (`--accent`, `--panel`, etc.)
 
 
+## Contents
+
+- Shared Container
+- #flowchart
+- #timeline
+- #list-graph
+- #tree
+- #radar
+- #module-map
+- #walkthrough
+- Common Pitfalls
+
+
 ## Shared Container
 
 Each diagram emitter calls `wrapSvg(type, width, height, body)` to produce the container below – `type` selects the `diagram-{type}` class, `width`/`height` set the `viewBox`, and `body` is substituted for the `<!-- nodes, lines, text -->` slot.
@@ -347,7 +360,7 @@ Decision =fail=> StripeAdapter
   - `=success=>`   olive solid (success path)
   - `=fail=>`      rust dashed (failure path)
 
-**Output HTML** wraps a standard Section Block (`id`, `data-anchor`, static affordances per SKILL.md *Section Block* contract). The SVG and its detail-panel aside live inside `.card-body`:
+**Output HTML** wraps a standard Section Block (`id`, `data-anchor`, static affordances per render-shell.md *Section Block* contract). The SVG and its detail-panel aside live inside `.card-body`:
 
 ```html
 <div class="card-body">
@@ -370,7 +383,7 @@ Decision =fail=> StripeAdapter
       <path class="edge fail"    d="…" marker-end="url(#arrow-rust)"/>
     </g>
   </svg>
-  <!-- Paired aside.map-detail (see `templates/js-helpers.md` for the `wireModuleMap` binding contract) -->
+  <!-- Paired aside.map-detail (see `js-helpers.md` for the `wireModuleMap` binding contract) -->
   <pre class="src-area" hidden><!-- verbatim mapviz block --></pre>
 </div>
 ```
@@ -420,7 +433,7 @@ function emitModuleMap(graph):
 
 **Empty-graph mitigation:** if the parsed `mapviz` block yields zero nodes (parse failure or empty body), fall back to Generic Prose for the section AND emit the verbatim DSL block inside a `<pre>` so the reviewer can see what was authored. Same shape as the existing `## Common Pitfalls` rule "*Empty source section → if there are zero items, skip the diagram entirely*."
 
-**Detail-panel aside** (Phase 3.4 contract). The paired aside is rendered statically with a default-selected node so JS-disabled environments still see *some* content. All artifact-derived values use context-appropriate escaping: `id`, `data-default-node`, and SVG `data-k` values are HTML-attribute escaped; static title/meta/body placeholders are HTML text escaped; detail JSON is written as inert `<script type="application/json">` text with `<` escaped as `\u003c` so `</script>` cannot terminate the block. Node detail bodies are escaped text with preserved line breaks, not trusted HTML. See `wireModuleMap` in `templates/js-helpers.md`.
+**Detail-panel aside** (Phase 3.4 contract). The paired aside is rendered statically with a default-selected node so JS-disabled environments still see *some* content. All artifact-derived values use context-appropriate escaping: `id`, `data-default-node`, and SVG `data-k` values are HTML-attribute escaped; static title/meta/body placeholders are HTML text escaped; detail JSON is written as inert `<script type="application/json">` text with `<` escaped as `\u003c` so `</script>` cannot terminate the block. Node detail bodies are escaped text with preserved line breaks, not trusted HTML. See `wireModuleMap` in `js-helpers.md`.
 
 ```html
 <aside class="map-detail" id="map-detail-{{section-anchor-attr}}" data-default-node="{{first-node-key-attr}}">
@@ -445,7 +458,7 @@ function emitModuleMap(graph):
 - Trade-off Options: **every** option's H3 body carries ≥ 2 of `What changes` / `Where it changes` / `Risk` / `Trade-off` H4 substring (all-or-nothing per section – see `tradeoff.md#Options`)
 - Clarification Resolved Decisions: ≤ 5 rows AND every Rationale's stripped char-count ≥ 60
 
-**Layout**: vertical list of numbered steps. Each step: 34 px clay/oat circular badge, optional file-path mono line (when the first paragraph under the H3 is a single inline-code reference like `` `src/middleware/auth.ts`:14-31 ``), 2–3 sentences of prose, optional `<details class="snippet">` collapsible source listing. The one-at-a-time toggle (`templates/js-helpers.md`) closes other open snippets in the same `.walk` container.
+**Layout**: vertical list of numbered steps. Each step: 34 px clay/oat circular badge, optional file-path mono line (when the first paragraph under the H3 is a single inline-code reference like `` `src/middleware/auth.ts`:14-31 ``), 2–3 sentences of prose, optional `<details class="snippet">` collapsible source listing. The one-at-a-time toggle (`js-helpers.md`) closes other open snippets in the same `.walk` container.
 
 ```html
 <div class="walk">
@@ -501,7 +514,7 @@ function emitModuleMap(graph):
 - **Tree depth >2** → MVP supports root → dimensions → options. Deeper hierarchies aren't expected; if encountered, render the top two levels and emit a "deeper levels truncated" footer text inside the diagram container.
 - **N criteria < 3 for radar** → radar is undefined; render a simple bar comparison instead, or skip the diagram and emit an inline note.
 - **Empty `mapviz` block** → falls back to Generic Prose + verbatim `<pre>` in `.card-body` (see `#module-map` empty-graph mitigation). Never emit an empty SVG shell – it reads as a broken diagram.
-- **Walkthrough `<details>` interfering with `View source`** → the one-at-a-time toggle in the `templates/js-helpers.md` is scoped to `.walk details.snippet`, **never** bare `details`. A bare-`details` listener would close the section's `.src-area` source panel whenever a snippet opens.
+- **Walkthrough `<details>` interfering with `View source`** → the one-at-a-time toggle in the `js-helpers.md` is scoped to `.walk details.snippet`, **never** bare `details`. A bare-`details` listener would close the section's `.src-area` source panel whenever a snippet opens.
 - **Module-map detail JSON in an HTML attribute** → don't put the node dictionary in `data-nodes`. Attribute JSON is fragile because quote-bearing artifact text can break the attribute before JS parses it. Use the paired `script[type="application/json"][data-role="nodes"]` block and escape `<` as `\u003c` in the JSON text.
 - **Module-map detail XSS** → node keys, title, meta, and body values are artifact-derived content and must render through attribute escaping, text escaping, or `textContent` only. Do not use `innerHTML` unless a strict sanitizer is added first.
 - **Determinism** → never use `Math.random()` for layout; always derive coordinates from input data + fixed constants. The same source must produce identical SVG output.

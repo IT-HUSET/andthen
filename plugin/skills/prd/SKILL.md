@@ -1,6 +1,6 @@
 ---
 description: Use when the user wants a PRD. Creates a Product Requirements Document from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue. Trigger on 'create a PRD', 'write a PRD', 'draft a PRD', 'PRD from clarify output'.
-argument-hint: "[--to-issue] [--visual] [--auto|--headless] [specs directory or requirements source | --issue <number>]"
+argument-hint: "[--to-issue] [--visual] [--auto] [specs directory or requirements source | --issue <number>]"
 ---
 
 # Create Product Requirements Document
@@ -8,7 +8,7 @@ argument-hint: "[--to-issue] [--visual] [--auto|--headless] [specs directory or 
 
 Produce a `prd.md` from whatever requirements material is available: a clarified requirements doc, a draft PRD, an inline description, a requirements file, a URL, or a GitHub issue. If a `prd.md` already exists in the target directory, pass through and exit – do not regenerate.
 
-Upstream of the `andthen:plan` skill. The PRD created here is the required input for `andthen:plan`.
+Upstream of the `andthen:plan` skill. The PRD created here is the canonical local input for `andthen:plan`; `andthen:plan` can also fetch a GitHub PRD issue directly.
 
 **Philosophy**: PRDs focus on *what* must be true for users and the business – not *how* to build it. Story breakdown belongs in the `andthen:plan` skill; architecture/UX trade-offs belong in upstream specialist artifacts, and ad-hoc API/library lookup happens during execution.
 
@@ -25,26 +25,23 @@ OUTPUT_DIR: _(resolved per Step 1)_
 - `--issue <number>` → Fetch and use a GitHub issue as requirements input
 - `--to-issue` → PUBLISH_ISSUE: Publish PRD as a GitHub issue after saving locally
 - `--visual` → VISUAL_MODE: after `prd.md` is saved and validated, invoke the `andthen:visualize` skill on the produced `prd.md`.
-- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
+- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - Require `INPUT`. Stop if missing.
-- Delegate research and exploration to sub-agents to protect the main context window.
-- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` triggers: missing input; ambiguity so severe two or more incompatible PRDs are equally plausible; unsafe external actions on `--to-issue`.
-- **Visual review is a post-validation handoff.** In `AUTO_MODE`, run it only when `--visual` is present. When present, complete the normal PRD gate first, then invoke the `andthen:visualize` skill on the produced `prd.md`; the visualizer owns HTML rendering, note export, browser-open behavior, and `.agent_temp/visual-review/` output.
-- Focus on "what" not "how". Replace vague terms with measurable criteria. Record rationale and trade-offs.
-- Keep implementation-level details out (architecture patterns, library choices, API specifics, code organization). Capture significant technical constraints in `Constraints & Assumptions`; defer unresolved architecture/UX decisions upstream and API/library lookup to execution.
+- Delegate research and exploration to sub-agents (the `research` agent when available) to protect the main context window.
+- **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` triggers: missing input; ambiguity past the Vague-Input Bailout bar (see GOTCHAS); unsafe external actions on `--to-issue`.
+- **Visual review is a post-validation handoff.** In `AUTO_MODE`, run it only when `--visual` is present. When present, complete the normal PRD gate first, then invoke the `andthen:visualize` skill on the produced `prd.md`.
+- Focus on *what* not *how* (see Philosophy). Replace vague terms with measurable criteria; record rationale and trade-offs. Significant technical constraints → `Constraints & Assumptions`.
 
 
 ## GOTCHAS
 - **Vague-Input Bailout** – skipping synthesis when only a vague one-liner exists. Instead: infer the smallest coherent MVP, document assumptions in `Constraints & Assumptions` and the `Decisions Log`, and continue. Only stop when multiple incompatible PRDs are equally plausible and none can be justified.
-- Re-asking questions already answered in `requirements-clarification.md` or `prd-draft.md`
-- Letting implementation details leak into the PRD – if it's about *how*, push it to the **Decisions Log** or defer to the `andthen:plan` skill
+- **Implementation leak** – route *how* to the **Decisions Log** or the `andthen:plan` skill (Philosophy; Step 3 owns extraction)
 - Writing `prd.md` into the wrong directory – follow **Output Path Semantics** exactly so the `prd → plan` chain stays stable
-- Overwriting an existing `prd.md` – always pass through when one exists
 
 
 _Output path resolution – see the dispatch table in Step 1._
@@ -121,14 +118,7 @@ Self-check:
 - [ ] All assumptions documented
 - [ ] No conflicting requirements
 - [ ] **Problem-solution fit (bidirectional)**: every pain or desired outcome named on the **problem side** – in `Problem Definition` and in the "so that..." clauses of `Functional Requirements > User Stories` – has at least one feature, acceptance criterion, or metric on the **solution side** (a row in `Functional Requirements > Feature Specifications`, an item in `Executive Summary > Success Metrics`, a `Non-Functional Requirements` threshold, or a `Scope > In Scope` capability) that signals it's resolved; and every solution-side item traces back to such a pain or outcome. Fix: unaddressed problem → add a feature/metric or drop the problem element; orphan solution → drop it or amend `Problem Definition` / user-story rationale to justify (solutionism smell).
-- [ ] **Executive Summary is a summary, not a source**: walk each summary subsection bullet-by-bullet and confirm a matching canonical row exists below.
-  - Each `Capabilities at a Glance` bullet → a `#### FRn: [Feature Name]` block in `Functional Requirements > Feature Specifications` with the exact same `FRn:` ID, the same feature name, and a `**Priority**:` line that agrees with the inline tag.
-  - Each `Scope Highlights` bullet → an item in `## Scope > In Scope` / `Out of Scope` / `MVP Boundary`.
-  - Each `Key Constraints, Assumptions & Dependencies` bullet → an item in `## Constraints & Assumptions > Constraints` / `Assumptions` / `Dependencies`.
-  - Fix: if a summary bullet has no canonical row, either move it down into the matching detail section or delete it. If they conflict, canonical wins and the summary is the bug.
-  - The summary stays under ~1 page rendered.
-
-Optional: Invoke the `andthen:review --mode doc` skill to validate the PRD before finalizing.
+- [ ] **Executive Summary derives, not declares**: every summary bullet maps to a canonical row below; no fact lives only in the summary; conflicts resolve to the canonical row (Step 4); summary stays under ~1 page rendered.
 
 **Gate**: Validation complete
 

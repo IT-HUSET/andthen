@@ -3,6 +3,16 @@
 Use when the source is an architecture trade-off report from `andthen:architecture --mode trade-off`. Detection: H1 or H2 contains "Trade-off" / "Trade off" / "Decision Analysis"; presence of a scoring matrix table with options as rows and criteria as columns.
 
 
+## Contents
+
+- Layout
+- KPI Cells
+- Section Renderers
+- Pre-population
+- Edge Cases
+- Example Use Cases
+
+
 ## Layout
 
 ```
@@ -32,7 +42,7 @@ Use when the source is an architecture trade-off report from `andthen:architectu
 
 ## KPI Cells
 
-The four-cell `.kpi-band` (rendered per the SKILL.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. Trade-off cells in source order:
+The four-cell `.kpi-band` (rendered per the render-shell.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. Trade-off cells in source order:
 
 | Cell | Label | Source |
 |---|---|---|
@@ -68,9 +78,9 @@ To detect the recommended row, scan each row's text for: `← chosen`, `(recomme
 
 Each option in the source's `## Options` section (typically as H3 subsections per option) renders as a card with three regions. **Per-option Note buttons are intentionally omitted** – the SKILL.md anchor scheme is H2-keyed (verbatim heading text), so notes attach to the parent `## Options` section, not per-option H3. Reviewers wanting to comment on a specific option write the option's name into the note body (e.g. *"Option B: weight criterion X higher"*); the payload's `## Section: Options` block then carries one bullet per option-scoped note. Whole-diagram annotation stays anchored by the diagram's parent section heading, matching how downstream skills consume the payload.
 
-**Above the H3 list:** emit a `<nav class="risk-map">` summary row (per the SKILL.md *Risk-map chips* contract). One chip per option, color-coded: recommended option → `.attention`, deferred/rejected options → `.neutral`, options with `risk: high` or `caveat:` in the body → `.medium`. Each chip's `href` points at the option's H3 sub-anchor (`#options-{option-kebab}`); click pulses the target.
+**Above the H3 list:** emit a `<nav class="risk-map">` summary row (per the render-shell.md *Risk-map chips* contract). One chip per option, color-coded: recommended option → `.attention`, deferred/rejected options → `.neutral`, options with `risk: high` or `caveat:` in the body → `.medium`. Each chip's `href` points at the option's H3 sub-anchor (`#options-{option-kebab}`); click pulses the target.
 
-**Option-body rendering (all-or-nothing per `## Options` section):** when **every** H3 option's body carries ≥ 2 H4 subheadings starting with `What changes`, `Where it changes`, `Risk`, or `Trade-off` (case-insensitive), render every option as a **Walkthrough** (see `diagrams.md#walkthrough`) alongside its radar – Step 1 = What changes, Step 2 = Where, Step 3 = Risk. If even one option doesn't have the H4 set, render *every* option as prose-only body. Mixing Walkthrough and prose within the same `## Options` section is disallowed – it reads as a renderer bug, and the SKILL.md *Renderer Discipline* "one renderer per H2" rule applies per-section, not per-H3. Secondary detail (anything after the primary verdict paragraph, or content under an H4 named `Detailed analysis` / `Notes` / `Background`) wraps in `<details class="analysis">` (SKILL.md *Supporting-detail collapse* contract). Light TL;DR (SKILL.md contract) emits as the first child of each option's `.card-body` when the source authored one.
+**Option-body rendering (all-or-nothing per `## Options` section):** when **every** H3 option's body carries ≥ 2 H4 subheadings starting with `What changes`, `Where it changes`, `Risk`, or `Trade-off` (case-insensitive), render every option as a **Walkthrough** (see `diagrams.md#walkthrough`) alongside its radar – Step 1 = What changes, Step 2 = Where, Step 3 = Risk. If even one option doesn't have the H4 set, render *every* option as prose-only body. Mixing Walkthrough and prose within the same `## Options` section is disallowed – it reads as a renderer bug, and the SKILL.md *Renderer Discipline* "one renderer per H2" rule applies per-section, not per-H3. Secondary detail (anything after the primary verdict paragraph, or content under an H4 named `Detailed analysis` / `Notes` / `Background`) wraps in `<details class="analysis">` (render-shell.md *Supporting-detail collapse* contract). Light TL;DR (render-shell.md contract) emits as the first child of each option's `.card-body` when the source authored one.
 
 ```html
 <section class="option" data-anchor-parent="options">

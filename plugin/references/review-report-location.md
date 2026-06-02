@@ -22,7 +22,7 @@ On completion, print the report's path **relative to the project root**.
 
 ## Directory Priority
 
-Resolve in order; first match wins. Tiers 2–4 are skipped when an earlier tier matches.
+Resolve in order; first match wins.
 
 1. **`--output-dir <path>`** (when the caller passes it) – explicit override. Validate up-front: the path must exist and be writable. In `AUTO_MODE`, fail with `BLOCKED: --output-dir <path> not writable`. In default mode, **print a warning** naming the unusable path and **fall through to the heuristic tiers** – the skill stays headless and the next-best location is loud-by-default because the resolved relative path is printed on completion. Do not auto-create deep paths – only the report file itself.
 

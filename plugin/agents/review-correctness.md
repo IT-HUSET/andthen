@@ -1,7 +1,8 @@
 ---
 name: review-correctness
 description: Correctness reviewer for AndThen review councils. Use for code behavior, edge cases, data flow, error handling, and tests.
-model: opus
+model: inherit
+effort: high
 color: yellow
 ---
 

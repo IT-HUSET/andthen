@@ -4,9 +4,9 @@ Use this when a decision has multiple meaningful dimensions and a flat list of "
 
 ## When to Use
 
-- **`clarify`**: surface hidden decisions and turn them into explicit questions
-- **`trade-off`**: generate viable solution combinations before comparing them
-- **`plan`**: separate independent dimensions into parallel stories and keep coupled decisions together
+- **the `andthen:clarify` skill**: surface hidden decisions and turn them into explicit questions
+- **the `andthen:architecture` skill (`--mode trade-off`)**: generate viable solution combinations before comparing them
+- **the `andthen:plan` skill**: reuses this decomposition concept inline; this canonical file is not install-inlined into `plan`
 
 Skip this for simple, single-axis choices. If the real question is just "which database?" or "which library?", compare the options directly.
 

@@ -22,7 +22,7 @@ If the split targets a library/SDK, define 3-5 consumer profiles and calculate f
 
 ## Step 5 – Evaluation Matrix
 
-Apply the 4-criteria check: (a) zero external deps, (b) independent consumer use case, (c) acyclic DAG post-split, (d) low breaking-change cost. All of a+b+c must pass to recommend splitting.
+Apply the 4-criteria check: (a) zero external deps, (b) independent consumer use case, (c) acyclic DAG post-split, (d) low breaking-change cost. All of a+b+c must pass to recommend a split – a split that fails any of these (carries external deps, has no independent consumer, or reintroduces a cycle) recreates the coupling it claims to remove, so it is a distributed monolith in disguise rather than a clean boundary. (d) low breaking-change cost is not gating: it is a strength signal that raises confidence, while a high breaking-change cost downgrades confidence or pushes toward **Defer**, never toward **Keep**.
 
 ## Step 6 – Anti-Pattern Check
 

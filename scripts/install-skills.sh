@@ -345,7 +345,7 @@ if [ "$install_claude_user" -eq 1 ]; then
      && [ "$prefix" = "andthen-" ] \
      && [ "$claude_skills_dir" = "${HOME}/.claude/skills" ] \
      && [ "$claude_agents_dir" = "${HOME}/.claude/agents" ]; then
-    printf 'warning: --claude enabled with the default prefix and user-tier paths but an andthen Claude Code plugin install appears present under ~/.claude/plugins/. Running both will create duplicate skills under andthen:<name> (plugin) and andthen-<name> (user). Uninstall the plugin (/plugin uninstall andthen) before using --claude, pass a distinct --prefix, or target project-local --claude-skills-dir / --claude-agents-dir to coexist.\n' >&2
+    printf 'warning: Claude user-tier install enabled with the default prefix and user-tier paths but an andthen Claude Code plugin install appears present under ~/.claude/plugins/. Running both will create duplicate skills under andthen:<name> (plugin) and andthen-<name> (user). Uninstall the plugin (/plugin uninstall andthen) before using the user-tier install, pass a distinct --prefix, or target project-local --claude-skills-dir / --claude-agents-dir to coexist.\n' >&2
   fi
 
   _claude_skills_default=0
@@ -359,36 +359,38 @@ if [ "$install_claude_user" -eq 1 ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Canonical shared assets at plugin/references/ – consumed by multiple skills.
+# Canonical install-inlined assets at plugin/references/ – consumed by one or more skills.
 # Inlined into each consuming skill's references/ at install time so the
 # installed bundle is self-contained (no ${CLAUDE_PLUGIN_ROOT} at runtime).
 # ---------------------------------------------------------------------------
 
 # Names of the canonical shared assets (filenames only).
-# Each must exist at plugin/references/<asset>.md and be consumed by ≥2 skills.
-_canonical_assets="adversarial-challenge.md automation-mode.md critic-calibration.md data-contract.md design-tree.md execution-discipline.md execution-named-blocks.md farley-framework.md fis-authoring-guidelines.md fis-template.md github-publish.md intent-and-rules-context.md lens-adversarial.md plan-issue-shape.md plan-schema.md prd-template.md project-state-templates.md review-calibration.md review-report-location.md trust-boundaries.md"
+# Each must exist at plugin/references/<asset>.md and be listed by every consuming skill.
+_canonical_assets="automation-mode.md critic-calibration.md data-contract.md design-tree.md execution-discipline.md execution-named-blocks.md farley-framework.md findings-filter-templates.md fis-authoring-guidelines.md fis-template.md github-publish.md intent-and-rules-context.md lens-adversarial.md plan-issue-shape.md plan-schema.md prd-template.md project-state-templates.md review-calibration.md review-report-location.md trust-boundaries.md"
 
 # Map of skill-name → space-separated list of canonical asset names it consumes.
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
-_skill_assets_prd="automation-mode.md github-publish.md prd-template.md"
-_skill_assets_plan="automation-mode.md data-contract.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md plan-schema.md"
-_skill_assets_spec="automation-mode.md data-contract.md execution-named-blocks.md fis-authoring-guidelines.md fis-template.md"
-_skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md"
+_skill_assets_prd="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md prd-template.md"
+_skill_assets_plan="automation-mode.md data-contract.md execution-discipline.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md plan-schema.md"
+_skill_assets_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md fis-authoring-guidelines.md fis-template.md plan-issue-shape.md plan-schema.md"
+_skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md plan-issue-shape.md plan-schema.md"
 _skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md"
-_skill_assets_ops="data-contract.md plan-schema.md"
-_skill_assets_review="adversarial-challenge.md critic-calibration.md data-contract.md fis-authoring-guidelines.md intent-and-rules-context.md lens-adversarial.md plan-schema.md review-calibration.md review-report-location.md trust-boundaries.md"
+_skill_assets_ops="data-contract.md fis-authoring-guidelines.md plan-issue-shape.md plan-schema.md project-state-templates.md"
+_skill_assets_review="critic-calibration.md data-contract.md findings-filter-templates.md fis-authoring-guidelines.md intent-and-rules-context.md lens-adversarial.md plan-issue-shape.md plan-schema.md review-calibration.md review-report-location.md trust-boundaries.md"
 _skill_assets_quick_review="critic-calibration.md intent-and-rules-context.md lens-adversarial.md review-calibration.md"
-_skill_assets_architecture="adversarial-challenge.md design-tree.md farley-framework.md review-calibration.md review-report-location.md"
-_skill_assets_clarify="design-tree.md github-publish.md"
+_skill_assets_architecture="design-tree.md farley-framework.md findings-filter-templates.md project-state-templates.md review-calibration.md review-report-location.md"
+_skill_assets_clarify="data-contract.md design-tree.md github-publish.md plan-issue-shape.md plan-schema.md"
 _skill_assets_testing="farley-framework.md"
-_skill_assets_quick_implement="execution-named-blocks.md"
+_skill_assets_quick_implement="automation-mode.md execution-discipline.md execution-named-blocks.md"
 _skill_assets_e2e_test="trust-boundaries.md"
-_skill_assets_triage="execution-named-blocks.md github-publish.md trust-boundaries.md"
+_skill_assets_triage="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md plan-issue-shape.md plan-schema.md trust-boundaries.md"
 _skill_assets_init="project-state-templates.md"
 _skill_assets_map_codebase="project-state-templates.md"
-_skill_assets_simplify_code="automation-mode.md intent-and-rules-context.md"
-_skill_assets_refactor="automation-mode.md"
-_skill_assets_remediate_findings="automation-mode.md intent-and-rules-context.md"
+_skill_assets_simplify_code="automation-mode.md execution-discipline.md intent-and-rules-context.md"
+_skill_assets_refactor="automation-mode.md execution-discipline.md"
+_skill_assets_remediate_findings="automation-mode.md execution-discipline.md intent-and-rules-context.md"
+
+_skills_with_canonical_assets="prd plan spec exec-spec exec-plan ops review quick-review architecture clarify testing quick-implement e2e-test triage init map-codebase simplify-code refactor remediate-findings"
 
 # Resolve the list of canonical assets for a given skill base name.
 # Prints a space-separated list of asset filenames.
@@ -488,6 +490,48 @@ _check_canonical_assets() {
   return 0
 }
 
+_asset_list_contains() {
+  _alc_needle="$1"
+  shift
+  for _alc_asset in "$@"; do
+    [ "$_alc_asset" = "$_alc_needle" ] && return 0
+  done
+  return 1
+}
+
+# Verify each declared skill asset list includes canonical dependencies named
+# by the canonical files it already inlines. This keeps installed bundles
+# self-contained when shared references point at other shared references.
+_check_skill_asset_closure() {
+  _csac_missing=0
+  for _csac_skill in $_skills_with_canonical_assets; do
+    _csac_assets=$(_get_skill_assets "$_csac_skill")
+    [ -z "$_csac_assets" ] && continue
+    for _csac_asset in $_csac_assets; do
+      _csac_src="$repo_root/plugin/references/$_csac_asset"
+      _csac_refs=$({ \
+          grep -ohE '\$\{CLAUDE_PLUGIN_ROOT\}/references/[A-Za-z0-9._-]+\.md' "$_csac_src" 2>/dev/null || true; \
+          grep -ohE '\]\([A-Za-z0-9._-]+\.md(#[^)]+)?\)' "$_csac_src" 2>/dev/null || true; \
+        } \
+        | sed -E 's|.*references/||; s|^\]\(([A-Za-z0-9._-]+\.md).*$|\1|' \
+        | LC_ALL=C sort -u || true)
+      [ -z "$_csac_refs" ] && continue
+      for _csac_dep in $_csac_refs; do
+        case " $_canonical_assets " in
+          *" $_csac_dep "*) ;;
+          *) continue ;;
+        esac
+        if ! _asset_list_contains "$_csac_dep" $_csac_assets; then
+          printf 'error: %s inlines %s, which references %s, but %s is not in _skill_assets_%s\n' \
+            "$_csac_skill" "$_csac_asset" "$_csac_dep" "$_csac_dep" "$(printf '%s' "$_csac_skill" | tr '-' '_')" >&2
+          _csac_missing=1
+        fi
+      done
+    done
+  done
+  [ "$_csac_missing" -eq 0 ]
+}
+
 # ---------------------------------------------------------------------------
 # inline_canonical_assets: copy canonical assets into a skill's references/.
 # Each consuming skill gets its relevant canonical assets as local files.
@@ -521,22 +565,58 @@ inline_canonical_assets() {
 #   - Files in <skill>/references/ (immediate children) → <asset>
 #     (bare filename, sibling-relative – unambiguous under both file-relative
 #     and skill-root-relative semantics).
-#   - All other files (skill root, and any other depth-1+ subdir like
-#     templates/, scripts/) → references/<asset> (skill-root-relative).
-# Today only skill-root and immediate-child references/ files contain such
-# references; if a future consumer file lives elsewhere (e.g.
-# <skill>/references/sub/foo.md or <skill>/templates/foo.md) and references
-# a canonical asset, this rewrite would need a depth-aware computation.
+#   - Files below <skill>/references/<subdir>/ → ../<asset>, ../../<asset>, etc.
+#   - Skill-root files → references/<asset>
+#   - Other subdirectories → ../references/<asset>, ../../references/<asset>, etc.
 # Called after namespace rewrite so the installed bundle has no plugin-root refs.
 # ---------------------------------------------------------------------------
 rewrite_plugin_root_file() {
   _rprf_md="$1"
-  case "$(dirname "$_rprf_md")" in
-    */references)
+  _rprf_skill_dir="$2"
+  _rprf_dir=$(dirname "$_rprf_md")
+
+  if [ "$_rprf_dir" = "$_rprf_skill_dir/references" ]; then
+    _rprf_replacement=""
+  elif [[ "$_rprf_dir" == "$_rprf_skill_dir/references/"* ]]; then
+    _rprf_rel=${_rprf_dir#"$_rprf_skill_dir/references"/}
+    _rprf_prefix=""
+    while :; do
+      _rprf_prefix="../$_rprf_prefix"
+      case "$_rprf_rel" in
+        */*) _rprf_rel=${_rprf_rel#*/} ;;
+        *) break ;;
+      esac
+    done
+    _rprf_replacement="$_rprf_prefix"
+  elif [ "$_rprf_dir" = "$_rprf_skill_dir" ]; then
+    _rprf_replacement="references/"
+  else
+    case "$_rprf_dir" in
+      "$_rprf_skill_dir"/*)
+        _rprf_rel=${_rprf_dir#"$_rprf_skill_dir"/}
+        _rprf_prefix=""
+        while :; do
+          _rprf_prefix="../$_rprf_prefix"
+          case "$_rprf_rel" in
+            */*) _rprf_rel=${_rprf_rel#*/} ;;
+            *) break ;;
+          esac
+        done
+        _rprf_replacement="${_rprf_prefix}references/"
+        ;;
+      *)
+        _rprf_replacement="references/"
+        ;;
+    esac
+  fi
+
+  _rprf_replacement_esc=$(printf '%s' "$_rprf_replacement" | sed -e 's/[\\&|]/\\&/g')
+  case "$_rprf_replacement" in
+    "")
       sed -i.bak 's|\${CLAUDE_PLUGIN_ROOT}/references/||g' "$_rprf_md"
       ;;
     *)
-      sed -i.bak 's|\${CLAUDE_PLUGIN_ROOT}/references/|references/|g' "$_rprf_md"
+      sed -i.bak "s|\${CLAUDE_PLUGIN_ROOT}/references/|$_rprf_replacement_esc|g" "$_rprf_md"
       ;;
   esac
   rm -f "$_rprf_md.bak"
@@ -549,7 +629,7 @@ rewrite_plugin_root_dir() {
   _rprd_list=$(find "$_rprd_dir" -name '*.md' -type f | LC_ALL=C sort)
   [ -z "$_rprd_list" ] && return 0
   printf '%s\n' "$_rprd_list" | while IFS= read -r _rprd_md; do
-    rewrite_plugin_root_file "$_rprd_md"
+    rewrite_plugin_root_file "$_rprd_md" "$_rprd_dir"
   done
 }
 
@@ -644,10 +724,18 @@ rewrite_namespace_dir() {
 
 rewrite_review_agent_names_file() {
   _rranf_md="$1"
-  # Review persona agent source names are intentionally unprefixed for the
-  # Claude Code plugin tier. Installed Codex / Claude user-tier agents are
-  # generated or copied with the selected install prefix, so installed skill
-  # prompts must name those prefixed agents when they ask for custom agents.
+  _rranf_include_documentation_lookup="${2:-1}"
+  # Plugin-tier agent source names are intentionally unprefixed. Installed
+  # Codex / Claude user-tier agents are generated or copied with the selected
+  # install prefix, so installed prompts must name those prefixed agents.
+  if [ "$_rranf_include_documentation_lookup" -eq 1 ]; then
+    sed -i.bak "s|\`documentation-lookup\`|\`${prefix}documentation-lookup\`|g" "$_rranf_md"
+    rm -f "$_rranf_md.bak"
+  fi
+  # `research` doubles as a UI/UX mode name and an English word, so it cannot use
+  # the bare-token rewrite above. Scope it to the two-token agent reference form.
+  sed -i.bak "s|\`research\` agent|\`${prefix}research\` agent|g" "$_rranf_md"
+  rm -f "$_rranf_md.bak"
   for _rranf_agent in \
     review-agent-workflow \
     review-architecture \
@@ -672,6 +760,15 @@ rewrite_review_agent_names_dir() {
   printf '%s\n' "$_rrand_list" | while IFS= read -r _rrand_md; do
     rewrite_review_agent_names_file "$_rrand_md"
   done
+}
+
+rewrite_skill_openai_metadata() {
+  _rsom_dir="$1"
+  _rsom_target_prefix="$2"
+  _rsom_yaml="$_rsom_dir/agents/openai.yaml"
+  [ -f "$_rsom_yaml" ] || return 0
+  rewrite_namespace_file "$_rsom_yaml" "$_rsom_target_prefix"
+  rewrite_review_agent_names_file "$_rsom_yaml"
 }
 
 # Rewrite the brand-cased token "AndThen" → <display_brand> in the installed
@@ -738,7 +835,9 @@ install_claude_agent() {
   fi
 
   rewrite_namespace_file "$_ica_dst" "/"
-  rewrite_review_agent_names_file "$_ica_dst"
+  # Agent prompts may describe plugin-tier invariants. Keep `documentation-lookup`
+  # unprefixed there; frontmatter already makes the installed agent callable.
+  rewrite_review_agent_names_file "$_ica_dst" 0
   rewrite_display_brand_file "$_ica_dst" "$display_brand"
 }
 
@@ -746,6 +845,7 @@ install_claude_agent() {
 _validate_plugin_root_syntax || exit 1
 _validate_skill_dir_syntax || exit 1
 _check_canonical_assets || exit 1
+_check_skill_asset_closure || exit 1
 
 skills_count=0
 claude_skills_count=0
@@ -777,6 +877,7 @@ for dir in "$repo_root/plugin/skills"/*; do
     rewrite_skill_dir_dir "$skills_dir/$target_name" "$skills_dir/$target_name"
     rewrite_namespace_dir "$skills_dir/$target_name" '$'
     rewrite_review_agent_names_dir "$skills_dir/$target_name"
+    rewrite_skill_openai_metadata "$skills_dir/$target_name" '$'
     rewrite_display_brand_dir "$skills_dir/$target_name" "$display_brand"
   else
     inline_canonical_assets "$skills_dir/$target_name" "$name"
@@ -793,6 +894,7 @@ for dir in "$repo_root/plugin/skills"/*; do
       rewrite_plugin_root_dir "$claude_skills_dir/$target_name"
       rewrite_namespace_dir "$claude_skills_dir/$target_name" '/'
       rewrite_review_agent_names_dir "$claude_skills_dir/$target_name"
+      rewrite_skill_openai_metadata "$claude_skills_dir/$target_name" '/'
       rewrite_display_brand_dir "$claude_skills_dir/$target_name" "$display_brand"
     else
       inline_canonical_assets "$claude_skills_dir/$target_name" "$name"

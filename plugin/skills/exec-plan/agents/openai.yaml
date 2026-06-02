@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Exec Plan"
-  short_description: "Execute a fully-specced plan bundle through the AndThen pipeline"
-  default_prompt: "Execute all stories in a fully-specced plan bundle: exec-spec + quick-review per story, then a final gap review on the whole plan. Requires every story in plan.json to already have a FIS. Plan directory: "
+  short_description: "Execute a local plan bundle or GitHub plan issue through the AndThen pipeline"
+  default_prompt: "Execute all stories from a local plan bundle or `--from-issue <N>`: exec-spec + quick-review per story, then a final gap review on the whole plan. Local plan.json stories must already have FIS files; `--from-issue` materializes a local ledger and generates FIS files just in time. Plan directory or --from-issue: "
 
 policy:
   allow_implicit_invocation: true

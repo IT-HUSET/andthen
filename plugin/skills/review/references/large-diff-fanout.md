@@ -1,15 +1,11 @@
 # Large-Diff Fan-Out
 
 Partition-based sub-agent fan-out for `code` and `gap` lenses when the diff is
-too large for a single reviewer's working context. Each partition is reviewed
-by a fresh-context sub-agent applying the same lens rubric; a boundary pass
-then attacks cross-partition surface.
+too large for a single reviewer's working context.
 
-> **Distinct from `--council`**: council fans out by **lens specialist**
-> (correctness, architecture, security, …) over the **same** scope. This file
-> fans out by **partition of the scope** under the **same** lens. They compose
-> – council multiplies a partition's depth-of-perspective, partition fan-out
-> multiplies a council's breadth-of-coverage.
+> **Distinct from `--council`**: council fans specialists over one scope
+> (depth); this fans one lens over scope partitions (breadth). They compose –
+> see *Composition with `--council`*.
 
 
 ## Contents
@@ -43,8 +39,7 @@ Choose the first applicable strategy:
 
 A **vertical slice** is a feature- or concern-shaped group of files that
 together implement one demoable change end-to-end (the same "vertical slice"
-shape the `andthen:plan` skill uses for stories). Slices cut **through** layers;
-they do not cut **between** layers.
+shape the `andthen:plan` skill uses for stories).
 
 Detect slices from the strongest signal available – first match wins:
 
@@ -149,14 +144,9 @@ review prompt replaces the per-specialist review prompt.
 
 ## Cost / Latency Note
 
-Each partition adds roughly one full review's cost. Fan-out trades wall time
-and token spend for coverage of changes that exceed the inline working set.
-
-For automation contexts (PR-review hooks, CI annotations), fan-out only when
-the threshold fires – the typical small PR pays nothing extra. For interactive
-review where the user is waiting on output, `--no-fanout` is the override; the
-report will then state "Fan-out suppressed; inline review over <N>-file diff"
-so the user can re-request with fan-out if the inline result feels thin.
+Each partition costs ~one full review – fan-out trades latency and token spend
+for coverage beyond the inline working set. The `--no-fanout` override's report
+line is contract: `Fan-out suppressed; inline review over <N>-file diff`.
 
 
 ## Reporting

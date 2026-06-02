@@ -197,7 +197,7 @@ A bounded context is a linguistic boundary – within it, all terms have a singl
 
 ### Context Mapping Patterns
 
-DDD context-mapping: see [`ddd.md`](ddd.md) § Context Mapping for the canonical 9-pattern table (Partnership through Big Ball of Mud).
+DDD context-mapping: see [`ddd.md`](ddd.md) § 1.3 Context-Mapping Pattern Catalog for the canonical 9-pattern table (Partnership through Big Ball of Mud).
 Use the table when mapping context relationships during decomposition; coupling is highest at Partnership / Shared Kernel and lowest at Separate Ways.
 
 ---

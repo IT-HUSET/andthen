@@ -30,7 +30,7 @@ Concise, actionable checklist for thorough code reviews.
 ### Best Practices
 - [ ] Language/framework idioms followed
 - [ ] DRY principle applied pragmatically
-- [ ] SOLID/CUPID principles respected (see guidelines)
+- [ ] SOLID/CUPID principles respected
 - [ ] No code duplication without justification
 - [ ] Appropriate design patterns used
 - [ ] No anti-patterns (god objects, circular dependencies, tight coupling)
@@ -46,7 +46,7 @@ Concise, actionable checklist for thorough code reviews.
 
 ### Code Organization
 - [ ] Separation of concerns clear
-- [ ] Responsibilities well-distributed (no god objects)
+- [ ] Responsibilities well-distributed
 - [ ] Layer boundaries respected (no improper dependencies)
 - [ ] Module/package structure logical
 - [ ] Files/classes reasonably sized
@@ -69,8 +69,6 @@ Concise, actionable checklist for thorough code reviews.
 ### Configuration & Dependencies
 - [ ] No hardcoded values (use config/env vars/constants)
 - [ ] Dependencies version-pinned or ranged appropriately
-- [ ] Feature flags used for risky changes
-- [ ] Database migrations reversible
 
 ### Technical Debt
 - [ ] No new technical debt without explicit acknowledgment

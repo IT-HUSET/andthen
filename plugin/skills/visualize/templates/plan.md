@@ -2,7 +2,19 @@
 
 Use when the source is a local AndThen `plan.json` bundle. Detection: valid JSON object with `schemaVersion`, `overview`, and `stories` array. `schemaVersion === "1"` is the supported shape; unknown versions should stop with `andthen:visualize: unsupported plan.json schemaVersion "<value>"` rather than rendering a misleading view.
 
-`plan.json` is data, not prose. Render it through **virtual H2 sections** derived from top-level fields. The Section Block wrapper from `SKILL.md` still applies: every virtual section gets a stable `id`, static `+ Note`, `Copy section`, and `View source` affordances. The source panel for each virtual section shows the pretty-printed JSON slice that produced it, or an explanatory empty slice marker such as `[]` / `null` when the field is absent.
+`plan.json` is data, not prose. Render it through **virtual H2 sections** derived from top-level fields. The Section Block wrapper from `render-shell.md` still applies: every virtual section gets a stable `id`, static `+ Note`, `Copy section`, and `View source` affordances. The source panel for each virtual section shows the pretty-printed JSON slice that produced it, or an explanatory empty slice marker such as `[]` / `null` when the field is absent.
+
+
+## Contents
+
+- Layout
+- Document Header
+- KPI Cells
+- Virtual Sections
+- Section Renderers
+- Where-to-Focus Inputs
+- Edge Cases
+- Example Use Cases
 
 
 ## Layout
@@ -112,7 +124,7 @@ Render `overview.summary` as prose, preserving paragraph breaks. Render `overvie
 
 Render one story card per `stories[]` entry, in source order. The top row carries ID, name, status, risk, phase/wave, parallel marker, and FIS presence. The body carries `scope`, `dependsOn`, `sourceRefs`, `assetRefs`, `provenance`, and `notes` when present. Missing FIS on a schedulable story gets `.attention`; `blocked` gets `.danger`; `done` gets `.safe`.
 
-Above the cards, emit a `.risk-map` row of chips grouped by status: blocked and missing-FIS chips use `.attention`, high-risk chips use `.medium`, done chips use `.safe`, everything else uses `.neutral`. Each chip links to the story card's H3 sub-anchor and uses the two-pass risk-map target check from `SKILL.md`.
+Above the cards, emit a `.risk-map` row of chips grouped by status: blocked and missing-FIS chips use `.attention`, high-risk chips use `.medium`, done chips use `.safe`, everything else uses `.neutral`. Each chip links to the story card's H3 sub-anchor and uses the two-pass risk-map target check from `render-shell.md`.
 
 ```html
 <article class="plan-story status-spec-ready risk-high" id="story-catalog-s02" data-anchor-parent="story-catalog">

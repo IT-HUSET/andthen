@@ -17,8 +17,8 @@ Apply these rules when evaluating findings:
 5. **Probe deeply, not broadly.** Don't just check that each item has a corresponding artifact. Verify that the artifact actually fulfills its purpose – that implementations work end-to-end, that specifications are actually implementable, that requirements are actually testable.
 6. **Do not dismiss findings you've already identified.** If your analysis found an issue, record it at the severity it deserves. The remediation plan can deprioritize it – your job is accurate identification, not triage.
 7. **No hedging language.** Don't soften findings with "could be an issue", "might cause problems", or "probably fine" – state the condition that fails and the impact if it does. Hedging is the verbal form of the leniency bias: it lets the reviewer mark a problem as a non-problem without writing down a falsifier.
-8. **Disclaimer-as-finding inside changed files.** "Did not touch pre-existing X" or "out of scope" applied to issues sitting *inside the files modified by the change set under review* are themselves findings, not disclaimers – flag them. Issues in unchanged files remain out of scope. Per-lens severity is set by the lens reference (default MEDIUM in code; HIGH for auth/injection/secret in security).
-9. **Severity is per-finding, not cumulative.** A group of five LOW issues is five LOW findings, not one HIGH – do not escalate a finding because many others sit near it. Aggregate volume informs the overall readiness verdict, never an individual finding's severity. (The over-escalation mirror of the rules above; both keep severity honest.)
+8. **Disclaimer-as-finding inside changed files.** "Did not touch pre-existing X" or "out of scope" applied to issues sitting *inside the files modified by the change set under review* are themselves findings, not disclaimers – flag them. Issues in unchanged files remain out of scope. Default to MEDIUM unless the lens reference sets a different severity.
+9. **Severity is per-finding, not cumulative.** A group of five LOW issues is five LOW findings, not one HIGH – do not escalate a finding because many others sit near it. Aggregate volume informs the overall readiness verdict, never an individual finding's severity.
 
 
 ## Over-Lenient Review Calibration
@@ -27,9 +27,9 @@ The most dangerous evaluator failure is identifying real issues then approving a
 
 **Over-lenient review that wrongly approved (annotated):**
 > Review of a checkout flow implementation. The reviewer found:
-> - "The `processOrder` handler doesn't validate the cart total against the server-calculated total before charging. Could be an issue." -> Severity: Medium
-> - "No rate limiting on the `/api/checkout` endpoint. Should probably add that." -> Severity: Low
-> - "The Stripe webhook handler uses `req.body` directly instead of the raw body for signature verification. Might cause issues." -> Severity: Medium
+> - "The `processOrder` handler doesn't validate the cart total against the server-calculated total before charging. Could be an issue." – Severity: Medium
+> - "No rate limiting on the `/api/checkout` endpoint. Should probably add that." – Severity: Low
+> - "The Stripe webhook handler uses `req.body` directly instead of the raw body for signature verification. Might cause issues." – Severity: Medium
 >
 > Reviewer conclusion: "Overall the implementation is solid. The checkout flow works correctly on the happy path. Three medium/low issues found – none are blockers. **PASS**."
 

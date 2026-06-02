@@ -1,6 +1,6 @@
 # Levels and Strategy – Where to Test, What to Cover
 
-Sources: Kent C. Dodds (*Testing Trophy*), Dave Farley (trust-boundary tests, feedback economics), Michael Feathers (seams), Martin Fowler (pyramid critique).
+Sources: Kent C. Dodds (*Testing Trophy*), Dave Farley (trust-boundary tests, feedback economics), Martin Fowler (pyramid critique).
 
 Home mode: `strategy`. Also load for `write` and `tdd` when picking a level.
 
@@ -20,7 +20,7 @@ Home mode: `strategy`. Also load for `write` and `tdd` when picking a level.
 
 ## Shape: Testing Trophy, not Pyramid
 
-The pyramid (massive unit, small integration, tiny E2E) made sense when integration tests were slow and brittle. Modern tooling (Testcontainers, Playwright, Vitest + MSW) has moved integration into the sweet spot.
+The pyramid (massive unit, small integration, tiny E2E) made sense when integration tests were slow and brittle. Modern tooling (Testcontainers, Playwright) moved integration into the sweet spot.
 
 ```
          ╱╲       E2E         (few)
@@ -90,4 +90,4 @@ Avoid "cover everything" – trains the team to ignore the suite. Avoid "cover o
 
 ## Handoff: persistent E2E suites
 
-This skill (`andthen:testing`) covers up to integration and handles *design* of an E2E suite. Running it interactively and discovering journeys lives with the `andthen:e2e-test` skill. Default to `andthen:testing` for strategy and authoring; hand off when the work shifts to live browser interaction.
+This skill (`andthen:testing`) covers up to integration and handles *design* of an E2E suite. Running it interactively and discovering journeys lives with the `andthen:e2e-test` skill. Default to the `andthen:testing` skill for strategy and authoring; hand off when the work shifts to live browser interaction.

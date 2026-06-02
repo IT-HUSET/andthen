@@ -6,6 +6,38 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.25.0] – 2026-05-30
+
+### Added
+- **Intent-fidelity guardrails** – FIS authoring, exec-spec validation, review routing, and ops now distinguish right-outcome / wrong-mechanism implementations from legitimate spec/design pivots.
+- **Restored the `research` agent** – Multi-source web/project research and synthesis for trade-off option investigation, competitive/landscape scans, and fact-checking. `architecture --mode trade-off` and `prd` delegate to it; ships to both Claude (plugin/user) and Codex tiers.
+
+### Changed
+- **Sub-agent model strategy: inherit the session model, vary only effort** – Review-council, `research`, and orchestrating skills inherit the session model and steer sub-agents by effort. The sole exception is `documentation-lookup`, which pins the cheap `haiku` tier alias (rot-free, quality-flat retrieval; Codex inherits). The model-effort guide and agent metadata reflect this inherit-plus-effort contract without version-pinned model names.
+- **The `andthen:review` skill's finding classes** – Findings now carry `code-defect`, `spec-stale`, `design-changed`, or `ambiguous-intent` before Fix/Note routing. Spec/design drift routes to spec amendment + ADR reconciliation instead of code remediation.
+- **The `andthen:exec-spec` skill's intent checks** – Mandatory fresh-context review now includes a gap pass against FIS Intent / Expected Outcomes, and Chain Attestation refuses outcomes delivered through a different mechanism than the Intent names.
+- **The `andthen:ui-ux-design` skill's wireframes browser tooling** – Visual validation now defers to the project's documented browser tooling (`CLAUDE.md` / `AGENTS.md`) instead of hardcoding a Playwright → Chrome DevTools MCP order; still falls back to `andthen:visual-validation` with a manual browser when no automation is available.
+
+### Fixed
+- **Requirements spec alignment** – Reconciled reverse-spec contracts for automation scope, plan and exec status semantics, GitHub issue workflows, review routing, E2E ownership, visual fallback artifacts, installer behavior, and ID-ledger handling.
+- **Quick implement automation flags** – `andthen:quick-implement` now documents and parses `--auto`, matching the shared automation surface.
+- **Installed-bundle reference wiring** – Skills now copy transitive shared references and rewrite nested/local reference links correctly, keeping Codex and Claude user-tier bundles self-contained.
+- **Remediation status update token** – `andthen:remediate-findings` now calls `andthen:ops update-plan` with lowercase `done`, matching the plan schema enum.
+- **The `andthen:review --mode doc --fix` routing gate** – Safe mechanical document/workflow-artifact findings can now route to Fix, while unresolved intent, design, and reconciliation decisions remain Note-only.
+- **The `andthen:ops` skill's `update-fis design-change` retry safety** – The design-change amendment form now no-ops on identical recent retries after the `New:` spans already landed, and validates all pairs before applying any replacement.
+- **Workflow validation and routing fixes** – Restored canonical `plan.json` formatting and nested-object validation, documentation-lookup naming, granular plan-issue bullet detection, final exec-plan lint/type gates, worktree teardown semantics, and architecture-review visualizer routing.
+- **Excalidraw style defaults** – `element-format.md` no longer contradicts the authoritative `style-guide.md` on default `roughness` (1, the signature hand-drawn look) or `fillStyle` (`solid`); the reference now defers instead of declaring conflicting defaults.
+
+### Internal
+- **Skill and reference prompt cleanup** – Collapsed multi-altitude restatement across every skill body and skill-local reference (one canonical statement per rule, with named pointers from GOTCHAS/recap sections), de-duplicated prose, normalized en-dashes and the `GOTCHAS` heading, disambiguated skill-noun wording, and kept tables of contents on long references. Renamed shared canonical `adversarial-challenge.md` → `findings-filter-templates.md`.
+- **The `andthen:visualize` skill's progressive disclosure** – Extracted the shared render chrome (theme, layout, section-block contract, component CSS, JS layer) into `templates/render-shell.md`, cutting `SKILL.md` from ~860 to ~280 lines; added tables of contents to the visualize templates.
+
+### Documentation
+- **README overhaul** – Rewrote the root `README.md` as a shorter first-time-user overview (clearer workflow paths, explicit `architecture --mode trade-off` pre-work, corrected `clarify` → `prd` pipeline framing); moved installer/bundling detail into `plugin/README.md` and tightened both skill tables to match actual skill modes and flags.
+
+
+---
+
 ## [0.24.0] – 2026-05-30
 
 ### Added
@@ -257,7 +289,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`andthen:plan` consumer claim for `fis-template.md` / `prd-template.md`** – both rows in the CLAUDE.md "Shared Plugin Assets" table and the `_skill_assets_plan` map listed `plan` as a consumer, but after the trim the `andthen:plan` skill delegates FIS authoring to the `andthen:spec` sub-agent and PRD synthesis to the `andthen:prd` skill – no direct reference remains. Both rows now correctly reflect single-skill consumption (`spec` / `prd` only).
 - **`andthen:now-what` Phase 1 detection coverage** – extended the in-flow signal row to also check `requirements-clarification.md`, the most recent architecture-report, the most recent triage-report, and ui-ux-design outputs. Phase 4 previously routed on these without Phase 1 looking for them, mis-classifying mid-flow users as "no work in progress."
 - **`andthen:now-what` Phase 4 routing coverage** – added rows for triage / architecture / strategic-design / trade-off / ui-ux-design mid-flow states so users with any of those reports get routed instead of silently treated as fresh starts.
-- **`andthen:now-what` `--auto` / `--headless` contract** – explicit instruction added: skip interactive prompts, emit `BLOCKED: now-what cannot route headlessly without an idea or unambiguous mid-flow state` when the route is ambiguous and the user has not provided one.
+- **`andthen:now-what` `--auto` contract** – explicit instruction added: skip interactive prompts, emit `BLOCKED: now-what cannot route headlessly without an idea or unambiguous mid-flow state` when the route is ambiguous and the user has not provided one.
 - **`andthen:visualize` anchor scheme** – documented the `data-anchor-parent` attribute used by the trade-off template's per-option H3 cards (purely a CSS/DOM hook; only H2 sections carry `data-anchor` and a Note affordance).
 - **`andthen:visualize` `notesDirty` on restore** – accepting a "Restore previous notes?" prompt now sets `notesDirty = true`, so closing the tab without a fresh clipboard copy re-arms the `beforeunload` warning. Restored notes were never copied to clipboard *in this tab*; treating them as already-saved was a data-loss footgun.
 - **`andthen:visualize` output path resolution** – `.agent_temp/visualize/<slug>-<ts>.html` now resolves against `git rev-parse --show-toplevel` when inside a git working tree (falling back to CWD outside one), matching the convention other AndThen skills use for `.agent_temp/`. Previously CWD-relative, which surprised users invoking from subdirectories.
@@ -354,7 +386,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ## [0.15.3] – 2026-04-28
 
 ### Added
-- **`--auto` / `--headless` flag on `andthen:refactor`** – the skill opts into the shared automation-mode contract so headless callers can drive it without conversational prompts. Phase 2's confirmation pause becomes a conservative auto-subset (deferred items recorded), Phase 1's no-arguments and red-baseline branches gain `AUTO_MODE` `BLOCKED:` behavior, and Phase 4 emits a deterministic `STATUS` / `FILES_CHANGED` / `VERIFY` / `DEFERRED` completion block.
+- **`--auto` flag on `andthen:refactor`** – the skill opts into the shared automation-mode contract so headless callers can drive it without conversational prompts. Phase 2's confirmation pause becomes a conservative auto-subset (deferred items recorded), Phase 1's no-arguments and red-baseline branches gain `AUTO_MODE` `BLOCKED:` behavior, and Phase 4 emits a deterministic `STATUS` / `FILES_CHANGED` / `VERIFY` / `DEFERRED` completion block.
 
 ### Changed
 - **`andthen:spec` oversize handling softened from hard block to structured signal** – the Step 4.5 *Oversize Escalation* gate (which stopped, refused to save the FIS, and emitted `BLOCKED:` in `AUTO_MODE` when the draft exceeded size thresholds) is replaced by an always-on `OVERSIZE: {fis_path} – {N} lines, {T} tasks. Recommendation: …` line emitted as part of the artifact output in both interactive and `AUTO_MODE` (so headless callers do not lose the signal that the prior `BLOCKED:` carried). The drafted FIS always saves; recommendation routes by input shape – `/andthen:prd → /andthen:plan → /andthen:exec-plan` for standalone, upstream plan decomposition for plan-story. `andthen:plan` batch sub-agents echo the `OVERSIZE:` line back so the plan orchestrator's Step 3 size signal stays wired (the regeneration pass discards the oversized FIS). Canonical rule in `fis-authoring-guidelines.md` #6, plus its Self-Check size-check item and Confidence Check `<7 AND oversized` branch, all reworded to match the new save-and-signal contract.
@@ -449,7 +481,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ## [0.14.2] – 2026-04-24
 
 ### Added
-- **`--auto` / `--headless` for core pipeline and supporting skills** – `prd`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`, `architecture`, `ui-ux-design`, and `triage` now expose an automation-safe mode for external orchestrators. In this mode skills avoid conversational prompts and arrow-prompts, make conservative assumptions, record deferred decisions in artifacts or summaries, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt – deterministic), and stop with `BLOCKED:` only on contract failures or unsafe actions.
+- **`--auto` for core pipeline and supporting skills** – `prd`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`, `architecture`, `ui-ux-design`, and `triage` now expose an automation-safe mode for external orchestrators. In this mode skills avoid conversational prompts and arrow-prompts, make conservative assumptions, record deferred decisions in artifacts or summaries, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt – deterministic), and stop with `BLOCKED:` only on contract failures or unsafe actions.
 
 
 ---

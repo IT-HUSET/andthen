@@ -47,12 +47,7 @@ ISP applied at the package level. A package is a dependency unit – every class
 
 ### The Tension Triangle
 
-REP, CCP, and CRP pull in different directions:
-- **CCP** groups by change-reason (maximizes closure)
-- **CRP** groups by reuse-pattern (minimizes unnecessary coupling)
-- **REP** groups by release-unit (aligns reuse with versioning)
-
-A package cannot maximize all three simultaneously. Early in development, prioritize CCP. As consumer diversity grows, shift toward CRP.
+REP (release-unit), CCP (change-reason), and CRP (reuse-pattern) pull in different directions: a package cannot maximize all three simultaneously. Early in development, prioritize CCP. As consumer diversity grows, shift toward CRP.
 
 ---
 

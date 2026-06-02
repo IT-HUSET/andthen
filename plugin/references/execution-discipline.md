@@ -1,6 +1,6 @@
 # Execution Discipline
 
-Universal red-gate rules for skills that execute work (`andthen:exec-spec`, `andthen:exec-plan`, and any future executor).
+Universal red-gate rules for skills that execute work (the `andthen:exec-spec` and `andthen:exec-plan` skills, and any future executor).
 
 
 ## Stop-the-Line

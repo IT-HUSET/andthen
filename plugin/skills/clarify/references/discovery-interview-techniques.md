@@ -15,8 +15,7 @@ Use this when discovery answers are vague, contradictory, overly solution-driven
 ### The Five Whys
 Use when the user states a solution instead of the real problem.
 
-Goal:
-- move from requested feature to underlying need
+Goal: move from requested feature to underlying need.
 
 Prompt shape:
 - Why is this needed?

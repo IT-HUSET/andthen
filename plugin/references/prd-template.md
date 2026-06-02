@@ -3,6 +3,7 @@
 > Use this template as the baseline shape for `prd.md`.
 > Keep the required sections. Adapt optional subsections to the project, but do not collapse functional requirements into vague prose.
 > Focus on what must be true for users and the business. Put implementation-level architecture details in companion research, not in the PRD.
+> **Sections**: Executive Summary · Problem Definition · Scope · Functional Requirements · Non-Functional Requirements · Edge Cases · Constraints & Assumptions · Decisions Log
 
 
 # Product Requirements Document: [Project Name]

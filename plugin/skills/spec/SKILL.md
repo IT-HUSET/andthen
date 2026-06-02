@@ -1,12 +1,12 @@
 ---
 description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Produces an execution-sized FIS; if the draft exceeds size thresholds, saves it anyway and warns – recommending the `andthen:prd → andthen:plan → andthen:exec-plan` chain for standalone inputs, or upstream plan decomposition for plan-story inputs. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
-argument-hint: "[--visual] [--auto|--headless] <description | @<requirements-file> | story <story-id> of <path-to-plan.json>>"
+argument-hint: "[--visual] [--auto] <description | @<requirements-file> | story <story-id> of <path-to-plan.json>>"
 ---
 
 # Generate Feature Implementation Specification
 
 
-Generate an execution-sized Feature Implementation Specification (FIS) from a feature request. One spec → one FIS. Oversized features emit an `OVERSIZE:` signal and redirect: standalone inputs → the `andthen:prd → andthen:plan → andthen:exec-plan` chain (the `andthen:plan` skill is the sole writer of `plan.json`); plan-story inputs → upstream plan decomposition before regenerating.
+Generate an execution-sized Feature Implementation Specification (FIS) from a feature request. One spec → one FIS. Oversized features emit an `OVERSIZE:` signal and redirect (see OUTPUT § Oversize signal); the `andthen:plan` skill is the sole writer of `plan.json`.
 
 
 ## VARIABLES
@@ -15,23 +15,23 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--he
 
 ### Optional Flags
 - `--visual` → VISUAL_MODE: after the FIS is saved (and any plan-status updates land), invoke the `andthen:visualize` skill on the produced FIS. The visualizer owns HTML rendering, note export, browser-open behavior, and `.agent_temp/visual-review/` output.
-- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
+- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - Require `ARGUMENTS`. Stop if missing.
 - **Spec generation only** – no code changes, commits, or modifications.
 - The executor only gets the context you provide – include all needed documentation, examples, and references.
 - Read the `Learnings` document (see **Project Document Index**) before starting, if it exists.
-- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Spec-specific `BLOCKED:` triggers: missing input, unreadable sources, incompatible artifacts, ambiguity where no defensible FIS can be written.
+- **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Spec-specific `BLOCKED:` triggers: missing input, unreadable sources, incompatible artifacts, ambiguity where no defensible FIS can be written.
 - **Visual review is a post-save handoff.** Run only when `--visual` is present (same in `AUTO_MODE`). Complete the normal FIS save (and any plan-status updates for plan-story inputs) first, then invoke the `andthen:visualize` skill on the produced FIS.
 
 
 ## GOTCHAS
 
-**Specifying before orienting** – the quick codebase scan in Step 1 must precede specification (Step 5). Deep file-pattern exploration waits for `exec-spec`.
+**Specifying before orienting** – the quick codebase scan in Step 1 must precede specification (Step 5). Deep file-pattern exploration waits for the `andthen:exec-spec` skill.
 
 **Scenarios before intent** – Step 3 (Intent + Expected Outcomes) must precede Step 4 (Acceptance Scenarios). Without outcomes named first, scenarios drift into implementation paths rather than success conditions.
 
@@ -43,7 +43,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--he
 
 **Scenarios that describe implementation, not behavior** – Given/When/Then describes observable outcomes, not internal code steps. Bad: "Given a new AuthService class, When login() is called...". Good: "Given valid credentials, When the user submits login, Then a session token is returned."
 
-**Over-researching** – do not redo what `clarify`, `prd`, `architecture`, or `ui-ux-design` already produced upstream. This skill identifies needed upstream inputs and inlines load-bearing spans into Required Context – it is not a new research pass. External API/library lookups are `exec-spec`'s job. A 30-line minimal FIS is fine; a spec that reads like a diff is too detailed. Size threshold and oversize handling: see *Key Generation Guidelines #7* in [the authoring guidelines](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) (referenced below as *The Authoring Guidelines*).
+**Over-researching** – this skill inlines load-bearing upstream spans into Required Context; it is not a new research pass (Step 2 owns the do-not-invoke-sub-agents rule; the `andthen:exec-spec` skill owns API/library lookup). A 30-line minimal FIS is fine; a spec that reads like a diff is too detailed. Size threshold and oversize handling: see *Key Generation Guidelines #7* in [the authoring guidelines](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) (referenced below as *The Authoring Guidelines*).
 
 **Generic "What We're NOT Doing"** – record real non-goals or deferrals with reasons, not filler.
 
@@ -52,7 +52,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--he
 
 ### 0. Parse Input & Get Requirements
 
-**ARGUMENTS is a directory with `requirements-clarification.md`** (from the `andthen:clarify` skill): read it; use clarified scope, functional requirements, edge cases, acceptance outcomes, design decisions, wireframes, and explicit non-goals/deferrals as the feature request. Skip or reduce research phases – clarify already did discovery. Only do codebase research and any external/API research the requirements reference but haven't investigated.
+**ARGUMENTS is a directory with `requirements-clarification.md`** (from the `andthen:clarify` skill): read it; use clarified scope, functional requirements, edge cases, acceptance outcomes, design decisions, wireframes, and explicit non-goals/deferrals as the feature request. Skip or reduce research phases – the `andthen:clarify` skill already did discovery. Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
 **ARGUMENTS match `story {story_id} of {path}` AND `path`'s basename matches `plan.*` but is not `plan.json`** (e.g. `plan.md`, `plan.yaml`): stop with `BLOCKED: only plan.json is consumed; got "{basename}". If you have a legacy plan.md, run /andthen:plan {dirname(path)} to migrate (existing FIS files are preserved), then retry: /andthen:spec story {story_id} of {dirname(path)}/plan.json`. Same in `AUTO_MODE`. Do not fall through to the file-reference branch – that would silently treat the path as a free-form description.
 
@@ -72,11 +72,9 @@ Walk the references the FIS will need (`Product`, PRD, plan, ADRs, `Decisions`, 
 
 Contradictions between the feature request and a row in `DECISIONS.md` surface in the FIS Constraints/Context section as `NOTICED:` observations, not Stop-the-Line – `DECISIONS.md` is a registry, not a gate, and the user owns reconciliation.
 
-If an obviously-needed input is missing (e.g. FIS needs an architectural trade-off and no ADR exists, or UI work and no wireframe), surface as `MISSING REQUIREMENT:` (interactive) or `BLOCKED:` (`AUTO_MODE`) with a redirect to the upstream skill (`andthen:architecture --mode trade-off`, `andthen:ui-ux-design --mode wireframes`, etc.). Keep this check **light** – flag obvious gaps only.
+If an obviously-needed input is missing (e.g. FIS needs an architectural trade-off and no ADR exists, or UI work and no wireframe), surface as `MISSING REQUIREMENT:` (interactive) or `BLOCKED:` (`AUTO_MODE`) with a redirect to the upstream skill (`andthen:architecture --mode trade-off`, `andthen:ui-ux-design --mode wireframes`, etc.). Keep this check **light** – flag obvious gaps only. Stop for ambiguity only when it blocks a defensible specification; return the minimum missing decisions rather than pausing for routine clarification.
 
-Do **not** invoke architecture / UI / documentation-lookup sub-agents from spec. Architecture and UX are upstream (`andthen:clarify` → `andthen:architecture` → `andthen:ui-ux-design` → `andthen:prd` → `andthen:plan` → `andthen:spec` → `andthen:exec-spec`); ad-hoc API/library lookups are exec-spec's job.
-
-Stop for ambiguity only when it blocks a defensible specification – return the minimum missing decisions rather than pausing for routine clarification.
+Do **not** invoke architecture / UI / documentation-lookup sub-agents from spec. Architecture and UX are upstream (`andthen:clarify` → `andthen:architecture` → `andthen:ui-ux-design` → `andthen:prd` → `andthen:plan` → `andthen:spec` → `andthen:exec-spec`); ad-hoc API/library lookups are the `andthen:exec-spec` skill's job.
 
 
 ### 3. Articulate Intent and Expected Outcomes
@@ -128,8 +126,6 @@ Canonical shape:
 - Always-present sections with a "**Leave empty** when…" prompt (`## Technical Overview`, `### Testing Strategy`, `### Validation`, `### Execution Contract`, `## Final Validation Checklist`) stay empty in the typical case – fill only when the prompt's named condition applies. Resist auto-filling; empty is the default.
 - `## Required Context` and `## Deeper Context` are content-conditional omits per the template's "**Omit this entire section**" prompts.
 
-> **Optional**: Invoke the `andthen:review --mode doc` skill for thorough validation (recommended for large/complex features).
-
 
 ## OUTPUT
 
@@ -170,7 +166,7 @@ After the FIS is saved, suggest:
 
 > **Session tip**: The `andthen:exec-spec` skill is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
 
-If the `OVERSIZE:` signal fired, expand the recommendation conversationally: standalone inputs should switch to the `andthen:prd → andthen:plan → andthen:exec-plan` chain; plan-story inputs need upstream plan decomposition before regenerating.
+If the `OVERSIZE:` signal fired, expand the OUTPUT recommendation conversationally.
 
 
 ---

@@ -38,6 +38,7 @@ Agents live in `plugin/agents/*.md`. These markdown files are the source of trut
 Current agent families:
 
 - `documentation-lookup` – documentation retrieval specialist.
+- `research` – web and project research specialist (multi-source synthesis and verification); consumed by `architecture --mode trade-off` and `prd`.
 - `review-*` – review council persona agents. They are deliberately review-scoped, not a broad agent zoo: Critic, Devil's Advocate, Synthesis Challenger, and a small set of specialist reviewers.
 
 Install targets:
@@ -58,7 +59,7 @@ Claude markdown remains canonical because it maps directly to custom sub-agent p
 
 Skills are fully self-contained: each skill owns its `references/`, `templates/`, and `scripts/` locally. Skill files never reach into sibling skills (no `../<other-skill>/...` paths).
 
-Content shared by ≥2 skills lives at `plugin/references/` and is consumed via `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` – see **Shared Plugin Assets** below. `install-skills.sh` inlines each canonical into every consuming skill at install time, so installed bundles stay self-contained.
+Reusable canonical content lives at `plugin/references/` and is consumed via `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` – see **Shared Plugin Assets** below. Most canonicals are shared by multiple skills; a few single-consumer templates live there because they are install-inlined the same way. `install-skills.sh` inlines each canonical into every consuming skill at install time, so installed bundles stay self-contained.
 
 **Forking shared content** – when a consumer genuinely needs a divergent version, fork explicitly: copy the canonical into the skill's local `references/` under a distinct name (e.g. `triage-trust-boundaries.md` as a triage-only fork of `trust-boundaries.md`) and point that skill's references at the local copy. Don't preemptively duplicate – fork on demand, not by default.
 
@@ -68,27 +69,27 @@ Content shared by ≥2 skills lives at `plugin/references/` and is consumed via 
 
 ## Shared Plugin Assets
 
-The 20 shared assets live at `plugin/references/` – a single canonical location consumed by multiple skills.
+The 20 canonical assets live at `plugin/references/` – a single canonical location for install-inlined reference content.
 
 | Asset | Consumed by |
 |---|---|
-| `adversarial-challenge.md` | review, architecture |
-| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, simplify-code, refactor, remediate-findings |
+| `findings-filter-templates.md` | review, architecture |
+| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings |
 | `critic-calibration.md` | review, quick-review |
-| `data-contract.md` | ops, plan, spec, exec-spec, exec-plan, review |
+| `data-contract.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage |
 | `design-tree.md` | clarify, architecture |
-| `execution-discipline.md` | exec-spec, exec-plan |
+| `execution-discipline.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings |
 | `execution-named-blocks.md` | spec, exec-spec, quick-implement, triage |
 | `farley-framework.md` | architecture, testing |
-| `fis-authoring-guidelines.md` | spec, plan, review |
+| `fis-authoring-guidelines.md` | spec, plan, review, ops |
 | `fis-template.md` | spec |
 | `github-publish.md` | clarify, prd, triage, exec-spec, exec-plan, plan |
 | `intent-and-rules-context.md` | review, quick-review, remediate-findings, simplify-code |
 | `lens-adversarial.md` | review, quick-review |
-| `plan-issue-shape.md` | plan, exec-plan |
-| `plan-schema.md` | plan, exec-plan, ops, review |
+| `plan-issue-shape.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage |
+| `plan-schema.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage |
 | `prd-template.md` | prd |
-| `project-state-templates.md` | init, map-codebase, ops (cross-reference only – ops inlines the shape it needs) |
+| `project-state-templates.md` | init, map-codebase, ops, architecture |
 | `review-calibration.md` | review, quick-review, architecture |
 | `review-report-location.md` | review, architecture |
 | `trust-boundaries.md` | review, e2e-test, triage |
@@ -101,7 +102,7 @@ The 20 shared assets live at `plugin/references/` – a single canonical locatio
 
 Two patterns, distinct purposes:
 
-- `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` – for the **shared canonicals** at `plugin/references/`. The asset lives at plugin root, not inside a specific skill. `install-skills.sh` inlines the canonical into each consuming skill's local `references/` and rewrites the path to skill-root-relative form (Codex / `--claude-user`); Plugin tier resolves `${CLAUDE_PLUGIN_ROOT}` at runtime. In markdown links, put the bare filename in the link text and the full token in the URL – `` [`<asset>.md`](${CLAUDE_PLUGIN_ROOT}/references/<asset>.md) `` – so the rendered link text stays stable across install tiers; the URL is what `install-skills.sh` rewrites.
+- `${CLAUDE_PLUGIN_ROOT}/references/<asset>.md` – for the **shared canonicals** at `plugin/references/`. The asset lives at plugin root, not inside a specific skill. `install-skills.sh` inlines the canonical into each consuming skill's local `references/` and rewrites the URL to a local-relative form that resolves from the installed markdown file's location (Codex / `--claude-user`); Plugin tier resolves `${CLAUDE_PLUGIN_ROOT}` at runtime. In markdown links, put the bare filename in the link text and the full token in the URL – `` [`<asset>.md`](${CLAUDE_PLUGIN_ROOT}/references/<asset>.md) `` – so the rendered link text stays stable across install tiers; the URL is what `install-skills.sh` rewrites.
 - `${CLAUDE_SKILL_DIR}/<rest>` – **required for bash invocations of skill-bundled scripts**, where the agent's cwd is not guaranteed. Use for any bash invocation of a bundled script (e.g. `bash ${CLAUDE_SKILL_DIR}/scripts/teardown-worktrees.sh`); avoid `../scripts/foo.sh`. **Markdown links and prose references** to bundled files (`templates/`, `scripts/`, non-canonical `references/`) may use bare-relative paths – they're read as documentation, not executed. Bash invocations are the only context where `${CLAUDE_SKILL_DIR}` is mandatory.
 
 Both forms require the strict braces in their contexts (canonicals always; `${CLAUDE_SKILL_DIR}` in bash invocations); bare `$CLAUDE_PLUGIN_ROOT` and `$CLAUDE_SKILL_DIR` are rejected by `install-skills.sh`.

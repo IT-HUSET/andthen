@@ -1,10 +1,12 @@
 # Architecture – Advise Mode
 
-Design or refactor guidance for architectural questions, greenfield systems, service boundaries, bounded contexts, and pattern selection. Covers both **Design** (creating new architectures, making significant decisions) and **Advisory** (answering questions, mentoring refactors).
-
-Optimize for sound decisions, clear boundaries, and guidance a team can implement and operate.
+Guidance for architectural questions, greenfield systems, service boundaries, bounded contexts, and pattern selection. Two sub-modes: **Design** (new architectures, significant decisions) and **Advisory** (questions, refactors, mentoring).
 
 **Supporting references** (load on demand based on the question): `anti-patterns.md`, `package-principles.md`, `connascence.md`, `fitness-functions.md`, `decomposition.md`, `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md`, `ousterhout-modules.md` (for in-process module, class, and API design questions), `ddd.md` (for bounded contexts, aggregates, domain events, Event Storming, and Hexagonal/CQRS/Event Sourcing in a DDD setting).
+
+## Contents
+
+Decision-Making Process · Operating Sub-Modes · Every Recommendation Must · CUPID Assessment Lens · Domain-Driven Design · Ousterhout Module-Design Lens · Codebase Analysis Approach · ADR Template · Report Contents
 
 ## Decision-Making Process
 
@@ -53,15 +55,7 @@ Use CUPID (https://cupid.dev/) as an assessment lens, not a pass/fail checklist.
 | **I**diomatic | Does it follow established patterns? | Convention, team fit, cognitive load |
 | **D**omain-based | Does structure reflect business domains? | Boundaries, language, business alignment |
 
-Rate each property 1-5 with concrete observations when doing a CUPID assessment:
-
-- Composable: _/5 – dependencies, coupling, reusability
-- Unix Philosophy: _/5 – single responsibility, scope, granularity
-- Predictable: _/5 – consistency, failure modes, operational clarity
-- Idiomatic: _/5 – convention adherence, team fit, cognitive load
-- Domain-based: _/5 – business alignment, domain expression, ubiquitous language
-
-Use CUPID to compare options, identify weak properties, give the team shared vocabulary, and target refactoring.
+When doing a CUPID assessment, rate each property 1-5 with concrete observations (the table's Focus column names each property's dimensions). Use CUPID to compare options, identify weak properties, give the team shared vocabulary, and target refactoring.
 
 ## Domain-Driven Design
 
@@ -85,22 +79,7 @@ Use DDD to sharpen boundaries and create shared language between business and en
 
 ## Ousterhout Module-Design Lens
 
-For questions about **in-process** module, class, or public-API design (not service boundaries), load `ousterhout-modules.md` and apply its heuristics alongside CUPID and DDD:
-
-- **Deep vs. shallow modules** – prefer a small interface over a powerful implementation; beware "classitis" (many trivial modules each with near-equivalent interface and implementation complexity).
-- **Information leakage** – each non-trivial design decision (format, protocol, data layout, algorithm) should be reflected in exactly one interface.
-- **Different layer, different abstraction** – a layer that only forwards calls with the same parameters is not earning its existence.
-- **Pull complexity downward** – when complexity must live somewhere, keep it in the implementation; a simpler interface is worth a more complex implementation.
-- **Define errors out of existence** – prefer abstractions that make error cases disappear over abstractions that require handling them, when the "no-op" case is legitimate state (not a masked fault).
-- **Design it twice** – for any non-trivial new API, require a genuinely different alternative considered and rejected with reason.
-
-**Reconciling with CUPID Unix Philosophy**: "prefer fewer, deeper modules" does not contradict "do one thing well." Unix Philosophy is about focused *scope*, not small *size* – `grep` does one thing and is a deep module. Use CUPID to check whether the module has a single coherent purpose; use Ousterhout to check whether its interface is simpler than its implementation. Both must hold.
-
-**Boundary with Speculative Generality**: Ousterhout's "general-purpose interfaces" means *slightly* more general than one caller, not speculative. When only one consumer exists and no second is visible, the Speculative Generality anti-pattern (`anti-patterns.md`) wins.
-
-This lens is **complementary** to CUPID and DDD, not a replacement: apply it to within-service design, not to service decomposition. For altitude and limits, see `ousterhout-modules.md`.
-
-Common anti-patterns: see [`anti-patterns.md`](anti-patterns.md) for the full catalog of anti-patterns to detect during advisory work.
+For **in-process** module, class, or public-API design (not service boundaries), load `ousterhout-modules.md` and apply it alongside CUPID and DDD. It covers deep-vs-shallow modules, information leakage, pass-through layers, pull-complexity-down, define-errors-out, and design-it-twice, plus how the lens reconciles with CUPID Unix Philosophy and the Speculative Generality boundary, and its altitude and limits. This lens is **complementary** to CUPID and DDD, not a replacement: apply it to within-service design, not to service decomposition.
 
 ## Codebase Analysis Approach
 

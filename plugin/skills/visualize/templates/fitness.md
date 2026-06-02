@@ -5,6 +5,16 @@ Use when the source is an architecture **fitness-functions** report from the `an
 Fitness reports propose automated architectural-governance checks across the **4-level governance stack** (commit / PR / nightly / production). The visualization optimizes for "which checks live where, and which ADR gaps drive them".
 
 
+## Contents
+
+- Layout
+- KPI Cells
+- Section Renderers
+- Where-to-Focus Inputs
+- Edge Cases
+- Example Use Cases
+
+
 ## Layout
 
 ```

@@ -1,6 +1,6 @@
 # Architecture Anti-Patterns Catalog
 
-Common structural anti-patterns to check for during architecture review. Each entry includes symptoms, root cause, and remediation.
+Common structural anti-patterns to check for during architecture review.
 
 ---
 

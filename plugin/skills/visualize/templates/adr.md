@@ -1,6 +1,6 @@
 # ADR Template
 
-Architecture Decision Record. Detection per SKILL.md: H1 matches `/^ADR[-\s]?\d/` (e.g. `ADR-011:`, `ADR 11:`, `ADR011:`); or H2 set contains `Decision` + (`Consequences` or `Alternatives Considered`). Renderers reuse `templates/tradeoff.md` (`.option` cards, `.recommendation` accent box) — see that file for the shared CSS. This template documents only ADR-specific deltas: inline-metadata parsing, status semantics, KPI cells, and the `## Consequences` three-bucket layout.
+Architecture Decision Record. Detection per SKILL.md: H1 matches `/^ADR[-\s]?\d/` (e.g. `ADR-011:`, `ADR 11:`, `ADR011:`); or H2 set contains `Decision` + (`Consequences` or `Alternatives Considered`). Renderers reuse `tradeoff.md` (`.option` cards, `.recommendation` accent box) — see that file for the shared CSS. This template documents only ADR-specific deltas: inline-metadata parsing, status semantics, KPI cells, and the `## Consequences` three-bucket layout.
 
 
 ## Inline metadata (prologue only)
@@ -14,14 +14,14 @@ ADRs declare metadata as bold-key inline pairs in the **prologue** – the sourc
 **Related:** [ADR-012](...), [Research note](...)
 ```
 
-The emitter consumes these lines into `.doc-header` (SKILL.md *Document header* contract) and marks the source span as consumed so Generic Prose fallback skips them.
+The emitter consumes these lines into `.doc-header` (render-shell.md *Document header* contract) and marks the source span as consumed so Generic Prose fallback skips them.
 
 - `**Status:**` → drives the status pill class via the kebab table below; also feeds KPI Cell 1.
 - `**Date:**` → `updated` meta-pill value.
 - `**Deciders:**` → extra `.meta-pill` with `k="deciders"`.
 - `**Related:**` → preserved as anchor-bearing markdown inside `.doc-meta-related` (clickable links, not flattened); comma-separated entry count feeds KPI Cell 4.
 
-**Status kebab mapping** (reuses pill classes defined in SKILL.md *Document header*, including `status-deprecated`):
+**Status kebab mapping** (reuses pill classes defined in render-shell.md *Document header*, including `status-deprecated`):
 
 | Status value | CSS class | Color |
 |---|---|---|
@@ -31,7 +31,7 @@ The emitter consumes these lines into `.doc-header` (SKILL.md *Document header* 
 | Deprecated / Rejected | `status-deprecated` | danger (red) |
 | anything else | unmatched → plain `.meta-pill` (no `.filled`) | neutral |
 
-All five classes ship in SKILL.md's base style block – no conditional CSS injection needed when emitting an ADR.
+All five classes ship in render-shell.md's base style block – no conditional CSS injection needed when emitting an ADR.
 
 
 ## KPI cells
@@ -56,7 +56,7 @@ Auto-`.attention`: cell 1 when Status starts with `deprecated`, `rejected`, or `
 | Consequences | **Three-bucket layout** when H3s match `/^(positive|negative|neutral|trade.?offs?)/i` (covers `Positive`, `Negative`, `Neutral`, `Trade-off`, `Tradeoff`, `Trade-offs`, `Tradeoffs`); else Generic Prose with semantically colored H3 |
 | (anything else) | Generic Prose |
 
-`<details class="analysis">` collapse, Light TL;DR callout, and the per-section affordances apply unchanged per their SKILL.md contracts.
+`<details class="analysis">` collapse, Light TL;DR callout, and the per-section affordances apply unchanged per their render-shell.md contracts.
 
 
 ## `## Consequences` three-bucket layout

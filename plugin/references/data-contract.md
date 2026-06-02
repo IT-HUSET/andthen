@@ -1,12 +1,12 @@
 # Plan/FIS Data Contract
 
-**Single canonical source** for the FIS data contract and the markdown shape used in GitHub plan-issue bodies. The local plan format lives in [`plan-schema.md`](plan-schema.md); this document defers there for `plan.json` shapes and covers the markdown table only as GitHub transport.
+**Single canonical source** for the FIS data contract and the markdown shape used in GitHub plan-issue bodies. The local plan format lives in [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md); this document defers there for `plan.json` shapes and covers the markdown table only as GitHub transport.
 
 > Skills that reference this document: `ops`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`.
 
 ## Contents
 
-- FIS Mutability Contract – read-only execution input + sanctioned write paths via `andthen:ops`
+- FIS Mutability Contract – read-only execution input + sanctioned write paths via the `andthen:ops` skill
 - Plan Schema – pointer to `plan-schema.md`
 - Plan Issue Catalog (markdown) – column-to-JSON-field mapping for `--to-issue` / `--from-issue`
 - FIS-Unset Sentinel (markdown only) – regex for `FIS` cell `null` rendering
@@ -16,16 +16,18 @@
 
 ## FIS Mutability Contract
 
-All FIS spec content – every H2 from `## Feature Overview and Goal` through `## Final Validation Checklist` – is read-only input to `andthen:exec-spec` during execution. Sections that ship empty in the typical case (Technical Overview, Testing Strategy, Validation, Execution Contract, Final Validation Checklist) are still read; empty body means "standard handling applies" per the section's own prompt. Required/Deeper Context are content-conditional: inlined when upstream sources exist, omitted otherwise.
+All FIS spec content – every H2 from `## Feature Overview and Goal` through `## Final Validation Checklist` – is read-only input to the `andthen:exec-spec` skill during execution. Sections that ship empty in the typical case (Technical Overview, Testing Strategy, Validation, Execution Contract, Final Validation Checklist) are still read; empty body means "standard handling applies" per the section's own prompt. Required/Deeper Context are content-conditional: inlined when upstream sources exist, omitted otherwise.
 
-The FIS itself is mutable only through `andthen:ops`'s `update-fis <path> <task_id|all>`, `update-fis <path> observations <markdown-body>`, and `update-fis <path> discovered-requirements <markdown-body>` forms. No other write path is sanctioned.
+The FIS itself is mutable only through the `andthen:ops` skill's `update-fis <path> <task_id|all>`, `update-fis <path> observations <markdown-body>`, `update-fis <path> discovered-requirements <markdown-body>`, and `update-fis <path> design-change <markdown-body>` forms. No other write path is sanctioned.
 
 Discovered Requirements is the single sanctioned append-only channel for FIS-augmenting requirement discoveries during execution. Append the requirement before writing the test or code that depends on it.
+
+Design-change amendment is a separate sanctioned mutation path for legitimate pivots where the implemented approach should differ from the FIS Intent or scenario text. It requires an ADR or explicit ADR-creation action, exact old/new amendment text, and re-attestation after the change lands. Do not use this path for missing requirements (use the append-only Discovered Requirements channel above).
 
 
 ## Plan Schema
 
-Local plans are JSON. Canonical schema at [`plan-schema.md`](plan-schema.md): top-level fields, `stories[]` shape, status enum, writability, file-location. Not restated here.
+Local plans are JSON. Canonical schema at [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md): top-level fields, `stories[]` shape, status enum, writability, file-location. Not restated here.
 
 
 ## Plan Issue Catalog (markdown)
@@ -62,12 +64,12 @@ The 1:1 story↔FIS invariant and the `dependsOn` machine-readable contract appl
 In the markdown issue catalog, a `FIS` cell matching this regex renders JSON `null`:
 
 ```
-^\s*(-|–|–|TBD|N/A)?\s*$
+^\s*(-|–|—|TBD|N/A)?\s*$
 ```
 
 (case-insensitive on `TBD` / `N/A`; applied to normalized cell text)
 
-Covers: ASCII hyphen `-` (U+002D), en-dash `–` (U+2013), em-dash `–` (U+2014, defensive for rich-text paste), `TBD`, `N/A`, empty, whitespace. JSON uses `null` directly – the sentinel is markdown-parse only.
+Covers: ASCII hyphen `-` (U+002D), en-dash `–` (U+2013), em-dash `—` (U+2014, defensive for rich-text paste), `TBD`, `N/A`, empty, whitespace. JSON uses `null` directly – the sentinel is markdown-parse only.
 
 
 ## FIS Filename Convention

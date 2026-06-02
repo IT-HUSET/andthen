@@ -1,11 +1,11 @@
 ---
 description: Use when getting started with AndThen on a project, picking a starting skill, or unsure what to do next. Inspects project state (init'd? greenfield? brownfield? mid-flow?) and routes to the right skill – `init`, `map-codebase`, `clarify`, `prd`, `architecture`, `ui-ux-design`, etc. Trigger on 'where do I start', "I'm new to AndThen", "what's next", 'next step', "I'm stuck", 'now what', 'help me get started', 'is this a PRD or a spec', 'guide me'.
-argument-hint: "[brief description of what you want to do]"
+argument-hint: "[--auto] [--no-handoff] [brief description of what you want to do]"
 ---
 
 # Now What
 
-The first stop for users new to AndThen or unsure which skill to pick. Reads project state, asks at most one or two short questions, and routes to the right skill – heavy hand-holding for first-time setup, lighter touch mid-flow.
+Reads project state, routes to the right skill – heavy onboarding for first-time setup, lighter touch mid-flow.
 
 
 ## VARIABLES
@@ -19,18 +19,15 @@ ARGUMENTS: $ARGUMENTS _(optional – what the user wants to do, e.g. "build a to
 ## INSTRUCTIONS
 
 - **Detect first, ask second.** State already tells you most of what you need. Only ask the user what state cannot reveal (their actual idea or framing).
-- **Two questions max** before committing to a route – one to hear the idea, one to disambiguate if genuinely ambiguous. Never present a numbered menu of skills.
+- **Two questions max; never a menu.** State the route plus at most one disambiguating question, then commit – never a numbered "Choose-Your-Own-Adventure" menu of skills. One question to hear the idea, one to disambiguate if genuinely ambiguous.
 - **One handoff per invocation.** If a route involves a sequence (e.g. `architecture --mode advise` → `clarify`), recommend the first hop and ask the user to re-invoke `now-what` after, rather than auto-chaining.
 - **Do not re-implement downstream work.** Mention each recommended skill in one line; let its description and prompt do the rest.
 - **Use the user's words, not workflow vocabulary.** A first-time user does not yet know "FIS" or "PRD" – match them where they are, then introduce the term when handing off.
-- **Automation mode.** The skill is interactive by design – its core value is the question budget. Under `--auto` / `--headless`, skip the open-question step in Phase 3 and the disambiguation question in Phase 4's freshness gate; if `$ARGUMENTS` is empty or state-detection plus a single silent classification pass cannot commit to a route, exit with `BLOCKED: now-what cannot route headlessly without an idea or unambiguous mid-flow state`. Never present a menu in any mode.
+- **Automation mode.** Under `--auto`, skip the open-question step in Phase 3 and the disambiguation question in Phase 4's freshness gate; if `$ARGUMENTS` is empty or state-detection plus a single silent classification pass cannot commit to a route, exit with `BLOCKED: now-what cannot route headlessly without an idea or unambiguous mid-flow state`.
 
 
 ## GOTCHAS
-- Becoming a Choose-Your-Own-Adventure with branching menus instead of a router that commits.
-- Onboarding mid-flow users who already have a `prd.md` – detect and skip the mental-model recap.
-- Repeating the optional-tools surface on every Branch C route in this conversation. Surface once per session – the model has no cross-session memory, so do not pretend to remember prior runs.
-- Forking context (`context: fork` in frontmatter) – this skill must hand off in-place, so it intentionally does not fork.
+- This skill must hand off in-place, so it intentionally omits `context: fork` from frontmatter – do not add it.
 
 
 ## WORKFLOW
@@ -45,7 +42,7 @@ Read these signals **in order; stop at the first state-determining match.** Most
 | `## Project Document Index` and `## Project-Specific Guidelines and Rules` in the root agent instruction file(s)? | Check every existing root instruction file. A single existing file may carry the contract; when both `CLAUDE.md` and `AGENTS.md` exist, both must carry the shared workflow sections. | If no → `setup: partial` |
 | Source code beyond config/README? | `git ls-files` count + extension distribution. Rough cut: >50 tracked files with substantive code extensions. **If genuinely unclear** (small repo, mixed signals), ask one question: "Is this a fresh project or are we working with existing code?" – never present a menu. | If yes & no map → `codebase: brownfield-unmapped` |
 | Map-codebase output present? | Files matching `project-state-templates.md` outputs (Architecture, Stack, etc.) per **Project Document Index** | If yes → `codebase: brownfield-mapped` |
-| Any in-flow artifact at indexed paths? | Read the **Project Document Index** and check for `requirements-clarification.md`, `prd.md`, `plan.json` (or legacy `plan.md`), `*.fis.md`, `STATE.md`, the most recent architecture-report (`*-architecture-*.md`<sup>†</sup>), the most recent triage-report (`*-triage-*.md`), and the most recent ui-ux-design output (wireframes / design-system / design-review). | If any → `workflow: mid-flow` (and infer where in flow from the artifact type) |
+| Any in-flow artifact at indexed paths? | Read the **Project Document Index** and check for `requirements-clarification.md`, `prd.md`, `plan.json` (or legacy `plan.md`), standard plan-story FIS files (`s[0-9][0-9]-*.md`), standalone FIS docs by shape (`## Feature Overview and Goal` + `## Acceptance Scenarios`), `STATE.md`, the most recent architecture-report (`*-architecture-*.md`<sup>†</sup>), the most recent triage-report (`*-triage-*.md`), and the most recent ui-ux-design output (wireframes / design-system / design-review). | If any → `workflow: mid-flow` (and infer where in flow from the artifact type) |
 
 <sup>†</sup> The `andthen:architecture` skill emits the single suffix `architecture` for all 7 modes; differentiate trade-off / strategic-design / event-storming etc. by reading the report's H1/H2, not the filename.
 
@@ -141,7 +138,7 @@ When state shows the user is mid-flow, do not onboard. Just route. Output: 1–3
 | Review done, findings unaddressed | the `andthen:remediate-findings` skill |
 | Triage report (`andthen:triage --plan-only`) present, fix not yet applied | re-invoke the `andthen:triage` skill to apply the fix, or the `andthen:remediate-findings` skill if the report has actionable findings rather than a single fix |
 | Architecture report present AND user signals visual review notes ("notes copied", pasted markdown payload starting with `# andthen:architecture visual review notes for …`) | re-invoke the `andthen:architecture` skill in the matching mode (read the report's H1/H2 to identify trade-off / strategic-design / etc.) with the notes pasted as conversational input |
-| Architecture report present (review / decompose / advise / fitness / trade-off / strategic-design / event-storming), no obvious follow-on | offer the `andthen:visualize` skill as a review checkpoint, then ask one question to scope the next step – formalize as ADR (a fresh `andthen:architecture` invocation in `--mode trade-off` for the decision; *skip if the report is itself a trade-off run – Step 6 already produced the ADR unless the user opted out*), feed into `andthen:clarify` (when discovery surfaced requirement gaps), or chain to `--mode strategic-design` / `--mode decompose` (when boundaries are still contested) |
+| Architecture report present (review / decompose / fitness / trade-off / strategic-design / event-storming), no obvious follow-on | offer the `andthen:visualize` skill as a review checkpoint, then ask one question to scope the next step – formalize as ADR (a fresh `andthen:architecture` invocation in `--mode trade-off` for the decision; *skip if the report is itself a trade-off run – Step 6 already produced the ADR unless the user opted out*), feed into `andthen:clarify` (when discovery surfaced requirement gaps), or chain to `--mode strategic-design` / `--mode decompose` (when boundaries are still contested) |
 | FIS present, not yet executed | the `andthen:exec-spec` skill (or offer the `andthen:visualize` skill as a scenario/task review checkpoint first) |
 | Review report present (any lens), findings unaddressed | the `andthen:remediate-findings` skill (or offer the `andthen:visualize` skill first for severity-coded triage) |
 | UI/UX wireframes or design-system output present, no implementation | the `andthen:exec-spec` skill (single screen / FIS) or the `andthen:exec-plan` skill (full plan) |
@@ -161,7 +158,7 @@ Format: _"You're at X – next is the `andthen:<skill>` skill. Run it? (Y/n)"_
 
 ## Skill Reference
 
-Brief reference for skills `andthen:now-what` recommends. Each entry covers purpose, output, and workflow position. For behavioral depth (flag mechanics, mode internals, decision logic), read the target skill's `SKILL.md` directly – depth lives there, not here. Maintenance contract: see the root agent instruction file's "Skill Reference maintenance" rule – entries are updated whenever a skill's purpose, output, or workflow position changes.
+Reference for skills `andthen:now-what` recommends – purpose, output, workflow position. Behavioral depth (flag mechanics, mode internals, decision logic) lives in each target `SKILL.md`. Maintenance contract: see the root agent instruction file's Maintenance Contracts – entries are updated whenever a skill's purpose, output, or workflow position changes.
 
 ### `andthen:init`
 Sets up the AndThen workflow structure: `CLAUDE.md` / `AGENTS.md`, Project Document Index, folder layout, Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md`, `LEARNINGS.md`) scaffolded by default, optional Planning docs (`STATE.md`, `PRODUCT-BACKLOG.md`, `ROADMAP.md`) on user opt-in, starter guidelines. Detects new / partial-setup / brownfield projects and adapts non-destructively. Run once per project; re-running fills gaps without overwriting.
@@ -176,7 +173,7 @@ Compacts the conversation into a handoff doc a fresh agent can resume from. When
 **Use when:** wrapping up before `/clear`, running low on context, or at a natural session boundary. **Typical next step:** in the fresh session, paste the `Resume from <doc-path>` prompt the skill prints – the doc is self-sufficient.
 
 ### `andthen:map-codebase`
-Analyzes an existing codebase to produce structured documentation (Architecture, Stack, conventions) plus a discovered-requirements doc. Read-only – no code changes.
+Analyzes an existing codebase to produce structured documentation (Architecture, Stack, Key Dev Commands, conventions) plus discovered requirements and decisions docs. Read-only – no code changes.
 **Use when:** starting work on a brownfield codebase before committing to feature work, so downstream skills can reason about what already exists. **Typical next step:** re-invoke `andthen:now-what` to route the user's actual feature intent.
 
 ### `andthen:clarify`
@@ -188,7 +185,7 @@ Creates a Product Requirements Document (`prd.md`) from clarified requirements, 
 **Use when:** scoping a multi-feature initiative. `--visual` delegates `prd.md` to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:plan` to break the PRD into stories with FIS specs.
 
 ### `andthen:plan`
-Consumes an existing `prd.md` and produces the full plan bundle: `plan.json` (typed story manifest, canonical) plus one FIS file per story. Re-running on an interrupted bundle fills missing FIS files; re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files.
+Consumes an existing local `prd.md`, `--issue <N>`, or a GitHub issue URL and produces the full plan bundle: `plan.json` (typed story manifest, canonical) plus one FIS file per story. Re-running on an interrupted bundle fills missing FIS files; re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files.
 **Use when:** turning a PRD into an executable, story-by-story plan. `--visual` delegates the local `plan.json` bundle to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-plan` to implement the bundle.
 
 ### `andthen:spec`
@@ -196,7 +193,7 @@ Produces a single Feature Implementation Specification (FIS) for one execution-s
 **Use when:** a single feature is clear enough to specify but isn't part of a multi-feature plan. `--visual` delegates the produced FIS to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-spec` to implement the FIS.
 
 ### `andthen:exec-spec`
-Implements code from a single FIS – code, tests, and verification. Honors the FIS contract (Required Context, Acceptance Scenarios, Structural Criteria) and surfaces named blocks (`CONFUSION:`, `NOTICED BUT NOT TOUCHING:`, `MISSING REQUIREMENT:`) when stuck.
+Implements code from a single FIS – code, tests, and verification. Honors the FIS contract (Required Context, Acceptance Scenarios, Structural Criteria), runs intent/gap review alongside code review, and uses mechanism-aware Chain Attestation before completion. Legitimate design pivots route to ADR-backed FIS amendment rather than silent divergence.
 **Typical next step:** `andthen:review` (or `andthen:quick-review` mid-flow) before committing.
 
 ### `andthen:exec-plan`
@@ -204,15 +201,16 @@ Implements a fully-specced plan bundle story-by-story. Runs a fixed pipeline per
 **Typical next step:** `andthen:review` for the whole plan; `andthen:remediate-findings` if findings need addressing.
 
 ### `andthen:quick-implement`
-Fast implementation path for small features, bug fixes, or GitHub issues – bypasses the FIS workflow. Includes verification (build, tests, lint).
+Fast implementation path for small features, bug fixes, or GitHub issues – bypasses the FIS workflow. Includes verification (build, tests, lint). GitHub issue input opens a PR by default unless `--no-pr` is supplied; inline specs require `--pr` for PR output.
+Accepts `--auto` for unattended runs.
 **Use when:** the change is small enough that authoring a FIS would be overhead. For larger features, prefer the `andthen:clarify → andthen:spec → andthen:exec-spec` chain.
 
 ### `andthen:architecture`
 Architecture design and analysis. Seven modes – `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming`. Outputs vary by mode (review reports, ADRs, fitness functions, trade-off analyses, strategic-design reports, event-storming boards). No code changes.
-**Use when:** structural questions, comparing options, mapping a domain end-to-end, or before committing to a decomposition. `--visual` delegates every mode's primary report (`review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, ADR) to the `andthen:visualize` skill for browser review. **Typical next step:** back to `andthen:now-what` once the design question is resolved.
+**Use when:** structural questions, comparing options, mapping a domain end-to-end, or before committing to a decomposition. `--visual` delegates structured reports (`review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, ADR) to the `andthen:visualize` skill for browser review; pure `advise` is text-only. **Typical next step:** back to `andthen:now-what` once the design question is resolved.
 
 ### `andthen:visualize`
-Renders any AndThen artifact – PRD, `plan.json`, FIS, requirements-clarification, product vision, review report (any lens), architecture trade-off / strategic-design / fitness / decompose / event-storming report, or ADR – as a self-contained HTML review surface with section-anchored notes. Read-only – writes HTML under `.agent_temp/visual-review/` and never edits the source artifact.
+Renders any AndThen artifact – PRD, `plan.json`, FIS, requirements-clarification, product vision, review report (any lens), architecture review / trade-off / strategic-design / fitness / decompose / event-storming report, or ADR – as a self-contained HTML review surface with section-anchored notes. Read-only – writes HTML under `.agent_temp/visual-review/` and never edits the source artifact.
 **Use when:** the user wants to inspect an existing artifact visually, copy review notes, or re-check an artifact after edits. **Typical next step:** paste copied notes into the owning skill (`andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:clarify`, `andthen:review`, or `andthen:architecture`) or proceed to the next workflow skill.
 
 ### `andthen:ui-ux-design`
@@ -221,7 +219,7 @@ UI/UX work across the lifecycle. Four modes – `research`, `design-system` (tok
 
 ### `andthen:visual-validation`
 Validates UI screenshots and implementations against visual, responsive, and design expectations. Produces Summary / Detailed Findings / Recommended Fixes / Next Steps with prioritized P1/P2/P3 issues.
-**Use when:** checking implemented UI, screenshots, wireframes, or visual regressions against a design reference. **Typical next step:** fix P1/P2 findings, then re-run validation or `andthen:ui-ux-design --mode review`.
+**Use when:** checking implemented UI, screenshots, or visual regressions against a design reference. Use `andthen:e2e-test` for browser journeys and `andthen:ui-ux-design` for design-system or wireframe authoring. **Typical next step:** fix P1/P2 findings, then re-run validation or `andthen:ui-ux-design --mode review`.
 
 ### `andthen:ubiquitous-language`
 Extracts and maintains the project's `Ubiquitous Language` document (glossary) using the codebase, documentation, and conversation.
@@ -232,11 +230,11 @@ Creates high-quality Excalidraw diagrams – workflows, architectures, concepts.
 **Use when:** visualizing structure or flow as part of design or documentation.
 
 ### `andthen:review`
-The default review skill. Lenses: `code` (correctness, patterns), `doc` (clarity, completeness), `gap` (spec-vs-implementation), `security` (OWASP, exposure tier), `mixed` (chain). Critic posture is always on; multi-perspective `--council` mode runs within-lens specialist councils for code/security and adds a cross-lens Critic / Devil's Advocate / Synthesis Challenger pass for 2+ lens chains.
+The default review skill. Lenses: `code` (correctness, patterns), `doc` (clarity, completeness), `gap` (spec-vs-implementation), `security` (OWASP, exposure tier), `mixed` (chain). Critic posture is always on; findings are classified before Fix/Note routing, so safe document defects can be fixed under `--fix` while spec/design drift routes to reconciliation instead of code remediation. Multi-perspective `--council` mode runs within-lens specialist councils for code/security and adds a cross-lens Critic / Devil's Advocate / Synthesis Challenger pass for 2+ lens chains.
 **Use when:** before committing or merging significant changes. `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage. **Typical next step:** `andthen:remediate-findings` if findings need addressing.
 
 ### `andthen:quick-review`
-Lightweight mid-conversation Critic review of recent changes, dispatched to the `review-critic` agent when available (or a fresh-context sub-agent / `--inline` when appropriate). Read-only by default; `--fix` applies accepted findings.
+Lightweight mid-conversation Critic review of recent changes, dispatched to the `review-critic` agent when available (or a fresh-context sub-agent / `--inline` when appropriate). Read-only by default; `--fix` applies only accepted Fix-bucket findings and surfaces Note findings.
 **Use when:** sanity-check before moving on, mid-flow.
 
 ### `andthen:remediate-findings`
@@ -260,15 +258,5 @@ Simplifies and cleans up code for clarity, reuse, quality, and efficiency withou
 **Use when:** code is becoming hard to maintain, or after a feature lands and a cleanup pass is warranted.
 
 ### `andthen:ops`
-Deterministic operations on workflow state – `STATE.md`, `plan.json` (the canonical mutator for `stories[].status` / `stories[].fis`), FIS checkboxes, Tech Debt and `LEARNINGS.md` appends, standardized commits. Non-`ops` skills must not write `plan.json` directly.
+Deterministic operations on workflow state – `STATE.md`, `plan.json` (the canonical mutator for `stories[].status` / `stories[].fis`), FIS checkboxes, audited FIS amendments, Tech Debt and `LEARNINGS.md` appends, standardized commits. `update-fis design-change` amends FIS Intent/scenario text only when backed by an ADR or ADR-creation action; missing requirements stay on the append-only `discovered-requirements` path. Non-`ops` skills must not write `plan.json` directly.
 **Use when:** transitioning between workflow phases or marking progress. Often invoked automatically by other skills.
-
-
-## Anti-Patterns
-
-1. **Choose-Your-Own-Adventure menus.** Never present a numbered list of skills and ask the user to pick. State + at most one disambiguating question, then commit.
-2. **Re-summarizing internal mechanics.** Decision logic and how flags / modes work belong in the target skill's prompt. Naming flags / modes in a Skill Reference entry is fine when they gate routing (different output, modify-vs-report); enumerating every flag is not.
-3. **Asking >2 questions before routing.** If state + input still does not disambiguate after one question, commit to the most likely route and let the downstream skill redirect if wrong.
-4. **Onboarding mid-flow users.** A user with a `prd.md` does not need the mental-model recap. Branch D is terse by design.
-5. **Repeating the optional-tools surface every Branch C route.** Surface once per session, in Branch A or first-time Branch C – there is no cross-session memory, so do not pretend to remember.
-6. **Auto-chaining downstream skills.** One handoff per invocation keeps the user in control and the contract clean.

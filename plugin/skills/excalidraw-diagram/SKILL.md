@@ -5,7 +5,7 @@ argument-hint: "<topic-or-source> [output-dir]"
 
 # Create Excalidraw Diagram
 
-Generate `.excalidraw` JSON diagrams where the visual structure explains the concept. The output is a source file plus a rendered PNG that has been visually reviewed.
+The output is a `.excalidraw` source file plus a rendered PNG that has been visually reviewed.
 
 
 ## VARIABLES
@@ -21,18 +21,12 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 
 ## INSTRUCTIONS
 
-- **Diagram generation only** – create the `.excalidraw` source and rendered PNG, not implementation code
-- **Resolve references first** – read the style guide, element format, and composition playbook before writing a single shape:
-  1. Project's `Diagram Style Guide` (from the **Project Document Index**) if present, else `references/style-guide.md`
-  2. `references/element-format.md` – JSON shape, label auto-sizing math, font metrics
-  3. `references/composition-playbook.md` – archetype recipes (pipeline / architecture / taxonomy / lifecycle / comparison) AND Pattern Catalog (§ Visual Patterns)
+- **Diagram generation only** – produce the `.excalidraw` source and rendered PNG, not implementation code
+- **Resolve references first** – read the style guide, element-format, and composition-playbook before writing any shape (ordered list in Phase 2.1)
 - **Commit to a Layout Contract before JSON** – Phase 1.5 below. Skipping this is the #1 cause of flat, AI-generic results.
-- **Use `label` shorthand** – prefer the `label` property on shapes for auto-centered text instead of separate text elements. The render template handles conversion. **But always specify explicit `width` and `height`** – under-sizing lets Excalidraw silently grow the container and collapses your size cascade back toward uniformity.
-- **Always save the portable (expanded) form** – the `label` shorthand is a render-time convenience, not an on-disk format. The final `.excalidraw` file must be written via `window.getConvertedJSON()` (Phase 5). Saving the shorthand form directly produces a file that opens as empty shapes in `app.excalidraw.com`.
+- **Label shorthand renders; portable form ships.** Use `label` on shapes for auto-centered text (with explicit `width`/`height`), then save via `window.getConvertedJSON()` (Phase 5) or the file opens as empty boxes in `app.excalidraw.com`.
 - **Technical diagrams must be grounded in reality** – use real API names, data shapes, events, and method signatures, not placeholders
-- **Build section-by-section** – do not attempt a non-trivial diagram in one giant JSON pass
-- **Mandatory render loop with lint** – after generating JSON, you MUST render via agent-browser, run `window.lintLayout()`, view the screenshot, and iterate until critical and major findings are resolved
-- **agent-browser required** – the render-and-validate loop uses `agent-browser`. If not installed, tell the user to run `npm install -g agent-browser && agent-browser install`
+- **Render-and-validate loop is mandatory** (Phase 3) and uses `agent-browser` (`npm install -g agent-browser && agent-browser install` if not installed)
 - **Design refinement and final QC** – Phase 4 combines design review (via the `andthen:ui-ux-design` skill in `review` mode) and visual validation (via the `andthen:visual-validation` skill in a sub-agent when fresh context is useful). Fall back to self-evaluation using the criteria in Phase 4 if sub-agents are not supported
 
 
@@ -40,16 +34,16 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 
 - **Uniform grid = AI-aesthetic failure** – 6+ shapes with identical `(type, width, height, backgroundColor)` is the defining generic look. Apply the Anti-Uniformity Rule from the style guide: anchor shape every 3–4 items, alternating row heights, or an evidence artifact insertion.
 - **Implied connections** – Phase headers sitting above their children, or two boxes near each other, communicate nothing. Every relationship needs an **explicit arrow** or a line+text tree structure.
-- **Ellipses/diamonds are hungry** – for the same label, an ellipse needs ~1.4× a rectangle and a diamond needs ~2×. Hard-coding identical widths produces clipping. See `element-format.md` § Label Auto-Sizing.
-- **Label shorthand vs portable form** – the `label` shorthand is render-template-only: writing a file with `label:` fields on shapes produces empty boxes in `app.excalidraw.com`. If your specified `width` is smaller than the label needs, `redrawTextBoundingBox` also silently expands the container, collapsing your size cascade. Always over-size (cascade numbers are floors), and always export via `window.getConvertedJSON()` before saving – see Phase 5 portable-save contract.
+- **Ellipses/diamonds are hungry** – for the same label, an ellipse needs ~1.4× a rectangle and a diamond needs ~2×. Hard-coding identical widths produces clipping; under-sized `width` also lets `redrawTextBoundingBox` silently expand the container, so over-size – cascade numbers are floors. See `element-format.md` § Label Auto-Sizing.
+- **Label shorthand vs portable form** – the `label` form is render-only; export via `window.getConvertedJSON()` before saving (Phase 5 owns the contract), or the file opens as empty boxes in `app.excalidraw.com`.
 - **Arrow routing** – arrows crossing through elements. Add intermediate waypoints in the `points` array.
 - **Too small text** – minimum `fontSize: 16` for body, `20` for titles. Below 14 is unreadable. Scale up at XL/XXL canvas sizes.
 - **JSON truncation** – generating the entire diagram in one pass hits output token limits. Build section-by-section for non-trivial diagrams.
-- **Skipping the render loop** – JSON looks right but the visual result has overlaps, clipping, or spacing issues. Always render, run `lintLayout()`, and inspect the PNG.
+- **Skipping the render loop** – JSON cannot prove the visual result; see Phase 3 (MANDATORY).
 - **Forgetting `fillStyle: "solid"`** – without it, `backgroundColor` won't show.
 - **Emoji in text** – emoji don't render in Excalidraw's font. Use shapes instead.
 - **Off-grid coordinates** – snap all `x`, `y`, `width`, `height` to multiples of 20. Arbitrary values (x: 143, 287) produce an "almost aligned" look that reads as sloppy.
-- **ES-module readiness race** – on cold load, the `esm.sh` module graph for `@excalidraw/excalidraw` takes 30s+, which exceeds the 25s default `agent-browser wait` timeout. `AGENT_BROWSER_DEFAULT_TIMEOUT` and `--timeout` are **not honored by `wait --fn`** (verified empirically). Both `wait --text` and `wait --fn` do exit non-zero on timeout, so they fail loudly – but that's still a failure you have to work around. The working pattern is the bash polling loop in Phase 3.2. Also: `sleep 2` only appears to work because the module is cached from a prior session – do not assume it.
+- **ES-module readiness race** – on cold load, the `esm.sh` module graph for `@excalidraw/excalidraw` takes 30s+, exceeding the 25s default `agent-browser wait` timeout. `AGENT_BROWSER_DEFAULT_TIMEOUT` and `--timeout` are **not honored by `wait --fn`** (verified empirically). Use the bash polling loop in Phase 3.2; do not rely on `sleep 2` (it only works when the module is cached from a prior session).
 
 
 ## WORKFLOW
@@ -72,10 +66,10 @@ Decide which mode applies:
 When in doubt, choose technical. Concrete details usually improve the result.
 
 #### 1.3 Research Reality (Technical Diagrams)
-Gather real data formats/schemas, method signatures, API endpoints, event names, and communication protocols. Generic labels (`"Service A" → "Service B"`) communicate nothing; use specifics (`"OrderService.create() → Stripe /v1/charges POST → webhook /api/webhooks/stripe"`). For external APIs, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section, or use project docs. Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly.
+Gather real data formats/schemas, method signatures, API endpoints, event names, and communication protocols. Generic labels (`"Service A" → "Service B"`) communicate nothing; use specifics (`"OrderService.create() → Stripe /v1/charges POST → webhook /api/webhooks/stripe"`). For external APIs, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section, invoke the dedicated `documentation-lookup` agent when available, or use project docs.
 
 #### 1.4 Map Concepts to Visual Patterns
-Use the Pattern Catalog from `references/composition-playbook.md` § Visual Patterns (Fan-out, Convergence, Tree, Timeline, Spiral/Cycle, Cloud, Assembly Line, Side-by-Side, Gap/Break). Each major concept gets a different pattern. Do not make every section look like the same card layout.
+Use the Pattern Catalog from `references/composition-playbook.md` § Visual Patterns (enumerated in Phase 2.1). Each major concept gets a different pattern. Do not make every section look like the same card layout.
 
 #### 1.5 Layout Contract (MANDATORY)
 
@@ -140,7 +134,7 @@ Before rendering, verify:
 
 ### Phase 3: Render and Self-Review (MANDATORY)
 
-You cannot judge the diagram from JSON alone. Render it and inspect the image.
+Render and inspect the image.
 
 #### 3.1 Locate Render Template
 Resolve the absolute path to `references/render_template.html`.
@@ -212,7 +206,7 @@ Typically 2–4 iterations. After each re-render, run `window.lintLayout()` agai
 
 ### Phase 4: Review and Refine
 
-Independent review of design quality and final QC. This phase separates creation from judgment.
+Independent review of design quality and final QC.
 
 #### 4.1 Design Quality Review
 Invoke the `andthen:ui-ux-design` skill with `--mode review`, passing the rendered PNG, resolved style guide, and TOPIC. Evaluate, don't redesign. Check: composition and visual weight balance; hierarchy (hero → primary → secondary); color harmony and style guide compliance; hero element has 160px+ breathing room; eye path follows intended narrative; each major concept uses a distinct visual pattern.

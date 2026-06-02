@@ -7,9 +7,6 @@ argument-hint: "[routes/features/journeys to focus on]"
 # E2E Test Skill
 
 
-Orchestrates comprehensive end-to-end testing of web applications: discovers routes and user journeys via parallel sub-agents, executes browser-based tests, validates responsive behavior, and produces a detailed test report with any bugs found and fixed.
-
-
 ## VARIABLES
 
 _Optional: specific routes, features, or user journeys to focus on (leave blank for full coverage):_
@@ -18,7 +15,7 @@ FOCUS: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work** – including any Visual Validation Workflow sections.
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting – including any Visual Validation Workflow sections.
 - **Fix bugs found during testing** – this skill is not read-only; fix and document issues discovered
 - Use the `agent-browser` skill for all browser automation (snapshots, clicks, form fills, screenshots)
 - If `agent-browser` is unavailable, warn the user and stop
@@ -92,17 +89,19 @@ Execute journeys sequentially. For each journey:
 
 Invoke the `andthen:visual-validation` skill in a sub-agent with pages (home, primary feature, auth, any in `FOCUS`), viewports (mobile 375×812, tablet 768×1024, desktop 1440×900), checking for layout overflow, text truncation, broken flex/grid, inaccessible touch targets, hidden navigation.
 
-**Gate**: Responsive validation complete with screenshots
+**Gate**: Every viewport × page captured; no unresolved overflow, truncation, or broken layout left unrecorded
 
 
 ### Phase 7: Cleanup
 
 Stop the dev server if started by this skill. Remove test data created during testing if safely identifiable.
 
-**Gate**: Environment restored
+**Gate**: Dev server stopped (if this skill started it) and no orphaned test data remains
 
 
 ## REPORT
+
+Obtain the date with `date +%Y-%m-%d` (never guess) for the report title and filename.
 
 ```markdown
 # E2E Test Report – [YYYY-MM-DD]
@@ -142,5 +141,5 @@ Skip this section when `AUTO_MODE=true` – print only the report path and key f
 After the report, ask the user if they'd like to:
 1. Investigate specific failing journeys in depth
 2. Expand coverage to additional routes or edge cases
-3. Set up a persistent automated E2E test suite (invoke the `andthen:testing` skill)
+3. Promote high-value journeys from this report into a persistent automated E2E suite
 4. Fix any outstanding issues found during testing

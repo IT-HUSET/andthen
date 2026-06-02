@@ -9,7 +9,7 @@ argument-hint: "<story-id> <base-branch> <worktree-path> <summary-file> [--guard
 
 Squash-merges one story worktree branch into the integration branch in the current main checkout. Resolves semantic conflicts inline if the mechanical squash leaves markers, then commits with the load-bearing `Squashed-story:` trailer that `teardown-worktrees.sh` keys off. All-or-nothing: either every guard passes, every marker resolves, verification passes, and one squash commit lands – or nothing changes on `BASE_BRANCH` and the worktree is preserved for inspection.
 
-Internal skill (`user-invocable: false`). Sole caller: the `andthen:exec-plan` skill (team-mode Merge Wave, worktree mode), one invocation per story branch.
+Sole caller: the `andthen:exec-plan` skill (team-mode Merge Wave, worktree mode), one invocation per story branch.
 
 ## Output Contract
 
@@ -111,7 +111,7 @@ Then roll back the main checkout before emitting the failure:
 git reset --hard HEAD
 ```
 
-> **The `SQUASH_OK` path skips verify by design.** The worktree was already verified end-to-end by `andthen:exec-spec` and the squash content is byte-identical to the branch tip. Final Verification at the plan boundary (`andthen:exec-plan` Step 5) catches cross-story integration regressions.
+> **The `SQUASH_OK` path skips verify by design.** The worktree was already verified end-to-end by the `andthen:exec-spec` skill and the squash content is byte-identical to the branch tip. Final Verification at the plan boundary (`andthen:exec-plan` Step 5) catches cross-story integration regressions.
 
 ## Step 3 - Commit
 
@@ -132,7 +132,7 @@ Commit failure (hook reject, signing key locked, commit-msg gate): roll back the
 git reset --hard HEAD
 ```
 
-`git merge --abort` is not usable here because `git merge --squash` suppresses `MERGE_HEAD`. The story branch's commits are unaffected. Emit `outcome: failed`, `error_message: commit:<reason>`.
+(`git merge --abort` is unusable here – see Step 1.) The story branch's commits are unaffected. Emit `outcome: failed`, `error_message: commit:<reason>`.
 
 ## Step 4 - Emit Output
 

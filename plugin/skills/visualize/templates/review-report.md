@@ -5,6 +5,18 @@ Use when the source is a **review report** produced by the `andthen:review` skil
 Review reports are *evidence + verdict*. The visualization optimizes for triage – severity at a glance, jump to a finding, confirm the verdict – not narrative reading. Findings are the load-bearing surface.
 
 
+## Contents
+
+- Layout
+- Document Header
+- KPI Cells
+- Section Renderers
+- Where-to-Focus Inputs
+- Pre-population and Source Consumption
+- Edge Cases
+- Example Use Cases
+
+
 ## Layout
 
 ```
@@ -51,7 +63,7 @@ Review reports typically carry inline metadata in the Executive Summary's first 
 
 Filename parsing is advisory only – content always overrides. When the report body explicitly names a different `Review mode used:`, prefer that.
 
-**Status pill** (derived – maps the verdict/readiness to the SKILL.md status kebab):
+**Status pill** (derived – maps the verdict/readiness to the render-shell.md status kebab):
 
 | Source verdict / readiness | Status class |
 |---|---|
@@ -85,7 +97,7 @@ Each H2 dispatches to **one** renderer; Generic Prose is the fallback. Section B
 
 ### Executive Summary → Verdict block + summary prose
 
-Always renders. If the section body contains a `## Verdict` table (gap mode's canonical PASS/FAIL block) or `**Overall readiness:**` / `**Overall: PASS|FAIL**` line, surface it as the section's `.tldr-light` callout (SKILL.md contract). The remaining prose renders below.
+Always renders. If the section body contains a `## Verdict` table (gap mode's canonical PASS/FAIL block) or `**Overall readiness:**` / `**Overall: PASS|FAIL**` line, surface it as the section's `.tldr-light` callout (render-shell.md contract). The remaining prose renders below.
 
 ```html
 <div class="tldr-light review-tldr-{{verdict-kebab}}">
@@ -151,7 +163,7 @@ The headline section. Two source shapes are common:
 
 Both render to the same card shape; the parser dispatches by H3 header pattern (`/^Finding \d+ - /i` for review-skill shape vs `/^[A-Z]{3,5}-\d+:/` for architecture shape – e.g. `ARCH-001:`, `DEP-12:`). Council-mode reports may nest findings under per-lens or per-reviewer H3s – treat each leaf finding as a card regardless of nesting depth.
 
-**Above the H3 card list**, emit a `<nav class="risk-map">` summary row (SKILL.md *Risk-map chips* contract) – one chip per finding, color-coded by severity:
+**Above the H3 card list**, emit a `<nav class="risk-map">` summary row (render-shell.md *Risk-map chips* contract) – one chip per finding, color-coded by severity:
 
 | Severity | Chip class |
 |---|---|
@@ -232,7 +244,7 @@ Each chip's `href` points at the finding's sub-anchor (`#findings-finding-1`, `#
 - **Connascence** / **Dimension** / **C4 Level** / **Category** (architecture findings only) – render as additional chips in `.rf-meta`. Use mono font, neutral pill style.
 - **Fix Prompt** (architecture) – render the body inside `<pre class="rf-fix-prompt">` because it's copy-pasteable instruction text.
 
-When a finding has secondary analysis blocks (an H4 `Detailed analysis`, `Notes`, `Background`, or a `<!-- analysis -->` marker), wrap them in `<details class="analysis">` per the SKILL.md *Supporting-detail collapse* contract.
+When a finding has secondary analysis blocks (an H4 `Detailed analysis`, `Notes`, `Background`, or a `<!-- analysis -->` marker), wrap them in `<details class="analysis">` per the render-shell.md *Supporting-detail collapse* contract.
 
 **Mixed-mode / council reports** group findings by sub-lens or reviewer. Render the grouping H3 as a section divider inside the `## Findings` body; nest each lens's findings as cards under the divider but keep one risk-map chip row at the top of the H2 covering *all* findings.
 
@@ -284,19 +296,19 @@ Reuse `tradeoff.md` `.recommendation` styling. When the source has H3 sub-headin
 
 ## Where-to-Focus Inputs
 
-Per SKILL.md *Where-to-Focus Priority Section* heuristic, in source-relevance order:
+Per render-shell.md *Where-to-Focus Priority Section* heuristic, in source-relevance order:
 
 1. **Every CRITICAL finding** (cap 2 in this slot) → "CRITICAL: <title>" with anchor link to the finding card.
 2. **Every HIGH finding** (cap 3 in this slot) → "HIGH: <title>" with anchor link.
 3. **Failed verdict dimensions** (gap mode) → "FAIL · <Dimension>: <score>/<threshold>" with anchor to `#verdict`.
 4. **A non-empty `## Critic Coverage` block** stating no attacks landed → "Critic ran but found no surviving issues – consider whether scope was too narrow" with anchor to that section.
 
-The band omits itself when fewer than 2 items would render (per SKILL.md *Omission rule*).
+The band omits itself when fewer than 2 items would render (per render-shell.md *Omission rule*).
 
 
 ## Pre-population and Source Consumption
 
-1. Parse the canonical PASS/FAIL gap block once, *before* dispatching the first H2. The Executive Summary, Verdict section, and status pill all consume it; flag overlap is intentional (per the SKILL.md section-deduplication rule, the canonical block is rendered once as the section's body; the TL;DR callout is a *summary* of that block, not a duplicate of its rows).
+1. Parse the canonical PASS/FAIL gap block once, *before* dispatching the first H2. The Executive Summary, Verdict section, and status pill all consume it; flag overlap is intentional (per the render-shell.md section-deduplication rule, the canonical block is rendered once as the section's body; the TL;DR callout is a *summary* of that block, not a duplicate of its rows).
 2. Parse finding severities once during a single sweep over H3 headers + first 3 lines of each finding body. Cache as `{anchor, severity}` so the risk-map chips above the H2 know the chip class without re-parsing.
 3. Detect lens and mode from the filename suffix when content metadata is missing (e.g. older reports). Filename is advisory.
 4. **Architecture vs. review-skill report disambiguation**: both share `## Findings` + `## Executive Summary`. The presence of `## Metrics Dashboard` OR `## Dependency Graph` OR architecture-shaped finding IDs (`/^ARCH-\d+:/`, `/^DEP-\d+:/`) flips the dispatch to include the architecture-only sections (Metrics Dashboard, Dependency Graph, Proposed Fitness Functions). Without those markers, the architecture sections are simply absent and the renderer skips them.

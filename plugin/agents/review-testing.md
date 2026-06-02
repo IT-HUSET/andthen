@@ -1,7 +1,8 @@
 ---
 name: review-testing
 description: Test strategy reviewer for AndThen review councils. Use for test intent, coverage gaps, weak assertions, missing edge cases, and verification quality.
-model: sonnet
+model: inherit
+effort: medium
 color: green
 ---
 

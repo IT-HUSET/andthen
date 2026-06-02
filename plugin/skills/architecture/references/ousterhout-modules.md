@@ -9,18 +9,20 @@ Use this lens when reviewing or advising on:
 
 Not the right lens for: service boundaries, deployment topology, distributed consistency, team-aligned decomposition. Use the primary frameworks for those.
 
+Sections: Core Thesis · Principles (deep/shallow, leakage, pass-through, pull-down, general interfaces, define-errors-out, temporal, design-twice, strategic/tactical) · Review heuristics (8-test checklist) · Limits of this lens · Framework attribution
+
 ---
 
 ## Core Thesis
 
-**Complexity** (Ousterhout): *anything about the structure of a system that makes it hard to understand or modify.* It is felt by the reader, not a property of the code in isolation.
+**Complexity** (Ousterhout): *anything about the structure of a system that makes it hard to understand or modify.*
 
 **Three symptoms** to look for in a review:
 1. **Change amplification** – a small change requires edits in many places
 2. **Cognitive load** – too much must be held in working memory to change something safely
-3. **Unknown unknowns** – the developer cannot tell what else is affected (the worst; the other two at least announce themselves)
+3. **Unknown unknowns** – the developer cannot tell what else is affected
 
-**Two causes**, both reducible to structure:
+**Two causes**:
 1. **Dependencies** – code that cannot be understood or changed in isolation
 2. **Obscurity** – important information not obvious from names, types, or docs
 
@@ -72,7 +74,7 @@ When auditing a module or public API:
 1. **Depth test** – Is the interface significantly simpler than the implementation? If roughly equivalent: shallow ⇒ finding.
 2. **Leakage test** – Is any design decision (format, layout, algorithm, protocol) visible in more than one interface? If yes ⇒ finding.
 3. **Pass-through test** – Does any method do nothing but forward to another with the same arguments? If yes ⇒ layer not earning itself.
-4. **Obviousness test** – Can a caller use this correctly without reading the implementation? If no ⇒ interface leaks.
+4. **Obviousness test (Ch. 18)** – Can a caller use this correctly without reading the implementation? If no ⇒ interface leaks.
 5. **Temporal-decomposition test** – Was this boundary drawn by execution order, or by knowledge ownership? Sequence-based splits usually fail test 2.
 6. **Error-existence test** – For each exception at the interface, could the abstraction be redefined so the case disappears (without hiding faults)?
 7. **One-sentence test** – Can you describe the module in one sentence without using "and"? If not, abstraction is unclear.

@@ -1,7 +1,8 @@
 ---
 name: review-devils-advocate
 description: Findings-filter reviewer for AndThen review councils. Use after specialists have produced findings to validate, downgrade, withdraw, or dispute weak findings without adding new ones.
-model: sonnet
+model: inherit
+effort: medium
 color: orange
 ---
 

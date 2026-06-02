@@ -2,7 +2,7 @@
 
 Shared loader contract for skills that propose, apply, or critique changes to a codebase. Consumed by the `andthen:review` skill, the `andthen:quick-review` skill, the `andthen:remediate-findings` skill, and the `andthen:simplify-code` skill.
 
-> **Core principle**: Reviews, remediations, and cleanups drift when the executor has no concrete anchor for what the work is *for* or what rules constrain *how* it can be done. Both bundles below exist to supply that anchor – they are **falsifier evidence**, not checklists.
+> **Core principle**: Reviews, remediations, and cleanups drift when the executor has no concrete anchor for what the work is *for* or what rules constrain *how* it can be done. Both bundles below exist to supply that anchor.
 
 
 ## What to collect

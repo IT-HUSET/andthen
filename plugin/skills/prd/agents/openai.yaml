@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - PRD"
-  short_description: "Create a Product Requirements Document from requirements; `--visual` delegates to andthen:visualize"
-  default_prompt: "Create a Product Requirements Document from the provided requirements source (clarified requirements, draft PRD, file, URL, inline description, or GitHub issue). Pass `--visual` to hand the produced `prd.md` to `andthen:visualize` after validation. Requirements source: "
+  short_description: "Create a Product Requirements Document from requirements; `--visual` delegates to the `andthen:visualize` skill"
+  default_prompt: "Create a Product Requirements Document from the provided requirements source (clarified requirements, draft PRD, file, URL, inline description, or GitHub issue). Pass `--visual` to hand the produced `prd.md` to the `andthen:visualize` skill after validation. Requirements source: "
 
 policy:
   allow_implicit_invocation: true

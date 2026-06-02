@@ -2,16 +2,14 @@
 
 Canonical Critic rubric. Always-on finding pass that attacks assumptions, unhappy paths, hidden coupling, and places where the author may have guessed. Produces findings; later filter passes prune weak ones – do not do that pruning here.
 
-The role-noun is **Critic**. "Adversarial review", "red-team review", and "skeptic review" are trigger phrases for the same posture, not separate roles. This avoids overlapping concepts while keeping the behavior explicit.
+The role-noun is **Critic**. "Adversarial review", "red-team review", and "skeptic review" are trigger phrases for the same posture, not separate roles.
 
 
 ## Posture
 
-You are the Critic, performing an adversarial review of the target.
-
 Your job is to find real problems: errors, inconsistencies, missed edge cases, fragile assumptions, contradictions with existing patterns, and gaps. You are not here to validate or praise the work.
 
-Apply `critic-calibration.md` alongside the lens-specific calibration. This finding pass optimizes for recall: prefer surfacing a concrete, inspectable concern over silently assuming the implementation or document is fine.
+Apply `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md` alongside the lens-specific calibration. This finding pass optimizes for recall: prefer surfacing a concrete, inspectable concern over silently assuming the implementation or document is fine.
 
 
 ## What To Attack
@@ -61,6 +59,6 @@ Merge Critic findings into the same severity and report sections as the primary 
 
 ## Sub-agent dispatch
 
-Consuming skills pass this file (and its calibration peers `critic-calibration.md` and `review-calibration.md`) by path tokens in the sub-agent prompt body. Prefer the installed `review-critic` custom agent when available; otherwise use a generic fresh-context sub-agent. Both paths MUST receive an explicit instruction to read all three referenced files before applying the rubric – custom agent instructions are not a substitute for calibration. Without that read-first task prompt, the sub-agent may silently skip the calibration files and apply a generic adversarial posture, losing the Anti-Leniency Protocol and the find-pass calibration this lens depends on.
+Consuming skills pass this file (and its calibration peers `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md` and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`) by path tokens in the sub-agent prompt body. Prefer the installed `review-critic` custom agent when available; otherwise use a generic fresh-context sub-agent. Both paths MUST receive an explicit instruction to read all three referenced files before applying the rubric – custom agent instructions are not a substitute for calibration. Without that read-first task prompt, the sub-agent may silently skip the calibration files and apply a generic adversarial posture, losing the Anti-Leniency Protocol and the find-pass calibration this lens depends on.
 
 If no sub-agent mechanism is available, apply the rubric inline and include a short `Critic Coverage` note naming the assumptions, unhappy paths, and hidden coupling attacked. This proof-of-work matters most when no findings survive filtering.

@@ -1,12 +1,12 @@
 # Architecture – Event Storming Mode
 
-Run a Brandolini-style event-storming session as a discovery technique – surface domain events end-to-end, expose hotspots and pivotal events, and harvest candidates downstream modes can formalize. The mode produces a textual board (with optional diagram hand-off), not a synchronous workshop; treat the user (or a clarification artifact) as the domain expert and ask focused questions when vocabulary or causality is unclear.
+Run a Brandolini-style event-storming session as a discovery technique – surface domain events end-to-end, expose hotspots and pivotal events, and harvest candidates downstream modes can formalize. The mode produces a textual board (with optional diagram hand-off), not a synchronous workshop.
 
 **Supporting references**: `ddd.md` (section 4.1 – sticky-note vocabulary cross-reference; section 4.3 – context-map artifact when a Big Picture session ends with subdomain candidates).
 
 ## Interactive-by-Contract
 
-Event storming is a *discovery* skill – it treats the user as the domain expert. Step 1 (scope + level) and Step 2 (event harvest) ask focused questions when vocabulary or causality is unclear; the headless-execution rule does not apply. Use an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, numbered markdown questions otherwise). `--auto` / `--headless` bypasses these gates – infer from `INPUT` and the project's ubiquitous-language docs conservatively, and record assumptions as purple hotspots.
+Event storming is a *discovery* skill – it treats the user as the domain expert. Step 1 (scope + level) and Step 2 (event harvest) ask focused questions when vocabulary or causality is unclear; the headless-execution rule does not apply. Use an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, numbered markdown questions otherwise). `--auto` bypasses these gates – infer from `INPUT` and the project's ubiquitous-language docs conservatively, and record assumptions as purple hotspots.
 
 ## Sticky-Note Vocabulary
 
@@ -68,7 +68,7 @@ Recommend the next mode explicitly:
 
 ## Greenfield vs. Brownfield
 
-Brownfield event-storming converges on the same outputs as greenfield (event timeline, hotspots, level-appropriate candidates) – the codebase serves as a memory aid for surfacing real events, not as a separate path with its own report shape. The two bullets below differ only in input source.
+Greenfield and brownfield converge on the same outputs (event timeline, hotspots, level-appropriate candidates); they differ only in input source.
 
 - **Greenfield** – drive the session from a clarification artifact (`requirements-clarification.md`) or the user's narrative description of the workflow. Keep the timeline shallow and surface hotspots aggressively; the goal is to find the questions, not to ship an exhaustive board.
 - **Brownfield** – drive the session from observed behaviour: existing endpoints, message contracts, persisted entities, and the `andthen:map-codebase` skill's outputs when available. Pivotal events often surface as cross-context API calls or transactional boundaries that look arbitrary in code but are load-bearing in the domain.

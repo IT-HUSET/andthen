@@ -19,11 +19,11 @@ ARGUMENTS: $ARGUMENTS _(optional – free-form focus for the next session)_
 ## INSTRUCTIONS
 
 - **Route by durability.** Mid-flow state and defensive notes → `STATE.md` / `LEARNINGS.md`; structural decisions → ADR via the `andthen:architecture --mode trade-off` skill; everything else → the handoff doc.
-- **Auto-mutate bounded stores; recommend authorial ones.** `STATE.md` updates are schema-shaped and reversible – auto-run via the `andthen:ops` skill when the file exists. `LEARNINGS.md` appends auto-run for clearly-bounded entries when the file exists; uncertain wording or topic placement → leave as recommendation. ADRs need real trade-off authoring – recommend only, never auto-create.
+- **Auto-mutate bounded stores; recommend authorial ones.** Per-bin mechanics live in the Step 1 triage table; the one non-obvious case: uncertain `LEARNINGS.md` wording or topic placement → leave as recommendation, don't auto-write.
 - **Respect `ops` contracts.** `update-learnings add` rejects bullets that don't start with `- **{title}**` or exceed 200 chars – normalize first. `update-state` forms: `active-story <id> "<name>" "In Progress"` (or `Done` to remove), `blocker "<text>"` (or `blocker remove "<text>"`), `decision "<text>"`, `note "<text>"`. `ops` timestamps decision/note automatically.
 - **Reference, don't duplicate.** Point to artifacts named in the **Project Document Index** (PRD, `plan.json`, FIS, review reports, ADRs, `Ubiquitous Language`) by path – the next session reads them directly.
 - **Redact secrets; omit when unsure.** Tokens, keys, credentials, PII, and shell output that may carry them → `[REDACTED:<kind>]` or drop the entry. The doc lands under `.agent_temp/` and may be picked up by IDE indexers, screen-share, or backups – assume non-private.
-- **Detect-and-skip on missing files or Index rows.** The `andthen:ops` mutators refuse when `STATE.md` / `LEARNINGS.md` is absent; `STATE.md` is *optional* (init Planning, not Core), so many projects lack it. Reroute those entries to handoff-doc recommendations naming the missing file – the user runs the `andthen:init` skill to enable durable routing.
+- **Missing store → recommend, don't create** (the `andthen:init` skill owns creation).
 - **Pragmatic by default.** No per-mutation confirmation; show applied diffs inline at the end. `--no-mutate` is the escape hatch.
 
 
@@ -106,4 +106,4 @@ Resolve project root via `git rev-parse --show-toplevel` (fallback: CWD). Save t
 - `.agent_temp/handoff/handoff-<UTC-ts>.md` – always.
 - Durable mutations to `STATE.md` / `LEARNINGS.md` via the `andthen:ops` skill, when those files exist and `--no-mutate` is unset.
 
-Resume by pasting `Resume from .agent_temp/handoff/handoff-<UTC-ts>.md` into a fresh session – the doc is self-sufficient; no skill invocation required.
+The doc is self-sufficient; no skill invocation needed to resume.

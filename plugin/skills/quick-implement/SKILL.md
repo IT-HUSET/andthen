@@ -1,27 +1,24 @@
 ---
 description: Quick implementation path for small features or fixes with verification. Bypasses the FIS workflow – for larger features, use the `andthen:clarify` → `andthen:spec` → `andthen:exec-spec` chain instead. Trigger on 'quick fix this', 'implement this quickly', 'make this small change'.
-argument-hint: "[--tdd] [--pr|--no-pr] <spec | --issue <number>>"
+argument-hint: "[--tdd] [--pr|--no-pr] [--auto] <spec | --issue <number>>"
 ---
 
 # Quick Implement with Verification
 
-Fast implementation path for small features, bug fixes, or GitHub issues. Bypasses FIS workflow for quick turnaround while maintaining verification quality.
-
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, or `--issue` before interpreting the remainder as the inline spec; `--pr`/`--no-pr` couple to input mode – see "PR behavior" under INSTRUCTIONS)
+ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, `--issue`, `--auto`, or `--headless` before interpreting the remainder as the inline spec; `--pr`/`--no-pr` couple to input mode – see "PR behavior" under INSTRUCTIONS)
 
 ### Optional Flags
-- `--tdd` → TDD_MODE: strict TDD execution mode for quick fixes. Write one test at a time, observe red, drive red→green→refactor, then advance to the next behavior. The TDD canon – Anti-Cheat Invariant, red→green→refactor discipline – is owned by the `andthen:testing` skill; load `/andthen:testing --mode tdd` for canon depth when needed, but the executor remains the test author (canon consultation, not delegation). If `AUTO_MODE` is inherited from an orchestrating caller, honor `--tdd` without confirmation gates.
+- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts. Follow [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md), propagate `--auto` to nested AndThen skill invocations that accept it, and never pass `--auto` to the deterministic `andthen:ops` skill.
+- `--tdd` → TDD_MODE: strict TDD execution mode for quick fixes. Write one test at a time, observe red, drive red→green→refactor, then advance to the next behavior. Canon is owned by the `andthen:testing` skill (`--mode tdd`), but the executor remains the test author (canon consultation, not delegation). If `AUTO_MODE` is inherited from an orchestrating caller, honor `--tdd` without confirmation gates.
 
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
-- **Autonomously and iteratively** implement with comprehensive verification
-- **Iterate** until all requirements met, no defects remain, all reviews pass
-- Use GitHub CLI (`gh`) for GitHub operations
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
+- **Autonomously and iteratively** implement with comprehensive verification, until all requirements are met, no defects remain, and all reviews pass
 - **PR behavior**: `--issue` auto-creates a PR (opt out with `--no-pr`); inline spec does not create a PR (opt in with `--pr`)
 - **Anti-rationalization** – if you feel tempted to skip tests, defer verification, or widen scope, reject these common rationalizations:
   - "This is too small for tests" – small work still needs verification; a short proof is enough, none is not.
@@ -31,8 +28,6 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, or
 
 
 ## GOTCHAS
-- Skipping verification after implementation – always run tests/build
-- Scope creep: implementing more than was asked
 - When stuck, emit named output blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:` → `-> Which approach?`, `NOTICED BUT NOT TOUCHING:` → `-> Want me to create tasks?`, `MISSING REQUIREMENT:` → `-> Which behavior?`. Under `AUTO_MODE`, see the reference's AUTO_MODE Override section.
 
 
@@ -59,7 +54,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, or
 
    Strong success criteria let you loop independently; weak ones ("make it work") force constant clarification.
 2. Analyze codebase: `tree -d` and `git ls-files | head -250` for overview; use Explore (or general-purpose) agent for complex exploration
-3. Read relevant documentation, including the `Architecture` document (see **Project Document Index**) if it exists and the change touches structural or cross-component code. When external library/API lookup is needed, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section; Claude Code plugin users may invoke the `andthen:documentation-lookup` agent directly.
+3. Read relevant documentation, including the `Architecture` document (see **Project Document Index**) if it exists and the change touches structural or cross-component code. When external library/API lookup is needed, spawn a sub-agent that consults the project's `## Documentation Lookup Tools` section, or invoke the dedicated `documentation-lookup` agent when available.
 4. Break down into manageable tasks and track them
 
 **Gate**: Plan complete, all requirements understood
@@ -71,8 +66,8 @@ Execute: Implementation → Verification → Evaluation. Repeat until all requir
 
 #### Step 1: Implementation
 
-- Write tests first for any non-trivial branching logic. Apply the **Beyonce Rule** (Bender & Winters, *Software Engineering at Google*, 2020) and the **Anti-Cheat Invariant** (Beck, *Augmented Coding: Beyond the Vibes*) – see `prove-it-pattern.md` and `tdd-discipline.md` for canon. Tests-alongside is acceptable only for purely structural changes (renames, reorganization, declarations); test-after is forbidden.
-- When `TDD_MODE=true`, write tests one at a time and drive each red→green→refactor before the next; if `AUTO_MODE` is inherited, honor the flag without confirmation gates.
+- Write tests first for non-trivial branching; canon (Beyonce Rule, Anti-Cheat Invariant) lives in the `andthen:testing` skill. Tests-alongside is acceptable only for purely structural changes (renames, reorganization, declarations); test-after is forbidden.
+- When `TDD_MODE=true`, drive each behavior red→green→refactor (see the `--tdd` flag).
 - **Requirement-Anchored**: every test and motivated code change traces to a requirement from the inline spec or `--issue` body.
 - If a discovered gap changes behavior, prompt in interactive mode before expanding scope.
 - If running under `AUTO_MODE`, document the conservative interpretation as an `ASSUMPTION` instead of silently widening the ask.
@@ -80,7 +75,6 @@ Execute: Implementation → Verification → Evaluation. Repeat until all requir
 - Write code following existing codebase patterns and project guidelines
 - Use **sub-agents** for independent tasks to protect the main context window
 - Invoke the `andthen:triage` skill for build or configuration issues
-- Load the `andthen:testing` skill for canon depth (`--mode tdd` / `--mode prove-it` / `--mode strategy`). The executor remains the test author either way.
 
 #### Step 2: Verification
 
@@ -107,11 +101,11 @@ Include verification evidence: **Build** (exit code/status), **Tests** (pass/fai
 
 ### Phase 3: Completion (conditional)
 
-**Only if `CREATE_PR=true` or `--issue` mode:**
+**Only if `CREATE_PR=true`:**
 
 1. Commit with descriptive message (reference issue number if applicable)
 2. Push branch to remote
-3. Create PR: `gh pr create` with issue link ("Fixes #<number>" if applicable), implementation description, relevant labels
+3. Create PR: `gh pr create` with issue link (`Closes #<number>` if applicable), implementation description, relevant labels
 4. Print the PR URL and number
 
 **Gate**: PR created (or changes committed if no PR)

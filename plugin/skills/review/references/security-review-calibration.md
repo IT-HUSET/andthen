@@ -2,7 +2,7 @@
 
 Domain-specific calibration for reviewing implementation through a security lens. Load [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) first for universal calibration principles (anti-leniency protocol, finding quality, over-leniency patterns), then apply the domain-specific calibration below.
 
-The defining feature of security severity is **exposure**: the same code-level defect can sit at different severity levels depending on who can reach the sink, with what preconditions, and through what authentication or trust gate. The contrastive examples below pin severity to exposure rather than to the shape of the defect alone.
+Security severity is driven by **exposure**: the same defect sits at different severity depending on who can reach the sink, with what preconditions, behind what auth/trust gate. The examples below pin severity to exposure, not to defect shape.
 
 ## Contents
 - Severity Calibration – Contrastive Examples (Critical · High · Medium · Low)
@@ -12,7 +12,7 @@ The defining feature of security severity is **exposure**: the same code-level d
 
 ## Severity Calibration – Contrastive Examples
 
-Each pair shows what IS and is NOT that severity level. Use these to calibrate your severity assignments.
+Each pair shows what IS and is NOT that severity level.
 
 ### Critical
 

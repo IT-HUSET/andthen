@@ -1,6 +1,19 @@
 # Project State Document Templates
 
-Lightweight starter templates for the supplementary project documents referenced in the **Project Document Index** of the root agent instruction file (`CLAUDE.md` / `AGENTS.md`). Each template provides structure and brief guidance – fill in what applies, remove what doesn't.
+Lightweight starter templates for the supplementary project documents referenced in the **Project Document Index** of the root agent instruction file (`CLAUDE.md` / `AGENTS.md`). Fill in what applies, remove what doesn't.
+
+## Contents
+- STATE.md – cross-session state snapshot
+- PRODUCT-BACKLOG.md – requirements registry with REQ-IDs
+- ROADMAP.md – phases, success criteria, milestones
+- TECH-DEBT-BACKLOG.md – tech debt by severity
+- PRODUCT.md – product vision and high-level requirements
+- DECISIONS.md – ADR index plus non-ADR choices
+- ARCHITECTURE.md – component boundaries and data flow
+- LEARNINGS.md – defensive knowledge and error patterns
+- STACK.md – technology stack with versions
+- KEY_DEVELOPMENT_COMMANDS.md – dev/test/build/deploy commands
+- UBIQUITOUS_LANGUAGE.md – domain glossary
 
 ---
 
@@ -111,7 +124,7 @@ Status: On Track | At Risk | Blocked
 
 ## TECH-DEBT-BACKLOG.md
 
-> Known technical debt grouped by severity. Append-only run blocks (`### Run: {timestamp} – tech-debt`) are written under the matching severity heading by `andthen:ops update-tech-debt append`. The placeholder line is removed on the first write per section.
+> Known technical debt grouped by severity. Append-only run blocks (`### Run: {timestamp} – tech-debt`) are written under the matching severity heading by the `andthen:ops` skill (`update-tech-debt append` form). The placeholder line is removed on the first write per section.
 
 ```markdown
 # Technical Debt Backlog
@@ -136,7 +149,7 @@ _No tech debt recorded yet._
 
 ## PRODUCT.md
 
-> Product vision and high-level requirements – the "what and why" agents read before product-shaping work. Richer detail belongs in a PRD (`andthen:prd`); this document is the durable orientation layer above any single PRD.
+> Product vision and high-level requirements – the "what and why" agents read before product-shaping work. Richer detail belongs in a PRD (produced by the `andthen:prd` skill); this document is the durable orientation layer above any single PRD.
 
 ```markdown
 # Product
@@ -176,7 +189,7 @@ _No tech debt recorded yet._
 
 ## DECISIONS.md
 
-> Decisions registry – index of ADRs plus load-bearing non-ADR choices. Individual ADRs live in `docs/adrs/` (or as configured in the **Project Document Index**). The `andthen:architecture` skill in `--mode trade-off` auto-registers ADRs here when ADR creation is accepted.
+> Decisions registry – index of ADRs plus load-bearing non-ADR choices. Individual ADRs live in `docs/adrs/` (or as configured in the **Project Document Index**).
 
 ```markdown
 # Decisions
@@ -338,7 +351,7 @@ _No tech debt recorded yet._
 
 ## KEY_DEVELOPMENT_COMMANDS.md
 
-> Key commands for development, running, testing, deployment, and code quality. Offloads this from the root agent instruction file to keep it focused on structure and context. For monorepos, organize commands per sub-project.
+> Key commands for development, running, testing, deployment, and code quality. For monorepos, organize commands per sub-project.
 
 ```markdown
 # Key Development Commands

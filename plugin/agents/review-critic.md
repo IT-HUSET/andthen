@@ -1,7 +1,8 @@
 ---
 name: review-critic
-description: Critic reviewer for AndThen reviews. Use when a review needs an adversarial finding pass that attacks assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring.
-model: opus
+description: Critic reviewer for AndThen reviews. Use when a review needs an adversarial finding pass (red-team / skeptic review) that attacks assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring. Do not use for the findings-filter/devil's-advocate pass; use the Devil's Advocate findings-filter agent for that; this persona generates new adversarial findings across the whole target.
+model: inherit
+effort: high
 color: red
 ---
 

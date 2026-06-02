@@ -5,18 +5,18 @@ Shared automation rules for AndThen skills. Referenced from each skill's `INSTRU
 
 ## Headless-First (Execution Skills)
 
-This skill runs to completion without pausing for routine clarification, even without `--auto`. Make conservative assumptions, document them in the skill's primary output, and surface unresolved questions explicitly. Stop only on **true contract failures** – missing required input, incompatible artifacts, unsafe external actions, or ambiguity so severe no defensible output is producible.
+This skill runs to completion without pausing for routine clarification, even without `--auto`. Make conservative assumptions, document them in the skill's primary output, and surface unresolved questions explicitly. Stop only on **true contract failures** (see the `BLOCKED:` Triggers below).
 
-Scope: this reference applies to execution-oriented skills only (`prd`, `plan`, `spec`, `exec-*`, `simplify-code`, `refactor`, `remediate-findings`). Discovery and design skills (`clarify`, `architecture` trade-off / advise / event-storming / strategic-design modes) declare their own user-input contracts and do not consume this reference.
+Scope: this reference applies to execution-oriented skills only (`prd`, `plan`, `spec`, `exec-*`, `quick-implement`, `triage`, `simplify-code` and its deprecated alias `refactor`, `remediate-findings`). Discovery and design skills (`clarify`, `architecture` trade-off / advise / event-storming / strategic-design modes) declare their own user-input contracts and do not consume this reference.
 
-`--auto` / `--headless` is the *strict* form of this rule (below).
+`--auto` is the official strict form of this rule (below). During transition, implementations may tolerate `--headless` as an undocumented alias that sets `AUTO_MODE=true`, but public surfaces and nested propagation use `--auto` only.
 
 
-## Strict Mode (`--auto` / `--headless`)
+## Strict Mode (`--auto`)
 
 When `AUTO_MODE=true`:
 
-- **Never ask the user what to do next**, not even once. No arrow prompts, no "Which approach?" pauses.
+- **Never ask the user what to do next.** No arrow prompts, no "Which approach?" pauses.
 - **Make the most conservative assumption** that preserves a coherent output. Record it in the artifact (FIS / PRD / plan / completion report) so the chain remains auditable.
 - **Return a deterministic completion summary** the orchestrator can parse – artifact paths, status, blockers.
 - **Stop only with `BLOCKED:`** for the failure conditions below; never silently degrade.
@@ -29,7 +29,7 @@ Each skill defines its own specific list; these baselines apply everywhere:
 - Incompatible upstream artifacts.
 - Unsafe external actions (writes outside the project, irreversible operations without explicit consent in `INPUT`).
 - Ambiguity so severe no defensible output is producible.
-- Real external blockers per [`execution-discipline.md`](execution-discipline.md) (missing credentials/infra, merge conflicts requiring human policy, repeated triage iteration on the same issue).
+- Real external blockers per [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (missing credentials/infra, merge conflicts requiring human policy, repeated triage iteration on the same issue).
 
 The `BLOCKED:` line lists the **minimum** missing inputs / decisions so the orchestrator can repair and resume.
 

@@ -1,7 +1,8 @@
 ---
 name: review-product-requirements
 description: Product and requirements reviewer for AndThen review councils. Use for user value, acceptance criteria, scope fit, requirement gaps, and feature intent.
-model: sonnet
+model: inherit
+effort: medium
 color: pink
 ---
 

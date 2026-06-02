@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Review"
-  short_description: "Review code, docs, or requirements fit with selectable mode; `--visual` delegates the consolidated report to andthen:visualize"
-  default_prompt: "Review the target in the selected mode (code, doc, gap, security, or mixed). Pass `--visual` to hand the consolidated report to `andthen:visualize` after writing. Review target: "
+  short_description: "Review code, docs, or requirements fit with selectable mode; `--visual` delegates the consolidated report to the `andthen:visualize` skill"
+  default_prompt: "Review the target in the selected mode (code, doc, gap, security, or mixed). Pass `--visual` to hand the consolidated report to the `andthen:visualize` skill after writing. Review target: "
 
 policy:
   allow_implicit_invocation: true

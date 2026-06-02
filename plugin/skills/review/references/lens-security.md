@@ -2,7 +2,7 @@
 
 Rubric for reviewing implementation, config, infrastructure, and supply-chain artifacts for security defects. Load this reference when running `andthen:review --mode security` or when the Mixed mode resolves a `security` sub-pass.
 
-The target is implementation, the same surface as the code lens. The difference is depth and posture: the code lens runs a thin awareness pass for obvious smells; this lens runs the OWASP-aligned checklists, security tooling, and explicit data-flow analysis that depth requires.
+Same target as the code lens; the difference is depth and posture – the code lens runs a thin awareness pass for obvious smells, this lens runs OWASP-aligned checklists, security tooling, and explicit data-flow analysis.
 
 ## Contents
 - Scope · Applicability Gate · Trust-Boundary Analysis · Tooling
@@ -57,7 +57,7 @@ Treat scanner output as input to the review, not as findings on its own:
 - Discard test-fixture, mock, and intentional-eval-in-admin-tooling false positives at this stage rather than passing them to Findings Filter
 - When scanners are unavailable, note their absence in Verification Evidence and continue with manual review
 
-Other security tooling that the project already wires up (`npm audit`, `pip-audit`, `cargo audit`, `trivy`, `gitleaks`, IaC scanners) should be run when present and reported alongside Semgrep in Verification Evidence.
+Run any other security scanners the project already wires up; enumerate them under Verification Evidence.
 
 
 ## Critic Sub-Lens (Always On)
@@ -73,7 +73,7 @@ Merge Critic findings into the OWASP/trust-boundary categories before the Findin
 
 Calibrate severity with [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) (universal) and `security-review-calibration.md` (security-specific contrastive examples and false-positive traps). Load [`critic-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md) while running the always-on Critic sub-lens; use the security-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
 
-Security severity is more sensitive to *exposure* than code-lens severity – the same code defect can be CRITICAL on a public unauthenticated endpoint and MEDIUM behind admin-only VPN access. The calibration reference's contrastive examples make this explicit.
+Security severity is more sensitive to *exposure* than code-lens severity – the same code defect can be CRITICAL on a public unauthenticated endpoint and MEDIUM behind admin-only VPN access.
 
 
 ## Verification Evidence

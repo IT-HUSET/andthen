@@ -1,222 +1,65 @@
-# Model & Effort Selection Guide for AI Coding Agents
+# Model & Effort Selection Guide
 
-Practical guidance for selecting models and thinking/effort levels across Claude Code and Codex CLI, mapped to specific tasks and workflow commands.
-
-**Last Updated**: 2026-03-17
+How AndThen steers reasoning depth across Claude Code and Codex CLI. Principles only – no model version numbers, prices, or benchmark tables (those rot; consult the harness/provider docs for current specifics).
 
 ---
 
-## Quick Reference
+## Core strategy: inherit the model, vary the effort
+
+Every agent – orchestrator and sub-agents alike – runs on **whatever model the session is using** (`inherit`). The only thing that varies per task is **reasoning effort**.
+
+This means there is **one model knob**: the session model the user launches with. AndThen names no *version-pinned* model anywhere, so nothing goes stale, and the user's choice (including a 1M-context variant) flows through to every sub-agent automatically. Reasoning depth – the thing that actually differs between scanning a file and auditing security – is set directly via effort, not by swapping to a bigger or smaller model.
+
+**The one exception is `documentation-lookup`**, which pins `model: haiku` (see the alias-pin principle below). Pure retrieval is quality-flat across model tiers and is the highest-volume leaf, so the cheap tier is strictly better there. This is a *tier alias*, not a version pin, so it does not rot; on Codex the generator omits the line and the agent inherits.
+
+**Why not tier models by task?** Model class was only ever a proxy for depth. Per-agent effort sets depth directly, so the proxy is obsolete. Keeping one model also removes a whole category of rot (version pins, per-task model tables) and respects the user's single deliberate model choice.
+
+---
+
+## Effort levels
+
+Effort is a **behavioral signal, not a hard token cap** – even at `low`, the model still thinks on genuinely hard problems, just less.
+
+| Level | Behavior | Use for |
+|-------|----------|---------|
+| **low** | Minimal thinking, max speed. | Retrieval, doc-lookup, scanning, formatting, trivial edits, high-volume parallel leaves |
+| **medium** | Balanced – thinks when useful. The default. | Routine coding, tests, docs, execution sub-agents, routine reviews |
+| **high** | Almost always thinks deeply. | Architecture, trade-offs/ADRs, security audits, subtle debugging, cross-cutting gap review, specs |
+| **xhigh / max** | No constraints on depth. (`max` is Anthropic-only; Codex tops out at `xhigh`.) | Critical one-off decisions, the hardest problems |
+
+---
+
+## How to set it
 
 ### Claude Code
 
-```bash
-# Set model via CLI flag, effort via env var (no --effort flag exists)
-CLAUDE_CODE_EFFORT_LEVEL=high claude --model opus
+Plugin agents declare inherited model plus effort in frontmatter:
 
-# Or set effort persistently in settings JSON: "effortLevel": "medium"
-# Or change mid-session via /model slider (left/right arrow keys)
+```yaml
+---
+name: review-security
+model: inherit   # run on the session model; no version string to rot
+effort: high     # low | medium | high | xhigh | max – overrides session effort for this unit
+---
 ```
 
-| Alias | Resolves To | Notes |
-|-------|-------------|-------|
-| `opus` | Opus 4.6 | Strongest reasoning |
-| `sonnet` | Sonnet 4.6 | Best cost/quality ratio |
-| `haiku` | Haiku 4.5 | Fastest, cheapest (no effort param support) |
-| `opusplan` | Opus 4.6 (plan) → Sonnet 4.6 (execute) | Automatic hybrid switching |
+AndThen agent frontmatter (`plugin/agents/*.md`) supports `model:` and `effort:`. Skill frontmatter (`plugin/skills/*/SKILL.md`) does not carry model or effort overrides in the current AndThen contract; orchestrating skills steer ad-hoc sub-agents in prose instead. The session model itself is the user's choice (`/model`, `claude --model`, the alias system including 1M variants) – AndThen does not override it. Session-level effort fallback: `/effort`, `claude --effort`, `CLAUDE_CODE_EFFORT_LEVEL`, `effortLevel` in settings.json, per-turn `ultrathink`. Precedence for agents: `CLAUDE_CODE_EFFORT_LEVEL` env > agent frontmatter `effort` > session level.
 
 ### Codex CLI
 
-```bash
-# Set model via --model, effort via -c override (no --reasoning-effort flag exists)
-codex -m gpt-5.4 -c model_reasoning_effort='"high"' "prompt"
+Agent TOMLs **omit `model` entirely** to inherit the session/profile model – there is no `inherit` sentinel in Codex, so leaving the key out *is* the inherit signal. Per-agent `model_reasoning_effort` sets depth. The session/profile (`codex --profile X`, `-m`) is the user's model choice. AndThen's `scripts/generate-codex-agents.sh` reflects this: it emits no `model` line and passes each agent's `effort:` through to `model_reasoning_effort` (clamping `max` → `xhigh`).
 
-# Or use named profiles in ~/.codex/config.toml:
-# [profiles.deep-review]
-# model = "gpt-5.3-codex"
-# model_reasoning_effort = "high"
-#
-# codex --profile deep-review "prompt"
-```
+### AndThen agents
+
+The review-council and `research` agents (`plugin/agents/*.md`) carry `model: inherit` plus an explicit `effort:` (reasoning-heavy personas like security/correctness/critic at `high`; specialists, filters, and `research` at `medium`). `documentation-lookup` is the sole model-pinned exception – `model: haiku`, `effort: low` – because pure retrieval is tier-flat and high-volume (see the alias-pin principle below). Orchestrating skills that spawn ad-hoc sub-agents say the same: inherit the session model, set effort by task.
 
 ---
 
-## Model Overview
+## Durable principles
 
-### Anthropic (Claude Code)
-
-| Model | SWE-bench Verified | Pricing (in/out MTok) | Effort Levels | Context | Max Output |
-|-------|-------------------|----------------------|---------------|---------|------------|
-| Opus 4.6 | 80.8% | $5 / $25 | low, medium, high, **max** | 200K (1M beta) | 128K |
-| Sonnet 4.6 | 79.6% | $3 / $15 | low, medium, high | 200K (1M beta) | 64K |
-| Haiku 4.5 | 73.3% | $1 / $5 | _(not supported)_ | 200K | 64K |
-
-- **Adaptive thinking** (GA on 4.6 models): Claude dynamically decides how much to think per turn. Enables interleaved thinking between tool calls - critical for agentic workflows.
-- **`max` effort is Opus 4.6 exclusive** - returns error on other models.
-- **`budget_tokens` is deprecated** on 4.6 models; use effort parameter instead.
-- Per-turn escalation: type "ultrathink" (or "think harder", "megathink") to bump a single turn to high effort.
-
-### OpenAI (Codex CLI)
-
-| Model | SWE-Bench Pro | Pricing (in/out MTok) | Effort Levels | Context | Max Output |
-|-------|--------------|----------------------|---------------|---------|------------|
-| GPT-5.4 | 57.7% | $2.50 / $15 | low–xhigh | 1M* | 128K |
-| GPT-5.3-Codex | 56.8% | $3 / $12 | low–xhigh | 1M* | 128K |
-| GPT-5.2-Codex | 56.4% | TBD | low–xhigh | 400K | 128K |
-
-\* Extended context (>272K input tokens) requires the experimental `model_context_window` parameter and is billed at **2x input / 1.5x output** for the full session.
-
-- **GPT-5.4 is the recommended default** – unified frontier model that absorbed GPT-5.3-Codex coding capabilities. Marginally better on SWE-Bench Pro, same context window, cheaper.
-- **GPT-5.3-Codex** retains a small edge on Terminal-Bench 2.0 (77.3% vs 75.1%) – relevant for terminal-heavy/CLI-scripting workflows. For most tasks, GPT-5.4 is preferred.
-- **Retired models** (Feb 2026): o4-mini, GPT-4o, GPT-4.1, GPT-4.1 mini. Do not use for new development.
-- `plan_mode_reasoning_effort` is a separate config key (defaults to `medium`).
-
-> **Note**: SWE-Bench Verified and SWE-Bench Pro are different benchmarks with different scales. Scores across them are not comparable.
-
----
-
-## Effort Levels Explained
-
-Effort is a **behavioral signal, not a hard token cap**. Even at `low`, the model will still think on genuinely hard problems – just less.
-
-| Level | Behavior | When to Use |
-|-------|----------|------------|
-| **low** | Minimal thinking, max speed. May skip thinking on simple problems. | Subagents, simple edits, high-volume parallel tasks |
-| **medium** | Balanced. Thinks when useful, skips when not. | Most daily coding work – the recommended default |
-| **high** | Almost always thinks deeply. | Complex reasoning, architecture, debugging subtle bugs |
-| **max** / **xhigh** | No constraints on thinking. Maximum depth. | Critical one-off decisions, security audits, hardest problems |
-
----
-
-## Task-to-Configuration Matrix
-
-### General Tasks
-
-| Task | Claude Code | Codex CLI |
-|------|-------------|-----------|
-| Simple edits, typos, formatting | `haiku` or `sonnet` @ `low` | `gpt-5.4` @ `low` |
-| Boilerplate, CRUD, scaffolding | `sonnet` @ `low`–`medium` | `gpt-5.4` @ `medium` |
-| Unit/integration test generation | `sonnet` @ `medium` | `gpt-5.4` @ `medium` |
-| Frontend components (React/Vue/CSS) | `sonnet` @ `medium` | `gpt-5.4` @ `medium` |
-| Debugging (clear errors, stack traces) | `sonnet` @ `medium` | `gpt-5.4` @ `medium` |
-| Debugging (subtle, race conditions) | `opus` @ `high` (or `sonnet` + "ultrathink") | `gpt-5.4` @ `high` |
-| Single-file code simplification | `sonnet` @ `medium` | `gpt-5.4` @ `medium` |
-| Cross-file / large-scale code simplification | `opus` @ `high` | `gpt-5.4` @ `high` |
-| Architecture / system design | `opus` @ `high`–`max` | `gpt-5.4` @ `high`–`xhigh` |
-| Security review / vulnerability audit | `opus` @ `high`–`max` | `gpt-5.4` @ `high`–`xhigh` |
-| ADR / trade-off analysis | `opus` @ `high`–`max` | `gpt-5.4` @ `high`–`xhigh` |
-| Documentation writing | `sonnet` @ `low`–`medium` | `gpt-5.4` @ `low`–`medium` |
-| Subagents / parallel delegated work | `haiku` or `sonnet` @ `low` | `gpt-5.4` @ `low` |
-
----
-
-## Workflow Command Recommendations
-
-### AndThen Plugin (Claude Code)
-
-Commands are grouped by workflow phase. Recommendations assume Claude Code with adaptive thinking enabled (default on 4.6 models).
-
-#### Requirements & Planning Phase
-
-| Command | Description | Model | Effort | Rationale |
-|---------|-------------|-------|--------|-----------|
-| `/clarify` | Requirements discovery – structured requirements from vague idea | `sonnet` | `medium` | Analytical but not deeply reasoning-heavy |
-| `/prd` | Create a Product Requirements Document from requirements | `sonnet` | `medium` | Headless synthesis or template-filling from prior artifacts |
-| `/plan` | Full plan bundle: story breakdown + FIS per story + technical research + cross-cutting review | `opus` or `opusplan` | `high` | Architectural thinking, phasing decisions, cross-cutting reasoning, batch FIS generation |
-
-#### Design & Architecture Phase
-
-| Command | Description | Model | Effort | Rationale |
-|---------|-------------|-------|--------|-----------|
-| `/ui-ux-design` | UI/UX research, design systems, wireframes, review (modes: `research`, `design-system`, `wireframes`, `review`) | `sonnet` | `medium` | Pattern-following with design knowledge; design-system and wireframes are structural, not deep reasoning |
-| `/architecture --mode trade-off` | Trade-off analysis (research options, compare, recommend, optional ADR) | `opus` | `high`–`max` | Core reasoning task, decision quality critical |
-| `/architecture --mode review` | Architecture health assessment (metrics, connascence, anti-patterns) | `opus` | `high` | Quantitative + framework-grounded analysis |
-| `/architecture --mode advise` | Design/advisory guidance (CUPID, DDD, pattern selection, greenfield architecture) | `opus` | `high` | Core reasoning task |
-| `/architecture --mode decompose` | Split/merge evaluation with Ford/Richards driver scoring | `opus` | `high` | Framework-grounded decision |
-| `/architecture --mode fitness` | Fitness function proposals for architectural governance | `opus` | `high` | Governance design |
-
-#### Implementation & Execution Phase
-
-| Command | Description | Model | Effort | Rationale |
-|---------|-------------|-------|--------|-----------|
-| `/spec` | Clarify requirements + create Feature Implementation Spec (FIS) | `opus` | `high` | Reasoning-heavy: edge cases, constraints, cross-cutting concerns |
-| `/exec-spec` | Execute a FIS – direct implementation with validation | `opusplan` | `medium`–`high` | One agent keeps deep implementation context, while advisory/review sub-agents stay narrow. Medium for straightforward specs, high for complex ones |
-| `/exec-plan` | Execute a fully-specced plan bundle (exec-spec → quick-review per story, final gap review) | `opusplan` | `medium` | Orchestrator delegates to subagents; medium keeps costs reasonable at scale |
-| `/quick-implement` | Quick path for small features/fixes | `sonnet` | `medium` | Small scope, speed matters |
-| `/remediate-findings` | Apply validated review findings and update workflow status | `sonnet` | `medium`–`high` | Must distinguish stale vs valid findings, keep scope tight, and re-validate |
-| `/simplify-code` | Code simplification and cleanup | `sonnet` | `medium`–`high` | Medium for localized, high for cross-file |
-| `/triage` | Investigate, diagnose, and fix issues | `sonnet` | `medium`–`high` | Medium for clear issues, high for subtle root cause analysis |
-
-#### Review & Validation Phase
-
-| Command | Description | Model | Effort | Rationale |
-|---------|-------------|-------|--------|-----------|
-| `/review --mode gap` | Gap analysis + code review against implementation and requirements | `sonnet` | `medium`–`high` | Medium for routine, high for security-critical or complex gap analysis |
-| `/review --mode code` | Thorough code review (quality, security, architecture) | `sonnet` | `medium`–`high` | Medium for routine review, high for security-critical |
-| `/review --mode doc` | Review specs/PRDs/documentation | `sonnet` | `medium` | Comprehension and completeness checking |
-| `/review --council` | Multi-perspective adversarial review | `sonnet` | `high` | Multiple subagent perspectives need depth to be meaningful |
-| `/visual-validation` | Validate UI screenshots and implementations against design references, baselines, and responsive expectations | `sonnet` | `medium` | Visual comparison and issue classification benefit from focused perception and design judgment |
-| `/ubiquitous-language` | Extract and maintain domain glossary | `sonnet` | `medium` | Analytical extraction and resolution, not deep reasoning |
-| `/testing` | Test strategy, coverage, authoring, TDD (red-green-refactor, Prove-It) | `sonnet` | `medium` | Formulaic craft with domain knowledge; test-first benefits from focused sub-context |
-
-#### Other Agents
-
-| Agent | Description | Model | Effort | Rationale |
-|-------|-------------|-------|--------|-----------|
-| `documentation-lookup` | Fetch up-to-date library/API docs | `haiku` | `low` | Retrieval task, no reasoning needed |
-| `review-critic` | Adversarial finding pass for assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring | `opus` | `high` | High-recall review benefits from deeper reasoning before filtering |
-| `review-security` | Security-focused review for auth, trust boundaries, injection, secrets, LLM/agent attack paths, and supply-chain risk | `opus` | `high` | Attacker-path analysis is reasoning-heavy |
-| `review-correctness` | Correctness review for behavior, data flow, edge cases, error handling, and tests | `opus` | `high` | Subtle failure paths and invariants need depth |
-| Review filter/specialist agents | `review-devils-advocate`, `review-synthesis-challenger`, `review-architecture`, `review-testing`, `review-project-standards`, `review-product-requirements`, `review-agent-workflow` | `sonnet` | `medium` | Focused persona work; the council gains depth through parallel perspectives |
-| Subagents (general parallel work) | Delegated subtasks | `haiku` or `sonnet` | `low` | Cost multiplies with parallelism |
-
-Claude Code plugin sources use the unprefixed names above. Codex and Claude user-tier installs generate/copy prefixed names such as `andthen-review-critic` or `<custom-prefix>review-critic`.
-
-> Architecture, UI/UX, and build/test diagnosis used to be agents (`solution-architect`, `ui-ux-designer`, `build-troubleshooter`); as of 0.13 they are **skills** — see `/architecture`, `/ui-ux-design`, and `/triage` in the tables above.
-
-### Commands via Other Agents (Codex CLI, etc.)
-
-Skills are agent-agnostic – the same files work across all agents. Recommendations for other agents assume you ran `./scripts/install-skills.sh`, which exports skills as `andthen-*/`:
-
-| Skill | Description | Model | Effort | Rationale |
-|-------|-------------|-------|--------|-----------|
-| `andthen-clarify` | Requirements discovery from vague ideas | `gpt-5.4` | `medium` | Analytical, not deeply complex |
-| `andthen-prd` | Create a Product Requirements Document | `gpt-5.4` | `medium` | Headless synthesis or template-filling |
-| `andthen-plan` | Full plan bundle with FIS per story + cross-cutting review | `gpt-5.4` | `high` | Orchestrates parallel FIS sub-agents and cross-cutting review |
-| `andthen-spec` | Clarify requirements + create FIS | `gpt-5.4` | `high` | Reasoning-heavy, completeness critical |
-| `andthen-exec-spec` | Execute a FIS | `gpt-5.4` | `medium`–`high` | Direct execution keeps continuity for implementation; advisory/review sub-agents stay available for narrow tasks and fresh-context validation |
-| `andthen-review` | Code/doc/gap review with selectable mode | `gpt-5.4` | `medium`–`high` | Medium routine, high for security-critical or complex gap analysis |
-| `andthen-remediate-findings` | Implement validated review findings | `gpt-5.4` | `medium`–`high` | Requires bounded remediation, re-validation, and status bookkeeping |
-| `andthen-ui-ux-design` | UI/UX research, design systems, wireframes, review | `gpt-5.4` | `medium` | Pattern-following with design knowledge |
-| `andthen-visual-validation` | Validate screenshots and UI implementations against design references, baselines, and responsive expectations | `gpt-5.4` | `medium` | Visual comparison and issue classification benefit from focused perception and design judgment |
-| `andthen-architecture` | Architecture design, review, decomposition, trade-off analysis, fitness functions | `gpt-5.4` | `high` | Core reasoning task, decision quality matters |
-| `andthen-simplify-code` | Code simplification and cleanup | `gpt-5.4` | `medium`–`high` | Medium for localized, high for cross-file |
-| `andthen-quick-implement` | Fast path for small features/fixes | `gpt-5.4` | `medium` | Bounded scope, standard implementation |
-| `andthen-e2e-test` | End-to-end browser testing | `gpt-5.4` | `medium` | Sequential test execution |
-| `andthen-testing` | Test strategy, coverage, authoring, TDD | `gpt-5.4` | `medium` | Formulaic craft with domain knowledge |
-| `andthen-triage` | Systematic debugging | `gpt-5.4` | `medium`–`high` | Medium for clear issues, high for complex |
-
----
-
-## Cost Optimization Strategies
-
-1. **Default to medium effort** – captures ~95% of high-effort quality at significantly lower cost and latency. Both Anthropic and OpenAI recommend this as the daily driver.
-
-2. **Use `opusplan` for plan-then-execute workflows** – gets Opus-quality planning with Sonnet-cost execution automatically. Ideal for `/exec-spec` and `/exec-plan`.
-
-3. **Use `haiku` or `low` effort for subagents** – when an orchestrator spawns parallel subagents, cost compounds. Haiku at $1/$5 MTok delivers ~73% SWE-bench at 1/5th the cost of Opus.
-
-4. **Escalate per-turn, not globally** – use "ultrathink" (Claude Code) or profile switching (Codex CLI) for specific hard turns rather than raising session-level defaults.
-
-5. **Use Codex CLI profiles for task presets** – define `[profiles.security-review]` with `model_reasoning_effort = "high"` to switch cleanly without remembering flags.
-
-6. **Set `max_tokens` >= 32K for agentic sessions** – thinking and response text share the output budget. At high/max effort, the model can exhaust the budget mid-response.
-
----
-
-## Key Behavioral Notes
-
-- **Effort is behavioral, not a hard cap**: even at `low`, models will still think on genuinely hard problems. `low` is safe for subagents – they won't produce garbage on unexpectedly complex subtasks.
-- **Adaptive thinking > static budgets**: for agentic coding, interleaved thinking (between tool calls) matters more than a large upfront thinking budget. This is why adaptive mode on 4.6 models outperforms manual extended thinking.
-- **Diminishing returns on pure thinking**: research shows that for tool-heavy agentic tasks, raw thinking token increases have diminishing returns. The number of tool calls and their quality matters as much as thinking depth.
-- **Sonnet 4.6 is surprisingly close to Opus 4.6 on coding**: 79.6% vs 80.8% SWE-bench at 60% of the price. Reserve Opus for reasoning-heavy tasks (planning, specs, ADRs, trade-off analysis), not routine coding.
+- **Alias-pin only for tier-flat, high-volume retrieval; never version-pin.** Naming a *version ID* (`claude-opus-4-8`, `gpt-5.4`) rots and is forbidden. Naming a *tier alias* (`haiku`) floats to the current model in that tier, so it does not rot. The one place this earns its keep is `documentation-lookup`: pure retrieval is quality-flat across tiers and is the highest-volume leaf, so it pins `model: haiku` on Claude. Codex omits the model line and inherits, since it has no rot-free small-tier alias to pin. Everything else inherits – do not generalize this exception into per-task model tiering.
+- **The session model is the single deliberate knob.** Choose it consciously: every sub-agent inherits it. If the session runs a 1M-context variant, fan-out leaves inherit that too – so pick the session variant with fan-out cost in mind, not just the orchestrator's needs.
+- **Adaptive thinking > static budgets.** On current models, interleaved thinking between tool calls matters more for agentic work than a high effort floor everywhere. Prefer letting the model think adaptively over forcing high effort on routine work.
+- **Diminishing returns on pure thinking.** For tool-heavy agentic tasks, the number and quality of tool calls matters as much as thinking depth. Raising effort is not a substitute for a well-scoped brief.
+- **Fan-out cost compounds with parallelism.** A council or batch can spawn many agents at once. Default leaves to `low`/`medium` and escalate per-turn (`ultrathink`) or per-agent rather than raising the session floor globally.
+- **Escalate narrowly, not globally.** Bump the specific hard turn or agent, not the whole session.

@@ -3,6 +3,15 @@
 Use when the source is a Product Requirements Document. Detection: H1 contains "PRD" / "Product Requirements"; H2 contains both "Executive Summary" and "Functional Requirements".
 
 
+## Contents
+
+- Layout
+- KPI Cells
+- Section Renderers
+- Pre-population
+- Example Use Cases
+
+
 ## Layout
 
 ```
@@ -42,7 +51,7 @@ Use when the source is a Product Requirements Document. Detection: H1 contains "
 
 ## KPI Cells
 
-The four-cell `.kpi-band` (rendered per the SKILL.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. PRD cells in source order:
+The four-cell `.kpi-band` (rendered per the render-shell.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. PRD cells in source order:
 
 | Cell | Label | Source |
 |---|---|---|
@@ -169,7 +178,7 @@ For each PRD invocation:
 2. Parse into H2-anchored sections per the SKILL.md anchor scheme.
 3. For each section, dispatch to a renderer above (case-insensitive substring match on H2 text).
 4. Sections without a specific renderer fall back to Generic Prose.
-5. Wrap each rendered section in the standard `<section data-anchor="{{anchor}}">` block from the SKILL.md HTML scaffold (with Note + View source affordances).
+5. Wrap each rendered section in the standard `<section data-anchor="{{anchor}}">` block from the render-shell.md HTML scaffold (with Note + View source affordances).
 
 
 ## Example Use Cases

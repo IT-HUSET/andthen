@@ -1,6 +1,6 @@
 # Review Verdict Model
 
-Unified severity scale and per-mode verdict/readiness definitions used across all `andthen:review` modes (including `--council`) and the peer `andthen:architecture` skill.
+Unified severity scale and per-mode verdict/readiness definitions used across all modes of the `andthen:review` skill (including `--council`) and the peer `andthen:architecture` skill.
 
 
 ## Severity Scale

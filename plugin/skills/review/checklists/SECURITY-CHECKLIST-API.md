@@ -4,6 +4,10 @@ Concise checklist for security code reviews of APIs (REST, GraphQL, gRPC, and si
 
 **Applies to:** Any codebase that exposes or consumes HTTP/API endpoints, including microservices, BFFs, and public/private APIs. Complements the Web checklist – use both when the application has a web frontend consuming an API.
 
+## Contents
+
+API1 BOLA · API2 Broken Auth · API3 BOPLA · API4 Resource Consumption · API5 BFLA · API6 Business Flows · API7 SSRF · API8 Misconfiguration · API9 Inventory · API10 Unsafe Consumption · Automated Scanning
+
 ---
 
 ## Pre-Review

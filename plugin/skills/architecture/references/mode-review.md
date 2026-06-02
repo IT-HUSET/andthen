@@ -19,12 +19,12 @@ Refer to `package-principles.md` for metric definitions and thresholds.
 
 ## Step 3 – Structural Checks
 
-Check each principle systematically:
-1. **ADP** – Are there cycles? (Always a finding if yes)
-2. **SDP** – For each dependency edge A -> B: is I(A) >= I(B)? Flag violations
-3. **SAP** – For packages with I < 0.3: is A > 0.3? Flag stable-but-concrete packages
-4. **Zone analysis** – Flag packages with D > 0.3 and classify Zone of Pain vs Zone of Uselessness
-5. **God modules** – Flag packages with Ce > 10 or unusually high LOC relative to siblings
+Check each principle systematically, applying the thresholds in `package-principles.md`:
+1. **ADP** – dependency cycles (always a finding).
+2. **SDP** – for each dependency edge A -> B, check `I(A) >= I(B)`; flag violations.
+3. **SAP** – stable packages must be abstract; flag stable-but-concrete.
+4. **Zone analysis** – classify packages far from the main sequence as Zone of Pain vs Zone of Uselessness.
+5. **God modules** – flag high efferent coupling or outsized LOC relative to siblings.
 
 ## Step 4 – Connascence Analysis
 
@@ -41,14 +41,8 @@ Check for patterns in `anti-patterns.md`: entity trap, distributed monolith, god
 **Run only when** the scope explicitly targets in-process module or public API design (e.g. a single module, a library package, or an API review). **Skip** for full-project reviews, container-level scope, or service-decomposition scope – Ousterhout's lens does not apply there, and Step 5 already covers shallow-module, pass-through, and temporal-decomposition anti-patterns at the package level.
 
 For each public API surface in scope:
-- **Obviousness test** – Can a caller use this module correctly without reading its implementation? If no, the interface leaks. Per Ousterhout (APoSD Ch. 18). Tag findings at C4 **Component** or **Code** level. See `ousterhout-modules.md` for the remaining heuristics when they are useful as supplementary evidence.
+- **Obviousness test** – Can a caller use this module correctly without reading its implementation? If no, the interface leaks. Per Ousterhout (APoSD Ch. 18). Tag findings at C4 **Component** or **Code** level. See `ousterhout-modules.md` for supplementary deep-module heuristics.
 
 ## Report Contents
 
-Review-mode report must include:
-1. Executive Summary (3-5 sentences)
-2. How to Read This Report (compact legend for metrics, graph metrics, C4 levels, principles, zones, and connascence terms used in the report)
-3. Metrics Dashboard (per-package table)
-4. Findings sorted by severity
-5. Dependency graph description (condensed DAG)
-6. Proposed fitness functions
+Assemble the report per `review-output.md` (Executive Summary, How to Read, Metrics Dashboard per-package table, Findings by severity, condensed dependency-graph DAG, proposed fitness functions).

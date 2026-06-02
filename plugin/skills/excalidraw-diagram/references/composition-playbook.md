@@ -1,18 +1,25 @@
 # Composition Playbook
 
-Five archetype recipes for common diagram intents. Each recipe is a **starting layout** – pick one based on the diagram's narrative, then adapt. Reading a recipe is faster than inventing geometry from scratch.
+Five archetype recipes for common diagram intents. Each recipe is a **starting layout** – pick one based on the diagram's narrative, then adapt.
 
 > **Before you start**, commit to a Layout Contract (see `SKILL.md` Phase 1.5): narrative spine, hero, directional axis, shape vocabulary, zone plan, size cascade. The recipes below are keyed to those decisions.
 
 All recipes assume the **Hand-drawn Blueprint** aesthetic, fontFamily 5 (Excalifont), and snap all coordinates to a 20px grid.
+
+## Contents
+- Archetype 1 – Pipeline / Workflow
+- Archetype 2 – Architecture / System Map
+- Archetype 3 – Taxonomy / Map
+- Archetype 4 – Lifecycle / Loop
+- Archetype 5 – Comparison / Side-by-Side
+- Choosing a Recipe
+- Visual Patterns
 
 ---
 
 ## Archetype 1 – Pipeline / Workflow
 
 **Use for**: ordered processes, ETL, lifecycles, request/response flows, CI pipelines.
-
-**Narrative**: "Input enters at A, transforms through B, C, D, and exits as E."
 
 **Axis**: Left → right.
 
@@ -62,8 +69,6 @@ All recipes assume the **Hand-drawn Blueprint** aesthetic, fontFamily 5 (Excalif
 
 **Use for**: service architectures, system boundaries, data-flow diagrams, dependency maps.
 
-**Narrative**: "Clients talk to the API, which delegates to workers and persists to data stores."
-
 **Axis**: Radial (hero center) or left→right with hero-center.
 
 **Canvas**: `1600 × 1100` (XL or XXL).
@@ -109,8 +114,6 @@ Asymmetric three-zone layout so the hero gets room to breathe:
 
 **Use for**: categorizing things (database types, AI techniques, design patterns), landscapes, "kinds of X."
 
-**Narrative**: "These are the regions of X. Here's what lives in each region and where they overlap."
-
 **Axis**: None (spatial categories, not a flow).
 
 **Canvas**: `1400 × 900` (L).
@@ -153,8 +156,6 @@ Asymmetric three-zone layout so the hero gets room to breathe:
 
 **Use for**: feedback loops, iterative processes, retry patterns, state machines.
 
-**Narrative**: "State A leads to B leads to C, and C feeds back to A."
-
 **Axis**: Cyclic (usually clockwise).
 
 **Canvas**: `1000 × 1000` (square).
@@ -193,8 +194,6 @@ Asymmetric three-zone layout so the hero gets room to breathe:
 ## Archetype 5 – Comparison / Side-by-Side
 
 **Use for**: before/after, option A vs option B, old vs new, trade-offs.
-
-**Narrative**: "Option A has these properties; Option B has these; they differ in X, Y, Z."
 
 **Axis**: Two parallel vertical columns with a narrow "gap/break."
 
@@ -249,7 +248,9 @@ Asymmetric three-zone layout so the hero gets room to breathe:
 
 ## Visual Patterns
 
-Map each concept to the pattern that mirrors its behavior. **Each major concept must use a different visual pattern.** No uniform cards or grids.
+**Each major concept must use a different visual pattern.** No uniform cards or grids.
+
+These are low-level primitives; archetypes 1–5 above are pre-composed layouts built from them (Side-by-Side ≈ Archetype 5, Assembly Line ≈ Archetype 1).
 
 ### Fan-out
 One source spawns multiple outputs. Use for: broadcasting, triggers, root causes, one-to-many.

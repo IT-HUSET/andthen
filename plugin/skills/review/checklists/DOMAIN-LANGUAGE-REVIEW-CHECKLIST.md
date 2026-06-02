@@ -7,7 +7,7 @@
 
 ## Pre-Review
 
-- [ ] Read the `Ubiquitous Language` document (if it exists; see **Project Document Index**) to understand canonical terms
+- [ ] When not skipped, read the `Ubiquitous Language` document (see **Project Document Index**) to understand canonical terms
 - [ ] Identify which bounded contexts are affected by the changes
 
 
@@ -34,14 +34,16 @@
 
 ## Issue Classification
 
-### 🚨 CRITICAL (Immediate Fix Required)
-- Domain term used with wrong meaning (e.g., "Tenant" used to mean "User")
-- Bounded context violation that could cause confusion across teams
+### CRITICAL
+- Domain term used with wrong meaning (e.g. "Tenant" used to mean "User")
+- Bounded-context violation that can confuse behavior, ownership, or team communication
 
-### ⚠️ HIGH (Fix Before Release)
-- Synonym used instead of canonical term (e.g., "client" instead of "Customer")
-- Inconsistent naming across related files (same concept, different names)
+### HIGH
+- Synonym used instead of the canonical term (e.g. "client" instead of "Customer")
+- Inconsistent naming across related files for the same concept
 
-### 💡 LOW (Consider)
+### LOW
 - Opportunity to improve naming clarity
-- New concept that should be added to glossary
+- New concept that should be added to the glossary
+
+Severity also follows [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) and the relevant `<lens>-review-calibration.md`.

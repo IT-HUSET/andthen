@@ -1,7 +1,8 @@
 ---
 name: review-security
 description: Security reviewer for AndThen review councils. Use for auth, authorization, trust boundaries, secrets, injection, supply chain, LLM or agent flows, and other exploitability-focused review.
-model: opus
+model: inherit
+effort: high
 color: red
 ---
 

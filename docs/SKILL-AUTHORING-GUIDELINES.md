@@ -113,7 +113,7 @@ For simple edits, modify the XML directly.
 | `disable-model-invocation` | no | `true` removes the skill from automatic discovery; only the user can invoke. Use for side-effectful workflows (deploy, send-message, commit) where you don't want the model deciding timing. |
 | `user-invocable` | no | `false` hides the skill from the `/` menu but leaves it in the model's background knowledge. |
 | `context: fork` | no | Runs the skill in an isolated subagent context; the skill body becomes the subagent's prompt – no access to outer conversation. Pair with `agent` to pick the subagent type (`Explore`, `Plan`, custom; default `general-purpose`). Only useful when the skill contains an actionable task, not bare guidelines. |
-| `model`, `effort` | no | Per-skill model and effort overrides; revert on return. |
+| `model`, `effort` | no | Do not use in AndThen `plugin/skills/*/SKILL.md` unless requirements and runtime support are added; current model/effort steering lives in agent metadata and sub-agent instructions. |
 | `paths` | no | Glob patterns gating auto-activation to matching files. |
 | `hooks`, `shell` | no | Lifecycle hooks; default shell for embedded `!` blocks. |
 

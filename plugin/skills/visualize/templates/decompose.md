@@ -5,6 +5,17 @@ Use when the source is an architecture **decompose** report from the `andthen:ar
 Decompose reports evaluate a split/merge decision with Ford/Richards driver scoring, connascence analysis, and a verdict from `Split | Merge | Keep | Defer`. The visualization optimizes for "what are the drivers saying, and does the recommendation pass the 4-criteria check".
 
 
+## Contents
+
+- Layout
+- Document Header
+- KPI Cells
+- Section Renderers
+- Where-to-Focus Inputs
+- Edge Cases
+- Example Use Cases
+
+
 ## Layout
 
 ```

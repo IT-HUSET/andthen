@@ -6,6 +6,10 @@
 
 **Inputs**: `TOPIC`, `COUNT`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES` (Optional Output Flags + Mode-Specific Flags subsections).
 
+## Contents
+
+Interactive-by-Contract · Principles · Step 1 Define the Decision Space · Step 2 Design It Twice · Step 3 Parallel Deep Research · Step 4 Analysis · Step 5 Recommendation · Step 6 Documentation · Report Contents · Verification Before Finishing
+
 ## Interactive-by-Contract
 
 Trade-off analysis is a *decision* skill, not an execution skill. **Three hard gates** require user input before the skill can continue:
@@ -18,16 +22,14 @@ At each gate, the same mechanical pattern applies: **present a structured propos
 
 ### Named failure mode: implicit confirmation from detailed input
 
-A thorough `INPUT` looks like the user has already answered every gate. They haven't – they've given you the *context* the answers should be derived from, not the answers themselves. **Detailed input is never implicit confirmation.** The act of presenting a structured proposal back and getting an explicit confirm-or-adjust *is* the contract; "the prompt was detailed enough, so I recorded assumptions instead of asking" is the rationalization that silently degrades this skill into "ran to completion without asking" – the single most-reported failure mode for this skill across both Claude Code and Codex.
+**Detailed `INPUT` is never implicit gate confirmation** – it's the *context* the answers derive from, not the answers. The contract is presenting a proposal back and getting explicit confirm-or-adjust. Rationalizing past it ("prompt was detailed enough, so I recorded assumptions instead of asking") is this skill's top-reported failure across Claude Code and Codex.
 
-### `--auto` / `--headless` is the only bypass
+### `--auto` is the only bypass
 
 When set, infer all gate answers from `INPUT` conservatively, record the assumptions in the report under labeled sections (*Decision Context*, *Criteria + Weights*, *ADR decision*), and document open questions. Without the flag, the gates apply regardless of how detailed `INPUT` is.
 
 ## Principles
 
-- Be concise, evidence-based, and proportional to the decision's actual scale.
-- Favor the simplest option that satisfies the decision constraints.
 - Do not research extra options, skip weighting, or recommend based on popularity alone.
 - Don't let a long criteria catalog replace actual judgment – name only the criteria that move the recommendation, and identify which are decisive vs. tie-breakers.
 
@@ -41,7 +43,7 @@ Even when `INPUT` addresses these explicitly, present them back as a structured 
 - Success criteria
 - Dealbreakers
 
-Wait for the response before continuing. Detailed input is not implicit confirmation (see Interactive-by-Contract).
+Wait for the response before continuing.
 
 ### 1b. Design Space Decomposition
 
@@ -64,7 +66,7 @@ Choose only the criteria that matter for this decision. Typical examples:
 - Cost and time-to-market
 - Team fit and long-term viability
 
-**Present a proposed weighting table** (criterion + suggested weight + one-line rationale) **and the candidate-options list** back to the user, and **ask them to confirm or adjust** before Step 3 deep research begins. Wait for the response. Wrong criteria/weights → wrong recommendation; this is the most load-bearing gate in the skill and the one most often skipped on "detailed input."
+**Present a proposed weighting table** (criterion + suggested weight + one-line rationale) **and the candidate-options list** back to the user, and **ask them to confirm or adjust** before Step 3 deep research begins. Wait for the response. Wrong criteria/weights → wrong recommendation.
 
 ## Step 2 – Design It Twice _(optional)_
 
@@ -81,7 +83,7 @@ Skip this phase for simple technology choices or well-understood options.
 
 Focus on contested dimensions and risky conditions, not the whole design space – dimensions where every surviving option meets the criteria need no deep research.
 
-For each option, launch a parallel sub-agent to investigate:
+For each option, launch a parallel sub-agent (the `research` agent when available) to investigate:
 - Core capabilities and hard limitations
 - Performance characteristics
 - Integration requirements and dependencies

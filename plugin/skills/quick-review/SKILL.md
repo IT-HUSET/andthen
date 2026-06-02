@@ -1,12 +1,12 @@
 ---
 description: Quick in-conversation skill for critic review of recent changes in fresh context. Use mid-conversation to sanity-check work before moving on. Trigger on 'quick review this', 'sanity-check this', 'give this a quick pass', 'critic this', 'red-team this'.
 user-invocable: true
-argument-hint: "[--inline] [--fix] [--auto|--headless] [focus or scope | commit <sha>]"
+argument-hint: "[--inline] [--fix] [--auto] [focus or scope | commit <sha>]"
 ---
 
 # Quick Review
 
-Lightweight, ad-hoc review of recent work in the current conversation. By default, delegates the critique to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; with `--inline`, applies the rubric directly when the calling conversation is itself fresh w.r.t. the change set. Either path catches errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
+Lightweight, ad-hoc review of recent work in the current conversation. By default, delegates the critique to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; `--inline` applies the rubric directly when the caller is already fresh (see Optional Flags). Either path catches errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
 
 `andthen:quick-review` is a **skill**, not an agent type. Invoke it via `/andthen:quick-review` or the Skill tool – do not pass it as `subagent_type`.
 
@@ -17,21 +17,20 @@ FOCUS: $ARGUMENTS (strip any flag tokens like `--inline`, `--fix`, `--auto`, or 
 
 
 ### Optional Flags
-- `--inline` → apply the Critic rubric directly in the current conversation instead of dispatching a fresh-context sub-agent. Use when the calling conversation has **not** produced or substantively reasoned about the change set under review (e.g. the skill is invoked as the first action in a new session, or against a `commit <sha>` from work the conversation never touched). The sub-agent's bias-reduction property is already satisfied by the caller's freshness w.r.t. the change set, so the dispatch is redundant scaffolding. Do not use when the calling conversation produced, edited, or actively reasoned about the change set – the `--inline` branch in Phase 3 will reject the flag and fall back to default dispatch.
-- `--fix` → after evaluating findings, apply the **accepted** ones directly. Dismissed findings stay dismissed – the Accept/Dismiss step in Phase 4 remains the guardrail. If zero findings are accepted, report that plainly and stop – nothing to fix. Without this flag, the skill is strictly read-only – see Phase 4.
-- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
+- `--inline` → apply the Critic rubric directly in the current conversation instead of dispatching a fresh-context sub-agent. Use when the calling conversation has **not** produced or substantively reasoned about the change set under review (e.g. the skill is invoked as the first action in a new session, or against a `commit <sha>` from work the conversation never touched) – the caller's own freshness already satisfies the sub-agent's bias-reduction property. The **non-fresh-conversation** trap (Phase 3 reject + fallback) governs misuse.
+- `--fix` → after evaluating findings, apply accepted **Fix**-bucket findings directly. Accepted **Note** findings are surfaced but never auto-applied; dismissed findings stay dismissed. If zero Fix findings exist, report that plainly and stop – nothing to auto-apply. Read-only is the default (Phase 4 owns the rule).
+- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
-- **Guardrails pass** – runs once per review alongside the Critic rubric: rule violations become findings cited by source, plus a `Guardrails Coverage: N checked, M findings` line. Procedure lives in Phase 3 (sub-agent dispatch and `--inline` branch).
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - This is a **lightweight mid-conversation review** – a fast, focused checkpoint scoped to recent changes rather than a full formal pass.
-- **Default mode is read-only.** Without `--fix`, this skill must not modify any files – it reviews and reports, nothing else. The reviewer (sub-agent under default dispatch, the outer skill under `--inline`) and any wrapping logic are read-only unless `--fix` is set. The outer skill may edit files only in Phase 4, and only when `--fix` is set on the **current** invocation. If the user wants fixes applied after seeing the report, they must re-invoke with `--fix` – an in-conversation reply alone never unlocks editing.
-- Bias reduction comes from **fresh context** – provided by the sub-agent under default dispatch, by the calling conversation under `--inline`. If the calling conversation is not in fact fresh w.r.t. the change set, the `--inline` branch in Phase 3 falls back to default dispatch.
+- **Default mode is read-only** – only `--fix` on the **current** invocation unlocks edits (Phase 4 owns the rule).
+- **Guardrails pass** runs once per review alongside the Critic rubric, emitting a `Guardrails Coverage: N checked, M findings` line; procedure lives in Phase 3.
 - Anti-leniency: if a finding is identified, it is a problem. Do not rationalize issues away.
 - Output findings inline – no separate report file.
-- **Automation mode** (`--auto` / `--headless`) – never ask the user what to do next. If `--fix` is present, apply **Fix**-bucket findings only (per Phase 4's Routing gate); otherwise remain read-only and return both Fix and Note groups for the orchestrator to decide on. Stop with `BLOCKED:` (listing what could not be resolved, e.g. no change set, unreadable target) only when the review scope cannot be resolved.
+- **Automation mode** (`--auto`) – never ask the user what to do next. If `--fix` is present, apply **Fix**-bucket findings only (per Phase 4's Routing gate); otherwise remain read-only and return both Fix and Note groups for the orchestrator to decide on. Stop with `BLOCKED:` (listing what could not be resolved, e.g. no change set, unreadable target) only when the review scope cannot be resolved.
 
 
 ## GOTCHAS
@@ -39,10 +38,10 @@ FOCUS: $ARGUMENTS (strip any flag tokens like `--inline`, `--fix`, `--auto`, or 
 - Sending the sub-agent too much context (entire files when only a section changed)
 - Rationalizing away findings because "I just wrote that and it seemed fine"
 - Using this as a substitute for a proper review on significant changes
-- **Using `--inline` in a non-fresh conversation** – the flag's whole premise is that the calling conversation has no in-context bias to escape. If the work being reviewed was produced by this same conversation's earlier turns, drop the flag and use the default sub-agent dispatch.
-- **Editing files when `--fix` was not passed** – default mode is report-only. Named failure modes this guardrail blocks: treating a vague in-conversation reply ("looks good", "ok", "sure") as confirmation; "starting with the easy ones" inline; pre-emptively patching because the fixes seem trivial or "obviously what the user wants". None of these unlock editing – only `--fix` on the current invocation does.
-- **Discarding uncommitted work as a "fix"** – `git restore`, `git checkout --`, file deletions, or any other discard of working-tree changes are NEVER an applicable fix, even with `--fix` set. Files modified outside the review focus may be parallel work, exploratory edits, staged-for-later commits, or another task in progress – they are not yours to revert. Scope-creep findings ("this file shouldn't have been changed at all") are **flag-only**: surface them and stop, the user decides what to do.
-- **Routing every accepted finding to Fix** – the Critic find-pass is calibrated to favor recall, so most reviews accept more findings than warrant edits. Only **Fix**-bucket findings (HIGH/CRITICAL, confidence ≥ 75, primary scope, no scope expansion) are eligible for `--fix`; everything else stays in the **Note** bucket and is surfaced for the user to decide. Collapsing the buckets is how `quick-review` turns into over-engineering and bloat.
+- **Non-fresh-conversation `--inline`** → see Phase 3 (`--inline` branch rejects and falls back to default dispatch).
+- **Editing files when `--fix` was not passed** – default mode is read-only. Named failure modes this guardrail blocks: treating a vague in-conversation reply ("looks good", "ok", "sure") as confirmation; "starting with the easy ones" inline; pre-emptively patching because the fixes seem trivial or "obviously what the user wants". None of these unlock editing – only `--fix` on the current invocation does.
+- **Discarding uncommitted work as a "fix"** → never; see Phase 4 (working-tree changes may be unrelated WIP).
+- **Routing every accepted finding to Fix** → see Phase 4 Routing gate (collapsing Fix/Note turns this into over-engineering).
 - **Reviewing without Intent Context** – when a FIS, PRD, `clarify` output, or active plan story governs the change set, skipping the Intent Context collection in Phase 3 strips the Phase 4 gates of their primary falsifier source. A "you didn't handle X" finding may already be a documented Non-Goal; without the artifact loaded, the Critic has no way to know and the gate has no way to dismiss.
 
 
@@ -76,7 +75,7 @@ Determine what type of work was done to frame the review appropriately:
 
 ### 3. Critic Review
 
-Apply the canonical Critic rubric to the change set. Default execution dispatches to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; `--inline` applies the rubric directly when the calling conversation is already fresh.
+Apply the canonical Critic rubric to the change set. Default dispatches to a fresh-context sub-agent; `--inline` applies the rubric directly when the caller is already fresh.
 
 **Default – sub-agent dispatch.** The outer skill loads the same three references itself before dispatch so it can apply the same calibration in Phase 4. It also collects the **Project Rules Context** and **Intent Context** bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) (loader contract, discovery rules, falsifier principle, degradation when no governing artifact exists).
 

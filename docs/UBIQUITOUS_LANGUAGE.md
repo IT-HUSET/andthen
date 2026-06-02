@@ -8,7 +8,7 @@
 | Project Document Index | The table in a project's root agent instruction file that maps document types to locations. Skills use it to find and write artifacts. | docs table, path map |
 | Project-Specific Guidelines and Rules | Project-local guidance loaded before work to capture conventions, prohibitions, and validation expectations. | local notes |
 | Foundational Rules and Guardrails | Universal behavioral rules installed or referenced by AndThen. Non-negotiable across runs. | critical rules, global rules |
-| Automation mode | Non-interactive behavior enabled by `--auto` or `--headless`: conservative assumptions, no prompts, stop only on real contract failures. | headless orchestration |
+| Automation mode | Non-interactive behavior enabled by `--auto`: conservative assumptions, no prompts, stop only on real contract failures. | headless orchestration |
 
 ## Requirements and Planning
 | Term | Definition | Avoid |
@@ -68,7 +68,7 @@
 | Shared Plugin Asset | Canonical file under `plugin/references/` consumed by multiple skills and inlined during generic/user-tier installs. | shared reference |
 | Canonical Reference | Source-of-truth copy of shared content before install-time inlining or path rewrites. | shared doc |
 | Install-time Propagation | Installer behavior that copies skills, inlines shared assets, rewrites namespace references, and adjusts path tokens for the target tier. | install rewrite |
-| Documentation Lookup Agent | Plugin-tier `andthen:documentation-lookup` agent used for external documentation retrieval. | docs agent |
+| Documentation Lookup Agent | Plugin-tier `documentation-lookup` agent, with prefixed generated/user-tier variants, used for external documentation retrieval. | docs agent |
 | Review Persona Agent | Review-scoped agent under `plugin/agents/review-*.md`, used by council mode and Critic review for focused reviewer perspectives. | generic review agent, broad agent zoo |
 | Worktree Isolation | Optional execution or review isolation using separate git worktrees for parallel or full-fidelity work. | worktree mode |
 
@@ -79,7 +79,7 @@
 | plan | Skill/prose | The `andthen:plan` skill or planning act | Artifact | `plan.json`, the typed local runtime ledger |
 | story | Product requirements | User story in a PRD or clarification artifact | Plan bundle | A `stories[]` entry that maps 1:1 to a FIS |
 | review | Skill | The unified workflow run by the `andthen:review` skill | Report content | Findings, verdict, and evidence produced by a lens or chain |
-| agent | User environment | An AI coding agent such as Claude Code, Codex, Aider, or Cursor | AndThen plugin tier | The `andthen:documentation-lookup` agent plus review persona agents under `plugin/agents/review-*.md` |
+| agent | User environment | An AI coding agent such as Claude Code, Codex, Aider, or Cursor | AndThen plugin tier | The `documentation-lookup` agent plus review persona agents under `plugin/agents/review-*.md` |
 | context | Prompt/runtime | Model context or fresh-session context | FIS | Required Context and Deeper Context sections carrying upstream intent |
 | context | Domain design | Bounded Context in DDD | Project discovery | Project context loaded from root agent instructions |
 | state | Workflow artifact | Project State document for session continuity | Plan ledger | `stories[].status` values inside `plan.json` |

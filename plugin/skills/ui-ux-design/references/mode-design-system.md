@@ -2,9 +2,9 @@
 
 Transform feature requirements into a focused design system with essential visual language, design tokens, component styles, and documentation.
 
-**Platform-agnostic**: Design tokens and styles serve as the canonical reference for ALL platforms (web, mobile, desktop). They will be adapted to platform-specific implementations later.
+**Platform-agnostic**: Design tokens and styles are the canonical reference for ALL platforms (web, mobile, desktop), adapted to each later.
 
-**Inputs/destinations**: `REQUIREMENTS`, `CONCEPT_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (with per-token binding type – required input, optional contextual input, or default destination).
+**Inputs/destinations**: `REQUIREMENTS`, `CONCEPT_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (each marked required, optional, or a default destination).
 
 ## Principles
 
@@ -31,7 +31,7 @@ Save research to `<project_root>/.agent_temp/research/design/` only if substanti
 
 ## Phase 3: Design Token Creation
 
-Create essential design tokens using CSS custom properties – start minimal, avoid premature complexity.
+Create essential design tokens using CSS custom properties.
 
 **Naming conventions:**
 - Colors: `--color-{role}[-{variant}]` (e.g. `--color-primary`, `--color-primary-dark`, `--color-gray-50` through `--color-gray-900`, `--color-success`, `--color-error`)
@@ -66,7 +66,7 @@ For each component: base styles using design tokens, variant styles, state style
 
 ## Phase 6: Validation
 
-Review for: design consistency across tokens and components, accessibility compliance (contrast ratios, focus states), CSS quality, redundancy or over-engineering, and token usage consistency (no hardcoded values). Fix any issues found.
+Verify against the Quality Checklist below; fix any failures.
 
 **Gate**: Validation complete
 

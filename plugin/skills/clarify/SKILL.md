@@ -6,7 +6,7 @@ argument-hint: "[requirements source: description or file path | --issue <number
 # Clarify Requirements
 
 
-Refine fuzzy inputs into clarified requirements through **Discovery** (probing latent requirements, gaps, edge cases, scope boundaries) and **Ideation** (proposing alternative MVPs, anti-goals, pruning candidates, adjacent capability spaces the user hadn't considered). Works at two scopes: **feature** (default) and **product** (vision, target users, value props, anti-goals – when INPUT carries product-level intent or `--mode product` is set).
+Refine fuzzy inputs into clarified requirements through **Discovery** (probing latent requirements) and **Ideation** (alternatives the user hadn't considered). Two scopes: **feature** (default) and **product** (vision, target users, value props, anti-goals – when INPUT carries product-level intent or `--mode product` is set).
 
 
 ## OPERATING PRINCIPLE
@@ -35,9 +35,9 @@ _Output directory for clarified requirements (branched by MODE):_
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - Require `INPUT`. Stop if missing.
-- **Interactive-by-Contract** (see **OPERATING PRINCIPLE**) – ask iteratively and wait for user input. Recommending an answer is allowed (see Step 2); treating it as confirmed without user input is not. No `AUTO_MODE` bypass; no exception for "the input looks complete."
+- **Interactive-by-Contract** (see **OPERATING PRINCIPLE**) – ask iteratively, wait for input. Recommending ≠ confirmed (Step 2).
 - **Ideation alongside Discovery** – propose alternative MVPs, surface anti-goals, suggest pruning candidates, and offer adjacent capability spaces in or out of scope. Discovery probes what the user stated; Ideation surfaces what they didn't.
 - **Visual review is a post-validation handoff.** When `--visual` is present, complete the normal clarification/product-vision gate first, then invoke the `andthen:visualize` skill on the produced artifact; the visualizer owns HTML rendering, note export, browser-open behavior, and `.agent_temp/visual-review/` output.
 - **Check before asking** – if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. In **feature mode**, the `Product` document (see **Project Document Index**) is the upstream framing – vision, personas, anti-goals; feature requirements should anchor to it, not contradict it. Also read the `Learnings` document (see **Project Document Index**) – prior traps inform Discovery probes. State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm. *Exception:* a prior clarification doc is a baseline to amend (see Step 1 *Amendment check*), not a lookup that closes discovery.
@@ -62,11 +62,8 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 ## GOTCHAS
 - Agent answers its own questions instead of waiting for user input
 - Treating a recommended answer as confirmed when the user hasn't addressed it
-- Asking the user things that are already answerable from the codebase or existing docs (except a prior clarification doc in amendment mode – that is a baseline to extend)
-- Scope creep: expanding beyond the original request
-- Jumping to solution design instead of requirement discovery
-- **Skipping Discovery & Ideation because the input "looks complete."** The completeness intuition is the agent rationalizing past the **Interactive-by-Contract** rule. Even a thorough input has gaps the user wants surfaced through questions. Run Step 2 anyway.
-- **Inferring feature mode when product-level intent is present.** If INPUT references a `PRODUCT*.md` path, maps to the Project Document Index `Product` row, or carries product-strategy markers (`vision`, `positioning`, `product strategy`, `overall product`, `product brief`, `product-level`), infer `MODE=product` and surface the inference in the first response so the user can redirect.
+- **Skipping Discovery & Ideation because the input "looks complete"** – see Step 2 HARD GATE.
+- **Inferring feature mode when product-level intent is present** – see Step 1 mode resolution; surface the inference in the first response so the user can redirect.
 - **Interactive user input tool (e.g. `AskUserQuestion`) misuse.** Falling back to markdown when the tool is available (forces typing instead of chip-tap), or encoding alternatives in prose ("Option A / Option B") inside a markdown question (defeats the chip UI). One option per candidate; `Other` carries user-originated alternatives.
 
 
@@ -101,7 +98,7 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 
 ### 2. Discovery & Ideation Interview
 
-> **HARD GATE.** Step 2 cannot be skipped, regardless of input completeness. Step 3 may not begin with zero user-answered questions on record. This is the **Interactive-by-Contract** rule (see **OPERATING PRINCIPLE**) – producing the document without a round of user-answered questions is a contract violation. "The input looks complete" is the agent rationalizing; run the interview anyway.
+> **HARD GATE (Interactive-by-Contract, see OPERATING PRINCIPLE).** Step 3 may not begin with zero user-answered questions on record – regardless of input completeness.
 
 Ask targeted questions based on identified gaps, unresolved design dimensions, and Ideation prompts (alternatives the user hasn't considered). Iterate until no major gaps remain. **Amendment mode**: scope questions and the gate to delta-introduced or still-open gaps only – do not re-ask resolved baseline questions.
 
@@ -112,8 +109,6 @@ Ask targeted questions based on identified gaps, unresolved design dimensions, a
 **Ideation moves** – additive to Discovery, not replacement. Propose alternative MVPs (smaller, faster, different shape); surface anti-goals ("things this is explicitly NOT"); suggest pruning candidates (stated requirements that may be deferrable); offer adjacent capability spaces in/out of scope so the user can confirm boundaries explicitly.
 
 **Question delivery.** One question per gap; first option = recommendation with rationale; remaining options = real alternatives (not throwaways); leave room for free-form input. Use an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, cap 4 questions per call – iterate if more gaps remain); fall back to 3–5 numbered markdown questions otherwise.
-
-> Stop and wait for user input. Do not proceed to Step 3 until at least one round is answered and no major gaps remain.
 
 **Question scope branches by MODE:**
 - **Feature mode** – scope & boundaries (in/out of scope, MVP, deferrals); users & flows (roles, happy path, alternate paths, UI involvement); edge cases & errors (invalid input, failures, boundary conditions); success criteria (acceptance criteria, metrics, test/validation approach); dependencies & constraints (external systems, technical constraints, timeline).
@@ -300,8 +295,6 @@ When complete, print the report's **relative path from the project root**.
 
 
 ## FOLLOW-UP ACTIONS
-
-Skip this section when `AUTO_MODE=true` – print only the output path and completion summary.
 
 After completion, ask user if they'd like to:
 

@@ -2,6 +2,11 @@
 
 Concepts from Ford/Richards ("Software Architecture: The Hard Parts") and Ford/Parsons/Kua ("Building Evolutionary Architectures").
 
+## Contents
+- Architectural Quantum – definition, counting, identification, anti-patterns, trade-offs
+- Evolutionary Architecture – formula, last responsible moment, sacrificial architecture, runway, Conway's Law
+- Saga Patterns – 3 axes / 8 patterns, selection guidance, orchestration vs choreography, connascence lens
+
 ## Architectural Quantum
 
 ### Definition

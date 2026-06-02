@@ -1,6 +1,6 @@
 # FIS Authoring Guidelines
 
-Shared authoring guidelines for generating Feature Implementation Specifications (FIS). Referenced by `spec` (standalone) and `plan` (batch FIS generation).
+Shared authoring guidelines for generating Feature Implementation Specifications (FIS). Referenced by `spec` (standalone), `plan` (batch FIS generation), `ops` (FIS checkbox mutation), and `review` (FIS conformance).
 
 ## Contents
 
@@ -45,7 +45,7 @@ Every cross-doc reference is a **trust boundary**: the intent behind it lives wi
 
 ### Two-tier model
 
-- **Required Context** (load-bearing, inlined verbatim) – spans the executor *must* know. Pulled at spec time, inlined as a block, pinned with `<!-- source: path#anchor -->` and `<!-- extracted: <commit-sha when source is in this repo; YYYY-MM-DD otherwise> -->`. The inlined text is authoritative even if the source later drifts.
+- **Required Context** (load-bearing, inlined verbatim) – spans the executor *must* know. Pulled at spec time, inlined as a block, pinned with `<!-- source: path#anchor -->` and `<!-- extracted: <commit-sha when source is in this repo; YYYY-MM-DD otherwise> -->`. The inlined text is authoritative (see *Why the inlined text is authoritative* below).
 - **Deeper Context** (optional, anchored pointers) – supplementary, read-on-demand. Each bullet is `path/to/source.md#heading-slug – one-line description`.
 
 ### Authoring rules
@@ -77,7 +77,7 @@ A FIS is a contract with the executor. The text the author pulled at spec time i
 
 Each scenario: one behavior, concrete Given/When/Then using actual codebase identifiers. Order: happy path, edge cases, ≥1 error case. 3-7 scenarios. If you can't write the **Then**, surface as ambiguity.
 
-**Canonical shape** – every scenario is a single top-level checkbox under `## Acceptance Scenarios` whose bold label carries a scenario ID, `[OC<NN>(,OC<NN>)*]`, then `[TI<NN>(,TI<NN>)*]`, followed by nested Given/When/Then. Tag groups appear as separate bracketed tokens, outcomes before tasks. The bold label functions as a pseudo-heading while remaining a checkbox – letting `ops update-fis all` flip per-scenario checkboxes. See [`fis-template.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-template.md) for the display form. Do NOT emit scenarios as `### S<NN> ...` headers – that breaks the checkbox proof shape.
+**Canonical shape** – every scenario is a single top-level checkbox under `## Acceptance Scenarios` whose bold label carries a scenario ID, `[OC<NN>(,OC<NN>)*]`, then `[TI<NN>(,TI<NN>)*]`, followed by nested Given/When/Then. Tag groups appear as separate bracketed tokens, outcomes before tasks. The bold label functions as a pseudo-heading while remaining a checkbox – letting `ops update-fis all` flip per-scenario checkboxes. Do NOT emit scenarios as `### S<NN> ...` headers – that breaks the checkbox proof shape.
 
 ### Scenario Authoring Principles
 
@@ -86,6 +86,7 @@ Dan North's "Introducing BDD" (2006) anchors scenarios in concrete examples; Liz
 - **Concrete over Abstract** – use actual data: "Given Fluffy is 3 weeks old" not "Given an animal under selling age".
 - **Observable Boundary** – assert visible behavior: "Then checkout rejects the sale" not "Then `AgePolicy.validate()` returns false".
 - **Declarative over Imperative** – state precondition, event, outcome: "When checkout runs" not "When the test constructs mocks and calls methods".
+- **Mechanism Fidelity** – when the requirement itself is a mechanism (LLM/agent turn, specific algorithm, external call), at least one scenario's **Then** asserts a mechanism-distinguishing observable a trivial or deterministic substitute would fail. A scenario satisfiable by a stub or copy does not specify the feature.
 
 **Negative-path checklist** – after drafting, add one scenario per uncovered category (the riskiest gap), not one per parameter:
 
@@ -100,7 +101,7 @@ Dan North's "Introducing BDD" (2006) anchors scenarios in concrete examples; Liz
 
 ## Architecture Decision Authoring
 
-**Default: 3-4 lines max.** One `**Approach**:` line; optional `**Why this over alternatives**:` carrying the causal narrative. If trade-off analysis exceeds 4 lines, it is upstream work for `andthen:architecture --mode trade-off`. Reference the resulting ADR; do not perform the analysis inline.
+**Default: 3-4 lines max.** One `**Approach**:` line; optional `**Why this over alternatives**:` carrying the causal narrative. If trade-off analysis exceeds 4 lines, it is upstream work for the `andthen:architecture --mode trade-off` skill. Reference the resulting ADR; do not perform the analysis inline.
 
 
 ## Key Generation Guidelines
@@ -136,7 +137,7 @@ When a later task consumes something from an earlier one (API, type, component),
 
 Before finalizing, cross-check the plan story brief, its Source refs, and applicable Binding Constraints against the FIS:
 - FIS scenarios + criteria deliver the story scope and every applicable Binding Constraint.
-- If the FIS can't fully satisfy the scope: (a) expand the FIS, or (b) add a scope note explaining the narrowing and flag for the `andthen:plan` cross-cutting review.
+- If the FIS can't fully satisfy the scope: (a) expand the FIS, or (b) add a scope note explaining the narrowing and flag for the `andthen:plan` skill's cross-cutting review.
 - Do not finalize a FIS that silently narrows a plan story or Binding Constraint.
 
 
@@ -150,7 +151,7 @@ The Outcome ↔ Scenario coverage rule (see *Feature Overview and Goal Authoring
 
 **Resolution by mode:**
 
-- **Batch sub-agent mode** (from `andthen:plan`): check against plan-level sources + `bindingConstraints[]` (each entry's `verbatim` + `anchor`). Only criteria with no plan-level *and* no Binding Constraints source are candidates. For each: (a) remove, or (b) return a `PHANTOM_SCOPE` entry in the completion summary so the orchestrator can escalate. **Do not edit `plan.json` or `prd.md` from a sub-agent** – phantom-scope resolution flows through the orchestrator.
+- **Batch sub-agent mode** (from the `andthen:plan` skill): check against plan-level sources + `bindingConstraints[]` (each entry's `verbatim` + `anchor`). Only criteria with no plan-level *and* no Binding Constraints source are candidates. For each: (a) remove, or (b) return a `PHANTOM_SCOPE` entry in the completion summary so the orchestrator can escalate. **Do not edit `plan.json` or `prd.md` from a sub-agent** – phantom-scope resolution flows through the orchestrator.
 - **Standalone mode**: (a) remove, or (b) raise with the user; on approval, add a scope note for plan/PRD amendment.
 - **Standalone with no plan or PRD**: accept only if it traces to a user- or business-observable outcome in the feature request. "Uses X library", "refactors Y" are phantom absent a user-facing reason.
 
@@ -174,6 +175,7 @@ Named principles to verify before saving. Each names a failure mode.
     - *Classification*: behavioral/structural split is exhaustive, set at authoring time, re-asserted by exec-spec Step 5a. No syntactic suffix on criteria – linkage lives in the Verify-line text matching the criterion.
 - **Scope-consistency** – every Work Area exercised by a scenario or Verify line.
 - **Canonical scenario shape** – matches *Acceptance Scenarios and Proof-of-Work* above (outcomes before tasks); no `### S<NN>` headers; negative-path checklist applied; every prescribed value appears verbatim in ≥1 Verify line.
+- **Mechanism Fidelity** – mechanism requirements include a mechanism-distinguishing scenario observable; a stub/copy implementation cannot satisfy every scenario while defeating the mechanism named by the Intent.
 - **Outcome-shape audit on task titles** – no titles starting with `Replace`, `Refactor`, `Update`, `Modify`, `Add to`.
 - **Anchor and Verify dry-run audit** – every cited `path#anchor` resolves against the actual source heading slug; every `rg`/`grep`/shell command in a Verify was executed against the current source and the prose claim matches the output. Catches `rg -c` exit-semantics traps (no match exits 1, does not print `0`), case-sensitivity mismatches, stale line numbers.
 - **Cross-consumer surface inventory** (cross-cutting renames/restructures across multiple consuming skills/references) – before writing tasks, sweep with `grep -rni` for every literal string being renamed; the inventory IS the rename surface; every match maps to a task or a documented exclusion. Skip when the FIS is local to one surface.

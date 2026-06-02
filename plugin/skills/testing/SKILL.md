@@ -32,12 +32,12 @@ Default to `write` when unsure.
 | `tdd` | Drive new behavior test-first: red → green → refactor. | `tdd-discipline.md` |
 | `prove-it` | Bugfix flow. Failing test reproduces the defect before any production change. | `prove-it-pattern.md` |
 
-Always cross-load `test-design.md` when writing assertions and `levels-and-strategy.md` when picking a level.
+Load both `test-design.md` (assertions) and `levels-and-strategy.md` (level choice) regardless of mode.
 
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 
 
 ## DECISION FRAMEWORK
@@ -70,7 +70,7 @@ Every important scenario needs at least one test or a documented proof artifact.
 
 ## CALLER INTEGRATION
 
-Callers (`exec-spec`, `triage`, `e2e-test`) invoke this skill as `/andthen:testing <target/scope>`. Runs in the caller's context by default – continuity matters for `tdd` and `prove-it`. For fresh-context isolation, the caller wraps the invocation in a sub-agent.
+Callers (the `andthen:exec-spec`, `andthen:triage`, and `andthen:e2e-test` skills) invoke this skill as `/andthen:testing <target/scope>`. Runs in the caller's context by default – continuity matters for `tdd` and `prove-it`. For fresh-context isolation, the caller wraps the invocation in a sub-agent.
 
 Output is advisory for `strategy`; the tests themselves are the artifact for `write` / `tdd` / `prove-it`.
 

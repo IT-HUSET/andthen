@@ -171,7 +171,7 @@ For each active ADR, verify at least one corresponding automated check exists. A
 
 ## Frozen Rules Pattern
 
-For existing codebases with many violations, the "frozen rules" pattern enables progressive improvement:
+For existing codebases with many violations, the "frozen rules" pattern:
 
 1. Snapshot current violation count as baseline
 2. Set the fitness function to fail only on NEW violations (count > baseline)

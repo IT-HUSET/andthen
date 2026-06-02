@@ -10,12 +10,12 @@ Each pair shows what IS and is NOT that severity level. Use these to calibrate y
 ### Critical
 
 **IS Critical:**
-> Dynamic connascence of Identity (CoI) crossing a service boundary: `OrderService` and `PaymentService` both hold a reference to the same mutable `TransactionContext` singleton. A race condition causes payment status to leak between unrelated orders. – Severity formula: strength=9, degree=4, locality=1 -> score 36.0
+> Dynamic connascence of Identity (CoI) crossing a service boundary: `OrderService` and `PaymentService` both hold a reference to the same mutable `TransactionContext` singleton. A race condition causes payment status to leak between unrelated orders. – Severity formula: strength=9, degree=4, locality=1 → score 36.0
 
 Why: Dynamic connascence across a package boundary is categorically dangerous. CoI means both sides must reference the exact same instance – any change to that instance affects all holders. This is invisible to static analysis and creates race conditions.
 
 **IS Critical:**
-> 5-node dependency cycle: `config` -> `channel` -> `task` -> `events` -> `logging` -> `config`. All 5 packages are effectively one deployment unit – changing any one requires recompiling and retesting all 5. SCC analysis confirms no subset can be independently deployed.
+> 5-node dependency cycle: `config` → `channel` → `task` → `events` → `logging` → `config`. All 5 packages are effectively one deployment unit – changing any one requires recompiling and retesting all 5. SCC analysis confirms no subset can be independently deployed.
 
 Why: Cycles with >3 nodes are architectural emergencies. They destroy independent deployability and make the dependency graph unmaintainable.
 

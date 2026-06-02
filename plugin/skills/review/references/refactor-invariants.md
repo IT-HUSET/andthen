@@ -3,8 +3,7 @@
 Cross-file invariant pass for the `code` and `gap` lenses. Load when the diff
 shape triggers any of the conditions below. Targets the class of issue that
 hunk-by-hunk review structurally misses on refactors: invariants no single hunk
-hosts. Findings merge into the primary lens's severity sections – this is not a
-separate mode or report.
+hosts. Findings merge into the primary lens's severity sections.
 
 ## Contents
 - Trigger Conditions (any one)
@@ -12,11 +11,8 @@ separate mode or report.
 - How to Run · Composition
 
 > **Why this pass exists**: each diff hunk can be self-consistent while the
-> diff as a whole violates an invariant (deleted symbol with a remaining caller
-> in another file; cache introduced but a downstream consumer re-derives the
-> value; validation moved to a new lifecycle stage but the migrated test still
-> exercises the old stage). The find-pass calibrations elsewhere target
-> code-level defects; this one targets diff-level defects.
+> diff as a whole violates an invariant. Find-pass calibrations elsewhere
+> target code-level defects; this one targets diff-level defects.
 
 
 ## Trigger Conditions (any one)

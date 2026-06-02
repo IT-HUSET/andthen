@@ -2,17 +2,26 @@
 
 Transform feature requirements into simple HTML wireframes that capture key layout and interaction patterns for all pages/screens.
 
-**Platform-agnostic**: HTML/CSS is used as the universal design language for ALL projects (web, mobile, desktop). Wireframes serve as the canonical design reference that will be adapted to platform-specific implementations later.
+**Platform-agnostic**: HTML/CSS is the universal design language for ALL projects (web, mobile, desktop) – the canonical reference adapted to each platform later.
 
-**Inputs/destinations**: `REQUIREMENTS`, `DESIGN_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (with per-token binding type – required input, optional contextual input, or default destination).
+**Inputs/destinations**: `REQUIREMENTS`, `DESIGN_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (each marked required, optional, or a default destination).
+
+## Contents
+- Principles
+- Phase 1: Requirements Analysis
+- Phase 2: Wireframe Creation
+- Phase 3: Validation
+- Phase 4: Documentation
+- Output Layout
+- Quality Checklist
 
 ## Principles
 
 - **Wireframes only** – no design system creation (use the `design-system` mode for that)
 - **Simple, grayscale layouts** – focus on structure, not visual polish
-- **100% page coverage** – every page/screen in requirements MUST have a wireframe
+- **100% page coverage** – an un-wireframed page becomes an un-designed surface downstream, so every distinct page/state in the inventory gets its own wireframe
 - **Delegate to sub-agents** for parallel wireframe creation
-- **Browser automation required** for visual validation (Playwright MCP or Chrome DevTools MCP; falls back to manual if unavailable)
+- **Browser automation required** for visual validation – use the project's documented browser tooling (see `CLAUDE.md` / `AGENTS.md`); falls back to manual if unavailable
 
 ## Phase 1: Requirements Analysis
 
@@ -22,7 +31,7 @@ Transform feature requirements into simple HTML wireframes that capture key layo
 
 ### 1.2 Create Page Inventory
 
-**CRITICAL**: Extract comprehensive list of ALL pages/screens from `REQUIREMENTS`:
+Extract the comprehensive list of pages/screens from `REQUIREMENTS`:
 - Main pages (home, dashboard, settings, etc.)
 - Sub-pages and detail views
 - Modal/overlay states (if complex enough to warrant separate wireframe)
@@ -46,24 +55,20 @@ From requirements, note: navigation structure, key content blocks and hierarchy,
 
 ### 2.1 Wireframe Principles
 
-Create basic, grayscale HTML layouts showing major sections and placement, key containers (panels, cards), content blocks with realistic proportions, primary navigation, and important CTAs. Use boxes and placeholders, grayscale only, focus on layout and information hierarchy.
+Create basic grayscale HTML layouts: major sections and placement, key containers (panels, cards), content blocks with realistic proportions, primary navigation, important CTAs. Boxes and placeholders only; layout and hierarchy over polish.
 
 **HTML structure**: Use `system-ui` font, `#f5f5f5` background, white `.box` containers with `2px solid #ddd`, `.placeholder` divs with `#e0e0e0` background and `2px dashed #999`, `.btn` in `#666`, CSS grid/flex for layout, and a `@media (max-width: 768px)` breakpoint. Include `<!DOCTYPE html>`, a `viewport` meta tag, and the CSS inline in `<style>`.
 
 ### 2.2 Common Patterns
 
+Illustrative recipes, not mandates – adapt to the page:
 - **Nav**: flex row with logo placeholder + nav items justified space-between
 - **Hero**: two-column grid with headline/CTA text and image placeholder
-- **Content grid**: `auto-fit, minmax(250px, 1fr)` grid of cards with image + text
+- **Content grid**: responsive card grid (e.g. `auto-fit, minmax(250px, 1fr)`) of cards with image + text
 
 ### 2.3 Parallel Wireframe Creation
 
-**CRITICAL**: Create wireframes in parallel for efficiency.
-
-For each page in the inventory, spawn a sub-agent and have it run this skill with `--mode wireframes` scoped to a single page, given:
-- Reference to base HTML template (the structure from 2.1), page name and purpose, key content/sections, navigation context, responsive requirements
-
-**Execute multiple agents simultaneously** – each handles a single page.
+Fan out one sub-agent per inventory page – each runs this skill with `--mode wireframes` scoped to a single page, given the base HTML template (the structure from 2.1), page name and purpose, key content/sections, navigation context, and responsive requirements. Pages are independent, so run them concurrently.
 
 **Naming convention**: `[page-name].html` (e.g., `home.html`, `dashboard.html`, `user-profile.html`)
 
@@ -77,12 +82,9 @@ Cross-check against Phase 1 inventory. Verify EVERY page has a corresponding wir
 
 ### 3.1 Browser-Based Visual Validation
 
-**CRITICAL**: Use browser automation (Playwright MCP or Chrome DevTools MCP) to capture and validate wireframes across viewports.
+**CRITICAL**: Use browser automation to capture and validate wireframes across viewports.
 
-**MCP Server Detection** (in order of preference):
-1. **Playwright MCP** (`mcp__playwright__*` tools) – preferred
-2. **Chrome DevTools MCP** (`mcp__chrome-devtools__*` tools) – fallback
-3. **Manual validation** – if no MCP available, invoke the `andthen:visual-validation` skill in a sub-agent with a manually opened browser
+**Tool selection**: Prefer the browser/visual tooling the project documents in `CLAUDE.md` / `AGENTS.md` (e.g. the `agent-browser` skill, Chrome DevTools MCP, or Playwright MCP). If none is documented, use any available browser-automation MCP. If no automation is available, invoke the `andthen:visual-validation` skill in a sub-agent with a manually opened browser.
 
 **Viewport Matrix:**
 | Device | Width | Height |
@@ -153,5 +155,3 @@ OUTPUT_DIR/
 - [ ] **Screenshots captured**: All 4 viewports for each page; no horizontal overflow, no overlapping elements, no broken layouts
 - [ ] **Validation report**: Generated with pass/fail per page/viewport; all critical issues fixed
 - [ ] **Index page**: Links to all wireframes
-
-Wireframes focus on structure, not polish. Keep them simple, grayscale, and focused on layout patterns. Every page in the requirements must have a corresponding wireframe.

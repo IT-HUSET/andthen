@@ -1,7 +1,8 @@
 ---
 name: review-project-standards
 description: Project standards reviewer for AndThen review councils. Use for local conventions, repo guidelines, naming, maintainability, documentation drift, and agent-instruction compliance.
-model: sonnet
+model: inherit
+effort: medium
 color: cyan
 ---
 

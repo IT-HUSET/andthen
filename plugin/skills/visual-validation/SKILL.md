@@ -1,13 +1,10 @@
 ---
-description: Use when validating UI screenshots, running visual regression checks, or comparing implementation against wireframes/design specs. Captures states, checks responsive layout, classifies visual issues, and recommends fixes. Trigger on 'visual validation', 'validate screenshots', 'check UI against design', 'visual regression'.
+description: Use when validating UI screenshots, running visual regression checks, or comparing implementation against wireframes/design specs. Captures states, checks responsive layout, classifies visual issues, and recommends fixes. Do not use for full end-to-end browser journeys (use the andthen:e2e-test skill) or for design-system/wireframe authoring (use the andthen:ui-ux-design skill). Trigger on 'visual validation', 'validate screenshots', 'check UI against design', 'visual regression'.
 argument-hint: "[<screens-or-states-to-validate>] [design-reference/baseline]"
 user-invocable: true
 ---
 
 # Visual Validation
-
-Validate UI implementations against project expectations, design references, and responsive behavior. Produce evidence-backed findings with concrete fixes.
-
 
 ## VARIABLES
 
@@ -16,7 +13,7 @@ SCOPE: $ARGUMENTS (screens, states, URLs, screenshots, wireframes, baselines, or
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work** – including any UI guidelines.
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting – including any UI guidelines.
 - Check for a `Visual Validation Workflow` section in `CLAUDE.md` / `AGENTS.md` first (at any heading level). If one exists, follow it as the primary workflow.
 - Use the fallback workflow below only when no project-specific workflow is defined.
 - Choose tools already available in the project environment before introducing new ones.
@@ -40,7 +37,7 @@ SCOPE: $ARGUMENTS (screens, states, URLs, screenshots, wireframes, baselines, or
 
 ### Phase 3: Comparison
 
-Primary review is semantic: layout, hierarchy, typography, spacing, color, responsive behavior, state treatment, and accessibility-relevant affordances.
+Primary review is semantic: layout, hierarchy, typography/readability, spacing, color/contrast, component presence and state treatment, responsive behavior, touch-target size, overlays/modals/focus states, and accessibility-relevant affordances.
 
 Use pixel comparison when trustworthy baselines exist. Treat pixel diffs as evidence, not judgment; validate whether the diff matters to user intent.
 
@@ -57,38 +54,16 @@ Classify findings:
 Recommend specific changes: exact components, styles, spacing, typography, states, or layout behavior. Tie each recommendation to evidence from the capture or design reference.
 
 
-## Core Validation Checks
-
-For each screen/state, check:
-
-- layout and hierarchy
-- typography and readability
-- color and contrast
-- component presence and state treatment
-- responsiveness across target sizes
-- touch target size where relevant
-- overlays, modals, focus states, and transient UI where relevant
-
-
 ## Tool Awareness
 
-Use the tools available in the project environment. Common categories:
-
-- browser automation and screenshot tools
-- native simulator screenshot tools
-- image diff tools
-- browser/device inspection tools
-
-Check `CLAUDE.md` / `AGENTS.md` for project-preferred tooling before choosing your own.
+Use the tools available in the project environment; check `CLAUDE.md` / `AGENTS.md` for project-preferred tooling before introducing your own.
 
 
-## Common Pitfalls
+## GOTCHAS
 
-1. Validating only the default state.
-2. Comparing against the wrong reference.
-3. Missing overlays, modals, or transient UI.
-4. Reporting vague issues without concrete fixes.
-5. Ignoring the project-specific workflow when one exists.
+1. Comparing against the wrong reference.
+2. Reporting vague findings without a concrete, evidenced fix.
+3. Ignoring the project-specific workflow when one exists.
 
 
 ## Output Format

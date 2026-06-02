@@ -5,7 +5,7 @@ Domain-specific calibration for reviewing code and implementation. Load `${CLAUD
 
 ## Severity Calibration – Contrastive Examples
 
-Each pair shows what IS and is NOT that severity level. Use these to calibrate your severity assignments.
+Each pair shows what IS and is NOT that severity level.
 
 ### Critical
 

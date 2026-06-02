@@ -6,9 +6,6 @@ argument-hint: "[output directory (defaults to docs/)]"
 # Map Codebase
 
 
-Brownfield codebase analysis that produces structured understanding of an existing codebase plus a discovered requirements document.
-
-
 ## VARIABLES
 
 _Output directory (defaults to `docs/`, or as configured in **Project Document Index**):_
@@ -17,7 +14,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
 - **Read-only analysis** – No code changes, commits, or modifications
 - **Delegate heavily** – Spawn parallel sub-agents for codebase analysis
@@ -34,19 +31,15 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 
 ### 1. Codebase Survey
 
-1. Run `tree -d -L 3` for directory structure
-2. Run `git ls-files | head -500` for file inventory
-3. Check existing documentation: README, CLAUDE.md, AGENTS.md, docs/, etc.
-4. Identify primary language(s) and frameworks from config files
-5. Check git history: `git log --oneline -20`
-6. **Detect monorepo/workspace structure** – look for `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `"workspaces"` in root `package.json`, `[workspace]` in root `Cargo.toml`, `go.work`, or multiple sub-dirs with their own package config. If detected: list workspace tool and sub-projects. Set `IS_MONOREPO = true` and pass the sub-project list to all analysis sub-agents.
+1. Survey project shape: directory tree, file inventory, existing docs (README, CLAUDE.md, AGENTS.md, docs/), primary language(s)/frameworks from config files, and recent git history.
+2. **Detect monorepo/workspace structure** – look for `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `"workspaces"` in root `package.json`, `[workspace]` in root `Cargo.toml`, `go.work`, or multiple sub-dirs with their own package config. If detected: list workspace tool and sub-projects. Set `IS_MONOREPO = true` and pass the sub-project list to all analysis sub-agents.
 
 **Gate**: Project shape understood, technologies identified, monorepo status determined
 
 
 ### 2. Parallel Analysis
 
-Spawn parallel sub-agents. Use a fast/lightweight model (`model: "haiku"`, `gpt-5.4-mini`, or similar) for scanning agents and a capable coding model (`model: "sonnet"`, `gpt-5.3-codex`, or similar) for synthesis.
+Spawn parallel sub-agents (they inherit the session model), varying effort by task: **low** effort for scanning agents, **medium** for synthesis.
 
 **Monorepo note** (apply to all sub-agents when `IS_MONOREPO = true`): organize findings with clear sub-project boundaries. Document shared aspects once; only call out per-sub-project specifics where they differ.
 
@@ -117,6 +110,6 @@ Also emit `OUTPUT_DIR/decisions-discovered.md` using the `DECISIONS.md` template
 
 ## OUTPUT
 
-Files written to `OUTPUT_DIR/`: `STACK.md`, `ARCHITECTURE.md` (+ testing overview), `KEY_DEVELOPMENT_COMMANDS.md`, `requirements-discovered.md`, `decisions-discovered.md`. A `## Conventions` section is appended to the project's root agent instruction file(s), or reported for `andthen:init` to insert when no root file exists yet; monorepo: matching per-sub-project agent instruction files are generated in each sub-project directory.
+Written to `OUTPUT_DIR/`: `STACK.md`, `ARCHITECTURE.md` (+ testing overview), `requirements-discovered.md`, `decisions-discovered.md`. The `Key Dev Commands` document goes to its **Project Document Index** path (default `docs/KEY_DEVELOPMENT_COMMANDS.md`). A `## Conventions` section is appended to the root agent instruction file(s) – or reported for `andthen:init` to insert when none exists; monorepo adds matching per-sub-project agent instruction files.
 
-When complete, print each output file's **relative path from the project root**.
+Print each output file's **relative path from the project root**.

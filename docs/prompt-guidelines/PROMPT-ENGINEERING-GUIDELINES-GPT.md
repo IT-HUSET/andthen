@@ -8,38 +8,19 @@ GPT-5.x+ specific behaviors, optimizations, and patterns.
 
 ---
 
-## GPT-5.x Model Family
+## GPT Frontier Model Class
 
-| Model | ID | Status | Context | Max Output | Knowledge Cutoff | Input/Output (per 1M) |
-|-------|-----|--------|---------|------------|-------------------|----------------------|
-| GPT-5.4 | `gpt-5.4` | **Recommended default** | 1M* | 128K | Aug 2025 | $2.50/$15 |
-| GPT-5.4 Pro | `gpt-5.4-pro` | Maximum capability | 1M* | 128K | Aug 2025 | TBD |
-| GPT-5.3-Codex | `gpt-5.3-codex` | Dedicated agentic coding | 1M* | 128K | Dec 2025 | $3/$12 |
-| GPT-5.2-Codex | `gpt-5.2-codex` | Previous-gen agentic coding | 400K | 128K | Sep 2025 | TBD |
-| GPT-5.2 | `gpt-5.2` | General purpose | 256K | 128K | Sep 2025 | $3/$12 |
-| GPT-5.1 | `gpt-5.1` | Legacy | 256K | 128K | Mar 2025 | $2/$8 |
-| GPT-5 | `gpt-5` | Legacy | 128K | 128K | Oct 2024 | $2/$8 |
-
-\* Extended context (>272K input tokens) requires the experimental `model_context_window` parameter and is billed at **2x input / 1.5x output** for the full session.
-
-> **Retired models** (Feb 2026): o4-mini, GPT-4o, GPT-4.1, GPT-4.1 mini. Do not use for new development.
-
-### GPT-5.4 vs GPT-5.3-Codex
-
-GPT-5.4 is a **unified frontier model** that absorbed GPT-5.3-Codex coding capabilities. It marginally beats GPT-5.3-Codex on SWE-Bench Pro (57.7% vs 56.8%) at lower cost.
-
-GPT-5.3-Codex retains a small edge on **Terminal-Bench 2.0** (77.3% vs 75.1%) – relevant for terminal-heavy/CLI-scripting workflows. For most tasks, **GPT-5.4 is the recommended default**.
+Do not maintain static GPT version tables or cost/benchmark comparisons in prompt guidelines. AndThen's policy is one top-tier frontier GPT class plus task-appropriate `reasoning_effort`; keep concrete model ids in the harness or provider docs where they can track current availability.
 
 ### Core Capabilities
 
-The GPT-5.x family represents substantial leaps in:
+The GPT frontier family is optimized for:
 - Agentic task performance
 - Coding capabilities
 - Raw intelligence and reasoning
 - Steerability and instruction following
-- Computer use (GPT-5.4: 75% OSWorld-Verified)
 
-See also: [Model & Effort Selection Guide](../../MODEL-EFFORT-SELECTION-GUIDE.md) for task-specific model/effort recommendations.
+See [Model & Effort Selection Guide](../MODEL-EFFORT-SELECTION-GUIDE.md) for the durable policy.
 
 ---
 

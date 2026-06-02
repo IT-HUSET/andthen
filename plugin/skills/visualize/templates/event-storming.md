@@ -5,6 +5,18 @@ Use when the source is an architecture **event-storming** report from the `andth
 Event-storming reports surface a Brandolini-style sticky-note board as a textual artifact. The visualization makes the **sticky-note color vocabulary load-bearing** – orange events, blue commands, yellow actors, lilac policies, green read models, purple hotspots, plus pink/red external systems on Big Picture boards. The reviewer's eye learns the palette within seconds.
 
 
+## Contents
+
+- Layout
+- Document Header
+- Sticky-Note Color Tokens
+- KPI Cells
+- Section Renderers
+- Where-to-Focus Inputs
+- Edge Cases
+- Example Use Cases
+
+
 ## Layout
 
 ```
@@ -56,7 +68,7 @@ Status pill stays generic (`review` by default; `draft` when the source explicit
 
 ## Sticky-Note Color Tokens
 
-These tokens are **sticky-note specific** – they layer on top of the SKILL.md palette without replacing it. Define once in the page-level `<style>` block.
+These tokens are **sticky-note specific** – they layer on top of the render-shell.md palette without replacing it. Define once in the page-level `<style>` block.
 
 ```css
 :root {

@@ -1,17 +1,21 @@
 # Domain-Driven Design – Architecture Reference
 
-Design, evaluate, and evolve bounded contexts and the models inside them. Synthesizes Eric Evans (DDD blue book), Vaughn Vernon (*Implementing DDD* red book, *DDD Distilled*, *Effective Aggregate Design* I–III), Vlad Khononov (*Learning DDD*), Scott Wlaschin (*Domain Modeling Made Functional*), the DDD Crew community (context mapping, bounded context canvas, core domain charts), and Alberto Brandolini (Event Storming).
+Design, evaluate, and evolve bounded contexts and the models inside them. Strategic + tactical DDD; sources at end.
 
 Operates at C4 **Context / Container / Component** level – strategic design picks bounded contexts and their relationships; tactical design shapes the model inside one. Complements the Ford/Richards decomposition lens and the Ousterhout in-process lens – use all three where they fit.
 
-Use this reference when:
-- Discovering or evaluating bounded contexts
-- Deciding integration patterns between contexts
-- Designing or reviewing aggregates, domain events, or domain/application services
-- Choosing between core/supporting/generic treatment for a subdomain
-- Advising on Hexagonal, CQRS, or Event Sourcing in a DDD setting
+Pure in-process class/module API design: `ousterhout-modules.md`. Low-level dependency analysis: `connascence.md` / `package-principles.md`.
 
-Not the right lens for: pure in-process class/module API design (use `ousterhout-modules.md`) or low-level dependency analysis (use `connascence.md` / `package-principles.md`).
+## Table of Contents
+- [1. Strategic Design](#1-strategic-design)
+- [2. Tactical Design](#2-tactical-design)
+- [3. Architecture Integration](#3-architecture-integration)
+- [4. Discovery Techniques](#4-discovery-techniques)
+- [5. Ubiquitous Language – Operationalizing](#5-ubiquitous-language--operationalizing)
+- [6. Functional DDD (Alternative Lens)](#6-functional-ddd-alternative-lens)
+- [7. DDD Anti-Patterns](#7-ddd-anti-patterns)
+- [8. When to Bend the Rules](#8-when-to-bend-the-rules)
+- [Sources](#sources)
 
 ---
 
@@ -113,8 +117,6 @@ Immutable facts that something happened, named in past-tense ubiquitous language
 Consumers of integration events must be idempotent (at-least-once delivery). Version with additive, optional fields; never mutate the meaning of a published field.
 
 ### 2.4 Domain Service vs. Application Service
-
-Frequently confused; the split is high-leverage.
 
 | | Domain service | Application service |
 |---|---|---|
@@ -238,7 +240,7 @@ Complement, not replacement, for OO DDD. Useful when the target language is FP-f
 
 Retain from prior coverage: **Anemic Domain Model**, **Leaky Abstraction**, **Context Explosion**, **Generic Subdomains as Core**, **Big Ball of Mud**. Additions from this reference (DDD-specific; not in the general `anti-patterns.md` catalog – review under `review` or `decompose` mode should consult this section when the target is aggregate- or event-heavy):
 
-- **False Invariant Aggregates** – aggregate grouped by navigational convenience, not a true commit-time invariant. Symptom: multiple use cases only touch a subset. Fix: apply the Whiteboard Test; split.
+- **False Invariant Aggregates** – aggregate grouped by navigational convenience, not a true commit-time invariant. Symptom: multiple use cases only touch a subset. Fix: apply the Discovery heuristic (§2.1); split.
 - **Leaky Integration Events** – internal aggregate structure exposed as a public event contract. Symptom: downstream consumers break when internal refactors ship. Fix: publish a purpose-built integration event via outbox; keep domain events internal.
 - **Model-Code Gap** – domain experts and code disagree on names and boundaries. Symptom: constant translation overhead in design conversations. Fix: rename to UL; feed glossary discipline via the `andthen:ubiquitous-language` skill.
 
@@ -246,10 +248,8 @@ Retain from prior coverage: **Anemic Domain Model**, **Leaky Abstraction**, **Co
 
 ## 8. When to Bend the Rules
 
-- Aggregate rules describe the *steady state*. Legitimate migration steps may temporarily violate them; the goal is to converge back.
-- Separate Ways is not failure – when integration cost exceeds value, duplication is the right answer.
-- Conformist is not surrender – it is an explicit decision to spend no design energy on a boundary that does not deserve it.
-- Partnership is powerful but fragile. Prefer Customer/Supplier or OHS when deployment independence matters more than tight collaboration.
+- Aggregate rules describe the *steady state*; legitimate migration steps may transiently violate them – converge back.
+- (Separate Ways / Conformist / Partnership caveats already in §1.3 "choose when".)
 
 ---
 

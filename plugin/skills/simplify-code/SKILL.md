@@ -1,11 +1,11 @@
 ---
 description: Simplify and refine code for clarity, reuse, quality, and efficiency while preserving exact behavior. Trigger on 'simplify this code', 'clean this up', 'refactor this', 'reduce complexity'.
-argument-hint: "[--auto|--headless] [--path <dir/file>] [scope/description]"
+argument-hint: "[--auto] [--path <dir/file>] [scope/description]"
 ---
 
 # Simplify Code
 
-Behavior-preserving code improvement. Make scoped code easier to read, reuse, test, and change without changing what it does.
+Make scoped code easier to read, reuse, test, and change.
 
 
 ## VARIABLES
@@ -13,23 +13,21 @@ Behavior-preserving code improvement. Make scoped code easier to read, reuse, te
 ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--path` before interpreting the remainder as the scope/description)
 
 ### Optional Flags
-- `--auto` / `--headless` → AUTO_MODE: automation-safe execution with no conversational prompts
+- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
 ## INSTRUCTIONS
 
-- **Fully read and understand all project rules, guardrails, principles and guidelines (as defined in `CLAUDE.md` / `AGENTS.md` and other referenced files) before starting work.**
-- **Intent + Rules Context** – collect both bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) up-front in Phase 1, after scope is resolved. Behavior-preserving cleanup can still drift the feature when it restructures code the FIS chose a shape for, folds in capabilities the FIS deferred, or pulls in dependencies a Non-Goal forbids. Phase 2 consults the Intent bundle before proposing any structural change; cleanups that contradict the Intent are dropped (surfaced in the completion summary, not applied), even when the code-quality heuristic favors them.
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
+- **Intent + Rules Context** – collect both bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) up-front in Phase 1, after scope is resolved. Behavior-preserving is not intent-preserving: the Phase 2 Intent anchor drops cleanups that contradict the Intent (surfaced in the completion summary, not applied).
 - **Preserve exact behavior** – change only *how* the code works, never *what* it does, unless explicitly requested
-- **No scope creep** – simplify only the requested or defensibly resolved scope
 - **Tests must pass** before and after simplification
 - Match the codebase's existing conventions and style – read the project guidelines before making style judgments
-- **Automation rules** (headless-first, `--auto` / `--headless` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Simplify-code-specific `BLOCKED:` triggers: red baseline (tests/build/lint failing before any simplify edit), no defensible scope derivable from arguments, current-branch diff, or conversation context, ambiguity between two or more incompatible simplification directions with no conservative default.
+- **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Simplify-code-specific `BLOCKED:` triggers: red baseline (tests/build/lint failing before any simplify edit), no defensible scope derivable from arguments, current-branch diff, or conversation context, ambiguity between two or more incompatible simplification directions with no conservative default.
 - **Anti-rationalization** – simplify-code's job is Boy Scout cleanup *within the user's requested scope* (per CRITICAL RULES); widening to other modules or files mid-flow is the failure mode. Reject these common rationalizations:
   - "I'll clean this adjacent module too while I'm here" – that widens scope; leave it for a separate simplify pass.
   - "This behavior change is obviously safe" – simplification preserves behavior exactly; behavior changes are a separate commit.
   - "Tests can come later" – a green baseline before and after is the simplification safety net.
-  - "Three clever lines beat six clear ones" – readability is the goal; compactness is not.
 
 ### Simplification Philosophy
 
@@ -37,10 +35,7 @@ Favor **readable, explicit code** over compact or clever solutions. Reduce compl
 
 
 ## GOTCHAS
-- Not establishing a baseline (tests pass, build succeeds) before starting
-- Over-simplification that makes code harder to debug or extend
-- Premature abstraction – three similar lines of code is often better than one clever helper
-- **Boy Scout cleanup that crosses Intent boundaries** – behavior-preserving does not mean intent-preserving. Extracting a shared helper across module boundaries, folding duplicate computation into a memoized utility, or pulling in a third-party library can each contradict a stated Non-Goal, implement a deferred outcome, or restructure code the FIS chose a shape for. Phase 2 consults the Intent Context bundle for exactly this reason – drop the cleanup, surface it in the completion summary, do not apply.
+- **Boy Scout cleanup that crosses Intent boundaries** – see the Phase 2 Intent anchor.
 - **Picking up `SURFACED` findings from a prior run of the `andthen:remediate-findings` skill** – those are findings an upstream gate explicitly declined to auto-apply. Cleaning them up here re-introduces the drift the routing gate prevented.
 
 
@@ -50,23 +45,13 @@ Favor **readable, explicit code** over compact or clever solutions. Reduce compl
 
 #### 1.1. Determine Scope
 
-**If `--path` flag present:**
-- Use specified file(s)/directory as authoritative scope
+Resolve scope in precedence order: `--path` > described files (analyze the codebase to identify matches) > current branch diff against its base/upstream (fall back to `git diff HEAD`) > files named or edited earlier in this conversation. Treat the resolved scope as authoritative – never widen it.
 
-**If description provided:**
-- Analyze codebase to identify relevant files matching the description
-- Treat user-named scope as authoritative; do not widen it
-
-**If no arguments:**
-- In a git repository, default to the current branch diff against its base branch or upstream. If no base is available, fall back to staged + unstaged changes (`git diff HEAD`).
-- Outside git, or when no diff is available, use files clearly mentioned by the user or edited earlier in this conversation.
-- In `AUTO_MODE`, this fallback is only defensible when it yields a non-empty, cohesive scope; stop with `BLOCKED: no defensible scope (no --path, no description, branch-diff/conversation fallback yielded {nothing | shallow-clone error | a wide cross-module set})` rather than simplifying against noise.
+In `AUTO_MODE`, the diff/conversation fallback is defensible only when it yields a non-empty, cohesive set; otherwise stop with `BLOCKED: no defensible scope (no --path, no description, branch-diff/conversation fallback yielded {nothing | shallow-clone error | a wide cross-module set})` rather than simplifying against noise.
 
 #### 1.2. Establish Baseline
 - Use the commands from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) for all baseline and Phase 4 verification calls. Fall back to discovery (package.json scripts, Makefile targets, language conventions) only when the document is missing.
-- Run existing tests to confirm passing state
-- Run linting/type checks
-- Note current state for regression comparison
+- Establish a green baseline (tests + lint/type checks pass); record current state for regression comparison.
 - In `AUTO_MODE`, a red baseline triggers `BLOCKED:` (per INSTRUCTIONS) rather than Stop-the-Line iteration – simplify-code never tries to fix the baseline itself
 
 #### 1.3. Collect Intent + Rules Context
@@ -128,7 +113,7 @@ Execute improvements from the prioritized list:
 
 ### Phase 4: Verification
 
-Use the relevant commands from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) read in Phase 1.2. Fall back to discovery only when the document was missing.
+Use the relevant `Key Dev Commands` resolved in Phase 1.2.
 
 1. **Linting/types**: Run full-project typecheck and lint when configured; these catch the common simplification regressions.
 2. **Tests**: Run tests scoped to changed paths when the runner supports it. Broaden to related suites or the full suite when the changed code is shared, hot-path, or structurally significant. If the runner has no scoping mechanism, run the full suite.

@@ -5,6 +5,18 @@ Use when the source is a **Feature Implementation Specification** (FIS) – the 
 A FIS is *execution input* – the visualization optimizes for "is this implementable as-written" rather than narrative reading. Scenarios, tasks, and the validation checklist are the load-bearing surfaces.
 
 
+## Contents
+
+- Layout
+- Document Header
+- KPI Cells
+- Section Renderers
+- Where-to-Focus Inputs
+- Pre-population and Source Consumption
+- Edge Cases
+- Example Use Cases
+
+
 ## Layout
 
 ```
@@ -102,7 +114,7 @@ A specialized renderer (not Generic Prose) because the Expected Outcomes bullets
 
 If the FIS is legacy (no `**Expected Outcomes**:` sub-block), fall back to Generic Prose for the section body and skip OC ID emission – there is nothing to anchor.
 
-Use `.tldr-light` callout when the source authors one explicitly per the SKILL.md *Light TL;DR callout* contract.
+Use `.tldr-light` callout when the source authors one explicitly per the render-shell.md *Light TL;DR callout* contract.
 
 ### Required Context → Source-pinned block cards
 
@@ -373,7 +385,7 @@ When the section body is the verbatim `_No observations recorded yet._` placehol
 
 ## Where-to-Focus Inputs
 
-Per SKILL.md *Where-to-Focus Priority Section* heuristic, in source-relevance order:
+Per render-shell.md *Where-to-Focus Priority Section* heuristic, in source-relevance order:
 
 1. **Unchecked task with a `**Verify**:` line referencing a TODO, FIXME, placeholder, or "not implemented" marker** → "Verify command unresolved: TI<NN>".
 2. **Constraint or Gotcha tagged `Critical`** → "Critical constraint: <body>".
@@ -395,7 +407,7 @@ Per SKILL.md *Where-to-Focus Priority Section* heuristic, in source-relevance or
 - **FIS with no Implementation Plan tasks yet** (early draft) → KPI cell 2 = 0; task list renders the boilerplate `TI00 (example – delete this block)` row as muted, with a `<!-- fis: tasks not yet authored -->` comment in `View source`.
 - **FIS with no Acceptance Scenarios** → KPI cell 1 = 0; render the section as a single Generic Prose card with a muted "no scenarios authored" note; the structural-integrity gate is `exec-spec`'s job, not the visualizer's.
 - **FIS with no `## Structural Criteria` section** (early draft or hand-authored skip) → omit the section entirely; a missing heading is a `## Structural Criteria → Checklist` renderer no-op rather than a synthesized empty card. The `exec-spec` completion gate is the enforcement boundary, not the visualizer.
-- **Long Required Context blockquotes** (> 30 lines) → render the first 12 lines, then wrap the remainder in `<details class="analysis">` with summary `Show full inlined span`. Reuses the SKILL.md *Supporting-detail collapse* contract.
+- **Long Required Context blockquotes** (> 30 lines) → render the first 12 lines, then wrap the remainder in `<details class="analysis">` with summary `Show full inlined span`. Reuses the render-shell.md *Supporting-detail collapse* contract.
 - **Cross-references to plan-story sub-anchors** (`See plan S03`) → leave as plain text; cross-document anchors aren't resolvable from a single-artifact view.
 - **AUTO_MODE assumption blocks in `## Implementation Observations`** (per `automation-mode.md`) → render as observation cards with the `Interpretation` field surfaced; same template otherwise.
 

@@ -2,7 +2,7 @@
 
 Rubric for comparing a current implementation against its requirements baseline (spec, PRD, plan, issue, FIS, or other source of truth) and producing remediation-focused output with a PASS/FAIL verdict. Load this reference when running `andthen:review --mode gap`.
 
-The target is always the implementation, not the requirements document itself.
+Default target is the implementation, not the requirements doc – but not absolutely. When coherent, tested code contradicts the FIS Intent, Expected Outcomes, or an ADR-backed decision, do not assume which party is wrong: classify the finding (`code-defect | design-changed | spec-stale | ambiguous-intent`, defined in §4 Spec/design drift) rather than reflexively routing to code remediation.
 
 ## Contents
 - Scope · §0 Resolve Review Target · §1 Compile Requirements · §2 Inspect Implementation
@@ -89,7 +89,7 @@ Focus on requirements-vs-implementation alignment – the unique value of this l
 
 ## 4. Gap Analysis
 
-Compare requirements to the implementation and record gaps in the categories below. Each category targets a distinct failure mode – skipping categories silently narrows the review. For every finding, note the affected file(s) and the specific requirement or expectation it violates.
+Compare requirements to implementation; record gaps per the categories below – each targets a distinct failure mode, so skipping one silently narrows the review. Note affected file(s) and the violated requirement per finding.
 
 - **Functionality gaps** – missing or incomplete features, unfulfilled acceptance criteria, absent error handling, unhandled edge cases, weak input validation, missing user-facing feedback for failure paths.
 
@@ -99,17 +99,15 @@ Compare requirements to the implementation and record gaps in the categories bel
 
 - **Requirement mismatches** – behavior or logic that does not match what the requirements specify. Incorrect defaults, inverted conditions, misinterpreted acceptance criteria. Unmet non-functional requirements: performance, security, accessibility, internationalization, observability, compatibility.
 
+- **Spec/design drift** – implementation is coherent and tested but contradicts the FIS Intent sentence, tagged Expected Outcomes, or recorded design decision. Classify `design-changed` (deliberate pivot), `spec-stale` (requirements simply trail the code), or `ambiguous-intent` (artifact cannot say which party is wrong). These require a human reconcile decision, not blind code remediation.
+
 - **Consistency gaps** – deviations from existing codebase patterns, conventions, and architecture. Documentation gaps (README, inline docs, user-facing copy). Test coverage gaps at the levels the project expects (unit, integration, end-to-end).
 
 - **Domain language gaps** – terminology drift between requirements and implementation: the same concept named differently, terms leaking across bounded contexts, or new domain concepts introduced without glossary entries. _Skip when no `Ubiquitous Language` document exists (see **Project Document Index**)._
 
 - **Holistic sanity check** – zoom out and ask whether the implementation makes sense end-to-end. Does it actually achieve the user-facing outcome, not just the technical checklist? Any hidden assumptions, tech debt, or architectural drift introduced? Would a reasonable user or operator be surprised by how it behaves?
 
-- **Verification depth – substance and wiring** – beyond "does the file exist," check:
-  - Are implementations substantive? (No stubs, placeholders, silently-empty handlers, `pass`, `TODO`, `NotImplementedError`.)
-  - Are new components wired into the system? (Imported, routed, called, rendered, migrated, registered.)
-  - Do verification commands actually pass? (Build, tests, type check, lint.)
-  - Cross-reference `verification-patterns.md` for the substance/wiring rubric.
+- **Verification depth** – fold the §3 stub-scan / wiring-check / passing-command evidence into the relevant category above: a stub or unwired component that violates a requirement is a Functionality or Integration gap, not just a quality note.
 
 
 ## 5. Critic Sub-Lens (Always On): Behavioral Dry-Run Walkthrough
@@ -120,7 +118,7 @@ Dispatch per `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` § Sub-agent
 
 Methodically simulate how the implementation actually runs against each requirement, one path at a time. This surfaces issues that mechanical file-vs-spec comparison misses: latent state bugs, incorrect logic, fragile assumptions, missing defensive behavior, and requirements filled in by guessing.
 
-Walk through the work; do not skim it. For each significant requirement, feature flow, or user-visible behavior the implementation claims to satisfy, perform the following passes and record every concern as a finding. Feed those findings back into the Step 4 categories (or add an explicit **Behavioral** subcategory) before running the Findings Filter.
+For each significant requirement, feature flow, or user-visible behavior the implementation claims to satisfy, perform the following passes. (Add an explicit **Behavioral** subcategory to Step 4 if needed; routing is in *Record and route* below.)
 
 ### Trace execution
 
@@ -130,10 +128,10 @@ Walk through the work; do not skim it. For each significant requirement, feature
 
 ### Check conditions and invariants
 
-- **Preconditions** – what must be true before each function or block runs? Are those conditions guaranteed by the caller, enforced on entry, or silently assumed?
-- **Postconditions** – what state or output does the code promise after it runs? Is that promise delivered on every path, including early returns and exceptions?
-- **Invariants** – what must remain true throughout the operation (transactional consistency, ordering, uniqueness, referential integrity, UI state)? Any path that could violate them?
-- **Idempotency and re-entry** – is it safe to retry, replay, or run concurrently if the requirement implies that?
+- **Preconditions** – guaranteed by the caller, enforced on entry, or silently assumed?
+- **Postconditions** – delivered on every path, including early returns and exceptions?
+- **Invariants** (transactional consistency, ordering, uniqueness, referential integrity, UI state) – any path that could violate them?
+- **Idempotency and re-entry** – safe to retry, replay, or run concurrently if the requirement implies that?
 
 ### Stress the unhappy paths
 
@@ -152,14 +150,14 @@ Walk through the work; do not skim it. For each significant requirement, feature
 
 ### Sanity-check the design
 
-- Does the end-to-end flow actually achieve the user-facing outcome, or only the technical acceptance checklist?
+- For each `[x]` FIS Acceptance Scenario, does the implementation satisfy the tagged `[OC<NN>]` outcome and the Intent sentence, not merely the literal **Then** clause? A scenario satisfiable by an implementation that defeats the Intent is a finding regardless of checkbox state.
 - Are there operations that look correct locally but compose incorrectly (e.g. correct individual queries that together violate an invariant)?
 - Are failure modes survivable – does a single external dependency outage degrade gracefully or cascade?
 - Could the same requirement be met with meaningfully less code, fewer abstractions, or fewer failure surfaces? If so, the complexity itself is a finding.
 
 ### Record and route
 
-Every concern from the walkthrough is a finding. Each finding must carry: location, the requirement or invariant it threatens, the path or input that triggers it, and the observable impact. Merge into the Step 4 categories so they are scored and filtered alongside the mechanical gap findings.
+Every concern from the walkthrough is a finding. Each finding must carry: location, class (`code-defect | spec-stale | design-changed | ambiguous-intent`), the requirement or invariant it threatens, the path or input that triggers it, and the observable impact. Merge into the Step 4 categories so they are scored and filtered alongside the mechanical gap findings. When a `design-changed` finding fires and no ADR records the decision, emit a companion finding routing to the `andthen:architecture` skill in `--mode trade-off` to create the missing ADR before spec amendment.
 
 
 ## FIS Upstream-Context Handling

@@ -1,7 +1,8 @@
 ---
 name: review-architecture
 description: Architecture reviewer for AndThen review councils. Use for coupling, boundaries, abstractions, maintainability, resilience, and project architecture alignment.
-model: sonnet
+model: inherit
+effort: medium
 color: blue
 ---
 

@@ -4,7 +4,7 @@
 
 **To customize for your project**: Copy this file to your project (e.g. `docs/design/diagram-style-guide.md`), modify it to match your brand, and add a `Diagram Style Guide` row to the **Project Document Index** in your root agent instruction file (`CLAUDE.md` / `AGENTS.md`) pointing to the copy.
 
-**Aesthetic: Hand-drawn Blueprint** – clean white canvas, pastel-tinted shapes with confident strokes, and spatial zones that group by color family. Shapes use light shade[1] fills with strong shade[4] strokes. The hand-drawn Excalifont and `roughness: 1` give warmth. Zones use the lightest shade[0] tints as subtle spatial grouping. The result feels like a skilled architect's whiteboard sketch – organized, colorful but cohesive, approachable. Dark mode is a well-supported alternative (Section 9).
+**Aesthetic: Hand-drawn Blueprint** – white canvas, shade[1] fills, shade[4] strokes, Excalifont, `roughness: 1`. Zones (shade[0]) group by color family. Full preset spec in §13; dark mode §9.
 
 **All colors come from the standard Excalidraw picker palette** (Open Color + Radix Bronze). Users can customize diagrams using the built-in color picker.
 
@@ -56,7 +56,7 @@ These are for **status badges or callout labels**, not for shape fills in the ma
 
 ### Semantic Color Overlay
 
-When deciding which color family to assign to a zone, use this mapping. It provides a consistent visual vocabulary so the same concept looks the same across different diagrams.
+Map a zone's concept → color family for a consistent visual vocabulary across diagrams.
 
 | Concept | Color Family | Fill | Stroke | Rationale |
 |---------|-------------|------|--------|-----------|
@@ -75,7 +75,7 @@ When deciding which color family to assign to a zone, use this mapping. It provi
 1. **Zone assignment**: When a zone represents one of these concepts, use its mapped color family. A "Data Layer" zone → Cyan. An "AI Pipeline" zone → Violet.
 2. **Multiple zones, same concept**: If two zones both represent "processing," use the same family (Teal) – differentiate with layout and labels, not color.
 3. **Unknown concepts**: Default to Blue for primary, Bronze for secondary.
-4. **This is guidance, not law**: The zone-driven system (shapes inherit from their zone) still takes precedence. Semantic colors tell you which family to *pick* for each zone – they don't override the zone-color rule.
+4. **Guidance, not law**: picks the family per zone; the zone-color rule still governs.
 
 ### Fill Style
 
@@ -272,11 +272,6 @@ roughness:       0
 roundness:       { "type": 3 }
 ```
 
-- Zones use **shade[0]** fill and **shade[1]** stroke – subtle tinted regions
-- `opacity: 50` keeps zones present without overwhelming shape fills (which are shade[1] at opacity 100)
-- `strokeWidth: 1` – visible but secondary to shape strokes
-- `roughness: 0` – zones should be clean even in hand-drawn diagrams
-- **Rounded corners** always
 - Place zones FIRST in the elements array (back of z-order)
 - Each zone gets its own color family – this is the core of the visual system
 
@@ -324,8 +319,6 @@ All evidence text: `fontFamily: 8` (Comic Shanns – Excalidraw's current monosp
 | Property | Value |
 |----------|-------|
 | `viewBackgroundColor` | `#ffffff` (white) |
-
-Clean white canvas. The pastel shade[1] fills and shade[0] zone tints provide all the warmth and color needed – a white canvas gives maximum contrast for everything.
 
 ---
 
@@ -408,7 +401,7 @@ On canvases ≥ 1200px wide, partition the canvas into three density bands so th
 
 ### Structure and Specificity
 
-**Structure is the argument.** Visual topology communicates meaning independently of labels. Two litmus tests:
+**Structure is the argument.** Two litmus tests:
 1. **Structure test** – Cover all text. Does shape arrangement alone convey the core relationship? A fan-out radiating arrows says "one source, many targets" without labels. A grid of equal boxes is decoration.
 2. **Specificity test** – Real API names, actual data formats, genuine code snippets? `handleWebhook(event: StripeEvent)` teaches; `"Process" → "Handler"` merely labels.
 
@@ -433,27 +426,6 @@ Default to **free-floating text**. Add a container only when the element needs t
 
 **Box-budget rule**: Fewer than 30% of text elements inside containers. Over-containing makes a diagram look like a form. Use font size (28px title → 16px body) and color (zone stroke for headings → gray for annotations) to create hierarchy.
 
-### The Zone-Color Rule
-
-**Shapes inherit color from their zone.** This single rule prevents rainbow chaos while allowing rich visual variety across sections:
-
-- A diagram with 2 zones (blue, violet) + 2 accents (orange, green) uses 4 colors – cohesive because each zone is internally consistent.
-- Compare to a diagram where every shape picks from 13 colors – it looks chaotic because there's no spatial logic.
-
-### What Makes This Style Work
-
-1. **Zones create color neighborhoods.** All the blue shapes form a visual cluster. All the violet shapes form another. The eye groups them automatically – structure and color reinforce each other.
-
-2. **Pastel fills, strong strokes.** Shade[1] fills are soft and readable. Shade[4] strokes carry the color identity. The shape is defined by its stroke; the fill provides a gentle tint. Text on light fills is always legible.
-
-3. **Colored zone headings unify.** "File-Based Storage" in `#1971c2` inside a blue zone ties the heading to its content. Black headings feel disconnected.
-
-4. **Accents break the pattern with purpose.** An orange "Config" shape inside a blue zone stands out immediately as "different category." The color contrast communicates without needing a label.
-
-5. **Hand-drawn warmth (roughness 1 + Excalifont).** The handwriting and slight wobble make diagrams feel like a skilled architect's whiteboard sketch – approachable and human.
-
-6. **Legends earn colored arrows.** Colored arrows are powerful but require discipline. If you use them, include a legend at the bottom. Max 3 arrow types.
-
 ### Anti-Patterns
 
 - **Per-shape coloring.** Don't assign colors to individual shapes. Assign colors to zones and categories.
@@ -471,7 +443,7 @@ This style guide defaults to the **Hand-drawn Blueprint** aesthetic. To use a di
 
 ### Preset 1: Hand-drawn Blueprint (Default)
 
-The current default – no changes needed. Clean white canvas, pastel-tinted shapes with confident strokes, Excalifont handwriting. Feels like a skilled architect's whiteboard sketch.
+The current default – no changes needed.
 
 | Setting | Value |
 |---------|-------|

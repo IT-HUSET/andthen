@@ -6,9 +6,6 @@ argument-hint: "[project name or path]"
 # Initialize Project
 
 
-Set up the AndThen workflow structure for a project. Detects current state and fills gaps non-destructively – never overwrites existing files.
-
-
 ## VARIABLES
 
 PROJECT_NAME: $ARGUMENTS _(optional – inferred from directory name or package config if not provided)_
@@ -19,12 +16,7 @@ PROJECT_NAME: $ARGUMENTS _(optional – inferred from directory name or package 
 - **Non-destructive** – Never overwrite existing files. Only add missing pieces.
 - **Interactive** – Ask before creating optional documents. Don't assume what the user wants.
 - **Minimal by default** – Create only what's needed. Suggest optional additions.
-- **Detect, don't guess** – Read existing files to understand what's already in place before proposing changes.
-
-
-## GOTCHAS
-- Overwriting existing project files without checking – non-destructive by design
-- Creating files for workflows the user doesn't need
+- **Detect, don't guess** – classify state from existing files (Step 1) before proposing changes.
 
 
 ## WORKFLOW
@@ -75,7 +67,7 @@ Then present the **optional documents** together. **STOP and WAIT** for the user
 
 Ask: _"Which optional documents would you like to create alongside the Core stubs? (e.g. 'State, Roadmap' or 'all planning' or 'none for now')"_
 
-For each confirmed document type, generate the file from templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`, using the location from the **Project Document Index** or the default path above. Pre-fill what's auto-detectable (e.g., the `Stack` document from package config).
+For each confirmed document type, generate the file from templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`, using the location from the **Project Document Index** or the default path above.
 
 For each confirmed sub-project agent instruction file, generate a lightweight file (under ~40 lines) containing: sub-project name and description, key development commands (inline table), and any conventions that differ from root. Mirror the root file choice (`CLAUDE.md`, `AGENTS.md`, or both). Also update the root `Key Dev Commands` document (see **Project Document Index**) if created to include per-sub-project sections.
 
@@ -97,9 +89,7 @@ Current setup analysis:
   - Missing: State, Requirements, Roadmap, Conventions
 ✓ Project-Specific Guidelines and Rules section configured
 ✗ Required starter guideline files are missing from docs/guidelines/
-✗ Core orientation stubs missing: PRODUCT.md, ARCHITECTURE.md, DECISIONS.md, LEARNINGS.md (will be scaffolded by default)
-
-Will scaffold by default: missing Core orientation stubs, missing starter guideline files.
+✗ Core orientation stubs missing: PRODUCT.md, ARCHITECTURE.md, DECISIONS.md, LEARNINGS.md
 
 Would you also like to:
 1. Add missing Document Index rows
@@ -114,7 +104,7 @@ Run the `andthen:map-codebase` skill to auto-generate from codebase analysis? (r
 ```
 
 Wait for user response, then execute confirmed actions:
-- **Missing Core orientation stubs** (default): Scaffold from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` – same set and behavior as Step 2a. Pre-fill what's auto-detectable.
+- **Missing Core orientation stubs** (default): Scaffold from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` (same set as Step 2a).
 - **Missing Index rows**: Append to existing table (don't rewrite the whole table)
 - **Missing documents**: Generate from templates, pre-fill where possible
 - **Missing guidelines**: Copy any missing starter guideline files referenced by the generated template from `templates/guidelines/`; never overwrite existing files

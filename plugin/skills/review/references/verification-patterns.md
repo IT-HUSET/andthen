@@ -4,17 +4,12 @@ Use this when defining or reviewing proof of completion. The point is to prove t
 
 ## The Four Dimensions of Verification
 
-### 1. Exists
-The file, route, component, command, or config is present where it should be.
-
-### 2. Substantive
-There is real implementation, not a placeholder, TODO, no-op, or thin stub.
-
-### 3. Wired
-The new code is actually connected to the rest of the system.
-
-### 4. Functional
-The behavior works when exercised.
+| Dimension | Means |
+|---|---|
+| Exists | File, route, component, command, or config present where expected. |
+| Substantive | Real implementation – not a placeholder, TODO, no-op, or thin stub. |
+| Wired | New code actually connected to the rest of the system. |
+| Functional | Behavior works when exercised. |
 
 Most meaningful `Verify:` lines cover more than one dimension.
 
@@ -64,7 +59,7 @@ Beyond the stub-detection and wiring scans above, prove the remaining dimensions
 - **Exists**: `ls -la <expected-path>`
 - **Functional**: the project's build / test / type-check (e.g. `npm run build`, `npm test`, `npx tsc --noEmit`)
 
-Replace with the project's actual tooling. Generic green checks are weak if they do not exercise the claimed outcome.
+Replace with the project's actual tooling.
 
 ## Applying Verification in FIS Tasks
 

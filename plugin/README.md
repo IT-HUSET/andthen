@@ -21,6 +21,13 @@ See the [full documentation](../README.md) for workflow overview, usage examples
 
 **Enable auto-update** (recommended): Run `/plugin`, go to the **Marketplaces** tab, select the `andthen` marketplace, and choose **Enable auto-update**.
 
+**Local install** (repo cloned):
+```bash
+claude plugin install ./plugin
+```
+
+For installing on Codex CLI and other agents, see [Other agents](../README.md#other-agents-codex-cli-aider-cursor) in the full documentation.
+
 ## Setup
 
 Skills reference your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents) for two things:
@@ -34,7 +41,7 @@ See [`plugin/skills/init/templates/CLAUDE.template.md`](skills/init/templates/CL
 
 ### Agent Teams (Optional, Claude Code only)
 
-`exec-plan --team` and `review --council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. Without `--team`, both use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
+`exec-plan --team` and `review --council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. `review --council` auto-detects Agent Teams when available even without `--team`; `exec-plan` uses Agent Teams only when `--team` is set. Without Agent Teams, both use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
 
 ```json
 // ~/.claude/settings.json
@@ -47,11 +54,11 @@ See [`plugin/skills/init/templates/CLAUDE.template.md`](skills/init/templates/CL
 
 ## Workflows
 
-Every skill works standalone – no pipeline required. Use them individually for everyday tasks, or compose them into structured workflows for larger efforts. See the [full documentation](../README.md#key-concepts) for detailed workflow diagrams and artifact flow.
+Every skill works standalone – no pipeline required. Use them individually for everyday tasks, or compose them into structured workflows for larger efforts. See the [full documentation](../README.md#the-workflows) for detailed workflow diagrams and artifact flow.
 
 **Session management**: The context-intensive skills – `exec-spec`, `plan` (full FIS generation), `exec-plan`, `review --council` – perform best when started in a **clean session**. Pipeline predecessor skills (`clarify`, `prd`, `spec`) will suggest when to start fresh. Standalone skills like `triage`, `quick-review`, and `simplify-code` are lightweight and run well mid-conversation.
 
-**Headless orchestration**: The core pipeline skills (`prd`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`) and the supporting skills they call (`architecture`, `ui-ux-design`, `triage`) accept `--auto` / `--headless`. In automation mode they do not ask follow-up questions or emit arrow-prompts, make conservative assumptions, record assumptions/deferred decisions in artifacts or summaries, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt – it is deterministic), and stop with `BLOCKED:` on contract failures or unsafe actions. Multi-story `exec-plan --auto` contains failed stories to their dependency chains: partial work is preserved, dependents are skipped, independent stories continue, and the run exits with an aggregate failure report.
+**Headless orchestration**: The core pipeline skills (`prd`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`), standalone execution skills (`quick-implement`, `simplify-code`, `triage`), the deprecated `refactor` passthrough, the first-stop router (`now-what`), and design/review helpers (`architecture`, `ui-ux-design`) accept `--auto`. In automation mode they do not ask follow-up questions or emit arrow-prompts, make conservative assumptions, record assumptions/deferred decisions in artifacts or summaries, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt – it is deterministic), and stop with `BLOCKED:` on contract failures or unsafe actions. Multi-story `exec-plan --auto` contains failed stories to their dependency chains: partial work is preserved, dependents are skipped, independent stories continue, and the run exits with an aggregate failure report.
 
 ## Skills
 
@@ -67,21 +74,21 @@ Use these individually for everyday development – no setup, no pipeline, no pr
 |-------|---------|
 | `now-what` | First-stop router – inspects project state and routes to the right skill (use when starting fresh or unsure what to do next) |
 | `handoff` | Compact the conversation into a handoff doc a fresh agent can resume from. Triages by durability via the `andthen:ops` skill: mid-flow state (active stories, blockers, decisions, notes) → `STATE.md`; clearly-bounded defensive notes → `LEARNINGS.md` (uncertain entries stay as recommendations); structural decisions → ADR via the `andthen:architecture --mode trade-off` skill. Absent durable files / Index rows reroute to handoff-doc recommendations. Doc lives at `.agent_temp/handoff/handoff-<UTC-ts>.md` and is self-sufficient – resume by pasting `Resume from <doc-path>` into a fresh session. `--no-mutate` opts out of durable writes |
-| `triage` | Investigate, diagnose, and fix issues (`--plan-only` for investigation only) |
-| `quick-implement` | Fast path for small features/fixes (supports `--issue` for GitHub → auto-PR) |
+| `triage` | Investigate, diagnose, and fix build failures, config errors, runtime bugs, regressions, and test failures (`--plan-only` for a fix plan without applying; `--issue` reads a GitHub issue as scope; `--to-issue` files the diagnosis) |
+| `quick-implement` | Fast path for small features/fixes – implement + verify, bypassing the FIS workflow (`--tdd` strict red-green-refactor; `--issue` reads a GitHub issue → auto-PR; `--pr` / `--no-pr` control PR creation; `--auto` runs without prompts) |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context Critic sub-agent; loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; routes accepted findings into **Fix** (HIGH/CRITICAL, confidence ≥ 75, primary scope) and **Note** buckets so `--fix` only auto-applies the former; reports Guardrails Coverage for diff-verifiable project rules |
-| `review` | Smart review entrypoint: routes to code, doc, gap, security, mixed, or structured multi-perspective council review (`--council` – within-lens specialist debate on `code` / `security`, plus a cross-lens Critic + Devil's Advocate + Synthesis Challenger pass on any chain of 2+ lenses that surfaces lens-boundary contradictions and silence-licenses-risk in a `## Cross-Lens Synthesis` section); loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; routes accepted findings into **Fix** (HIGH/CRITICAL, confidence ≥ 75, primary scope, no scope expansion past Intent) and **Note** buckets so `--fix` only auto-applies the former; emits Guardrails Coverage with per-finding rule citations; on refactor-shaped diffs (deletion, rename, lifecycle move, cache, codegen, schema migration, parameter threading) the `code`/`gap` lenses run a cross-file refactor-invariants pass; `--fanout` / `--no-fanout` force partition-based sub-agent fan-out for `code`/`gap` (auto on ≥20 files, ≥1000 LOC, or 3+ packages – partitions into vertical slices + a cross-partition boundary pass); `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage |
+| `review` | Smart review entrypoint: runs a single lens (`code`, `doc`, `gap`, `security`) or a comma-separated chain (`--mode gap,code,security`) where each lens runs independently and findings consolidate into one `mixed`-mode report; optional structured multi-perspective council review (`--council` – within-lens specialist debate on `code` / `security`, plus a cross-lens Critic + Devil's Advocate + Synthesis Challenger pass on any chain of 2+ lenses that surfaces lens-boundary contradictions and silence-licenses-risk in a `## Cross-Lens Synthesis` section); loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; classifies accepted findings as `code-defect`, `spec-stale`, `design-changed`, or `ambiguous-intent`; routes safe implementation and document/workflow-artifact defects into **Fix** (confidence ≥ 75, primary scope, no scope expansion past Intent; implementation/security fixes require HIGH/CRITICAL, deterministic doc fixes may be any severity) and decision/reconciliation findings into **Note**; routes `spec-stale` / `design-changed` findings to spec amendment + ADR reconciliation; emits Guardrails Coverage with per-finding rule citations; on refactor-shaped diffs (deletion, rename, lifecycle move, cache, codegen, schema migration, parameter threading) the `code`/`gap` lenses run a cross-file refactor-invariants pass; `--fanout` / `--no-fanout` force partition-based sub-agent fan-out for `code`/`gap` (auto on ≥20 files, ≥1000 LOC, or 3+ packages – partitions into vertical slices + a cross-partition boundary pass); `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage |
 | `simplify-code` | Behavior-preserving code simplification and cleanup; loads Intent Context when present and drops cleanups that contradict Non-Goals, implement deferred outcomes, or restructure code the FIS explicitly chose a shape for (Boy Scout cleanup is intent-bounded, not just behavior-preserving) |
-| `refactor` | Deprecated – redirects to `simplify-code` (kept for legacy invocations only) |
-| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, and event storming (modes: `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming`; `trade-off` updates the project's `DECISIONS.md` registry when ADR creation is accepted; `--visual` delegates every mode's primary report – `review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, and ADR – to `andthen:visualize`) |
+| `refactor` | Deprecated – redirects to `simplify-code` with args forwarded verbatim; `--auto` suppresses only the deprecation notice |
+| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, and event storming (modes: `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming`; `trade-off` updates the project's `DECISIONS.md` registry when ADR creation is accepted; `--visual` delegates structured reports – `review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, and ADR – to the `andthen:visualize` skill; pure `advise` is text-only) |
 | `ui-ux-design` | UI/UX work – research, design systems, wireframes, and design review (modes: `research`, `design-system`, `wireframes`, `review`) |
-| `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs (called by `init` or standalone) |
-| `testing` | Test strategy, coverage, authoring, and test-first / red-green-refactor discipline (Prove-It for bugfixes) |
-| `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
-| `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
-| `visual-validation` | Validate UI screenshots and implementations against visual, responsive, and design expectations (`andthen:visual-validation` skill) |
-| `visualize` | Render any AndThen artifact – PRD, `plan.json`, FIS, requirements-clarification, product vision, review report (any lens), architecture trade-off / strategic-design / fitness / decompose / event-storming report, or ADR – as a self-contained HTML view (inline CSS+JS+SVG, warm-light theme, no external deps); section-anchored notes export via clipboard as a markdown payload identifying the artifact owner (`andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:clarify`, `andthen:review`, or `andthen:architecture`). Open-loop and read-only. Output: `.agent_temp/visual-review/<slug>-<ts>.html` |
-| `e2e-test` | End-to-end browser testing for web applications |
+| `map-codebase` | Codebase analysis – auto-generates architecture, stack, Key Dev Commands docs, conventions, and discovered requirements/decisions (called by `init` or standalone) |
+| `testing` | Test strategy, coverage assessment, authoring, and TDD / red-green-refactor discipline (modes: `strategy`, `write`, `tdd`, `prove-it`; Prove-It for bugfixes). Unit + integration; defers persistent E2E suites to `e2e-test` |
+| `ubiquitous-language` | Extract and maintain the domain glossary from codebase and docs (`--update` merges new terms with the existing glossary) |
+| `excalidraw-diagram` | Generate high-quality Excalidraw diagrams from a topic, file, URL, or concept reference – outputs portable `.excalidraw` JSON + a rendered PNG |
+| `visual-validation` | Validate UI screenshots and implementations against visual, responsive, and design expectations; use `e2e-test` for browser journeys and `ui-ux-design` for design-system or wireframe authoring (`andthen:visual-validation` skill) |
+| `visualize` | Render any AndThen artifact – PRD, `plan.json`, FIS, requirements-clarification, product vision, review report (any lens), architecture review / trade-off / strategic-design / fitness / decompose / event-storming report, or ADR – as a self-contained HTML view (inline CSS+JS+SVG, warm-light theme, no external deps); section-anchored notes export via clipboard as a markdown payload identifying the artifact owner (`andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:clarify`, `andthen:review`, or `andthen:architecture`). Open-loop and read-only. Output: `.agent_temp/visual-review/<slug>-<ts>.html` |
+| `e2e-test` | End-to-end browser testing for web apps – discovers user journeys, runs interactive tests, fixes bugs found, and validates responsive behavior across viewports (`--focus` to scope to specific routes/features) |
 
 ### Pipeline Skills
 
@@ -90,25 +97,26 @@ These compose into structured workflows – from requirements through implementa
 | Skill | Purpose |
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
-| `clarify` | Discovery & Ideation – clarify requirements at feature or product scope (`--mode product\|feature`, inferred from INPUT). Always interactive (Interactive-by-Contract; no headless mode). Supports `--issue` for GitHub input, `--to-issue` for publishing, and `--visual` as a convenience handoff to `andthen:visualize` |
-| `prd` | Create a Product Requirements Document from requirements (supports `--issue` for GitHub input, `--to-issue` for publishing, and `--visual` as a convenience handoff to `andthen:visualize`) |
-| `spec` | Generate Feature Implementation Specification from requirements (supports `--visual` as a convenience handoff to `andthen:visualize` for the produced FIS) |
-| `exec-spec` | Execute a FIS – direct implementation with validation |
-| `plan` | Full plan bundle: typed `plan.json` (story manifest per `plan-schema.md`) + FIS for every story + cross-cutting review. Requires `prd.md` input. Re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files. Supports `--visual` as a convenience handoff to `andthen:visualize` for the local plan bundle |
+| `clarify` | Discovery & Ideation – interactive requirements discovery at feature or product scope (`--mode product\|feature`, inferred from INPUT). Feature scope → `requirements-clarification.md`; product scope → `PRODUCT.md` (vision, personas, value props, anti-goals). Always interactive (Interactive-by-Contract; no headless mode). Supports `--issue` for GitHub input, `--to-issue` for publishing, and `--visual` as a convenience handoff to the `andthen:visualize` skill |
+| `prd` | Create a Product Requirements Document from requirements (supports `--issue` for GitHub input, `--to-issue` for publishing, and `--visual` as a convenience handoff to the `andthen:visualize` skill) |
+| `spec` | Generate Feature Implementation Specification from requirements (supports `--visual` as a convenience handoff to the `andthen:visualize` skill for the produced FIS) |
+| `exec-spec` | Execute a FIS – direct implementation with validation, intent/gap review, mechanism-aware Chain Attestation, and a design-change reconciliation path when the implementation legitimately diverges from the FIS (`--tdd` strict red-green-refactor per scenario; `--to-pr` posts a completion summary) |
+| `plan` | Full plan bundle: typed `plan.json` (story manifest per `plan-schema.md`) + FIS for every story + cross-cutting review. Consumes a local `prd.md`, `--issue <N>`, or a GitHub issue URL. Re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files. Supports `--visual` as a convenience handoff to the `andthen:visualize` skill for the local plan bundle |
 | `exec-plan` | Execute a fully-specced plan bundle – reads `plan.json`, runs exec-spec + quick-review per story, final gap review. `--from-issue` materializes a local `plan.json` ledger from a GitHub plan issue. Use `--team` for Agent Teams |
 | `remediate-findings` | Implement validated review findings with re-validation and status updates; honors the upstream `Routing: Fix\|Note` tag on each finding and runs a Phase 2a Intent re-anchor against the originating FIS (Non-Goals / deferrals / Expected Outcomes) before any fix is planned – findings that contradict the Intent are surfaced for user decision rather than auto-applied |
-| `ops` | Deterministic state management, plan/FIS mutations, Tech Debt and Learnings appends, git conventions, and progress tracking |
+| `ops` | Deterministic state management, plan/FIS mutations, Tech Debt and Learnings appends, git conventions, and progress tracking. `update-fis design-change` is the audited mutation path for ADR-backed Intent/scenario amendments; missing requirements still use `discovered-requirements` |
 
-> Both `exec-plan` and `review --council` auto-detect Agent Teams and use them when available. Use `--team` to force Agent Teams mode.
+> `review --council` auto-detects Agent Teams and uses them when available; `--team` forces the mode. `exec-plan` is `--team`-gated – it uses Agent Teams only when `--team` is passed, otherwise sub-agents.
 
 ## Agents
 
 AndThen ships a small agent set:
 
-- The `andthen:documentation-lookup` agent handles documentation retrieval.
+- The plugin-tier `documentation-lookup` agent handles documentation retrieval.
+- The plugin-tier `research` agent handles web and project research, multi-source verification, and trade-off option investigation (used by `architecture --mode trade-off` and `prd`).
 - Review persona agents support `review --council` and Critic review: `review-critic`, `review-devils-advocate`, `review-synthesis-challenger`, `review-correctness`, `review-security`, `review-architecture`, `review-testing`, `review-project-standards`, `review-product-requirements`, and `review-agent-workflow`.
 
-Agent names are tier-specific: Claude Code plugin sources use unprefixed `review-*` names inside `plugin/agents/`; Codex and Claude user-tier installs generate/copy prefixed names such as `andthen-review-critic` or `<custom-prefix>review-critic`. Reinstalls overwrite matching generated files but do not delete stale prefixed agent files.
+Agent names are tier-specific: Claude Code plugin sources use unprefixed `documentation-lookup` and `review-*` names inside `plugin/agents/`; Codex and Claude user-tier installs generate/copy prefixed names such as `andthen-documentation-lookup`, `andthen-review-critic`, or `<custom-prefix>review-critic`. Reinstalls overwrite matching generated files but do not delete stale prefixed agent files.
 
 Architecture, UI/UX design, build/test diagnosis, visual validation, and visual artifact review are **skills** – use `/andthen:architecture`, `/andthen:ui-ux-design`, `/andthen:triage`, `/andthen:visual-validation`, and `/andthen:visualize` where relevant. Research outside documentation lookup remains inline sub-agent guidance embedded in the skill prompts that need it.
 
@@ -130,8 +138,9 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 
 # Review current changes, a PR, or a spec/plan
 /andthen:review
-/andthen:review --pr 42
+/andthen:review --from-pr 42 --to-pr 42
 /andthen:review --mode doc docs/specs/my-feature/plan.json
+/andthen:review --mode gap,code,security        # chain lenses → one consolidated report
 
 # Simplify messy code
 /andthen:simplify-code src/utils/
@@ -211,7 +220,7 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 /andthen:review --council
 
 # Review specific PR with council
-/andthen:review --council --to-pr 123
+/andthen:review --from-pr 123 --to-pr 123 --council
 
 # Deep security review with multi-perspective council
 /andthen:review --mode security --council
@@ -296,7 +305,27 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 /andthen:review --mode gap
 ```
 
-**GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --to-pr` and `architecture --to-pr` post reports as PR comments. Everything else is local – use a branch + PR as the transport.
+**GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --from-pr` reads a PR as review scope; `review --to-pr` and `architecture --to-pr` post reports as PR comments. Everything else is local – use a branch + PR as the transport.
+
+## Bundling Into a Downstream Toolkit
+
+Niche, for toolkit authors only. Other workflow toolkits (e.g. DartClaw) can pull AndThen in under their own prefix so the two coexist without namespace collisions. The pattern is clone + install:
+
+```bash
+git clone --depth 1 https://github.com/IT-HUSET/andthen /tmp/andthen
+
+# User-tier install (~/.claude/skills, ~/.claude/agents, ~/.agents/skills, ~/.codex/agents):
+/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- --claude-user
+
+# Project-local Claude Code install (target <project>/.claude/):
+/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- \
+  --claude-skills-dir "$PWD/.claude/skills" \
+  --claude-agents-dir "$PWD/.claude/agents"
+```
+
+Each downstream picks its own `--prefix` (must end with `-`). Skills install as `<prefix><name>` and on Claude Code are invokable as `/<prefix><name>`. The AndThen Claude Code plugin can be installed alongside without conflict as long as the prefixes differ.
+
+`--claude-skills-dir` overrides the Claude-side skill destination and implies a Claude Code user-tier install (no separate `--claude-user` needed). Pair it with `--claude-agents-dir` for fully project-local Claude agents. The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too for a fully project-local bundle.
 
 ## Migration Notes
 

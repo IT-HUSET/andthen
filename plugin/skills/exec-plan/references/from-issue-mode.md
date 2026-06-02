@@ -2,7 +2,7 @@
 
 GitHub-input mechanics for `andthen:exec-plan --from-issue <N>`. Load when running with `--from-issue`, or when changing how plan-issue bodies are parsed, how FIS files are generated JIT, or how closure comments are posted.
 
-The flag swaps the plan source from a local `PLAN_DIR/plan.json` to a GitHub issue body. The issue body is parsed **once** and materialized into a local `plan.json` runtime ledger; subsequent reads, scheduling, and `andthen:ops` writes target the local ledger. GitHub issue = durable contract; local ledger = runtime state. FIS files are generated **just-in-time per story** via `andthen:spec` (the orchestrator owns the issue fetch). After the per-story pipeline completes, shape-appropriate closure comments are posted; the issue body is **not** rewritten.
+The flag swaps the plan source from a local `PLAN_DIR/plan.json` to a GitHub issue body. The issue body is parsed **once** and materialized into a local `plan.json` runtime ledger; subsequent reads, scheduling, and the `andthen:ops` skill's writes target the local ledger. GitHub issue = durable contract; local ledger = runtime state. FIS files are generated **just-in-time per story** via the `andthen:spec` skill (the orchestrator owns the issue fetch). After the per-story pipeline completes, shape-appropriate closure comments are posted; the issue body is **not** rewritten.
 
 Companion references:
 - [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md) – body shape parsed here.
@@ -23,7 +23,7 @@ Apply both guards before any other Step 1 work. The `--worktree` guard is duplic
 Replaces the local `PLAN_DIR/plan.json` read. Fetch with `gh issue view <N> --json body,labels` and parse per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md):
 
 - **Finalization gate** (granular race protection): if the issue carries the label `andthen-finalizing` (set by `andthen:plan --to-issue --create-story-issues` during its two-pass rewrite window), stop. Default mode: `Plan issue #<N> is still being finalized by andthen:plan – retry once the andthen-finalizing label has been removed.` `AUTO_MODE`: `BLOCKED: plan issue #<N> is still being finalized – retry after the producer completes`. Apply before any other parsing.
-- **Detect shape**: `## Story Issues` H2 with ≥1 `#<digit>` reference under it → **granular**; otherwise **single-issue** (per Shape Detection in `plan-issue-shape.md`, which strips fenced code/HTML comments before regex). Parser ambiguity → `BLOCKED: cannot parse plan issue shape` in `AUTO_MODE`.
+- **Detect shape**: `## Story Issues` H2 with ≥1 story-issue reference line under it → **granular**; otherwise **single-issue** (per Shape Detection in `plan-issue-shape.md`, which strips fenced code/HTML comments before regex). The canonical granular producer shape is a bullet line beginning `- #<story-issue-N>`; parser ambiguity → `BLOCKED: cannot parse plan issue shape` in `AUTO_MODE`.
 - **Resolve PRD source**: parse the required `> **PRD**:` header. `github://issue/<N>` → fetch with `gh issue view <N> --json body --jq .body`; local paths resolve relative to explicit `CODE_DIR` or CWD's git root. Legacy issues without the header fall back to the first `Refs #<N>` footer. If a story has `**Source refs**` but PRD source can't be resolved: `BLOCKED: cannot resolve PRD source for story <story-id> Source refs` in `AUTO_MODE` (default mode prints the same error and stops). A compact brief is insufficient without referenced spans.
 - **Extract Shared Decisions and Binding Constraints**: read optional `## Shared Decisions` and `## Binding Constraints` sections. Legacy `## Technical Research` is tolerated but not materialized; new plans must not emit it.
 - **Validate the Story Catalog**: parse `## Story Catalog`. `Dependencies` cells are `-` or comma-separated Story IDs from the same catalog. Prose or unknown IDs → `BLOCKED: invalid dependency in <story-id>: "<value>" – use Story IDs in the catalog and put milestone prose in issue body notes.` Granular: also map each `ID` to its story-issue `#<N>` from `## Story Issues`.
@@ -55,30 +55,30 @@ In `--from-issue` there is no `PLAN_DIR` – for `CODE_DIR` auto-detection, use 
 
 Materialize the story's FIS into a local file before the per-story pipeline.
 
-**Invocation form** (both shapes): write the story body to `<run-tempdir>/story-<story-id>-body.md`. If `## Shared Decisions` and/or `## Binding Constraints` were extracted in Step 1, prepend them verbatim so the spec skill picks them up as user-supplied context (Binding Constraints' verbatim spans become Required Context blocks sourced from each entry's `prd.md#<heading-slug>`). Then append `## Source Material` with the PRD spans named by the story's `**Source refs**`; if span extraction is uncertain, include the full PRD body. Invoke `andthen:spec` with the temp-file path (file-reference form). Passing the body as `$ARGUMENTS` risks newline/shell-escape issues; the temp-file form is the pinned recipe.
+**Invocation form** (both shapes): write the story body to `<run-tempdir>/story-<story-id>-body.md`. If `## Shared Decisions` and/or `## Binding Constraints` were extracted in Step 1, prepend them verbatim so the spec skill picks them up as user-supplied context (Binding Constraints' verbatim spans become Required Context blocks sourced from each entry's `prd.md#<heading-slug>`). Then append `## Source Material` with the PRD spans named by the story's `**Source refs**`; if span extraction is uncertain, include the full PRD body. Invoke the `andthen:spec` skill with the temp-file path (file-reference form). Passing the body as `$ARGUMENTS` risks newline/shell-escape issues; the temp-file form is the pinned recipe.
 
-- **Single-issue shape**: extract the matching `### Story S0N: <name>` section from the plan-issue body (H3 + compact brief), assemble the body file, then `/andthen:spec <run-tempdir>/story-<story-id>-body.md`. The spec skill's "Otherwise" branch reads the file and produces `docs/specs/<feature-name>.md`.
+- **Single-issue shape**: extract the matching `### Story S0N: <name>` section from the plan-issue body (H3 + compact brief), assemble the body file, then `/andthen:spec <run-tempdir>/story-<story-id>-body.md`. The spec skill's "Otherwise" branch reads the file and prints the relative `.md` path it wrote, resolved by the spec skill's own output-location rules.
 - **Granular shape**: `gh issue view <story-N> --json body --jq .body` for the story's mapped issue, assemble, invoke `/andthen:spec` the same way (the spec skill does not parse `--issue`).
 
-**FIS path capture**: parse the spec skill's printed relative path (ends in `.md` under `docs/specs/`). Use as `{fis_path}`. If the print format changes, this capture breaks – keep the spec skill's "print the output's relative path" contract pinned.
+**FIS path capture**: parse the spec skill's printed relative path (ends in `.md`). Use as `{fis_path}`. If the print format changes, this capture breaks – keep the spec skill's "print the output's relative path" contract pinned.
 
-**Provenance-field injection**: `andthen:spec`'s file-reference branch does not auto-emit `**Plan**:` / `**Story-ID**:` (only the `story <id> of <plan>` form does). After the FIS is written, the orchestrator MUST inject these between the H1 and `## Feature Overview and Goal` per `data-contract.md` `## FIS Provenance Fields`. Use `**Plan**: github://issue/<plan-N>` (traceability to the durable contract) and `**Story-ID**: <S0N>`.
+**Provenance-field injection**: the `andthen:spec` skill's file-reference branch does not auto-emit `**Plan**:` / `**Story-ID**:` (only the `story <id> of <plan>` form does). After the FIS is written, the orchestrator MUST inject these between the H1 and `## Feature Overview and Goal` per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) `## FIS Provenance Fields`. Use `**Plan**: github://issue/<plan-N>` (traceability to the durable contract) and `**Story-ID**: <S0N>`.
 
-**Update the local ledger**: after FIS write + provenance injection, drive via `andthen:ops` against the materialized path:
+**Update the local ledger**: after FIS write + provenance injection, drive via the `andthen:ops` skill against the materialized path:
 
 - `andthen:ops update-plan-fis <local-plan-path> <story-id> <fis-path>`.
 - `andthen:ops update-plan <local-plan-path> <story-id> spec-ready`.
 
 These land in `.agent_temp/from-issue-<N>/plan.json`, not the GitHub issue. Status updates do not propagate back to GitHub during the run; Step 5c posts closure comments.
 
-**Serial dispatch**: `andthen:spec` invocations run serially – sub-agent fan-out for JIT FIS generation is not implemented here. Not a `--team` constraint. Spec failure → surface, mark story failed, continue with remaining stories ("log and continue").
+**Serial dispatch**: the `andthen:spec` skill's invocations run serially – sub-agent fan-out for JIT FIS generation is not implemented here because `--team` was rejected earlier. Spec failure → surface, mark story failed, continue with remaining stories ("log and continue").
 
 After capture + ledger update, fall through to the standard per-story pipeline using `{fis_path}`.
 
 
 ## Step 5c: Issue closure comments
 
-After Final Verification, post shape-appropriate closure comments. Use per-story summaries (from `andthen:exec-spec` Step 5c) and the rolled-up plan summary (Step 5).
+After Final Verification, post shape-appropriate closure comments. Use per-story summaries (from the `andthen:exec-spec` skill's Step 5c) and the rolled-up plan summary (Step 5).
 
 - **Single-issue shape**: post one comment per story on plan issue `#N` with the story summary, then a final rolled-up summary on `#N`. Use `gh issue comment <N> --body-file <path>` per call. Plan issue is not auto-closed.
 - **Granular shape**: per story, follow **Pattern C** (comment-then-close) in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Then post the rolled-up summary on plan issue `#N`.

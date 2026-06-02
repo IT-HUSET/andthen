@@ -1,7 +1,8 @@
 ---
 name: review-synthesis-challenger
 description: Final synthesis challenger for AndThen review councils. Use after Devil's Advocate filtering to merge, reframe, downgrade, or reject surviving findings before the final report.
-model: sonnet
+model: inherit
+effort: medium
 color: purple
 ---
 

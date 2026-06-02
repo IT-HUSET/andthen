@@ -1,8 +1,16 @@
 # IIFE Helper Library
 
-Code-level companion to SKILL.md *JavaScript Authoring Discipline*. Every helper below lives inside the single page-level IIFE alongside `state`, `copyNotes`, `flashInline`, `saveToLocalStorage`, and the `beforeunload` handler. Each is wrapped in `try/catch` so one handler failure cannot disable any other.
+Code-level companion to render-shell.md *JavaScript Authoring Discipline*. Every helper below lives inside the single page-level IIFE alongside `state`, `copyNotes`, `flashInline`, `saveToLocalStorage`, and the `beforeunload` handler. Each is wrapped in `try/catch` so one handler failure cannot disable any other.
 
-The helpers are the *only* sanctioned way to add interactivity to the rendered page – emitters wire static affordances (per the SKILL.md *Section Block* contract) and these helpers attach behavior. Do not invent parallel handlers; compose from what's here.
+The helpers are the *only* sanctioned way to add interactivity to the rendered page – emitters wire static affordances (per the render-shell.md *Section Block* contract) and these helpers attach behavior. Do not invent parallel handlers; compose from what's here.
+
+
+## Contents
+
+- `pulseAnchor(targetEl)` – chip click + TOC click feedback
+- `copySectionWithNote(sectionEl)` – per-section export
+- Walkthrough one-at-a-time snippet toggle
+- `wireModuleMap(svgEl)` – interactive context-map binding
 
 
 ## `pulseAnchor(targetEl)` – chip click + TOC click feedback
@@ -29,7 +37,7 @@ document.addEventListener('click', function (ev) {
 
 ## `copySectionWithNote(sectionEl)` – per-section export
 
-Builds a markdown payload for a single section by **calling `buildSectionBlock`** (defined in SKILL.md *Notes Payload Format (exact)*) so the per-section shape is byte-identical to one block of the primary `copyNotes()` payload. Reads from `state.notes` (the source of truth) — **not** from the DOM, because the rendered `.note-list li` flattens internal newlines and would silently drop multi-line note text.
+Builds a markdown payload for a single section by **calling `buildSectionBlock`** (defined in render-shell.md *Notes Payload Formatters*) so the per-section shape is byte-identical to one block of the primary `copyNotes()` payload. Reads from `state.notes` (the source of truth) — **not** from the DOM, because the rendered `.note-list li` flattens internal newlines and would silently drop multi-line note text.
 
 ```javascript
 async function copySectionWithNote(sectionEl) {

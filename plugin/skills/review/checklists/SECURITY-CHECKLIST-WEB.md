@@ -2,6 +2,10 @@
 
 Concise checklist for security code reviews, based on [OWASP Top 10:2025](https://owasp.org/Top10/2025/).
 
+**Applies to:** Web applications, server-rendered pages, and general-purpose backends. Complements the API checklist – also apply that when the app exposes or consumes HTTP APIs.
+
+Sections: A01 Access Control · A02 Misconfiguration · A03 Supply Chain · A04 Crypto · A05 Injection · A06 Insecure Design · A07 Authentication · A08 Integrity · A09 Logging · A10 Exceptional Conditions · Automated Scanning
+
 ---
 
 ## Pre-Review

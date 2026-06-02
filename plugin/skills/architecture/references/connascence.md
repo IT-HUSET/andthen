@@ -2,6 +2,14 @@
 
 Connascence (Page-Jones, 1992; refined by Weirich) is a coupling quality metric. Two components are connascent if a change to one could require a change to the other to preserve correctness.
 
+## Contents
+- Three Evaluation Dimensions
+- Strength Ordering (weakest → strongest)
+- Static Connascence
+- Dynamic Connascence
+- Guiding Principles
+- Detection Automation
+
 ## Three Evaluation Dimensions
 
 Every connascence instance has three orthogonal properties:
@@ -20,8 +28,7 @@ Severity = (Strength × Degree) / Locality
 - **Degree**: count of files, classes, or call sites affected
 - **Locality**: 3 = within-class, 2 = cross-class within package, 1 = cross-package
 
-Example: CoM (strength=3) across 3 packages (degree=3, locality=1) → severity = (3 × 3) / 1 = **9.0**
-Example: CoN (strength=1) within a class (degree=2, locality=3) → severity = (1 × 2) / 3 = **0.67**
+Example: CoM across 3 packages (degree=3, locality=1) → **9.0**, vs. a within-class CoN (degree=2, locality=3) → **0.67** – the formula deliberately pushes cross-boundary dynamic coupling to the top of the queue.
 
 ---
 

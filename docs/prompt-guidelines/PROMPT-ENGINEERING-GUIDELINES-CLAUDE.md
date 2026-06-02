@@ -398,21 +398,11 @@ Throughout execution:
 
 ---
 
-## Model Selection
+## Model and Effort Steering
 
-| Model | ID | SWE-bench Verified | Context | Max Output | Input/Output (per 1M) |
-|-------|-----|-------------------|---------|------------|----------------------|
-| **Haiku 4.5** | `claude-haiku-4-5-20251001` | 73.3% | 200K | 64K | $1/$5 |
-| **Sonnet 4.6** | `claude-sonnet-4-6` | 79.6% | 200K (1M beta) | 64K | $3/$15 |
-| **Opus 4.6** | `claude-opus-4-6` | 80.8% | 200K (1M beta) | 128K | $5/$25 |
+Do not maintain a model ladder in prompt guidelines. AndThen's policy is one top-tier model class plus task-appropriate effort; keep provider/version selection in the harness or provider docs.
 
-| Model | Best For |
-|-------|----------|
-| **Haiku 4.5** | Simple tasks, subagents, high-volume parallel work. No effort param support. |
-| **Sonnet 4.6** | Most daily coding – within 1.2% of Opus at 60% cost. Sweet spot for implementation, review, testing. |
-| **Opus 4.6** | Planning, specs, ADRs, trade-off analysis, security audits, complex debugging. Only model supporting `max` effort. |
-
-See also: [Model & Effort Selection Guide](../../MODEL-EFFORT-SELECTION-GUIDE.md) for detailed task-specific recommendations.
+See [Model & Effort Selection Guide](../MODEL-EFFORT-SELECTION-GUIDE.md) for the durable policy.
 
 ---
 

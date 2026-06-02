@@ -5,6 +5,16 @@ Use when the source is an architecture strategic-design report from `andthen:arc
 The report frames an event-stormed / DDD-aware view of the system: bounded contexts, subdomains, context map (relationships between contexts), and supporting prose. The visualization centerpiece is the **module map** (`#module-map` in `diagrams.md`) – a static + interactive SVG showing named components and their relationships.
 
 
+## Contents
+
+- Layout
+- KPI Cells
+- Section Renderers
+- Pre-population
+- Edge Cases
+- Example Use Cases
+
+
 ## Layout
 
 ```
@@ -37,7 +47,7 @@ The report frames an event-stormed / DDD-aware view of the system: bounded conte
 
 ## KPI Cells
 
-The four-cell `.kpi-band` (rendered per the SKILL.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. Strategic-design cells in source order:
+The four-cell `.kpi-band` (rendered per the render-shell.md *KPI Summary Band* contract) sits between `.doc-header` and the first section. Strategic-design cells in source order:
 
 | Cell | Label | Source |
 |---|---|---|
@@ -55,7 +65,7 @@ Each H2 dispatches to **one** renderer per the SKILL.md cross-artifact dispatch 
 
 ### Context Map → Module Map + interactive node panel
 
-If the section body contains a fenced `mapviz` block → render via `diagrams.md#module-map`, paired with the static `aside.map-detail` panel. The `wireModuleMap` helper (`templates/js-helpers.md`) binds node-clicks to the panel; the module-map JSON script discipline applies (paired `<script type="application/json" data-role="nodes">` block, never artifact-derived JSON inside an HTML attribute).
+If the section body contains a fenced `mapviz` block → render via `diagrams.md#module-map`, paired with the static `aside.map-detail` panel. The `wireModuleMap` helper (`js-helpers.md`) binds node-clicks to the panel; the module-map JSON script discipline applies (paired `<script type="application/json" data-role="nodes">` block, never artifact-derived JSON inside an HTML attribute).
 
 **Paired-H3 detail convention** – each `[NodeName]` declared in the `mapviz` block may have a matching H3 in the same section body whose heading text equals the node label (case-insensitive, after stripping `[]`). The paired H3's body becomes the node's detail-panel content:
 
@@ -83,7 +93,7 @@ fulfillment. Holds the only writes to the orders table.
 `packages/orders/src/index.ts`
 ````
 
-The renderer serializes the paired-H3 dictionary into a paired `<script type="application/json" data-role="nodes">` block adjacent to the `aside.map-detail`, with `<` escaped as `\u003c` in the JSON text so a value containing `</script>` cannot terminate the block; title, meta, and body values are rendered as text (never `innerHTML`) per the `templates/diagrams.md` and `templates/js-helpers.md` discipline. The default-selected node is the first one declared in the DSL – the panel is never empty. A node without a paired H3 emits `<!-- module-map: no detail for node "X" -->` adjacent to the diagram so the gap surfaces in `View source`; clicking that node activates it in the SVG but leaves the panel content unchanged (early-return in `wireModuleMap`).
+The renderer serializes the paired-H3 dictionary into a paired `<script type="application/json" data-role="nodes">` block adjacent to the `aside.map-detail`, with `<` escaped as `\u003c` in the JSON text so a value containing `</script>` cannot terminate the block; title, meta, and body values are rendered as text (never `innerHTML`) per the `diagrams.md` and `js-helpers.md` discipline. The default-selected node is the first one declared in the DSL – the panel is never empty. A node without a paired H3 emits `<!-- module-map: no detail for node "X" -->` adjacent to the diagram so the gap surfaces in `View source`; clicking that node activates it in the SVG but leaves the panel content unchanged (early-return in `wireModuleMap`).
 
 If no `mapviz` block is present → fall back to Generic Prose. The Context Map H2 still renders with full Section Block affordances.
 
@@ -97,7 +107,7 @@ Render as a card grid (one card per H3 / list item under `## Subdomains`). Reuse
 
 ### Open Issues / Risks / Next Steps → Risk-map chips + Generic Prose
 
-Above the list emit `<nav class="risk-map">` chips (SKILL.md *Risk-map chips* contract): unresolved → `.attention`, mitigated → `.medium`, resolved → `.safe`. Below the chips render Generic Prose.
+Above the list emit `<nav class="risk-map">` chips (render-shell.md *Risk-map chips* contract): unresolved → `.attention`, mitigated → `.medium`, resolved → `.safe`. Below the chips render Generic Prose.
 
 ### (anything else) → Generic Prose
 
@@ -110,7 +120,7 @@ Render markdown as-is. Standard Section Block affordances apply.
 2. Parse into H2-anchored sections per the SKILL.md anchor scheme.
 3. For each section, dispatch to a renderer above (case-insensitive substring match on H2 text, then schema detection per the SKILL.md cross-artifact dispatch table).
 4. Sections without a specialized renderer fall back to Generic Prose.
-5. Wrap every rendered section in the standard `<section class="card" id="{{anchor}}">` block from the SKILL.md Section Block contract.
+5. Wrap every rendered section in the standard `<section class="card" id="{{anchor}}">` block from the render-shell.md Section Block contract.
 
 
 ## Edge Cases

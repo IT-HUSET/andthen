@@ -109,12 +109,18 @@ fi
 
 mkdir -p "$out_dir"
 
-map_model() {
+# Generated Codex agents carry no model: they inherit the session/profile model
+# (Codex inherits when `model` is omitted from the agent TOML – there is no
+# `inherit` sentinel). Any frontmatter `model:` (e.g. documentation-lookup's
+# Haiku pin) is a Claude-tier-only optimization and is intentionally not emitted
+# here, since Codex has no rot-free small-tier alias to map it to.
+# Depth is varied per agent via reasoning effort only. Frontmatter `effort:` is
+# passed through, clamping Anthropic's `max` to Codex's `xhigh` ceiling. Default medium.
+map_effort() {
   case "$1" in
-    haiku)  printf 'gpt-5.4-mini\tlow' ;;
-    sonnet) printf 'gpt-5.4\tmedium' ;;
-    opus)   printf 'gpt-5.4\thigh' ;;
-    *)      printf 'gpt-5.4\tmedium' ;;
+    low|medium|high|xhigh) printf '%s' "$1" ;;
+    max)                   printf 'xhigh' ;;
+    *)                     printf 'medium' ;;
   esac
 }
 
@@ -177,16 +183,14 @@ for agent_md in "$agents_src"/*.md; do
 
   name=$(printf '%s\n' "$frontmatter" | awk -F': *' '/^name:/{print $2; exit}')
   description=$(printf '%s\n' "$frontmatter" | awk -F': *' '/^description:/{sub(/^description: */, ""); print; exit}')
-  model=$(printf '%s\n' "$frontmatter" | awk -F': *' '/^model:/{print $2; exit}')
+  effort=$(printf '%s\n' "$frontmatter" | awk -F': *' '/^effort:/{print $2; exit}')
 
   if [ -z "$name" ] || [ -z "$description" ]; then
     printf 'error: %s missing frontmatter name or description\n' "$agent_md" >&2
     exit 1
   fi
 
-  mapped=$(map_model "$model")
-  codex_model=$(printf '%s' "$mapped" | cut -f1)
-  codex_effort=$(printf '%s' "$mapped" | cut -f2)
+  codex_effort=$(map_effort "$effort")
 
   body_rewritten=$(printf '%s' "$body" \
     | rewrite_claude_refs \
@@ -210,7 +214,6 @@ for agent_md in "$agents_src"/*.md; do
     printf '\n'
     printf 'name = "%s%s"\n' "$prefix" "$name"
     printf 'description = "%s"\n' "$description_escaped"
-    printf 'model = "%s"\n' "$codex_model"
     printf 'model_reasoning_effort = "%s"\n' "$codex_effort"
     printf '\n'
     printf 'developer_instructions = """\n'

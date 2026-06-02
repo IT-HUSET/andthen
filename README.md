@@ -10,124 +10,113 @@
 >
 > Bigger scope? → **clarify** → **prd** → **plan** → **exec-plan** → **review** → **ship it.**
 
-AndThen brings spec-driven development to AI coding agents – lightweight, open, and adoptable piece by piece. The core idea: write a spec before you code, then let the agent execute it autonomously. The pipeline produces a **Feature Implementation Specification (FIS)** as its central artifact – a structured blueprint that turns requirements into reliable, verifiable implementations.
+AndThen brings spec-driven development to AI coding agents – lightweight, open, and adoptable piece by piece. The core idea: **write a spec before you code, then let the agent execute it autonomously.** The pipeline's central artifact is the **Feature Implementation Specification (FIS)** – a structured blueprint that turns requirements into reliable, verifiable implementations.
+
+It works as a **Claude Code plugin** and with **Codex CLI / other agents** (via an installer). Skills are the unit of work, invoked as `andthen:<name>`. There are no mandatory directories or proprietary formats – skills read a lightweight **Document Index** in your `CLAUDE.md` / `AGENTS.md` to find where your specs, plans, and docs live, adapting to your project rather than imposing a structure on it.
 
 > [!NOTE]
-> **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal.
+> **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal. For breaking changes between releases, see [Migration Notes](plugin/README.md#migration-notes) and [CHANGELOG.md](CHANGELOG.md).
 
-> [!WARNING]
-> **Recent migration notes.** 0.21.1 adds `Intent` + `Expected Outcomes` to the FIS Feature Overview and Goal with new `[OC<NN>]` scenario tags (non-breaking; legacy 0.21.0 FIS still execute, re-spec for full alignment); 0.21.0 restructures the FIS format (`Success Criteria` → `Acceptance Scenarios`, FVC now optional) – re-spec older FIS files; 0.19.0 flips `andthen:plan` output from `plan.md` to a typed `plan.json`; 0.18.0 removed `plan --skip-specs` / `--stories` / `--phase`; 0.14.0 made `plan` stories strictly 1:1 with FIS files; 0.13.0 reshaped the plan and review surface. See [Migration Notes](plugin/README.md#migration-notes) or [CHANGELOG.md](CHANGELOG.md).
+**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need. Every skill works standalone – `quick-implement` skips specs entirely, `clarify` is optional, `review` runs on its own. AndThen is opinionated about *how work flows* – from requirements to a spec, then implementation, then review – but never forces you onto the whole path.
 
-**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need – `quick-implement` skips specs entirely, `clarify` is optional, every skill works standalone. AndThen is opinionated about *how work flows* from clarified requirements to detailed specs, then `exec-spec`, then `review`, then `remediate-findings` when review turns up real gaps; multi-story plans follow the same underlying loop story-by-story, with `exec-plan` available when you want that flow orchestrated for you (add `--team` for Agent Teams parallelism). `review` runs a single lens per call (code, doc, gap, or mixed) selected automatically or via `--mode`. Skills read a lightweight Document Index in your `CLAUDE.md` / `AGENTS.md` to find where specs, plans, and docs live – adapting to your project's structure rather than imposing its own. No mandatory directory layouts, no proprietary formats, no lock-in.
+[Get started →](#installation) · [Skills reference →](#skills) · [Full skill reference (flags, modes) →](plugin/README.md)
 
-Works as a **Claude Code plugin** with full sub-agent orchestration, and skills are designed to be **agent-agnostic** – falling back to direct execution when sub-agents aren't available. Review council mode also ships focused review persona agents for Critic, filtering, synthesis, and specialist perspectives.
 
-[Get started →](#installation) · [Skills reference →](#skills)
-
-## Key Concepts
+## What AndThen Gives You
 
 <p align="center">
-  <a href="assets/workflows-overview.png"><img src="assets/workflows-overview.png" alt="AndThen" width="800"></a>
+  <a href="assets/workflows-overview.png"><img src="assets/workflows-overview.png" alt="AndThen workflows overview" width="800"></a>
 </p>
 
-### Spec-Driven Development
+### Spec-driven development
 
-Most AI coding goes straight from idea to code. That works for small fixes, but complex features drift, miss requirements, and produce code that's hard to verify. Spec-driven development adds one step: *write a spec first, then implement against it*. The spec becomes the contract – what to build, how to verify it, and when it's done.
+Most AI coding goes straight from idea to code. That works for small fixes, but complex features drift, miss requirements, and produce code that's hard to verify. Spec-driven development adds one step: *write a spec first, then implement against it*. The spec becomes the contract – what to build, how to verify it, and when it's done. AndThen makes this practical for AI agents without a heavy methodology: start with `quick-implement` for small tasks, reach for `spec` when complexity warrants it.
 
-AndThen makes this practical for AI agents without imposing a heavy methodology. You can start with `quick-implement` for small tasks and reach for `spec` when complexity warrants it.
+### The Feature Implementation Specification (FIS)
 
-### Feature Implementation Specification (FIS)
+The central artifact, generated by `spec`. A structured document with everything needed for autonomous implementation: the feature's **intent and expected outcomes**, **acceptance scenarios** (BDD-style), structural criteria, scope boundaries (what we're *not* doing), the technical approach and architecture decision, and the task breakdown. `exec-spec` implements against it and attests completion scenario-by-scenario.
 
-The central artifact. A structured document generated by `spec` containing everything needed for autonomous implementation:
-- Requirements and acceptance criteria
-- Technical approach and architecture
-- File changes and dependencies
-- Validation checklist
+### Built-in review and verification
 
-### Workflows
+`exec-spec` and `quick-implement` run an internal **implement → verify → evaluate** loop (build, tests, lint, and visual validation where applicable), repeating until the work holds. `review` then gives you a focused review pass – code, docs, spec-vs-implementation gap, or security – before you ship. Findings flow into `remediate-findings`, which applies the smallest safe fixes and re-validates.
+
+
+## The Workflows
 
 <p align="center">
   <a href="assets/skills-overview.png"><img src="assets/skills-overview.png" alt="AndThen skills overview – Quick Path, Feature Workflow, Plan Workflow, Standalone skills, and Agents" width="800"></a>
 </p>
 
-Four paths, pick the one that fits. Every step produces an artifact that the next step consumes – each step suggests the next command with the right path pre-filled.
+Four paths, pick the one that fits the size of the work. Every step produces an artifact the next step consumes, and each step suggests the next command with the right path pre-filled.
 
-- **Quick path** – `quick-implement` → optional `quick-review` → optional `remediate-findings`. Bug fix or small feature you can describe in a sentence and ship in a few files.
-- **Feature workflow** (single feature) – optional pre-work (`clarify`, `ui-ux-design`, `architecture --mode trade-off`) → `spec` → `exec-spec` → optional `review` → optional `remediate-findings`. One feature with real complexity – produces a FIS as the implementation blueprint.
-- **Plan workflow, manual** (multi-feature / MVP) – optional pre-work → `prd` → `plan` (produces `plan.json` + one FIS per story) → per story: `exec-spec` → optional `review` → optional `remediate-findings`. You drive execution story by story.
-- **Plan workflow, automated** – same up to `plan`, then `exec-plan` orchestrates the per-story `exec-spec` + `quick-review` loop and runs a final `--mode gap` review across the plan. Add `--team` for Claude Code Agent Teams parallelism.
+**1. Quick path** – for a bug fix or small feature you can describe in a sentence.
+```
+quick-implement → (optional) quick-review → (optional) remediate-findings
+```
 
-Both `exec-spec` and `quick-implement` use an internal **implement → verify → evaluate** cycle, repeating if needed. Verification includes code review, testing, and visual validation (when applicable).
+**2. Feature workflow** – one feature with real complexity. Produces a FIS as the blueprint.
+```
+(optional pre-work) → spec → exec-spec → (optional) review → (optional) remediate-findings
+```
 
-**Headless orchestration:** the core pipeline skills (`prd`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`) and the supporting skills they call into (`architecture`, `ui-ux-design`, `triage`) accept `--auto` / `--headless` for external orchestrators. In this mode, skills do not ask follow-up questions or emit arrow-prompts; they make conservative assumptions, write assumptions/deferred decisions into artifacts, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt – it is deterministic), and stop with `BLOCKED:` on contract failures or unsafe actions. This is intended for systems that already provide deterministic orchestration, such as CI or external agent runners.
+**3. Plan workflow (manual)** – a multi-feature initiative or MVP, driven story by story.
+```
+(optional pre-work) → prd → plan → per story: exec-spec → (optional) review → remediate-findings
+```
+`plan` produces `plan.json` plus one FIS per story; you execute each story yourself.
 
-Not sure? Start with `quick-implement`. If it feels too complex, switch to the feature workflow. See [Getting Started](#getting-started) for a full walkthrough.
+**4. Plan workflow (automated)** – same up to `plan`, then let `exec-plan` orchestrate it.
+```
+(optional pre-work) → prd → plan → exec-plan
+```
+`exec-plan` runs the per-story `exec-spec` + `quick-review` loop and a final gap review across the whole plan. Add `--team` for [Agent Teams](#agent-teams-optional-claude-code-only) parallelism (Claude Code).
+
+> **Not sure which path?** Start with `quick-implement`. If it feels too complex, switch to the feature workflow. Or run `/andthen:now-what` – it inspects your project state and routes you.
+
+### Optional pre-work
+
+Before `spec` or `prd`, supporting skills sharpen the input when the problem isn't yet clear:
+
+- **`clarify`** – interactive requirements discovery. Turns a fuzzy idea into solid requirements by probing gaps, edge cases, scope boundaries, and alternatives. Runs at **feature scope** (default → `requirements-clarification.md`) or **product scope** (`--mode product` → `PRODUCT.md`, for vision/personas/anti-goals before features are planned).
+- **`architecture`** – design and analysis across seven modes (no code changes). Most relevant here: **`--mode trade-off`** compares competing options against weighted criteria and produces an evidence-based recommendation plus an ADR (e.g. *"SQL vs document DB for the events store"*); **`--mode advise`** gives design guidance grounded in CUPID/DDD; **`--mode strategic-design`** and **`--mode event-storming`** carve domain/bounded-context boundaries before a multi-feature `prd`. (Also: `review`, `decompose`, `fitness` – see the [skill reference](plugin/README.md#architecture-modes).)
+- **`ui-ux-design`** – research, design systems, wireframes, and design review when UI work is in scope.
+
+`clarify` → `prd` is a **pipeline, not a choice**: `clarify` does the deep discovery; `prd` synthesizes its output (or does shallower bounded synthesis from raw input) into a PRD. See [When to clarify](#when-to-clarify).
+
+### Headless / automation mode
+
+The core pipeline and standalone execution/review skills accept `--auto` for external orchestrators (CI, agent runners): no follow-up questions, conservative assumptions written into artifacts, and a hard `BLOCKED:` stop on contract failures or unsafe actions. See [plugin/README.md](plugin/README.md#workflows) for the full contract.
 
 
 ## Installation
 
-### Claude Code Plugin (recommended)
+### Claude Code plugin (recommended)
 
 ```bash
-# Add marketplace
-/plugin marketplace add IT-HUSET/andthen
-
-# Install plugin
-/plugin install andthen
+/plugin marketplace add IT-HUSET/andthen   # add marketplace
+/plugin install andthen                    # install (user scope; add --scope project for current project only)
 ```
 
-**Scope options:**
-```bash
-/plugin install andthen --scope project   # current project only (default: user scope)
-```
+**Enable auto-update** (recommended): run `/plugin`, open the **Marketplaces** tab, select `andthen`, and choose **Enable auto-update**.
 
-**Enable auto-update** (recommended): Run `/plugin`, go to the **Marketplaces** tab, select the `andthen` marketplace, and choose **Enable auto-update**.
+### Other agents (Codex CLI, Aider, Cursor)
 
-**Local install** (if you have the repo cloned):
-```bash
-claude plugin install ./plugin
-```
-
-### Other AI Coding Agents (Codex CLI, Aider, Cursor, etc.)
-
-Skills use capability detection and work without the plugin infrastructure. Use the installer to export skills with `andthen-`-prefixed names to the agent skills directory:
+Skills use capability detection and work without the plugin infrastructure. The installer exports skills with `andthen-`-prefixed names to your agent's skills directory, generates `andthen-`-prefixed Codex agent TOMLs from `plugin/agents/*.md`, and copies reference docs, shared templates, and helper scripts:
 
 ```bash
 # Install skills, generated Codex agents, references, and helper scripts
 ./scripts/install-skills.sh
 
 # Optional overrides
-./scripts/install-skills.sh --dry-run
-./scripts/install-skills.sh --skills-dir ~/.agents/skills
+./scripts/install-skills.sh --dry-run                      # preview planned operations; may create relative dirs
+./scripts/install-skills.sh --skills-dir ~/.agents/skills  # custom skills directory
 ./scripts/install-skills.sh --codex-agents-dir ~/.codex/agents
-./scripts/install-skills.sh --no-codex-agents
+./scripts/install-skills.sh --no-codex-agents              # skip Codex agent generation
 ```
 
-This exports all skills as `andthen-`-prefixed directories (e.g., `andthen-clarify/`, `andthen-prd/`, `andthen-spec/`, `andthen-plan/`, `andthen-review/`) and generates `andthen-`-prefixed Codex agent TOMLs from `plugin/agents/*.md` (e.g., `andthen-review-critic.toml`). Plugin reference docs, shared templates, and helper scripts are also copied. Reinstalls overwrite matching generated files but do not delete stale `<prefix>*.toml` agent files; remove old generated agents manually if you need the visible agent set to exactly match the current release.
+Invoke with `/andthen:<skill>` in Claude Code, or `$andthen-<skill>` in Codex and other agents. Reinstalls overwrite matching generated files but do not delete stale `<prefix>*.toml` agent files – remove old generated agents manually if you need the visible agent set to match the current release exactly. If you use a custom `--skills-dir` or `--prefix`, the installer rewrites installed skill references and invocation names automatically.
 
-Invoke with `/andthen:<skill>` in Claude Code, or `$andthen-<skill>` in Codex and other agents.
-
-If you use a custom `--skills-dir` or `--prefix`, the installer rewrites installed skill references and invocation names automatically.
-
-### Bundling AndThen into a downstream toolkit
-
-Other workflow toolkits (e.g. DartClaw) can pull AndThen in under their own prefix so the two coexist without namespace collisions. The pattern is just clone + install:
-
-```bash
-git clone --depth 1 https://github.com/IT-HUSET/andthen /tmp/andthen
-
-# User-tier install (~/.claude/skills, ~/.agents/skills):
-/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- --claude-user
-
-# Project-local Claude Code install (target <project>/.claude/):
-/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- \
-  --claude-skills-dir "$PWD/.claude/skills" \
-  --claude-agents-dir "$PWD/.claude/agents"
-```
-
-Each downstream picks its own `--prefix` (must end with `-`). Skills install as `<prefix><name>` and on Claude Code are invokable as `/<prefix><name>`. The AndThen Claude Code plugin can be installed alongside without conflict as long as the prefixes differ.
-
-`--claude-skills-dir` overrides the Claude-side skill destination and implies a Claude Code user-tier install (no separate `--claude-user` needed). Pair it with `--claude-agents-dir` for fully project-local Claude agents. The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too if you want a fully project-local bundle.
+> Pulling AndThen into another toolkit under its own prefix? See [Bundling into a downstream toolkit](plugin/README.md#bundling-into-a-downstream-toolkit).
 
 
 ## Setup
@@ -138,236 +127,164 @@ The quickest way to get started:
 /andthen:init
 ```
 
-This is the single entry point for all project types – new, partial setups, and existing codebases. It interactively generates `CLAUDE.md` / `AGENTS.md`, creates selected document types, and copies guidelines. For existing codebases, it offers to run `map-codebase` to auto-generate architecture, stack, and conventions documentation from code analysis.
+The single entry point for all project types – new, partial setups, and existing codebases. It interactively generates `CLAUDE.md` / `AGENTS.md`, scaffolds Core orientation docs (Product, Architecture, Stack, Key Dev Commands, Decisions, Learnings), and copies starter guidelines. For existing codebases it offers to run `map-codebase`, which auto-generates architecture, stack, commands, conventions, and discovered-requirements docs from code analysis.
 
-**Manual setup** – if you prefer to set things up yourself, skills reference your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents) for context. Add these sections:
+**Manual setup** – skills read two sections from your root agent instruction file (`CLAUDE.md` / `AGENTS.md`): a **Project Document Index** (where skills write specs, plans, etc.) and **Project-Specific Guidelines**. See [`plugin/skills/init/templates/CLAUDE.template.md`](plugin/skills/init/templates/CLAUDE.template.md) for a starter, and [plugin/README.md](plugin/README.md#setup) for the foundational-guardrails wiring options.
 
-**1. Project Document Index** – tells skills where to write output (specs, plans, etc.)
-**2. Project-Specific Guidelines and Rules** – project-specific guidelines and workflow notes (the universal `Foundational Rules, Guardrails and Principles` are wired in separately, above)
+### Agent Teams (optional, Claude Code only)
 
-See [`plugin/skills/init/templates/CLAUDE.template.md`](plugin/skills/init/templates/CLAUDE.template.md) for a starter template.
-
-**Foundational Rules and Guardrails** – [`plugin/skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md`](plugin/skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) is the source file; `andthen:init` installs it to `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` in your project and the template wires it in by reference. For stronger adherence, prefer copying its contents into your user-level `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` once – this works for both Claude Code and Codex with no per-project setup. Alternatives: `@`-import via `@docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` (Claude Code only – Codex treats `@` as literal text); shell-alias injection into the system prompt (terminal workflows only).
-
-**Core project docs** – `andthen:init` scaffolds the Core orientation stubs by default (Product, Architecture, Stack, Key Dev Commands, Decisions, Learnings). The Document Index also includes optional rows for State, Requirements, Roadmap, and Conventions documents. Starter templates live in [`plugin/references/project-state-templates.md`](plugin/references/project-state-templates.md). You can also auto-generate Architecture and Stack docs from an existing codebase using `/andthen:map-codebase`.
-
-### Agent Teams (Optional, Claude Code only)
-
-`exec-plan --team` and `review --council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. Without `--team`, both use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
+`exec-plan --team` and `review --council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for parallel multi-agent coordination with real-time inter-agent communication. `review --council` auto-detects Agent Teams when available even without `--team`; `exec-plan` uses Agent Teams only when `--team` is set. Without Agent Teams, both fall back to sub-agents and work across all agents. To enable:
 
 ```json
 // ~/.claude/settings.json
-{
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  }
-}
+{ "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" } }
 ```
 
 
 ## Getting Started
 
-### Your First Feature
+A walkthrough of the feature workflow, from idea to shipped.
 
-You have a feature idea – maybe just a sentence, maybe a rough description. Here's how the pipeline works in practice.
-
-**Step 0 (optional): Not sure where to start?**
+**Step 0 (optional) – not sure where to start?**
 
 ```bash
-/andthen:now-what                              # asks what you want to build
-/andthen:now-what "add OAuth login"            # already have an idea – route me
+/andthen:now-what                       # asks what you want to build, then routes you
+/andthen:now-what "add OAuth login"     # already have an idea – route me
 ```
 
-`now-what` is the first-stop router. It inspects your project state (init'd? greenfield? brownfield? mid-flow?) and points you at the right skill – `init`, `clarify`, `prd`, `architecture`, etc. Useful when you don't yet know whether your work is a single feature, a multi-feature initiative, or something else. Skip it if you already know. If `now-what` routes you to `clarify`, continue with Step 1 below; if it routes elsewhere (`quick-implement`, `triage`, `architecture --mode advise`, etc.), follow that skill's own flow – you've left the "Your First Feature" path.
+`now-what` inspects your project state (init'd? greenfield? brownfield? mid-flow?) and points you at the right skill. Skip it if you already know.
 
-**Step 1: Clarify requirements** *(interactive)*
+**Step 1 – clarify requirements** *(interactive, optional)*
 
 ```bash
 /andthen:clarify "users should be able to export their data"
+/andthen:clarify --issue 42             # start from a GitHub issue
 ```
 
-This starts an **interactive conversation**. Claude analyzes your input, identifies gaps, and asks you 3-5 targeted questions at a time – about scope, user flows, edge cases, success criteria. You answer, it asks more. Typically 2-4 rounds until requirements are solid.
+An interactive conversation: Claude analyzes your input, identifies gaps, and asks 3–5 targeted questions per round (scope, flows, edge cases, success criteria). Typically 2–4 rounds. Produces `docs/specs/data-export/requirements-clarification.md`.
 
-Input can be anything: a sentence, a paragraph, a file path (`@docs/feature-idea.md`), or a GitHub issue (`--issue 42`).
+> **Review checkpoint:** `/andthen:visualize <artifact>` opens a self-contained HTML view of any artifact in your browser for review, with section-anchored notes that round-trip back to the owning skill. Producer skills also accept `--visual` as a handoff after they write their artifact.
 
-When done, you'll have a structured requirements document:
-```
-docs/specs/data-export/requirements-clarification.md
-```
-
-You can also start directly from a GitHub issue:
-```bash
-/andthen:clarify --issue 42
-```
-
-**Optional review checkpoint:** `/andthen:visualize docs/specs/data-export/requirements-clarification.md` opens a browser HTML view of the artifact for review. Producer skills also support `--visual` as a convenience handoff after they write the artifact.
-
-**Step 2a: Create a spec** *(single feature)*
+**Step 2a – create a spec** *(single feature)*
 
 ```bash
 /andthen:spec docs/specs/data-export/
 ```
 
-This reads your clarified requirements, analyzes the codebase, and produces a **Feature Implementation Specification (FIS)** – the blueprint for autonomous implementation. No code changes happen here.
+Reads your clarified requirements, analyzes the codebase, and produces the FIS at `docs/specs/data-export/data-export.md`. No code changes happen here.
 
-```
-docs/specs/data-export/data-export.md
-```
-
-**Step 2b: Or create a plan bundle** *(multi-feature / MVP)*
+**Step 2b – or create a plan bundle** *(multi-feature / MVP)*
 
 ```bash
-# Step 2b-i: Create the PRD (extracts/synthesizes product requirements)
-/andthen:prd docs/specs/data-export/
-/andthen:prd --issue 42   # or directly from a GitHub issue
-
-# Step 2b-ii: Create the full plan bundle (plan.json + FIS per story)
-/andthen:plan docs/specs/data-export/
+/andthen:prd docs/specs/data-export/    # PRD from requirements (or --issue 42)
+/andthen:plan docs/specs/data-export/   # plan.json + one FIS per story
 ```
 
-`prd` picks up `requirements-clarification.md` or a draft PRD automatically; `plan` requires `prd.md` and breaks the PRD into sequenced stories with phases and dependencies, plus batch-generates FIS for every story and runs a cross-cutting review.
+`prd` picks up `requirements-clarification.md` (or a draft PRD) automatically; `plan` requires `prd.md` and breaks it into sequenced stories with phases and dependencies, batch-generating a FIS per story plus a cross-cutting consistency review.
 
-```
-docs/specs/data-export/prd.md
-docs/specs/data-export/plan.json
-docs/specs/data-export/s01-*.md   (FIS per story)
-```
-
-**Optional plan review checkpoint:** `/andthen:visualize docs/specs/data-export/plan.json` opens a browser HTML view of the story catalog, phases, dependencies, and risks before execution.
-
-**Step 3: Execute**
+**Step 3 – execute**
 
 ```bash
 # Single feature:
 /andthen:exec-spec docs/specs/data-export/data-export.md
 
-# Multi-feature (manual story-by-story loop – bundle already has FIS per story):
+# Multi-feature, manual (story by story – the bundle already has a FIS per story):
 /andthen:exec-spec docs/specs/data-export/s01-story-name.md
-# Optional per-story review:
-/andthen:review --mode gap docs/specs/data-export/s01-story-name.md
-/andthen:remediate-findings <path-to-review-report>   # if review reports actionable gaps
 # ...repeat for each story in plan order
-# Optional final plan-level review:
-/andthen:review --mode gap docs/specs/data-export/plan.json
-/andthen:remediate-findings <path-to-review-report>   # if needed after final review
 
-# Multi-feature (automated):
+# Multi-feature, automated:
 /andthen:exec-plan docs/specs/data-export/
-
-# Claude Code Agent Teams for enhanced parallelism:
-/andthen:exec-plan --team docs/specs/data-export/
-# Or with worktree isolation for parallel execution:
-/andthen:exec-plan --team --worktree docs/specs/data-export/
+/andthen:exec-plan --team docs/specs/data-export/   # enhanced parallelism (Claude Code)
 ```
 
-**Step 4: Review**
+**Step 4 – review**
 
 ```bash
-# Single feature:
-/andthen:review --mode gap <path-to-fis>
-
-# Manual per-story or final multi-feature review:
-/andthen:review --mode gap <path-to-plan-or-fis>
+/andthen:review --mode gap <path-to-fis-or-plan.json>   # single lens
+/andthen:review --mode gap,code,security <path>         # chain several lenses in one run
 ```
 
-`exec-plan` runs `quick-review` per story automatically, then a final gap review (`review --mode gap`) on the whole plan. For manual review of individual stories, use `review --mode gap` on the FIS path.
+`review` is the default review entrypoint. It runs the right lens for the target – `code`, `doc`, `gap` (spec-vs-implementation), or `security` – auto-detected or selected via `--mode`. Pass a **comma-separated chain** (`--mode gap,code,security`) to run several lenses in one pass; each runs independently and the findings are consolidated into a single report. `--council` adds a multi-perspective adversarial layer on top (within-lens debate for `code`/`security`, plus a cross-lens synthesis pass on chains of 2+ lenses). `exec-plan` already runs `quick-review` per story plus a final gap review, so this step is for manual or final checks.
 
-`review` is the default review entrypoint. It runs in code / doc / gap / mixed modes (auto-detected or selected via `--mode`) to answer the right question for the target: code review, document readiness, or requirements-vs-implementation fit. `--council` adds multi-perspective depth: single code/security lenses get within-lens specialist councils, while 2+ lens chains add a cross-lens Critic / Devil's Advocate / Synthesis Challenger pass that reports lens-boundary issues in `## Cross-Lens Synthesis`.
-
-Review reports published to GitHub (issue or PR comment) can be consumed directly by remediation:
-- `/andthen:remediate-findings <review-issue-url-or-pr-comment-url>`
-
-**Step 5: Remediate Findings** *(when review returns actionable gaps)*
+**Step 5 – remediate findings** *(when review returns actionable gaps)*
 
 ```bash
 /andthen:remediate-findings <path-to-review-report>
-# Or directly from a typed GitHub review artifact:
-/andthen:remediate-findings https://github.com/org/repo/issues/789
-/andthen:remediate-findings https://github.com/org/repo/pull/456#issuecomment-123
+/andthen:remediate-findings https://github.com/org/repo/pull/456#issuecomment-123   # or a GitHub review artifact
 ```
 
-This re-validates the findings against the current workspace, applies the smallest safe fixes, re-runs the relevant verification, and updates plan/FIS state when the reviewed work is now complete.
+Re-validates findings against the current workspace, applies the smallest safe fixes, re-runs verification, and updates plan/FIS state when the reviewed work is complete.
 
-### When to Use `clarify`
+### When to clarify
 
-`clarify` is optional – but knowing when to use it saves time.
+`clarify` is optional. `prd` is **not** a second discovery tool – it's the synthesizer downstream of `clarify`. So the question is just *how much discovery the input needs*:
 
-| Your starting point | Recommendation |
+| Your starting point | What to do |
 |---|---|
-| A one-liner or vague idea ("users should be able to export data") | **Use `clarify`** – too many unknowns for a good spec |
-| A rough description with some known requirements but unclear scope/edges | **Use `clarify`** – it will focus on gaps, not re-discover what you know |
-| Well-defined requirements with acceptance criteria (from a PM, a detailed issue) | **Skip `clarify`** – go straight to `spec --issue 42` or `plan --issue 42` |
-| Existing requirements doc or Notion page | **Skip `clarify`** – pass the file/URL directly to `spec` or `plan` |
+| One-liner or vague idea | **Run `clarify`** – too many unknowns for a good spec or PRD |
+| Rough description, unclear scope/edges | **Run `clarify`** – it focuses on gaps, not what you already know |
+| You can explain it in a few paragraphs | **Skip to `spec` / `prd`** – `prd`'s bounded synthesis fills gaps with explicit assumptions |
+| Well-defined requirements (PM doc, detailed issue, Notion page) | **Skip `clarify`** – pass the file/URL/`--issue` straight to `spec` or `prd` |
 
-**Rule of thumb:** If you can't list 3 concrete acceptance criteria for the feature, run `clarify` first.
-
-### `clarify` vs. `prd`'s Built-in Discovery
-
-Both `clarify` and `prd` can do requirements discovery. The difference:
-
-- **`clarify`** does deep, thorough discovery – design space decomposition, domain language extraction, detailed edge case analysis. It's interactive and produces a standalone requirements document.
-- **`prd`** does headless synthesis when no prior artifact exists. It focuses on getting enough information to produce a defensible PRD, but won't go as deep on edge cases or design alternatives as `clarify`.
-
-**Use `clarify` first when:** The problem space is genuinely unclear, you're exploring multiple design directions, or the domain is complex. `prd` will pick up the clarified output and skip its own synthesis.
-
-**Skip `clarify` and let `prd` handle it when:** You have a reasonable understanding of what you want – maybe not perfectly documented, but you could explain it in a few paragraphs. `prd`'s headless synthesis will fill the gaps with explicit assumptions.
+**Rule of thumb:** if you can't list 3 concrete acceptance criteria, run `clarify` first. When you do run it, `prd` picks up its output and skips its own synthesis.
 
 
 ## Skills
 
-Invoke with `/andthen:<skill>` (e.g. `/andthen:triage`, `/andthen:spec`). For per-skill flag, mode, and option details, see the tables in [`plugin/README.md`](plugin/README.md#skills) – the rows below are intentionally one-liner purpose only.
-
-### Standalone Skills
-
-Use these individually for everyday development – no setup, no pipeline, no prior artifacts needed.
+Invoke with `/andthen:<skill>` (e.g. `/andthen:spec`). The rows below are one-line purposes – for flags, modes, and edge-case behavior, see the full reference in [`plugin/README.md`](plugin/README.md#skills).
 
 > **Not sure where to start?** Run `/andthen:now-what` – it inspects your project state and routes you to the right skill.
 
-| Skill | Purpose |
-|-------|---------|
-| `now-what` | First-stop router – inspects project state and routes to the right skill |
-| `handoff` | Compact the conversation into a handoff doc for a fresh session – auto-updates `STATE.md` / `LEARNINGS.md` (when present) via `andthen:ops` |
-| `triage` | Investigate, diagnose, and fix issues |
-| `quick-implement` | Fast path for small features/fixes |
-| `quick-review` | Quick in-conversation sanity-check via fresh-context sub-agent |
-| `review` | Smart review entrypoint – code, docs, spec/requirements alignment, single or multi-perspective council review for code/security or 2+ lens chains (`--visual` delegates the consolidated report to `andthen:visualize`) |
-| `simplify-code` | Behavior-preserving code simplification and cleanup |
-| `refactor` | Deprecated – redirects to `simplify-code` (kept for legacy invocations only) |
-| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, and event storming (`--visual` delegates every mode's primary report to `andthen:visualize`) |
-| `ui-ux-design` | UI/UX work – research, design systems, wireframes, design review |
-| `map-codebase` | Codebase analysis – auto-generates architecture, stack, conventions docs |
-| `ubiquitous-language` | Extract and maintain domain glossary from codebase and docs |
-| `excalidraw-diagram` | Generate Excalidraw diagram JSON files that make visual arguments |
-| `visual-validation` | Validate UI screenshots and implementations against visual, responsive, and design expectations (`andthen:visual-validation` skill) |
-| `visualize` | Render any AndThen artifact (PRD, `plan.json`, FIS, requirements-clarification, product vision, review report, architecture trade-off / strategic-design / fitness / decompose / event-storming report, or ADR) as a self-contained HTML view with section-anchored notes |
-| `e2e-test` | End-to-end browser testing for web applications |
-| `testing` | Test strategy, coverage, authoring, and test-first / red-green-refactor discipline |
+### Pipeline skills
 
-### Pipeline Skills
-
-These compose into structured workflows – from requirements through implementation to review.
+These compose into the workflows above – from requirements through implementation to review.
 
 | Skill | Purpose |
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
-| `clarify` | Discovery & Ideation for requirements at feature or product scope (`--visual` delegates the output to `andthen:visualize`) |
-| `prd` | Create a Product Requirements Document from requirements (`--visual` delegates `prd.md` to `andthen:visualize`) |
-| `spec` | Generate Feature Implementation Specification from requirements (`--visual` delegates the produced FIS to `andthen:visualize`) |
-| `exec-spec` | Execute a FIS – direct implementation with validation |
-| `plan` | Full plan bundle: story breakdown + FIS for every story + cross-cutting review. Requires `prd.md` input; `--visual` delegates the local `plan.json` bundle to `andthen:visualize` |
-| `exec-plan` | Execute a fully-specced plan bundle – exec-spec + quick-review per story, final gap review |
-| `remediate-findings` | Implement validated review findings with re-validation and status updates |
-| `ops` | Deterministic state management, git conventions, and progress tracking |
+| `clarify` | Interactive requirements discovery at feature or product scope (`--mode product\|feature`) |
+| `prd` | Synthesize a Product Requirements Document from clarified requirements, a draft, file, URL, or issue |
+| `plan` | Turn a local or GitHub-sourced PRD into a plan bundle: typed `plan.json` + one FIS per story + cross-cutting review |
+| `spec` | Generate a Feature Implementation Specification (FIS) for one execution-sized feature |
+| `exec-spec` | Implement a FIS – code, tests, verification, intent/gap review, and completion attestation |
+| `exec-plan` | Execute a plan bundle story-by-story (`exec-spec` + `quick-review` each, final gap review); `--team` for Agent Teams |
+| `remediate-findings` | Apply validated review findings with the smallest safe fixes, re-validate, update state |
+| `ops` | Deterministic state, plan/FIS, and git operations (status, checkboxes, commits) |
+
+### Standalone skills
+
+Use these on their own for everyday development – no setup, no pipeline, no prior artifacts.
+
+| Skill | Purpose |
+|-------|---------|
+| `now-what` | First-stop router – inspects project state and routes to the right skill |
+| `handoff` | Compact the conversation into a resumable handoff doc; routes durable state to `STATE.md` / `LEARNINGS.md` via `ops` |
+| `triage` | Investigate, diagnose, and fix issues – build failures, config errors, runtime bugs, regressions (`--plan-only` to plan without fixing) |
+| `quick-implement` | Fast path for small features/fixes/issues, with verification (`--tdd`, `--issue`, `--pr`, `--auto`) |
+| `quick-review` | Lightweight mid-conversation Critic review of recent changes in fresh context (`--fix` applies Fix-bucket findings only) |
+| `review` | Default review entrypoint – `code` / `doc` / `gap` / `security` / mixed lenses, optional `--council` debate, optional `--fix` |
+| `simplify-code` | Behavior-preserving code simplification and cleanup (intent-bounded) |
+| `architecture` | Design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, event storming (seven modes) |
+| `ui-ux-design` | UI/UX work – research, design systems, wireframes, design review (four modes) |
+| `testing` | Test strategy, coverage, authoring, and TDD / red-green-refactor / Prove-It discipline |
+| `e2e-test` | End-to-end browser testing for web apps – journey discovery, execution, responsive validation |
+| `visual-validation` | Validate UI implementations against design references, baselines, and responsive requirements |
+| `map-codebase` | Analyze an existing codebase – generates architecture, stack, commands, conventions, discovered requirements/decisions |
+| `ubiquitous-language` | Extract and maintain the project's domain glossary from code and docs |
+| `excalidraw-diagram` | Generate high-quality Excalidraw diagrams (conceptual or technical) |
+| `visualize` | Render any AndThen artifact as a self-contained HTML review surface with section-anchored notes |
+| `refactor` | Deprecated alias – redirects to `simplify-code` (legacy invocations only) |
 
 
 ## Agents
 
 AndThen ships a small agent set:
 
-- `andthen:documentation-lookup` agent for documentation retrieval.
+- Plugin-tier `documentation-lookup` agent for documentation retrieval.
+- Plugin-tier `research` agent for web and project research, multi-source verification, and trade-off option investigation.
 - Review persona agents for council and Critic review: `review-critic`, `review-devils-advocate`, `review-synthesis-challenger`, plus focused correctness, security, architecture, testing, project-standards, product-requirements, and agent-workflow reviewers.
 
-Agent names are tier-specific: Claude Code plugin sources use unprefixed `review-*` names inside `plugin/agents/`; Codex and Claude user-tier installs generate/copy prefixed names such as `andthen-review-critic` or `<custom-prefix>review-critic`.
+Agent names are tier-specific: Claude Code plugin sources use unprefixed `documentation-lookup` and `review-*` names inside `plugin/agents/`; Codex and Claude user-tier installs generate/copy prefixed names such as `andthen-documentation-lookup`, `andthen-review-critic`, or `<custom-prefix>review-critic`.
 
 Architecture, UI/UX design, build/test diagnosis, visual validation, and visual artifact review are **skills** – use `/andthen:architecture`, `/andthen:ui-ux-design`, `/andthen:triage`, `/andthen:visual-validation`, and `/andthen:visualize` where relevant. Research outside documentation lookup remains inline sub-agent guidance embedded in the skill prompts that need it.
 
@@ -376,7 +293,7 @@ Architecture, UI/UX design, build/test diagnosis, visual validation, and visual 
 
 ### Guidelines (`docs/guidelines/`)
 
-Simplified starting points – copy into your project and adapt to your needs. Workflow skills reference these via your project's `CLAUDE.md` / `AGENTS.md`, so you can replace them entirely with your own. The canonical files live in `plugin/skills/init/templates/guidelines/`; in this repo, `docs/guidelines/` is only a symlink to that directory so there is one source of truth. For manual setup, copy the template contents directly or dereference the symlink, e.g. `mkdir -p <target>/docs/guidelines && cp -RL docs/guidelines/. <target>/docs/guidelines/`.
+Simplified starting points – copy into your project and adapt. Workflow skills reference these via your `CLAUDE.md` / `AGENTS.md`, so you can replace them with your own. Canonical files live in `plugin/skills/init/templates/guidelines/`; `docs/guidelines/` is a symlink to that directory so there's one source of truth.
 
 | Guide | Purpose |
 |-------|---------|
@@ -385,21 +302,17 @@ Simplified starting points – copy into your project and adapt to your needs. W
 | `WEB-DEV-GUIDELINES.md` | Web development best practices |
 | `CRITICAL-RULES-AND-GUARDRAILS.md` | Safety rules and behavioral guardrails for AI agents |
 
-### Reference (`docs/`)
+### Starter templates
 
-| Document | Purpose |
+Canonical user-facing starter templates (owned by the `init` skill).
+
+| Template | Purpose |
 |----------|---------|
-| `MODEL-EFFORT-SELECTION-GUIDE.md` | Model and thinking effort selection guide |
+| `plugin/skills/init/templates/CLAUDE.template.md` | Starter for project `CLAUDE.md` / `AGENTS.md` |
+| `plugin/skills/init/templates/guidelines/` | Starter guideline files copied by `init` |
+| `plugin/references/project-state-templates.md` | Starter templates for STATE.md, ROADMAP.md, etc. |
 
-### Starter Templates
-
-Canonical user-facing starter templates (owned by the `init` skill – see ownership table in `CLAUDE.md`).
-
-| Document | Purpose |
-|----------|---------|
-| `plugin/skills/init/templates/CLAUDE.template.md` | Starter template for project `CLAUDE.md` / `AGENTS.md` |
-| `plugin/skills/init/templates/guidelines/` | Starter guideline files copied by the `init` skill |
-| `plugin/references/project-state-templates.md` | Starter templates for STATE.md, PRODUCT-BACKLOG.md, ROADMAP.md, etc. |
+Other reference docs: [`docs/MODEL-EFFORT-SELECTION-GUIDE.md`](docs/MODEL-EFFORT-SELECTION-GUIDE.md) (model and thinking-effort selection).
 
 
 ## Hooks
@@ -414,14 +327,10 @@ Optional standalone Claude Code hooks for safety and productivity. See [`hooks/R
 | `reinject-context.sh` | SessionStart | Re-injects critical rules after context compaction |
 
 
-## Other useful resources (skills, plugins etc)
+## Other useful resources
 
-- Agent Browser (CLI tool and Skill) - https://github.com/vercel-labs/agent-browser
-
-- Other useful plugins from the official marketplace ([anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official)):
-  - [`semgrep`](https://github.com/semgrep/mcp-marketplace) - external but officially recommended
-  - `playground`
-  - `claude-md-management`
+- Agent Browser (CLI tool and skill) – https://github.com/vercel-labs/agent-browser
+- Other useful plugins from the official marketplace ([anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official)): [`semgrep`](https://github.com/semgrep/mcp-marketplace) (external but officially recommended), `playground`, `claude-md-management`.
 
 
 ## Evolved From
@@ -436,7 +345,6 @@ AndThen evolved from [cc-workflows](https://github.com/tolo/claude_code_common) 
 and then
 
 [![Mullvad](https://img.youtube.com/vi/fPzvUW8qaWY/0.jpg)](https://www.youtube.com/watch?v=fPzvUW8qaWY)
-
 
 
 ## Actually inspired by

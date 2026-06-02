@@ -2,6 +2,8 @@
 
 Concise, actionable checklist for UI/UX reviews and validation.
 
+Sections: Pre-Review · Visual Quality & Layout · Usability Excellence · Platform Conventions · Interaction Patterns · Accessibility (WCAG 2.2) · Performance · Quality Tests · Issue Classification
+
 ---
 
 ## Pre-Review

@@ -1,12 +1,22 @@
 # Architecture – Strategic-Design Mode
 
-Discover or audit the strategic shape of a domain – classify subdomains by investment posture, propose bounded contexts and their sizing, draw the integration relationships between contexts, and surface the ubiquitous-language touchpoints. Outputs a textual report; UL extraction, board diagrams, and visual review are delegated to dedicated skills.
+Discover or audit the strategic shape of a domain – classify subdomains by investment posture, propose bounded contexts and their sizing, draw the integration relationships between contexts, and surface the ubiquitous-language touchpoints. Outputs a textual report; delegations: see Step 7.
 
 **Supporting references**: `ddd.md` (sections 1.1–1.4 – subdomain types, bounded contexts, the 9-pattern context-mapping catalog, team-topology alignment; section 4.2 – Bounded Context Canvas; section 5 – UL operationalization), `decomposition.md` (load when bounded-context sizing is contested – applies the cognitive-load heuristic, "team owns at most 2–3 low-complexity contexts").
 
+## Contents
+- Subdomains – Quick Reference
+- Context-Mapping Pattern Catalog
+- Bounded Context Canvas
+- Team-Topology Alignment
+- Steps
+- Greenfield vs. Brownfield Cheat Sheet
+- Recommended Chains
+- Report Contents
+
 ## Subdomains – Quick Reference
 
-Mirror Evans / Khononov ch. 1; full depth lives in `ddd.md` §1.1. Classify each subdomain into exactly one type, with a one-line rationale tying it to business differentiation and model complexity.
+Full depth: `ddd.md` §1.1. Classify each subdomain into exactly one type, with a one-line rationale tying it to business differentiation and model complexity.
 
 | Type | Investment | Pattern hint |
 |---|---|---|
@@ -18,27 +28,15 @@ When the differentiation/complexity call is contested, plot subdomains on the Co
 
 ## Context-Mapping Pattern Catalog
 
-Nine patterns – eight Evans canonical plus Big Ball of Mud (DDD Crew, as a quarantine strategy). Full table with coupling level, team relationship, and "choose when" guidance lives in `ddd.md` §1.3. Every pair of contexts in the report's Context Map names the pattern explicitly.
-
-- **Partnership** – high coupling, shared fate; teams release together.
-- **Shared Kernel** – small co-owned model subset; close communication.
-- **Customer/Supplier** – upstream/downstream with the downstream having leverage on the upstream's roadmap.
-- **Conformist** – downstream accepts the upstream model as authoritative.
-- **Anticorruption Layer** – downstream wraps a hostile or legacy upstream to protect its model.
-- **Open Host Service** – upstream publishes a stable API for many consumers.
-- **Published Language** – shared exchange format (schemas, event envelopes); often pairs with OHS.
-- **Separate Ways** – explicit non-integration; duplication is cheaper.
-- **Big Ball of Mud** – quarantine strategy for legacy or entangled systems; never let the model contaminate neighbors (wrap with ACL).
-
-Move toward the top of the catalog when teams are aligned and models are stable; toward the bottom when teams are distant, models are incompatible, or the upstream cannot be negotiated with.
+Nine patterns – eight Evans canonical plus Big Ball of Mud (DDD Crew, as a quarantine strategy). Full table with coupling level, team relationship, and "choose when" guidance lives in `ddd.md` §1.3. **Contract:** every pair of contexts in the report's Context Map names the pattern explicitly. Move up the catalog when teams are aligned and models are stable; down when teams are distant, models are incompatible, or the upstream cannot be negotiated with.
 
 ## Bounded Context Canvas
 
-For any single context that needs deeper scrutiny, fill the Bounded Context Canvas (DDD Crew, Tune): name and purpose, strategic classification (core/supporting/generic), domain roles, inbound/outbound messages, dependencies (upstream/downstream + integration patterns), ubiquitous-language excerpt. Full depth in `ddd.md` §4.2. Use as a per-context appendix when the report's main Bounded Contexts table cannot carry enough detail; skip when the high-level table suffices.
+For any single context that needs deeper scrutiny, fill the Bounded Context Canvas (DDD Crew, Tune) – field list in `ddd.md` §4.2. Use as a per-context appendix when the report's main Bounded Contexts table cannot carry enough detail; skip when the high-level table suffices.
 
 ## Team-Topology Alignment
 
-Context-mapping patterns map onto Team Topologies interaction modes – Partnership ↔ closely-collaborating stream-aligned teams, Conformist ↔ X-as-a-Service without negotiation, ACL ↔ platform team owns translation, OHS+Published Language ↔ platform team's stable API, Separate Ways ↔ fully independent stream-aligned teams. Full table in `ddd.md` §1.4. When team boundaries cut across context boundaries (Conway's Law violated), the distributed monolith is the predictable result – surface as a finding.
+Context-mapping patterns map onto Team Topologies interaction modes – full table in `ddd.md` §1.4. When team boundaries cut across context boundaries (Conway's Law violated), the distributed monolith is the predictable result – surface as a finding.
 
 ## Steps
 

@@ -1,6 +1,6 @@
 # Council Mode
 
-Multi-perspective review scaled to the chain shape: **within-lens specialist councils** (5-7 reviewers per lens) deepen `code` and `security` reviews, and on any chain of 2+ lenses a **cross-lens Critic + Devil's Advocate + Synthesis Challenger pass** attacks lens-boundary surface (contradictions, silence-licenses-risk, verdict-vs-finding mismatch) over the merged finding set. Load this reference only when running the `andthen:review` skill with `--council` – council is opt-in via that flag and is not auto-escalated. ("Multi-perspective" / "adversarial" / "critic" / "skeptic" / "thorough" phrasing activates the review skill itself, per its `description`; it does not silently upgrade a review to council.)
+Multi-perspective review scaled to the chain shape: **within-lens specialist councils** (5-7 reviewers per lens) deepen `code` and `security` reviews, and on any chain of 2+ lenses a **cross-lens Critic + Devil's Advocate + Synthesis Challenger pass** attacks lens-boundary surface (contradictions, silence-licenses-risk, verdict-vs-finding mismatch) over the merged finding set. Load this reference only when running the `andthen:review` skill with `--council` – council is opt-in via that flag and is not auto-escalated. (Adversarial/critic/skeptic/thorough phrasing activates the review skill per its `description`; it does not silently upgrade to council.)
 
 Within-lens specialist councils apply to `code` and `security` only; on a chain that includes both, run one specialist council per lens with distinct reviewer rosters and shared calibration, then run the cross-lens pass once over all per-lens outputs.
 
@@ -9,12 +9,12 @@ Companion references:
 - `lens-code.md` – code-review rubric each code-mode specialist applies.
 - `lens-security.md` – security-review rubric each security-mode specialist applies.
 - [`lens-adversarial.md`](${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md), [`critic-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md), and [`review-calibration.md`](${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md) – Critic Reviewer posture and anti-leniency calibration.
-- [`adversarial-challenge.md`](${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md) – Findings Filter prompt templates for Devil's Advocate and Synthesis Challenger.
+- [`findings-filter-templates.md`](${CLAUDE_PLUGIN_ROOT}/references/findings-filter-templates.md) – Findings Filter prompt templates for Devil's Advocate and Synthesis Challenger.
 
 
 ## Contents
 
-Gotchas · Structured Finding Contract · 1. Determine Execution Mode · 2. Select Council Members · 3a. Agent Teams Path · 3b. Sub-Agent Path · 3c. Cross-Lens Chain Mode · 4. Report Structure
+Gotchas · Structured Finding Contract · 1. Determine Execution Mode · 2. Select Council Members · Reviewer Task Prompt (shared) · 3a. Agent Teams Path · 3b. Sub-Agent Path · 3c. Cross-Lens Chain Mode · 4. Report Structure
 
 
 ## Gotchas
@@ -23,7 +23,7 @@ Gotchas · Structured Finding Contract · 1. Determine Execution Mode · 2. Sele
 - Skipping the Critic Reviewer under context pressure removes the primary assumption-attack pass.
 - Skipping Devil's Advocate under context pressure removes the findings filter.
 - Clean results still need proof of work. No surviving findings is acceptable only when `Coverage Attacked` names the assumptions, failure paths, and high-risk surfaces actually challenged.
-- Devil's Advocate and Synthesis Challenger are filters. Devil's Advocate never adds findings. Synthesis Challenger may merge, split, reframe around evidence already present, downgrade, withdraw, or mark disputed, but must not invent unrelated findings.
+- Devil's Advocate and Synthesis Challenger are filters, not finders – neither invents unrelated findings (full Synthesis boundary in Phase 3).
 - Forcing `--team` when Agent Teams are unavailable – fall back to sub-agents unless `--team` was explicit.
 
 
@@ -57,7 +57,7 @@ Prefer the strongest available execution path:
 
 Choose 5-7 reviewers from `reviewer-roster.md`. Always include **Critic Reviewer**, **Devil's Advocate**, and **Synthesis Challenger**.
 
-The 5-7 sweet spot and specialist selection below apply to **within-lens** councils (code or security). The **cross-lens chain pass** (§ *Cross-Lens Chain Mode* below) is fixed at the 3-role spine – no additional specialists – because per-lens reviews already produced the specialist coverage.
+The 5-7 sweet spot and specialist selection below apply to **within-lens** councils (code or security). The **cross-lens chain pass** (§ *Cross-Lens Chain Mode* below) is fixed at the 3-role spine; §3c carries the why.
 
 For **security-mode councils**, always include **Security Sentinel** and choose 1-3 more specialists from `reviewer-roster.md` matched to the OWASP applicability gate: Correctness Reviewer for API, browser, backend, or data-flow behavior; Architecture Strategist for trust-boundary structure; Project Standards Reviewer for supply-chain, CI/CD, or local convention risk; Test Strategist for security verification gaps; Agent Workflow Reviewer for LLM/agent/tool-call flows.
 
@@ -68,35 +68,37 @@ When a chain runs council on both lenses, the rosters may differ, but each counc
 **Gate:** 5-7 reviewers selected per lens.
 
 
-## 3a. Agent Teams Path
+## Reviewer Task Prompt (shared)
 
-Use Agent Teams so reviewers can share task state and debate in real time.
-
-1. Create the team, e.g. `review-council`.
-2. Create tasks for specialist review, findings filter, and synthesis.
-3. Spawn each reviewer into the team. Prefer the installed custom agent mapped in `reviewer-roster.md`; still supply the same read-first task prompt below. Custom agent instructions are persona defaults, not a replacement for lens calibration.
-4. Track assignments and completion.
-5. Use inter-agent messaging for the filter debate.
-6. Shut down team members and delete the team when finished.
-
-**Reviewer task prompt:**
+Both the Agent Teams path (§3a) and the sub-agent path (§3b) pass this read-first prompt to each specialist; only the framing line differs (noted per path):
 
 ```markdown
-Review Council for: {SCOPE}
+{framing line – see §3a / §3b}
 Lens: {code|security}
-Role: {reviewer name and focus areas from reviewer-roster.md}
 
 Read the relevant lens rubric before reviewing:
 - code council: references/lens-code.md
 - security council: references/lens-security.md
 - Critic Reviewer: ${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md plus ${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md and ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md
 
-Apply your persona and the Critic posture inside your focus area. Return findings using the Structured Finding Contract from council-mode.md. If clean, return the concrete coverage you attacked.
+Apply your persona and the Critic posture inside your focus area. Return findings using the Structured Finding Contract from council-mode.md. If clean, return the concrete assumptions, flows, failure paths, and surfaces you attacked.
 ```
+
+
+## 3a. Agent Teams Path
+
+Use Agent Teams so reviewers can share task state and debate in real time.
+
+1. Create the team, e.g. `review-council`.
+2. Create tasks for specialist review, findings filter, and synthesis.
+3. Spawn each reviewer into the team. Prefer the installed custom agent mapped in `reviewer-roster.md`; still supply the shared Reviewer Task Prompt with framing line `Review Council for: {SCOPE}` / `Role: {reviewer name and focus areas from reviewer-roster.md}`. Custom agent instructions are persona defaults, not a replacement for lens calibration.
+4. Track assignments and completion.
+5. Use inter-agent messaging for the filter debate.
+6. Shut down team members and delete the team when finished.
 
 **Phase 1 – Specialist Reviews:** wait for all specialists, including Critic Reviewer. **Gate:** specialist findings and clean-coverage statements collected.
 
-**Phase 2 – Devil's Advocate Findings Filter:** Devil's Advocate filters every finding using `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md`. Verdicts: `VALIDATED`, `DOWNGRADED`, `WITHDRAWN`, `DISPUTED`. Max 2-3 debate rounds per finding. **Gate:** verdicts applied.
+**Phase 2 – Devil's Advocate Findings Filter:** Devil's Advocate filters every finding using `${CLAUDE_PLUGIN_ROOT}/references/findings-filter-templates.md`. Verdicts: `VALIDATED`, `DOWNGRADED`, `WITHDRAWN`, `DISPUTED`. Max 2-3 debate rounds per finding. **Gate:** verdicts applied.
 
 **Phase 3 – Synthesis Review:** Synthesis Challenger reviews surviving and disputed findings holistically. It may merge, split, reframe around existing evidence, downgrade, withdraw, or mark disputed. It must not add unrelated new findings. **Gate:** final report payload complete.
 
@@ -105,25 +107,11 @@ Apply your persona and the Critic posture inside your focus area. Return finding
 
 Run specialist reviews using parallel sub-agents where possible.
 
-**Phase 1 – Specialist Reviews:** spawn one sub-agent per specialist, excluding Devil's Advocate and Synthesis Challenger. Critic Reviewer is a specialist and must be included. Prefer the installed custom agent mapped in `reviewer-roster.md`; still supply the same read-first task prompt. If custom agents are unavailable, spawn a generic sub-agent with this prompt:
-
-```markdown
-You are the {reviewer name} on a Review Council for: {SCOPE}
-
-Focus areas: {focus areas from reviewer-roster.md}
-Lens: {code|security}
-
-Read the relevant rubric before reviewing:
-- code council: references/lens-code.md
-- security council: references/lens-security.md
-- Critic Reviewer: ${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md plus ${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md and ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md
-
-Apply your persona and the Critic posture inside your focus area. Return findings using the Structured Finding Contract from council-mode.md. If clean, return the concrete assumptions, flows, failure paths, and surfaces you attacked.
-```
+**Phase 1 – Specialist Reviews:** spawn one sub-agent per specialist, excluding Devil's Advocate and Synthesis Challenger. Critic Reviewer is a specialist and must be included. Prefer the installed custom agent mapped in `reviewer-roster.md`; if custom agents are unavailable, spawn a generic sub-agent. Either way pass the shared Reviewer Task Prompt with framing line `You are the {reviewer name} on a Review Council for: {SCOPE}` / `Focus areas: {focus areas from reviewer-roster.md}`.
 
 **Gate:** specialist findings and clean-coverage statements collected.
 
-**Phase 2 – Devil's Advocate Findings Filter:** spawn `review-devils-advocate` when installed; otherwise use a generic sub-agent with `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` and this task:
+**Phase 2 – Devil's Advocate Findings Filter:** spawn `review-devils-advocate` when installed; otherwise use a generic sub-agent with `${CLAUDE_PLUGIN_ROOT}/references/findings-filter-templates.md` and this task:
 
 - **Role**: `Devil's Advocate on a Review Council for: {SCOPE}`
 - **Context block**: `You have received {N} findings from specialist reviewers.`
@@ -134,7 +122,7 @@ Apply your persona and the Critic posture inside your focus area. Return finding
 
 Apply verdicts to the findings list. **Gate:** findings filtered.
 
-**Phase 3 – Synthesis Review:** spawn `review-synthesis-challenger` when installed; otherwise use a generic sub-agent with `${CLAUDE_PLUGIN_ROOT}/references/adversarial-challenge.md` and this task:
+**Phase 3 – Synthesis Review:** spawn `review-synthesis-challenger` when installed; otherwise use a generic sub-agent with `${CLAUDE_PLUGIN_ROOT}/references/findings-filter-templates.md` and this task:
 
 - **Role**: `Synthesis Challenger on a Review Council for: {SCOPE}`
 - **Context block**: `You are the final quality gate. Review all findings that survived Devil's Advocate filtering.`

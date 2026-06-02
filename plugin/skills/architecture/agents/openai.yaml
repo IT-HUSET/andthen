@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Architecture"
-  short_description: "Architecture design, review, decomposition, trade-off analysis, fitness functions, strategic design, and event storming; `--visual` delegates structured reports to andthen:visualize"
-  default_prompt: "Architecture work – review, decompose, advise (design/CUPID/DDD), fitness functions, trade-off analysis, strategic design, or event storming. Pass `--visual` to hand the produced report (review, trade-off, strategic-design, fitness, decompose, event-storming, or ADR) to `andthen:visualize` after filtering. Scope or decision: "
+  short_description: "Architecture design, review, decomposition, trade-off analysis, fitness functions, strategic design, and event storming; `--visual` delegates structured reports to the `andthen:visualize` skill"
+  default_prompt: "Architecture work – review, decompose, advise (design/CUPID/DDD), fitness functions, strategic design, or event storming. Pass `--visual` to hand the produced report (review, trade-off, strategic-design, fitness, decompose, event-storming, or ADR) to the `andthen:visualize` skill after filtering. Scope or decision: "
 
 policy:
   allow_implicit_invocation: true

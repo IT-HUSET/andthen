@@ -1,6 +1,6 @@
 # Shared Findings Filter Templates
 
-Use this reference when a review skill needs a fresh-context sub-agent to filter previously collected findings. This pass cannot find new issues; that is the Critic Lens's job (`${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`).
+Use this reference when a review skill needs a fresh-context sub-agent to filter previously collected findings. This pass cannot find new issues; that belongs in the caller's Critic/adversarial finding pass.
 
 ## Generic Findings-Filter Template
 

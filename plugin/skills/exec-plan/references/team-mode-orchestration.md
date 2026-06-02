@@ -1,8 +1,17 @@
 # Team-Mode Orchestration
 
-Loaded when `--team` is active (Step 3T). Covers team setup, implementer/reviewer prompts, task management, merge wave, status updates gate, monitoring, Final Worktree Teardown.
+Loaded when `--team` is active (Step 3T). Single source of truth for team-mode behavior; default-mode does not load it.
 
-Single source of truth for team-mode behavior. Default-mode (no `--team`) does not load this.
+## Contents
+- Team Setup
+- Implementer Prompt
+- Reviewer Prompt
+- Task Management
+- Merge Wave
+- Status Updates Gate
+- Multi-Repo Rules
+- Monitoring
+- Final Worktree Teardown
 
 
 ## Team Setup
@@ -30,7 +39,7 @@ Placeholders pre-substituted by the orchestrator at TeamCreate: `{AUTO_SUFFIX}`,
 
 Per `impl-*` task assigned to you (orchestrator pre-assigns owners – work only your assigned tasks, no shared-queue claiming):
 - `cd {CODE_DIR_ABS}` (worktree mode: `cd {WORKTREE_PATH_ABS}` instead).
-- **Worktree mode** (`{WORKTREE_PATH_ABS}` non-empty), as first action after `cd`: `bash ${CLAUDE_SKILL_DIR}/scripts/verify-in-worktree.sh {STORY_ID} {WORKTREE_PATH_ABS}`. Anything other than `VERIFY_OK` → STOP, report `VERIFY_FAIL:<reason>`, fail the task. Subsequent operations use absolute paths only (relative paths silently leak to the main checkout). Pass the `## Deferred Shared Writes` audit block through to your report; do NOT stage `plan.json` or the State document inside the worktree branch – `andthen:merge-resolve`'s G2 guard fails the story.
+- **Worktree mode** (`{WORKTREE_PATH_ABS}` non-empty), as first action after `cd`: `bash ${CLAUDE_SKILL_DIR}/scripts/verify-in-worktree.sh {STORY_ID} {WORKTREE_PATH_ABS}`. Anything other than `VERIFY_OK` → STOP, report `VERIFY_FAIL:<reason>`, fail the task. Subsequent operations use absolute paths only (relative paths silently leak to the main checkout). Pass the `## Deferred Shared Writes` audit block through to your report; do NOT stage `plan.json` or the State document inside the worktree branch – the `andthen:merge-resolve` skill's G2 guard fails the story.
 - `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}`.
 - On success: report `exec-spec` Step 4a numbers (build, tests, lint/type-check, format). Orchestrator handles squash-merge and cleanup.
 - On `BLOCKED:` or Failed Story Report: do not mark done; preserve the worktree and report details.

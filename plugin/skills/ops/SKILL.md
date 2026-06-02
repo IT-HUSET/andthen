@@ -3,37 +3,32 @@ description: "Deterministic operations: update STATE.md, plan status, FIS checkb
 context: fork
 agent: general-purpose
 user-invocable: true
-argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-fis, update-fis observations, update-fis discovered-requirements, update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
+argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-fis, update-fis observations, update-fis discovered-requirements, update-fis design-change, update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
 ---
 
 # Deterministic Operations Skill
 
 
-Reliable, template-driven operations for state management, git conventions, and progress tracking. These operations follow strict patterns to avoid LLM interpretation drift.
-
-> **Philosophy**: This skill provides structured templates and validation – it doesn't bypass the agent but gives it reliable patterns to follow. Think of it as "guardrails for deterministic work."
+Template-driven operations following strict patterns to avoid LLM interpretation drift.
 
 
 ## INSTRUCTIONS
 
-- Follow patterns exactly – do not improvise or add creative interpretation
-- Validate inputs before making changes
-- Report what was changed in a structured format
+- Follow the operation grammars exactly; improvisation defeats determinism. Validate inputs before mutating, and report changes in a structured format.
 
 
 ## GOTCHAS
-- Improvising instead of following patterns exactly – this skill exists to prevent LLM interpretation drift
 - Forgetting to update all three version locations on version bumps: CHANGELOG.md, .claude-plugin/marketplace.json, and plugin/.claude-plugin/plugin.json
-- Creating the `State` document when it doesn't exist – initialization is the `init` skill's job; ops only reads/writes an existing `State` document as defined in the **Project Document Index**
+- Creating the `State` document when it doesn't exist – initialization is the andthen:init skill's job; ops only reads/writes an existing `State` document as defined in the **Project Document Index**
 - Letting Active Stories or Session Notes grow unbounded – apply maintenance rules on every write
-- **Exception – `update-tech-debt append` IS allowed to create its target file**: this is the *one* documented deviation from the "ops never creates target files" rule. When the Tech Debt Backlog file (resolved from the **Project Document Index** `Tech Debt` row, default `docs/TECH-DEBT-BACKLOG.md`) does not exist, this form scaffolds it from the `# Technical Debt Backlog` template (canonical in `project-state-templates.md`; structure inlined in the `Update Tech Debt` form below) before appending. No other ops form may follow this pattern – do not extend the exception to State, Plan, FIS, or any future target.
+- **Exception – `update-tech-debt append` is the one form allowed to create its target** (Tech Debt Backlog only; scaffolding mechanics in *Update Tech Debt*). No other form may – do not extend to State, Plan, FIS, or any future target.
 
 
 ## OPERATIONS
 
 ### Append-Run Block Protocol
 
-Applies to the `observations`, `discovered-requirements`, and `update-tech-debt append` forms. `<markdown-body>` is freeform multi-line markdown passed verbatim – quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape. Each form names its own tag suffix, target section, and body-constraint variant – the following protocol is common to all three:
+Applies to the `observations`, `discovered-requirements`, `design-change`, and `update-tech-debt append` forms. `<markdown-body>` is freeform multi-line markdown passed verbatim – quote characters in the invocation (`'...'` / `"..."`) are illustrative framing, not delimiters; do not strip or shell-escape. Each form names its own tag suffix, target section, and body-constraint variant – the following protocol is common to all four:
 
 - **Empty/whitespace-only body**: no-op; do not append a run block and do not create the target file (for `update-tech-debt append`).
 - **Body constraints**: `<markdown-body>` MUST use `####`-or-deeper headings only. The body MUST NOT contain `## ` headings or another `### Run:` line – these would visually close the section and break the append protocol.
@@ -111,12 +106,13 @@ Actions:
 - No-op when `fis` already equals `<fis_path>` (path-normalized).
 
 #### Update FIS
-Mutate a FIS document – mark checkboxes, append implementation observations, or append discovered requirements.
+Mutate a FIS document – mark checkboxes, append implementation observations, append discovered requirements, or apply a design-change amendment.
 
 **Usage**:
 - Mark checkboxes: `update-fis <fis_path> <task_id|all>`
 - Append observations: `update-fis <fis_path> observations <markdown-body>`
 - Append discovered requirements: `update-fis <fis_path> discovered-requirements <markdown-body>`
+- Apply design-change amendment: `update-fis <fis_path> design-change <markdown-body>`
 
 Actions for `<task_id|all>` form:
 - When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
@@ -136,6 +132,12 @@ Actions for `discovered-requirements` form:
 - Tag suffix: `– discovered-requirements`. Target section: `## Implementation Observations`. If absent, append it to the end of the FIS using the standard lead paragraph from the FIS template.
 - Apply the Append-Run Block Protocol above.
 
+Actions for `design-change` form:
+- Body constraint variant: MUST contain `#### DESIGN CHANGE`, `#### ADR`, and one or more exact amendment pairs with `Old:` and `New:` fenced blocks. Body headings must be `####`-or-deeper and MUST NOT contain `## ` headings or another `### Run:` line. Reject (no-op + `BLOCKED: invalid design-change body`) if the ADR entry is missing, if an old/new pair is missing, or if the heading constraints are violated.
+- Idempotent retry and all-or-nothing: before rejecting missing `Old:` spans, check the most recent same-tag run block within the 2-minute retry window. If its body is identical and every missing `Old:` span's paired `New:` span is already present in the allowed Intent/scenario region, no-op instead of blocking. If the paired `New:` spans are present but the audit block is missing, append the audit block and report that the retry repaired the audit trail. Otherwise validate every pair before applying any replacement; reject (no-op + `BLOCKED: invalid design-change body`) if any `Old:` span does not exactly match the current FIS text, and apply none if one pair fails. Treat replacements plus audit append as one logical mutation: if the audit append cannot be written, do not apply replacements.
+- Apply each exact old/new replacement to the FIS Intent and/or Acceptance Scenario text only. Do not edit task checkboxes, Structural Criteria, plan provenance, or Implementation Observations through this form.
+- Append the same body to `## Implementation Observations` using tag suffix `– design-change` via the Append-Run Block Protocol, so the mutable spec edit is auditable and retry-safe. This form is distinct from `discovered-requirements`; do not use it for missing requirements or edge cases that should stay append-only.
+
 #### Update Tech Debt
 Append tech-debt entries (typically deferred review findings) to the project's Tech Debt Backlog.
 
@@ -145,7 +147,7 @@ Resolve the target file path from the **Project Document Index** `Tech Debt` row
 
 Actions for `append` form:
 - Body constraint variant: MUST use `####`-or-deeper headings (typically `#### DEFERRED FINDINGS`). Reject (no-op + `BLOCKED: invalid tech-debt body`) if violated.
-- **File creation exception** (the *one* documented deviation from "ops never creates target files" – see GOTCHAS): if the resolved target file does not exist, scaffold it from the `# Technical Debt Backlog` template defined in `project-state-templates.md` (H1 `# Technical Debt Backlog` + H2 `## High` / `## Medium` / `## Low` in fixed order, each carrying placeholder line `_No tech debt recorded yet._`) before appending. Do not extend this exception to any other ops form.
+- **File creation exception** (the *one* documented deviation from "ops never creates target files" – see GOTCHAS): if the resolved target file does not exist, scaffold it from the `# Technical Debt Backlog` template defined in `project-state-templates.md` (H1 `# Technical Debt Backlog` + H2 `## High` / `## Medium` / `## Low` in fixed order, each carrying placeholder line `_No tech debt recorded yet._`) before appending.
 - **Severity routing**: each entry is a top-level `- **{title}** ...` bullet with its `Severity:` line nested as a sub-bullet. Parse the `Severity:` value and route the entry to the matching H2 section (`High` / `Medium` / `Low`). Default to `Medium` when the severity is missing or unrecognized. When a single body batches mixed severities, split into per-severity run blocks sharing one timestamp – one new run block under each affected severity H2.
 - Tag suffix: `– tech-debt`. Idempotency lane scoped per severity H2.
 - Apply the Append-Run Block Protocol above (once per affected severity section).
@@ -157,7 +159,7 @@ Append defensive-knowledge entries to the project's Learnings file. **Not a run-
 - Topic entry: `update-learnings add <topic> <entry-markdown>`
 - Error-pattern row: `update-learnings error <error> <type> [conclusion]`
 
-Resolve the target file path from the **Project Document Index** `Learnings` row (default `docs/LEARNINGS.md`). If the file does not exist, refuse with `BLOCKED: Learnings document not found at <path> – run andthen:init to scaffold it`; do not create it (init owns creation).
+Resolve the target file path from the **Project Document Index** `Learnings` row (default `docs/LEARNINGS.md`). If the file does not exist, refuse with `BLOCKED: Learnings document not found at <path> – run the andthen:init skill to scaffold it`; do not create it (the andthen:init skill owns creation).
 
 Actions for `add` form:
 - `<entry-markdown>`: a single bullet. MUST start with `- **{title}**` and be under 200 characters. Reject with `BLOCKED: invalid learnings entry – must start with "- **{title}**" and stay under 200 chars` if violated.

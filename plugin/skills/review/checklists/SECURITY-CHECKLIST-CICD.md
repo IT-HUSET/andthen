@@ -4,6 +4,8 @@ Concise checklist for security reviews of CI/CD pipelines, build systems, and so
 
 **Applies to:** Any codebase with CI/CD pipeline configuration (GitHub Actions, GitLab CI, Jenkins, CircleCI, etc.), IaC files, deployment scripts, or containerized build processes. Use when reviewing pipeline config files, Dockerfiles, deployment workflows, or supply chain changes.
 
+**Contents:** Pre-Review; CICD-SEC-1 Insufficient Flow Control Mechanisms; CICD-SEC-2 Inadequate Identity and Access Management; CICD-SEC-3 Dependency Chain Abuse; CICD-SEC-4 Poisoned Pipeline Execution; CICD-SEC-5 Insufficient Pipeline-Based Access Controls; CICD-SEC-6 Insufficient Credential Hygiene; CICD-SEC-7 Insecure System Configuration; CICD-SEC-8 Ungoverned Usage of Third-Party Services; CICD-SEC-9 Improper Artifact Integrity Validation; CICD-SEC-10 Insufficient Logging and Visibility; Automated Scanning.
+
 ---
 
 ## Pre-Review

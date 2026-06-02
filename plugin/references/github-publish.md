@@ -17,7 +17,7 @@ Load when implementing or modifying any `--to-issue` / `--to-pr` / `--from-issue
 
 **Used by**: `clarify --to-issue`, `prd --to-issue`, `triage --to-issue` (plan-only and fix flows), `plan --to-issue` (single-issue + each story body in granular).
 
-When the host was invoked with an input issue (`--issue <N>` or a GitHub issue URL), append a blank line + `Refs #<N>` as the **last line** of the body. This footer is a contract – `andthen:exec-plan --from-issue` and other consumers extract provenance from it; without it the chain breaks. Omit when no input issue was supplied.
+When the host was invoked with an input issue (`--issue <N>` or a GitHub issue URL), append a blank line + `Refs #<N>` as the **last line** of the body. This footer is a contract – the `andthen:exec-plan` skill's `--from-issue` flow and other consumers extract provenance from it; without it the chain breaks. Omit when no input issue was supplied.
 
 Body lives in a temp file under the host's temp-dir convention (typical: `.agent_temp/<skill>/<feature-slug>-issue-body.md`); the local artifact is the source of truth on disk and is never mutated. Then: `gh issue create --title "<title>" [--label <label>...] --body-file <body-path>`.
 

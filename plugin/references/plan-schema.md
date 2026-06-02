@@ -1,12 +1,12 @@
 # `plan.json` Schema
 
-Canonical schema for the local `plan.json` written by `andthen:plan` and read by `andthen:exec-plan`, `andthen:ops`, `andthen:review --mode gap`, and `andthen:now-what`. Inlined into `plan`, `exec-plan`, `ops`, `review`; `now-what` only checks existence. The plan is data, not prose: the PRD carries narrative, the plan is a typed manifest of stories, dependencies, and runtime state.
+Canonical schema for the local `plan.json` written by the `andthen:plan` skill and read by the `andthen:exec-plan`, `andthen:ops`, and `andthen:review --mode gap` skills. Inlined into `plan`, `exec-plan`, `ops`, `review`; `now-what` detects `plan.json` artifact presence but does not consume this schema reference. The plan is data, not prose: the PRD carries narrative, the plan is a typed manifest of stories, dependencies, and runtime state.
 
 **Single source of truth.** Updates to top-level fields, sub-object shapes, status enum, writability, file location, formatting, migration, or the canonical example MUST land here – not in `data-contract.md` (which defers here) and not duplicated into skill prompts. Drift across consumers is a maintenance bug.
 
 > **Why JSON, not markdown?** Frontier models edit markdown more freely than JSON – markdown invites "rephrasing", JSON does not. The Story Catalog contract (closed status enum, machine-readable dependencies, unique FIS paths) is data wearing a markdown costume; this schema makes the typing explicit and removes the regex parser.
 
-GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body shape from [`plan-issue-shape.md`](plan-issue-shape.md) – JSON is the local runtime ledger; markdown is the GitHub transport. `--from-issue` materializes a local `plan.json` from the issue body once, then drives execution from it. See [`from-issue-mode.md`](../skills/exec-plan/references/from-issue-mode.md).
+GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body shape from [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md) – JSON is the local runtime ledger; markdown is the GitHub transport. `--from-issue` materializes a local `plan.json` from the issue body once, then drives execution from it; the `andthen:exec-plan` skill owns the detailed from-issue flow.
 
 ## Contents
 
@@ -121,7 +121,7 @@ Each phase:
 | `spec-ready` | `andthen:plan` after FIS write | FIS file exists; ready to execute. |
 | `in-progress` | Explicit `andthen:ops update-plan <id> in-progress` (or future exec-spec entry hook) | Exec started; dependents must wait. Available for orchestrators that want explicit in-flight signaling; the bundled exec-spec flow transitions `spec-ready → done` directly. |
 | `done` | `andthen:exec-spec` after Acceptance Scenarios and Structural Criteria pass (via `andthen:ops`) | Story complete. |
-| `skipped` | `andthen:exec-plan --auto` failure-containment path | Upstream dependency failed; story not attempted. |
+| `skipped` | Dependency containment or explicit `andthen:ops update-plan` | Story not attempted because an upstream dependency failed, or explicitly marked skipped by an orchestrator/user. |
 | `blocked` | Explicit `andthen:ops update-plan <id> blocked` | Manual block; consumers skip and warn. |
 
 Forward transitions are skill-implicit per the write-authority table below. Backward transitions require explicit `andthen:ops update-plan` calls. Unknown values rejected at write time.
@@ -139,9 +139,9 @@ A plan in flight is a **runtime ledger** – the agent re-reads it at session st
 
 **Preservation predicate** (full regeneration): a story's existing `status` and `fis` are preserved only when ALL hold – `id` survives regeneration; `scope` string-equal; `sourceRefs` set-equal; `assetRefs` set-equal; `provenance` string-equal; the preserved `fis` path still resolves. Content-equality (not name) is the load-bearing guard: a same-id story whose content-defining fields drifted would otherwise graft a stale FIS onto new content. Stories failing any clause reset to `status: "pending"`, `fis: null`.
 
-Exception: `andthen:exec-plan --from-issue` reconciliation rewrites `.agent_temp/from-issue-<N>/plan.json` as a full regeneration – see [`from-issue-mode.md`](../skills/exec-plan/references/from-issue-mode.md).
+Exception: `andthen:exec-plan --from-issue` reconciliation rewrites `.agent_temp/from-issue-<N>/plan.json` as a full regeneration; the `andthen:exec-plan` skill owns the detailed from-issue flow.
 
-User-initiated hand edits to `plan.json` are allowed and trusted – the contract guards agent behavior, not tampering. If a user edits the file, they own the consequences. Pre-existing `metadata` blocks (legacy 0.19.x with `immutableDigest`) are ignored on read and dropped on the next regeneration.
+User-initiated hand edits to `plan.json` are allowed and trusted – the contract guards agent behavior, not tampering. If a user edits the file, they own the consequences. Pre-existing legacy `metadata` blocks (e.g. `immutableDigest`) are ignored on read and dropped on the next regeneration.
 
 > **Concurrency**: single-writer assumption. Concurrent `andthen:ops` calls last-writer-wins silently. Do not run concurrent orchestrators against the same file.
 
@@ -156,7 +156,7 @@ When `--from-issue <N>` is set, `andthen:exec-plan` materializes a per-issue led
 ## Formatting conventions
 
 - **Indent**: 2 spaces.
-- **Key order**: schema-document order (top-level: `schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, `stories`, `riskSummary`, `executionNotes`; story object: `id`, `name`, `phase`, `wave`, `dependsOn`, `parallel`, `risk`, `status`, `fis`, `scope`, `sourceRefs`, `provenance`, `assetRefs`, `notes`).
+- **Key order**: schema-document order for every schema-defined object shape: top-level (`schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, `stories`, `riskSummary`, `executionNotes`); `overview` (`summary`, `phases`); `overview.phases[]` (`id`, `name`, `waves`); `sharedDecisions[]` (`title`, `description`, `stories`); `bindingConstraints[]` (`featureId`, `anchor`, `verbatim`); story object (`id`, `name`, `phase`, `wave`, `dependsOn`, `parallel`, `risk`, `status`, `fis`, `scope`, `sourceRefs`, `provenance`, `assetRefs`, `notes`); `riskSummary[]` (`story`, `risk`, `mitigation`).
 - **Trailing newline** at EOF.
 - **Sorted-by-schema** writes – diffs reflect *content*, not *ordering* drift.
 

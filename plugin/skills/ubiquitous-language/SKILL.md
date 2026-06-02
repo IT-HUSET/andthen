@@ -6,7 +6,7 @@ argument-hint: "[--update] [scope or focus area]"
 # Extract and Maintain Ubiquitous Language
 
 
-Scan the codebase, documentation, and conversation history to extract domain-relevant terms, resolve ambiguity and synonymy, and produce or update the project's structured `Ubiquitous Language` document as defined in the **Project Document Index**.
+Read codebase, docs, and conversation as source material without modifying them; write or update only the `Ubiquitous Language` document.
 
 
 ## VARIABLES
@@ -15,7 +15,7 @@ _Arguments (scope and optional flags):_
 ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--update` before interpreting the remainder as the scope/focus area)
 
 ### Parse Arguments
-- Extract `--update` flag → UPDATE_MODE (reads the existing `Ubiquitous Language` document as defined in the **Project Document Index** and incorporates new terms)
+- Extract `--update` flag → UPDATE_MODE (reads the existing `Ubiquitous Language` document and incorporates new terms)
 - Remaining text → SCOPE (focus area, e.g., "authentication", "billing", or blank for full project)
 
 
@@ -48,8 +48,6 @@ Use Explore (or general-purpose) sub-agent for large codebases.
 
 **1.3** If SCOPE is provided, focus exploration on that area.
 
-**Gate**: Sources identified
-
 ### 2. Extract Domain Terms
 
 For each source, extract terms that represent:
@@ -63,8 +61,6 @@ For each term, note:
 - Where it appears (file:line references)
 - How it's used (entity name, function name, variable, comment)
 - Any inconsistencies (same concept, different names across files)
-
-**Gate**: Raw term list compiled
 
 ### 3. Resolve Ambiguity and Synonymy
 
@@ -82,8 +78,6 @@ For each term, note:
 - Assign bounded context qualifiers
 
 **3.4** If UPDATE_MODE: merge new terms with existing glossary, marking changes with `(new)` or `(updated)`.
-
-**Gate**: Terminology resolved, canonical names selected
 
 ### 4. Generate Glossary
 
@@ -105,10 +99,6 @@ Output the `Ubiquitous Language` document using this structure:
 ## Changelog
 - [date]: Initial extraction / Updated [terms]
 ```
-
-Store at the `Ubiquitous Language` document location from the **Project Document Index** (default: `docs/UBIQUITOUS_LANGUAGE.md`).
-
-**Gate**: Glossary generated
 
 
 ### 5. Validation

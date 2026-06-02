@@ -1,8 +1,8 @@
 # Implementation Plan Template – GitHub Issue Body
 
-> Markdown rendering shape used **only** for `andthen:plan --to-issue` (the single-issue body that humans review on GitHub). Local plans are JSON: see [`plan-schema.md`](../../../references/plan-schema.md). This template is never written to disk.
+> Markdown rendering shape used **only** for `andthen:plan --to-issue` (the single-issue body that humans review on GitHub). Local plans are JSON: see [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md). This template is never written to disk.
 >
-> The shape is an operational contract – `andthen:exec-plan --from-issue` parses the rendered issue body into a local `plan.json` ledger. Heading names, Story Catalog columns, and the `### Story S0N: <name>` story-section anchors are pinned because the parser depends on them. The canonical body shape is [`plan-issue-shape.md`](../../../references/plan-issue-shape.md); this template is the single-issue rendering of that contract – for granular `--create-story-issues` mode, render directly from `plan-issue-shape.md` instead.
+> The shape is an operational contract – `andthen:exec-plan --from-issue` parses the rendered issue body into a local `plan.json` ledger. Heading names, Story Catalog columns, and the `### Story S0N: <name>` story-section anchors are pinned because the parser depends on them. The canonical body shape is [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md); this template is the single-issue rendering of that contract – for granular `--create-story-issues` mode, render directly from `plan-issue-shape.md` instead.
 
 
 # Implementation Plan: [Project Name]

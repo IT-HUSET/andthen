@@ -4,14 +4,22 @@ Sources: Steve Freeman & Nat Pryce (*Growing Object-Oriented Software, Guided by
 
 Home mode: `write`. Also load for `tdd` (naming, assertions) and `strategy` (auditing suites before trusting their verdicts).
 
+## Contents
+- The one rule
+- Six signals of a behavior-first test
+- Six signals of an implementation-coupled test
+- Diagnosability
+- Arrange / Act / Assert – with a warning
+- Mock minimization
+- Tests as executable documentation
+- Beck's Test Desiderata – audit rubric
+- Domain-specific patterns
 
 ## The one rule
 
 **Test behavior, not implementation.**
 
 A good test asserts what the code *should do* from a caller's perspective. A bad test asserts *how it does it*. They look identical when passing – the difference shows up on refactor.
-
-A test is a promise to your future self. The promise worth keeping is "this behavior still works"; not "this variable is still named `foo`."
 
 Dodds: *"The more your tests resemble the way your software is used, the more confidence they can give you."*
 

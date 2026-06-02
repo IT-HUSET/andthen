@@ -2,6 +2,16 @@
 
 Reference for generating Excalidraw JSON elements. Read `style-guide.md` alongside this for all visual styling (colors, fill styles, stroke patterns, typography, roughness, etc.).
 
+## Contents
+
+- JSON Structure
+- Required Fields & Defaults
+- Element Types (rectangle, ellipse, diamond, labeled shape/arrow, text, arrow, line, marker dot)
+- Arrow Bindings (fixedPoint table)
+- Sizing Rules (font sizes, font families, element sizes, label auto-sizing, text metrics, canvas/padding, roughness)
+- Complete Example
+- Common Mistakes
+
 ---
 
 ## JSON Structure
@@ -30,7 +40,7 @@ Reference for generating Excalidraw JSON elements. Read `style-guide.md` alongsi
 
 `strokeColor="#1e1e1e"`, `backgroundColor="transparent"`, `fillStyle="solid"`, `strokeWidth=2`, `roughness=1`, `opacity=100`
 
-**Note**: The style guide overrides many of these defaults (e.g. `fillStyle: "hachure"` for primary shapes, specific stroke/fill color pairs). Always consult the style guide for the correct values per element type.
+**Note**: The style guide overrides many of these defaults (specific stroke/fill color pairs; `fillStyle: "solid"` for shapes, `"hachure"` only for 1–2 accumulated-state shapes). Always consult the style guide for the correct values per element type.
 
 ---
 
@@ -157,7 +167,7 @@ Connect arrows to shapes using `startBinding` and `endBinding`:
 | Body text, labels | **16** |
 | Secondary annotations (sparingly) | **14** |
 
-NEVER use fontSize below 14 – it becomes unreadable.
+Below 14px reads as unreadable – do not go lower.
 
 ### Font Family IDs
 
@@ -169,7 +179,7 @@ Text and label elements carry a numeric `fontFamily`. Use the current, non-depre
 | `6` | Nunito | Clean sans-serif (replaces legacy `2` Helvetica) |
 | `8` | Comic Shanns | Monospace / code (replaces legacy `3` Cascadia) |
 
-Never emit `1`, `2`, or `3` – those IDs are flagged `deprecated` in Excalidraw's `font-metadata.ts` and persist a deprecated-font marker into the scene. See `style-guide.md` for typography choices.
+Never emit legacy IDs `1`/`2`/`3` – flagged `deprecated` in Excalidraw's `font-metadata.ts`. See `style-guide.md` §4.
 
 ### Element Sizes
 
@@ -225,8 +235,7 @@ Approximate character widths per font at common sizes. Use to estimate `W` befor
 
 ### Roughness
 
-- `roughness: 0` – Clean, crisp (modern/technical). **Default for professional diagrams.**
-- `roughness: 1` – Hand-drawn feel (brainstorming/informal)
+Style-guide concern – see `style-guide.md` §5. Default `1` (hand-drawn warmth, the signature personality); `0` only for formal/ultra-clean presentations (Clean Technical preset); `2` brainstorming only.
 
 ---
 
