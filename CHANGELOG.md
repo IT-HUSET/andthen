@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.25.1] – 2026-06-03
+
+### Changed
+- **Reworked the critical-rules guardrails template** – `andthen:init`'s `CRITICAL-RULES-AND-GUARDRAILS.md` is ~50% smaller, with merged overlapping rules, less emphatic framing, and clearer scope-discipline rules that fix behavior-preserving issues within a change's scope and surface anything out-of-scope.
+
+
+---
+
 ## [0.25.0] – 2026-05-30
 
 ### Added

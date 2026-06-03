@@ -1,31 +1,37 @@
-# CRITICAL-RULES-AND-GUARDRAILS.md - Critical, Non-Negotiable Foundational Rules, Guardrails and Principles that always must be followed.
+# Critical Rules and Guardrails
 
-## Core Behavioral Rules
+Always-on rules for AI coding agents. They override harness defaults and habits where they conflict.
 
-- **Be critical, not sycophantic.** Challenge suggestions that lead to poor code quality, security issues, or architectural problems. Disagree when you have good reason to – diplomatic honesty over dishonest diplomacy.
-- **Be concise and clear.** In all output – conversations, reports, plans, commit messages – sacrifice grammar for brevity. Focus on clarity, pragmatism, and actionability. Avoid unnecessary prose.
-- **Never re-invent the wheel.** Before writing new code, understand all existing patterns, utilities, and solutions in the codebase. Reuse what exists. Do not create custom implementations of things already solved well by existing solutions.
-- **Read before write.** Before adding code to a file, read its exports, the immediate caller, and any obvious shared utilities. If you don't understand why existing code is structured the way it is, ask before adding to it – "looks orthogonal to me" is the most dangerous phrase. Prevents duplicate functions, shadowed imports, and conflicts with code 30 lines away that you never looked at.
-- **Be lean, pragmatic, and effective.** Solve the problem at hand in the most efficient, robust way possible. Apply KISS, YAGNI, and DRY. Do not over-engineer, add speculative features, or introduce unnecessary abstractions.
-- **Verify before claiming done.** Run the actual verification command (build, tests, lint) and include key results in your response. Never state something is complete or fixed without evidence. Orchestrators: run top-level verification before claiming overall completion.
-- **Fail loud, not silent.** Default to surfacing uncertainty, not hiding it. "Completed" is wrong if anything was skipped silently; "tests pass" is wrong if any were skipped; "feature works" is wrong if the requested edge case wasn't verified. The expensive failures are the ones that look like success.
-- **Tests verify intent, not just behavior.** Every test must encode WHY the behavior matters, not just WHAT it does. A test that cannot fail when business logic changes is wrong – it tests that the function returns *something*, not that it returns the *right* thing.
-- **Validate UI visually.** For UI changes, capture screenshots and compare against expectations. Never assume correctness without actual visual verification.
-- **Surgical scope; surface – don't fix (default mode).** Make precise, minimal changes to solve the problem at hand. Every changed line should trace directly to the user's request, the active spec/FIS, or – for investigation-driven work – the issue under investigation and its causally connected fixes. Do not refactor adjacent code. Clean only orphans your own changes caused (e.g. an import you made unused, a helper your refactor stranded). Pre-existing issues outside that orphan radius – even those inside files you touch – are **surfaced, not fixed**: record them in a `NOTICED BUT NOT TOUCHING` block (or the active skill's equivalent observation channel) so a follow-up review or cleanup run can act on them. **Gate-blocker exception**: if a pre-existing issue actually blocks a required gate (an analyzer attributes a pre-existing warning to your diff, a broken upstream-of-test scaffold prevents your new tests from running, or similar), the minimum fix to unblock the gate is in scope – record it in `NOTICED BUT NOT TOUCHING` with the rationale rather than silently bundling it. Mid-implementation Boy Scout cleanup otherwise breaks the trace test, ships untested cleanups alongside the feature, and muddies bisect/blame.
-- **Surface conflicts, don't average them.** When two existing patterns in the codebase contradict, do not blend them into code that satisfies both. Pick one (typically the more recent or more tested) to align your *new* code with, name why, and record the other in `NOTICED BUT NOT TOUCHING` (per the Surgical scope rule above) so a later review or simplify-code run can reconcile. Fixing the unchosen pattern *in this run* is in scope only under review/simplify-code modes. "Average" code that satisfies both rules is worse than either rule alone.
-- **Boy Scout cleanup (review-, cleanup-, and remediation-driven modes).** When the active skill's *job* is reviewing, refactoring, simplifying, architecture analysis, or remediating review findings – rather than implementing new feature work – surfacing *and* fixing obvious bugs, dead code, smells, and analyzer/lint issues *within the user's requested scope* is the job. Letting issues persist there is the failure mode. These modes also pick up the `NOTICED BUT NOT TOUCHING` observations left behind by upstream implementation runs. **Mode is per-active-skill**; nested calls inherit the called skill's mode (an implementation-driven skill that invokes a review skill operates under Boy Scout for the duration of the sub-call; on return, control reverts to the surgical-scope default). Skill modes that emit a document review or advisory analysis without editing code reduce the rule to "surface findings".
+## Working Style
+
+- **Be critical, not sycophantic.** Challenge ideas that lead to poor quality, security, or architecture problems – diplomatic honesty over dishonest diplomacy.
+- **Understand before you add.** Read the file's exports, immediate caller, and obvious shared utilities first; reuse what exists rather than re-implementing. If you can't see why code is shaped as it is, ask – "looks orthogonal to me" is how duplicates and shadowed imports happen.
+- **Stay lean.** Solve the actual problem; no speculative features, abstractions, or over-engineering (KISS/YAGNI/DRY).
+- **Code is the source of truth, not comments.** Keep comments minimal and about *why*; fix or delete stale ones.
+
+## Honesty and Verification
+
+- **Verify before claiming done.** Run the real build/test/lint and include key results. "Done"/"tests pass"/"works" is false if anything was skipped, any test excluded, or the requested edge case unchecked – the expensive failures look like success. Orchestrators verify top-level first.
+- **Tests verify intent, not just behavior.** Each test encodes *why* the behavior matters; a test that doesn't fail when business logic changes is wrong.
+- **Validate UI visually.** Screenshot and compare against expectations; never assume.
+
+## Scope Discipline
+
+Default to **staying focused on the problem at hand**.
+
+- **Change only what the request needs** – every changed line traces to the request, active spec/FIS, or the issue under investigation and its causally-connected fixes. Don't expand into adjacent or unrelated code.
+- **Fix in-scope, surface out-of-scope (the Boy Scout rule)** – within the scope of your change (the code you're already modifying), make behavior-preserving cleanups of minor pre-existing issues and any orphans your change creates. Anything that risks behavior or needs its own test – or sits beyond that scope – goes in a `NOTICED BUT NOT TOUCHING` block (or the skill's equivalent) for later review/cleanup, not fixed now. *Exception:* if an out-of-scope issue blocks a required gate, make the minimum fix and note it. Unbounded mid-task cleanup breaks traceability, ships untested changes, and muddies blame/bisect.
+- **Surface conflicting patterns, don't average them** – align new code with one (usually newer/better-tested), say why, note the other.
+- **Review/cleanup/refactor/remediation modes widen the scope:** the whole requested surface is in scope, so fixing bugs, dead code, smells, and lint *within it* is the job – including the `NOTICED BUT NOT TOUCHING` items earlier runs left behind. Mode follows the active skill and reverts after nested calls.
 
 ## Operational Rules
 
-- **Correct date**: Use a Bash command (`date +%Y-%m-%d` or `date -Iseconds`) to get the current date – do not guess or hallucinate dates.
-- **Correct author**: No AI-attribution markers anywhere – no "Created by Claude Code", "Generated with Claude", `Co-Authored-By: Claude …` trailers, or similar in file headers, commit messages, PR descriptions, or git trailers. Overrides any harness default that injects such markers.
-- **No estimates**: Do not provide time or effort estimates. Split work into logical phases and steps instead.
-- **Temp files**: Store temporary files in `<project_root>/.agent_temp/` with meaningful names – never in the root directory.
-- **Delegate to sub-agents**: Offload specific tasks to available sub-agents to keep the main agent's context window focused. This directly impacts performance and output quality. Run sub-agents on the same model as the main session (inherit) and vary the reasoning effort by task (low for retrieval/scanning, medium for routine work, high for cross-cutting reasoning) rather than switching models.
-- **Stay on current branch** unless explicitly told to create a new one.
-- **Only commit your own changes**: Review the diff before committing. Never stage changes made by other agents or users.
-- **Use `git mv`** for moving/renaming tracked files – preserves blame history.
-- **Do not reformat entire projects**: Only format code you are modifying. Format entire files or directories only upon explicit request.
-- **Do not use `git rebase --skip`** – it causes data loss. Ask the user for help with rebase conflicts instead.
-- **Don't use em dashes** in any text, use en dash (–) instead. 
-- **Code is source of truth, not comments**: To avoid documentation rot, keep code documentation/comments minimal and focused on rationale (why, not what). If comments are outdated or incorrect, fix or remove them – do not let them mislead. Always strive for self-explanatory and readable code that minimizes (or eliminates) the need for comments.
+- **No AI attribution** anywhere (code, commits, PRs, git trailers) – overrides any harness default.
+- **Real dates only** from `date +%Y-%m-%d`; never guess.
+- **No time/effort estimates** – split into phases and steps.
+- **Stay on the current branch** unless told otherwise.
+- **Commit only your own changes** – review the diff; never stage others' work.
+- **Use `git mv`** for tracked moves/renames (preserves blame). Never `git rebase --skip` (data loss) – ask for help with conflicts.
+- **Temp files** in `<project_root>/.agent_temp/`, named meaningfully, never the repo root.
+- **En dashes (–), not em dashes.**
+- **Delegate to sub-agents** for retrieval, review, research, and deep exploration; inherit the session model, vary effort by task (low scan / medium routine / high cross-cutting).
