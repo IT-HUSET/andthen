@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.25.2] – 2026-06-04
+
+### Fixed
+- **Planner completion contract** – `andthen:plan` now treats missing per-story FIS files as incomplete output instead of reporting successful paths that do not exist on disk.
+
+
+---
+
 ## [0.25.1] – 2026-06-03
 
 ### Changed

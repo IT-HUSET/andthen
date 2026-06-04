@@ -42,6 +42,7 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 - Focus on "what" not "how" at the plan level; detailed decisions live in per-story FIS.
 - **Resume contract**: re-running skips stories whose `stories[].fis` points at an existing file (status `spec-ready` or `done` preserved). Re-runs only fill gaps.
 - **Schema contract**: `plan.json` follows *The Plan Schema*. Initial story `status` is `pending`; transitions to `spec-ready` after FIS generation.
+- **File-backed completion invariant**: local-output mode is not complete until every emitted FIS path exists on disk. Do not print/report a FIS path unless the file has been written; in workflow/automation contexts this is a hard output contract, not a follow-up.
 - Read the `Learnings` document (see **Project Document Index**) before FIS generation, if it exists.
 
 
@@ -306,6 +307,8 @@ OUTPUT_DIR/
 ```
 
 When complete, print the output's **relative path from the project root**.
+
+Before printing completion, re-check that every FIS path listed in the summary exists on disk. If any are missing, treat the bundle as incomplete and repair or report the affected stories as failed; never emit missing paths as successful `story_specs`.
 
 
 ## COMPLETION

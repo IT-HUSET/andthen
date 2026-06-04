@@ -185,7 +185,7 @@ Creates a Product Requirements Document (`prd.md`) from clarified requirements, 
 **Use when:** scoping a multi-feature initiative. `--visual` delegates `prd.md` to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:plan` to break the PRD into stories with FIS specs.
 
 ### `andthen:plan`
-Consumes an existing local `prd.md`, `--issue <N>`, or a GitHub issue URL and produces the full plan bundle: `plan.json` (typed story manifest, canonical) plus one FIS file per story. Re-running on an interrupted bundle fills missing FIS files; re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files.
+Consumes an existing local `prd.md`, `--issue <N>`, or a GitHub issue URL and produces the full plan bundle: `plan.json` (typed story manifest, canonical) plus one on-disk FIS file per story. Re-running on an interrupted bundle fills missing FIS files; re-running on a legacy `plan.md`-only bundle migrates to `plan.json` and preserves existing FIS files.
 **Use when:** turning a PRD into an executable, story-by-story plan. `--visual` delegates the local `plan.json` bundle to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-plan` to implement the bundle.
 
 ### `andthen:spec`

@@ -1231,6 +1231,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 - `PLAN-22` Individual spec failure: log and continue; >50% failure: pause and return failure summary.
 - `PLAN-23` Cross-cutting review sub-agent failure: warn user; specs usable but unvalidated.
 - `PLAN-24` OVERSIZE signal from sub-agent: orchestrator revisits Step 3 to decompose, then regenerates; oversized FIS is overwritten.
+- `PLAN-62` Local-output completion is file-backed: before printing completion or emitting successful story_specs, every reported FIS path must exist on disk; missing paths are repaired or reported as failed stories, never presented as successful output.
 - `PLAN-25` A GitHub issue URL is a valid INPUT form (in addition to `--issue <N>`): when INPUT is a GitHub issue URL, fetch with `gh issue view` and treat as PRD source, resolving OUTPUT_DIR identically to `--issue <N>` (`<base-output-dir>/issue-<N>-<feature-slug>/`).
 - `PLAN-26` --to-issue single-issue mode: plan issue created with title `[Plan] <feature-name>`, labels `plan` + `andthen-artifact`; body written to temp file `.agent_temp/plan-issue-<feature-slug>.md`.
 - `PLAN-27` --create-story-issues granular mode: each story issue created with title `S0N: <story name>` and labels `story` + `andthen-artifact`.
