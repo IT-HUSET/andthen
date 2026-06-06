@@ -8,8 +8,8 @@
 
 # Product Requirements Document: [Project Name]
 
-> **Context**: [link to clarification, issue, backlog item, roadmap entry, or source requirements]
-> **Related Assets**: [ADRs, design system, wireframes, research docs if they materially shape the requirements]
+> **Context**: [durable references only – GitHub issue, backlog item, roadmap entry. The PRD is self-contained: inline the substance of transient discovery artifacts (`requirements-clarification.md`, `prd-draft.md`); never link or cite them by path.]
+> **Related Assets**: [durable companion assets – ADRs, design system, wireframes – when they materially shape the requirements]
 
 
 ## Executive Summary
@@ -120,10 +120,10 @@ The 2–4 items that materially shape scope or priority – drawn from any of `C
 
 ## Edge Cases
 
-| Scenario | Expected Behavior |
-|----------|-------------------|
-| [Boundary condition] | [Expected handling] |
-| [Failure mode] | [Expected handling] |
+| Scenario | Expected Behavior | Recovery Path |
+|----------|-------------------|---------------|
+| [Boundary condition] | [Expected handling] | [How the user/system returns to a good state] |
+| [Failure mode] | [Expected handling] | [How the user/system returns to a good state] |
 
 
 ## Constraints & Assumptions

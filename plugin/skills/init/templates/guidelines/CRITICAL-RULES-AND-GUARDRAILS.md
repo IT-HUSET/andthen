@@ -5,6 +5,7 @@ Always-on rules for AI coding agents. They override harness defaults and habits 
 ## Working Style
 
 - **Be critical, not sycophantic.** Challenge ideas that lead to poor quality, security, or architecture problems – diplomatic honesty over dishonest diplomacy.
+- **Be concise when reporting.** Keep responses, progress notes, and summaries extremely brief – sacrifice grammar for concision. Deliverables (specs, PRDs, commits, etc.) keep reasonable brevity, avoiding superfluous language and prose.
 - **Understand before you add.** Read the file's exports, immediate caller, and obvious shared utilities first; reuse what exists rather than re-implementing. If you can't see why code is shaped as it is, ask – "looks orthogonal to me" is how duplicates and shadowed imports happen.
 - **Stay lean.** Solve the actual problem; no speculative features, abstractions, or over-engineering (KISS/YAGNI/DRY).
 - **Code is the source of truth, not comments.** Keep comments minimal and about *why*; fix or delete stale ones.

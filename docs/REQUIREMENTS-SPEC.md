@@ -347,7 +347,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `PRDT-19` Each FR block contains labeled subsections: **Description**, **Acceptance Criteria** (checkbox list), **Inputs / Outputs** (with **Inputs** and **Outputs** sub-bullets), **Validation**, **Error Handling**, **Priority**
 - `PRDT-20` FR **Priority** value: one of `Must / Should / Could` paired with `P0 / P1 / P2`
 - `PRDT-21` Non-Functional Requirements expressed as a table with columns: Category, Requirement, Threshold / Target
-- `PRDT-22` Edge Cases expressed as a table with columns: Scenario, Expected Behavior
+- `PRDT-22` Edge Cases expressed as a table with columns: Scenario, Expected Behavior, Recovery Path
 - `PRDT-23` Dependencies expressed as a table with columns: Dependency, Why It Matters
 - `PRDT-24` Decisions Log expressed as a table with columns: Decision, Rationale, Alternatives Considered
 - `PRDT-25` Implementation-level architecture details must NOT appear in the PRD – they belong in companion research
@@ -879,6 +879,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `CLAR-26` --to-issue: after Step 4 Validation, save local doc, then create a NEW GitHub issue via gh issue create --title 'Requirements Clarification: <name>' --body-file <path>; body temp file at .agent_temp/clarify/<feature-slug>-issue-body.md when Refs #<N> is appended, otherwise the local doc path is passed directly to --body-file (no temp file); never comments on or edits the input issue; prints new issue URL.
 - `CLAR-27` --to-issue with input issue: appends blank line + Refs #<N> as last line of issue body.
 - `CLAR-28` --visual: after Step 4 Validation passes, invoke andthen:visualize on the produced artifact (feature: requirements-clarification.md; product: resolved Product doc); prints both artifact path and visualizer output path.
+- `CLAR-48` Invoked mid-PRD: when another skill (e.g. andthen:prd, PRD-36) invokes clarify inline to resolve a supplied set of load-bearing gaps, Discovery is scoped to those gaps (reusing amendment-mode scoping) and writes/extends requirements-clarification.md; content already settled by the calling artifact is not re-litigated.
 
 **Gates / BLOCKED**
 - `CLAR-29` INPUT missing → stop (BLOCKED).
@@ -942,10 +943,10 @@ If --visual: andthen:visualize invoked on prd.md after Step 5 passes; visualizer
 - `PRD-03` Strip flag tokens (--issue, --to-issue, --visual, --auto, --headless) from ARGUMENTS before interpreting the remainder as requirements source.
 - `PRD-04` Research and exploration are delegated to sub-agents to protect the main context window; direct inline research is not the path.
 - `PRD-05` Input routing: directory with prd.md → pass-through exit; directory with requirements-clarification.md and/or prd-draft.md (no prd.md) → Step 3 (Existing Artifacts path); file path that is a prior artifact → Step 3; other file/URL/inline description → Step 2 (Synthesis); --issue <N> or GitHub issue URL → fetch with `gh issue view <N>`, store issue number for PRD header, then Step 2.
-- `PRD-06` Synthesis (Step 2): covers users/personas, core workflows, data model, integrations, constraints, NFRs, success metrics; fills gaps with conservative MVP assumptions documented under Constraints & Assumptions and Decisions Log; does NOT pause for routine clarification.
+- `PRD-06` Synthesis (Step 2): covers users/personas, core workflows, data model, integrations, constraints, NFRs, success metrics; fills routine gaps with documented assumptions (does NOT pause for them); load-bearing gaps are resolved per PRD-36, not assumed.
 - `PRD-07` Step 2 initial gap analysis explicitly categorizes what is stated, what is assumed/implied, and what is missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope).
-- `PRD-08` Step 2 defers to andthen:clarify ONLY when two or more incompatible PRDs are equally plausible and no conservative MVP assumption makes one defensible.
-- `PRD-09` Step 3 (Existing Artifacts): maps content to prd-template.md sections; preserves decisions, rationale, and specifics from artifacts verbatim – does not paraphrase; does not re-ask questions already answered.
+- `PRD-08` Under --auto only, Step 2 stops with BLOCKED: when two or more incompatible PRDs are equally plausible and no conservative MVP assumption makes one defensible (conversationally, such ambiguity is resolved via PRD-36 inline clarify, not a stop).
+- `PRD-09` Step 3 (Existing Artifacts): maps content to prd-template.md sections; preserves decisions, rationale, and specifics from artifacts verbatim – does not paraphrase; does not re-ask questions already answered; inlines artifact substance and does not link/cite transient artifacts by path (PRD-38).
 - `PRD-10` Implementation-level details (architecture patterns, library/API choices, code organization) are kept out of the PRD body; significant technical constraints go into Constraints & Assumptions.
 - `PRD-11` PRD is structured using prd-template.md: required sections kept; optional subsections adapted; MoSCoW (Must/Should/Could/Won't) and P0/P1/P2 applied to every feature.
 - `PRD-12` Executive Summary must be a summary, not a source: every Capabilities at a Glance bullet must have a matching `#### FRn:` block; every Scope Highlights bullet must trace to ## Scope; every Key Constraints bullet must trace to ## Constraints & Assumptions. Summary stays under ~1 page rendered.
@@ -954,8 +955,11 @@ If --visual: andthen:visualize invoked on prd.md after Step 5 passes; visualizer
 - `PRD-15` Step 5 self-check: problem statement has measurable impact; all user stories have testable acceptance criteria; success metrics are specific and measurable; scope is explicit (in/out); every feature has error handling; NFRs have thresholds; no ambiguous terms without definitions; all assumptions documented; no conflicting requirements; problem-solution fit (bidirectional); Executive Summary is a summary not a source.
 - `PRD-16` Output path printed as relative path from project root – never absolute.
 - `PRD-17` In AUTO_MODE: skip FOLLOW-UP ACTIONS section; print only output path and completion summary.
-- `PRD-18` FOLLOW-UP ACTIONS (non-auto): suggest andthen:visualize on prd.md (skip if --visual already ran), andthen:plan for implementation plan, andthen:review --mode doc on prd.md, andthen:init for project state tracking.
+- `PRD-18` FOLLOW-UP ACTIONS (non-auto): suggest andthen:visualize on prd.md (skip if --visual already ran), andthen:plan for implementation plan, andthen:init for project state tracking; does NOT re-suggest a doc review (Step 6 self-review already ran andthen:review --mode doc --fix per PRD-37).
 - `PRD-19` --to-issue without an input issue (no Refs #N appended): pass prd.md directly to --body-file instead of creating the `.agent_temp/prd/<feature-slug>-issue-body.md` temp body file.
+- `PRD-36` Load-bearing gap resolution (a gap whose answer changes user-visible behavior, scope, or acceptance criteria): conversationally, invoke andthen:clarify inline on the same requirements source / feature directory (or, in Step 3, on the residual gaps), then continue from its requirements-clarification.md; under --auto, andthen:clarify is unavailable, so assume conservatively per PRD-08/PRD-28/PRD-30. Applies to both Step 2 and Step 3.
+- `PRD-37` Step 6 Self-Review (automatic, both modes): invoke andthen:review --mode doc --fix on the saved prd.md (--auto appended when AUTO_MODE), before any --to-issue/--visual post-step. Conversationally: reflect on residual Note findings, routing ambiguous-intent/requirement-gap Notes to a recommended focused andthen:clarify pass, else recommend andthen:plan. Under --auto: fold residual Note findings into Constraints & Assumptions / Decisions Log; no conversational reflection.
+- `PRD-38` Feature-level PRD is self-contained: inline the substance of transient discovery artifacts (requirements-clarification.md, prd-draft.md); never link or cite them by path. Durable references (GitHub issue, roadmap, ADRs) may be cited.
 
 **Gates / BLOCKED**
 - `PRD-20` INPUT present – BLOCKED: if missing (AUTO_MODE).
@@ -963,14 +967,15 @@ If --visual: andthen:visualize invoked on prd.md after Step 5 passes; visualizer
 - `PRD-22` Step 2 gate: PRD specific enough for planning; major assumptions and unresolved questions documented.
 - `PRD-23` Step 3 gate: source artifacts mapped, gaps filled with bounded assumptions.
 - `PRD-24` Step 4 gate: prd.md saved to resolved OUTPUT_DIR.
-- `PRD-25` Step 5 gate: all 11 self-check items pass before outputting completion (and before --visual or --to-issue post-steps execute).
+- `PRD-25` Step 5 gate: all 11 self-check items pass before Step 6 self-review and any --visual / --to-issue post-steps execute.
+- `PRD-39` Step 6 gate: self-review complete (andthen:review --mode doc --fix ran; PRD reflects auto-applied fixes; residual Notes surfaced) before --to-issue / --visual post-steps act on the PRD.
 - `PRD-26` --to-issue in AUTO_MODE: BLOCKED: gh authentication required (auth failure) or BLOCKED: <verbatim gh error> (other gh error); never update-in-place the input issue.
 - `PRD-27` If body exceeds 65,536-char GitHub limit: create issue with largest section stubbed, then post omitted section via Pattern B comment; do not truncate.
 
 **Edge cases**
-- `PRD-28` Vague one-liner input: do NOT bail – infer smallest coherent MVP, document assumptions in Constraints & Assumptions and Decisions Log, continue.
+- `PRD-28` Vague one-liner input: do NOT bail – under --auto (or for routine gaps), infer smallest coherent MVP, document assumptions in Constraints & Assumptions and Decisions Log, continue; conversationally, load-bearing gaps escalate to andthen:clarify per PRD-36.
 - `PRD-29` prd.md already exists in target dir: pass-through immediately, no regeneration, no overwrite.
-- `PRD-30` Existing artifacts too ambiguous to support any defensible PRD shape (Step 3): stop and report minimum missing decisions; mention andthen:clarify as interactive fallback.
+- `PRD-30` Existing artifacts too ambiguous to support any defensible PRD shape (Step 3): conversationally, resolve residual load-bearing gaps via inline andthen:clarify (PRD-36); under --auto, stop with BLOCKED: reporting minimum missing decisions.
 - `PRD-31` GitHub issue as input: `gh issue view <N>` body used as raw requirements; issue number stored for PRD header and Refs #N footer in --to-issue body.
 - `PRD-32` --visual in AUTO_MODE: only runs if --visual flag is explicitly present; not run by default in auto mode.
 - `PRD-33` Project-level orientation docs (Architecture, Decisions, Learnings, Product, Roadmap): read when present to avoid contradicting structural constraints; PRD is a feature/release-scope derivative, not a re-derivation.
@@ -978,10 +983,10 @@ If --visual: andthen:visualize invoked on prd.md after Step 5 passes; visualizer
 - `PRD-35` Implementation details in a prd-draft.md source: extract and move significant ones to Constraints & Assumptions; route unresolved architecture/UX decisions upstream; leave API/library specifics to execution.
 
 **Integration**
-- Downstream of andthen:clarify – consumes requirements-clarification.md as a first-class prior artifact.
+- Downstream of andthen:clarify – consumes requirements-clarification.md as a first-class prior artifact; also invokes andthen:clarify inline to resolve load-bearing gaps (PRD-36, conversational only – andthen:clarify has no --auto).
 - Upstream of andthen:plan – prd.md produced here is the canonical local input for andthen:plan; andthen:plan can also fetch a GitHub PRD issue via `--issue <N>` or GitHub issue URL.
 - Post-save: andthen:visualize invoked on prd.md when --visual flag present.
-- Post-save: andthen:review --mode doc suggested as follow-up.
+- Post-save: andthen:review --mode doc --fix invoked automatically in Step 6 self-review (both modes; --auto propagated under AUTO_MODE), which in turn invokes andthen:remediate-findings (PRD-37).
 - Uses prd-template.md (plugin/references/prd-template.md) for output structure.
 - GitHub publish mechanics follow github-publish.md Pattern A (plugin/references/github-publish.md): new issue create, Refs #N footer when --issue or a GitHub issue URL was supplied, never update input issue.
 - Reads automation-mode.md (plugin/references/automation-mode.md) for --auto behavior.

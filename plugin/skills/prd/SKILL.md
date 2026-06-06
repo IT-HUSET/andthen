@@ -33,13 +33,15 @@ OUTPUT_DIR: _(resolved per Step 1)_
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - Require `INPUT`. Stop if missing.
 - Delegate research and exploration to sub-agents (the `research` agent when available) to protect the main context window.
+- **Resolve load-bearing gaps, don't assume them.** A gap is load-bearing when its answer would change user-visible behavior, scope, or acceptance criteria (the `andthen:clarify` skill's litmus). Conversationally, escalate each load-bearing gap by invoking the `andthen:clarify` skill inline on the same requirements source / feature directory, then continue from its `requirements-clarification.md`. Fill only routine gaps (convention, codebase patterns, adjacent docs) with documented assumptions. Under `--auto` the `andthen:clarify` skill is unavailable, so fall back to the most conservative MVP assumption and record it (see Automation rules and GOTCHAS).
 - **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` triggers: missing input; ambiguity past the Vague-Input Bailout bar (see GOTCHAS); unsafe external actions on `--to-issue`.
 - **Visual review is a post-validation handoff.** In `AUTO_MODE`, run it only when `--visual` is present. When present, complete the normal PRD gate first, then invoke the `andthen:visualize` skill on the produced `prd.md`.
 - Focus on *what* not *how* (see Philosophy). Replace vague terms with measurable criteria; record rationale and trade-offs. Significant technical constraints → `Constraints & Assumptions`.
+- **Feature-level PRDs are self-contained.** Inline the substance of transient discovery artifacts (`requirements-clarification.md`, `prd-draft.md`); never link or cite them by path. Durable references (GitHub issue, roadmap, ADRs) may be cited.
 
 
 ## GOTCHAS
-- **Vague-Input Bailout** – skipping synthesis when only a vague one-liner exists. Instead: infer the smallest coherent MVP, document assumptions in `Constraints & Assumptions` and the `Decisions Log`, and continue. Only stop when multiple incompatible PRDs are equally plausible and none can be justified.
+- **Vague-Input Bailout** (`--auto` / routine gaps) – never skip synthesis when only a vague one-liner exists: infer the smallest coherent MVP, document assumptions in `Constraints & Assumptions` and the `Decisions Log`, and continue. Conversationally, load-bearing gaps escalate to the `andthen:clarify` skill instead of being assumed (see INSTRUCTIONS); under `--auto`, assume conservatively and only `BLOCKED:` when multiple incompatible PRDs are equally plausible and none can be justified.
 - **Implementation leak** – route *how* to the **Decisions Log** or the `andthen:plan` skill (Philosophy; Step 3 owns extraction)
 - Writing `prd.md` into the wrong directory – follow **Output Path Semantics** exactly so the `prd → plan` chain stays stable
 
@@ -70,9 +72,7 @@ _Output path resolution – see the dispatch table in Step 1._
 
 Cover the same areas as the `andthen:clarify` skill Phase 2, but default to synthesis rather than interview: users & personas, core workflows, data model, integrations, constraints, NFRs, and success metrics. Fill ordinary gaps using explicit assumptions grounded in the source material, codebase patterns, adjacent artifacts, and standard product conventions.
 
-When a gap materially affects scope or prioritization and the evidence is weak, choose the most conservative MVP assumption that still allows a coherent PRD. Record it under `Constraints & Assumptions` and in the `Decisions Log` with alternatives considered. Do not pause the run for routine clarification.
-
-Stop and defer to the `andthen:clarify` skill only when the input is so ambiguous that two or more incompatible PRDs are equally plausible and no conservative MVP assumption would make one of them defensible. Below that bar, continue headlessly with documented assumptions.
+Fill routine gaps with documented assumptions; do not pause for them. For load-bearing gaps (answer changes user-visible behavior, scope, or acceptance criteria), resolve rather than assume: conversationally, invoke the `andthen:clarify` skill inline on this requirements source / feature directory, then continue from its `requirements-clarification.md` (Step 3 path). Under `--auto` (the `andthen:clarify` skill is unavailable), choose the most conservative MVP assumption that still allows a coherent PRD, record it under `Constraints & Assumptions` and in the `Decisions Log` with alternatives considered, and only `BLOCKED:` when two or more incompatible PRDs are equally plausible and none is defensible.
 
 Initial gap analysis – document what's explicitly stated, what's assumed/implied, and what's missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope).
 
@@ -85,9 +85,9 @@ Use existing artifacts (`requirements-clarification.md` from the `andthen:clarif
 
 - Map existing content against the PRD template (see [`prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md)); fill only the missing sections using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents.
 - Do not re-ask questions already answered in the existing artifacts; do not pause for routine clarification.
-- If the artifacts are too ambiguous to support any defensible PRD shape, stop and report the minimum missing decisions required. Mention the `andthen:clarify` skill as the interactive fallback.
+- If load-bearing gaps remain (answer changes user-visible behavior, scope, or acceptance criteria), resolve rather than assume: conversationally, invoke the `andthen:clarify` skill inline on the residual gaps, then fold its output back in. Under `--auto`, fill conservatively and stop with `BLOCKED:` reporting the minimum missing decisions only when no defensible PRD shape exists.
 - **Extract technical details**: if the draft contains implementation-level content (architecture patterns, technology choices, API details, framework constraints, integration specifics), keep them out of the PRD. Note significant technical constraints in `Constraints & Assumptions`; route unresolved architecture/UX decisions to their upstream skills and leave unfamiliar API/library lookup to execution (see Philosophy above).
-- Preserve decisions, rationale, and specific details from existing artifacts – do not paraphrase or generalize away specifics.
+- Preserve decisions, rationale, and specific details from existing artifacts – do not paraphrase or generalize away specifics. Inline their substance; the PRD must not link or cite these transient artifacts by path (it is self-contained).
 
 **Gate**: Source artifacts mapped, gaps filled with bounded assumptions → continue to Step 4
 
@@ -123,6 +123,16 @@ Self-check:
 **Gate**: Validation complete
 
 
+### 6. Self-Review _(automatic)_
+
+Invoke the `andthen:review --mode doc --fix` skill on the saved `prd.md` (append `--auto` when `AUTO_MODE=true`). `--fix` auto-applies mechanical document defects; substantive gaps surface as `Note` findings. Run this before any `--to-issue` / `--visual` post-step so those act on the fixed PRD.
+
+- **Conversational**: reflect on the residual `Note` findings. Route `ambiguous-intent` / requirement-gap Notes to a focused `andthen:clarify` pass (recommend it); otherwise recommend proceeding to the `andthen:plan` skill.
+- **`AUTO_MODE`**: fold residual `Note` findings into `Constraints & Assumptions` / `Decisions Log` so downstream skills inherit them; no conversational reflection.
+
+**Gate**: Self-review complete; PRD reflects auto-applied fixes; residual Notes surfaced (recommended conversationally, recorded under `--auto`)
+
+
 ## OUTPUT
 
 ```
@@ -138,7 +148,7 @@ When complete, print the output's **relative path from the project root**. Do no
 If `PUBLISH_ISSUE` is `true`, publish `prd.md` per **Pattern A** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Title: `[PRD] {project-name}: Product Requirements Document`. Labels: `prd`, `andthen-artifact`. Body temp file: `.agent_temp/prd/<feature-slug>-issue-body.md` when `Refs #<N>` is appended (input issue supplied via `--issue <N>` or a GitHub issue URL); otherwise pass `prd.md` directly to `--body-file`. Print the local path (`prd.md`) alongside the issue URL.
 
 ### Visual Review _(if --visual)_
-After `prd.md` is saved and Step 5 Validation passes, invoke the `andthen:visualize` skill on the produced `prd.md`. Print both the PRD path and the visualizer's output path.
+After Step 6 Self-Review completes, invoke the `andthen:visualize` skill on the produced `prd.md`. Print both the PRD path and the visualizer's output path.
 
 
 ## FOLLOW-UP ACTIONS
@@ -149,8 +159,9 @@ After completion, suggest the following next steps. **Recommend a clean session*
 
 1. **Review visually** – run `andthen:visualize <prd.md>` to spot scope and edge-case issues a markdown view obscures (skip when `--visual` already ran).
 2. **Create implementation plan** _(clean session recommended)_: Invoke the `andthen:plan` skill on the PRD directory – it produces the full plan bundle (`plan.json` + all FIS).
-3. **Review the PRD**: Invoke the `andthen:review --mode doc` skill on `prd.md`.
-4. **Initialize project state** (if not already tracking): Create the `State` document via the `andthen:init` skill.
+3. **Initialize project state** (if not already tracking): Create the `State` document via the `andthen:init` skill.
+
+> Step 6 Self-Review already ran `andthen:review --mode doc --fix`; don't re-suggest a doc review here.
 
 
 ---

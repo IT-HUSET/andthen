@@ -6,6 +6,16 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.27.0] – 2026-06-06
+
+### Changed
+- **`andthen:prd` resolves load-bearing gaps instead of assuming them** – conversationally, a gap that would change user-visible behavior, scope, or acceptance criteria now triggers an inline `andthen:clarify` pass rather than a documented guess; routine gaps are still assumed, and `--auto` keeps the conservative-assumption fallback (`andthen:clarify` has no automation mode).
+- **`andthen:prd` runs an automatic doc self-review** – after validation it invokes `andthen:review --mode doc --fix` (both modes), auto-applying mechanical fixes and surfacing substantive gaps as Notes; conversationally it reflects on them and recommends a focused clarify pass or planning, under `--auto` it folds them into the PRD.
+- **Feature-level PRDs are self-contained** – the produced `prd.md` inlines discovery substance and no longer links transient artifacts (`requirements-clarification.md`, `prd-draft.md`); durable references (issue, roadmap, ADRs) still allowed.
+
+
+---
+
 ## [0.26.0] – 2026-06-06
 
 ### Added

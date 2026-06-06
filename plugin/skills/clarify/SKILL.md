@@ -43,6 +43,7 @@ _Output directory for clarified requirements (branched by MODE):_
 - **Check before asking** – if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. In **feature mode**, the `Product` document (see **Project Document Index**) is the upstream framing – vision, personas, anti-goals; feature requirements should anchor to it, not contradict it. Also read the `Learnings` document (see **Project Document Index**) – prior traps inform Discovery probes. State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm. *Exception:* a prior clarification doc is a baseline to amend (see Step 1 *Amendment check*), not a lookup that closes discovery.
 - Challenge assumptions, find edge cases, identify ambiguities.
 - Clarify requirements, do not design solutions.
+- **Invoked mid-PRD.** When another skill (e.g. the `andthen:prd` skill) invokes this skill inline to resolve a supplied set of load-bearing gaps, scope Discovery to those gaps (reuse amendment-mode scoping) and write/extend `requirements-clarification.md` as usual; do not re-litigate content already settled by the calling artifact.
 
 ### Requirements vs. Implementation Boundary
 Clarify operates at the **requirements level** – decisions that users, stakeholders, or product owners care about. The test is **load-bearing-ness**, not topic: *would the answer change user-visible behavior, scope, or acceptance criteria?*
