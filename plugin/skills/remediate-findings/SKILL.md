@@ -154,6 +154,16 @@ If the report is a full-plan or workspace-wide review:
 - Update only the status artifacts that can be justified from the completed remediation
 - Do not mark individual stories done unless their FIS Acceptance Scenarios and Structural Criteria are clearly satisfied
 
+#### Write and transition reconciliation-ledger entries
+
+Via the `andthen:ops` skill per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md), passing the **FIS-adjacent ledger path** (`{fis-without-ext}.reconciliation-ledger.md` for the governing FIS) as the first argument. When no governing FIS is in scope there is no ledger – skip these writes.
+
+- **Applied reconciliation** (the finding's reconciliation was validated and applied in this pass) → `update-ledger reconcile <ledger-path> <stable-id>` (→ CLOSED). For `RECONCILE REQUIRED` entries, include evidence that the sanctioned `update-fis design-change` amendment and ADR path completed; never close that status with a bare reconcile call.
+- **Finding judged invalid** (Phase 2 / Phase 2a dismissed it with a concrete falsifier) → `update-ledger withdraw <ledger-path> <stable-id> <falsifier>` (→ WITHDRAWN + falsifier), so it cannot silently re-raise without refuting that falsifier.
+- **Remediation-introduced drift** (this pass applied a fix, or an intent-misaligned review finding, that left code diverging from its governing FIS without that FIS being amended) → `update-ledger add <ledger-path> <stable-id> <class> <stale-targets> <source-run>` (→ OPEN), so the new drift is recorded rather than silent. Include it in the As-Built Upstream Reconciliation recommendation.
+
+**PRD-targeted reconciliations stay recommend-only** – never auto-apply an edit to a PRD or other product-level doc; surface the recommendation for the user to apply and leave the ledger entry OPEN. The `andthen:ops` skill is deterministic; `--auto` is not propagated to it.
+
 #### Annotate the input report with `## Remediation Status`
 
 Run this step **before** the tech-debt persistence step below. If `REPORT_SOURCE` from Phase 1 was a local writable path (not a raw URL, not any other non-writable input shape), write a `## Remediation Status` section at the end of the report file:

@@ -69,7 +69,7 @@ Reusable canonical content lives at `plugin/references/` and is consumed via `${
 
 ## Shared Plugin Assets
 
-The 20 canonical assets live at `plugin/references/` – a single canonical location for install-inlined reference content.
+The 21 canonical assets live at `plugin/references/` – a single canonical location for install-inlined reference content.
 
 | Asset | Consumed by |
 |---|---|
@@ -90,6 +90,7 @@ The 20 canonical assets live at `plugin/references/` – a single canonical loca
 | `plan-schema.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage |
 | `prd-template.md` | prd |
 | `project-state-templates.md` | init, map-codebase, ops, architecture |
+| `reconciliation-ledger.md` | ops, exec-spec, exec-plan, quick-review, review, remediate-findings |
 | `review-calibration.md` | review, quick-review, architecture |
 | `review-report-location.md` | review, architecture |
 | `trust-boundaries.md` | review, e2e-test, triage |

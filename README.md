@@ -69,7 +69,7 @@ quick-implement → (optional) quick-review → (optional) remediate-findings
 ```
 (optional pre-work) → prd → plan → exec-plan
 ```
-`exec-plan` runs the per-story `exec-spec` + `quick-review` loop and a final gap review across the whole plan. Add `--team` for [Agent Teams](#agent-teams-optional-claude-code-only) parallelism (Claude Code).
+`exec-plan` runs the per-story `exec-spec` + `quick-review` loop, a final gap review, and a reconciliation rollup; partial runs review completed stories and name unreviewed ones. Add `--team` for [Agent Teams](#agent-teams-optional-claude-code-only) parallelism (Claude Code).
 
 > **Not sure which path?** Start with `quick-implement`. If it feels too complex, switch to the feature workflow. Or run `/andthen:now-what` – it inspects your project state and routes you.
 
@@ -246,10 +246,10 @@ These compose into the workflows above – from requirements through implementat
 | `prd` | Synthesize a Product Requirements Document from clarified requirements, a draft, file, URL, or issue |
 | `plan` | Turn a local or GitHub-sourced PRD into a plan bundle: typed `plan.json` + one on-disk FIS per story + cross-cutting review |
 | `spec` | Generate a Feature Implementation Specification (FIS) for one execution-sized feature |
-| `exec-spec` | Implement a FIS – code, tests, verification, intent/gap review, and completion attestation |
-| `exec-plan` | Execute a plan bundle story-by-story (`exec-spec` + `quick-review` each, final gap review); `--team` for Agent Teams |
-| `remediate-findings` | Apply validated review findings with the smallest safe fixes, re-validate, update state |
-| `ops` | Deterministic state, plan/FIS, and git operations (status, checkboxes, commits) |
+| `exec-spec` | Implement a FIS – code, tests, verification, completion attestation, and reconciliation notes when upstream docs go stale |
+| `exec-plan` | Execute a plan bundle story-by-story (`exec-spec` + `quick-review` each, final gap review, reconciliation rollup); `--team` for Agent Teams |
+| `remediate-findings` | Apply validated review findings with the smallest safe fixes, re-validate, update state and ledger entries |
+| `ops` | Deterministic state, plan/FIS, reconciliation ledger, and git operations (status, checkboxes, commits) |
 
 ### Standalone skills
 

@@ -4,7 +4,7 @@
 
 > Skills that reference this document: `plan`, `exec-plan`.
 
-Local plans are JSON ([`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md)). The markdown body shape here is the **GitHub transport** only – `--to-issue` renders the in-memory plan as markdown; `--from-issue` parses the body into a local `plan.json` ledger once and drives execution from it.
+Local plans are JSON ([`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md)). The markdown body shape here is the **GitHub transport** only – `--to-issue` renders the in-memory plan as markdown; `--from-issue` parses the body into a local `plan.json` once and drives execution from it.
 
 Two shapes – **single-issue** (default `--to-issue`) and **granular** (`--to-issue --create-story-issues`). Both use the same parser-friendly H2 anchors so consumers detect shape and extract sections without bespoke regex. Story Catalog column order: see [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (Plan Issue Catalog).
 

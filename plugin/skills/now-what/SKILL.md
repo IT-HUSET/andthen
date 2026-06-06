@@ -193,11 +193,11 @@ Produces a single Feature Implementation Specification (FIS) for one execution-s
 **Use when:** a single feature is clear enough to specify but isn't part of a multi-feature plan. `--visual` delegates the produced FIS to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-spec` to implement the FIS.
 
 ### `andthen:exec-spec`
-Implements code from a single FIS – code, tests, and verification. Honors the FIS contract (Required Context, Acceptance Scenarios, Structural Criteria), runs intent/gap review alongside code review, and uses mechanism-aware Chain Attestation before completion. Legitimate design pivots route to ADR-backed FIS amendment rather than silent divergence.
+Implements code from a single FIS – code, tests, and verification. Honors the FIS contract (Required Context, Acceptance Scenarios, Structural Criteria), runs intent/gap review alongside code review, and uses mechanism-aware Chain Attestation before completion. Legitimate design pivots route to ADR-backed FIS amendment rather than silent divergence; when an amendment leaves an upstream doc stale, opens a reconciliation-ledger entry and emits a recommend-only As-Built Upstream Reconciliation recommendation.
 **Typical next step:** `andthen:review` (or `andthen:quick-review` mid-flow) before committing.
 
 ### `andthen:exec-plan`
-Implements a fully-specced plan bundle story-by-story. Runs a fixed pipeline per story (`exec-spec` + `quick-review`) plus a final gap review on the whole plan.
+Implements a fully-specced plan bundle story-by-story. Runs a fixed pipeline per story (`exec-spec` + `quick-review`) plus a final gap review (scoped to completed stories on partial runs, with a warning naming unreviewed ones) and a consolidated As-Built Upstream Reconciliation rollup at completion.
 **Typical next step:** `andthen:review` for the whole plan; `andthen:remediate-findings` if findings need addressing.
 
 ### `andthen:quick-implement`
@@ -214,7 +214,7 @@ Renders any AndThen artifact – PRD, `plan.json`, FIS, requirements-clarificati
 **Use when:** the user wants to inspect an existing artifact visually, copy review notes, or re-check an artifact after edits. **Typical next step:** paste copied notes into the owning skill (`andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:clarify`, `andthen:review`, or `andthen:architecture`) or proceed to the next workflow skill.
 
 ### `andthen:ui-ux-design`
-UI/UX work across the lifecycle. Four modes – `research`, `design-system` (tokens, style guide), `wireframes` (screens, user flows), `review` (validate implementation).
+UI/UX work across the lifecycle. Four modes – `research`, `design-system` (tokens, `DESIGN.md`), `wireframes` (screens, user flows), `review` (validate implementation).
 **Use when:** any design work upstream of UI implementation. **Typical next step:** `andthen:exec-spec` or `andthen:exec-plan` to build the designed work.
 
 ### `andthen:visual-validation`
@@ -230,7 +230,7 @@ Creates high-quality Excalidraw diagrams – workflows, architectures, concepts.
 **Use when:** visualizing structure or flow as part of design or documentation.
 
 ### `andthen:review`
-The default review skill. Lenses: `code` (correctness, patterns), `doc` (clarity, completeness), `gap` (spec-vs-implementation), `security` (OWASP, exposure tier), `mixed` (chain). Critic posture is always on; findings are classified before Fix/Note routing, so safe document defects can be fixed under `--fix` while spec/design drift routes to reconciliation instead of code remediation. Multi-perspective `--council` mode runs within-lens specialist councils for code/security and adds a cross-lens Critic / Devil's Advocate / Synthesis Challenger pass for 2+ lens chains.
+The default review skill. Lenses: `code` (correctness, patterns), `doc` (clarity, completeness), `gap` (spec-vs-implementation), `security` (OWASP, exposure tier), `mixed` (chain). Critic posture is always on; findings are classified before Fix/Note routing, so safe document defects can be fixed under `--fix` while spec/design drift routes to reconciliation instead of code remediation. Multi-perspective `--council` mode runs within-lens specialist councils for code/security and adds a cross-lens Critic / Devil's Advocate / Synthesis Challenger pass for 2+ lens chains. Loads the reconciliation ledger so already-tracked drift becomes a tracked Note (only `code-defect` feeds the gap verdict), withdrawn findings don't silently re-raise, and unreconciled recurrence escalates to a blocking `RECONCILE REQUIRED`; emits a CONVERGED stopping signal when no new `code-defect` ≥ MEDIUM appears.
 **Use when:** before committing or merging significant changes. `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage. **Typical next step:** `andthen:remediate-findings` if findings need addressing.
 
 ### `andthen:quick-review`
@@ -258,5 +258,5 @@ Simplifies and cleans up code for clarity, reuse, quality, and efficiency withou
 **Use when:** code is becoming hard to maintain, or after a feature lands and a cleanup pass is warranted.
 
 ### `andthen:ops`
-Deterministic operations on workflow state – `STATE.md`, `plan.json` (the canonical mutator for `stories[].status` / `stories[].fis`), FIS checkboxes, audited FIS amendments, Tech Debt and `LEARNINGS.md` appends, standardized commits. `update-fis design-change` amends FIS Intent/scenario text only when backed by an ADR or ADR-creation action; missing requirements stay on the append-only `discovered-requirements` path. Non-`ops` skills must not write `plan.json` directly.
+Deterministic operations on workflow state – `STATE.md`, `plan.json` (the canonical mutator for `stories[].status` / `stories[].fis`), FIS checkboxes, audited FIS amendments, Tech Debt and `LEARNINGS.md` appends, standardized commits. `update-fis design-change` amends FIS Intent/scenario text only when backed by an ADR or ADR-creation action; missing requirements stay on the append-only `discovered-requirements` path. `update-ledger` (`add`/`reconcile`/`withdraw`/`bump-recurrence`/`override-close`) is the deterministic single-document mutator for the reconciliation ledger. Non-`ops` skills must not write `plan.json` directly.
 **Use when:** transitioning between workflow phases or marking progress. Often invoked automatically by other skills.

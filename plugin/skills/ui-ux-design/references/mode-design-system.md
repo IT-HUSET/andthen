@@ -31,7 +31,7 @@ Save research to `<project_root>/.agent_temp/research/design/` only if substanti
 
 ## Phase 3: Design Token Creation
 
-Create essential design tokens using CSS custom properties.
+Create essential design tokens. Tokens have two homes that must stay in sync: the **canonical** machine-readable source is the `DESIGN.md` front matter (Phase 5.1, agent- and tooling-consumable); `tokens.css` is the CSS-custom-property export for direct web consumption. The naming conventions below govern the CSS export.
 
 **Naming conventions:**
 - Colors: `--color-{role}[-{variant}]` (e.g. `--color-primary`, `--color-primary-dark`, `--color-gray-50` through `--color-gray-900`, `--color-success`, `--color-error`)
@@ -58,7 +58,16 @@ For each component: base styles using design tokens, variant styles, state style
 
 ## Phase 5: Documentation & Showcase
 
-**5.1 Style Guide** – Create `OUTPUT_DIR/style-guide.md` documenting colors, typography, spacing, components (with usage notes), and breakpoints.
+**5.1 DESIGN.md** – Create `OUTPUT_DIR/DESIGN.md` in the DESIGN.md format: machine-readable YAML front matter followed by a human-readable markdown body. This is the canonical design-system artifact; `tokens.css` is its CSS export.
+
+Front matter (delimited by `---` fences) – the canonical token source, keyed by category:
+- `colors:` – role → CSS color value (hex/rgb/oklch)
+- `typography:` – named text style → `family`, `size`, `weight`, `lineHeight`, `letterSpacing`
+- `rounded:` – border-radius scale
+- `spacing:` – spacing scale (8px base grid)
+- `components:` – named UI element → token-referencing properties (`backgroundColor`, `textColor`, `padding`, `rounded`, …)
+
+Markdown body – the canonical sections, in this order, including only those that apply: **Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts**. Document rationale and application guidance (the *why* and *when*), not just values.
 
 **5.2 Interactive Showcase** – Create `OUTPUT_DIR/showcase.html` demonstrating all color swatches with hex values, typography scale, spacing visualization, every component variant with live examples, interactive states, light/dark theme toggle (if applicable), and code snippets.
 
@@ -74,15 +83,17 @@ Verify against the Quality Checklist below; fix any failures.
 
 ```
 OUTPUT_DIR/
-├── tokens.css          # Design tokens (CSS custom properties)
+├── DESIGN.md           # Canonical design system: token front matter + rationale (DESIGN.md format)
+├── tokens.css          # CSS custom properties – export of DESIGN.md tokens for direct web use
 ├── components.css      # Component styles
-├── style-guide.md      # Documentation
 └── showcase.html       # Interactive component library
 ```
 
 ## Quality Checklist
 
 - [ ] Tokens are consistent and minimal
+- [ ] `DESIGN.md` front matter is valid (parseable YAML) and its tokens match `tokens.css`
+- [ ] `DESIGN.md` body covers the applicable canonical sections with rationale, not just values
 - [ ] Components use tokens (no hardcoded values)
 - [ ] All required components from requirements are covered
 - [ ] No unnecessary components or over-engineering

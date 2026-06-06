@@ -95,6 +95,6 @@ Every plan-story FIS carries provenance fields between the H1 and `## Feature Ov
 **Story-ID**: <ID>
 ```
 
-- Path: POSIX forward slashes; no leading `./`; no trailing slash. GitHub-issue-sourced plans use `github://issue/<plan-N>` (durable contract); execution drives off the local materialized ledger.
+- Path: POSIX forward slashes; no leading `./`; no trailing slash. GitHub-issue-sourced plans use `github://issue/<plan-N>` (durable contract); execution drives off the local materialized plan.
 - `Story-ID`: uppercase `S` + two-digit zero-padded number (`S03`).
 - No `**Status**:` field – `status` is `plan.json`-only to avoid a second source of truth.

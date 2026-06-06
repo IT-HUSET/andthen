@@ -64,7 +64,7 @@ Skip this phase when `AUTO_MODE=true` (see the Automation mode contract in INSTR
 
 1. Present the available modes with one-line descriptions:
    - **research** – Understand users, flows, pain points, and the interface's job. Produces IA, journeys, and constraints.
-   - **design-system** – Pragmatic design tokens, component styles, and style guide documentation from feature requirements.
+   - **design-system** – Pragmatic design tokens, component styles, and a canonical `DESIGN.md` (token front matter + rationale) from feature requirements.
    - **wireframes** – Low-fidelity grayscale HTML wireframes with 100% page coverage from feature requirements.
    - **review** – Validate an existing UI implementation semantically and/or visually; produce prioritized issues with fix recommendations.
 

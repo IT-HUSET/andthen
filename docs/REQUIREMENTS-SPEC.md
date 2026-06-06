@@ -125,7 +125,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `DATA-21` FIS filename pattern: s{NN}-{name}.md where NN is two-digit zero-padded (01, not 1) and {name} is kebab-case slug (lowercase, alphanumerics + ASCII hyphen, punctuation dropped, whitespace collapsed to single hyphen, leading/trailing hyphens trimmed).
 - `DATA-22` Every plan-story FIS carries provenance fields between the H1 and ## Feature Overview and Goal: **Plan**: <relative-posix-path-from-project-root-to-plan.json> and **Story-ID**: <ID>.
 - `DATA-23` Plan path uses POSIX forward slashes, no leading ./, no trailing slash.
-- `DATA-24` GitHub-issue-sourced plans use github://issue/<plan-N> as the Plan path value (durable contract); execution drives off the local materialized ledger.
+- `DATA-24` GitHub-issue-sourced plans use github://issue/<plan-N> as the Plan path value (durable contract); execution drives off the local materialized plan.
 - `DATA-25` Story-ID provenance field: uppercase S + two-digit zero-padded number (e.g. S03).
 - `DATA-26` No **Status**: provenance field – status is plan.json-only to avoid a second source of truth.
 
@@ -138,7 +138,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `DATA-31` Em-dash U+2014 included in FIS-unset sentinel as defensive fallback for rich-text paste (alongside ASCII hyphen U+002D and en-dash U+2013).
 - `DATA-32` Empty FIS section body is not an error – treated as 'standard handling applies'.
 - `DATA-33` Required/Deeper Context sections absent when no upstream sources exist (omitted, not empty).
-- `DATA-34` github://issue/<plan-N> Plan path is a durable contract for issue-sourced plans; local materialized ledger drives execution regardless.
+- `DATA-34` github://issue/<plan-N> Plan path is a durable contract for issue-sourced plans; local materialized plan drives execution regardless.
 
 **Integration**
 - Consumed (inlined at install time) by: andthen:clarify, andthen:prd, andthen:plan, andthen:spec, andthen:exec-spec, andthen:exec-plan, andthen:ops, andthen:review, andthen:triage.
@@ -373,7 +373,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 ---
 ## plan-schema
 
-**Purpose**: Canonical schema for plan.json – the typed runtime ledger written by andthen:plan and consumed by andthen:exec-plan, andthen:ops, andthen:review --mode gap.
+**Purpose**: Canonical schema for plan.json – the typed runtime plan written by andthen:plan and consumed by andthen:exec-plan, andthen:ops, andthen:review --mode gap.
 **Surface**: Inlined reference file – not directly user-invocable. Consumed by andthen:plan (writer), andthen:exec-plan (reader/--from-issue materializer), andthen:ops (state mutator), andthen:review --mode gap (reader). No flags/modes of its own.
 **Outputs**: plan.json next to prd.md and per-story FIS files per the Project Document Index Specs & Plans row (typical: docs/specs/<version-or-feature>/plan.json); or .agent_temp/from-issue-<N>/plan.json for --from-issue mode.
 
@@ -423,8 +423,8 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 **Edge cases**
 - `PSCH-41` Multiple stories sharing fis: null is valid pre-generation (uniqueness only enforced for non-null values).
 - `PSCH-42` github://issue/<N> is a valid prd value for issue-sourced plans.
-- `PSCH-43` andthen:exec-plan --from-issue materializes per-issue ledger at .agent_temp/from-issue-<N>/plan.json; path stable across reruns for resume.
-- `PSCH-44` GitHub-issue transport uses markdown body shape from plan-issue-shape.md; JSON is the local runtime ledger; --from-issue materializes plan.json once then drives execution from it.
+- `PSCH-43` andthen:exec-plan --from-issue materializes per-issue plan.json at .agent_temp/from-issue-<N>/plan.json; path stable across reruns for resume.
+- `PSCH-44` GitHub-issue transport uses markdown body shape from plan-issue-shape.md; JSON is the local runtime plan; --from-issue materializes plan.json once then drives execution from it.
 - `PSCH-45` Unrecognized legacy status values (e.g. Retired) map to skipped with one-line annotation in executionNotes; annotation not removed on subsequent reruns.
 - `PSCH-46` Legacy plan.md left in place post-migration; not deleted by andthen:plan.
 - `PSCH-47` in-progress status is available for orchestrators wanting explicit in-flight signaling; bundled exec-spec flow transitions spec-ready → done directly (skipping in-progress).
@@ -445,7 +445,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 
 **Purpose**: Defines the GitHub-transport body shape for plan issues produced by `andthen:plan --to-issue` and consumed by `andthen:exec-plan --from-issue`; mandates exact headings, link tokens, field values, ordering, and producer/consumer invariants.
 **Surface**: Consumed by: `andthen:plan --to-issue` (producer), `andthen:exec-plan --from-issue` (consumer). No direct invocation surface – this is a shared reference inlined at install time.
-**Outputs**: GitHub issue body markdown in either single-issue or granular shape. Granular: one parent plan issue + N child story issues. Both shapes produce/consume `plan.json` as the local ledger (`--from-issue` parses body into it once).
+**Outputs**: GitHub issue body markdown in either single-issue or granular shape. Granular: one parent plan issue + N child story issues. Both shapes produce/consume `plan.json` as the local plan (`--from-issue` parses body into it once).
 
 **Requirements**
 - `PISH-01` Two shapes exist: single-issue (default `--to-issue`) and granular (`--to-issue --create-story-issues`).
@@ -495,7 +495,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - Inlined into `andthen:clarify`, `andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:exec-spec`, `andthen:exec-plan`, `andthen:ops`, `andthen:review`, and `andthen:triage` at install time via `scripts/install-skills.sh`.
 - Story Catalog column order governed by `plugin/references/data-contract.md` (Plan Issue Catalog section).
 - Local plan schema (JSON) defined in `plugin/references/plan-schema.md`; this file covers GitHub transport shape only.
-- `andthen:exec-plan --from-issue` parses body into local `plan.json` ledger once, then drives execution from `plan.json`.
+- `andthen:exec-plan --from-issue` parses body into local `plan.json` once, then drives execution from `plan.json`.
 - Producer (`andthen:plan --to-issue --create-story-issues`) uses `gh issue create` + `gh issue edit <plan-N> --body-file` for two-pass rewrite.
 
 ---
@@ -572,6 +572,35 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - DECISIONS.md is read as context by the `andthen:prd` skill and the `andthen:spec` skill; the `andthen:spec` skill surfaces contradictions as NOTICED: observations, while the `andthen:prd` skill treats decisions as inherited architectural constraints.
 - LEARNINGS.md is read by andthen:spec, andthen:exec-spec, andthen:plan, andthen:exec-plan, andthen:triage, andthen:map-codebase, andthen:architecture, andthen:prd, andthen:clarify, andthen:remediate-findings.
 - STATE.md active-story / blocker / decision / note sub-forms consumed via explicit andthen:ops update-state arg-shape contracts.
+
+---
+## reconciliation-ledger
+
+**Purpose**: Canonical schema and rules for the cross-skill reconciliation ledger – the durable, greppable record of deliberate spec-vs-code drift (`plugin/references/reconciliation-ledger.md`). Consumed by ops, exec-spec, exec-plan, quick-review, review, remediate-findings.
+
+**Artifact**: per-FIS reconciliation ledger adjacent to the governing FIS (`{fis-without-ext}.reconciliation-ledger.md`); no project-global file.
+
+**Requirements**
+- `RLDG-01` Stable finding ID is `{relative-path}:{class}:{normalized-title-slug}`; normalization uses POSIX relative paths, the lowercase canonical class, and a title slug lowercased with punctuation/whitespace collapsed to `-` and edge/repeat hyphens trimmed.
+- `RLDG-02` Cross-run matching keys primarily on `{relative-path}:{class}`; the normalized-title-slug only disambiguates multiple entries sharing one path+class. Matching is exact-string – no hash as primary ID, no semantic/ML similarity, no spec-version vector clock.
+- `RLDG-03` Class vocabulary is exactly `code-defect | spec-stale | design-changed | ambiguous-intent` (reused, no new class). All four classes are ledger-eligible.
+- `RLDG-04` Status vocabulary is exactly `OPEN | RECONCILE REQUIRED | CLOSED | WITHDRAWN`, orthogonal to class and to Fix/Note routing.
+- `RLDG-05` Only `spec-stale`/`design-changed` follow the OPEN → `RECONCILE REQUIRED` recurrence ladder; `code-defect` (feeds the verdict, stays OPEN until fixed) and `ambiguous-intent` (decision-blocked) do not escalate. Every OPEN entry, and every `RECONCILE REQUIRED` entry, blocks the completion-presentation gate.
+- `RLDG-06` Recurrence is deterministic: initial OPEN entry has Recurrence 1; the next unresolved re-surfacing of the same stable ID bumps to 2 and transitions `spec-stale`/`design-changed` to `RECONCILE REQUIRED`; further re-runs neither clear nor duplicate the nag.
+- `RLDG-07` `RECONCILE REQUIRED` clears only via `ops update-fis design-change` (+ ADR) → CLOSED; a bare re-run cannot clear or re-nag it.
+- `RLDG-08` `ops update-ledger add` may create the ledger file from the canonical template when absent and removes the `_No reconciliation entries recorded yet._` placeholder on first append; `add` is idempotent on the full stable ID, appends distinct slugs that share one path+class, and transition forms (`reconcile`/`withdraw`/`bump-recurrence`/`override-close`) require an existing matching entry and never create the file.
+- `RLDG-09` `ops update-ledger` is single-document, atomic, AUTO_MODE-safe, and rejects malformed transitions; sub-forms are `add`, `reconcile` (→CLOSED), `withdraw` (→WITHDRAWN + falsifier), `bump-recurrence`, `override-close` (+ reason). Every sub-form takes the caller-resolved FIS-adjacent ledger path as its first argument; `ops` does not discover the path.
+- `RLDG-10` `add` against a terminal-status match (CLOSED/WITHDRAWN) re-opens the existing entry in place (→OPEN), requires refuting evidence, preserves the prior falsifier as history, and never appends a duplicate for that match. Terminal matching uses the normal key: unique `{relative-path}:{class}` first, full stable ID only when that key is ambiguous.
+- `RLDG-11` Review match-and-route: OPEN `spec-stale`/`design-changed` match → tracked Note + bump-recurrence; OPEN `code-defect` match → keeps class, keeps feeding the verdict, not "new" for CONVERGED; OPEN `ambiguous-intent` match → Note, no escalation; `RECONCILE REQUIRED` match → existing blocking reconciliation Note with no recurrence bump or duplicate; CLOSED/WITHDRAWN match → suppressed unless new evidence refutes the recorded falsifier.
+- `RLDG-12` The gap-verdict's three dimensions are fed only by `code-defect` findings; reconciliation-class findings route to Note and never lower them. The byte-level `## Verdict` block is unchanged; CONVERGED and ledger annotations are additive, separately-parsed lines.
+- `RLDG-13` CONVERGED = one full pass with no new `code-defect` at severity ≥ MEDIUM, where OPEN-ledger-matched findings are not "new".
+- `RLDG-14` exec-spec opens an OPEN entry when a `design-change`/`discovered-requirements` amendment leaves a named upstream doc stale; in AUTO_MODE the entry write precedes any `BLOCKED:` emit so a deferred pivot is recorded. The common-case flow (no drift) writes no entry and gains no new gates.
+- `RLDG-15` exec-spec emits a recommend-only As-Built Upstream Reconciliation recommendation at wrap-up (never auto-edits the PRD); exec-plan emits one consolidated rollup across stories at completion.
+- `RLDG-16` quick-review emits the finding `Class:` axis (orthogonal to Fix/Note) so per-story drift is ledger-writable.
+- `RLDG-17` Completion-presentation gate (exec-plan completion summary + exec-spec standalone summary, resolving each ledger adjacent to its governing FIS – exec-plan across its stories' FISes) refuses to present a run as shipped while any OPEN/`RECONCILE REQUIRED` entry exists, naming the blockers, unless an override reason is recorded via `update-ledger override-close`. Per-story `update-plan ... done` / `update-state active-story ... Done` writes are not gated.
+- `RLDG-18` remediate-findings Phase 5 transitions entries: applied reconciliation → `update-ledger reconcile` (CLOSED); finding judged invalid → `update-ledger withdraw` + falsifier. It also opens an entry via `update-ledger add` when this pass leaves code diverging from its governing FIS (remediation-introduced drift). PRD-targeted reconciliations stay recommend-only.
+- `RLDG-19` Adding the canonical updates docs/ARCHITECTURE.md Shared Plugin Assets and scripts/install-skills.sh `_canonical_assets` + each consuming skill's `_skill_assets_*`, so installed bundles stay self-contained. No Project Document Index row is used (the ledger is FIS-adjacent, not project-global).
+- `RLDG-20` The ledger is per-FIS, adjacent to its governing FIS (`{fis-without-ext}.reconciliation-ledger.md`), and tracks the **code↔FIS boundary only**. A run with no governing FIS resolves no ledger. Doc-lens review of a spec classifies findings with the class vocabulary but never writes ledger entries; higher boundaries (FIS↔PRD, PRD↔vision) are human-owned and recommend-only.
 
 ---
 ## Review & Discovery Calibration References
@@ -1069,7 +1098,7 @@ Flags:
 - `--auto`: AUTO_MODE – no conversational prompts; CONFUSION becomes ASSUMPTION or BLOCKED:; BLOCKED: includes Failed Story Report.
 - `--tdd`: TDD_MODE – strict red→green→refactor per scenario; loads andthen:testing --mode tdd for canon.
 - `--defer-shared-writes`: skips Step 2.13 State write, 5b.2 plan.json write, 5b.3 State writes, and 4d failure-path State writes; emits Deferred Shared Writes audit block; FIS writes (5b.1) still run. Default false. Auto-set to true by andthen:exec-plan --team --worktree and --from-issue.
-- `--to-pr <number>`: after 5b writes, posts 5c summary as PR comment on the given PR number. Explicit number only; no auto-detect.
+- `--to-pr <number>`: after the 5c completion-presentation gate passes, posts 5c summary as PR comment on the given PR number. Explicit number only; no auto-detect.
 
 Frontmatter:
 - description: triggers on 'execute this spec', 'execute this FIS', 'implement this spec', 'implement this FIS', 'build from spec'
@@ -1094,7 +1123,7 @@ Completion report (5c) in conversation: per-task status, files created/modified,
 - `XSPEC-03` If PLAN_FILE_PATH ends in `.md` and a sibling `.json` exists, uses sibling `.json` and emits `WARN: FIS **Plan**: provenance points at legacy plan.md; using sibling plan.json (re-spec to upgrade).`
 - `XSPEC-04` If legacy `plan.md` exists alongside FIS but no `plan.json`, stops: `BLOCKED: legacy plan.md found alongside FIS but plan.json is required. Run /andthen:plan in <plan-dir> to migrate (existing FIS files are preserved).`
 - `XSPEC-05` If FIS is missing **Plan**:/**Story-ID**: fields, falls back to filename-prefix extraction and sibling `plan.json`, emitting `WARN: FIS missing **Plan**:/**Story-ID**: provenance fields; using filename/sibling fallback (re-spec to upgrade)`.
-- `XSPEC-06` If FIS provenance is `github://issue/<N>` and DEFER_SHARED_WRITES=false, stops: `BLOCKED: FIS provenance points at github://issue/<N>; no local plan.json to update. Re-invoke with --defer-shared-writes, or supply a materialized ledger path explicitly.`
+- `XSPEC-06` If FIS provenance is `github://issue/<N>` and DEFER_SHARED_WRITES=false, stops: `BLOCKED: FIS provenance points at github://issue/<N>; no local plan.json to update. Re-invoke with --defer-shared-writes, or supply a materialized plan.json path explicitly.`
 - `XSPEC-07` If FIS_FILE_PATH is not an executable FIS, surfaces `CONFUSION: <path> not an executable FIS – <reason>` interactively; emits `BLOCKED:` in AUTO_MODE.
 - `XSPEC-08` Classifies pre-existing dirty paths via `git status --porcelain` before any edits: clean → BASELINE_DIRTY=none; clearly FIS-owned → resume context; unrelated → record BASELINE_DIRTY=<paths>; ambiguous overlap → stop (CONFUSION: interactive; `BLOCKED: dirty worktree overlaps {STORY_ID}: <paths>` in AUTO_MODE).
 - `XSPEC-09` In AUTO_MODE, records the clearly-FIS-owned retry-resume decision as `ASSUMPTION: resuming existing edits for {STORY_ID}`; ambiguous overlap emits BLOCKED, not ASSUMPTION.
@@ -1132,7 +1161,7 @@ Completion report (5c) in conversation: per-task status, files created/modified,
 - `XSPEC-41` Step 5c Completion Report includes: per-task status, files created/modified, verification evidence (Build exit code, Tests pass/fail counts, Lint/types error counts, Format clean/violations), Chain Attestation per-link articulation, summary of persisted observations/Discovered Requirements.
 - `XSPEC-42` Step 5c Completion Report adds **Visual validation** and **Runtime** evidence sections for UI/runtime stories.
 - `XSPEC-43` Step 5c references `## Implementation Observations` for full NOTICED BUT NOT TOUCHING / ASSUMPTIONS / Discovered Requirements details; duplicates the full Discovered Requirements block only when AUTO_MODE Tier C required it.
-- `XSPEC-44` When `--to-pr <number>`: after 5b writes verified, posts the 5c summary as PR comment via `gh pr comment <number> --body-file <temp-path>`. Temp file: `.agent_temp/exec-spec-completion-{STORY_ID-or-feature-slug}.md`.
+- `XSPEC-44` When `--to-pr <number>`: after the 5c completion-presentation gate passes, posts the 5c summary as PR comment via `gh pr comment <number> --body-file <temp-path>`; if the gate refuses because reconciliation is pending, no PR comment is posted. Temp file: `.agent_temp/exec-spec-completion-{STORY_ID-or-feature-slug}.md`.
 - `XSPEC-45` Persistent-failure path (Step 4d): if plan-backed and State exists and DEFER_SHARED_WRITES=false, writes `andthen:ops update-state blocker '{STORY_ID}: exec-spec persistent-failure'` and derives/writes plan-level status. Story plan.json status is NOT changed.
 - `XSPEC-46` In AUTO_MODE persistent failure, emits `BLOCKED: exec-spec failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report` with Story/FIS, failing gates, verification evidence, changed files, preserved partial-work location.
 - `XSPEC-47` Post-completion: captures story-level traps and error patterns via `andthen:ops update-learnings add` form.
@@ -1183,7 +1212,7 @@ Completion report (5c) in conversation: per-task status, files created/modified,
 - Invokes andthen:visual-validation skill in a sub-agent for UI work.
 - Invokes andthen:triage skill when validation iteration stalls.
 - Invokes andthen:ui-ux-design skill for UI layout/accessibility/responsive patterns.
-- Posts PR comment via `gh pr comment <number> --body-file <path>` per github-publish.md Pattern B (--to-pr only).
+- Posts PR comment via `gh pr comment <number> --body-file <path>` per github-publish.md Pattern B only after the completion-presentation gate passes (--to-pr only).
 - Consumes execution-discipline.md Gate Classes for Step 4d remediation routing.
 - Consumes execution-named-blocks.md block tags: CONFUSION:, NOTICED BUT NOT TOUCHING:, MISSING REQUIREMENT:; AUTO_MODE assumption/blocking behavior comes from that reference's override rules.
 - Consumes automation-mode.md headless-first rules for AUTO_MODE behavior.
@@ -1302,12 +1331,12 @@ Positional args:
 - First positional (after stripping flag tokens): `PLAN_DIR` (local-directory mode) or empty (`--from-issue`)
 - Second positional (optional): `CODE_DIR` for multi-repo setups
 **Outputs**: - `PLAN_DIR/plan.json`: mutated in place (story status, fis fields) via `andthen:ops update-plan` / `update-plan-fis`; never written directly
-- `.agent_temp/from-issue-<N>/plan.json`: materialized ledger in `--from-issue` mode (path stable across reruns)
+- `.agent_temp/from-issue-<N>/plan.json`: materialized plan in `--from-issue` mode (path stable across reruns)
 - `.agent_temp/exec-plan-completion-{plan-slug}.md`: rolled-up completion summary temp file for `--to-pr` (slug = `issue-<N>` in `--from-issue` mode)
 - `.agent_temp/merge-summary-{STORY_ID}.txt`: per-story merge summary temp file (`--team --worktree` Merge Wave only)
 - `<run-tempdir>/story-<story-id>-body.md`: per-story body temp file for JIT FIS generation (`--from-issue`)
 - JIT FIS output path printed by `andthen:spec`: relative `.md` path at the Project Document Index spec location or spec fallback; consumed by `--from-issue` mode
-- Final gap review report file when Step 4 runs (path reported by sub-agent; consumed by `andthen:remediate-findings`; skipped when the ledger already has failed/skipped stories)
+- Final gap review report file from Step 4 (path reported by sub-agent; consumed by `andthen:remediate-findings`; on partial runs scoped to completed stories rather than skipped)
 
 **Requirements**
 - `XPLAN-01` plan.json schemaVersion must be "1"; rejects unknown versions with BLOCKED: unsupported plan.json schemaVersion – re-run /andthen:plan to regenerate
@@ -1332,13 +1361,13 @@ Positional args:
 - `XPLAN-20` andthen:merge-resolve drives all worktree merges; EnterWorktree / ExitWorktree / Agent({isolation:"worktree"}) are prohibited
 - `XPLAN-21` plan.json must never be staged inside a worktree branch; merge-resolve guard G2 fails the story if it is
 - `XPLAN-22` Worktree creation (create-worktree.sh) happens before TeamCreate; Wave N+1 worktrees branch only after every Wave N squash-merge, per-story review, and CODE_DIR-bound write are committed to BASE_BRANCH
-- `XPLAN-23` Step 4 final gap review spawns a fresh-context sub-agent that inherits the session model and uses high reasoning effort; invocation: /andthen:review --mode gap {PLAN_PATH} without --inline-findings
-- `XPLAN-24` Step 4 is skipped when the ledger has failed/skipped stories; final review is only run on a complete plan
+- `XPLAN-23` Step 4 final gap review spawns a fresh-context sub-agent that inherits the session model and uses high reasoning effort; invocation: /andthen:review --mode gap {REVIEW_PLAN_PATH} without --inline-findings, where {REVIEW_PLAN_PATH} is PLAN_PATH for complete runs or a .agent_temp completed-stories-only plan copy for partial runs
+- `XPLAN-24` Step 4 final gap review survives partial runs: when the ledger has failed/skipped stories it runs scoped to the completed stories (not skipped wholesale) and surfaces WARNING: final gap review scoped to completed stories; skipped/failed stories not reviewed for drift: {ids}; a complete plan is reviewed in full
 - `XPLAN-25` FAIL verdict from final gap review triggers one andthen:remediate-findings pass in the orchestrator; escalate if it persists after one pass
 - `XPLAN-26` Final gap review sub-agent must return a verdict (PASS/FAIL) and a readable absolute report path; missing → BLOCKED: final gap review returned malformed output in AUTO_MODE
 - `XPLAN-27` Step 5 final verification (build + tests + linting/types + cross-story integration) is skipped as a success gate when ledger has failed/skipped stories; Step 6 aggregate report still runs
-- `XPLAN-28` --to-pr posts completion summary via Pattern B (github-publish.md) using gh pr comment <number> --body-file; temp file is .agent_temp/exec-plan-completion-{plan-slug}.md
-- `XPLAN-29` When --from-issue and --to-pr are combined and gh pr comment fails, the failure is surfaced as BLOCKED: gh pr comment failed for #<number> in the final report (non-fatal) and Step 5c continues
+- `XPLAN-28` --to-pr prepares the completion summary payload via Pattern B (github-publish.md) using temp file .agent_temp/exec-plan-completion-{plan-slug}.md; actual gh pr comment posting occurs only after the Step 6 completion-presentation gate passes
+- `XPLAN-29` When --from-issue and --to-pr are combined and the gated gh pr comment fails, the failure is surfaced as BLOCKED: gh pr comment failed for #<number> in the final report, then gated issue-closure publishing continues
 - `XPLAN-30` Step 6 aggregate report always written; on partial failure includes Completed / Failed / Skipped / Blocked by sections with story ids, FIS paths, failure evidence, and artifact paths
 - `XPLAN-31` AUTO_MODE with failed stories emits BLOCKED: exec-plan completed with failed stories in Step 6
 - `XPLAN-32` State document updated to "At Risk" when independent work completed but failures remain; "Blocked" when no schedulable story can proceed
@@ -1351,7 +1380,7 @@ Positional args:
 - `XPLAN-39` If issue carries label andthen-finalizing, stop with Plan issue #<N> is still being finalized by andthen:plan – retry once the andthen-finalizing label has been removed (default) or BLOCKED: plan issue #<N> is still being finalized – retry after the producer completes (AUTO_MODE)
 - `XPLAN-40` Rerun reconciliation for --from-issue: stories in both ledger and issue with Preservation predicate passing → preserve local status/fis; predicate failing → reset to pending/null; new IDs appended; removed IDs retained with notes annotation
 - `XPLAN-41` JIT FIS: story body written to <run-tempdir>/story-<story-id>-body.md; Shared Decisions and Binding Constraints prepended; `## Source Material` appended with PRD spans from `Source refs` (or the full PRD body when span extraction is uncertain); the `andthen:spec` skill is invoked via file-reference form and its invocations run serially
-- `XPLAN-42` Provenance fields injected into JIT FIS after write: **Plan**: github://issue/<plan-N> and **Story-ID**: <S0N> between H1 and ## Feature Overview and Goal; the local .agent_temp/from-issue-<N>/plan.json ledger is then updated via the `andthen:ops` skill `update-plan-fis` and `update-plan ... spec-ready` forms
+- `XPLAN-42` Provenance fields injected into JIT FIS after write: **Plan**: github://issue/<plan-N> and **Story-ID**: <S0N> between H1 and ## Feature Overview and Goal; the local .agent_temp/from-issue-<N>/plan.json is then updated via the `andthen:ops` skill `update-plan-fis` and `update-plan ... spec-ready` forms
 - `XPLAN-43` JIT spec failure → surface, mark story failed, continue remaining stories (log and continue)
 - `XPLAN-44` Team task naming: impl-{story_id} / review-{story_id}; same teammate never assigned both impl-Sxx and review-Sxx (no self-review)
 - `XPLAN-45` Team size: 1 implementer for ≤4 stories, 2 for 5–10, 3 for 11+; 1–2 reviewers added
@@ -1366,10 +1395,10 @@ Positional args:
 - `XPLAN-52` Step 3a: phase context loaded, plan.json current
 - `XPLAN-53` Step 3c: every schedulable story in phase verified green or recorded failed/skipped; FIS + plan.json + State writes confirmed or repaired
 - `XPLAN-54` Shared-checkout story failure: if isolation from a failed story cannot be proven clean, emit BLOCKED: instead of continuing with independent stories
-- `XPLAN-55` Step 4: final gap review complete (skipped when ledger has failures)
+- `XPLAN-55` Step 4: final gap review complete (scoped to completed stories with a skipped-story warning when ledger has failures)
 - `XPLAN-56` Step 5: build, tests, linting/types, and integration pass (skipped as success gate when ledger has failures)
-- `XPLAN-57` Step 5b: PR comment posted (--to-pr only) or posted/deferred-failure with Step 5c continuing (--from-issue + --to-pr)
-- `XPLAN-58` Step 5c: closure comments posted per issue shape (--from-issue only)
+- `XPLAN-57` Step 5b: PR publish payload prepared; no PR comment posted until the Step 6 completion-presentation gate passes
+- `XPLAN-58` Step 5c: closure comment payloads prepared per issue shape; posting/closing waits until the Step 6 completion-presentation gate passes (--from-issue only)
 - `XPLAN-59` Step 6: aggregate report exists; unresolved failures visible
 - `XPLAN-60` Worktree: verify-in-worktree.sh returns VERIFY_OK as first action; anything else → STOP, VERIFY_FAIL:<reason>
 - `XPLAN-61` Worktree merge: andthen:merge-resolve outcome precondition: failure → Stop-the-Line; guard:/squash:/logic_conflict:/verification:/commit:/cancelled: failure → record + preserve + continue
@@ -1944,7 +1973,7 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `QREV-12` Note bucket covers: LOW/MEDIUM severity, confidence < 75, scope relation secondary/pre_existing, 'consider X' shape, or any fix expanding scope; Note findings are surfaced but never auto-applied even with --fix.
 - `QREV-13` When Intent Context is present, Non-Goal → Dismiss; deferred → Note; contradicts Expected Outcome → Fix-eligible regardless of severity heuristics.
 - `QREV-14` On routing tie without Intent Context, default to Note; under --inline (and especially --inline --fix), on tie route toward Note (not Fix) and toward Accept (not Dismiss).
-- `QREV-15` Output starts with `Intent Context: <source path | none discoverable>`; accepted findings grouped Fix first then Note; each finding includes a literal `Routing: Fix` or `Routing: Note` field plus one-clause routing rationale.
+- `QREV-15` Output starts with `Intent Context: <source path | none discoverable>`; accepted findings grouped Fix first then Note; each finding includes exactly one parseable `Class: <code-defect | spec-stale | design-changed | ambiguous-intent>` value, a literal `Routing: Fix` or `Routing: Note` field, and one-clause routing rationale.
 - `QREV-16` Output (both default dispatch and --inline) has no preamble, no summary section, and no severity table – only a concise finding list using the Finding Shape from lens-adversarial.md.
 - `QREV-17` When no weakness survives the Critic attack, the reviewer states so explicitly using the wording from lens-adversarial.md's Review Instructions, not ad-hoc phrasing.
 - `QREV-18` Output (both default dispatch and --inline) is structured so downstream capture can parse the same fields as a full review report.
@@ -2001,7 +2030,7 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `REV-06` Every accepted finding preserves the full structured finding fields (reviewer, severity, confidence, location, scope relation, finding, threatened assumption or invariant, evidence, impact, suggested fix, verification needed) and also carries a parseable `Class:` field (code-defect | spec-stale | design-changed | ambiguous-intent) plus `Routing: Fix | Note` with one-line rationale.
 - `REV-07` Fix-bucket criteria (all must hold): severity HIGH or CRITICAL, confidence >= 75, scope relation `primary`, no scope expansion past Intent, Class is `code-defect`; all other findings route to Note.
 - `REV-08` `spec-stale` and `design-changed` findings are never auto-applied as code edits; `design-changed` without an ADR requires a companion finding routing to `andthen:architecture --mode trade-off`.
-- `REV-09` Verdict still drives overall readiness regardless of routing bucket; a CRITICAL Note-routed finding still counts as CRITICAL for verdict.
+- `REV-09` Verdict still drives overall readiness for `code-defect` findings regardless of routing bucket; in gap mode, reconciliation-class findings (`spec-stale`, `design-changed`, `ambiguous-intent`) remain Notes/annotations and do not lower the canonical PASS/FAIL dimensions.
 - `REV-10` Gap mode verdict is a byte-level compatibility contract: Functionality >= 7, Completeness >= 9, Wiring >= 8; canonical `## Verdict` table must appear verbatim in the report.
 - `REV-11` Code and security mode verdict uses the 3-level readiness scale (Ready / Needs Fixes / Blocked) defined in review-verdict.md.
 - `REV-12` Doc mode verdict uses the 4-level scale (Ready / Needs Minor Updates / Needs Significant Rework / Not Ready).
@@ -2294,7 +2323,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 
 **Purpose**: andthen:ui-ux-design – full-lifecycle UI/UX skill covering research, design-system creation, wireframing, and implementation review, runnable as single modes or chained sequences.
 **Surface**: Skill name: `andthen:ui-ux-design`. Frontmatter: `user-invocable: true`, `argument-hint: "[--mode <mode>[,<mode>...]] [--auto] [inputs/path]"`. Flags: `--mode <mode>[,<mode>...]` (research | design-system | wireframes | review; comma-separated for chains), `--auto` (automation-safe, suppresses prompts and follow-up actions). Positional args stripped of flag tokens are bound as REQUIREMENTS or path input per mode.
-**Outputs**: design-system: `OUTPUT_DIR/tokens.css`, `OUTPUT_DIR/components.css`, `OUTPUT_DIR/style-guide.md`, `OUTPUT_DIR/showcase.html` (default OUTPUT_DIR: `docs/design-system`). wireframes: `OUTPUT_DIR/index.html`, `OUTPUT_DIR/page-inventory.md`, `OUTPUT_DIR/[page-name].html` (one per page), `OUTPUT_DIR/screenshots/[page]-[viewport].png`, `OUTPUT_DIR/validation-report.md` (default OUTPUT_DIR: `docs/wireframes`). research: inline output (job-to-be-done, primary journeys, IA sketch, constraints, open questions). review: inline output (scope, quality assessment, prioritized issues P1/P2/P3, next steps). design-system conditional: `.agent_temp/research/design/` if substantial design research performed.
+**Outputs**: design-system: `OUTPUT_DIR/DESIGN.md` (DESIGN.md format – token front matter + canonical sections), `OUTPUT_DIR/tokens.css`, `OUTPUT_DIR/components.css`, `OUTPUT_DIR/showcase.html` (default OUTPUT_DIR: `docs/design-system`). wireframes: `OUTPUT_DIR/index.html`, `OUTPUT_DIR/page-inventory.md`, `OUTPUT_DIR/[page-name].html` (one per page), `OUTPUT_DIR/screenshots/[page]-[viewport].png`, `OUTPUT_DIR/validation-report.md` (default OUTPUT_DIR: `docs/wireframes`). research: inline output (job-to-be-done, primary journeys, IA sketch, constraints, open questions). review: inline output (scope, quality assessment, prioritized issues P1/P2/P3, next steps). design-system conditional: `.agent_temp/research/design/` if substantial design research performed.
 
 **Requirements**
 - `UIUX-01` Supports four modes: `research`, `design-system`, `wireframes`, `review`; mode is auto-detected from argument keywords or set explicitly via `--mode`.
@@ -2305,7 +2334,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `UIUX-06` AUTO_MODE propagates `--auto` to nested `andthen:*` skill invocations that accept it, regardless of which accepted input token set AUTO_MODE.
 - `UIUX-07` design-system mode: REQUIREMENTS is required (stops with missing-input error if absent); CONCEPT_DIR is optional; OUTPUT_DIR defaults to `docs/design-system` or the Project Document Index design-system location.
 - `UIUX-08` design-system mode Phase 2 (Design Research) is skipped if CONCEPT_DIR contains sufficient design direction; research artifacts saved to `<project_root>/.agent_temp/research/design/` only if substantial.
-- `UIUX-09` design-system mode produces four files: `OUTPUT_DIR/tokens.css`, `OUTPUT_DIR/components.css`, `OUTPUT_DIR/style-guide.md`, `OUTPUT_DIR/showcase.html`.
+- `UIUX-09` design-system mode produces four files: `OUTPUT_DIR/DESIGN.md`, `OUTPUT_DIR/tokens.css`, `OUTPUT_DIR/components.css`, `OUTPUT_DIR/showcase.html`. `DESIGN.md` is the canonical artifact in the DESIGN.md format – YAML front matter (`colors`, `typography`, `rounded`, `spacing`, `components`) as the machine-readable token source, followed by markdown body sections (Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts; applicable ones only); `tokens.css` is the CSS export of the front-matter tokens and must stay in sync with it.
 - `UIUX-10` design-system mode: CSS custom property naming conventions are enforced – colors `--color-{role}[-{variant}]`, typography `--font-{property}` and `--text-{size}`, spacing `--space-{n}` on 8px base grid, layout `--container` plus breakpoints `--mobile: 640px`, `--tablet: 768px`, `--desktop: 1024px`, effects `--shadow-{level}` (3 levels), `--radius[-{variant}]` (3 border-radius variants), and `--transition`.
 - `UIUX-11` design-system mode: component styles must use design tokens; no hardcoded values in component styles.
 - `UIUX-12` design-system mode: showcase.html must include all color swatches with hex values, typography scale, spacing visualization, every component variant with live examples, interactive states, and code snippets; includes light/dark theme toggle if applicable.

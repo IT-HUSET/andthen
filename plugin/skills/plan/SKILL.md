@@ -6,7 +6,7 @@ argument-hint: "[--max-parallel N] [--skip-review] [--issue <number>] [--to-issu
 # Create Implementation Plan Bundle
 
 
-Produce a complete plan bundle from a PRD: a `plan.json` ledger plus one FIS per story.
+Produce a complete plan bundle from a PRD: a `plan.json` plus one FIS per story.
 
 The plan is a typed JSON manifest per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) (referenced below as *The Plan Schema*). Status, FIS path, and dependencies are typed fields; `andthen:exec-plan` / `andthen:ops` / `andthen:review --mode gap` deserialize declaratively.
 

@@ -6,7 +6,7 @@ Canonical schema for the local `plan.json` written by the `andthen:plan` skill a
 
 > **Why JSON, not markdown?** Frontier models edit markdown more freely than JSON – markdown invites "rephrasing", JSON does not. The Story Catalog contract (closed status enum, machine-readable dependencies, unique FIS paths) is data wearing a markdown costume; this schema makes the typing explicit and removes the regex parser.
 
-GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body shape from [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md) – JSON is the local runtime ledger; markdown is the GitHub transport. `--from-issue` materializes a local `plan.json` from the issue body once, then drives execution from it; the `andthen:exec-plan` skill owns the detailed from-issue flow.
+GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body shape from [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md) – JSON is the local runtime state; markdown is the GitHub transport. `--from-issue` materializes a local `plan.json` from the issue body once, then drives execution from it; the `andthen:exec-plan` skill owns the detailed from-issue flow.
 
 ## Contents
 
@@ -129,7 +129,7 @@ Forward transitions are skill-implicit per the write-authority table below. Back
 
 ## Writability rules
 
-A plan in flight is a **runtime ledger** – the agent re-reads it at session start to resume. Only state-tracking fields (`stories[].status`, `stories[].fis`) are mutable in flight, only via `andthen:ops`. Other skills (`exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`, `now-what`) **must not** write to `plan.json`.
+A plan in flight is **runtime state** – the agent re-reads it at session start to resume. Only state-tracking fields (`stories[].status`, `stories[].fis`) are mutable in flight, only via `andthen:ops`. Other skills (`exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`, `now-what`) **must not** write to `plan.json`.
 
 | Field | Initial writer | Subsequent mutator |
 |---|---|---|
@@ -150,7 +150,7 @@ User-initiated hand edits to `plan.json` are allowed and trusted – the contrac
 
 `plan.json` lives next to `prd.md` and the per-story FIS files, per the project's **Project Document Index** `Specs & Plans` row (typical: `docs/specs/<version-or-feature>/plan.json`).
 
-When `--from-issue <N>` is set, `andthen:exec-plan` materializes a per-issue ledger at `.agent_temp/from-issue-<N>/plan.json`. Path is stable across reruns to support resume.
+When `--from-issue <N>` is set, `andthen:exec-plan` materializes a per-issue `plan.json` at `.agent_temp/from-issue-<N>/plan.json`. Path is stable across reruns to support resume.
 
 
 ## Formatting conventions

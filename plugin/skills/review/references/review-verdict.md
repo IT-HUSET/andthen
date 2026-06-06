@@ -45,6 +45,10 @@ Canonical summary block (reproduce verbatim in the report's Executive Summary):
 **Overall: PASS / FAIL**
 ```
 
+#### CONVERGED signal (additive – not part of the Verdict block)
+
+`CONVERGED` is a stopping criterion emitted **alongside** the canonical `## Verdict` block, never inside it – the block above is a byte-level parser contract and must stay unchanged. A pass is **CONVERGED** when it produced **no new `code-defect` at severity ≥ MEDIUM**, where OPEN-reconciliation-ledger-matched findings are *not* "new". It gives reviews a reachable stopping point (no new code-defects) instead of chasing zero findings; `spec-stale`/`design-changed`/`ambiguous-intent` findings, being reconciliation-class, never block convergence. Emit it and any ledger annotations as separate lines the verdict parser ignores.
+
 
 ### Code mode (`--mode code`)
 

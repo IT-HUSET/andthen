@@ -3,7 +3,7 @@ description: "Deterministic operations: update STATE.md, plan status, FIS checkb
 context: fork
 agent: general-purpose
 user-invocable: true
-argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-fis, update-fis observations, update-fis discovered-requirements, update-fis design-change, update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
+argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-fis, update-fis observations, update-fis discovered-requirements, update-fis design-change, update-ledger (add|reconcile|withdraw|bump-recurrence|override-close), update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
 ---
 
 # Deterministic Operations Skill
@@ -21,7 +21,7 @@ Template-driven operations following strict patterns to avoid LLM interpretation
 - Forgetting to update all three version locations on version bumps: CHANGELOG.md, .claude-plugin/marketplace.json, and plugin/.claude-plugin/plugin.json
 - Creating the `State` document when it doesn't exist – initialization is the andthen:init skill's job; ops only reads/writes an existing `State` document as defined in the **Project Document Index**
 - Letting Active Stories or Session Notes grow unbounded – apply maintenance rules on every write
-- **Exception – `update-tech-debt append` is the one form allowed to create its target** (Tech Debt Backlog only; scaffolding mechanics in *Update Tech Debt*). No other form may – do not extend to State, Plan, FIS, or any future target.
+- **File-creation exceptions** – two forms may create their target file: `update-tech-debt append` (Tech Debt Backlog only; mechanics in *Update Tech Debt*) and `update-ledger add` (Reconciliation Ledger only; mechanics in *Update Reconciliation Ledger*). No other form may – do not extend to State, Plan, FIS, or any future target. Ledger *transition* forms (`reconcile`, `withdraw`, `bump-recurrence`, `override-close`) never create the file; they require an existing matching entry.
 
 
 ## OPERATIONS
@@ -137,6 +137,50 @@ Actions for `design-change` form:
 - Idempotent retry and all-or-nothing: before rejecting missing `Old:` spans, check the most recent same-tag run block within the 2-minute retry window. If its body is identical and every missing `Old:` span's paired `New:` span is already present in the allowed Intent/scenario region, no-op instead of blocking. If the paired `New:` spans are present but the audit block is missing, append the audit block and report that the retry repaired the audit trail. Otherwise validate every pair before applying any replacement; reject (no-op + `BLOCKED: invalid design-change body`) if any `Old:` span does not exactly match the current FIS text, and apply none if one pair fails. Treat replacements plus audit append as one logical mutation: if the audit append cannot be written, do not apply replacements.
 - Apply each exact old/new replacement to the FIS Intent and/or Acceptance Scenario text only. Do not edit task checkboxes, Structural Criteria, plan provenance, or Implementation Observations through this form.
 - Append the same body to `## Implementation Observations` using tag suffix `– design-change` via the Append-Run Block Protocol, so the mutable spec edit is auditable and retry-safe. This form is distinct from `discovered-requirements`; do not use it for missing requirements or edge cases that should stay append-only.
+
+#### Update Reconciliation Ledger
+Deterministic mutator for the Reconciliation Ledger – the durable, greppable record of deliberate spec-vs-code drift. Schema, stable-ID derivation, status lifecycle, and match/recurrence/escalation rules are owned by [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md); this form is the only sanctioned write path. Modeled on the `update-fis` write discipline: atomic, transition-audited, AUTO_MODE-safe, rejecting malformed transitions. **Single-document** – it mutates only the ledger; the completion-presentation gate that *reads* the ledger lives in the orchestrating skills (`exec-spec` / `exec-plan`), not here.
+
+The caller passes the **FIS-adjacent ledger path** (`{fis-without-ext}.reconciliation-ledger.md`, resolved per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md)) as the first argument; `ops` mutates exactly that file and does not discover a path. There is no project-global ledger.
+
+**Usage**:
+- Add an OPEN entry: `update-ledger add <ledger-path> <stable-id> <class> <stale-targets> <source-run> [notes]`
+- Close on applied reconciliation: `update-ledger reconcile <ledger-path> <stable-id> [design-change+ADR-evidence]`
+- Withdraw with falsifier: `update-ledger withdraw <ledger-path> <stable-id> <falsifier>`
+- Bump recurrence (may escalate): `update-ledger bump-recurrence <ledger-path> <stable-id>`
+- Record close-gate override: `update-ledger override-close <ledger-path> <stable-id> <reason>`
+
+Common rules:
+- Reuse the existing class vocabulary only (`code-defect | spec-stale | design-changed | ambiguous-intent`); reject any other class. Status values are `OPEN | RECONCILE REQUIRED | CLOSED | WITHDRAWN`.
+- `<stable-id>` is the `{relative-path}:{class}:{normalized-title-slug}` value. Match entries primarily on `{relative-path}:{class}` when that key is unique; when multiple entries share it, use the full stable ID to select the intended entry. All entries live under `## Entries` in the schema shape from the reference; field edits are surgical single-line replacements so the file diffs cleanly.
+- Resolve dates via `date -u +"%Y-%m-%d"`; set `Updated:` on every mutation.
+- **Atomicity**: validate the requested transition fully before writing; apply nothing on a rejected transition. Treat an entry's field edits as one logical mutation.
+- **AUTO_MODE-safe**: never prompt; reject malformed input with a `BLOCKED:` line and no-op.
+
+Actions for `add` form:
+- **File-creation exception** (one of the two documented deviations from "ops never creates target files" – see GOTCHAS): if the passed ledger file does not exist, scaffold it from the canonical ledger template in `reconciliation-ledger.md` (H1 `# Reconciliation Ledger` + lead paragraph + `## Entries` carrying placeholder `_No reconciliation entries recorded yet._`) before appending.
+- Remove the `_No reconciliation entries recorded yet._` placeholder (exact-string match only) when appending the first entry.
+- Append a new entry with `Status: OPEN`, the given `Class:`, `Stale targets:`, `Source run:`, `Recurrence: 1`, `Falsifier: –`, `Override reason: –`, and `Created:`/`Updated:` set to today.
+- **Idempotent**: no-op only if a non-terminal (OPEN / RECONCILE REQUIRED) entry already matches the full stable ID. If another non-terminal entry shares `{relative-path}:{class}` but has a different slug, append the new entry.
+- **Terminal-match re-open**: if the stable ID matches a terminal entry (`CLOSED`/`WITHDRAWN`) by the common matching rule above – unique `{relative-path}:{class}` first, full stable ID only when that key is ambiguous – do **not** append a second entry. Instead re-open that entry **in place** – transition it to `OPEN`, append the refuting evidence to `Notes:` while preserving the prior `Falsifier:` as history, and set `Updated:`. This requires refuting evidence in the call (pass it as the `[notes]` argument); reject (no-op + `BLOCKED: re-open requires refuting evidence`) when none is supplied, so a suppressed entry never silently re-creates. On a terminal re-open only the refuting evidence is consumed; `<class>`/`<stale-targets>`/`<source-run>` must restate the existing entry's values and are not overwritten.
+- Reject (no-op + `BLOCKED: invalid ledger class "<value>"`) on an out-of-vocabulary class.
+
+Actions for `reconcile` form:
+- Require an existing matching entry in `OPEN` or `RECONCILE REQUIRED`. For `RECONCILE REQUIRED`, require non-empty evidence that the sanctioned `update-fis design-change` amendment and ADR path completed; reject a bare `update-ledger reconcile <ledger-path> <stable-id>` with `BLOCKED: reconcile requires design-change + ADR evidence for RECONCILE REQUIRED`. Transition valid entries to `CLOSED`; set `Updated:`.
+- Reject (no-op + `BLOCKED: no matching ledger entry for <stable-id>`) when no entry matches; reject when the entry is already terminal (`CLOSED`/`WITHDRAWN`).
+
+Actions for `withdraw` form:
+- Require an existing matching non-terminal entry and a non-empty `<falsifier>`. Transition to `WITHDRAWN`; record `Falsifier:`; set `Updated:`.
+- Reject (no-op + `BLOCKED: withdraw requires a falsifier`) when the falsifier is empty; reject when no entry matches.
+
+Actions for `bump-recurrence` form:
+- Require an existing matching `OPEN` entry. For `spec-stale`/`design-changed`: increment `Recurrence:`; when it reaches `2`, transition the entry to `RECONCILE REQUIRED`. Further bumps neither duplicate nor re-nag. Set `Updated:`.
+- **No-op** for `code-defect`/`ambiguous-intent` entries (these classes do not escalate) – report the no-op, do not error.
+- Reject (no-op + `BLOCKED: no matching ledger entry for <stable-id>`) when no entry matches.
+
+Actions for `override-close` form:
+- Require an existing matching `OPEN`/`RECONCILE REQUIRED` entry and a non-empty `<reason>`. Record the `Override reason:` against that entry; set `Updated:`. The entry keeps its status (the override unblocks the completion-presentation gate; it does not close the entry).
+- Reject (no-op + `BLOCKED: override-close requires a reason`) when the reason is empty; reject when no entry matches. A blanket bypass with no recorded reason is forbidden.
 
 #### Update Tech Debt
 Append tech-debt entries (typically deferred review findings) to the project's Tech Debt Backlog.

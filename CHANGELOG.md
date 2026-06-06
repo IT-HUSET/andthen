@@ -6,6 +6,19 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.26.0] – 2026-06-06
+
+### Added
+- **Cross-skill reconciliation ledger** – adds a durable, per-FIS ledger (adjacent to each FIS) recording deliberate code-vs-FIS drift (not FIS-vs-PRD) from implementation and remediation, with recommend-only upstream reconciliation notes and gated shipped summaries while reconciliation is pending.
+
+### Changed
+- **The `andthen:exec-plan` skill's drift backstop survives partial runs** – the final gap review now runs scoped to completed stories (with a loud warning naming unreviewed skipped/failed stories) instead of being skipped wholesale, and the per-story gate emits the finding `Class:` axis so per-story drift is ledger-writable.
+- **`andthen:ui-ux-design --mode design-system` emits a canonical `DESIGN.md`** – replaces `style-guide.md` with a DESIGN.md-format file (machine-readable token front matter + rationale sections); `tokens.css` becomes its CSS export. No external tooling required.
+- **"Ledger" now means only the reconciliation ledger** – the `--from-issue` runtime `plan.json` is no longer called a "ledger" (now "materialized plan" / "local plan.json"), removing the collision with the new reconciliation ledger. Includes a wording change to one `andthen:exec-spec` `BLOCKED:` message ("materialized plan.json path").
+
+
+---
+
 ## [0.25.2] – 2026-06-04
 
 ### Fixed

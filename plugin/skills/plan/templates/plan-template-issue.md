@@ -2,7 +2,7 @@
 
 > Markdown rendering shape used **only** for `andthen:plan --to-issue` (the single-issue body that humans review on GitHub). Local plans are JSON: see [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md). This template is never written to disk.
 >
-> The shape is an operational contract – `andthen:exec-plan --from-issue` parses the rendered issue body into a local `plan.json` ledger. Heading names, Story Catalog columns, and the `### Story S0N: <name>` story-section anchors are pinned because the parser depends on them. The canonical body shape is [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md); this template is the single-issue rendering of that contract – for granular `--create-story-issues` mode, render directly from `plan-issue-shape.md` instead.
+> The shape is an operational contract – `andthen:exec-plan --from-issue` parses the rendered issue body into a local `plan.json`. Heading names, Story Catalog columns, and the `### Story S0N: <name>` story-section anchors are pinned because the parser depends on them. The canonical body shape is [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md); this template is the single-issue rendering of that contract – for granular `--create-story-issues` mode, render directly from `plan-issue-shape.md` instead.
 
 
 # Implementation Plan: [Project Name]
@@ -75,5 +75,5 @@ Refs #<prd-issue-N>
 
 This plan is published as a GitHub issue. Stories' FIS files are generated just-in-time when an executor consumes the issue:
 
-1. `andthen:exec-plan --from-issue <plan-issue-N>` – materializes a local `plan.json` ledger, generates each story's FIS just-in-time, runs the per-story `exec-spec → quick-review` pipeline by phase and wave, then a final gap review. Phase ordering and parallel markers are honored; dependencies block waves automatically.
-2. **Status tracking**: The Story Catalog above is the issue's snapshot at publish time; it is not rewritten as execution progresses. `andthen:exec-plan --from-issue` tracks `status` / `fis` in the local ledger and posts per-story closure comments back to this issue.
+1. `andthen:exec-plan --from-issue <plan-issue-N>` – materializes a local `plan.json`, generates each story's FIS just-in-time, runs the per-story `exec-spec → quick-review` pipeline by phase and wave, then a final gap review. Phase ordering and parallel markers are honored; dependencies block waves automatically.
+2. **Status tracking**: The Story Catalog above is the issue's snapshot at publish time; it is not rewritten as execution progresses. `andthen:exec-plan --from-issue` tracks `status` / `fis` in the local plan and posts per-story closure comments back to this issue.

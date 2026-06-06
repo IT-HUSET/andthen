@@ -9,7 +9,7 @@ argument-hint: "[--team] [--worktree] [--from-issue <number>] [--to-pr <number>]
 
 PLAN_DIR: $ARGUMENTS first positional argument (strip any flag tokens like `--team`, `--worktree`, `--from-issue`, `--to-pr`, `--auto`, or `--headless` before interpreting the remainder as positional args). When `--from-issue <N>` is set, `PLAN_DIR` is empty and the plan source is the GitHub issue body.
 CODE_DIR: second positional argument _(optional – for multi-repo setups where plan and code live in different repos)_
-PLAN_PATH: resolved in Step 1, used unchanged in Steps 3, 4, 5. Local-directory mode: `PLAN_DIR/plan.json` (absolute). `--from-issue` mode: `.agent_temp/from-issue-<N>/plan.json` (absolute) – the materialized local ledger. Do not re-derive `PLAN_DIR/plan.json` in `--from-issue` mode (`PLAN_DIR` is empty there).
+PLAN_PATH: resolved in Step 1, used unchanged in Steps 3, 4, 5. Local-directory mode: `PLAN_DIR/plan.json` (absolute). `--from-issue` mode: `.agent_temp/from-issue-<N>/plan.json` (absolute) – the materialized local plan. Do not re-derive `PLAN_DIR/plan.json` in `--from-issue` mode (`PLAN_DIR` is empty there).
 
 ### Optional Flags
 - `--team` → USE_TEAM: force Agent Teams mode; error if unavailable
@@ -50,7 +50,7 @@ Orchestrator-side rules extending the universal Stop-the-Line gate.
 
 ### Step 1: Parse Plan
 
-> **When `--from-issue <N>` is set**: load `references/from-issue-mode.md`. That reference covers the flag-combination guard, the plan-issue body fetch, shape detection, materialization of a local `plan.json` ledger at `.agent_temp/from-issue-<N>/plan.json`, and reconciliation on rerun. After materialization, this Step 1 falls through to validation against the local ledger (items 4–6 below) using the materialized path as `{PLAN_PATH}`. The FIS-existence check (item 5) is relaxed for `--from-issue` because FIS files are generated just-in-time in Step 3.
+> **When `--from-issue <N>` is set**: load `references/from-issue-mode.md`. That reference covers the flag-combination guard, the plan-issue body fetch, shape detection, materialization of a local `plan.json` at `.agent_temp/from-issue-<N>/plan.json`, and reconciliation on rerun. After materialization, this Step 1 falls through to validation against the local plan (items 4–6 below) using the materialized path as `{PLAN_PATH}`. The FIS-existence check (item 5) is relaxed for `--from-issue` because FIS files are generated just-in-time in Step 3.
 
 1. **Resolve CODE_DIR** _(skip if `--team` not set and no second positional arg)_:
    - Provided → verify git repo, resolve absolute path.
@@ -65,7 +65,7 @@ Orchestrator-side rules extending the universal Stop-the-Line gate.
 5. **Verify FIS files exist** _(local-directory mode only; relaxed under `--from-issue`)_: every story with `status` ∈ {`pending`, `spec-ready`, `in-progress`} must carry an existing `fis`. Matches the schedulable set in item 6 (interrupted bundles abort here, not mid-pipeline). `blocked` stories are not gated (manual escape hatch). Failure: `Plan bundle has stories with missing FIS – run /andthen:plan {PLAN_DIR} to fill them (plan is resumable).` No auto-recovery in `--auto`. JIT exception → Step 3b.
 6. Build the execution plan from JSON: phase ordering (`overview.phases[]`), dependency chains (`dependsOn`), wave grouping (`stories[].wave`), parallel markers. Schedulable: `stories.filter(s => s.status !== 'done' && s.status !== 'skipped' && s.status !== 'blocked' && depsSatisfied(s))`. For each `blocked` story, log `WARNING: story {id} is blocked – skipping` and record it in the ledger's `skipped` list with reason `manually blocked`.
 
-**Gate**: Plan parsed (from local `plan.json` or materialized ledger); schema valid; in local mode FIS files exist on disk; phases identified
+**Gate**: Plan parsed (from local `plan.json` or materialized plan); schema valid; in local mode FIS files exist on disk; phases identified
 
 
 ### Step 2: Determine Execution Mode
@@ -91,15 +91,15 @@ For each phase in the plan:
 
 **Update project state** (if `State` exists): `andthen:ops update-state phase "{Phase N}: {phase_name}"` and `update-state status "On Track"`.
 
-Re-read `plan.json` (local-directory mode) or the materialized ledger (`--from-issue`).
+Re-read `plan.json` (local-directory mode) or the materialized plan (`--from-issue`).
 
 **Gate**: phase context loaded, `plan.json` current
 
 #### 3b. Execute Story Pipelines
 
-> **JIT FIS layer** _(only when `--from-issue` is set)_: load `references/from-issue-mode.md` for per-story FIS materialization (story-body extraction, temp-file invocation, `andthen:spec` failure policy). The orchestrator injects `**Plan**: github://issue/<plan-N>` and `**Story-ID**: <S0N>` provenance fields into each materialized FIS – `andthen:spec`'s file-reference branch does not auto-emit them. After provenance + ledger update, fall through to the per-story pipeline below using the captured FIS path.
+> **JIT FIS layer** _(only when `--from-issue` is set)_: load `references/from-issue-mode.md` for per-story FIS materialization (story-body extraction, temp-file invocation, `andthen:spec` failure policy). The orchestrator injects `**Plan**: github://issue/<plan-N>` and `**Story-ID**: <S0N>` provenance fields into each materialized FIS – `andthen:spec`'s file-reference branch does not auto-emit them. After provenance + plan update, fall through to the per-story pipeline below using the captured FIS path.
 
-**Per-story pipeline** (one FIS per story): `exec-spec` implements, then `quick-review` gates the changes. Accepted review findings are a story gate – remediate once, re-run, do not enter the Writes-Landed Checklist until clear. Persistent findings → contained story failure in `AUTO_MODE`. Under `--from-issue`, the orchestrator updates the local ledger post-merge and Step 5c handles issue-side closure (no local `State` target in `--from-issue` mode).
+**Per-story pipeline** (one FIS per story): `exec-spec` implements, then `quick-review` gates the changes. Accepted review findings are a story gate – remediate once, re-run, do not enter the Writes-Landed Checklist until clear. Persistent findings → contained story failure in `AUTO_MODE`. Under `--from-issue`, the orchestrator updates the local plan post-merge and Step 5c handles issue-side closure (no local `State` target in `--from-issue` mode).
 
 **Spawn one sub-agent per story in the current wave, in parallel.** The orchestrator does not run `exec-spec` itself – delegate, then wait for the whole wave before scheduling the next. In-orchestrator execution is a recovery path only (delegated story returns partial/non-green and the repair is bounded), never the default.
 
@@ -138,7 +138,7 @@ Pass → run the **Writes-Landed Checklist** below. Outside this repair path and
 - [ ] **`plan.json` story status** – the story object with `id === {story_id}` shows `status: "done"` and `fis` points at `{fis_path}`.
 - [ ] **State document** _(local-directory mode only, when it exists)_ – `{story_id}` no longer in Active Stories.
 
-`--from-issue` mode: skip the State item; the `plan.json` check applies to the materialized ledger. The FIS carries `**Plan**: github://issue/<plan-N>` for traceability; Step 5c posts the issue-side completion record.
+`--from-issue` mode: skip the State item; the `plan.json` check applies to the materialized plan. The FIS carries `**Plan**: github://issue/<plan-N>` for traceability; Step 5c posts the issue-side completion record.
 
 Missing item → call the matching `andthen:ops update-*` once, then re-read that item only. Persistent miss is Stop-the-Line – do not advance on unverified status.
 
@@ -166,16 +166,18 @@ Per phase: update project state (Step 3a), then create and manage the Agent Team
 
 ### Step 4: Final Review
 
-If the ledger has failed/skipped stories, skip the final gap review – a verdict on an incomplete plan is noise; Step 6 emits the aggregate failure report instead.
+The final gap review is the drift backstop – it must survive partial runs. **When the run ledger has failed/skipped stories, scope the gap review to the completed stories** rather than skipping it wholesale; the backstop is most valuable exactly when the run was messy. Emit a loud warning naming each skipped/failed story whose drift was **not** reviewed (it ran no completed-story gate and is covered only by this warning), so dropped coverage is visible rather than silent. When every story completed, the gap review covers the whole plan as usual.
 
 **Spawn a fresh-context sub-agent** for the final gap review (orchestrator is biased by construction context). **Sub-agent model**: inherit the session model; **high** effort – gap review is cross-cutting.
 
-Substitute `{PLAN_PATH}` (session-level `PLAN_PATH` from Step 1 – do not re-derive from `PLAN_DIR`, empty in `--from-issue`). Append ` --auto` when `AUTO_MODE=true`.
+Substitute `{PLAN_PATH}` (session-level `PLAN_PATH` from Step 1 – do not re-derive from `PLAN_DIR`, empty in `--from-issue`). Append ` --auto` when `AUTO_MODE=true`. On a partial run, first write `.agent_temp/exec-plan-completed-scope-{plan-slug}.json` as a plan-shaped copy containing only the run ledger's completed stories (preserve plan metadata needed for review; omit failed/skipped stories), then substitute that path as `{REVIEW_PLAN_PATH}`. On a complete run, `{REVIEW_PLAN_PATH}` is `{PLAN_PATH}`.
 
 ```
-Run /andthen:review --mode gap {PLAN_PATH}. Do NOT pass --inline-findings – the final gap gate must write a report file so remediate-findings can consume it.
+Run /andthen:review --mode gap {REVIEW_PLAN_PATH}. Do NOT pass --inline-findings – the final gap gate must write a report file so remediate-findings can consume it.
 Report back the verdict (PASS/FAIL) and the absolute path to the written report file.
 ```
+
+On a partial run, also surface in the run output: `WARNING: final gap review scoped to completed stories; skipped/failed stories not reviewed for drift: {ids}`.
 
 Verify the sub-agent returned a verdict and a readable report path. Missing → `BLOCKED: final gap review returned malformed output` in `AUTO_MODE`; stop in default mode.
 
@@ -191,25 +193,33 @@ Run build, tests, linting/types, and cross-story integration. Include: **Build**
 
 **Gate**: build, tests, linting/types, and integration pass
 
-#### 5b. Publish to PR _(only when `--to-pr <number>`)_
+#### 5b. Prepare PR Publish _(only when `--to-pr <number>`)_
 
-After Final Verification passes, post the rolled-up summary (per-story completion + Step 4 gap verdict) per **Pattern B** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Summary temp file: `.agent_temp/exec-plan-completion-{plan-slug}.md`. In `--from-issue` mode, `{plan-slug}` = `issue-<N>`.
+After Final Verification passes, prepare the rolled-up summary payload (per-story completion + Step 4 gap verdict) per **Pattern B** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md), but do **not** post it yet. The completion-presentation gate in Step 6 must run first so no shipped-looking PR comment is published while unresolved reconciliation entries exist. Summary temp file: `.agent_temp/exec-plan-completion-{plan-slug}.md`. In `--from-issue` mode, `{plan-slug}` = `issue-<N>`.
 
-**Pattern B failure-handling override (only when `--from-issue` is also set)**: on `gh` failure, record verbatim and **continue to Step 5c** so issue-side closure still runs – skipping would leave granular story issues unclosed. Surface as `BLOCKED: gh pr comment failed for #<number>` in the final report (non-fatal here).
+**Pattern B failure-handling override (only when `--from-issue` is also set)**: after Step 6 allows publish, if `gh` fails, record verbatim and continue to the gated issue-closure publish. Surface as `BLOCKED: gh pr comment failed for #<number>` in the final report (non-fatal here).
 
 Without `--from-issue`, Pattern B's default applies: surface the error and stop. No Step 5c to protect.
 
-**Gate**: PR comment posted (default `--to-pr` only); or posted / deferred-failure with Step 5c continuing (when `--from-issue` is also set)
+**Gate**: PR publish payload prepared; actual posting waits for the Step 6 completion-presentation gate.
 
-#### 5c. Issue Closure Comments _(only when `--from-issue <N>` was set)_
+#### 5c. Prepare Issue Closure Comments _(only when `--from-issue <N>` was set)_
 
-Load `references/from-issue-mode.md` for the shape-appropriate closure protocol (single-issue: N+1 comments on the plan issue; granular: comment-then-close 2-call pattern per story plus a rolled-up summary). Use existing per-story summaries (from `andthen:exec-spec` Step 5c) and the rolled-up plan summary (Step 5).
+Load `references/from-issue-mode.md` for the shape-appropriate closure protocol (single-issue: N+1 comments on the plan issue; granular: comment-then-close 2-call pattern per story plus a rolled-up summary). Prepare the closure payloads from existing per-story summaries (from `andthen:exec-spec` Step 5c) and the rolled-up plan summary (Step 5), but do **not** post or close issues yet. The completion-presentation gate in Step 6 must run first.
 
-**Gate**: closure comments posted per shape (or skipped when `--from-issue` is absent)
+**Gate**: issue closure payloads prepared per shape (or skipped when `--from-issue` is absent)
 
 ### Step 6: Aggregate Completion Report
 
 Always write a deterministic summary. On success: completed stories, total phases, execution mode, review/verification results, path to `PLAN_PATH`.
+
+**Consolidated As-Built Upstream Reconciliation rollup**: read each completed story's FIS-adjacent ledger (resolve `{fis-without-ext}.reconciliation-ledger.md` from `stories[].fis` per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md); per-story `exec-spec` runs wrote them) and emit **one consolidated As-Built Upstream Reconciliation** recommendation in the completion summary, covering every story's open entry and the upstream targets needing update – rather than leaving the drift visible only inside per-story output. Recommend-only for the PRD and other product-level docs; never auto-edit them.
+
+**Completion-presentation gate**: before presenting the run as **complete/shipped**, read every completed story's FIS-adjacent ledger and refuse to present a shipped summary while any `OPEN` or `RECONCILE REQUIRED` entry exists – name the blocking entries instead. The only bypass is an explicit override reason recorded against those entries via the `andthen:ops` skill `update-ledger override-close <ledger-path> <stable-id> <reason>`. This refusal governs the deferred Step 5b PR publish: no PR comment is posted while blocked. It is a *presentation* refusal only: per-story `ops update-plan ... done` / `ops update-state active-story ... Done` writes already ran in the per-story pipeline and are **not** gated, so the autonomous pipeline is never deadlocked. In `AUTO_MODE`, surface the refusal as `BLOCKED:` text naming the blockers (never an interactive wait).
+
+If `--to-pr <number>` is set and the completion-presentation gate passes, post the prepared Step 5b summary via `gh pr comment <number> --body-file <summary-path>`. Apply the Pattern B failure handling from Step 5b after the gate, not before it.
+
+If `--from-issue <N>` is set and the completion-presentation gate passes, post the prepared Step 5c issue closure comments per `references/from-issue-mode.md`. Apply that reference's best-effort `gh` failure handling after the gate, not before it.
 
 If any story failed/skipped:
 - `AUTO_MODE` emits `BLOCKED: exec-plan completed with failed stories`; default mode prints the same aggregate summary without asking for a mid-run decision.

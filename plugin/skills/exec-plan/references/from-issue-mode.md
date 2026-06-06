@@ -2,11 +2,11 @@
 
 GitHub-input mechanics for `andthen:exec-plan --from-issue <N>`. Load when running with `--from-issue`, or when changing how plan-issue bodies are parsed, how FIS files are generated JIT, or how closure comments are posted.
 
-The flag swaps the plan source from a local `PLAN_DIR/plan.json` to a GitHub issue body. The issue body is parsed **once** and materialized into a local `plan.json` runtime ledger; subsequent reads, scheduling, and the `andthen:ops` skill's writes target the local ledger. GitHub issue = durable contract; local ledger = runtime state. FIS files are generated **just-in-time per story** via the `andthen:spec` skill (the orchestrator owns the issue fetch). After the per-story pipeline completes, shape-appropriate closure comments are posted; the issue body is **not** rewritten.
+The flag swaps the plan source from a local `PLAN_DIR/plan.json` to a GitHub issue body. The issue body is parsed **once** and materialized into a local `plan.json`; subsequent reads, scheduling, and the `andthen:ops` skill's writes target the local plan. GitHub issue = durable contract; local `plan.json` = runtime state. FIS files are generated **just-in-time per story** via the `andthen:spec` skill (the orchestrator owns the issue fetch). After the per-story pipeline completes, shape-appropriate closure comments are posted; the issue body is **not** rewritten.
 
 Companion references:
 - [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md) – body shape parsed here.
-- [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) – ledger schema.
+- [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) – plan schema.
 - [`team-mode-orchestration.md`](team-mode-orchestration.md) – `--team` / `--worktree`. **`--from-issue` is mutually exclusive with `--team`.**
 
 
@@ -28,7 +28,7 @@ Replaces the local `PLAN_DIR/plan.json` read. Fetch with `gh issue view <N> --js
 - **Extract Shared Decisions and Binding Constraints**: read optional `## Shared Decisions` and `## Binding Constraints` sections. Legacy `## Technical Research` is tolerated but not materialized; new plans must not emit it.
 - **Validate the Story Catalog**: parse `## Story Catalog`. `Dependencies` cells are `-` or comma-separated Story IDs from the same catalog. Prose or unknown IDs → `BLOCKED: invalid dependency in <story-id>: "<value>" – use Story IDs in the catalog and put milestone prose in issue body notes.` Granular: also map each `ID` to its story-issue `#<N>` from `## Story Issues`.
 
-### Step 1b – Materialize the local `plan.json` ledger
+### Step 1b – Materialize the local `plan.json`
 
 Render the parsed issue body into `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) and write to `.agent_temp/from-issue-<N>/plan.json` (path stable across reruns). Field mapping:
 
@@ -40,13 +40,13 @@ Render the parsed issue body into `plan.json` per [`plan-schema.md`](${CLAUDE_PL
 - `sharedDecisions` / `bindingConstraints`: structured renderings of parsed sections. Empty arrays when absent.
 - `stories[]`: one per catalog row. `status` starts `"pending"`, `fis` starts `null` (JIT in Step 3b). Other fields map from catalog row + story brief (`### Story S0N: <name>` in single-issue; fetched story-issue body in granular). Granular: stash the mapped `#<story-issue-N>` on the in-memory plan (synthetic field, run-only, not schema).
 
-**Reconcile on rerun**: when `.agent_temp/from-issue-<N>/plan.json` already exists, compare the issue's story-ID set against the existing ledger:
+**Reconcile on rerun**: when `.agent_temp/from-issue-<N>/plan.json` already exists, compare the issue's story-ID set against the existing plan:
 
 - IDs in **both**: apply the **Preservation predicate** ([`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) **Writability rules**) against local vs issue. Predicate holds → preserve local `status`/`fis` (actual execution state) and refresh the rest – this is how `done` work survives a rerun. Predicate fails (content drift or missing FIS file) → reset to `pending`/`null` before refreshing. Emit: `Regenerated plan.json (from issue); preserved status/fis: <id-list>.` and (when applicable) `Reset to pending/null: <id-list>.`
 - IDs only in the **issue** (grew): append with `status: "pending"`, `fis: null`.
 - IDs only **locally** (shrank): retain; annotate `notes` with `"removed from issue on <ISO-date>"`. Do not delete completed work.
 
-After 1b, set `PLAN_PATH` to the absolute path of the materialized ledger. The rest of exec-plan runs as if it were a normal `plan.json` – the FIS-existence check (Step 1.5) is relaxed; `fis: null` triggers Step 3b's JIT layer.
+After 1b, set `PLAN_PATH` to the absolute path of the materialized plan. The rest of exec-plan runs as if it were a normal `plan.json` – the FIS-existence check (Step 1.5) is relaxed; `fis: null` triggers Step 3b's JIT layer.
 
 In `--from-issue` there is no `PLAN_DIR` – for `CODE_DIR` auto-detection, use CWD's git root. Run-slug for temp-file paths (e.g. Step 5b's completion summary) resolves to `issue-<N>`.
 
@@ -64,7 +64,7 @@ Materialize the story's FIS into a local file before the per-story pipeline.
 
 **Provenance-field injection**: the `andthen:spec` skill's file-reference branch does not auto-emit `**Plan**:` / `**Story-ID**:` (only the `story <id> of <plan>` form does). After the FIS is written, the orchestrator MUST inject these between the H1 and `## Feature Overview and Goal` per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) `## FIS Provenance Fields`. Use `**Plan**: github://issue/<plan-N>` (traceability to the durable contract) and `**Story-ID**: <S0N>`.
 
-**Update the local ledger**: after FIS write + provenance injection, drive via the `andthen:ops` skill against the materialized path:
+**Update the local plan**: after FIS write + provenance injection, drive via the `andthen:ops` skill against the materialized path:
 
 - `andthen:ops update-plan-fis <local-plan-path> <story-id> <fis-path>`.
 - `andthen:ops update-plan <local-plan-path> <story-id> spec-ready`.
@@ -73,19 +73,19 @@ These land in `.agent_temp/from-issue-<N>/plan.json`, not the GitHub issue. Stat
 
 **Serial dispatch**: the `andthen:spec` skill's invocations run serially – sub-agent fan-out for JIT FIS generation is not implemented here because `--team` was rejected earlier. Spec failure → surface, mark story failed, continue with remaining stories ("log and continue").
 
-After capture + ledger update, fall through to the standard per-story pipeline using `{fis_path}`.
+After capture + plan update, fall through to the standard per-story pipeline using `{fis_path}`.
 
 
 ## Step 5c: Issue closure comments
 
-After Final Verification, post shape-appropriate closure comments. Use per-story summaries (from the `andthen:exec-spec` skill's Step 5c) and the rolled-up plan summary (Step 5).
+After Final Verification, prepare shape-appropriate closure comments. Use per-story summaries (from the `andthen:exec-spec` skill's Step 5c) and the rolled-up plan summary (Step 5). The `andthen:exec-plan` skill posts them only after its Step 6 completion-presentation gate passes.
 
 - **Single-issue shape**: post one comment per story on plan issue `#N` with the story summary, then a final rolled-up summary on `#N`. Use `gh issue comment <N> --body-file <path>` per call. Plan issue is not auto-closed.
-- **Granular shape**: per story, follow **Pattern C** (comment-then-close) in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Then post the rolled-up summary on plan issue `#N`.
+- **Granular shape**: per story, prepare the **Pattern C** (comment-then-close) payloads from [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Then prepare the rolled-up summary for plan issue `#N`.
 
 `gh` failure handling matches Pattern C (surface and continue) – closure is best-effort.
 
 
 ## Gate
 
-Closure comments posted per shape (or skipped when `--from-issue` is absent).
+Closure comments prepared per shape (or skipped when `--from-issue` is absent); posting waits for the `andthen:exec-plan` skill's Step 6 completion-presentation gate.
