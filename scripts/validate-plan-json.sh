@@ -61,7 +61,7 @@ SHARED_DECISION_KEYS = ["title", "description", "stories"]
 BINDING_CONSTRAINT_KEYS = ["featureId", "anchor", "verbatim"]
 STORY_KEYS = [
     "id", "name", "phase", "wave", "dependsOn", "parallel", "risk",
-    "status", "fis", "scope", "sourceRefs", "provenance", "assetRefs", "notes",
+    "status", "fis", "owner", "scope", "sourceRefs", "provenance", "assetRefs", "notes",
 ]
 RISK_SUMMARY_KEYS = ["story", "risk", "mitigation"]
 STATUS_ENUM = {"pending", "spec-ready", "in-progress", "done", "skipped", "blocked"}

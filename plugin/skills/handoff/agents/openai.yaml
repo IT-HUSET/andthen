@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Handoff"
-  short_description: "Compact the conversation into a handoff doc a fresh agent can resume from – auto-routes mid-flow state and defensive notes to STATE.md / LEARNINGS.md via the andthen:ops skill (when present), recommends ADRs, writes the transient doc to .agent_temp/handoff/"
-  default_prompt: "Compact this conversation into a handoff doc a fresh session can resume from; route mid-flow state and clearly-bounded learnings to their canonical homes via the andthen:ops skill, write the transient context to .agent_temp/handoff/. Next session focus: "
+  short_description: "Compact the conversation into a handoff doc a fresh agent can resume from – auto-routes shared mid-flow state to plan.json / STATE.md, personal notes to the gitignored STATE.local.md, and defensive notes to LEARNINGS.md via the andthen:ops skill (when present), recommends ADRs, writes the transient doc to .agent_temp/handoff/"
+  default_prompt: "Compact this conversation into a handoff doc a fresh session can resume from; route shared mid-flow state, personal continuity notes, and clearly-bounded learnings to their canonical homes via the andthen:ops skill, write the transient context to .agent_temp/handoff/. Next session focus: "
 
 policy:
   allow_implicit_invocation: true

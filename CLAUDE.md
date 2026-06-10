@@ -78,6 +78,7 @@ Modern frontier models understand *why* things matter. Skills should express **i
 - **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens – it prevents the model from rationalizing its way past the step.
 - **Brevity and clear language**: Pragmatic, actionable, plain. Skills are part of every prompt – words cost tokens.
 - **Repetition is dilution**: When a rule feels weak, name the failure mode at the right altitude. More restatements just compete with each other for attention.
+- **Rework, don't accrete**: When fixing issues or adding functionality to skills and reference files, integrate the change by reworking existing material – aim to *shrink* the file, or at least not grow it. Bolting new sentences onto existing sections leaves seams, doubled altitudes, and drift surfaces; a contract stated once stays true, stated twice starts diverging. The file must read as if the new behavior was always part of the design – cohesive, coherent, compact, pragmatic, clear.
 - **AI agents are the intended audience for skills and reference files**: Write for agents, not for human readers. Avoid over-explaining – be direct and precise.
 - **Avoid external URLs**: Do not place external URLs in shipped skill content (unless explicitly instructed to).
 

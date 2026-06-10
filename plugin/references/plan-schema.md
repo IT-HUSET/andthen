@@ -98,6 +98,7 @@ Each phase:
 | `risk` | string | yes | One of `"low"`, `"medium"`, `"high"`. |
 | `status` | string | yes | See **Status enum** below. |
 | `fis` | string or null | yes | Relative POSIX path, or `null` when not yet generated. Unique across stories **for non-null values** (1:1 story↔FIS invariant); multiple pending stories sharing `null` is valid pre-generation. |
+| `owner` | string or null | no | Coordination field: who is executing the story (name or forge handle), or `null`/absent when unclaimed. Advisory, not a lock – makes "who's on what" visible so teammates don't collide. Must not contain `|`/newlines or equal a FIS-Unset Sentinel form (per `data-contract.md`) – such values break the issue round-trip. Solo plans leave it `null`. Legacy plans without the key are valid; regeneration writes `null` when unset. |
 | `scope` | string | yes | One paragraph: outcome, inclusions, exclusions. No implementation approach. |
 | `sourceRefs` | array of strings | no | PRD feature IDs and anchors. Required for PRD-backed stories. |
 | `provenance` | string or null | no | Required only when no direct PRD coverage exists. |
@@ -126,18 +127,21 @@ Each phase:
 
 Forward transitions are skill-implicit per the write-authority table below. Backward transitions require explicit `andthen:ops update-plan` calls. Unknown values rejected at write time.
 
+**Governing plan**: a plan *governs* current work while it has any undone story (`status` not `done`/`skipped`); all-done/skipped bundles are inert history. Consumers that resolve "the governing plan(s)" – state derivation, active-story routing, report placement – use this predicate.
+
 
 ## Writability rules
 
-A plan in flight is **runtime state** – the agent re-reads it at session start to resume. Only state-tracking fields (`stories[].status`, `stories[].fis`) are mutable in flight, only via `andthen:ops`. Other skills (`exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`, `now-what`) **must not** write to `plan.json`.
+A plan in flight is **runtime state** – the agent re-reads it at session start to resume. Only state-tracking fields (`stories[].status`, `stories[].fis`, `stories[].owner`) are mutable in flight, only via `andthen:ops`. Other skills (`exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`, `now-what`) **must not** write to `plan.json`.
 
 | Field | Initial writer | Subsequent mutator |
 |---|---|---|
-| `schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, story `id`/`name`/`phase`/`wave`/`dependsOn`/`parallel`/`risk`/`scope`/`sourceRefs`/`provenance`/`assetRefs`/`notes`, `riskSummary`, `executionNotes` | `andthen:plan` (initial creation) | `andthen:plan` rerun – full regeneration that **preserves** existing `status`/`fis` per the predicate below |
+| `schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, story `id`/`name`/`phase`/`wave`/`dependsOn`/`parallel`/`risk`/`scope`/`sourceRefs`/`provenance`/`assetRefs`/`notes`, `riskSummary`, `executionNotes` | `andthen:plan` (initial creation) | `andthen:plan` rerun – full regeneration that **preserves** existing `status`/`fis`/`owner` per the predicate below |
 | `stories[].status` | `andthen:plan` (`"pending"`) | `andthen:ops update-plan <plan> <id> <status>` |
 | `stories[].fis` | `andthen:plan` after FIS write (or `null`) | `andthen:ops update-plan-fis <plan> <id> <fis-path>` |
+| `stories[].owner` | `andthen:plan` (`null`) | `andthen:ops update-plan-owner <plan> <id> <owner>` (pass `-` to clear) |
 
-**Preservation predicate** (full regeneration): a story's existing `status` and `fis` are preserved only when ALL hold – `id` survives regeneration; `scope` string-equal; `sourceRefs` set-equal; `assetRefs` set-equal; `provenance` string-equal; the preserved `fis` path still resolves. Content-equality (not name) is the load-bearing guard: a same-id story whose content-defining fields drifted would otherwise graft a stale FIS onto new content. Stories failing any clause reset to `status: "pending"`, `fis: null`.
+**Preservation predicate** (full regeneration): a story's existing `status`, `fis`, and `owner` are preserved only when ALL hold – `id` survives regeneration; `scope` string-equal; `sourceRefs` set-equal; `assetRefs` set-equal; `provenance` string-equal; the preserved `fis` path still resolves. Content-equality (not name) is the load-bearing guard: a same-id story whose content-defining fields drifted would otherwise graft a stale FIS onto new content. Stories failing any clause reset to `status: "pending"`, `fis: null`, `owner: null`. `owner` is coordination state, not PRD-derived, so a content-stable story keeps its claim across a local `andthen:plan` regeneration; `--from-issue` reruns instead refresh `owner` from the issue's Owner cell.
 
 Exception: `andthen:exec-plan --from-issue` reconciliation rewrites `.agent_temp/from-issue-<N>/plan.json` as a full regeneration; the `andthen:exec-plan` skill owns the detailed from-issue flow.
 
@@ -156,7 +160,7 @@ When `--from-issue <N>` is set, `andthen:exec-plan` materializes a per-issue `pl
 ## Formatting conventions
 
 - **Indent**: 2 spaces.
-- **Key order**: schema-document order for every schema-defined object shape: top-level (`schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, `stories`, `riskSummary`, `executionNotes`); `overview` (`summary`, `phases`); `overview.phases[]` (`id`, `name`, `waves`); `sharedDecisions[]` (`title`, `description`, `stories`); `bindingConstraints[]` (`featureId`, `anchor`, `verbatim`); story object (`id`, `name`, `phase`, `wave`, `dependsOn`, `parallel`, `risk`, `status`, `fis`, `scope`, `sourceRefs`, `provenance`, `assetRefs`, `notes`); `riskSummary[]` (`story`, `risk`, `mitigation`).
+- **Key order**: schema-document order for every schema-defined object shape: top-level (`schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, `stories`, `riskSummary`, `executionNotes`); `overview` (`summary`, `phases`); `overview.phases[]` (`id`, `name`, `waves`); `sharedDecisions[]` (`title`, `description`, `stories`); `bindingConstraints[]` (`featureId`, `anchor`, `verbatim`); story object (`id`, `name`, `phase`, `wave`, `dependsOn`, `parallel`, `risk`, `status`, `fis`, `owner`, `scope`, `sourceRefs`, `provenance`, `assetRefs`, `notes`); `riskSummary[]` (`story`, `risk`, `mitigation`).
 - **Trailing newline** at EOF.
 - **Sorted-by-schema** writes – diffs reflect *content*, not *ordering* drift.
 
@@ -208,6 +212,7 @@ A minimal valid `plan.json`:
       "risk": "low",
       "status": "pending",
       "fis": null,
+      "owner": null,
       "scope": "Establish the database schema and reversible migrations for the alerting subsystem.",
       "sourceRefs": ["FR-1", "prd.md#data-model"],
       "provenance": null,
@@ -224,6 +229,7 @@ A minimal valid `plan.json`:
       "risk": "medium",
       "status": "pending",
       "fis": null,
+      "owner": null,
       "scope": "Classify incoming events into alert categories with thresholded confidence.",
       "sourceRefs": ["FR-2", "FR-3", "prd.md#classifier"],
       "provenance": null,

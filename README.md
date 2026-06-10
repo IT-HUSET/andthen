@@ -249,7 +249,7 @@ These compose into the workflows above – from requirements through implementat
 | `exec-spec` | Implement a FIS – code, tests, verification, completion attestation, and reconciliation notes when upstream docs go stale |
 | `exec-plan` | Execute a plan bundle story-by-story (`exec-spec` + `quick-review` each, final gap review, reconciliation rollup); `--team` for Agent Teams |
 | `remediate-findings` | Apply validated review findings with the smallest safe fixes, re-validate, update state and ledger entries |
-| `ops` | Deterministic state, plan/FIS, reconciliation ledger, and git operations (status, checkboxes, commits) |
+| `ops` | Deterministic state (shared + local), plan/FIS, story ownership, reconciliation ledger, and git operations (status, checkboxes, commits) |
 
 ### Standalone skills
 
@@ -258,7 +258,7 @@ Use these on their own for everyday development – no setup, no pipeline, no pr
 | Skill | Purpose |
 |-------|---------|
 | `now-what` | First-stop router – inspects project state and routes to the right skill |
-| `handoff` | Compact the conversation into a resumable handoff doc; routes durable state to `STATE.md` / `LEARNINGS.md` via `ops` |
+| `handoff` | Compact the conversation into a resumable handoff doc; routes durable state to `STATE.md` / `STATE.local.md` / `LEARNINGS.md` via `ops` |
 | `triage` | Investigate, diagnose, and fix issues – build failures, config errors, runtime bugs, regressions (`--plan-only` to plan without fixing) |
 | `quick-implement` | Fast path for small features/fixes/issues, with verification (`--tdd`, `--issue`, `--pr`, `--auto`) |
 | `quick-review` | Lightweight mid-conversation Critic review of recent changes in fresh context (`--fix` applies Fix-bucket findings only) |

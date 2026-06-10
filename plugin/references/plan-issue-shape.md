@@ -10,6 +10,8 @@ Two shapes – **single-issue** (default `--to-issue`) and **granular** (`--to-i
 
 `Dependencies` cells follow the local-plan contract: `-` or comma-separated Story IDs. No prose (`Blocks A-G complete`). Granular story bodies may add optional `Depends on #<sibling-issue-N>` navigation; the parent catalog stays authoritative for scheduling.
 
+The optional `Owner` column makes claiming visible on the issue itself: a developer claims a story by setting its `Owner` cell (and opening the `feat/S0N-...` branch) so others don't pick it up. Advisory coordination, not a lock – the issue stays the durable contract. Omission/empty-cell semantics: `data-contract.md` (Plan Issue Catalog).
+
 ## Contents
 - Link Conventions – exact link/provenance token forms
 - Parser-Friendly Section Markers – H2 anchors both shapes share
@@ -67,10 +69,10 @@ Body skeleton:
 
 ## Story Catalog
 
-| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S01 | <name> | <phase> | W1 | - | Yes | Low | Pending | - |
-| S02 | <name> | <phase> | W1 | - | Yes | Medium | Pending | - |
+| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS | Owner |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| S01 | <name> | <phase> | W1 | - | Yes | Low | Pending | - | - |
+| S02 | <name> | <phase> | W1 | - | Yes | Medium | Pending | - | - |
 
 ### Story S01: <name>
 
@@ -109,9 +111,9 @@ Story briefs render the JSON brief fields: `Scope` (`scope`) and `Source refs` (
 
 ## Story Catalog
 
-| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S01 | <name> | <phase> | W1 | - | Yes | Low | Pending | - |
+| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS | Owner |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| S01 | <name> | <phase> | W1 | - | Yes | Low | Pending | - | - |
 
 ## Story Issues
 

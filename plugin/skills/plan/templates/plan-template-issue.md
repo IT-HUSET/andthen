@@ -34,11 +34,11 @@
 
 ## Story Catalog
 
-| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS |
-|----|------|-------|------|--------------|----------|------|--------|-----|
-| S01 | [Name] | Foundation | W1 | - | No | Low | Pending | - |
-| S02 | [Name] | Core | W2 | S01 | Yes | Medium | Pending | - |
-| S03 | [Name] | Core | W2 | S01 | Yes | Medium | Pending | - |
+| ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS | Owner |
+|----|------|-------|------|--------------|----------|------|--------|-----|-------|
+| S01 | [Name] | Foundation | W1 | - | No | Low | Pending | - | - |
+| S02 | [Name] | Core | W2 | S01 | Yes | Medium | Pending | - | - |
+| S03 | [Name] | Core | W2 | S01 | Yes | Medium | Pending | - | - |
 
 > **Dependency cell contract**: `Dependencies` is scheduler input. Use `-` or comma-separated story IDs from this table only, e.g. `S01, S04`. Prose dependencies are invalid.
 >

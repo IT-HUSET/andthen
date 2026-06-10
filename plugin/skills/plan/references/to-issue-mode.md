@@ -11,7 +11,7 @@ Render the in-memory plan using [`templates/plan-template-issue.md`](../template
 
 `sharedDecisions` / `bindingConstraints` come straight from the in-memory plan – same extraction feeds both the local path (Step 4) and here. Omit either section when its array is empty.
 
-Story Catalog columns and brief fields render `stories[]` per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) Plan Issue Catalog. `Dependencies` cells use `-` or comma-separated Story IDs. `FIS` cells stay `-` (JIT in the `andthen:exec-plan` skill's `--from-issue` mode).
+Story Catalog columns and brief fields render `stories[]` per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) Plan Issue Catalog. `Dependencies` cells use `-` or comma-separated Story IDs. `FIS` cells stay `-` (JIT in the `andthen:exec-plan` skill's `--from-issue` mode). **Republish preservation**: when `OUTPUT_DIR` already holds a `plan.json`, carry its `stories[].owner` and `status` into the rendered catalog for matching story `id`s that pass the **Preservation predicate** (never graft stale status/claims onto redefined stories). When the prior plan issue is known (caller-named or linked from the run's input), also read its catalog: its non-empty `Owner` cells win over a local `null` or a conflicting local owner (claims live on the issue); name any displaced local value in the publish output. When no prior issue is identifiable, state in the publish output that the superseded issue's claims were not carried.
 
 
 ## 2. Create the plan issue (single-issue mode, default)

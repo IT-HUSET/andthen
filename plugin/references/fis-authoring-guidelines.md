@@ -109,7 +109,7 @@ Dan North's "Introducing BDD" (2006) anchors scenarios in concrete examples; Liz
 1. **Outcomes, not code changes**: each task describes what must be TRUE when done. The executor determines implementation.
 2. **Outcome-shape audit on task titles**: ban implementation verbs (`Replace`, `Refactor`, `Update`, `Modify`, `Add to`). Use state-of-the-world verbs. "Replace foo with bar" → "Module X uses bar (foo retired)".
 3. **Task brevity**: 1-3 lines per task – outcome, pattern reference (`file#symbol`), Verify line. >3 lines means too large (split) or too detailed (describe outcome).
-4. Each task atomic, self-contained, with `file#symbol` pattern references. Order so later tasks build on earlier ones without hidden dependencies (see Task Ordering).
+4. Each task atomic, self-contained, with `file#symbol` pattern references. In large or unfamiliar codebases, also pin the task's **read-set** – the critical callers, callees, and registration/config sites of the surfaces it changes – as `file#symbol` pointers. Resolve-at-authoring-time (Cross-Document References rule 2) applies to code pointers too. Order so later tasks build on earlier ones without hidden dependencies (see Task Ordering).
 5. Reference patterns; do not reproduce them.
 6. Every task has a **`Verify:`** line – a concrete observable check proving the outcome. **Verify must assert the described behavior, not just build success.** Trace to Acceptance Scenarios where applicable.
 

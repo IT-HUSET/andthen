@@ -55,7 +55,8 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
 | Wireframes           | `docs/wireframes/`                  | UI wireframes (HTML or images)          |
 | Design System        | `docs/design-system/`               | Tokens, components, style guide         |
 | Diagram Style Guide  | `docs/design/diagram-style-guide.md` | Excalidraw diagram visual style (colors, fills, typography) |
-| State                | `docs/STATE.md`                     | Cross-session state tracking – current phase, blockers, session continuity notes |
+| State                | `docs/STATE.md`                     | Shared, committed cross-session state – phase, blockers, decisions, owner-annotated active stories |
+| State (local)        | `docs/STATE.local.md`               | Per-developer, **gitignored** session-local state – your current focus + session continuity notes (never committed) |
 | Learnings            | `docs/LEARNINGS.md`                 | Accumulated project knowledge and error patterns |
 | Tech Debt            | `docs/TECH-DEBT-BACKLOG.md`         | Known technical debt                    |
 | Key Dev Commands     | `docs/KEY_DEVELOPMENT_COMMANDS.md`  | Dev, test, build, deploy commands       |

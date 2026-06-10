@@ -87,11 +87,11 @@ Run a quick `tree -d` + `git ls-files | head -250` inline (no sub-agent) for nat
 
 Synthesize: PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), implementation boundaries, dependencies, complexity/risk areas. Note "must support X" / "must not Y" language for the optional `## Binding Constraints` section in Step 4.
 
-**Existing-plan handling** (local-output mode, `OUTPUT_DIR/plan.json` exists): treat the rerun as a full regeneration preserving intact story state. Capture each story's `id`, `status`, `fis`, the content-defining fields per the **Preservation predicate** (see *Writability rules* in *The Plan Schema*), and `executionNotes` into a preservation map. Discard legacy `metadata` fields (e.g. `immutableDigest`) – not in the current schema. Continue Step 2 and proceed through 3–4 as a fresh generation. After Step 4's reassembly:
+**Existing-plan handling** (local-output mode, `OUTPUT_DIR/plan.json` exists): treat the rerun as a full regeneration preserving intact story state. Capture each story's `id`, `status`, `fis`, `owner`, the content-defining fields per the **Preservation predicate** (see *Writability rules* in *The Plan Schema*), and `executionNotes` into a preservation map. Discard legacy `metadata` fields (e.g. `immutableDigest`) – not in the current schema. Continue Step 2 and proceed through 3–4 as a fresh generation. After Step 4's reassembly:
 
 - **Preserve `executionNotes`** by prepending the captured value to the freshly assembled value (de-duplicate identical lines; the migration annotation is durable per the schema's **Migration from legacy `plan.md`** section).
-- **Restore `status` and `fis`** from the preservation map per the **Preservation predicate**. Stories failing any clause reset to `pending` / `null`.
-- Emit: `Regenerated plan.json; preserved status/fis for stories satisfying the Preservation predicate: <id-list>.` and (when applicable) `Reset to pending/null due to predicate failure (content drift or missing FIS file): <other-id-list>.`
+- **Restore `status`, `fis`, and `owner`** from the preservation map per the **Preservation predicate**. Stories failing any clause reset to `pending` / `null` / `null`.
+- Emit: `Regenerated plan.json; preserved status/fis/owner for stories satisfying the Preservation predicate: <id-list>.` and (when applicable) `Reset to pending/null/null due to predicate failure (content drift or missing FIS file): <other-id-list>.`
 
 If every story satisfies the predicate, omit the reset line – the regeneration is observationally a resume.
 
@@ -109,6 +109,8 @@ For multi-dimensional features, use design space decomposition: independent dime
 #### Story Guidelines
 
 Each story is **vertical** (demoable slice through all layers), **bounded** (clear scope, single responsibility), **verifiable** (enough source refs/scope to generate FIS Acceptance Scenarios and Structural Criteria), and **independent** (minimal coupling after dependencies met). Minimum stories to cover requirements; no overlap; no over-granularity.
+
+**Enabler exception**: a story with no user-facing behavior to slice through (infrastructure, migration, cross-cutting sweep) may be layer- or module-shaped, verified by tests or fitness criteria instead of a demo. Size is never the trigger – an oversized vertical story splits into thinner verticals, not layers.
 
 #### Implementation Phases and Wave Assignment
 
@@ -159,7 +161,7 @@ Run pairwise, iterate to a fixed point – 3-way merges compose from successive 
 
 **If `--to-issue` is set**: this step is the GitHub-output branch, not the local-file branch. Do **not** write `plan.json`, update the State document, generate FIS files, or run the cross-cutting review. Render the in-memory plan object built from Steps 2–3 to the markdown issue-body shape per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). Use the issue-body template at [`plan-template-issue.md`](templates/plan-template-issue.md) as the single-issue rendering shape, then load [`to-issue-mode.md`](references/to-issue-mode.md) for the single-issue or granular `gh issue create` flow and its no-local-writes gate. After the issue workflow completes, stop.
 
-Assemble the in-memory plan object per *The Plan Schema* and write it to `OUTPUT_DIR/plan.json`. Use 2-space indentation and the schema's documented key order so diffs reflect content changes, not ordering drift. Initial story `status` is `"pending"`; `fis` is `null` until Step 5 lands each FIS.
+Assemble the in-memory plan object per *The Plan Schema* and write it to `OUTPUT_DIR/plan.json`. Use 2-space indentation and the schema's documented key order so diffs reflect content changes, not ordering drift. Initial story `status` is `"pending"`; `fis` is `null` until Step 5 lands each FIS; `owner` is `null` (optional coordination field; set later via the `andthen:ops update-plan-owner` form when a teammate claims the story).
 
 **Top-level field assembly**:
 

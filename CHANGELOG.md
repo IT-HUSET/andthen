@@ -6,6 +6,22 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.28.0] – 2026-06-09
+
+### Added
+- **Team collaboration: shared vs. session-local state split** – session-continuity notes and current focus now live in a per-developer, **gitignored** `STATE.local.md` (`andthen:ops update-state note`/`focus` route there and auto-create it), so teammates stop fighting over the shared `STATE.md`. Shared `STATE.md` keeps only team-wide, low-churn state (phase, blockers, decisions, owner-annotated active stories).
+- **Story ownership** – optional `owner` field on `plan.json` stories, set via `andthen:ops update-plan-owner`, with an `Owner` column in the GitHub plan-issue Story Catalog so claiming a story is visible to the whole team and two people don't grab the same one. Survives plan regeneration and `--to-issue` republish; in `--from-issue` mode claims live on the issue and refresh into local plans on rerun; `null`/absent for solo plans.
+
+### Changed
+- **Large-codebase context scoping** – FIS tasks may now pin a read-set (critical callers/callees of changed surfaces), and the `andthen:exec-spec` skill may spawn codebase-reconnaissance sub-agents that return distilled briefs, keeping implementer context for coding. The `andthen:plan` skill gains a named enabler exception: foundational layer-shaped stories verified by tests/fitness criteria instead of demos.
+- **Active Stories derived from `plan.json`** – `andthen:ops read-state` derives the shared Active Stories view from `plan.json` (stories in progress or claimed) when a plan governs current work, so nothing is stored to conflict on; the stored `STATE.md` table remains the fallback for planless and ad-hoc work.
+- **`andthen:init` gitignore hygiene** – adds `docs/STATE.local.md` and `.agent_temp/` to `.gitignore` and registers a `State (local)` row in the Project Document Index; `andthen:ops` also appends the ignore entry if it scaffolds the local file first.
+- **Team guidance** – `plugin/README.md` documents the recommended multi-human workflow (branch-per-story, claim via `owner`, GitHub issues as the durable source of truth).
+- **Migration note** – existing repos: see `plugin/README.md` § Migration Notes (move session notes to the gitignored `STATE.local.md`).
+
+
+---
+
 ## [0.27.0] – 2026-06-06
 
 ### Changed

@@ -9,6 +9,8 @@
 | Project-Specific Guidelines and Rules | Project-local guidance loaded before work to capture conventions, prohibitions, and validation expectations. | local notes |
 | Foundational Rules and Guardrails | Universal behavioral rules installed or referenced by AndThen. Non-negotiable across runs. | critical rules, global rules |
 | Automation mode | Non-interactive behavior enabled by `--auto`: conservative assumptions, no prompts, stop only on real contract failures. | headless orchestration |
+| Shared State | The committed `State` document (default `docs/STATE.md`): team-wide, low-churn project state – phase, status, blockers, decisions, Active Stories view. | global state |
+| Local State | The gitignored, per-developer `State (local)` document (default `docs/STATE.local.md`): My Current Focus and Session Continuity Notes. Auto-created by the `andthen:ops` skill; never committed. | personal state, session state file |
 
 ## Requirements and Planning
 | Term | Definition | Avoid |
@@ -84,7 +86,8 @@
 | agent | User environment | An AI coding agent such as Claude Code, Codex, Aider, or Cursor | AndThen plugin tier | The `documentation-lookup` agent plus review persona agents under `plugin/agents/review-*.md` |
 | context | Prompt/runtime | Model context or fresh-session context | FIS | Required Context and Deeper Context sections carrying upstream intent |
 | context | Domain design | Bounded Context in DDD | Project discovery | Project context loaded from root agent instructions |
-| state | Workflow artifact | Project State document for session continuity | Plan status | `stories[].status` values inside `plan.json` |
+| state | Workflow artifact | Project State documents for session continuity – Shared State and Local State (see Core Terms) | Plan status | `stories[].status` values inside `plan.json` |
+| owner | Plan coordination | `stories[].owner` in `plan.json` – who is executing a story (advisory, not a lock); surfaces in the State Active Stories table and the GitHub Story Catalog Owner column | Code ownership | Not used in AndThen for file/CODEOWNERS semantics – reserve `owner` for story claiming |
 | issue | GitHub integration | A GitHub issue used as input or transport | Review | A finding; prefer Finding to avoid confusion |
 | asset | Install system | Shared Plugin Asset under `plugin/references/` | Plan schema | `assetRefs` pointing to upstream assets |
 | ledger | Reconciliation | The per-FIS Reconciliation Ledger (the preferred, canonical meaning) | exec-plan run | The in-memory Run Ledger; never `plan.json`, which is a plan |
@@ -98,6 +101,7 @@
 | Plan schema fields | Use exact camelCase for JSON fields (`sourceRefs`, `assetRefs`, `bindingConstraints`, `sharedDecisions`, `riskSummary`). Use markdown labels only in GitHub Issue Transport. |
 
 ## Changelog
+- 2026-06-09: Added Shared State / Local State terms for the team-collaboration state split.
 - 2026-06-06: Reserved "ledger" for the Reconciliation Ledger; renamed the `--from-issue` `plan.json` materialization from "ledger" to "plan"; added Reconciliation Ledger and Run Ledger terms.
 - 2026-05-13: Added FIS context terms and GitHub Issue Transport.
 - 2026-05-13: Trimmed glossary to load-bearing AndThen terms and schema/usage ambiguity.

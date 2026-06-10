@@ -17,6 +17,7 @@ PROJECT_NAME: $ARGUMENTS _(optional – inferred from directory name or package 
 - **Interactive** – Ask before creating optional documents. Don't assume what the user wants.
 - **Minimal by default** – Create only what's needed. Suggest optional additions.
 - **Detect, don't guess** – classify state from existing files (Step 1) before proposing changes.
+- **Gitignore hygiene** – the per-developer local state file and the agent workspace must be gitignored (else local state re-collides across developers). Mechanics live in steps 2a/2b.
 
 
 ## WORKFLOW
@@ -55,13 +56,15 @@ docs/
 └── guidelines/
 ```
 
+Gitignore hygiene: append entries for the `State (local)` path (default `docs/STATE.local.md`) and the agent workspace (`.agent_temp/`) to `.gitignore` idempotently (only if absent); create `.gitignore` if missing.
+
 Because the generated root agent instruction template references the starter guideline filenames directly, copy any missing files from `templates/guidelines/` into `docs/guidelines/` as part of baseline setup. Never overwrite existing guideline files; preserve project-specific files.
 
 Scaffold the **Core orientation stubs by default** – the documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md), `Decisions` (docs/DECISIONS.md), `Learnings` (docs/LEARNINGS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). For `Decisions`, scaffold an empty `Current ADRs` table plus a single `Still Current` placeholder bullet – the `andthen:architecture` skill in `--mode trade-off` auto-registers ADRs into this file when ADR creation is accepted. The user can fill these in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
 
 Then present the **optional documents** together. **STOP and WAIT** for the user's selection before creating any of these:
 
-- **Planning** (optional): `State` (docs/STATE.md), `Product Backlog` (docs/PRODUCT-BACKLOG.md), `Roadmap` (docs/ROADMAP.md)
+- **Planning** (optional): `State` (docs/STATE.md), `Product Backlog` (docs/PRODUCT-BACKLOG.md), `Roadmap` (docs/ROADMAP.md). When `State` is created, also add the `State (local)` row (`docs/STATE.local.md`) to the Project Document Index – the gitignored, per-developer companion the `andthen:ops` skill auto-creates for session-local notes. Do not create the local file itself (ops owns that); just register the row (its gitignore entry already landed with the base structure).
 - **Domain** (optional): `Ubiquitous Language` document (or generate later via the `andthen:ubiquitous-language` skill)
 - **Monorepo** (if `IS_MONOREPO = true`): offer per-sub-project agent instruction files matching the root file choice
 
@@ -78,7 +81,7 @@ For each confirmed sub-project agent instruction file, generate a lightweight fi
 
 Read the existing root agent instruction file(s) and check for: Project Document Index (table present? which rows exist?), Project-Specific Guidelines and Rules section, Project Overview filled in, the Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md`, `LEARNINGS.md` – same set Step 2a scaffolds by default), and referenced documents that actually exist. If both `CLAUDE.md` and `AGENTS.md` exist, check both and keep shared workflow sections aligned. If only one exists, repair that file and offer to create the missing counterpart for cross-agent portability.
 
-Present findings and offer fixes. **Missing Core orientation stubs are scaffolded by default** (consistent with Step 2a) – not listed as optional. Only Planning / Domain / Monorepo docs are offered interactively.
+Present findings and offer fixes. **Missing Core orientation stubs and gitignore hygiene are applied by default** (consistent with Step 2a) – not listed as optional. Only Planning / Domain / Monorepo docs are offered interactively.
 
 ```
 Current setup analysis:
@@ -105,6 +108,7 @@ Run the `andthen:map-codebase` skill to auto-generate from codebase analysis? (r
 
 Wait for user response, then execute confirmed actions:
 - **Missing Core orientation stubs** (default): Scaffold from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` (same set as Step 2a).
+- **Gitignore hygiene** (default): apply the Step 2a gitignore entries (idempotent; create `.gitignore` if missing).
 - **Missing Index rows**: Append to existing table (don't rewrite the whole table)
 - **Missing documents**: Generate from templates, pre-fill where possible
 - **Missing guidelines**: Copy any missing starter guideline files referenced by the generated template from `templates/guidelines/`; never overwrite existing files

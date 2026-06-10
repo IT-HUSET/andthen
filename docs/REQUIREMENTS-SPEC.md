@@ -109,7 +109,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `DATA-05` Discovered Requirements is the single sanctioned append-only channel for FIS-augmenting requirement discoveries during execution; append before writing dependent test or code.
 - `DATA-06` Design-change amendment requires an ADR or explicit ADR-creation action, exact old/new amendment text, and re-attestation after the change lands.
 - `DATA-07` Design-change path must not be used for missing requirements; Tier-C Discovered Requirements (append-only) is the correct path.
-- `DATA-08` Plan Issue Catalog table columns are, in exact order: ID, Name, Phase, Wave, Dependencies, Parallel, Risk, Status, FIS.
+- `DATA-08` Plan Issue Catalog table columns are, in exact order: ID, Name, Phase, Wave, Dependencies, Parallel, Risk, Status, FIS, with an optional trailing `Owner` column (see `DATA-35`).
 - `DATA-09` ID column: uppercase S + two-digit zero-padded number (e.g. S01).
 - `DATA-10` Dependencies column: comma-separated story IDs or `-`; prose (e.g. 'Blocks A-G complete') is rejected.
 - `DATA-11` Dependencies column values must reference story IDs from the same catalog only – cross-catalog IDs are invalid.
@@ -139,6 +139,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `DATA-32` Empty FIS section body is not an error – treated as 'standard handling applies'.
 - `DATA-33` Required/Deeper Context sections absent when no upstream sources exist (omitted, not empty).
 - `DATA-34` github://issue/<plan-N> Plan path is a durable contract for issue-sourced plans; local materialized plan drives execution regardless.
+- `DATA-35` Plan Issue Catalog optional `Owner` column maps to JSON `owner` (after the FIS column); empty-cell sentinel forms (`-`/`–`/`—`/`TBD`/`N/A`/blank) render `null`; producers may omit the column entirely and consumers tolerate its absence (every story reads `owner: null`).
 
 **Integration**
 - Consumed (inlined at install time) by: andthen:clarify, andthen:prd, andthen:plan, andthen:spec, andthen:exec-spec, andthen:exec-plan, andthen:ops, andthen:review, andthen:triage.
@@ -270,6 +271,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `FISA-20` Every task must have a Verify: line asserting the described behavior (not just build success); every prescribed value (column name, format string, error message, file path, flag value) named in the FIS must appear verbatim in ≥1 Verify line.
 - `FISA-21` Tasks are 1-3 lines each (outcome, pattern reference file#symbol, Verify line); >3 lines signals split-or-reduce.
 - `FISA-22` Every task is atomic with file#symbol pattern references; later tasks consuming something from an earlier task must state the dependency explicitly.
+- `FISA-54` In large or unfamiliar codebases, tasks also pin their read-set (critical callers, callees, registration/config sites of the changed surfaces) as file#symbol pointers – resolved at authoring time, not left to executor exploration.
 - `FISA-23` FIS size target: 200-500 lines, ~18 tasks maximum for single execution; past ~700 lines or ~18 tasks emit OVERSIZE: and recommend: standalone → /andthen:prd → /andthen:plan → /andthen:exec-plan; story <id> of plan.json → revisit plan and decompose.
 - `FISA-24` `### What We're NOT Doing` subsection (of `## Scope & Boundaries`, per FIST-12) required: 3-5 specific exclusions/deferrals with reasons. (Rendered as a `###` subsection, not a `##` top-level section.)
 - `FISA-25` ## Constraints & Gotchas bullets are restricted to cross-cutting concerns (≥2 tasks) or non-obvious framework-level traps; task-local concerns live in task descriptions.
@@ -393,27 +395,27 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `PSCH-13` Status enum is closed – exactly six values: pending, spec-ready, in-progress, done, skipped, blocked.
 - `PSCH-14` pending set by andthen:plan (initial); spec-ready set by andthen:plan after FIS write; in-progress set by explicit `andthen:ops update-plan <id> in-progress`; done set by andthen:exec-spec after gates pass via andthen:ops; skipped reserved for stories not attempted because an upstream dependency failed or an explicit ops/manual skip; failed attempted stories keep their pre-run status unless an explicit `andthen:ops update-plan` changes it; blocked set by explicit `andthen:ops update-plan <id> blocked`.
 - `PSCH-15` Forward transitions are skill-implicit per write-authority table; backward transitions require explicit andthen:ops update-plan calls; unknown values rejected at write time.
-- `PSCH-16` Only stories[].status and stories[].fis are mutable in flight; mutations must go through andthen:ops only.
+- `PSCH-16` Only stories[].status, stories[].fis, and stories[].owner are mutable in flight; mutations must go through andthen:ops only.
 - `PSCH-17` skills exec-spec, exec-plan, review, quick-review, remediate-findings, now-what MUST NOT write to plan.json.
-- `PSCH-18` stories[].status mutated via `andthen:ops update-plan <plan> <id> <status>`; stories[].fis mutated via `andthen:ops update-plan-fis <plan> <id> <fis-path>`.
+- `PSCH-18` stories[].status mutated via `andthen:ops update-plan <plan> <id> <status>`; stories[].fis mutated via `andthen:ops update-plan-fis <plan> <id> <fis-path>`; stories[].owner mutated via `andthen:ops update-plan-owner <plan> <id> <owner>`.
 - `PSCH-19` All non-state fields (schemaVersion, prd, references, overview, sharedDecisions, bindingConstraints, story id/name/phase/wave/dependsOn/parallel/risk/scope/sourceRefs/provenance/assetRefs/notes, riskSummary, executionNotes) are written initially by andthen:plan and mutated only by andthen:plan rerun (full regeneration).
-- `PSCH-20` Preservation predicate on rerun: existing status and fis preserved only when ALL hold – id survives; scope string-equal; sourceRefs set-equal; assetRefs set-equal; provenance string-equal; preserved fis path still resolves. Any failing clause resets to status: pending, fis: null.
-- `PSCH-21` andthen:exec-plan --from-issue reconciliation rewrites .agent_temp/from-issue-<N>/plan.json as a full regeneration (preservation predicate applies).
+- `PSCH-20` Preservation predicate on local regeneration rerun (--from-issue owner authority: XPLAN-40): existing status, fis, and owner preserved only when ALL hold – id survives; scope string-equal; sourceRefs set-equal; assetRefs set-equal; provenance string-equal; preserved fis path still resolves. Any failing clause resets to status: pending, fis: null, owner: null.
+- `PSCH-21` andthen:exec-plan --from-issue reconciliation rewrites .agent_temp/from-issue-<N>/plan.json as a full regeneration (preservation predicate applies; owner refreshes from the issue per XPLAN-40).
 - `PSCH-22` Legacy plan.md migration: andthen:plan parses markdown Story Catalog and writes plan.json; six statuses round-trip (Pending→pending, Spec Ready→spec-ready, In Progress→in-progress, Done→done, Skipped→skipped, Blocked→blocked); unrecognized values map to skipped with annotation in executionNotes.
 - `PSCH-23` Legacy stories with existing FIS file path preserve path and status and skip FIS regeneration; missing/sentinel FIS paths get fis: null, status: pending.
 - `PSCH-24` Legacy plan.md is left in place after migration; downstream consumers ignore it.
 - `PSCH-25` Formatting: 2-space indent; key order matches schema-document order for top-level, overview, phase, sharedDecisions, bindingConstraints, story, and riskSummary objects; trailing newline at EOF; POSIX paths throughout.
 - `PSCH-26` Top-level key order: schemaVersion, prd, references, overview, sharedDecisions, bindingConstraints, stories, riskSummary, executionNotes.
-- `PSCH-27` Story object key order: id, name, phase, wave, dependsOn, parallel, risk, status, fis, scope, sourceRefs, provenance, assetRefs, notes.
+- `PSCH-27` Story object key order: id, name, phase, wave, dependsOn, parallel, risk, status, fis, owner, scope, sourceRefs, provenance, assetRefs, notes.
 - `PSCH-28` Consumers MUST look up stories by id, never by array index.
 - `PSCH-29` Concurrency: single-writer assumption; concurrent andthen:ops calls last-writer-wins silently; do not run concurrent orchestrators against the same file.
 - `PSCH-30` Pre-existing metadata blocks (legacy 0.19.x with immutableDigest) are ignored on read and dropped on next regeneration. Digest enforcement was retired in 0.20.0; the validator (INST-41) aligns – it does not require the digest, accepts its absence, and treats a present legacy digest as an informational note only.
 - `PSCH-31` User hand edits to plan.json are trusted; the contract guards agent behavior only.
 
 **Gates / BLOCKED**
-- `PSCH-33` Only andthen:ops may mutate stories[].status and stories[].fis; other skills must not write plan.json.
+- `PSCH-33` Only andthen:ops may mutate stories[].status, stories[].fis, and stories[].owner; other skills must not write plan.json.
 - `PSCH-34` Unknown status values rejected at write time.
-- `PSCH-35` Preservation predicate: ALL six clauses must hold to preserve status/fis on rerun; any failure resets to pending/null.
+- `PSCH-35` Preservation predicate: ALL six clauses must hold to preserve status/fis/owner on local regeneration rerun (--from-issue: XPLAN-40); any failure resets to pending/null/null.
 - `PSCH-36` dependsOn must be array of story IDs – prose is invalid.
 - `PSCH-37` fis must be unique (non-null values only); duplicate non-null fis paths across stories violates 1:1 invariant.
 - `PSCH-38` PRD-backed stories require sourceRefs; stories without PRD coverage require provenance.
@@ -430,10 +432,12 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `PSCH-47` in-progress status is available for orchestrators wanting explicit in-flight signaling; bundled exec-spec flow transitions spec-ready → done directly (skipping in-progress).
 - `PSCH-48` Pre-existing immutableDigest metadata blocks silently dropped on next andthen:plan regeneration.
 - `PSCH-49` Nested object key order: overview uses summary, phases; overview.phases[] uses id, name, waves; sharedDecisions[] uses title, description, stories; bindingConstraints[] uses featureId, anchor, verbatim; riskSummary[] uses story, risk, mitigation.
+- `PSCH-50` stories[].owner: optional coordination field (string or null); records who is executing the story (advisory, not a lock). null/absent when unclaimed; legacy plans without the key are valid (validator tolerates absence); regeneration writes null when unset; preserved across local regeneration (PSCH-20); --from-issue reruns refresh it from the issue (XPLAN-40).
+- `PSCH-51` Governing plan predicate: a plan governs current work while it has any undone story (status not done/skipped); all-done/skipped bundles are inert history. Consumers resolving "the governing plan(s)" (OPS-01 state derivation, active-story no-op routing, RCAL-34 tier-3 placement) use this predicate.
 
 **Integration**
-- Written by andthen:plan; consumed by andthen:exec-plan, andthen:ops, andthen:review --mode gap. andthen:now-what detects plan.json artifact presence but does not consume this schema reference.
-- andthen:ops is sole in-flight mutator of stories[].status and stories[].fis.
+- Written by andthen:plan; consumed by andthen:exec-plan, andthen:ops, andthen:review --mode gap. andthen:now-what reads plan.json only for presence and story status/owner routing signals; it does not consume this schema reference.
+- andthen:ops is sole in-flight mutator of stories[].status, stories[].fis, and stories[].owner.
 - bindingConstraints[].verbatim flows unchanged into FIS Required Context – consumed by exec-spec/plan when building FIS.
 - File lives next to prd.md and per-story FIS files per Project Document Index Specs & Plans row (typical: docs/specs/<version-or-feature>/plan.json).
 - GitHub-issue transport shape defined in plugin/references/plan-issue-shape.md; from-issue execution details in plugin/skills/exec-plan/references/from-issue-mode.md.
@@ -453,7 +457,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `PISH-03` H2 parser anchors (canonical names): `## Shared Decisions`, `## Binding Constraints`, `## Story Catalog`, `## Story Issues`.
 - `PISH-04` `## Shared Decisions` is optional; when present renders JSON `sharedDecisions[]`; bullets name inter-story interface contracts/naming/shared abstractions; 3–6 bullets; omit section when none apply; not duplicated into story issues (granular).
 - `PISH-05` `## Binding Constraints` is optional; when present renders JSON `bindingConstraints[]`; content is verbatim PRD spans + heading anchors; omit when none apply; not duplicated into story issues (granular).
-- `PISH-06` `## Story Catalog` is a markdown table; column order: `ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS` (exact, per data-contract.md).
+- `PISH-06` `## Story Catalog` is a markdown table; column order: `ID | Name | Phase | Wave | Dependencies | Parallel | Risk | Status | FIS` (exact, per data-contract.md), plus an optional trailing `Owner` column (see PISH-39).
 - `PISH-07` `Dependencies` cells are `-` or comma-separated Story IDs only; no prose allowed (e.g. `Blocks A-G complete` is invalid).
 - `PISH-08` `## Story Issues` is granular shape only; presence of this H2 at column 0 (not in fenced code block or HTML comment) AND ≥1 story-issue reference line under it → shape-detection signal for granular. A story-issue reference line begins with optional whitespace, optional `- ` bullet marker, then `#<digit>`.
 - `PISH-09` Every plan issue body begins with `> **PRD**: <prd.md path or github://issue/<prd-N>>` as the required header.
@@ -467,7 +471,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `PISH-17` Consumer (`andthen:exec-plan --from-issue <plan-N>`) MUST check for `andthen-finalizing` label before parsing; when present, default mode stops with `Plan issue #<N> is still being finalized by andthen:plan – retry once the andthen-finalizing label has been removed.`
 - `PISH-18` Under AUTO_MODE, the exact `BLOCKED: plan issue #<N> is still being finalized – retry after the producer completes` line is emitted and execution exits (no interactive wait).
 - `PISH-19` Story Catalog `FIS` cells remain `-` in granular shape because FIS files are JIT-generated by `andthen:exec-plan --from-issue`.
-- `PISH-20` Story Catalog is the authoritative source for wave, dependency, FIS, status, phase, parallelism, and risk in both shapes.
+- `PISH-20` Story Catalog is the authoritative source for wave, dependency, FIS, phase, parallelism, risk, and ownership (Owner cells, per XPLAN-40) in both shapes; status is authoritative at first materialization only – local runtime status wins on rerun (XPLAN-40).
 - `PISH-21` Accidental H2 anchor name collisions inside inlined PRD spans (under `## Binding Constraints`) MUST be sanitized by downshifting to H3+ before inlining.
 - `PISH-22` Consumers strip fenced code blocks and HTML comments before applying shape-detection regex.
 - `PISH-23` Link token `> **PRD**: ...` in header: durable PRD source (local path or `github://issue/<N>`).
@@ -490,6 +494,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `PISH-36` Two-pass rewrite race: between first `gh issue create` and final `gh issue edit`, parent has placeholder `## Story Issues` bullets and stories may have placeholder `Depends on` text – `andthen-finalizing` label gates consumer access.
 - `PISH-37` Story whose deps reference later-catalog stories cannot reference real issue numbers on first creation – placeholder text written; second pass rewrites after all siblings exist.
 - `PISH-38` `Refs #<prd-N>` footer omitted when no PRD issue was the input (not an error).
+- `PISH-39` Story Catalog (both shapes) carries an optional `Owner` column (after `FIS`) for visible story claiming in a team; advisory coordination, not a lock; the issue stays the durable contract. Producers may omit it; consumers tolerate absence.
 
 **Integration**
 - Inlined into `andthen:clarify`, `andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:exec-spec`, `andthen:exec-plan`, `andthen:ops`, `andthen:review`, and `andthen:triage` at install time via `scripts/install-skills.sh`.
@@ -501,18 +506,18 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 ---
 ## project-state-templates
 
-**Purpose**: Canonical starter templates for project state documents (STATE.md, PRODUCT-BACKLOG.md, ROADMAP.md, TECH-DEBT-BACKLOG.md, PRODUCT.md, DECISIONS.md, ARCHITECTURE.md, LEARNINGS.md, STACK.md, KEY_DEVELOPMENT_COMMANDS.md, UBIQUITOUS_LANGUAGE.md) – defines exact heading structure, field names, table schemas, allowed values, ordering, and invariants that consumers (andthen:init, andthen:map-codebase, andthen:ops, andthen:architecture) must honor when creating or writing to these files.
+**Purpose**: Canonical starter templates for project state documents (STATE.md, STATE.local.md, PRODUCT-BACKLOG.md, ROADMAP.md, TECH-DEBT-BACKLOG.md, PRODUCT.md, DECISIONS.md, ARCHITECTURE.md, LEARNINGS.md, STACK.md, KEY_DEVELOPMENT_COMMANDS.md, UBIQUITOUS_LANGUAGE.md) – defines exact heading structure, field names, table schemas, allowed values, ordering, and invariants that consumers (andthen:init, andthen:map-codebase, andthen:ops, andthen:architecture) must honor when creating or writing to these files.
 **Surface**: Reference file (not directly user-invocable). Consumed at install time via scripts/install-skills.sh `_canonical_assets` / per-skill `_skill_assets_*` arrays. No flags or modes – pure template content.
 **Outputs**: plugin/references/project-state-templates.md – single source-of-truth for all project state document schemas; inlined into consumer skills at install time.
 
 **Requirements**
 - `PST-01` STATE.md header: `# Project State` + `Last Updated: YYYY-MM-DD HH:MM` field.
 - `PST-02` STATE.md `## Current Phase` section contains `Phase:` and `Status:` fields; Status enum is exactly `On Track | At Risk | Blocked`.
-- `PST-03` STATE.md `## Active Stories` table columns: Story | Status | FIS | Notes.
+- `PST-03` STATE.md `## Active Stories` table columns: Story | Owner | Status | FIS | Notes. When a plan.json governs (PSCH-51), the Active Stories view is derived from it on read (stories in-progress or claimed: `owner` set, status not done/skipped) and plan-governed rows are not stored; stored rows serve planless projects and ad-hoc ids in no governing plan.
 - `PST-04` STATE.md `## Recently Completed` holds last 2 milestones only; format `- **{version}** ({date}): {one-line summary}`; overflow expressed as trailing `Previous: X, Y, Z` line.
 - `PST-05` STATE.md `## Blockers` section: resolved blockers and those older than ~14 days with no activity must be removed.
 - `PST-06` STATE.md `## Recent Decisions` section: max ~10 items; older items must be moved to ADRs.
-- `PST-07` STATE.md `## Session Continuity Notes` section: max ~5 items; notes from milestones already in Recently Completed or CHANGELOG must be removed.
+- `PST-07` Session Continuity Notes live in the per-developer, gitignored `STATE.local.md` (NOT shared STATE.md): `## Session Continuity Notes` section, max ~5 items; notes already captured elsewhere (Recently Completed, CHANGELOG, a handoff doc) must be removed.
 - `PST-08` STATE.md total length kept under ~60 lines so agents can consume it quickly.
 - `PST-09` PRODUCT-BACKLOG.md `## Validated` table columns: REQ-ID | Description | Priority | Stories | Status; ID format REQ-NNN (three-digit zero-padded).
 - `PST-10` PRODUCT-BACKLOG.md `## Active (Under Discussion)` table columns: REQ-ID | Description | Priority | Open Questions.
@@ -549,6 +554,8 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `PST-52` PRODUCT.md sections in template order: `## Vision`, `## Target Users` (`PST-40`), `## Value Propositions`, `## Key Capabilities` (`PST-39`), `## Non-Goals`, `## Success Metrics`.
 - `PST-41` STACK.md has five sections: `## Languages`, `## Frameworks & Libraries`, `## Infrastructure`, `## External Services`, `## Dev Tools`; each is a table with at minimum Name/Language/Tool | Version/Purpose | Notes/Purpose/Config columns.
 - `PST-42` All templates are starter scaffolds – fill in what applies, remove what doesn't; they are not enforced as immutable schemas by the runtime.
+- `PST-53` STATE.local.md is the per-developer, **gitignored** session-local state document (Project Document Index `State (local)` row, default `docs/STATE.local.md`); header `# Local State (not committed)` + `Last Updated` field; sections `## My Current Focus` and `## Session Continuity Notes`. It is never committed; one per checkout.
+- `PST-54` Shared STATE.md (PST-01..PST-08) holds only team-wide, low-churn state (phase, status, owner-annotated active stories, recently completed, blockers, recent decisions); high-churn personal context (current focus, session continuity notes) lives in STATE.local.md so concurrent teammates never collide on the shared file.
 
 **Gates / BLOCKED**
 - `PST-43` andthen:ops refuses with `BLOCKED:` when LEARNINGS.md is absent – init owns creation, ops does not create it.
@@ -637,7 +644,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `RCAL-31` [review-report-location] Tier 1: --output-dir override – validate up-front; in AUTO_MODE fail with BLOCKED: --output-dir <path> not writable; in default mode print a warning and fall through to heuristic tiers; do not auto-create deep paths – only the report file itself.
 - `RCAL-32` [review-report-location] Tier 2: spec directory – when the reviewed artifact or requirements baseline lives inside a spec/FIS/plan/PRD directory per the Project Document Index, or an associated spec directory is discoverable from inputs/context.
 - `RCAL-33` [review-report-location] Tier 2 fires for doc targets co-located next to the target; for source-code targets tier 2 fires only via the spec-directory match, otherwise fall through to tier 3.
-- `RCAL-34` [review-report-location] Tier 3: current feature directory – infer from STATE.md single in-progress row's dirname(FIS); skip when STATE.md missing, Active Stories section missing, no rows in progress, or ancestry check fails.
+- `RCAL-34` [review-report-location] Tier 3: current feature directory – infer from the in-progress rows' dirname(FIS), derived from the governing plan.json (`status: in-progress`, FIS = stories[].fis, null-fis rows excluded per-row) when one resolves, else the stored STATE.md Active Stories table; skip when neither source resolves, no candidate rows remain, or ancestry check fails.
 - `RCAL-35` [review-report-location] Tier 4 (always writable fallback): `<agent-temp>/reviews/` where agent-temp is from the Project Document Index Agent Temp row (default `.agent_temp/`).
 - `RCAL-36` [review-report-location] Source-Code Subdirectory Guard: review reports must not litter source trees; guard applies to tier 2 only; when in doubt classify as source-code (falling through is safer).
 - `RCAL-37` [review-report-location] Report body must include a one-line decision trace naming which tier resolved the location and why.
@@ -775,7 +782,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 
 **Purpose**: andthen:init sets up the AndThen workflow structure for a project – handles new projects, partial setups, and brownfield codebases non-destructively.
 **Surface**: argument-hint: "[project name or path]"; PROJECT_NAME is the sole optional argument, passed inline; no flags or modes defined in frontmatter.
-**Outputs**: CLAUDE.md (project root), AGENTS.md (project root), docs/ directory structure (docs/specs/, docs/guidelines/), docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md + other starter guidelines, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/STACK.md, docs/KEY_DEVELOPMENT_COMMANDS.md, docs/DECISIONS.md, docs/LEARNINGS.md (all Core stubs; default), optional: docs/STATE.md, docs/PRODUCT-BACKLOG.md, docs/ROADMAP.md, docs/UBIQUITOUS_LANGUAGE.md, per-sub-project CLAUDE.md/AGENTS.md files.
+**Outputs**: CLAUDE.md (project root), AGENTS.md (project root), docs/ directory structure (docs/specs/, docs/guidelines/), docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md + other starter guidelines, docs/PRODUCT.md, docs/ARCHITECTURE.md, docs/STACK.md, docs/KEY_DEVELOPMENT_COMMANDS.md, docs/DECISIONS.md, docs/LEARNINGS.md (all Core stubs; default), optional: docs/STATE.md, docs/PRODUCT-BACKLOG.md, docs/ROADMAP.md, docs/UBIQUITOUS_LANGUAGE.md, per-sub-project CLAUDE.md/AGENTS.md files; .gitignore (created if missing; docs/STATE.local.md and .agent_temp/ entries appended idempotently per INIT-47).
 
 **Requirements**
 - `INIT-01` PROJECT_NAME is optional; inferred from directory name or package config if not supplied.
@@ -828,6 +835,8 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `INIT-44` map-codebase invocation skips generating Architecture and Stack stubs from templates (map-codebase produces them from analysis instead).
 - `INIT-45` Ubiquitous Language doc can be deferred to later via andthen:ubiquitous-language skill instead of scaffolded at init time.
 - `INIT-46` TODO comments removed from filled sections of generated CLAUDE.md/AGENTS.md; sections not yet filled retain TODO markers.
+- `INIT-47` Gitignore hygiene (Step 2a and 2b): `.gitignore` ignores the per-developer local state file (`docs/STATE.local.md`, or the `State (local)` Project Document Index path) and `.agent_temp/`; entries appended idempotently (only if absent); `.gitignore` created if missing. Neither is ever committed.
+- `INIT-48` When the optional `State` document is created, the `State (local)` row (`docs/STATE.local.md`) is also added to the Project Document Index; init never creates the local file itself nor reports it as a missing referenced document (it is per-checkout and gitignored – andthen:ops owns its creation).
 
 **Integration**
 - Reads templates/CLAUDE.template.md to generate CLAUDE.md and AGENTS.md.
@@ -1161,7 +1170,7 @@ Completion report (5c) in conversation: per-task status, files created/modified,
 - `XSPEC-36` Step 5b.3 (State exists; DEFER_SHARED_WRITES=false): removes story from Active Stories, adds completion note, clears `{STORY_ID}: exec-spec persistent-failure` blocker (best-effort), derives and writes plan-level status (On Track / At Risk / Blocked) via `andthen:ops update-state status`.
 - `XSPEC-37` Plan-level status derivation: any story status==blocked → Blocked; else schedulable==0 AND unfinished stories OR State blocker → Blocked; else any State blocker OR any story status==skipped → At Risk; else → On Track.
 - `XSPEC-38` Step 5b.4 verifies all updated files: every task/scenario/criteria checkbox is [x]; plan story status is `done`; story absent from Active Stories. Any miss retries the matching update-* once; persistent failure is Stop-the-Line.
-- `XSPEC-39` When DEFER_SHARED_WRITES=true, skips 5b.2 and 5b.3 and emits `## Deferred Shared Writes` audit block with Story/Plan/FIS/Completion-summary fields in the completion report.
+- `XSPEC-39` When DEFER_SHARED_WRITES=true, skips 5b.2 and 5b.3 shared writes and emits `## Deferred Shared Writes` audit block with Story/Plan/FIS/Completion-summary fields in the completion report; the local completion note (STATE.local.md) still runs and is never replayed by the orchestrator (per exec-spec 5b.3).
 - `XSPEC-40` Deferred Shared Writes block must use literal values – no generated `andthen:ops` invocation lines.
 - `XSPEC-41` Step 5c Completion Report includes: per-task status, files created/modified, verification evidence (Build exit code, Tests pass/fail counts, Lint/types error counts, Format clean/violations), Chain Attestation per-link articulation, summary of persisted observations/Discovered Requirements.
 - `XSPEC-42` Step 5c Completion Report adds **Visual validation** and **Runtime** evidence sections for UI/runtime stories.
@@ -1204,6 +1213,7 @@ Completion report (5c) in conversation: per-task status, files created/modified,
 - `XSPEC-74` `--to-pr` absent: 5d (PR comment) skipped entirely.
 - `XSPEC-75` 5b verify retry: each failed update-* retried once; persistent failure is Stop-the-Line.
 - `XSPEC-76` Sub-agent guidance conflicting with FIS: FIS wins.
+- `XSPEC-79` When the FIS leaves a read-set unpinned and the dependency neighborhood is large or unfamiliar, codebase reconnaissance runs in Explore (or general-purpose) sub-agents returning distilled briefs per work area; reconnaissance is advisory retrieval, not delegated coding.
 - `XSPEC-77` Treating spec size as permission to narrow scope: explicitly forbidden (GOTCHAS).
 
 **Integration**
@@ -1245,10 +1255,11 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 - `PLAN-02` One story → one FIS invariant: each non-null stories[].fis value is unique across the catalog; multiple null values valid pre-generation.
 - `PLAN-03` Initial story status is `pending`; transitions to `spec-ready` after FIS generation in Step 5.
 - `PLAN-04` Stories without sourceRefs must carry provenance; prose in dependsOn is invalid.
+- `PLAN-82` Stories are vertical (demoable slices through all layers) by default; a story with no user-facing behavior to slice through (infrastructure, migration, cross-cutting sweep) may be layer-/module-shaped, verified by tests or fitness criteria instead of a demo; story size never licenses layer-shaped stories – oversized stories split into thinner verticals.
 - `PLAN-05` story.dependsOn elements must each be an existing stories[].id from the same catalog.
-- `PLAN-06` plan.json top-level fields and story content fields are written only by andthen:plan; only stories[].status and stories[].fis are mutable in-flight, only via andthen:ops.
+- `PLAN-06` plan.json top-level fields and story content fields are written only by andthen:plan; only stories[].status, stories[].fis, and stories[].owner are mutable in-flight, only via andthen:ops.
 - `PLAN-07` Resume contract: re-running skips stories whose stories[].fis points at an existing file (status spec-ready or done preserved); only fills gaps.
-- `PLAN-08` Preservation predicate on regeneration: preserve existing status/fis only when ALL hold – id survives, scope string-equal, sourceRefs set-equal, assetRefs set-equal, provenance string-equal, fis path still resolves; stories failing any clause reset to pending/null.
+- `PLAN-08` Preservation predicate on regeneration: preserve existing status/fis/owner only when ALL hold – id survives, scope string-equal, sourceRefs set-equal, assetRefs set-equal, provenance string-equal, fis path still resolves; stories failing any clause reset to pending/null/null.
 - `PLAN-09` Step 5 orchestrator does not re-issue ops writes already driven by spec sub-agents; repairs only on verified miss (re-read plan.json post-wave; single andthen:ops update-plan-fis / update-plan repair; persistent miss recorded in Step 6 summary).
 - `PLAN-10` FIS sub-agents spawned as `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.json`; orchestrator does not author FIS content itself.
 - `PLAN-11` bindingConstraints[] entries flow unchanged into FIS Required Context blocks with each entry's anchor as the source pin; not narrowed or redistributed into Acceptance Scenarios / Structural Criteria.
@@ -1270,6 +1281,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 - `PLAN-26` --to-issue single-issue mode: plan issue created with title `[Plan] <feature-name>`, labels `plan` + `andthen-artifact`; body written to temp file `.agent_temp/plan-issue-<feature-slug>.md`.
 - `PLAN-27` --create-story-issues granular mode: each story issue created with title `S0N: <story name>` and labels `story` + `andthen-artifact`.
 - `PLAN-28` Rendered plan issue body includes a `Refs #<input-issue-N>` footer line when the input was `--issue <N>` or a GitHub issue URL; omitted when no input issue was supplied.
+- `PLAN-81` --to-issue republish preservation: when OUTPUT_DIR already holds a plan.json, its stories[].owner and status carry into the rendered Story Catalog for matching story ids passing the Preservation predicate (content-stable only); when the prior plan issue is known, its non-empty Owner cells win over both local null and conflicting local values (the displaced local value is named in the publish output), else the publish output states that claims on the superseded issue were not carried.
 
 **Gates / BLOCKED**
 - `PLAN-29` INPUT missing → stop immediately.
@@ -1292,7 +1304,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 - `PLAN-44` --issue / GitHub issue URL + local output: issue body materialized verbatim as OUTPUT_DIR/prd.md before Step 2 so FIS sub-agents can resolve Source refs.
 - `PLAN-45` Legacy plan.md present, plan.json absent: parsed via data-contract.md Story Catalog; statuses mapped to lowercase-kebab; unrecognized (e.g. Retired) → `skipped` + durable executionNotes annotation; plan.md left untouched with one-line migration notice.
 - `PLAN-46` Legacy plan.md migration: existing plan.md FIS cells pointing at files preserve path + status; sentinel/missing FIS cells get fis: null + pending.
-- `PLAN-47` Regeneration rerun with existing plan.json: emit ids of stories that preserved status/fis and ids reset to pending/null; if all preserved, omit reset line.
+- `PLAN-47` Regeneration rerun with existing plan.json: emit ids of stories that preserved status/fis/owner and ids reset to pending/null/null; if all preserved, omit reset line.
 - `PLAN-48` Legacy metadata fields (e.g. immutableDigest from 0.19.x) ignored on read and dropped on next regeneration.
 - `PLAN-49` MAX_PARALLEL default 5, hard cap 10; stories batched into sub-waves when count exceeds MAX_PARALLEL.
 - `PLAN-50` sharedDecisions empty: strict wave ordering fallback (W1 complete before W2).
@@ -1314,7 +1326,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 - Calls andthen:visualize on plan.json when --visual and local output mode (Step 7).
 - Delegates cross-cutting review (Step 6) to a fresh-context sub-agent with plan.json + all FIS paths + prd.md, inheriting the session model and using high reasoning effort.
 - Consumed by andthen:exec-plan (reads plan.json; --from-issue parses issue body into .agent_temp/from-issue-<N>/plan.json).
-- Consumed by andthen:ops (reads/writes plan.json stories[].status and stories[].fis).
+- Consumed by andthen:ops (reads/writes plan.json stories[].status, stories[].fis, and stories[].owner).
 - Consumed by andthen:review --mode gap (reads plan.json).
 - Consumed by andthen:now-what (checks plan.json existence).
 - GitHub transport: gh issue view <N> for --issue input or GitHub issue URL; gh issue create for --to-issue / --create-story-issues; gh issue edit for granular two-pass Depends on rewrite and andthen-finalizing label removal.
@@ -1383,7 +1395,7 @@ Positional args:
 - `XPLAN-37` --worktree without --team → BLOCKED: --worktree requires --team in AUTO_MODE; default mode asks to add --team or drop --worktree
 - `XPLAN-38` In --from-issue mode, plan-issue body is fetched once with gh issue view <N> --json body,labels and materialized into .agent_temp/from-issue-<N>/plan.json; GitHub issue body is never rewritten. Older issues without the required `> **PRD**:` header fall back to the first `Refs #N` token as the durable PRD source.
 - `XPLAN-39` If issue carries label andthen-finalizing, stop with Plan issue #<N> is still being finalized by andthen:plan – retry once the andthen-finalizing label has been removed (default) or BLOCKED: plan issue #<N> is still being finalized – retry after the producer completes (AUTO_MODE)
-- `XPLAN-40` Rerun reconciliation for --from-issue: stories in both ledger and issue with Preservation predicate passing → preserve local status/fis; predicate failing → reset to pending/null; new IDs appended; removed IDs retained with notes annotation
+- `XPLAN-40` Rerun reconciliation for --from-issue: stories in both ledger and issue with Preservation predicate passing → preserve local status/fis; owner always refreshes from the issue's Owner cell (empty/sentinel → null; claims live on the issue per the owner-authority ADR); predicate failing → reset to pending/null; new IDs appended; removed IDs retained with notes annotation
 - `XPLAN-41` JIT FIS: story body written to <run-tempdir>/story-<story-id>-body.md; Shared Decisions and Binding Constraints prepended; `## Source Material` appended with PRD spans from `Source refs` (or the full PRD body when span extraction is uncertain); the `andthen:spec` skill is invoked via file-reference form and its invocations run serially
 - `XPLAN-42` Provenance fields injected into JIT FIS after write: **Plan**: github://issue/<plan-N> and **Story-ID**: <S0N> between H1 and ## Feature Overview and Goal; the local .agent_temp/from-issue-<N>/plan.json is then updated via the `andthen:ops` skill `update-plan-fis` and `update-plan ... spec-ready` forms
 - `XPLAN-43` JIT spec failure → surface, mark story failed, continue remaining stories (log and continue)
@@ -1604,17 +1616,18 @@ Positional args:
 ## andthen:ops
 
 **Purpose**: andthen:ops – deterministic template-driven operations for state management, plan/FIS mutation, git conventions, progress tracking, and defensive-knowledge appending.
-**Surface**: Invoked as `andthen:ops <operation> [args...]`; context: fork; user-invocable: true. Operations: read-state | update-state <field> <value> | update-plan <plan_path> <story_id> <status> | update-plan-fis <plan_path> <story_id> <fis_path> | update-fis <fis_path> <task_id|all|observations|discovered-requirements|design-change> [markdown-body] | update-tech-debt append <markdown-body> | update-learnings add <topic> <entry-markdown> | update-learnings error <error> <type> [conclusion] | commit <type> <scope> <description> | branch <type> <story-id> <slug> | changelog <version> <entries...> | progress <plan_path> | stale <plan_path>
-**Outputs**: STATE.md (read/written, path from Project Document Index, default docs/STATE.md); plan.json (mutated in-place, 2-space indent, schema key order, trailing newline); FIS document (checkboxes flipped, sections appended); docs/TECH-DEBT-BACKLOG.md (appended or scaffolded, path from Project Document Index Tech Debt row); docs/LEARNINGS.md (appended, path from Project Document Index Learnings row); no file output for commit/branch/changelog/progress/stale – those produce text.
+**Surface**: Invoked as `andthen:ops <operation> [args...]`; context: fork; user-invocable: true. Operations: read-state | update-state <field> <value> | update-plan <plan_path> <story_id> <status> | update-plan-fis <plan_path> <story_id> <fis_path> | update-plan-owner <plan_path> <story_id> <owner> | update-fis <fis_path> <task_id|all|observations|discovered-requirements|design-change> [markdown-body] | update-ledger <add|reconcile|withdraw|bump-recurrence|override-close> <ledger-path> [args...] | update-tech-debt append <markdown-body> | update-learnings add <topic> <entry-markdown> | update-learnings error <error> <type> [conclusion] | commit <type> <scope> <description> | branch <type> <story-id> <slug> | changelog <version> <entries...> | progress <plan_path> | stale <plan_path>
+**Outputs**: STATE.md (read/written, path from Project Document Index, default docs/STATE.md); STATE.local.md (gitignored, path from Project Document Index State (local) row, default docs/STATE.local.md; read on read-state, auto-created/written by note/focus); plan.json (mutated in-place, 2-space indent, schema key order, trailing newline); FIS document (checkboxes flipped, sections appended); docs/TECH-DEBT-BACKLOG.md (appended or scaffolded, path from Project Document Index Tech Debt row); docs/LEARNINGS.md (appended, path from Project Document Index Learnings row); FIS-adjacent reconciliation ledger (mutated/scaffolded via update-ledger, per RLDG-08/09); no file output for commit/branch/changelog/progress/stale – those produce text.
 
 **Requirements**
-- `OPS-01` read-state: parses STATE.md and returns current phase/status, active stories, blockers, recent decisions, session notes, last-updated timestamp; if absent, reports 'no state file' without creating it.
-- `OPS-02` update-state: refuses (reports 'no state file') if STATE.md absent at the Project Document Index path; does not create it.
+- `OPS-01` read-state: parses the shared STATE.md and, when present, the gitignored STATE.local.md, returning a merged view – current phase/status, active stories (per OPS-60), blockers, recent decisions (shared) plus My Current Focus and session continuity notes (local), and each file's last-updated timestamp; if shared STATE.md absent, reports 'no shared state file' without creating it but still returns local sections and plan-derived active stories when resolvable; the local file is optional and not created on read.
+- `OPS-60` read-state Active Stories derivation: the union across governing plan.json files (PSCH-51) of stories in-progress or claimed (`owner` set, status not done/skipped), ids resolved per plan; stored STATE.md rows only for ids in no governing plan.
+- `OPS-02` update-state: shared-field forms (phase | status | active-story | blocker | decision) refuse (report 'no shared state file') if STATE.md absent at the Project Document Index path and do not create it; local-field forms (note | focus) are exempt – they scaffold STATE.local.md per OPS-57.
 - `OPS-03` update-state active-story {id} Done: removes the row from Active Stories (Done token is case-sensitive capital-D).
 - `OPS-04` update-state active-story {id} fis {fis_path}: updates the FIS column for the matching story row.
 - `OPS-05` update-state blocker remove '{description}': removes the matching blocker entry.
 - `OPS-06` update-state: sets Last Updated to current timestamp after every write.
-- `OPS-07` update-state maintenance rules apply on every write: remove Done-status Active Stories rows; keep only last 2 Recently Completed milestones; remove stale/resolved Blockers (>14 days no activity); keep only last 10 Recent Decisions; keep only last 5 Session Continuity Notes; keep STATE.md under ~60 lines.
+- `OPS-07` update-state maintenance rules apply on every write to the relevant document: (shared STATE.md) remove Done-status Active Stories rows, keep only last 2 Recently Completed milestones, remove stale/resolved Blockers (>14 days no activity), keep only last 10 Recent Decisions, keep STATE.md under ~60 lines; (local STATE.local.md) keep only last 5 Session Continuity Notes.
 - `OPS-08` update-plan: validates status against closed enum (pending/spec-ready/in-progress/done/skipped/blocked); rejects unknown values with BLOCKED: invalid status "<value>" – must be one of pending, spec-ready, in-progress, done, skipped, blocked.
 - `OPS-09` update-plan: no-ops when story's current status already equals target value.
 - `OPS-10` update-plan-fis: enforces 1:1 story↔FIS invariant; rejects if any other story already has the same fis path with BLOCKED: fis path "<fis_path>" already used by story <other-id> – the 1:1 story↔FIS invariant must hold.
@@ -1664,9 +1677,13 @@ Positional args:
 - `OPS-50` update-plan backward transitions (e.g. done → spec-ready) are valid only via explicit update-plan calls.
 - `OPS-51` update-learnings error: updates existing row on identical error key instead of duplicating.
 - `OPS-52` update-fis all: Final Validation Checklist flipped only when that section exists (it is optional).
-- `OPS-53` Ops never creates STATE.md, plan.json, FIS, or LEARNINGS.md – init owns creation; only TECH-DEBT-BACKLOG.md may be scaffolded by ops.
+- `OPS-53` Ops never creates the shared STATE.md, plan.json, FIS, or LEARNINGS.md – init owns creation; the file-creation exceptions ops may scaffold are TECH-DEBT-BACKLOG.md (`update-tech-debt append`), the reconciliation ledger (`update-ledger add`), and the gitignored STATE.local.md (`update-state note`/`focus`).
 - `OPS-54` update-fis target section '## Implementation Observations' is appended to FIS end (with standard lead paragraph) if absent.
-- `OPS-55` STATE.md maintenance rules (cleanup of Done rows, stale blockers, etc.) apply automatically on every update-state write – not only when those specific fields are targeted.
+- `OPS-55` STATE.md maintenance rules (cleanup of Done rows, stale blockers, etc.) apply automatically on every update-state write to that document – not only when those specific fields are targeted.
+- `OPS-56` update-plan-owner `<plan> <id> <owner>`: sets `stories[].owner` (string, or `null` when `<owner>` is `-`/empty); writes back with canonical formatting and schema key order (PSCH-27); inserts the key in schema order for legacy stories lacking it; no-ops when already equal; rejects values containing `|`/newlines or equal to a non-`-` sentinel (`BLOCKED: invalid owner value`); overwriting a different non-null owner emits a displacement warning naming the previous owner; advisory coordination only (does not block anyone).
+- `OPS-57` update-state field routing: `phase`/`status`/`active-story`/`blocker`/`decision` write to the shared STATE.md (refuse if absent); `note`/`focus` write to the gitignored STATE.local.md, scaffolding it from the template if absent (file-creation exception per OPS-53); every local-field write also ensures its `.gitignore` entry (appended idempotently, `.gitignore` created if missing). `active-story {id} owner "{owner}"` updates the Owner column.
+- `OPS-58` update-state active-story add/update forms (status/owner/fis) are the planless fallback: when the story id resolves in a governing plan.json they no-op reporting `NO-OP: story "<story_id>" is plan-governed – use update-plan / update-plan-owner` (Active Stories derive on read per OPS-01); ids in no governing plan still write stored rows; `Done` removal still prunes stored rows.
+- `OPS-59` All update-plan* forms refuse an unknown story id with `BLOCKED: story "<story_id>" not found in <plan_path>`; they never create story objects (andthen:plan owns story creation).
 
 **Integration**
 - Reads plan.json schema per plugin/references/plan-schema.md (stories[].status closed enum, stories[].fis 1:1 invariant).
@@ -1693,7 +1710,8 @@ Positional args:
 - `NOW-02` State vector has three axes: setup (not-started | partial | done), codebase (greenfield | brownfield-unmapped | brownfield-mapped), workflow (nothing-in-progress | mid-flow).
 - `NOW-03` Brownfield codebase threshold: >50 tracked files with substantive code extensions (via `git ls-files`); when genuinely unclear, asks exactly one question: "Is this a fresh project or are we working with existing code?"
 - `NOW-04` When both CLAUDE.md and AGENTS.md exist, both must carry the shared workflow sections (Project Document Index + Project-Specific Guidelines) for `setup: done` to hold.
-- `NOW-05` In-flow artifact scan covers: requirements-clarification.md, prd.md, plan.json (or legacy plan.md), standard plan-story FIS files (`s[0-9][0-9]-*.md`), standalone FIS docs by shape (`## Feature Overview and Goal` + `## Acceptance Scenarios`), STATE.md, *-architecture-*.md, *-triage-*.md, and ui-ux-design outputs; checked via Project Document Index paths.
+- `NOW-05` In-flow artifact scan covers: requirements-clarification.md, prd.md, plan.json (or legacy plan.md), standard plan-story FIS files (`s[0-9][0-9]-*.md`), standalone FIS docs by shape (`## Feature Overview and Goal` + `## Acceptance Scenarios`), STATE.md and the gitignored STATE.local.md (a mid-flow signal even when shared state is absent), *-architecture-*.md, *-triage-*.md, and ui-ux-design outputs; checked via Project Document Index paths.
+- `NOW-47` Mid-flow exec routing is owner-aware: when plan stories carry `owner` claims, the claims are surfaced and the recommendation steers toward an unclaimed, dependency-ready story (claim via andthen:ops update-plan-owner; in --from-issue workflows, on the issue's Owner cell instead).
 - `NOW-06` Architecture report mode is identified by reading the report's H1/H2, not the filename suffix (single suffix `architecture` is used for all 7 modes).
 - `NOW-07` Branches: A (setup not-started/partial) → init; B (brownfield-unmapped) → map-codebase; C (setup done, nothing-in-progress) → feature routing; D (mid-flow) → terse route.
 - `NOW-08` Branch A opens with exactly three-line mental model, then recommends andthen:init; after init returns, tells user to re-invoke /andthen:now-what – does not continue the invocation.
@@ -1758,16 +1776,16 @@ Positional args:
 **Outputs**: `.agent_temp/handoff/handoff-<UTC-ts>.md` – always produced. Mutations to STATE.md and/or LEARNINGS.md via andthen:ops – only when those files exist and --no-mutate is unset.
 
 **Requirements**
-- `HAND-01` Triage every substantive conversation fragment into one of four durability bins: mid-flow workflow state, defensive knowledge, structural decision needing rationale, or transient context.
-- `HAND-02` Mid-flow state (active stories, blockers, decisions, notes) auto-written to STATE.md via andthen:ops update-state when file exists and --no-mutate is unset.
+- `HAND-01` Triage every substantive conversation fragment into one of five durability bins: shared mid-flow state, session-local state, defensive knowledge, structural decision needing rationale, or transient context.
+- `HAND-02` Mid-flow state auto-written via andthen:ops when --no-mutate is unset: story status/claims via update-plan / update-plan-owner when a plan.json governs (update-state active-story no-ops there), else active-story rows to STATE.md; blockers/decisions to STATE.md when it exists; session-local items (notes, focus) to the gitignored STATE.local.md, which ops auto-creates (so notes/focus always apply).
 - `HAND-03` Defensive knowledge auto-written to LEARNINGS.md via andthen:ops update-learnings add when file exists, entry is clearly-bounded, and --no-mutate is unset; uncertain wording or topic placement stays as a recommendation in Pending durable writes.
 - `HAND-04` Structural decisions (chose X over Y with trade-offs) → recommend andthen:architecture --mode trade-off only; never auto-create the ADR.
 - `HAND-05` Transient context (open questions, hypotheses, things tried, next-session priming) → handoff doc only.
 - `HAND-06` update-learnings add entries must start with `- **{title}**` and not exceed 200 chars; normalize before passing to ops.
-- `HAND-07` update-state arg forms: `active-story <id> "<name>" "In Progress"` or `"Done"` to remove; `blocker "<text>"` or `blocker remove "<text>"`; `decision "<text>"`; `note "<text>"`.
+- `HAND-07` update-state arg forms: shared `active-story <id> "<name>" "In Progress"` or `"Done"` to remove (and `active-story <id> owner "<owner>"`); `blocker "<text>"` or `blocker remove "<text>"`; `decision "<text>"`; local `note "<text>"`; `focus "<text>"`. Plan-governed story fragments use `update-plan <plan> <id> <status>` / `update-plan-owner <plan> <id> <owner>` instead (plan path per the Project Document Index Specs & Plans row or session context; status tokens map In Progress→in-progress, Done→done).
 - `HAND-08` ops timestamps decision/note entries automatically; the value passed to update-state decision/note carries no caller-supplied timestamp.
 - `HAND-09` Each durable mutation is a separate andthen:ops invocation – one invocation per logical entry; entries are not batch-combined into a single ops call.
-- `HAND-10` When STATE.md or LEARNINGS.md is absent (file missing or absent from Project Document Index), skip the mutation, reroute entry to Pending durable writes naming the missing file; do not create – andthen:init owns creation.
+- `HAND-10` When the shared STATE.md or LEARNINGS.md is absent (file missing or absent from Project Document Index), skip that mutation, reroute entry to Pending durable writes naming the missing file; do not create – andthen:init owns creation. (Local note/focus exempt per HAND-02.)
 - `HAND-11` Handoff doc saved to `.agent_temp/handoff/handoff-<UTC-ts>.md` where UTC-ts = `date -u +%Y%m%d-%H%M%S`.
 - `HAND-12` Project root resolved via `git rev-parse --show-toplevel`; fallback to CWD.
 - `HAND-13` Handoff doc MUST use the exact template: opening disclaimer blockquote `> Handoff context for a fresh session. May contain conversation excerpts – review before sharing or restoring.`, `# Handoff – <UTC-ts>`, sections: Next session focus, Where we are, Open questions, Hypotheses & things tried, Pending durable writes, Recommended next skill, Index.
@@ -1779,7 +1797,7 @@ Positional args:
 - `HAND-19` Secrets (tokens, keys, credentials, PII, shell output that may carry them) → `[REDACTED:<kind>]` or omitted.
 - `HAND-20` Post-completion summary: one line per applied mutation (e.g. `STATE: added active-story s03 …`), plus fenced resume prompt `Resume from .agent_temp/handoff/handoff-<UTC-ts>.md`.
 - `HAND-21` No per-mutation confirmation dialogs; applied diffs shown inline at the end (pragmatic by default).
-- `HAND-22` Re-running quickly duplicates STATE.md decision/note entries (update-learnings add is idempotent; decision/note are not) – documented gotcha, not a guardrail.
+- `HAND-22` Re-running quickly duplicates decision/note entries (update-learnings add is idempotent; decision/note are not) – documented gotcha, not a guardrail.
 - `HAND-23` Handoff doc is self-sufficient; fresh session needs no skill invocation – resume by pasting the resume prompt.
 
 **Gates / BLOCKED**
@@ -2103,8 +2121,8 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `REV-70` fanout boundary pass attacks cross-partition surface after the parallel batch returns.
 - `REV-71` When only one lens applies under --mode mixed, run as a single-lens call.
 - `REV-72` For --to-pr combined with --fix: post PR comment first, then run remediation.
-- `REV-73` Absent STATE.md or absent Active Stories section: tier 3 directory resolution is skipped.
-- `REV-74` Multiple in-progress STATE.md rows: tier 3 uses dirname(FIS) only when it is an unambiguous ancestor of the review target's path.
+- `REV-73` Absent row source (no governing plan.json, and STATE.md absent or without an Active Stories section): tier 3 directory resolution is skipped.
+- `REV-74` Multiple in-progress rows (plan.json-derived or stored): tier 3 uses dirname(FIS) only when it is an unambiguous ancestor of the review target's path.
 - `REV-75` council-mode.md is loaded only when --council is passed; never loaded otherwise.
 - `REV-77` Skip FOLLOW-UP ACTIONS section entirely when AUTO_MODE=true.
 - `REV-78` andthen:ops update-learnings is exempt from --auto propagation.

@@ -38,9 +38,9 @@ Orchestrator-side rules extending the universal Stop-the-Line gate.
 
 - **Story-scoped containment** – a failed story is not `Done`, not merged as complete, and does not unblock dependents. `done` means fully green; a failed story keeps its pre-run `plan.json` status unless an explicit `andthen:ops update-plan` changes it. Dependents not attempted because an upstream dependency failed are recorded as `skipped`; never invent a status outside the enum. `AUTO_MODE`: record the failure, preserve partial work, skip dependents, continue independent stories, finish with aggregate report. In shared checkouts, continue only after preserving partial work off the active checkout and proving the checkout clean.
 
-- **Authoritative writes (no double-write)** – `exec-spec` Step 5b writes per-story status (FIS checkboxes, `plan.json` `status`, State active-story) via `andthen:ops`. Sub-agents/teammates **do not** call `andthen:ops update-*` on top of exec-spec. The orchestrator writes cross-story state (phase transitions, overall status, session notes) plus *repair writes* when a Step 3c Writes-Landed Checklist item is missing.
+- **Authoritative writes (no double-write)** – `exec-spec` Step 5b writes per-story status (FIS checkboxes, `plan.json` `status`, and legacy State active-story prune) via `andthen:ops`. Sub-agents/teammates **do not** call `andthen:ops update-*` on top of exec-spec. The orchestrator writes cross-story state (phase transitions, overall status, session notes) plus *repair writes* when a Step 3c Writes-Landed Checklist item is missing.
 
-- **Worktree deferral** – under `--worktree`, `exec-spec` runs with `--defer-shared-writes`: writes only the FIS (story-local) and emits a `## Deferred Shared Writes` audit block. The orchestrator constructs the `andthen:ops update-*` calls from its own `STORY_ID` / `FIS_FILE_PATH` / `PLAN_FILE_PATH` plus the audit's `Completion summary` and applies them as the **primary** write path immediately after merging that worktree.
+- **Worktree deferral** – under `--worktree`, `exec-spec` runs with `--defer-shared-writes`: writes only the FIS (story-local) and emits a `## Deferred Shared Writes` audit block. The orchestrator constructs the `andthen:ops update-*` calls from its own `STORY_ID` / `FIS_FILE_PATH` / `PLAN_FILE_PATH` plus the audit's `Completion summary` and applies them as the **primary** write path immediately after merging that worktree (shared surfaces only; the executor's local completion note is never replayed – see exec-spec 5b.3).
   - Repo placement: single-repo writes land on `{BASE_BRANCH}`; multi-repo writes land in `PLAN_DIR` (committed there if it's a git repo) and leave `CODE_DIR` untouched.
   - Missing audit block → fall back to a generated `Completion summary`; log the miss, not Stop-the-Line.
   - The Writes-Landed Checklist runs *after* deferred writes; any miss → one-shot repair.
@@ -58,7 +58,7 @@ Orchestrator-side rules extending the universal Stop-the-Line gate.
    - Resolve `BASE_BRANCH = git -C {CODE_DIR} rev-parse --abbrev-ref HEAD`.
    - **Log + non-default warning** _(only when CODE_DIR was resolved)_: print `BASE_BRANCH={value}`. Resolve `DEFAULT_BRANCH` from `git symbolic-ref refs/remotes/origin/HEAD --short` (strip `origin/`), else local `main`, else local `master`. None resolve → skip the warning (no nag in repos without a clear default). When `BASE_BRANCH ≠ DEFAULT_BRANCH`: confirm in default mode; `AUTO_MODE` proceeds with `WARNING: BASE_BRANCH={value} is not the repo's default branch ({DEFAULT_BRANCH}) – all stories will land here.` Catches the silent "wrong branch" case.
 
-2. **Load session state** – read `State` document (default: `docs/STATE.md`) if present. Extract continuity notes, active stories, blockers, current phase.
+2. **Load session state** – read the shared `State` document and the local `State (local)` document (defaults: `docs/STATE.md` / `docs/STATE.local.md`), each if present. Extract active stories, blockers, current phase (shared) and current focus / continuity notes (local).
 
 3. Read `PLAN_DIR/plan.json` _(local-directory mode)_. If only `plan.md` is present, stop with: `BLOCKED: plan.md is no longer consumed by exec-plan. Run /andthen:plan {PLAN_DIR} to migrate to plan.json (existing FIS files are preserved).` If `plan.json` is missing entirely, stop – a valid plan artifact is required upstream (the `andthen:plan` skill). Set `PLAN_PATH` to the absolute path; `--from-issue` mode materializes it via `references/from-issue-mode.md`.
 4. **Validate against schema** – `schemaVersion === "1"` (else `BLOCKED: unsupported plan.json schemaVersion – re-run /andthen:plan to regenerate`). Parse error → `BLOCKED: malformed plan.json – re-run /andthen:plan`. Validate `dependsOn` closure: every element matches an `id` in `stories[]`. Unknown IDs → `BLOCKED: invalid dependency in {story_id}: "{value}" – story not in catalog`. Status must be in the closed enum.
@@ -136,7 +136,7 @@ Pass → run the **Writes-Landed Checklist** below. Outside this repair path and
 
 - [ ] **FIS** – every task / Acceptance Scenario / Structural Criteria checkbox `[x]`; Final Validation Checklist `[x]` when present.
 - [ ] **`plan.json` story status** – the story object with `id === {story_id}` shows `status: "done"` and `fis` points at `{fis_path}`.
-- [ ] **State document** _(local-directory mode only, when it exists)_ – `{story_id}` no longer in Active Stories.
+- [ ] **State document** _(local-directory mode only, when it exists)_ – `{story_id}` absent from Active Stories (for plan-governed stories this follows from the status `done` check above; legacy stored rows are pruned).
 
 `--from-issue` mode: skip the State item; the `plan.json` check applies to the materialized plan. The FIS carries `**Plan**: github://issue/<plan-N>` for traceability; Step 5c posts the issue-side completion record.
 
@@ -242,4 +242,4 @@ Print the Step 6 summary.
 
 ## Post-Completion
 
-Update the `State` document (see **Project Document Index**): on success, set phase/status, mark completed stories `Done`, and add a session continuity note. If the run has failed or skipped stories, preserve Step 6's `"At Risk"` / `"Blocked"` status and blockers; only add the continuity note. Capture cross-story insights, traps, and error patterns via the `andthen:ops` skill (`update-learnings add` form, brief, by topic).
+Update state (see **Project Document Index**): on success, set phase/status in the shared `State` document and add a session continuity note (`update-state note`, which routes to the gitignored `State (local)` document – auto-created). If the run has failed or skipped stories, preserve Step 6's `"At Risk"` / `"Blocked"` status and blockers; only add the continuity note. Capture cross-story insights, traps, and error patterns via the `andthen:ops` skill (`update-learnings add` form, brief, by topic).

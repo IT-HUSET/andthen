@@ -3,7 +3,8 @@
 Lightweight starter templates for the supplementary project documents referenced in the **Project Document Index** of the root agent instruction file (`CLAUDE.md` / `AGENTS.md`). Fill in what applies, remove what doesn't.
 
 ## Contents
-- STATE.md – cross-session state snapshot
+- STATE.md – shared, committed cross-session state snapshot
+- STATE.local.md – per-developer, **gitignored** session-local state (never committed)
 - PRODUCT-BACKLOG.md – requirements registry with REQ-IDs
 - ROADMAP.md – phases, success criteria, milestones
 - TECH-DEBT-BACKLOG.md – tech debt by severity
@@ -19,7 +20,9 @@ Lightweight starter templates for the supplementary project documents referenced
 
 ## STATE.md
 
-> Cross-session state tracking – a snapshot of _current_ state, not a history log. Keep under ~60 lines so agents can consume it quickly.
+> **Shared, committed** cross-session state – a snapshot of _current_ team-wide state, not a history log. Keep under ~60 lines so agents can consume it quickly.
+>
+> **Team note**: STATE.md holds only shared, low-churn team state; high-churn per-developer context lives in the **gitignored** `STATE.local.md` so teammates never collide. When a `plan.json` governs, Active Stories derive from it on read – the table below is the planless fallback.
 
 ```markdown
 # Project State
@@ -33,11 +36,12 @@ Phase: ...
 Status: On Track | At Risk | Blocked
 
 ## Active Stories
-<!-- Only currently in-progress work. Remove completed stories – they go to Recently Completed. -->
+<!-- When a plan.json governs (has undone stories), Active Stories derive from it on read – store rows only for ad-hoc work in no governing plan.
+     Otherwise one row per in-progress story (Owner = who is executing it); move completed stories to Recently Completed. -->
 
-| Story | Status | FIS | Notes |
-|-------|--------|-----|-------|
-| ...   | ...    | ... | ...   |
+| Story | Owner | Status | FIS | Notes |
+|-------|-------|--------|-----|-------|
+| ...   | ...   | ...    | ... | ...   |
 
 ## Recently Completed
 <!-- Last 2 milestones only, one line each. Older milestones belong in CHANGELOG.md.
@@ -54,10 +58,27 @@ Status: On Track | At Risk | Blocked
 <!-- Key decisions made in the last 1-2 sessions. Keep max ~10. Move older items to ADRs. -->
 
 - ...
+```
+
+---
+
+## STATE.local.md
+
+> **Per-developer, gitignored** session-local state – never committed (the `andthen:init` skill adds it to `.gitignore`). Holds high-churn, personal context so teammates sharing the repo don't collide on `STATE.md`; each checkout has its own. Keep it short – a scratch snapshot for _your next session_, not a shared record.
+
+```markdown
+# Local State (not committed)
+
+Last Updated: YYYY-MM-DD HH:MM
+
+## My Current Focus
+<!-- What you are actively working on this session – story id / FIS / one-line intent. -->
+
+- ...
 
 ## Session Continuity Notes
-<!-- Context the next session needs to pick up where this one left off. Keep max ~5.
-     Remove notes from milestones already captured in Recently Completed or CHANGELOG. -->
+<!-- Context YOUR next session needs to pick up where you left off. Keep max ~5.
+     Remove notes already captured in shared STATE.md, CHANGELOG, or a handoff doc. -->
 
 - ...
 ```

@@ -15,6 +15,8 @@ Skills read the **user's project** `CLAUDE.md` (not this repo's) for two key int
 - **Project Document Index** – a table mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `plugin/skills/init/templates/CLAUDE.template.md` for the table format.
 - **Project-Specific Guidelines and Rules** – project-specific guidelines and workflow notes that skills load before starting work (e.g. project conventions, prohibitions, visual-validation workflow). The universal `Foundational Rules, Guardrails and Principles` are wired in separately at the top of the file.
 
+**Project state is split by collaboration semantics.** Shared, low-churn team state lives in the committed `State` document (default `docs/STATE.md`); per-developer session state (current focus, continuity notes) lives in the gitignored `State (local)` companion (default `docs/STATE.local.md`, auto-created by the `andthen:ops` skill). The Active Stories view derives from `plan.json` when a plan governs (eliminating the shared-table merge-conflict surface for plan-driven teams); the stored table is the fallback for planless projects and ad-hoc stories. Templates: `plugin/references/project-state-templates.md`.
+
 
 ---
 

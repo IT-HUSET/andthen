@@ -45,6 +45,7 @@ The GitHub-issue body (`andthen:plan --to-issue`, parsed by `andthen:exec-plan -
 | `Risk` | `risk` | `Low` / `Medium` / `High` (capitalized in markdown; lowercase in JSON). |
 | `Status` | `status` | Capitalized form of the schema enum (see below). |
 | `FIS` | `fis` | Relative POSIX path, or `-` when `null`. |
+| `Owner` | `owner` | Who is executing the story (name or forge handle), or `-` when unclaimed (renders JSON `null`). Optional column: producers may omit it and consumers tolerate its absence (every story reads `owner: null`); empty cells use the FIS-Unset Sentinel forms below. |
 
 Status mapping: `Pending` ↔ `pending`, `Spec Ready` ↔ `spec-ready`, `In Progress` ↔ `in-progress`, `Done` ↔ `done`, `Skipped` ↔ `skipped`, `Blocked` ↔ `blocked`. JSON enum is canonical; capitalized form is markdown-only.
 

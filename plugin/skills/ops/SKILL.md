@@ -1,9 +1,9 @@
 ---
-description: "Deterministic operations: update STATE.md, plan status, FIS checkboxes, standardized commits. Trigger on 'update state', 'mark story done', 'update FIS checkboxes', 'progress summary'."
+description: "Deterministic operations: update shared/local state, plan status, story ownership, FIS checkboxes, standardized commits. Trigger on 'update state', 'mark story done', 'claim story', 'update FIS checkboxes', 'progress summary'."
 context: fork
 agent: general-purpose
 user-invocable: true
-argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-fis, update-fis observations, update-fis discovered-requirements, update-fis design-change, update-ledger (add|reconcile|withdraw|bump-recurrence|override-close), update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
+argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-plan-owner, update-fis, update-fis observations, update-fis discovered-requirements, update-fis design-change, update-ledger (add|reconcile|withdraw|bump-recurrence|override-close), update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
 ---
 
 # Deterministic Operations Skill
@@ -19,9 +19,9 @@ Template-driven operations following strict patterns to avoid LLM interpretation
 
 ## GOTCHAS
 - Forgetting to update all three version locations on version bumps: CHANGELOG.md, .claude-plugin/marketplace.json, and plugin/.claude-plugin/plugin.json
-- Creating the `State` document when it doesn't exist – initialization is the andthen:init skill's job; ops only reads/writes an existing `State` document as defined in the **Project Document Index**
-- Letting Active Stories or Session Notes grow unbounded – apply maintenance rules on every write
-- **File-creation exceptions** – two forms may create their target file: `update-tech-debt append` (Tech Debt Backlog only; mechanics in *Update Tech Debt*) and `update-ledger add` (Reconciliation Ledger only; mechanics in *Update Reconciliation Ledger*). No other form may – do not extend to State, Plan, FIS, or any future target. Ledger *transition* forms (`reconcile`, `withdraw`, `bump-recurrence`, `override-close`) never create the file; they require an existing matching entry.
+- Creating the shared `State` document when it doesn't exist – initialization is the andthen:init skill's job; ops only reads/writes an existing shared `State` document as defined in the **Project Document Index**.
+- Letting Active Stories (shared) or Session Continuity Notes (local) grow unbounded – apply maintenance rules on every write
+- **File-creation exceptions** – three forms may create their target file: `update-tech-debt append` (Tech Debt Backlog only; mechanics in *Update Tech Debt*), `update-ledger add` (Reconciliation Ledger only; mechanics in *Update Reconciliation Ledger*), and `update-state note`/`update-state focus` (the **gitignored** `State (local)` document, plus its `.gitignore` entry – the one sanctioned side-write; mechanics in *Update State*). No other form may – do not extend to the shared State, Plan, FIS, or any future target. Ledger *transition* forms (`reconcile`, `withdraw`, `bump-recurrence`, `override-close`) never create the file; they require an existing matching entry.
 
 
 ## OPERATIONS
@@ -46,43 +46,51 @@ Applies to the `observations`, `discovered-requirements`, `design-change`, and `
 
 ### 1. State File Operations
 
+State is split across two documents so teammates don't collide on one shared file:
+- **Shared `State`** (Project Document Index `State` row, default `docs/STATE.md`) – committed, low-churn, team-wide.
+- **Local `State (local)`** (Project Document Index `State (local)` row, default `docs/STATE.local.md`) – **gitignored**, per-developer, high-churn.
+
 #### Read State
 
 **Usage**: `read-state`
 
-Parse the `State` document (path from **Project Document Index**, default: `docs/STATE.md`) and return: current phase/status, active stories table, blockers, recent decisions, session continuity notes, last updated timestamp. If absent, report "no state file" – do not create it.
+Parse the shared `State` document and, when present, the local `State (local)` document, and return a merged view: current phase/status, active stories, blockers, recent decisions, plus the local My Current Focus and session continuity notes, and each file's last-updated timestamp. The local file is optional – when absent, omit its sections (do not create it on read). If the shared `State` document is absent, report "no shared state file" – do not create it – but still return the local sections and the plan-derived Active Stories when resolvable.
+
+**Active Stories sourcing**: when one or more `plan.json` files govern current work (discoverable via the Project Document Index `Specs & Plans` location or the FIS paths the State references), derive the Active Stories view as the union across them of stories that are `in-progress` **or claimed** (`owner` set, `status` not `done`/`skipped`) – claims stay visible before a story starts. A plan governs only while it has undone stories (the **Governing plan** predicate in `plan-schema.md`); story ids are per-plan, so resolve them per governing plan and annotate each derived row with its plan when several contribute. The stored `## Active Stories` table is the fallback for projects without a governing `plan.json`; stored rows whose story id is in no governing plan (ad-hoc work) always render.
 
 #### Update State
-Update specific fields in the `State` document (path from **Project Document Index**, default: `docs/STATE.md`):
+Update specific fields, routed to the shared or local State document by field.
 
 **Usage**: `update-state <field> <value>`
 
-If the `State` document does not exist in the location defined by the **Project Document Index**, report "no state file" – do not create it.
-
-Supported fields:
+**Shared fields** → shared `State` document (default `docs/STATE.md`). If it does not exist, report "no shared state file" – do not create it (the andthen:init skill owns creation).
 - `phase`: Current phase name/number (e.g. `"Phase 2: Core Features"`)
 - `status`: Overall project status – one of `On Track`, `At Risk`, `Blocked`
-- `active-story`: Add or update an active story entry
+- `active-story`: Add or update an active story entry. **Planless fallback only** – when the story id resolves in a governing `plan.json`, add/update forms no-op, reporting `NO-OP: story "<story_id>" is plan-governed – use update-plan / update-plan-owner` so the redirect is never silent; ad-hoc ids (in no governing plan) still write stored rows. `Done` removal still prunes stored rows.
   - Set status: `update-state active-story {story_id} "{story_name}" "In Progress"`
+  - Set owner: `update-state active-story {story_id} owner "{owner}"` → updates the Owner column (pass `-` to clear); keeps the table partitioned by person so teammates edit different rows.
   - Mark done: `update-state active-story {story_id} Done` → removes the row from Active Stories. Token is literal `Done` (capital D), distinct from the lowercase `plan.json` `done` enum used by `update-plan`.
   - Set FIS: `update-state active-story {story_id} fis "{fis_path}"` → updates the FIS column
 - `blocker`: Add or remove a blocker
   - Add: `update-state blocker "{description}"`
   - Remove: `update-state blocker remove "{description}"` → removes the matching entry
 - `decision`: Add a recent decision entry with timestamp
-- `note`: Add a session continuity note with timestamp
 
-After any update, set `Last Updated` to current timestamp.
+**Local fields** → local `State (local)` document (default `docs/STATE.local.md`). These are personal and high-churn. **File-creation exception**: if the local file does not exist, scaffold it from the `## STATE.local.md` template in `project-state-templates.md` before writing (it is gitignored, so this does not violate the shared-State "init owns creation" rule). On every local-field write, also ensure `.gitignore` covers it: append the entry idempotently (create `.gitignore` if missing) – a tracked local file reintroduces the collision surface this split removes.
+- `note`: Add a session continuity note with timestamp (to `## Session Continuity Notes`)
+- `focus`: Set/replace My Current Focus (to `## My Current Focus`) – your private working scratch; the shared claim is `plan.json` `owner` + `in-progress`
 
-**Maintenance rules** (apply automatically on every write):
-- **Active Stories table**: remove rows with status `Done` (they belong in `plan.json`, not state). This section tracks only _currently in-progress_ work – never accumulate completed milestone summaries here.
-- **Recently Completed**: keep only the **last 2 milestones/releases**. Older milestones should already be captured in CHANGELOG.md. Use a one-line summary per milestone (not full release notes). If there are older milestones beyond the kept 2, condense into a single trailing line: `Previous: 0.14, 0.13, 0.12, ...`
-- **Blockers**: remove entries that are no longer relevant (e.g. the blocking condition has been resolved, the related story is `Done`, or the blocker is older than 14 days with no recent activity)
-- **Recent Decisions**: keep only the **last 10** entries; graduate older items to ADRs if warranted
-- **Session Continuity Notes**: keep only the **last 5** entries; older entries are trimmed. Notes from completed milestones that have been captured elsewhere (CHANGELOG, Recently Completed) should be removed.
-- **Overall size**: the `State` document should stay under ~60 lines. If it exceeds this after other maintenance rules, trim the oldest/longest entries first. This file is a snapshot of _current_ state, not a history log.
+After any update, set the touched document's `Last Updated` to the current timestamp.
 
-State document format: see [`project-state-templates.md`](${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md).
+**Maintenance rules** (apply automatically on every write to the relevant document):
+- **Active Stories table** (shared): remove rows with status `Done` (they belong in `plan.json`, not state). Tracks only _currently in-progress_ work – never accumulate completed milestone summaries here. Stored rows whose story id resolves in a governing `plan.json` are legacy – prune them on write (the view derives from `plan.json` on read); ad-hoc rows persist.
+- **Recently Completed** (shared): keep only the **last 2 milestones/releases**. Older milestones should already be captured in CHANGELOG.md. Use a one-line summary per milestone (not full release notes). If there are older milestones beyond the kept 2, condense into a single trailing line: `Previous: 0.14, 0.13, 0.12, ...`
+- **Blockers** (shared): remove entries that are no longer relevant (e.g. the blocking condition has been resolved, the related story is `Done`, or the blocker is older than 14 days with no recent activity)
+- **Recent Decisions** (shared): keep only the **last 10** entries; graduate older items to ADRs if warranted
+- **Session Continuity Notes** (local): keep only the **last 5** entries; older entries are trimmed. Notes already captured elsewhere (CHANGELOG, Recently Completed, a handoff doc) should be removed.
+- **Overall size**: each document stays small (shared `State` under ~60 lines). If it exceeds this after other maintenance rules, trim the oldest/longest entries first. These are snapshots of _current_ state, not history logs.
+
+State document format (both files): see [`project-state-templates.md`](${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md).
 
 #### Update Plan Status
 Mutate `stories[].status` in `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md).
@@ -93,6 +101,7 @@ Actions:
 - Read `plan.json`, locate the entry in `stories[]` whose `id === <story_id>`, validate `<status>` against the closed enum (`pending` / `spec-ready` / `in-progress` / `done` / `skipped` / `blocked`), set the field, write back with deterministic formatting (2-space indent, schema key order, trailing newline).
 - Forward transitions are skill-implicit per the schema's Write Authority; backward transitions (e.g. `done → spec-ready`) are valid only via explicit `update-plan` calls.
 - Reject unknown status values with `BLOCKED: invalid status "<value>" – must be one of pending, spec-ready, in-progress, done, skipped, blocked`.
+- Unknown `<story_id>` (no matching `stories[]` entry): refuse with `BLOCKED: story "<story_id>" not found in <plan_path>` – applies to all `update-plan*` forms; never append a new story object (the andthen:plan skill owns story creation).
 - No-op when `status` already equals the target value.
 
 #### Update Plan FIS
@@ -104,6 +113,19 @@ Actions:
 - Read `plan.json`, locate the entry in `stories[]` whose `id === <story_id>`, set `fis` to `<fis_path>` (relative POSIX), write back.
 - Reject duplicates: if any other story already has `fis === <fis_path>`, refuse with `BLOCKED: fis path "<fis_path>" already used by story <other-id> – the 1:1 story↔FIS invariant must hold`.
 - No-op when `fis` already equals `<fis_path>` (path-normalized).
+
+#### Update Plan Owner
+Mutate `stories[].owner` in `plan.json` – the optional coordination field recording who is executing a story (per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md)).
+
+**Usage**: `update-plan-owner <plan_path> <story_id> <owner>`
+
+Actions:
+- Read `plan.json`, locate the entry in `stories[]` whose `id === <story_id>`, set `owner` to `<owner>` (a name or forge handle), write back with deterministic formatting (2-space indent, schema key order, trailing newline).
+- Clear a claim: pass `-` (or empty) as `<owner>` → set `owner` to `null`.
+- Reject (`BLOCKED: invalid owner value`) values containing `|` or newlines, or equal to a FIS-Unset Sentinel form other than `-`/empty (per `data-contract.md`; `-`/empty mean "clear" per the bullet above).
+- Displacing a claim: when `owner` is already a *different* non-null value, still set it (advisory, not a lock – see `plan-schema.md`) but emit `WARNING: displaced previous owner "<old>" on <story_id>` so the takeover is visible, not silent.
+- No-op when `owner` already equals the target value (path/owner-normalized; treat `-`/empty/absent as `null`).
+- If the story object lacks an `owner` key (legacy plan), insert it in schema order (after `fis`).
 
 #### Update FIS
 Mutate a FIS document – mark checkboxes, append implementation observations, append discovered requirements, or apply a design-change amendment.

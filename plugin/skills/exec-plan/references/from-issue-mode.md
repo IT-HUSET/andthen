@@ -42,8 +42,8 @@ Render the parsed issue body into `plan.json` per [`plan-schema.md`](${CLAUDE_PL
 
 **Reconcile on rerun**: when `.agent_temp/from-issue-<N>/plan.json` already exists, compare the issue's story-ID set against the existing plan:
 
-- IDs in **both**: apply the **Preservation predicate** ([`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) **Writability rules**) against local vs issue. Predicate holds → preserve local `status`/`fis` (actual execution state) and refresh the rest – this is how `done` work survives a rerun. Predicate fails (content drift or missing FIS file) → reset to `pending`/`null` before refreshing. Emit: `Regenerated plan.json (from issue); preserved status/fis: <id-list>.` and (when applicable) `Reset to pending/null: <id-list>.`
-- IDs only in the **issue** (grew): append with `status: "pending"`, `fis: null`.
+- IDs in **both**: apply the **Preservation predicate** ([`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) **Writability rules**) against local vs issue. Predicate holds → preserve local `status`/`fis` (actual execution state) and refresh the rest – including `owner`, which always re-reads from the issue's Owner cell (claims live on the issue, the durable contract; empty/sentinel cell → `null`). This is how `done` work survives a rerun and teammates' claims propagate to every materialized plan. Predicate fails (content drift or missing FIS file) → reset to `pending`/`null` before refreshing. Emit: `Regenerated plan.json (from issue); preserved status/fis: <id-list>; owner refreshed from issue.` and (when applicable) `Reset to pending/null: <id-list>.`
+- IDs only in the **issue** (grew): append with `status: "pending"`, `fis: null`, `owner` from the issue's Owner cell (or `null`).
 - IDs only **locally** (shrank): retain; annotate `notes` with `"removed from issue on <ISO-date>"`. Do not delete completed work.
 
 After 1b, set `PLAN_PATH` to the absolute path of the materialized plan. The rest of exec-plan runs as if it were a normal `plan.json` – the FIS-existence check (Step 1.5) is relaxed; `fis: null` triggers Step 3b's JIT layer.

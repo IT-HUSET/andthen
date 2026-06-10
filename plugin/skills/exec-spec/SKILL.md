@@ -35,10 +35,11 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 ### Proactive Sub-Agents
 Spawn narrow sub-agents when they materially improve a coding decision. Output is advisory; the FIS remains the contract.
 
-**Documentation lookup and research**:
+**Documentation lookup, research, and reconnaissance**:
 
 - External API/library docs are **not** pre-resolved at spec time. Spawn a documentation-lookup sub-agent for unfamiliar API surface, library/framework behavior, migration details, or version-specific questions – do not pause and ask. The sub-agent consults `## Documentation Lookup Tools` in `CLAUDE.md` / `AGENTS.md`, or invoke the dedicated `documentation-lookup` agent when available.
 - For external best-practice research, use a sub-agent. Prefer official sources; separate evidence from inference.
+- **Codebase reconnaissance**: when the FIS leaves a read-set unpinned and the dependency neighborhood of a change is large or unfamiliar, spawn an Explore (or general-purpose) sub-agent per work area to map the callers, callees, conventions, and invariants of the surfaces being changed – returning a distilled brief (signatures, traps, idioms), not file dumps. Inline exploration is the fastest way to burn implementer context in a large repo.
 
 **Skills** (invoke as `/andthen:<name>`; for fresh-context isolation, spawn a sub-agent whose prompt runs the skill):
 
@@ -230,11 +231,11 @@ Status writes are gates, not bookkeeping. Run each substep in order then verify.
    - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} done` – sets `stories[].status` to `done`.
    - If the story's `fis` is `null` or differs from `{FIS_FILE_PATH}` after normalization: `andthen:ops update-plan-fis {PLAN_FILE_PATH} {STORY_ID} {FIS_FILE_PATH}`.
 
-3. **State document** (if it exists; **skip if `DEFER_SHARED_WRITES=true`**):
-   - `andthen:ops update-state active-story {STORY_ID} Done` – removes from Active Stories.
-   - `andthen:ops update-state note "{one-line completion summary}"`.
-   - **Clear prior blocker** (plan-backed): `andthen:ops update-state blocker remove "{STORY_ID}: exec-spec persistent-failure"`. Best-effort – ignore "not found" returns; this clears any blocker a prior failed run wrote in Step 4d so the derivation below can downgrade `"At Risk"`.
-   - **Plan health** (plan-backed): apply the **Plan-level status derivation rule** (below) and write via `andthen:ops update-state status "{derived}"`. Mirrors exec-plan's phase-boundary write so standalone runs keep plan-level health current.
+3. **State documents** (shared writes skipped if `DEFER_SHARED_WRITES=true`):
+   - Shared `State` (only if it exists): `andthen:ops update-state active-story {STORY_ID} Done` – prunes any legacy Active-Stories row (no-op for plan-governed stories, whose view derives from `plan.json`).
+   - `andthen:ops update-state note "{one-line completion summary}"` – routes to the gitignored `State (local)` document (ops auto-creates it). Per-developer, no collision risk, so it runs even under `DEFER_SHARED_WRITES=true`; the executor owns this note – the orchestrator's deferred-write replay covers shared surfaces only and never re-applies it, and in a temp worktree the file is discarded with the worktree.
+   - **Clear prior blocker** (shared `State`, plan-backed, only if it exists): `andthen:ops update-state blocker remove "{STORY_ID}: exec-spec persistent-failure"`. Best-effort – ignore "not found" returns; this clears any blocker a prior failed run wrote in Step 4d so the derivation below can downgrade `"At Risk"`.
+   - **Plan health** (shared `State`, plan-backed, only if it exists): apply the **Plan-level status derivation rule** (below) and write via `andthen:ops update-state status "{derived}"`. Mirrors exec-plan's phase-boundary write so standalone runs keep plan-level health current.
 
    **Plan-level status derivation rule** (shared by 5b.3 success and 4d failure; failure path appends its blocker before applying, success path removes its prior blocker first). Output is the State-document plan-health value, one of `On Track`, `At Risk`, `Blocked` (distinct from per-story plan.json `status`) – quote at invocation:
    1. Re-read `{PLAN_FILE_PATH}` and the State document.
