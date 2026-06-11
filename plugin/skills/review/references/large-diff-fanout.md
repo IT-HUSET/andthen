@@ -127,8 +127,9 @@ signal to fall back to package partitioning, not to slice horizontally.
   fan-out is `specialists × partitions`. The boundary pass still runs once
   over the merged finding set.
 - **In a chain** (2+ lenses): each lens's partitions join the chain's single
-  flat batch as further leaf sub-agents (see SKILL.md Step 4 *Chain*), never
-  nested under a per-lens wrapper.
+  flat batch as further leaf sub-agents (see SKILL.md Step 4 *Chain*), not
+  under a per-lens wrapper – the wrapper would re-summarize findings before the
+  synthesizer sees them and is unnecessary regardless of host nesting support.
 
 **Concurrency**: dispatch the full leaf set as one flat parallel batch from the
 orchestrator and let the host schedule it – do not impose an artificial

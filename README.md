@@ -10,16 +10,26 @@
 >
 > Bigger scope? → **clarify** → **prd** → **plan** → **exec-plan** → **review** → **ship it.**
 
-AndThen brings spec-driven development to AI coding agents – lightweight, open, and adoptable piece by piece. The core idea: **write a spec before you code, then let the agent execute it autonomously.** The pipeline's central artifact is the **Feature Implementation Specification (FIS)** – a structured blueprint that turns requirements into reliable, verifiable implementations.
+AndThen brings spec-driven development to AI coding agents – lightweight, open, and adoptable piece by piece. The core idea: **write a spec before you code, then let the agent execute it autonomously.**
 
-It works as a **Claude Code plugin** and with **Codex CLI / other agents** (via an installer). Skills are the unit of work, invoked as `andthen:<name>`. There are no mandatory directories or proprietary formats – skills read a lightweight **Document Index** in your `CLAUDE.md` / `AGENTS.md` to find where your specs, plans, and docs live, adapting to your project rather than imposing a structure on it.
+- **Works everywhere** – as a Claude Code plugin, and with Codex CLI / other agents via an installer.
+- **Skills are the unit of work** – invoke `andthen:<name>` for just the step you need.
+- **No mandatory directories or proprietary formats** – skills read a lightweight Document Index in your `CLAUDE.md` / `AGENTS.md` to find where your specs, plans, and docs live, adapting to your project rather than imposing a structure on it.
+- **Gentle adoption, not rigid process** – every skill works standalone (`quick-implement` skips specs entirely, `review` runs on its own). AndThen is opinionated about *how work flows* – requirements → spec → implementation → review – but never forces you onto the whole path.
+
+In a hurry? In Claude Code:
+
+```bash
+/plugin marketplace add IT-HUSET/andthen
+/plugin install andthen
+/andthen:init        # set up your project
+/andthen:now-what    # ...and let it route you from there
+```
 
 > [!NOTE]
 > **This project is an experiment and a work in progress.** We're moving fast and potentially breaking things. APIs, skill interfaces, and artifact formats may change without notice. Feedback is welcome – just know that stability is not yet a goal. For breaking changes between releases, see [Migration Notes](plugin/README.md#migration-notes) and [CHANGELOG.md](CHANGELOG.md).
 
-**Gentle adoption, not rigid process.** Use the full pipeline or just the parts you need. Every skill works standalone – `quick-implement` skips specs entirely, `clarify` is optional, `review` runs on its own. AndThen is opinionated about *how work flows* – from requirements to a spec, then implementation, then review – but never forces you onto the whole path.
-
-[Get started →](#installation) · [Skills reference →](#skills) · [Full skill reference (flags, modes) →](plugin/README.md)
+[Installation →](#installation) · [Getting started →](#getting-started) · [Skills →](#skills) · [Full skill reference (flags, modes) →](plugin/README.md)
 
 
 ## What AndThen Gives You
@@ -69,7 +79,7 @@ quick-implement → (optional) quick-review → (optional) remediate-findings
 ```
 (optional pre-work) → prd → plan → exec-plan
 ```
-`exec-plan` runs the per-story `exec-spec` + `quick-review` loop, a final gap review, and a reconciliation rollup; partial runs review completed stories and name unreviewed ones. Add `--team` for [Agent Teams](#agent-teams-optional-claude-code-only) parallelism (Claude Code).
+`exec-plan` runs `exec-spec` + `quick-review` for each story, then a final gap review across the whole plan. Add `--team` for [Agent Teams](#agent-teams-optional-claude-code-only) parallelism (Claude Code).
 
 > **Not sure which path?** Start with `quick-implement`. If it feels too complex, switch to the feature workflow. Or run `/andthen:now-what` – it inspects your project state and routes you.
 
@@ -78,7 +88,7 @@ quick-implement → (optional) quick-review → (optional) remediate-findings
 Before `spec` or `prd`, supporting skills sharpen the input when the problem isn't yet clear:
 
 - **`clarify`** – interactive requirements discovery. Turns a fuzzy idea into solid requirements by probing gaps, edge cases, scope boundaries, and alternatives. Runs at **feature scope** (default → `requirements-clarification.md`) or **product scope** (`--mode product` → `PRODUCT.md`, for vision/personas/anti-goals before features are planned).
-- **`architecture`** – design and analysis across seven modes (no code changes). Most relevant here: **`--mode trade-off`** compares competing options against weighted criteria and produces an evidence-based recommendation plus an ADR (e.g. *"SQL vs document DB for the events store"*); **`--mode advise`** gives design guidance grounded in CUPID/DDD; **`--mode strategic-design`** and **`--mode event-storming`** carve domain/bounded-context boundaries before a multi-feature `prd`. (Also: `review`, `decompose`, `fitness` – see the [skill reference](plugin/README.md#architecture-modes).)
+- **`architecture`** – design and analysis across seven modes (no code changes). Most relevant here: **`--mode trade-off`** compares competing options (e.g. *"SQL vs document DB for the events store"*) and produces an evidence-based recommendation plus an ADR; **`--mode strategic-design`** and **`--mode event-storming`** carve domain boundaries before a multi-feature `prd`. Full mode list in the [skill reference](plugin/README.md#architecture-modes).
 - **`ui-ux-design`** – research, design systems, wireframes, and design review when UI work is in scope.
 
 `clarify` → `prd` is a **pipeline, not a choice**: `clarify` does the deep discovery; `prd` synthesizes its output (or does shallower bounded synthesis from raw input) into a PRD. See [When to clarify](#when-to-clarify).
@@ -101,7 +111,7 @@ The core pipeline and standalone execution/review skills accept `--auto` for ext
 
 ### Other agents (Codex CLI, Aider, Cursor)
 
-Skills use capability detection and work without the plugin infrastructure. The installer exports skills with `andthen-`-prefixed names to your agent's skills directory, generates `andthen-`-prefixed Codex agent TOMLs from `plugin/agents/*.md`, and copies reference docs, shared templates, and helper scripts:
+Skills use capability detection and work without the plugin infrastructure. The installer exports skills under `andthen-`-prefixed names to your agent's skills directory, generates Codex agents, and copies reference docs, shared templates, and helper scripts:
 
 ```bash
 # Install skills, generated Codex agents, references, and helper scripts
@@ -114,7 +124,9 @@ Skills use capability detection and work without the plugin infrastructure. The 
 ./scripts/install-skills.sh --no-codex-agents              # skip Codex agent generation
 ```
 
-Invoke with `/andthen:<skill>` in Claude Code, or `$andthen-<skill>` in Codex and other agents. Reinstalls overwrite matching generated files but do not delete stale `<prefix>*.toml` agent files – remove old generated agents manually if you need the visible agent set to match the current release exactly. If you use a custom `--skills-dir` or `--prefix`, the installer rewrites installed skill references and invocation names automatically.
+- Invoke with `/andthen:<skill>` in Claude Code, or `$andthen-<skill>` in Codex and other agents.
+- Custom `--skills-dir` or `--prefix`? The installer rewrites installed skill references and invocation names automatically.
+- Reinstalls overwrite matching generated files but do not delete stale `<prefix>*.toml` agent files – remove old generated agents manually if you need the agent set to match the current release exactly.
 
 > Pulling AndThen into another toolkit under its own prefix? See [Bundling into a downstream toolkit](plugin/README.md#bundling-into-a-downstream-toolkit).
 
@@ -204,7 +216,7 @@ Reads your clarified requirements, analyzes the codebase, and produces the FIS a
 /andthen:review --mode gap,code,security <path>         # chain several lenses in one run
 ```
 
-`review` is the default review entrypoint. It runs the right lens for the target – `code`, `doc`, `gap` (spec-vs-implementation), or `security` – auto-detected or selected via `--mode`. Pass a **comma-separated chain** (`--mode gap,code,security`) to run several lenses in one pass; each runs independently and the findings are consolidated into a single report. `--council` adds a multi-perspective adversarial layer on top (within-lens debate for `code`/`security`, plus a cross-lens synthesis pass on chains of 2+ lenses). `exec-plan` already runs `quick-review` per story plus a final gap review, so this step is for manual or final checks.
+`review` is the default review entrypoint. It runs the right lens for the target – `code`, `doc`, `gap` (spec-vs-implementation), or `security` – auto-detected or selected via `--mode`, with comma-separated chains consolidated into a single report. `--council` adds a multi-perspective adversarial layer on top. `exec-plan` already reviews each story and runs a final gap review, so this step is for manual or final checks.
 
 **Step 5 – remediate findings** *(when review returns actionable gaps)*
 
@@ -284,9 +296,9 @@ AndThen ships a small agent set:
 - Plugin-tier `research` agent for web and project research, multi-source verification, and trade-off option investigation.
 - Review persona agents for council and Critic review: `review-critic`, `review-devils-advocate`, `review-synthesis-challenger`, plus focused correctness, security, architecture, testing, project-standards, product-requirements, and agent-workflow reviewers.
 
-Agent names are tier-specific: Claude Code plugin sources use unprefixed `documentation-lookup` and `review-*` names inside `plugin/agents/`; Codex and Claude user-tier installs generate/copy prefixed names such as `andthen-documentation-lookup`, `andthen-review-critic`, or `<custom-prefix>review-critic`.
+Agent names are tier-specific: the Claude Code plugin uses unprefixed names (`documentation-lookup`, `review-critic`, …); Codex and Claude user-tier installs generate prefixed names (`andthen-documentation-lookup`, or `<custom-prefix>review-critic`).
 
-Architecture, UI/UX design, build/test diagnosis, visual validation, and visual artifact review are **skills** – use `/andthen:architecture`, `/andthen:ui-ux-design`, `/andthen:triage`, `/andthen:visual-validation`, and `/andthen:visualize` where relevant. Research outside documentation lookup remains inline sub-agent guidance embedded in the skill prompts that need it.
+Everything else – architecture, UI/UX design, triage, visual validation, artifact review – is a **skill**, not an agent: see the [Skills](#skills) tables above.
 
 
 ## Docs

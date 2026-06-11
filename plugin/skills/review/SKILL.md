@@ -61,7 +61,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode`, `--council`, `--team
 - **Reviewing without Intent Context** – when a governing FIS/PRD/`clarify`/plan-story exists, skipping Step 1's Intent Context collection blinds Step 5's routing gate; "you didn't handle X" may be a documented Non-Goal.
 - **Skipping `references/refactor-invariants.md` on a deletion/rename/relocation/cache/codegen/schema/parameter-threading diff** – load on those diff shapes (apply even when each hunk reads correctly in isolation); do **not** load on additive-only feature work.
 - **Horizontal partitioning under `--fanout`** – partitioning by architectural layer (`api/`, `domain/`, `infra/`, `tests/`) hides exactly the cross-layer invariants `--fanout` is meant to surface. Use vertical slices (feature/concern shape); fall back to package partitioning when no slice signal resolves; never partition by layer. See [`references/large-diff-fanout.md`](references/large-diff-fanout.md) § Partition Strategy.
-- **Trying to run a chain lens as a single nested sub-agent** – the host cannot nest sub-agents, so a lens find-pass cannot be one orchestrator sub-agent that then spawns its own specialists / Critic / partitions. Expand each lens into its leaf sub-agent tasks (Step 4 *Chain*) and fire them all as siblings from the orchestrator; the orchestrator keeps the target map, Guardrails pass, per-lens synthesis, and routing.
+- **Wrapping a chain lens in a per-lens orchestrator sub-agent** – dispatch is flat by design, not by host limitation: a mid-tier wrapper would re-summarize specialist findings before the synthesizer sees them (lossy), serialize behind each wrapper's expansion (slower), and assume nesting depth the generic-agent install floor does not guarantee. Expand each lens into its leaf sub-agent tasks (Step 4 *Chain*) and fire them all as siblings from the orchestrator; the orchestrator keeps the target map, Guardrails pass, per-lens synthesis, and routing.
 
 
 ## WORKFLOW
@@ -155,7 +155,7 @@ Each lens reference includes the always-on Critic sub-lens (`${CLAUDE_PLUGIN_ROO
 
 **Chain (multi-lens)**: load the deduplicated union of references upfront, then dispatch every lens's find-pass as **one flat parallel batch of sub-agents from the orchestrator** – not lens-by-lens in sequence. The find-passes share only the Step 1 target map and Intent + Rules Context and have no data dependency, so sequential stepping only adds wall-time and lets one lens prime the next. Never re-classify or re-scan.
 
-Expand each lens into its leaf sub-agent tasks and fire them all as siblings of the orchestrator (no nesting – see the *single nested sub-agent* GOTCHA):
+Expand each lens into its leaf sub-agent tasks and fire them all as siblings of the orchestrator (flat by design – see the *per-lens orchestrator sub-agent* GOTCHA):
 - **doc** → one sub-agent for the rubric pass + one Critic sub-agent.
 - **gap** → one sub-agent for the mechanical gap + quality-evidence pass + one Critic sub-agent (the behavioral dry-run).
 - **code** → the N applicable specialists + one generalist Critic (per `references/lens-code.md`).

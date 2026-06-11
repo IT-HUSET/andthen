@@ -6,6 +6,16 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.28.1] – 2026-06-11
+
+### Changed
+- **README intro polish** – landing intro restructured into scannable bullets with a copy-paste quick-start; tightened skill blurbs, no content dropped.
+- **Review flat-dispatch rationale corrected** – the `andthen:review` chain dispatch no longer claims hosts cannot nest sub-agents (they now can); the flat sibling-batch is retained by design (single synthesizer, no lossy mid-tier). Dispatch behavior unchanged.
+
+
+---
+
+
 ## [0.28.0] – 2026-06-09
 
 ### Added

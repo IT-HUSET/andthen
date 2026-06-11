@@ -2048,7 +2048,7 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `REV-01` Lens set resolved from explicit --mode, heuristics (first-match wins 6 rules), or mixed auto-resolver; absent --mode fires auto-detect.
 - `REV-02` Auto-adds `security` to resolved set only when --mode absent and a security-escalation trigger fires on the target map; never auto-adds when an explicit --mode (including explicit chains) is supplied.
 - `REV-03` Explicit --mode mixed is a resolver: applies the security trigger internally and may still add `security`; it cannot be combined with other explicit lenses in a chain (reject up-front with correction).
-- `REV-04` Chain dispatch: all lens find-passes fire as one flat parallel batch of sibling sub-agents; never sequential, never nested sub-sub-agents.
+- `REV-04` Chain dispatch: all lens find-passes fire as one flat parallel batch of sibling sub-agents; never sequential, never wrapped in a per-lens orchestrator sub-agent (flat by design – avoids lossy mid-tier re-summarization – not a host nesting limitation).
 - `REV-05` Guardrails pass runs once per review, before any lens, using the Project Rules Context bundle; each finding must cite its rule by source file and section; coverage line is `Guardrails Coverage: N checked, M findings`.
 - `REV-06` Every accepted finding preserves the full structured finding fields (reviewer, severity, confidence, location, scope relation, finding, threatened assumption or invariant, evidence, impact, suggested fix, verification needed) and also carries a parseable `Class:` field (code-defect | spec-stale | design-changed | ambiguous-intent) plus `Routing: Fix | Note` with one-line rationale.
 - `REV-07` Fix-bucket criteria (all must hold): severity HIGH or CRITICAL, confidence >= 75, scope relation `primary`, no scope expansion past Intent, Class is `code-defect`; all other findings route to Note.
@@ -2126,7 +2126,7 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `REV-75` council-mode.md is loaded only when --council is passed; never loaded otherwise.
 - `REV-77` Skip FOLLOW-UP ACTIONS section entirely when AUTO_MODE=true.
 - `REV-78` andthen:ops update-learnings is exempt from --auto propagation.
-- `REV-79` Critic pass in a chain: each lens's Critic fires as a sibling leaf task, not as a nested sub-agent inside another lens sub-agent.
+- `REV-79` Critic pass in a chain: each lens's Critic fires as a sibling leaf task, not inside a per-lens orchestrator sub-agent (flat by design, not a host nesting limitation).
 
 **Integration**
 - Calls andthen:remediate-findings with report path (and --auto when AUTO_MODE) when --fix is set; andthen:remediate-findings reads Routing: Fix | Note fields and the canonical PASS/FAIL verdict block.
