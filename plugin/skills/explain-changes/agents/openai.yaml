@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Explain Changes"
+  short_description: "Explain a PR, branch, or changeset as a narrative Changeset Walkthrough (intent-grouped changes, key diff hunks, architectural delta, reviewer focus points) rendered as an interactive HTML tour"
+  default_prompt: "Produce a Changeset Walkthrough for the given changeset and render it as an interactive HTML tour. Changeset (PR number, base ref, or range): "
+
+policy:
+  allow_implicit_invocation: true

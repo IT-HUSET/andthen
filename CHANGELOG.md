@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.29.0] – 2026-06-12
+
+### Added
+- **New `andthen:explain-changes` skill – visual changeset walkthroughs** – explains a PR, branch, ref range, or working tree as a narrative Changeset Walkthrough: changes untangled into intent clusters and ordered by conceptual importance, with key diff hunks, per-file risk tags, an architectural-delta module map, and reviewer focus points. Comprehension only (findings and verdicts stay with `andthen:review`); `--to-pr` posts the walkthrough as a PR comment.
+- **`andthen:visualize` renders changeset walkthroughs as an interactive app** – new `changeset-walkthrough` artifact type rendered by a bundled deterministic renderer (Node ≥18, zero dependencies) so output quality is identical on every agent: tabbed perspectives (Overview change-mosaic + cluster cards · guided cluster Tour with docked module map and review ledger · Files table with facet filters, delta bars, and a directory sunburst · Architecture module map with collision-free layout, zoom/pan, blast-radius hover, and flow playback), command palette, keyboard navigation, and notes in a slide-over drawer.
+
+---
+
 ## [0.28.1] – 2026-06-11
 
 ### Changed

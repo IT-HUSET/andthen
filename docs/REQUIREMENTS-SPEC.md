@@ -2690,15 +2690,15 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 
 **Requirements**
 - `VIZ-01` Accepts exactly one positional arg: path to an artifact file; filename is advisory only – content decides type.
-- `VIZ-02` Detects artifact type by content heuristics in strict order (plan → fis → prd → clarification → product-vision → event-storming → fitness → decompose → strategic-design → adr → tradeoff → architecture-review → review-report); first match wins.
+- `VIZ-02` Detects artifact type by content heuristics in strict order (plan → fis → prd → clarification → product-vision → changeset-walkthrough → event-storming → fitness → decompose → strategic-design → adr → tradeoff → architecture-review → review-report); first match wins. changeset-walkthrough detection: H1 starts with "Changeset Walkthrough", OR H2 set contains both "Change Map" and "Change Narrative".
 - `VIZ-03` plan detection: valid JSON with schemaVersion === "1", overview, and stories; unsupported JSON shape (keys absent) is reported, not silently fallen-through; schemaVersion !== "1" stops with error andthen:visualize: unsupported plan.json schemaVersion "<value>".
-- `VIZ-04` On no type match, exits with exact message: "andthen:visualize: cannot detect artifact type. Supported: PRD (`prd.md`), `plan.json`, FIS, `requirements-clarification.md`, product vision, review reports (any lens), architecture review / trade-off / strategic-design / fitness / decompose / event-storming reports, ADRs (`NNN-title.md` with `# ADR-NNN:` H1)." and writes no HTML.
+- `VIZ-04` On no type match, exits with exact message: "andthen:visualize: cannot detect artifact type. Supported: PRD (`prd.md`), `plan.json`, FIS, `requirements-clarification.md`, product vision, review reports (any lens), changeset walkthroughs, architecture review / trade-off / strategic-design / fitness / decompose / event-storming reports, ADRs (`NNN-title.md` with `# ADR-NNN:` H1)." and writes no HTML.
 - `VIZ-05` Writes one self-contained HTML file to .agent_temp/visual-review/<slug>-<YYYYMMDD-HHMMSS>.html; slug = basename without extension; path resolved against git repo root (git rev-parse --show-toplevel), falling back to CWD.
 - `VIZ-06` HTML is fully self-contained: all CSS, JS, SVG inlined; zero external resources; must work from file:// with no network.
 - `VIZ-07` Opens the HTML file in the user's default/primary browser via OS-appropriate command (open / xdg-open / start); on failure, prints "Open this in your browser: <path>" and exits 0.
 - `VIZ-08` Does NOT block waiting for user interaction; exits after printing output path.
 - `VIZ-09` Never edits the source artifact (read-only contract).
-- `VIZ-10` Emits two-pane layout: left = scrollable artifact content; right = sticky sidebar with Copy notes button, section navigator with note-count badges, and unified note list; sidebar always visible ≥1100px, collapses to top drawer below that; sidebar is NEVER display:none.
+- `VIZ-10` Emits two-pane layout: left = scrollable artifact content; right = sticky sidebar with Copy notes button, section navigator with note-count badges, and unified note list; sidebar always visible ≥1100px, collapses to top drawer below that; sidebar is NEVER display:none. Exception: changeset-walkthrough uses the App Shell per `VIZ-63` instead of the two-pane skeleton.
 - `VIZ-11` Every H2 section renders to a <section class="card" id="{anchor}" data-anchor="{anchor}"> block; both id and data-anchor carry the same kebab value.
 - `VIZ-12` Section-block wrapper is universal: every markdown H2 and every plan virtual H2 produces a <section class="card" id="{anchor}"> block with the standard affordances (Note button, View source toggle, count span) regardless of which renderer matched; the renderer choice only changes what fills .card-body; Generic Prose is a body-level fallback only, not permission to skip the wrapper or affordances.
 - `VIZ-13` + Note, View source, and Copy section buttons are present in the STATIC HTML markup of each section (not JS-injected); .note-area and .src-area use native hidden attribute (not display:none via class).
@@ -2726,10 +2726,12 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `VIZ-35` Payload heading uses verbatim H2 text, not kebab anchor.
 - `VIZ-36` Copied notes array is preserved after copy success (only notesDirty is reset, not notes[]).
 - `VIZ-38` Interactive affordances are isolated: each helper (pulseAnchor, copySectionWithNote, walkthrough snippet toggle, wireModuleMap) is individually try/catch-wrapped so one handler failure cannot disable any other (observable resilience contract; see `VIZ-58`). The authoring mechanics that achieve syntactic robustness (IIFE `'use strict'`, escaped newlines, composition from `templates/js-helpers.md`) are craft, not regression contracts. (`VIZ-37` consolidated here.)
-- `VIZ-39` Artifact owner identity set per type: prd→andthen:prd, plan→andthen:plan, fis→andthen:spec, clarification/product-vision→andthen:clarify, architecture-review/tradeoff/strategic-design/fitness/decompose/event-storming/adr→andthen:architecture, review-report→andthen:review.
+- `VIZ-39` Artifact owner identity set per type: prd→andthen:prd, plan→andthen:plan, fis→andthen:spec, clarification/product-vision→andthen:clarify, architecture-review/tradeoff/strategic-design/fitness/decompose/event-storming/adr→andthen:architecture, review-report→andthen:review, changeset-walkthrough→andthen:explain-changes.
 - `VIZ-42` FOLLOW-UP ACTIONS section is skipped when AUTO_MODE=true; only output path is printed in that mode. (`VIZ-40` exact theme hex tokens and `VIZ-41` rgba-interpolation authoring rule retired as rendering craft – the palette and CSS authoring live in the visualize templates, not as regression contracts.)
-- `VIZ-43` Templates for per-artifact rendering loaded from templates/ subdirectory: prd.md, plan.md, fis.md, clarification.md, review-report.md, tradeoff.md, strategic-design.md, fitness.md, decompose.md, event-storming.md, adr.md; diagrams.md for SVG patterns; js-helpers.md for IIFE interactive helpers.
+- `VIZ-43` Templates for per-artifact rendering loaded from templates/ subdirectory: prd.md, plan.md, fis.md, clarification.md, review-report.md, changeset.md, tradeoff.md, strategic-design.md, fitness.md, decompose.md, event-storming.md, adr.md; diagrams.md for SVG patterns; js-helpers.md for IIFE interactive helpers.
 - `VIZ-44` plan.json has no markdown headings; plan template derives virtual H2 sections from top-level JSON fields and emits the standard section block shape.
+- `VIZ-63` changeset-walkthrough renders via the bundled deterministic renderer (entry `scripts/render-changeset.mjs` plus sibling assets `layout.mjs`, `changeset.css`, `changeset-app.js`, `changeset-notes.js` in the same directory; Node ≥18, zero dependencies, invocation `node "${CLAUDE_SKILL_DIR}/scripts/render-changeset.mjs" <artifact> <output>`) – never hand-authored. The renderer emits a tabbed interactive app: perspective tabs Overview / Tour (cluster stepper, docked module mini-map, mark-reviewed ledger) / Files (facet-filterable table, delta bars, directory sunburst) / Architecture (full-width module map with text-fit nodes, collision-free labels, zoom/pan, blast-radius hover, flow playback; tab omitted when the section is absent); plus linked cluster model with per-cluster hues, change mosaic (full-basename tiles, churn mini-bars), command palette, keyboard navigation, reading-progress bar, per-view scroll memory (tab switches restore each view's own scroll position without layout jump), reduced-motion discipline, and JS-off stacked fallback. Each source H2 lives in exactly one view as a standard Section Block, so all affordance, notes-state, and payload contracts (VIZ-11..VIZ-36) apply unchanged. Renderer failures name the offending artifact line and are reported verbatim (artifact contract violation), not patched by hand.
+- `VIZ-64` When Node is unavailable, changeset-walkthrough degrades to a plain document render (two-pane render-shell, Generic Prose bodies, diff fences as plain code blocks) with a message that the interactive experience requires Node ≥18; the app shell, diagrams, and interactions are never imitated by hand.
 
 **Gates / BLOCKED**
 - `VIZ-45` BLOCKED if artifact type cannot be detected: exits with exact unsupported-type message, writes no HTML.
@@ -2756,11 +2758,52 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 **Integration**
 - Reads exactly one input artifact path; never writes to source artifact.
 - Writes to .agent_temp/visual-review/<slug>-<timestamp>.html relative to git repo root (or CWD fallback) – same .agent_temp/ convention as other AndThen skills.
-- Loads per-artifact rendering templates from templates/ subdirectory (prd.md, plan.md, fis.md, clarification.md, review-report.md, tradeoff.md, strategic-design.md, fitness.md, decompose.md, event-storming.md, adr.md, diagrams.md, js-helpers.md).
-- Clipboard payload is consumed by downstream skills: PRD notes → andthen:prd / andthen:plan; plan notes → andthen:plan / andthen:exec-plan / andthen:review --mode gap; FIS notes → andthen:spec / andthen:exec-spec; clarification notes → andthen:clarify; architecture-review notes → andthen:architecture --mode review; review-report notes → andthen:remediate-findings / andthen:review; trade-off notes → andthen:architecture (ADR formalization); strategic-design notes → andthen:architecture --mode strategic-design/fitness/decompose; fitness notes → andthen:architecture --mode fitness; decompose notes → andthen:architecture --mode decompose / --mode trade-off; event-storming notes → andthen:architecture --mode strategic-design / --mode decompose / andthen:ubiquitous-language / andthen:excalidraw-diagram.
+- Loads per-artifact rendering templates from templates/ subdirectory (prd.md, plan.md, fis.md, clarification.md, review-report.md, changeset.md, tradeoff.md, strategic-design.md, fitness.md, decompose.md, event-storming.md, adr.md, diagrams.md, js-helpers.md).
+- Clipboard payload is consumed by downstream skills: PRD notes → andthen:prd / andthen:plan; plan notes → andthen:plan / andthen:exec-plan / andthen:review --mode gap; FIS notes → andthen:spec / andthen:exec-spec; clarification notes → andthen:clarify; architecture-review notes → andthen:architecture --mode review; review-report notes → andthen:remediate-findings / andthen:review; trade-off notes → andthen:architecture (ADR formalization); strategic-design notes → andthen:architecture --mode strategic-design/fitness/decompose; fitness notes → andthen:architecture --mode fitness; decompose notes → andthen:architecture --mode decompose / --mode trade-off; event-storming notes → andthen:architecture --mode strategic-design / --mode decompose / andthen:ubiquitous-language / andthen:excalidraw-diagram; changeset-walkthrough notes → the PR conversation or andthen:review (scope/focus context).
 - Producer skills may invoke andthen:visualize as a convenience handoff via their own --visual flags after writing and validating their artifacts.
 - Open-loop by design: does not call back into any AndThen skill; downstream routing is the user's action.
 - Uses OS browser-open command (open/xdg-open/start), NOT agent-browser (agent-browser is for andthen:excalidraw-diagram automation, not user browser targets).
+
+---
+## andthen:explain-changes
+
+**Purpose**: andthen:explain-changes turns a changeset (PR, branch, ref range, or working tree) into a Changeset Walkthrough – a narrative, intent-grouped, comprehension-only explanation rendered as an interactive HTML tour via andthen:visualize. No findings, no verdict.
+**Surface**: user-invocable: true; argument-hint: "[<base-ref> | <base>..<head> | --from-pr <N>] [--to-pr [<N>]] [--no-visual]"; `--auto` sets AUTO_MODE (conservative assumptions, no follow-ups, BLOCKED on contract failures); allow_implicit_invocation: true (openai.yaml).
+**Outputs**: `.agent_temp/walkthrough/<slug>-walkthrough-<YYYY-MM-DD>.md` (slug = `pr-<N>` or kebab-cased branch name) + the HTML tour from andthen:visualize (unless `--no-visual`).
+
+**Requirements**
+- `EXPL-01` Target resolution: `--from-pr <N>` → the PR via `gh` (metadata + body via `gh pr view --json`, diff via `gh pr diff`, file blobs on demand via `gh api .../contents?ref=<headRefOid>`; no checkout); `<base>..<head>` → that range; `<base-ref>` → current branch vs `git merge-base <base-ref> HEAD`; empty → current branch vs merge-base with the default branch, falling back to working-tree changes (staged + unstaged) when no commits are ahead.
+- `EXPL-02` `--from-pr` combined with a local ref/path target is rejected up-front (the PR is the scope; no mixing).
+- `EXPL-03` Read-only contract: never mutates the working tree, applies the diff, or checks anything out; no tracked file changes – all writes confined to `.agent_temp/`.
+- `EXPL-04` Gathers intent context alongside the diff: PR body, governing FIS/PRD when one names the work, or commit messages; when none states intent, the artifact's `**Intent**:` line says "derived from code (no stated intent found)" rather than presenting inferred intent as stated fact.
+- `EXPL-05` Analysis partitions every changed file into exactly one intent cluster with kind ∈ {behavior, refactor, config, tests, docs}; clusters are named by purpose, ordered by conceptual importance (closed vocabulary – the visualize renderer color-codes on it).
+- `EXPL-06` Per-file risk tags use the closed vocabulary attention / medium / safe; risk means "where careful reading pays off", never a defect claim.
+- `EXPL-07` Embedded diff hunks are key hunks only (load-bearing spans, trimmed, typically ≤3 per file); the full diff stays in git/the PR.
+- `EXPL-08` Diff fences open with an `@@ <path>:<startline> @@` line; an immediately-following blockquote is that hunk's margin note.
+- `EXPL-09` Architectural Delta section emitted only when component-to-component relationships change; uses the project's Architecture document as baseline when present; carries a `mapviz` block with changed nodes marked `hot` and new/removed edges labeled.
+- `EXPL-10` Reviewer Focus Points: 3–7 numbered items ordered by risk, each with a one-line why and a `path:line` anchor.
+- `EXPL-11` Artifact follows the SKILL.md template headings exactly: H1 `Changeset Walkthrough: <title>`, `> TL;DR:` blockquote, At a Glance, Change Map (File/Kind/Δ/Cluster/Risk/Role table), Change Narrative (H3 clusters `C<N>: <title> – <kind>`; H4 per non-safe file – safe files may be summarized in cluster prose), optional Architectural Delta, Reviewer Focus Points, Out of Scope, Verification (checkbox list) – this is the contract the andthen:visualize changeset renderer parses (the renderer accepts en or em dash in the cluster H3).
+- `EXPL-12` Unless `--no-visual`, invokes the andthen:visualize skill on the artifact path after writing it.
+- `EXPL-13` `--to-pr [<N>]` posts the walkthrough markdown as a PR comment via `gh pr comment <N> --body-file`; `<N>` resolves in order: explicit value → `--from-pr` number → the current branch's open PR (`gh pr view --json number`); rejected only when none resolves; bodies over 65,536 chars split into multiple comments rather than truncate; gh errors surface verbatim; local artifacts are never rolled back.
+- `EXPL-14` Large diffs delegate per-area scanning to parallel sub-agents returning distilled briefs; synthesis stays in the host.
+- `EXPL-15` No findings or verdicts in the walkthrough: probable defects noticed during analysis are phrased as focus points and andthen:review is recommended in the report.
+
+**Gates / BLOCKED**
+- `EXPL-16` Gate after target resolution: scope resolved, file list + stats in hand, intent context gathered or explicitly absent.
+- `EXPL-17` Gate after analysis: every changed file appears in exactly one Change Map row; skipped-as-noise files are named with reasons (no silent omissions).
+- `EXPL-18` AUTO_MODE: `BLOCKED: gh authentication required` / `BLOCKED: PR <N> not found` on gh failures; conversationally, gh errors surface verbatim and the run stops.
+
+**Edge cases**
+- `EXPL-19` Branch with no commits ahead of the default branch → working-tree changes become the scope.
+- `EXPL-20` Single-intent changeset → one cluster; the walkthrough still renders (cluster prose and focus points carry the value).
+- `EXPL-21` No component-boundary change → Architectural Delta omitted entirely (not an empty section).
+- `EXPL-22` AUTO_MODE=true → FOLLOW-UP ACTIONS skipped; only artifact + HTML paths printed.
+
+**Integration**
+- Invokes the andthen:visualize skill (changeset-walkthrough type; notes-payload owner andthen:explain-changes).
+- Composes with the andthen:review skill: walkthrough first for comprehension, review for judgment; focus points serve as review scope hints.
+- `--to-pr` posting follows the same PR-comment transport conventions as review/architecture `--to-pr` (inline `gh pr comment`, not wired through github-publish.md Pattern B).
+- Uses the Project Document Index's Architecture document as the architectural-delta baseline when present.
 
 ---
 ## andthen:e2e-test

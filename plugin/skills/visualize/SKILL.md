@@ -1,12 +1,12 @@
 ---
-description: Use when reviewing an existing AndThen artifact visually – PRD, plan.json, requirements-clarification, product vision, FIS (feature implementation spec), review report (any lens), architecture review / trade-off / strategic-design / fitness / decompose / event-storming report, or ADR. Renders a self-contained HTML view in the user's browser, captures section-anchored notes, and exports them as a markdown payload via clipboard. Trigger on 'review visually', 'visualize this prd', 'visualize this plan', 'visualize this fis', 'visualize this review', 'visualize this clarification', 'visualize trade-off', 'andthen visualize'.
+description: Use when reviewing an existing AndThen artifact visually – PRD, plan.json, requirements-clarification, product vision, FIS (feature implementation spec), review report (any lens), changeset walkthrough, architecture review / trade-off / strategic-design / fitness / decompose / event-storming report, or ADR. Renders a self-contained HTML view in the user's browser, captures section-anchored notes, and exports them as a markdown payload via clipboard. Trigger on 'review visually', 'visualize this prd', 'visualize this plan', 'visualize this fis', 'visualize this review', 'visualize this walkthrough', 'visualize this clarification', 'visualize trade-off', 'andthen visualize'.
 argument-hint: "<path-to-artifact>"
 user-invocable: true
 ---
 
 # Visualize Workflow Artifact
 
-Supported artifacts: PRD, `plan.json`, Feature Implementation Specification (FIS), `requirements-clarification.md`, product vision, review report (any `andthen:review` lens or `andthen:architecture --mode review` output), architecture trade-off report, architecture strategic-design report, architecture fitness-functions report, architecture decompose report, architecture event-storming report, and ADR.
+Supported artifacts: PRD, `plan.json`, Feature Implementation Specification (FIS), `requirements-clarification.md`, product vision, review report (any `andthen:review` lens or `andthen:architecture --mode review` output), changeset walkthrough (`andthen:explain-changes` output), architecture trade-off report, architecture strategic-design report, architecture fitness-functions report, architecture decompose report, architecture event-storming report, and ADR.
 
 **Open-loop by design:** emit HTML, open browser, exit. The skill does not block waiting for user interaction.
 
@@ -42,6 +42,7 @@ Use to eyeball any supported artifact (see Supported artifacts above) before han
    - `templates/fis.md` for Feature Implementation Specifications (FIS)
    - `templates/clarification.md` for `requirements-clarification.md` and product vision artifacts
    - `templates/review-report.md` for review reports from the `andthen:review` skill (any lens) or architecture-review reports from `andthen:architecture --mode review`
+   - `templates/changeset.md` for changeset walkthroughs from the `andthen:explain-changes` skill
    - `templates/tradeoff.md` for architecture trade-off reports
    - `templates/strategic-design.md` for architecture strategic-design reports
    - `templates/fitness.md` for architecture fitness-functions reports
@@ -66,6 +67,7 @@ Run heuristics in order; first match wins. **Filename hints are advisory only �
 | `prd` | H1 contains "PRD" or "Product Requirements"; H2 contains both "Executive Summary" and "Functional Requirements" |
 | `clarification` | H1 starts with "Requirements Clarification"; H2 contains "Decisions Log" |
 | `product-vision` | H1 starts with "Product Vision" or H1 contains "Product"; H2 set contains at least two of "Vision", "Problem Statement", "Target Users & Personas", "Value Propositions", "Anti-Goals", "Roadmap Themes" |
+| `changeset-walkthrough` | H1 starts with "Changeset Walkthrough"; OR H2 set contains BOTH "Change Map" AND "Change Narrative". *Both marker pairs are unique in the AndThen canon; ordered before the report family defensively since walkthroughs may carry an "Architectural Delta" H2.* |
 | `event-storming` | H1 or H2 contains "Event Storming" / "Event-Storming" (case-insensitive); OR H2 set contains BOTH "Event Timeline" AND ("Hotspots" OR "Commands and Actors"). *Ordered before `strategic-design` because event-storming reports may carry "Subdomain Candidates" as a Big-Picture output; the Event-Timeline marker wins first.* |
 | `fitness` | H1 contains "Fitness Functions" / "Fitness Function" (case-insensitive); OR H2 set contains BOTH "Proposed Fitness Functions" AND ("ADR Gap Analysis" OR "Current Governance Coverage" OR "Prioritized Implementation Roadmap"). *The H2 branch requires the fitness-mode-specific discriminator (ADR Gap Analysis / Governance Coverage / Implementation Roadmap) – not just "Fitness Functions" alone – because an architecture **review** report also carries a `## Proposed Fitness Functions` section (per `mode-review.md`'s report-contents list) and must NOT mis-detect as a fitness report. Ordered before `strategic-design` and `tradeoff` because all share `Executive Summary` + `How to Read This Report`.* |
 | `decompose` | H1 or H2 contains "Decompose" / "Decomposition Analysis" (case-insensitive); OR H2 set contains ("Driver Scores" OR "Boundary Map") AND "Recommendation" AND **no scoring-matrix table is present** (the scoring-matrix exclusion disambiguates from `tradeoff`). |
@@ -75,7 +77,7 @@ Run heuristics in order; first match wins. **Filename hints are advisory only �
 | `architecture-review` | H1 contains "Architecture Review" as a phrase; AND H2 set contains "Executive Summary"; AND H2 set contains at least one of "Findings", "Metrics Dashboard", or "Proposed Fitness Functions". *Uses `templates/review-report.md`, but note ownership routes back to the `andthen:architecture` skill instead of the generic review/remediation loop.* |
 | `review-report` | H1 contains "Review" as a standalone word (case-insensitive – e.g. "Doc Review", "Code Review", "Council Review"); AND H2 set contains "Executive Summary"; AND H2 set contains at least one of "Findings", "Verdict", "Readiness Assessment", "Metrics Dashboard". *Last among markdown reports because review reports overlap structurally with `tradeoff`, `fitness`, and `decompose` (all share `Executive Summary` + recommendation language). The "Review" H1 + Findings/Verdict marker pair is the discriminator.* |
 
-If no match, exit with the message *"andthen:visualize: cannot detect artifact type. Supported: PRD (`prd.md`), `plan.json`, FIS, `requirements-clarification.md`, product vision, review reports (any lens), architecture review / trade-off / strategic-design / fitness / decompose / event-storming reports, ADRs (`NNN-title.md` with `# ADR-NNN:` H1)."* and write no HTML.
+If no match, exit with the message *"andthen:visualize: cannot detect artifact type. Supported: PRD (`prd.md`), `plan.json`, FIS, `requirements-clarification.md`, product vision, review reports (any lens), changeset walkthroughs, architecture review / trade-off / strategic-design / fitness / decompose / event-storming reports, ADRs (`NNN-title.md` with `# ADR-NNN:` H1)."* and write no HTML.
 
 
 ## Artifact Owner Identity
@@ -90,6 +92,7 @@ The renderer owns HTML production, but copied notes identify the skill that owns
 | `clarification`, `product-vision` | `andthen:clarify` |
 | `architecture-review`, `tradeoff`, `strategic-design`, `fitness`, `decompose`, `event-storming`, `adr` | `andthen:architecture` |
 | `review-report` | `andthen:review` |
+| `changeset-walkthrough` | `andthen:explain-changes` |
 
 Use the owner in the copied payload header: `# <owner> visual review notes for <artifact-path>`.
 
@@ -102,7 +105,7 @@ These are contracts. The HTML/CSS/JS that satisfies them lives in `templates/ren
 
 - **Single self-contained HTML file.** All CSS, JS, and SVG inlined. No external scripts, fonts, stylesheets, icons. Must work from `file://` with no network access.
 - **Warm light theme (Anthropic-style).** Ivory background, warm-dark slate text, clay coral accent, olive for resolved/done. Serif for headlines, sans for body, mono for code and metadata. Use the theme tokens in `templates/render-shell.md`.
-- **Two-pane layout.** Left = scrollable artifact content; right = sticky sidebar holding the **Copy notes** button (top), section navigator with note-count badges, and a unified note list. The sidebar is always visible at viewports ≥1100px and collapses to a top drawer below that. *Why:* a floating-TOC-only layout hides nav on laptop widths and buries affordances where users miss them.
+- **Two-pane layout.** Left = scrollable artifact content; right = sticky sidebar holding the **Copy notes** button (top), section navigator with note-count badges, and a unified note list. The sidebar is always visible at viewports ≥1100px and collapses to a top drawer below that. *Why:* a floating-TOC-only layout hides nav on laptop widths and buries affordances where users miss them. *Exception:* `changeset-walkthrough` renders as a tabbed interactive app, not a document – produced by the bundled deterministic renderer (`scripts/render-changeset.mjs`, invoked per `templates/changeset.md`), never hand-authored; the notes machinery and affordance contracts in this list are built into its output.
 - **Static affordances, JS-attached handlers.** The `+ Note` button, `View source` toggle, and per-section note-count span MUST be present in the static HTML body of each `<section>`. JavaScript only attaches click handlers and renders the dynamic note list. *Why:* if JS fails, errors out, or is delayed, the user must still see *that* notes are possible. Empty `<div class="sec-actions"></div>` placeholders waiting for JS injection are a known regression – never ship them.
 - **Read-only render + section-anchored notes.** No structured editing. One Note affordance + one View-source toggle per H2 section. Diagrams do not get their own Note affordance – the parent section's Note covers any diagram inside it.
 - **Notes payload via clipboard.** "Copy notes" writes a markdown payload via `navigator.clipboard.writeText`; on failure, reveals a textarea with payload pre-selected for manual copy.
@@ -159,6 +162,7 @@ Each markdown H2 section, or plan virtual H2 section, dispatches to **one** spec
 | Review | Verdict / Readiness Assessment | Gap-mode PASS/FAIL table (canonical dimensions/score/threshold/status block); other lenses render the readiness label as a single chip |
 | Review | Metrics Dashboard | Per-package metrics table; Zone of Pain / Uselessness rows highlighted by `D` threshold |
 | Review | Proposed Fitness Functions | Reuses `fitness.md` `.fitness-card` / `.fitness-lanes` renderer when the section is present in an architecture review report |
+| Changeset | (whole artifact) | Bundled deterministic renderer – run `node "${CLAUDE_SKILL_DIR}/scripts/render-changeset.mjs" <artifact> <output>` per `templates/changeset.md`; never hand-author this type's HTML (hand-authored attempts produce broken SVG layout and dead scripts). Document-shell fallback only when Node is unavailable |
 | Fitness | Proposed Fitness Functions | Four-level lanes (L1 commit / L2 PR / L3 nightly / L4 prod) with per-proposal cards; severity chips reuse review-report styling |
 | Fitness | ADR Gap Analysis | ADR cards with `data-gap` chips (open / partial / enforced); cross-links to the Proposed Fitness Functions cards |
 | Decompose | Driver Scores | Two-radar pair (6 disintegration + 4 integration axes per Ford/Richards) alongside a driver-score table with strong/moderate/weak/N-A chips |
@@ -277,6 +281,7 @@ After the user reviews the rendered artifact and copies notes:
    - Clarification review notes → `andthen:clarify` amendment mode
    - Architecture-review notes → next `andthen:architecture` invocation in the matching mode (usually `--mode review`, or `--mode trade-off` when the note asks for an ADR)
    - Review-report notes → `andthen:remediate-findings` for actionable findings, or back to `andthen:review` for re-scoping
+   - Changeset-walkthrough notes → the PR conversation (paste as review comments), or `andthen:review` as scope/focus context for a follow-up findings review
    - Trade-off review notes → next `andthen:architecture` invocation (e.g. ADR formalization)
    - Strategic-design review notes → next `andthen:architecture` invocation (e.g. `--mode strategic-design` for refinement, `--mode fitness` to formalize, or `--mode decompose` for a contested boundary)
    - Fitness-functions review notes → next `andthen:architecture --mode fitness` invocation or implementation backlog

@@ -78,6 +78,7 @@ Use these individually for everyday development – no setup, no pipeline, no pr
 | `quick-implement` | Fast path for small features/fixes – implement + verify, bypassing the FIS workflow (`--tdd` strict red-green-refactor; `--issue` reads a GitHub issue → auto-PR; `--pr` / `--no-pr` control PR creation; `--auto` runs without prompts) |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context Critic sub-agent; loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; routes accepted findings into **Fix** (HIGH/CRITICAL, confidence ≥ 75, primary scope) and **Note** buckets so `--fix` only auto-applies the former; emits the finding `Class:` axis (`code-defect`/`spec-stale`/`design-changed`/`ambiguous-intent`) so per-story drift is reconciliation-ledger-writable; reports Guardrails Coverage for diff-verifiable project rules |
 | `review` | Smart review entrypoint: runs a single lens (`code`, `doc`, `gap`, `security`) or a comma-separated chain (`--mode gap,code,security`) where each lens runs independently and findings consolidate into one `mixed`-mode report; optional structured multi-perspective council review (`--council` – within-lens specialist debate on `code` / `security`, plus a cross-lens Critic + Devil's Advocate + Synthesis Challenger pass on any chain of 2+ lenses that surfaces lens-boundary contradictions and silence-licenses-risk in a `## Cross-Lens Synthesis` section); loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; classifies accepted findings as `code-defect`, `spec-stale`, `design-changed`, or `ambiguous-intent`; routes safe implementation and document/workflow-artifact defects into **Fix** (confidence ≥ 75, primary scope, no scope expansion past Intent; implementation/security fixes require HIGH/CRITICAL, deterministic doc fixes may be any severity) and decision/reconciliation findings into **Note**; routes `spec-stale` / `design-changed` findings to spec amendment + ADR reconciliation; loads the reconciliation ledger and matches findings by stable ID (`{path}:{class}`) – OPEN reconciliation-class matches become tracked Notes (only `code-defect` feeds the gap verdict, so known drift can't drag it to FAIL), withdrawn/closed matches stay suppressed unless new evidence refutes the recorded falsifier, and unreconciled recurrence escalates once to a blocking `RECONCILE REQUIRED`; emits a CONVERGED stopping signal (no new `code-defect` ≥ MEDIUM) beside the unchanged byte-level `## Verdict` block; emits Guardrails Coverage with per-finding rule citations; on refactor-shaped diffs (deletion, rename, lifecycle move, cache, codegen, schema migration, parameter threading) the `code`/`gap` lenses run a cross-file refactor-invariants pass; `--fanout` / `--no-fanout` force partition-based sub-agent fan-out for `code`/`gap` (auto on ≥20 files, ≥1000 LOC, or 3+ packages – partitions into vertical slices + a cross-partition boundary pass); `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage |
+| `explain-changes` | Explain a PR, branch, ref range, or working tree as a **Changeset Walkthrough** – changes untangled into intent clusters (behavior / refactor / config / tests / docs), ordered narratively, with key diff hunks, per-file risk tags (`attention`/`medium`/`safe`), an architectural-delta module map, reviewer focus points, scope boundary, and verification status – then rendered by the `andthen:visualize` skill as a tabbed interactive app via its bundled deterministic renderer, identical on every agent (Overview change-mosaic + cluster cards · guided cluster Tour with docked module map · Files table with filters and directory sunburst · zoomable Architecture module map; needs Node ≥18, plain-document fallback otherwise; default on, `--no-visual` skips). Comprehension only – no findings, no verdict (use `review` for judgment). Read-only: `--from-pr <N>` reads via `gh` without checkout; `--to-pr [<N>]` posts the walkthrough markdown as a PR comment (number from the flag, `--from-pr`, or the current branch's open PR; splits at the 65,536-char limit); `--auto` for unattended runs. Artifact: `.agent_temp/walkthrough/<slug>-walkthrough-<date>.md` |
 | `simplify-code` | Behavior-preserving code simplification and cleanup; loads Intent Context when present and drops cleanups that contradict Non-Goals, implement deferred outcomes, or restructure code the FIS explicitly chose a shape for (Boy Scout cleanup is intent-bounded, not just behavior-preserving) |
 | `refactor` | Deprecated – redirects to `simplify-code` with args forwarded verbatim; `--auto` suppresses only the deprecation notice |
 | `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, and event storming (modes: `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming`; `trade-off` updates the project's `DECISIONS.md` registry when ADR creation is accepted; `--visual` delegates structured reports – `review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, and ADR – to the `andthen:visualize` skill; pure `advise` is text-only) |
@@ -87,7 +88,7 @@ Use these individually for everyday development – no setup, no pipeline, no pr
 | `ubiquitous-language` | Extract and maintain the domain glossary from codebase and docs (`--update` merges new terms with the existing glossary) |
 | `excalidraw-diagram` | Generate high-quality Excalidraw diagrams from a topic, file, URL, or concept reference – outputs portable `.excalidraw` JSON + a rendered PNG |
 | `visual-validation` | Validate UI screenshots and implementations against visual, responsive, and design expectations; use `e2e-test` for browser journeys and `ui-ux-design` for design-system or wireframe authoring (`andthen:visual-validation` skill) |
-| `visualize` | Render any AndThen artifact – PRD, `plan.json`, FIS, requirements-clarification, product vision, review report (any lens), architecture review / trade-off / strategic-design / fitness / decompose / event-storming report, or ADR – as a self-contained HTML view (inline CSS+JS+SVG, warm-light theme, no external deps); section-anchored notes export via clipboard as a markdown payload identifying the artifact owner (`andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:clarify`, `andthen:review`, or `andthen:architecture`). Open-loop and read-only. Output: `.agent_temp/visual-review/<slug>-<ts>.html` |
+| `visualize` | Render any AndThen artifact – PRD, `plan.json`, FIS, requirements-clarification, product vision, review report (any lens), changeset walkthrough, architecture review / trade-off / strategic-design / fitness / decompose / event-storming report, or ADR – as a self-contained HTML view (inline CSS+JS+SVG, warm-light theme, no external deps); section-anchored notes export via clipboard as a markdown payload identifying the artifact owner (`andthen:prd`, `andthen:plan`, `andthen:spec`, `andthen:clarify`, `andthen:review`, `andthen:explain-changes`, or `andthen:architecture`). Open-loop and read-only. Output: `.agent_temp/visual-review/<slug>-<ts>.html` |
 | `e2e-test` | End-to-end browser testing for web apps – discovers user journeys, runs interactive tests, fixes bugs found, and validates responsive behavior across viewports (`--focus` to scope to specific routes/features) |
 
 ### Pipeline Skills
@@ -142,6 +143,11 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 /andthen:review --mode doc docs/specs/my-feature/plan.json
 /andthen:review --mode gap,code,security        # chain lenses → one consolidated report
 
+# Understand a PR or branch before reviewing it – interactive HTML walkthrough
+/andthen:explain-changes --from-pr 42
+/andthen:explain-changes main                   # current branch vs main
+/andthen:explain-changes --from-pr 42 --to-pr   # also post the walkthrough on the PR
+
 # Simplify messy code
 /andthen:simplify-code src/utils/
 
@@ -170,6 +176,7 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 /andthen:visualize docs/specs/auth-feature/requirements-clarification.md
 /andthen:visualize docs/specs/auth-feature/s01-login.md                       # FIS
 /andthen:visualize docs/specs/auth-feature/s01-login-doc-review-claude-*.md   # review report
+/andthen:visualize .agent_temp/walkthrough/pr-42-walkthrough-2026-06-12.md    # changeset walkthrough
 /andthen:visualize docs/research/event-source-vs-snapshot/recommendation.md   # trade-off
 /andthen:visualize docs/research/order-domain/strategic-design.md             # strategic-design
 /andthen:visualize docs/research/governance/fitness-functions.md              # fitness
@@ -305,7 +312,7 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 /andthen:review --mode gap
 ```
 
-**GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --from-pr` reads a PR as review scope; `review --to-pr` and `architecture --to-pr` post reports as PR comments. Everything else is local – use a branch + PR as the transport.
+**GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --from-pr` and `explain-changes --from-pr` read a PR as scope; `review --to-pr`, `architecture --to-pr`, and `explain-changes --to-pr` post reports as PR comments. Everything else is local – use a branch + PR as the transport.
 
 ## Working in a Team
 
@@ -340,6 +347,12 @@ Each downstream picks its own `--prefix` (must end with `-`). Skills install as 
 ## Migration Notes
 
 See [CHANGELOG.md](../CHANGELOG.md) for full release notes. Entries below cover migration steps for recent releases – both breaking changes and non-breaking shape additions that affect the FIS or plan surfaces consumers parse.
+
+### 0.29.0 – New `explain-changes` skill + changeset-walkthrough artifact type (non-breaking addition)
+
+A new `andthen:explain-changes` skill produces a **Changeset Walkthrough** markdown artifact (`.agent_temp/walkthrough/<slug>-walkthrough-<date>.md`) and the `andthen:visualize` skill gains a matching `changeset-walkthrough` artifact type (detection: H1 starts with "Changeset Walkthrough", or H2 set contains both "Change Map" and "Change Narrative"; notes-payload owner: `andthen:explain-changes`). This type renders via a bundled deterministic Node script (`skills/visualize/scripts/render-changeset.mjs`, Node ≥18, no dependencies) rather than model-authored HTML; without Node it degrades to a plain document render. Existing artifact types, detection order outcomes, and the notes payload format are unchanged; the visualizer's exact no-match error message now also lists changeset walkthroughs. Parsers that enumerate supported types should add the new one.
+
+**To migrate**: no action required; existing artifacts and downstream consumers are unaffected.
 
 ### 0.28.0 – Shared vs. session-local state split (non-breaking shape addition)
 
