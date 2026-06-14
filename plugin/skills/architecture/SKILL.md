@@ -25,9 +25,9 @@ ARGUMENTS: $ARGUMENTS (strip recognized flag tokens and their values wherever th
 **Multi-mode**: `--mode` accepts a comma-separated list (e.g. `--mode review,fitness`, `--mode advise,trade-off`, or `--mode event-storming,strategic-design,decompose`). Modes execute in declared order, sharing context – metrics, dependency graphs, candidate options, subdomain/context candidates, and findings computed by an earlier mode feed later modes without recomputation. Include each mode's required input (see Phase 0) when chaining.
 
 ### Optional Output Flags
-- `--output-dir <path>` -> OUTPUT_DIR: explicit report-directory override; bypasses the directory-priority resolution and source-code subdirectory guard in [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md). Path must exist and be writable – `BLOCKED: --output-dir <path> not writable` in `AUTO_MODE`, warning + fallthrough to heuristic tiers in default mode. When combined with `--to-pr`, the report writes to `--output-dir` and is then posted as the PR comment. In **trade-off** mode the path also roots the research-artifacts subtree at `OUTPUT_DIR/[topic-slug]/` (the report file sits at `OUTPUT_DIR/`, alongside the subtree); when `--output-dir` is absent, OUTPUT_DIR defaults to the **Project Document Index** Research location, or `<project_root>/docs/research/`.
+- `--output-dir <path>` -> OUTPUT_DIR: explicit report-directory override; bypasses the directory-priority resolution and source-code subdirectory guard in [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md). Path must exist and be writable – `BLOCKED: --output-dir <path> not writable` in `AUTO_MODE`, warning + fallthrough to heuristic tiers in default mode. When combined with `--to-pr`, the report writes to `--output-dir` and is then posted as the PR comment. In **trade-off** mode the subtree layout follows `references/mode-trade-off.md`. When `--output-dir` is absent, OUTPUT_DIR defaults to the **Project Document Index** Research location, or `<project_root>/docs/research/`.
 - `--to-pr <number>` -> PUBLISH_PR: post the report as a plain PR comment
-- `--visual` -> VISUAL_MODE: after the report is written and filtered, invoke the `andthen:visualize` skill on the produced report. Supported for every mode except pure `advise` – see the visual-review handling under INSTRUCTIONS.
+- `--visual` -> VISUAL_MODE: after the report is written and filtered, invoke the `andthen:visualize` skill on the produced report. Supported for every mode except pure `advise` – see `references/visual-review-handling.md`.
 - `--auto` -> AUTO_MODE: automation-safe execution with no conversational prompts
 
 ### Mode-Specific Flags
@@ -39,34 +39,20 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 
 ## INSTRUCTIONS
 
-- When `ARGUMENTS` is empty or ambiguous (no clear mode or scope), or when a declared chain is missing a required input for one of its modes (decompose boundary, advise question, trade-off topic), start with guided setup (see Phase 0). Do not assume a mode or run a full-project review by default.
+- When `ARGUMENTS` is empty/ambiguous, or a declared chain is missing a required input for one of its modes (decompose boundary, advise question, trade-off topic), start with guided setup (Phase 0); do not assume a mode or run a full-project review by default.
 - **Discovery / design modes are interactive.** `trade-off` and `event-storming` declare explicit user-confirmation gates in their mode references. Honor them: present the proposal back and wait for user input at each gate, using an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, numbered markdown otherwise). Detailed `ARGUMENTS` are never implicit confirmation of these gates – see the *implicit confirmation from detailed input* failure mode in `references/mode-trade-off.md`.
-- **Automation mode** (`--auto`) – never ask the user what to do next. Infer mode and scope from the arguments using the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` and list the minimum missing decisions (mode, scope, decompose boundary, advise question, trade-off topic, or strategic-design / event-storming domain or workflow scope). Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt – it is deterministic).
-- Read project rules, guardrails, and guidelines (`CLAUDE.md` / `AGENTS.md` and other referenced files) before forming conclusions.
+- **Automation mode** (`--auto`) – never ask the user what to do next. Infer mode and scope from the arguments using the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` listing the minimum missing inputs (see Phase 0). Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt – it is deterministic).
 - Analysis and design only. Do not modify code.
-- Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and `references/architecture-calibration.md`.
-- **Visual review is a post-filter handoff.** When `--visual` (in `AUTO_MODE`, only then), complete the report/filter gate first, then invoke the `andthen:visualize` skill on the report (it owns rendering, note export, browser-open, `.agent_temp/visual-review/`). Supported for all modes except pure `advise` (no template → no-op with a one-line note, not a generic renderer). Multi-mode chains: visualizer dispatches first-match-wins on one artifact type per file; print a one-line warning naming the active mode's renderer (other sections fall to Generic Prose; re-run per-mode with `--output-dir` for fidelity).
+- **Visual review is a post-filter handoff** (`--visual`): complete the report/filter gate first, then see `references/visual-review-handling.md`; pure `advise` is excluded.
 - Read the `Learnings` document (see **Project Document Index**) before starting.
-- Load only the references the selected mode(s) need – not all upfront (see Phase 1). `advise` supporting references load lazily inside the mode.
-- Adapt all tooling suggestions, metric computation, and fitness function implementations to the detected language.
-- **Evidence over opinion**: compute metrics and analyze structure before forming conclusions. Never report "this module seems too large" – report specific metric values, file paths, and import chains.
-- **Framework attribution**: every recommendation cites a named principle (e.g. "Per SAP (Martin)..." or "Ford/Richards disintegration driver #3...").
-- **Actionable findings**: every finding includes a concrete remediation path and a fitness function to prevent recurrence.
-- **Progressive improvement**: support the "frozen rules" pattern – snapshot current violation count, fail CI only on regressions.
-- **Multi-scale awareness**: tag findings by C4 level (Context / Container / Component / Code).
-- **Connascence-aware coupling**: classify coupling by connascence type, not just edge count.
+- Metric-computing modes (`review`/`decompose`/`fitness`) emit evidence-based, framework-attributed, C4-tagged, connascence-classified, remediation+fitness-function findings per each mode ref, `references/review-output.md`, and `references/fitness-functions.md` (frozen-rules pattern); the Findings Filter (Phase 3) enforces these.
 
 ## GOTCHAS
 
 - Running a full-project review when invoked with no arguments instead of asking the user what they want
-- Reporting opinions without computed metrics
 - Loading all references when the mode only needs a subset
-- Treating infrastructure packages in Zone of Pain as problems (database drivers, runtime bindings may legitimately sit there)
-- Missing dynamic connascence crossing package boundaries (always HIGH or CRITICAL)
-- Recommending decomposition without scoring integration drivers alongside disintegration drivers
-- Inflating severity for borderline metrics – report as INFO with context, not HIGH
+- Calibration false-positive traps (infra in Zone of Pain, leaf packages with high Ce, dynamic connascence across boundaries, borderline-metric severity inflation): see `references/architecture-calibration.md`.
 - For `advise`/`trade-off`: recommending from popularity or novelty instead of fit for this project
-- Applying the Ousterhout module-design lens (`references/ousterhout-modules.md`) at Container or Context level – it is a Component/Code lens for in-process module and API design only, not for service decomposition
 
 ## WORKFLOW
 
@@ -95,7 +81,7 @@ When invoked without clear mode and scope, guide the user interactively:
 
 1. Parse mode(s) from `ARGUMENTS` (auto-detect a single mode, or parse a comma-separated list from explicit `--mode`), or use the mode(s) confirmed in Phase 0. Preserve declared order for multi-mode chains.
 2. Read project rules, guidelines, and existing ADRs. Also read the existing `Architecture` document (see **Project Document Index**) if present – it's the authoritative system-shape baseline for `review` / `decompose` / `fitness` modes. For `advise` / `trade-off` / `strategic-design` / `event-storming` modes, also read the `Product` document (see **Project Document Index**) if present – vision and anti-goals anchor design decisions and subdomain classification.
-3. Detect the primary language from project files (only required for modes that compute structural metrics – `review`, `decompose`, `fitness`). The discovery and design modes (`advise`, `trade-off`, `strategic-design`, `event-storming`) do not require language detection – they reason about contexts, decisions, and events at the C4 Context/Container level rather than computing metrics:
+3. Detect the primary language from project files (only required for modes that compute structural metrics – `review`, `decompose`, `fitness`); discovery/design modes (`advise`, `trade-off`, `strategic-design`, `event-storming`) skip it:
 
    | Indicator | Language | Tooling |
    |-----------|----------|---------|
@@ -115,13 +101,7 @@ When invoked without clear mode and scope, guide the user interactively:
 
 Execute the selected mode by following its mode-reference file. For multi-mode invocations, run each mode in declared order, carrying forward dependency graph, computed metrics, classified connascence, candidate options, and findings – never recompute work an earlier mode already produced.
 
-- `review` → `references/mode-review.md`
-- `decompose` → `references/mode-decompose.md`
-- `advise` → `references/mode-advise.md` (covers greenfield design, refactor guidance, CUPID/DDD assessment, and pattern advice)
-- `fitness` → `references/mode-fitness.md`
-- `trade-off` → `references/mode-trade-off.md`
-- `strategic-design` → `references/mode-strategic-design.md` (subdomain classification, bounded-context discovery and sizing, context mapping, UL touchpoints; greenfield + brownfield paths)
-- `event-storming` → `references/mode-event-storming.md` (Brandolini's three levels; produces event timelines, command/actor maps, hotspots, and subdomain or aggregate candidates)
+Dispatch each selected mode (`review`/`decompose`/`advise`/`fitness`/`trade-off`/`strategic-design`/`event-storming`) to its mode reference per the **Mode** table.
 
 **Gate**: Mode work complete with evidence-based findings or an evidence-based recommendation
 
@@ -155,13 +135,12 @@ Each mode reference file declares what its report must include. See the referenc
 - **Report suffix**: `architecture`
 - **Target nature** (per mode):
   - `review` / `decompose` / `fitness` → source-code (the primary target is a package/directory; tier-2 co-location is disabled)
-  - `advise` / `trade-off` / `strategic-design` / `event-storming` → doc artifact, with a **substituted tier-2 destination** (per the asset's tier-2 hook): the project's research/ADR location from the Project Document Index `Research` / `ADRs` rows. When such a row resolves, it replaces tier 2's "next to target" destination; tier 1 still wins, tiers 3/4 still apply on miss.
+  - `advise` / `trade-off` / `strategic-design` / `event-storming` → doc artifact, with a **substituted tier-2 destination**: the project's research/ADR location from the Project Document Index `Research` / `ADRs` rows replaces tier 2's "next to target" destination when it resolves; tier 1 still wins, tiers 3/4 apply on miss.
 
 ### Publish to PR _(if --to-pr)_
 If `PUBLISH_PR` is set, post the report file's contents as a plain PR comment via `gh pr comment <number> --body-file <report-path>`. If the command does not return a direct comment URL, resolve it via follow-up lookup. Print the direct comment URL.
 
-### Visual Review _(if --visual)_
-After Phase 3 (see INSTRUCTIONS), invoke the `andthen:visualize` skill on supported architecture outputs. Print both the report path and the visualizer's output path.
+### Visual Review _(if --visual)_ – post-Phase-3 handoff; see `references/visual-review-handling.md`. Print both the report path and the visualizer output path.
 
 ## Post-Completion
 After `trade-off` / `strategic-design` / `decompose` / `event-storming`, append emerging traps or anti-patterns via the `andthen:ops` skill (`update-learnings add` form); choices with rationale go to ADRs instead.
@@ -174,11 +153,11 @@ After each analysis – including a combined report from a declared multi-mode c
 
 Offer:
 1. **Continue with another mode** – carry forward current session context
-2. **Deep-dive into a specific finding** – zoom into a single package, boundary, or option
+2. **Deep-dive into a specific finding** – a single package, boundary, or option
 3. **Create fitness function implementations** from proposals
-4. **Formalize an ADR** – primary path for an `advise` decision; for `trade-off`, Step 6 already produced the ADR unless the user opted out, so this is a late-add backstop only. Formalizing an ADR runs the same `DECISIONS.md` registration logic defined in `references/mode-trade-off.md` Step 6.
-5. **Code-level review** for correctness, style, security (invoke the `andthen:review` skill with `--mode code`)
-6. **Review visually** – _supported for every mode except pure `advise` (see the visual-review handling under INSTRUCTIONS); OMIT this entry only after a pure `advise` run (no structured report)_. Run the `andthen:visualize` skill on `<report-path>` to spot scope and edge-case issues a markdown view obscures (skip when `--visual` already ran).
+4. **Formalize an ADR** – primary path for an `advise` decision; for `trade-off`, Step 6 already produced the ADR unless the user opted out, so this is a late-add backstop only, running the same `DECISIONS.md` registration logic defined in `references/mode-trade-off.md` Step 6.
+5. **Code-level review** – invoke the `andthen:review` skill with `--mode code`
+6. **Review visually** – _supported for every mode except pure `advise` (see `references/visual-review-handling.md`); OMIT only after a pure `advise` run; skip when `--visual` already ran_. Runs the `andthen:visualize` skill on `<report-path>`.
 7. **End session** – finalize the report and stop
 - **Common chains**: `review → decompose → fitness`; `advise → trade-off → ADR`; `review → advise → fitness`; `fitness → review`; `event-storming → strategic-design → decompose` _(end-to-end discovery into decomposition)_; `strategic-design → fitness` _(formalize strategic decisions as fitness functions)_; `strategic-design,trade-off` _(weighted-criteria comparison when an integration-pattern choice is contested)_
 

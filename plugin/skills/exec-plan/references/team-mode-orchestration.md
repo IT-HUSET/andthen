@@ -80,7 +80,7 @@ Escalate unresolvable issues.
 
 ## Merge Wave _(worktree mode only)_
 
-After current-wave `impl-*` and `review-*` succeed or are recorded failed, merge only reviewed-successful implementations. Before each merge, take `{WORKTREE_PATH_ABS}` from the `create-worktree.sh` capture (fall back to step 5's `git worktree list --porcelain` lookup only after orchestrator restart). Implementer `BLOCKED:` / Failed Story Report, quick-review accepted findings, or dirty worktree → record failed story; no merge, no deferred writes, no cleanup for that story.
+After current-wave `impl-*` and `review-*` succeed or are recorded failed, merge only reviewed-successful implementations. Before each merge, take `{WORKTREE_PATH_ABS}` from the `create-worktree.sh` capture (fall back to step 5's `git worktree list --porcelain` lookup only after orchestrator restart). Implementer `BLOCKED:` / Failed Story Report, quick-review accepted **Fix-routed** findings, or dirty worktree → record failed story; no merge, no deferred writes, no cleanup for that story. Accepted **Note-routed** findings are recorded as the story's surfaced notes (Step 6 rollup), not a merge blocker.
 
 For each successful worktree branch in sequence:
 
@@ -147,7 +147,7 @@ Checklist source-of-truth by mode:
 - **Worktree** – primary writes come from the Merge Wave post-review "apply deferred shared writes" substep, not the worktree branch. Run the checklist after deferred writes commit (single-repo: from `{BASE_BRANCH}`; multi-repo: from `PLAN_DIR`). Miss → one-shot repair via `andthen:ops update-*`.
 - **No worktree** – `exec-spec` Step 5b writes status in-place; same as Step 3c; one-shot repair on miss.
 
-Also verify the **Plan Acceptance Gate** before `Done`: every FIS scenario/criteria checkbox is `[x]` (Final Validation Checklist when present), implementation observations present when the FIS narrowed scope, `review-*` task completed without accepted findings.
+Also verify the **Plan Acceptance Gate** before `Done`: every FIS scenario/criteria checkbox is `[x]` (Final Validation Checklist when present), implementation observations present when the FIS narrowed scope, `review-*` task completed without accepted **Fix-routed** findings (accepted Note-routed findings are recorded as surfaced notes, not a gate).
 
 Pass → record in the ledger's `completed` list.
 

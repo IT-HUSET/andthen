@@ -99,6 +99,22 @@ Runs the resolved lens chain (subset of {doc, code, security, gap}). Report:
 Keep findings from each sub-pass in distinct subsections. Merge overlapping findings and use the strongest framing as canonical. Security findings often overlap with code-quality findings (e.g. SQLi is both a correctness bug and an injection vuln); when the same defect surfaces in both lenses, keep it in the security section with a back-reference from the code section.
 
 
+## Loop Convergence Signals
+
+A converging review→remediate loop (review → `remediate-findings --auto` → re-review, exit when no gating findings remain) must drive its continue/stop/escalate decision off a measure its own body can move. The PASS/FAIL verdict and readiness ladder above are the **human-readability** signal, not the loop measure: a finding can be gating (keeps the verdict failing) yet `Routing: Note` (the body cannot apply it), so a loop keyed on the verdict alone churns identical iterations with no decreasing measure. These signals break that trap.
+
+**Gating verdict** (what keeps a convergence loop alive): gap `FAIL`; code/security `Needs Fixes` or `Blocked`; doc `Needs Significant Rework` or `Not Ready`; mixed overall readiness at `Needs Fixes` or worse on the precedence ladder. `Ready`, doc `Needs Minor Updates`, and gap `PASS` are **non-gating**.
+
+**`Auto-Remediation: PENDING | STALLED | CLEAR`** – the loop measure, emitted as an additive line beside the byte-level `## Verdict` block:
+- **PENDING** – `Fix`-routed findings remain; the body can make progress (apply, re-review).
+- **STALLED** – gating verdict **and** zero `Fix`-routed findings; no automated progress is possible.
+- **CLEAR** – no `Fix`-routed findings remain and the verdict is non-gating; loop done.
+
+**`NO-OP: no-auto-applicable-findings`** – the `andthen:remediate-findings` terminal signal when a valid report has findings but the fixable set is empty (every valid finding is `Routing: Note` / Phase 2a `SURFACED`). Distinct from `BLOCKED:` (invalid/unsafe input or a required decision).
+
+**Consumer contract.** A consuming loop continues on `PENDING`, stops successfully on `CLEAR`, and on `STALLED` (or a `NO-OP` from remediate) escalates **once** to a human decision (fix / reroute / accept-with-notes) instead of re-reviewing. AndThen emits the signals; it does not encode loop control – the iteration cap and no-progress branch live in the **consuming** workflow engine. `Auto-Remediation` answers "can automation still make progress"; the orthogonal `CONVERGED` (above) answers "did this pass find new defects".
+
+
 ## Publishing
 
 Reports that publish to GitHub as typed artifacts must include the verdict/readiness in the report body so consumers (`andthen:remediate-findings`) can parse it without opening companion files. For gap mode specifically, the canonical PASS/FAIL verdict block above is the authoritative machine-readable surface – other prose summaries are supplementary.

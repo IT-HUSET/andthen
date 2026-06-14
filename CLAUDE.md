@@ -108,7 +108,7 @@ Always fully read relevant guidelines below as needed, based on the type of work
 
 ### Maintenance Contracts (version bumps, CHANGELOG.md updates)
 
-- When updating **user-invocable skills**, make sure `README.md`, `plugin/README.md`, `CHANGELOG.md`, and the `## Skill Reference` section in `plugin/skills/now-what/SKILL.md` are updated accordingly.
+- When updating **user-invocable skills**, make sure `README.md`, `plugin/README.md`, `CHANGELOG.md`, and the Skill Reference catalog in `plugin/skills/now-what/references/skill-reference.md` are updated accordingly.
 - When updating **internal-only skills** (`user-invocable: false`), update `agents/openai.yaml`, `CHANGELOG.md`, and the owning caller's skill/reference docs; do not add the skill to public skill inventories unless users invoke it directly.
 - **Keep CHANGELOG.md entries extremely concise**: focus on the user-facing changes and avoid too low level internal implementation details.
 - Adding, renaming, or removing a shared canonical in `plugin/references/` requires updates to `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table AND `scripts/install-skills.sh`'s `_canonical_assets` and the per-skill `_skill_assets_*` arrays of every consuming skill.

@@ -6,6 +6,18 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.30.0] – 2026-06-14
+
+### Changed
+- **Review routing keys on fix character, not severity** – `andthen:review` and `andthen:quick-review` route a finding to the auto-apply **Fix** bucket when its correction is mechanical and bounded, not by defect severity, so bounded MEDIUM/LOW fixes are no longer stranded in **Note**. Design-judgment gaps and decision/reconciliation findings still stay Note; severity still drives the verdict.
+- **Hot-path skill trimming (context efficiency)** – the 12 largest always-on `SKILL.md` bundles are ~17% leaner (−7.5k words) by relocating step-specific detail into skill-local references and cutting restatement; behavior, parser tokens, and cross-skill contracts unchanged. Lowers the context cost paid on every invocation.
+
+### Added
+- **Review→remediate loop convergence signals** – `andthen:review` emits an `Auto-Remediation: PENDING | STALLED | CLEAR` loop signal beside the `## Verdict` block, and `andthen:remediate-findings` returns a `NO-OP: no-auto-applicable-findings` terminal signal, so a converging loop escalates a no-auto-fix stall to a human once instead of churning. Loop control stays with the consumer.
+- **exec-plan per-story gate honors Fix/Note routing** – a story's quick-review gate now blocks only on **Fix-routed** findings; accepted **Note-routed** findings no longer fail the story (nothing is auto-applicable) but are recorded as surfaced notes and rolled up at completion for human review.
+
+---
+
 ## [0.29.0] – 2026-06-12
 
 ### Added

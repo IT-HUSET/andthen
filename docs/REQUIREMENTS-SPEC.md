@@ -1111,7 +1111,7 @@ user-invocable: true
 Flags:
 - `--auto`: AUTO_MODE – no conversational prompts; CONFUSION becomes ASSUMPTION or BLOCKED:; BLOCKED: includes Failed Story Report.
 - `--tdd`: TDD_MODE – strict red→green→refactor per scenario; loads andthen:testing --mode tdd for canon.
-- `--defer-shared-writes`: skips Step 2.13 State write, 5b.2 plan.json write, 5b.3 State writes, and 4d failure-path State writes; emits Deferred Shared Writes audit block; FIS writes (5b.1) still run. Default false. Auto-set to true by andthen:exec-plan --team --worktree and --from-issue.
+- `--defer-shared-writes`: skips Step 2.10 State write, 5b.2 plan.json write, 5b.3 State writes, and 4d failure-path State writes; emits Deferred Shared Writes audit block; FIS writes (5b.1) still run. Default false. Auto-set to true by andthen:exec-plan --team --worktree and --from-issue.
 - `--to-pr <number>`: after the 5c completion-presentation gate passes, posts 5c summary as PR comment on the given PR number. Explicit number only; no auto-detect.
 
 Frontmatter:
@@ -1145,7 +1145,7 @@ Completion report (5c) in conversation: per-task status, files created/modified,
 - `XSPEC-11` When FIS has no `**Expected Outcomes**:` sub-block under `## Feature Overview and Goal`, emits `WARN: FIS predates Expected Outcomes; in-FIS tie-breaker inactive (re-spec to upgrade).` and continues.
 - `XSPEC-12` Scaffolds minimum high-signal scenario-test skeletons before implementation if FIS has Acceptance Scenarios.
 - `XSPEC-13` In TDD_MODE, scaffolds exactly one scenario test, observes it fail, then proceeds to implementation for that scenario only (red→green→refactor cycle).
-- `XSPEC-14` Updates project State document to mark story active at Step 2.13 unless DEFER_SHARED_WRITES=true or State absent or FIS not plan-backed.
+- `XSPEC-14` Updates project State document to mark story active at Step 2.10 unless DEFER_SHARED_WRITES=true or State absent or FIS not plan-backed.
 - `XSPEC-15` Implements tasks in listed order; runs each task's Verify line before advancing to the next task.
 - `XSPEC-16` Does not mark a task complete or advance while Verify is red.
 - `XSPEC-17` Marks each task checkbox complete immediately in the FIS – does not batch checkbox updates.
@@ -1368,8 +1368,9 @@ Positional args:
 - `XPLAN-10` Sub-agent (non-team) mode: spawn one sub-agent per story in the current wave in parallel, then wait for the whole wave to complete before scheduling the next wave
 - `XPLAN-11` Worker Prompt injects ` --auto` to both exec-spec and quick-review invocations when AUTO_MODE=true; injects ` --defer-shared-writes` to exec-spec under --from-issue
 - `XPLAN-12` exec-spec Step 5b owns plan.json / FIS / State writes per story; sub-agents/teammates must not call andthen:ops update-* themselves (Worker Contract)
-- `XPLAN-13` story is Done only when build, tests, and lint/types are all clean and quick-review has no accepted findings; failed stories are recorded as contained failures and keep their pre-run `plan.json` status unless an explicit `andthen:ops update-plan` call changes it
-- `XPLAN-14` Per-story quick-review findings are a story gate: accepted findings → remediate once, re-run quick-review, do not enter the Writes-Landed Checklist until clear; persistent findings → contained story failure in AUTO_MODE
+- `XPLAN-13` story is Done only when build, tests, and lint/types are all clean and quick-review has no accepted Fix-routed findings; accepted Note-routed findings do not block Done (recorded as the story's surfaced notes); failed stories are recorded as contained failures and keep their pre-run `plan.json` status unless an explicit `andthen:ops update-plan` call changes it
+- `XPLAN-14` Per-story quick-review findings are a story gate by routing: accepted Fix-routed findings → remediate once, re-run quick-review, do not enter the Writes-Landed Checklist until they clear, persistent Fix-routed findings → contained story failure in AUTO_MODE; accepted Note-routed findings are recorded as surfaced notes in the run ledger and surfaced in the Step 6 rollup, not a gate
+- `XPLAN-14a` Step 6 aggregate report includes a surfaced-notes rollup: each completed story's accepted Note-routed quick-review findings are listed (or `none`) so a story Done with surfaced notes keeps those items visible rather than silently dropped
 - `XPLAN-15` Failed story blocks its dependents; independent stories continue in AUTO_MODE; in shared checkout, clean checkout is proven before unblocking another impl
 - `XPLAN-16` Writes-Landed Checklist runs after each story green gate: FIS checkboxes [x], plan.json story status "done", State doc active-story removal (local-directory mode); missing item triggers one-shot andthen:ops repair; persistent miss is Stop-the-Line
 - `XPLAN-17` Under --worktree, exec-spec runs with --defer-shared-writes; deferred writes are applied by the orchestrator in the Merge Wave as the primary write path after squash-merge
@@ -1552,6 +1553,7 @@ Positional args:
 - `REMED-13` Phase 2a never promotes a Routing: Note finding to Fix; it only demotes or surfaces.
 - `REMED-14` Phase 3 minimal plan: choose target artifact that owns the defect (code/config/tests for implementation; specs/plans/PRDs for design defects; user docs for explanation defects). If finding reveals unresolved product decision, escalate instead of speculative edit; in AUTO_MODE emit BLOCKED: with minimum missing decision.
 - `REMED-15` Phase 3: use parallel sub-agents only for independent fix groups (coupling fix groups into a single agent can introduce conflicts during implementation).
+- `REMED-15a` Phase 3 empty fixable set (no-op): when a valid report has findings but none route to Fix (all valid findings are Routing: Note or Phase 2a SURFACED), skip Phase 4 mutation/verification, still run the Phase 5 status/annotation steps the surfaced findings justify, and return `NO-OP: no-auto-applicable-findings` with the surfaced findings listed. NO-OP is distinct from BLOCKED: (valid input, no automated work); applies in both default and AUTO_MODE. Consumers treat NO-OP as stop-and-escalate, not a reason to re-review.
 - `REMED-16` Phase 4 trace test: every changed hunk traces to a Fix-bucket finding's location; hunks without a finding are scope creep → surface in completion report, not bundled.
 - `REMED-17` Add or update tests when an implementation finding requires proof-of-work.
 - `REMED-18` Run targeted verification after each fix group using Key Dev Commands document; fall back to discovery only when document is missing.
@@ -1992,8 +1994,8 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `QREV-08` --inline is rejected if the calling conversation produced or substantively reasoned about the change set; when rejected, emits `FALLBACK: --inline rejected, dispatching sub-agent (calling conversation not fresh w.r.t. change set)` and falls back to default dispatch; fallback is surfaced in the final report even in AUTO_MODE.
 - `QREV-09` Phase 3 collects Project Rules Context and Intent Context bundles per intent-and-rules-context.md (both in default and --inline paths) before running the review.
 - `QREV-10` Each finding passes a Validity gate (Accept/Dismiss) then a Routing gate (Fix/Note); Dismiss requires a concrete falsifier – observed mitigation, upstream Non-Goal citation, or calibration match; recall or recency never justifies dismissal.
-- `QREV-11` Fix bucket requires: severity HIGH or CRITICAL, confidence ≥ 75, scope relation `primary`, and fix does not introduce scope beyond stated Intent/Expected Outcomes.
-- `QREV-12` Note bucket covers: LOW/MEDIUM severity, confidence < 75, scope relation secondary/pre_existing, 'consider X' shape, or any fix expanding scope; Note findings are surfaced but never auto-applied even with --fix.
+- `QREV-11` Fix bucket requires, routed by fix character not severity: confidence ≥ 75, scope relation `primary`, fix does not introduce scope beyond stated Intent/Expected Outcomes, and the correction is mechanical and bounded – the correct replacement is uniquely determined by the artifact/rules/requirements/cited source (picking between plausible fixes or depending on un-pinned-down behavior → not mechanical → Note), no product/design/architecture/requirements decision needed. Severity does not gate Fix eligibility; security findings are Fix-eligible only when the secure correction is mechanical and unambiguous.
+- `QREV-12` Note bucket covers: confidence < 75, scope relation secondary/pre_existing, 'consider X' shape, fixes needing a product/design/requirements decision, or any fix expanding scope; Note findings are surfaced but never auto-applied even with --fix.
 - `QREV-13` When Intent Context is present, Non-Goal → Dismiss; deferred → Note; contradicts Expected Outcome → Fix-eligible regardless of severity heuristics.
 - `QREV-14` On routing tie without Intent Context, default to Note; under --inline (and especially --inline --fix), on tie route toward Note (not Fix) and toward Accept (not Dismiss).
 - `QREV-15` Output starts with `Intent Context: <source path | none discoverable>`; accepted findings grouped Fix first then Note; each finding includes exactly one parseable `Class: <code-defect | spec-stale | design-changed | ambiguous-intent>` value, a literal `Routing: Fix` or `Routing: Note` field, and one-clause routing rationale.
@@ -2015,7 +2017,7 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `QREV-29` Critic review must complete before evaluation (Phase 3 gate).
 - `QREV-30` BLOCKED: emitted (with description) when review scope cannot be resolved – e.g. no change set identifiable, unreadable target, or SHA not found.
 - `QREV-31` Dismiss requires a concrete falsifier; recall/recency never qualifies.
-- `QREV-32` Fix routing requires HIGH/CRITICAL severity, confidence ≥ 75, primary scope relation, and no scope expansion.
+- `QREV-32` Fix routing requires (fix-character, not severity): confidence ≥ 75, primary scope relation, no scope expansion, and a mechanical/bounded correction needing no product/design/requirements decision.
 - `QREV-33` --fix only unlocks edits on the current invocation; an in-conversation reply alone never unlocks editing.
 
 **Edge cases**
@@ -2051,7 +2053,7 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `REV-04` Chain dispatch: all lens find-passes fire as one flat parallel batch of sibling sub-agents; never sequential, never wrapped in a per-lens orchestrator sub-agent (flat by design – avoids lossy mid-tier re-summarization – not a host nesting limitation).
 - `REV-05` Guardrails pass runs once per review, before any lens, using the Project Rules Context bundle; each finding must cite its rule by source file and section; coverage line is `Guardrails Coverage: N checked, M findings`.
 - `REV-06` Every accepted finding preserves the full structured finding fields (reviewer, severity, confidence, location, scope relation, finding, threatened assumption or invariant, evidence, impact, suggested fix, verification needed) and also carries a parseable `Class:` field (code-defect | spec-stale | design-changed | ambiguous-intent) plus `Routing: Fix | Note` with one-line rationale.
-- `REV-07` Fix-bucket criteria (all must hold): severity HIGH or CRITICAL, confidence >= 75, scope relation `primary`, no scope expansion past Intent, Class is `code-defect`; all other findings route to Note.
+- `REV-07` Fix-bucket criteria (all must hold), routed by fix character not defect severity: confidence >= 75, scope relation `primary`, no scope expansion past Intent, Class is `code-defect`, and the correction is mechanical and bounded – the correct replacement is uniquely determined by the reviewed artifact/rules/requirements/cited source (if choosing the fix means picking between plausible alternatives or depends on behavior the artifact does not pin down, it is not mechanical → Note), no product/design/architecture/requirements decision needed. Severity does not gate Fix eligibility (it feeds the verdict and escalation priority). Security findings are Fix-eligible only when the secure correction is mechanical and unambiguous. All other findings route to Note.
 - `REV-08` `spec-stale` and `design-changed` findings are never auto-applied as code edits; `design-changed` without an ADR requires a companion finding routing to `andthen:architecture --mode trade-off`.
 - `REV-09` Verdict still drives overall readiness for `code-defect` findings regardless of routing bucket; in gap mode, reconciliation-class findings (`spec-stale`, `design-changed`, `ambiguous-intent`) remain Notes/annotations and do not lower the canonical PASS/FAIL dimensions.
 - `REV-10` Gap mode verdict is a byte-level compatibility contract: Functionality >= 7, Completeness >= 9, Wiring >= 8; canonical `## Verdict` table must appear verbatim in the report.
@@ -2085,6 +2087,8 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `REV-38` Cross-Lens Synthesis section (chain + --council) must lead with a `Coverage attacked:` proof-of-work line before listing the cross-lens findings by severity.
 - `REV-39` Step 6 (--fix) is skipped only when nothing is actionable – a single-lens gap PASS, a clean report with no findings, or a report where every finding routed to Note – and the skip reason must be stated explicitly.
 - `REV-40` AUTO_MODE positive output contract: when AUTO_MODE=true, print only the verdict/readiness, the absolute report path, and the remediation result when --fix ran.
+- `REV-47` Auto-Remediation signal: emit one additive line `Auto-Remediation: PENDING | STALLED | CLEAR` beside (never inside) the `## Verdict` block. PENDING = ≥1 `Fix`-routed finding remains; STALLED = gating verdict AND zero `Fix`-routed findings; CLEAR = no `Fix`-routed findings and non-gating verdict. Under --council it is computed from the final post-synthesis routed findings only. It is the loop measure (orthogonal to CONVERGED); consumers branch on it, not on raw PASS/FAIL.
+- `REV-48` Gating verdict (keeps a convergence loop alive), defined in review-verdict.md: gap FAIL; code/security Needs Fixes or Blocked; doc Needs Significant Rework or Not Ready; mixed overall readiness Needs Fixes or worse. Ready, doc Needs Minor Updates, and gap PASS are non-gating.
 
 **Gates / BLOCKED**
 - `REV-41` Step 1 gate: review target, lens-set context, and Intent + Rules Context bundles are explicit (or absent with reason recorded).
