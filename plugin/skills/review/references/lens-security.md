@@ -5,7 +5,7 @@ Rubric for reviewing implementation, config, infrastructure, and supply-chain ar
 Same target as the code lens; the difference is depth and posture – the code lens runs a thin awareness pass for obvious smells, this lens runs OWASP-aligned checklists, security tooling, and explicit data-flow analysis.
 
 ## Contents
-- Scope · Applicability Gate · Trust-Boundary Analysis · Tooling
+- Scope · Escalation Triggers · Applicability Gate · Trust-Boundary Analysis · Tooling
 - Critic Sub-Lens · Calibration · Verification Evidence · Findings Filter
 - Findings Output · Report Sections · Report Output Conventions
 
@@ -15,6 +15,15 @@ Same target as the code lens; the difference is depth and posture – the code l
 Implementation files (source code, config, IaC, CI/CD workflows, lockfiles, deployment manifests). Determine scope from: explicit paths/PR/issue in arguments, current pending changes (`git diff --stat`, `git diff --name-only`), or relevant neighboring files. Exclude generated, vendored, and lockfile noise unless lockfile changes are themselves the surface (supply-chain review).
 
 Identify the project checks relevant to the security scope by inspecting the repo's existing automation surfaces first: package scripts, Make targets, Justfiles, CI workflows, language-native config files, or documented contributor commands. Prefer the narrowest commands that still give trustworthy signal for the changed surface.
+
+
+## Escalation Triggers
+
+Surface signals that pull `security` into an auto-resolved lens set (used by the review skill's Step 2 escalation when `--mode` is absent and the heuristic selects `code` or `mixed`). Any one fires:
+
+- auth/session/authz (login, JWT, OAuth, RBAC, password); payments/money; secrets/credentials/keys/crypto.
+- network-exposed handlers (HTTP/GraphQL/gRPC/webhooks/consumers) and user-input/file-upload parsing; LLM/agent/RAG/tool-call flows.
+- IaC/CI-CD/deploy/lockfile/supply-chain; native or cross-platform mobile surface (keychain/keystore, deep links, cert pinning, biometric, IAP).
 
 
 ## Applicability Gate

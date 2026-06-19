@@ -12,8 +12,8 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 - `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 - `--tdd` → TDD_MODE: strict TDD execution mode. Scaffold exactly one scenario test, observe it fail, drive red→green→refactor, then advance to the next scenario. The executor remains the test author. TDD canon is owned by the `andthen:testing` skill – load `/andthen:testing --mode tdd` for depth. `AUTO_MODE` honors `--tdd` without confirmation gates. Default off; opt in for logic-heavy or bug-mode FISes.
 - `--defer-shared-writes` → DEFER_SHARED_WRITES (boolean; default `false`; immutable for the run):
-  - **`true`**: skip all shared-status writes (`State` in 2.10/5b.3/4d, `plan.json` in 5b.2). FIS writes (5b.1) still run; emit the `## Deferred Shared Writes` audit block (5b.5) for the caller to apply.
-  - **`false`** (standalone default): 5b.2/5b.3 run the `plan.json` + `State` writes (success) and 4d the failure blocker – see those steps for contents. Mirrors `andthen:exec-plan`'s per-story/phase-boundary writes so standalone use keeps plan/State consistent. No audit block.
+  - **`true`**: skip all shared-status writes (`plan.json` + `State`); see each Step 5b/4d substep for which writes it gates. FIS writes (5b.1) still run; emit the `## Deferred Shared Writes` audit block (5b.5) for the caller to apply.
+  - **`false`** (standalone default): run the shared writes (5b = success, 4d = failure blocker). Mirrors `andthen:exec-plan`'s per-story/phase-boundary writes so standalone use keeps plan/State consistent. No audit block.
   - Auto-propagated to `true` by `andthen:exec-plan --team --worktree` (avoids concurrent worktree-merge collisions) and `--from-issue` (orchestrator owns the local `plan.json`). Standalone: set only when you deliberately want deferral (see Step 5b.5 standalone-use note).
 - `--to-pr <number>` → PUBLISH_PR: after the Step 5c completion-presentation gate passes, post the Step 5c summary verbatim as a PR comment via `gh pr comment <number> --body-file <summary-path>`. Explicit number only; no auto-detect. See Step 5d.
 
@@ -23,7 +23,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 ### Core Rules
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - Require `FIS_FILE_PATH`. Stop if missing.
-- **Complete implementation** – reporting incomplete work with a caveat is **not** completion.
+- **Complete implementation** – finish the work.
 - **FIS is source of truth** – follow it exactly.
 - **Execution discipline** – Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (referenced below as *The Execution-Discipline Rules*).
 - **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.

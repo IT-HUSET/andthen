@@ -14,12 +14,7 @@ Scope: this reference applies to execution-oriented skills only (`prd`, `plan`, 
 
 ## Strict Mode (`--auto`)
 
-When `AUTO_MODE=true`:
-
-- **Never ask the user what to do next.** No arrow prompts, no "Which approach?" pauses.
-- **Make the most conservative assumption** that preserves a coherent output. Record it in the artifact (FIS / PRD / plan / completion report) so the chain remains auditable.
-- **Return a deterministic completion summary** the orchestrator can parse – artifact paths, status, blockers.
-- **Stop only with `BLOCKED:`** for the failure conditions below; never silently degrade.
+When `AUTO_MODE=true`, never ask the user what to do next (no arrow prompts, no "Which approach?" pauses); make the most conservative assumption that preserves coherent output and record it in the artifact (FIS / PRD / plan / completion report); return a **deterministic completion summary** the orchestrator can parse – artifact paths, status, blockers – and stop only with `BLOCKED:` for the failure conditions below; never silently degrade.
 
 ### `BLOCKED:` Triggers (generic)
 

@@ -19,7 +19,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--
 ## INSTRUCTIONS
 
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
-- **Intent + Rules Context** – collect both bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) up-front in Phase 1, after scope is resolved. Behavior-preserving is not intent-preserving: the Phase 2 Intent anchor drops cleanups that contradict the Intent (surfaced in the completion summary, not applied).
+- **Intent + Rules Context** – per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) (collected in Phase 1.3). Behavior-preserving is not intent-preserving: the Phase 2 Intent anchor drops cleanups that contradict the Intent (surfaced in the completion summary, not applied).
 - **Preserve exact behavior** – change only *how* the code works, never *what* it does, unless explicitly requested
 - **Tests must pass** before and after simplification
 - Match the codebase's existing conventions and style – read the project guidelines before making style judgments

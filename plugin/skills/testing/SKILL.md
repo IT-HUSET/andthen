@@ -46,7 +46,7 @@ Load both `test-design.md` (assertions) and `levels-and-strategy.md` (level choi
 2. **Rank by risk.** Highest-risk unproven behavior first. See `levels-and-strategy.md` §"Coverage strategy".
 3. **Pick the lowest effective level.** Default to integration when a unit test needs heavy mocking. See `levels-and-strategy.md` §"The three levels".
 4. **Test-first** for `tdd` and `prove-it`; retro-fit for `write`.
-5. **Prove the test would fail without the implementation.** Otherwise you haven't proven anything.
+5. **Prove each test fails without the implementation** – break the impl, watch it red – before declaring coverage done. A test that stays green against a broken impl proves nothing; the retrofit `write` path is where this slips most.
 6. Leave coverage clearer than you found it.
 
 
@@ -62,10 +62,7 @@ Every important scenario needs at least one test or a documented proof artifact.
 
 ## FRAMEWORK SELECTION
 
-- Use the project's existing framework and conventions.
-- If no setup exists, pick stack-appropriate defaults that match the repo's tooling.
-- Prefer tools that run in CI without extra ceremony.
-- Check the `Key Dev Commands` document (see **Project Document Index**), `CLAUDE.md` / `AGENTS.md`, and local docs before introducing a new framework.
+Reuse the project's framework; any new tool must run in CI without extra ceremony. Before introducing one, check the `Key Dev Commands` document (see **Project Document Index**), `CLAUDE.md` / `AGENTS.md`, and local docs.
 
 
 ## CALLER INTEGRATION
@@ -94,8 +91,4 @@ Remaining critical gaps; next-best additions; coupling signals surfaced by test 
 
 ## REFERENCES
 
-- `tdd-discipline.md` – Red/Green/Refactor, Tidy First, triangulation, anti-rationalization (Beck, Farley).
-- `prove-it-pattern.md` – failing-test-first bugfix flow, characterization tests, Beyonce Rule (Feathers; *Software Engineering at Google*, 2020).
-- `test-design.md` – behavior over implementation, Beck's Test Desiderata, diagnosability, mock minimization (Freeman & Pryce, Dodds, Farley, Beck).
-- `levels-and-strategy.md` – unit/integration/E2E by trust boundary, Testing Trophy, risk×change matrix (Dodds, Farley).
-- `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` – testability-as-modularity anchor.
+Skill-local references per mode are named in the MODES table. See also `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` – testability-as-modularity anchor.

@@ -61,7 +61,7 @@ Output: included in the `Architecture` document (see **Project Document Index**)
 
 #### 2e. Key Development Commands Discovery (sub-agent)
 Discover commands by scanning `package.json` scripts, `Makefile`, `Taskfile.yml`, `justfile`, `deno.json`, `Cargo.toml` aliases, CI/CD configs, and README files. If monorepo: organize commands per sub-project and identify root-level orchestration commands.
-Output: the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`), using the template from `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`
+Output: the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`)
 
 **Gate**: All analysis sub-agents complete
 
@@ -109,7 +109,5 @@ Also emit `OUTPUT_DIR/decisions-discovered.md` using the `DECISIONS.md` template
 
 
 ## OUTPUT
-
-Written to `OUTPUT_DIR/`: `STACK.md`, `ARCHITECTURE.md` (+ testing overview), `requirements-discovered.md`, `decisions-discovered.md`. The `Key Dev Commands` document goes to its **Project Document Index** path (default `docs/KEY_DEVELOPMENT_COMMANDS.md`). A `## Conventions` section is appended to the root agent instruction file(s) – or reported for `andthen:init` to insert when none exists; monorepo adds matching per-sub-project agent instruction files.
 
 Print each output file's **relative path from the project root**.

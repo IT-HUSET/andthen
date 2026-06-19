@@ -136,14 +136,7 @@ git reset --hard HEAD
 
 ## Step 4 - Emit Output
 
-On success:
-
-```
-merge_resolve.outcome: resolved
-merge_resolve.conflicted_files: [...]   # [] on clean squash; sorted paths on resolve path
-merge_resolve.resolution_summary: <non-empty prose>
-merge_resolve.error_message: ""
-```
+On success: emit all four fields per the Output Contract (`outcome: resolved`, `error_message: ""`).
 
 On failure: emit the tag from the step that terminated (Step 1, 2, 2a, or 3). On cancellation (e.g. harness STOP between steps): if cancellation is observed after `SQUASH_CONFLICT`, first roll back the main checkout with `git reset --hard HEAD`; then emit `outcome: cancelled`, `error_message: cancelled`, conflicted_files = best-available from Step 2 (or `[]` if cancelled pre-detection).
 

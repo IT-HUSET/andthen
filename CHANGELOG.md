@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.31.0] – 2026-06-14
+
+### Changed
+- **Skill hot-path trimming, second wave** – slimmed the always-on `SKILL.md` prompts for the remaining 16 skills, took deeper passes on `review`/`exec-spec`/`exec-plan`/`remediate-findings`, and trimmed 9 shared references in place. Reference-only content moved to skill-local refs (progressive disclosure); restatement cut; over-specified procedure compressed. Behavior-preserving – parser tokens, cross-skill contracts, and calibration examples are unchanged.
+- **Machine-stable loop-convergence signals** – the `Auto-Remediation: PENDING/STALLED/CLEAR` (`andthen:review`) and `NO-OP: no-auto-applicable-findings` (`andthen:remediate-findings`) signals now carry a documented bare-line grammar (line-anchored, no fence/indent/marker, emitted once) so a consuming workflow engine can branch deterministically without scraping markdown. The contract names `Auto-Remediation` the canonical loop input and steers consumers away from a severity-based gating count, which can disagree with fix-character routing and deadlock the loop. Emission behavior unchanged.
+
+---
+
 ## [0.30.0] – 2026-06-14
 
 ### Changed

@@ -175,8 +175,8 @@ Named principles to verify before saving. Each names a failure mode.
     - *Classification*: behavioral/structural split is exhaustive, set at authoring time, re-asserted by exec-spec Step 5a. No syntactic suffix on criteria – linkage lives in the Verify-line text matching the criterion.
 - **Scope-consistency** – every Work Area exercised by a scenario or Verify line.
 - **Canonical scenario shape** – matches *Acceptance Scenarios and Proof-of-Work* above (outcomes before tasks); no `### S<NN>` headers; negative-path checklist applied; every prescribed value appears verbatim in ≥1 Verify line.
-- **Mechanism Fidelity** – mechanism requirements include a mechanism-distinguishing scenario observable; a stub/copy implementation cannot satisfy every scenario while defeating the mechanism named by the Intent.
-- **Outcome-shape audit on task titles** – no titles starting with `Replace`, `Refactor`, `Update`, `Modify`, `Add to`.
+- **Mechanism Fidelity** – matches *Scenario Authoring Principles* above (mechanism-distinguishing observable; no stub/copy-satisfiable scenario).
+- **Outcome-shape audit on task titles** – no outcome-shaped violations per Key Generation Guidelines #2.
 - **Anchor and Verify dry-run audit** – every cited `path#anchor` resolves against the actual source heading slug; every `rg`/`grep`/shell command in a Verify was executed against the current source and the prose claim matches the output. Catches `rg -c` exit-semantics traps (no match exits 1, does not print `0`), case-sensitivity mismatches, stale line numbers.
 - **Cross-consumer surface inventory** (cross-cutting renames/restructures across multiple consuming skills/references) – before writing tasks, sweep with `grep -rni` for every literal string being renamed; the inventory IS the rename surface; every match maps to a task or a documented exclusion. Skip when the FIS is local to one surface.
 - **Prose-vs-Verify scope alignment** – when an audit says "rename all X" / "strip all Y", the Verify enforces the same scope (not narrower).

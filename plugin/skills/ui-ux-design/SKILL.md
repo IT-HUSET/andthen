@@ -53,8 +53,6 @@ Modes `research` and `review` describe inputs in prose – see their mode refere
 
 - Picking a mode before understanding the user's actual goal
 - Over-engineering – too many tokens, too many components, pixel-perfect wireframes
-- Missing pages/states – 100% coverage of the input requirements matters for wireframes
-- Skipping validation across target breakpoints
 
 ## WORKFLOW
 

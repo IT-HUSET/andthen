@@ -70,12 +70,7 @@ Document each issue with severity, location, symptoms, and any relevant error ou
    - Critical: app cannot build/start, security vulnerabilities, core functionality broken
    - High: failing tests, major regressions, significant performance or integration failures
    - Medium/Low: smaller quality or polish issues
-2. For each critical/high issue, apply the root-cause flow from `references/diagnostic.md` until you reach a root cause worth fixing.
-   If that flow stalls because the symptom is not reliably reproducible, classify by failure pattern to guide investigation:
-   - **Timing-dependent** – race conditions, async ordering: add logging around concurrent paths, test with artificial delays
-   - **Environment-dependent** – config, OS, runtime differences: diff configs across environments, reproduce in each
-   - **State-dependent** – stale caches, uninitialized data, leaked state between tests: trace state mutations, check setup/teardown
-   - **Truly intermittent** – no pattern after classification: add telemetry, collect N occurrences before hypothesizing
+2. For each critical/high issue, apply the root-cause flow from `references/diagnostic.md` until you reach a root cause worth fixing. If that flow stalls because the symptom is not reliably reproducible, classify by failure pattern (see `references/diagnostic.md`).
 3. Group related issues, order them by dependency, and create task tracking.
 4. If the `State` document exists (see **Project Document Index**), add new critical/high blockers and plan to remove resolved ones after verification.
 

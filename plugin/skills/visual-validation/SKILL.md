@@ -54,16 +54,10 @@ Classify findings:
 Recommend specific changes: exact components, styles, spacing, typography, states, or layout behavior. Tie each recommendation to evidence from the capture or design reference.
 
 
-## Tool Awareness
-
-Use the tools available in the project environment; check `CLAUDE.md` / `AGENTS.md` for project-preferred tooling before introducing your own.
-
-
 ## GOTCHAS
 
 1. Comparing against the wrong reference.
 2. Reporting vague findings without a concrete, evidenced fix.
-3. Ignoring the project-specific workflow when one exists.
 
 
 ## Output Format

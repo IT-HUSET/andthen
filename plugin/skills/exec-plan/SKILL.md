@@ -25,10 +25,10 @@ Require `PLAN_DIR` unless `--from-issue <N>` is set. **You are the orchestrator*
 ### Rules
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - **Plan is source of truth** – `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md). Follow phase ordering, `dependsOn`, `parallel` exactly. In local-directory mode, every schedulable story (`status` ∈ {`pending`, `spec-ready`, `in-progress`}) must carry an existing `fis`; abort otherwise – no auto-recovery. `done`/`skipped` are terminal; `blocked` is a manual escape hatch. `--from-issue` relaxes the FIS requirement (JIT generation).
-- **Execution discipline** – Stop-the-Line on red gates per [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md). See **Status-Write Contract** below.
+- **Execution discipline** – Stop-the-Line on red gates per [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md).
 - **Automation rules** – see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md) (referenced below as *The Automation-Mode Rules*). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions.
-- **Status updates are gates** – `plan.json` is mutated only via `andthen:ops update-plan` / `update-plan-fis` (no-double-write contract; see **Status-Write Contract**).
-- **Story failure containment** – see **Status-Write Contract** below (failed stories keep pre-run status; dependents recorded as `skipped`).
+- **Status updates are gates** – `plan.json` is mutated only via `andthen:ops update-plan` / `update-plan-fis` (no-double-write contract).
+- **Story failure containment** – see **Status-Write Contract** below.
 - **State document updates are gated** – update on phase transitions and blocker discovery (see **Project Document Index**).
 
 
@@ -40,7 +40,7 @@ Orchestrator-side rules extending the universal Stop-the-Line gate.
 
 - **Authoritative writes (no double-write)** – `exec-spec` Step 5b writes per-story status (FIS checkboxes, `plan.json` `status`, and legacy State active-story prune) via `andthen:ops`. Sub-agents/teammates **do not** call `andthen:ops update-*` on top of exec-spec. The orchestrator writes cross-story state (phase transitions, overall status, session notes) plus *repair writes* when a Step 3c Writes-Landed Checklist item is missing.
 
-- **Worktree deferral** – under `--worktree`, `exec-spec` runs with `--defer-shared-writes`: writes only the FIS (story-local) and emits a `## Deferred Shared Writes` audit block. The orchestrator constructs the `andthen:ops update-*` calls from its own `STORY_ID` / `FIS_FILE_PATH` / `PLAN_FILE_PATH` plus the audit's `Completion summary` and applies them as the **primary** write path immediately after merging that worktree (shared surfaces only; the executor's local completion note is never replayed – see exec-spec 5b.3). Repo placement, missing-audit fallback, and post-deferred-write checklist timing are owned by `references/team-mode-orchestration.md` (Merge Wave + Status Updates Gate).
+- **Worktree deferral** – under `--worktree`, `exec-spec` runs with `--defer-shared-writes` (writes only the story-local FIS, emits a `## Deferred Shared Writes` audit block); the orchestrator applies the deferred `andthen:ops update-*` calls as the **primary** write path after merging – shared surfaces only; the executor's local completion note is never replayed (see exec-spec 5b.3). Mechanics owned by `references/team-mode-orchestration.md` (Merge Wave + Status Updates Gate).
 
 
 ## WORKFLOW

@@ -4,15 +4,6 @@
 
 > Skills that reference this document: `ops`, `plan`, `spec`, `exec-spec`, `exec-plan`, `review`.
 
-## Contents
-
-- FIS Mutability Contract – read-only execution input + sanctioned write paths via the `andthen:ops` skill
-- Plan Schema – pointer to `plan-schema.md`
-- Plan Issue Catalog (markdown) – column-to-JSON-field mapping for `--to-issue` / `--from-issue`
-- FIS-Unset Sentinel (markdown only) – regex for `FIS` cell `null` rendering
-- FIS Filename Convention – `s{NN}-{name}.md` rules
-- FIS Provenance Fields – the `**Plan**:` / `**Story-ID**:` header pair
-
 
 ## FIS Mutability Contract
 

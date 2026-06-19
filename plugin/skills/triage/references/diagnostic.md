@@ -24,6 +24,12 @@ Apply "5 Whys" reasoning to each identified error:
 
 **Parallel investigation**: run multiple diagnostic streams simultaneously – don't wait for one hypothesis to be disproved before starting the next. Converge on the root cause from multiple angles.
 
+**When the symptom is not reliably reproducible**, classify by failure pattern to guide investigation:
+- **Timing-dependent** – race conditions, async ordering: add logging around concurrent paths, test with artificial delays
+- **Environment-dependent** – config, OS, runtime differences: diff configs across environments, reproduce in each
+- **State-dependent** – stale caches, uninitialized data, leaked state between tests: trace state mutations, check setup/teardown
+- **Truly intermittent** – no pattern after classification: add telemetry, collect N occurrences before hypothesizing
+
 ## Phase 3: Build-Specific Techniques
 
 For build, compile, dependency, and configuration failures specifically:

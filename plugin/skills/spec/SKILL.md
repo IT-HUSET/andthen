@@ -43,7 +43,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--he
 
 **Scenarios that describe implementation, not behavior** – Given/When/Then describes observable outcomes, not internal code steps. Bad: "Given a new AuthService class, When login() is called...". Good: "Given valid credentials, When the user submits login, Then a session token is returned."
 
-**Over-researching** – this skill inlines load-bearing upstream spans into Required Context; it is not a new research pass (Step 2 owns the do-not-invoke-sub-agents rule; the `andthen:exec-spec` skill owns API/library lookup). A 30-line minimal FIS is fine; a spec that reads like a diff is too detailed. Size threshold and oversize handling: see *Key Generation Guidelines #7* in [the authoring guidelines](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) (referenced below as *The Authoring Guidelines*).
+**Over-researching** – this skill inlines load-bearing upstream spans into Required Context; it is not a new research pass. A 30-line minimal FIS is fine; a spec that reads like a diff is too detailed. Size threshold and oversize handling: see *Key Generation Guidelines #7* in [the authoring guidelines](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) (referenced below as *The Authoring Guidelines*).
 
 **Generic "What We're NOT Doing"** – record real non-goals or deferrals with reasons, not filler.
 
@@ -105,14 +105,7 @@ Concrete BDD examples (Given/When/Then) serving triple duty: requirement, test s
 
 #### Resolve Cross-Document References
 
-Walk every upstream document the spec depends on (PRD, plan, ADRs, project guidelines, glossary) and resolve each reference into one of two tiers per *Cross-Document References* in *The Authoring Guidelines*:
-
-- **Required Context** – load-bearing spans inlined verbatim, source-pinned with `<!-- source: -->` and `<!-- extracted: -->` comments.
-- **Deeper Context** – supplementary anchored pointers. Validate each anchor resolves before finalizing.
-
-The walk is mandatory; the sections are optional. Omit either heading entirely when nothing surfaces – a standalone feature request with no upstream legitimately produces neither, but only after the walk confirms it.
-
-A bare "see the plan" without anchor or inlined content is not acceptable. Code-pattern `file#symbol` pointers stay inside task descriptions or `Code Patterns & External References` – they are not Required/Deeper Context material.
+Walk every upstream document the spec depends on, sorting each reference into **Required Context** (load-bearing spans inlined verbatim) or **Deeper Context** (anchored pointers) per *Cross-Document References* in *The Authoring Guidelines*. The walk is mandatory; both sections are conditional – omit either when the walk surfaces nothing for it.
 
 #### Generate from Template
 Use the template in the **Appendix** below. Then read and follow *The Authoring Guidelines*.

@@ -22,7 +22,7 @@ Lightweight starter templates for the supplementary project documents referenced
 
 > **Shared, committed** cross-session state – a snapshot of _current_ team-wide state, not a history log. Keep under ~60 lines so agents can consume it quickly.
 >
-> **Team note**: STATE.md holds only shared, low-churn team state; high-churn per-developer context lives in the **gitignored** `STATE.local.md` so teammates never collide. When a `plan.json` governs, Active Stories derive from it on read – the table below is the planless fallback.
+> **Team note**: STATE.md holds only shared, low-churn team state; high-churn per-developer context lives in the **gitignored** `STATE.local.md` so teammates never collide.
 
 ```markdown
 # Project State

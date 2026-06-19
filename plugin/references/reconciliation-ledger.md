@@ -36,8 +36,6 @@ The ledger is **per-FIS**, a sibling of its governing FIS: `{fis-path-without-ex
 | `CLOSED` | Reconciliation applied (or escalation resolved). Terminal. Suppressed in future runs unless explicitly re-opened with new evidence. |
 | `WITHDRAWN` | The finding was judged invalid with a recorded falsifier. Suppressed in future runs; re-opens only when a run supplies new evidence that explicitly refutes the recorded falsifier. |
 
-Only `spec-stale`/`design-changed` walk the recurrence ladder. `code-defect` and `ambiguous-intent` have no recurrence escalation – they stay OPEN until fixed or decided.
-
 
 ## Stable finding ID
 
@@ -101,10 +99,11 @@ Reject malformed transitions (no matching entry, illegal source state, missing r
 
 ## Recurrence and escalation rules (deterministic)
 
-1. The initial OPEN entry has `Recurrence: 1`.
-2. The next **unresolved re-surfacing** of the same stable ID (same matching key, entry still OPEN, upstream still unamended) is a `bump-recurrence` to `Recurrence: 2`, which transitions `spec-stale`/`design-changed` entries to `RECONCILE REQUIRED`.
-3. Further re-runs neither clear the entry nor create duplicate nags – the single `RECONCILE REQUIRED` entry is the durable, actionable record.
-4. `RECONCILE REQUIRED` clears **only** via the sanctioned design-change amendment (`ops update-fis design-change` + ADR) → CLOSED. A bare re-run cannot clear or re-nag it.
+Escalation is class-gated and count-gated, never time- or run-count-gated:
+
+- **`spec-stale` / `design-changed`** escalate: each `bump-recurrence` on an unreconciled OPEN entry increments `Recurrence`; at **2** the entry transitions OPEN → `RECONCILE REQUIRED`. Further re-surfacings neither duplicate nor re-nag.
+- **`code-defect` / `ambiguous-intent`** never escalate: `bump-recurrence` is a reported no-op (these classes stay OPEN on their own terms – a bug until fixed, decision-blocked until decided).
+- A `RECONCILE REQUIRED` entry clears **only** via the sanctioned design-change amendment (`ops update-fis design-change` + ADR), which transitions it to CLOSED. A bare re-run neither clears nor re-nags it.
 
 
 ## Match-and-route rules (review-side)

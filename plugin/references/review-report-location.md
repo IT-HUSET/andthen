@@ -44,7 +44,7 @@ Resolve in order; first match wins.
 Review reports must not litter source trees. This guard affects **tier 2 only** – tiers 3 and 4 already write to feature directories or agent-temp, and tier 1 is the caller asserting they actually want the path.
 
 - **Doc target** (matches a doc-type row in the Project Document Index – spec/FIS/PRD/plan/ADR/design/wireframe – or lives inside such a directory): tier 2 may co-locate next to the target document.
-- **Source-code target** (everything else: typical implementation roots – `src/`, `lib/`, `app/`, `pkg/`, `internal/`, `cmd/`, `Sources/`, `packages/<n>/src/`, framework- or language-specific equivalents – plus any ambiguous non-root subdirectory not classified as a doc target): tier 2 fires only via the spec-directory match above; otherwise fall through to tier 3, then tier 4.
+- **Source-code target** (everything else: typical implementation roots – `src/`, `lib/`, `pkg/`, etc. – plus any ambiguous non-root subdirectory not classified as a doc target): tier 2 fires only via the spec-directory match above; otherwise fall through to tier 3, then tier 4.
 
 When in doubt, classify as source-code – falling through is the safer default than dropping a report into an unfamiliar tree.
 

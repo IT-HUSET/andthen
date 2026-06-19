@@ -37,8 +37,7 @@ REPORT_SOURCE: $ARGUMENTS (strip any flag tokens like `--auto` or `--headless` b
 
 - Re-validation lapses (Phase 2): fixing already-resolved/superseded findings, treating every suggestion as mandatory, expanding into a broad refactor, or editing the wrong artifact when the issue belongs in a spec/plan/PRD/user doc instead of escalating an unresolved product or requirements decision.
 - Status/deferral lapses (Phase 5 / Phase 2's named-blocker policy): marking plan or FIS artifacts done before re-validation proves resolution, or writing `DEFERRED` without citing a named Phase 2 blocker – an uncited deferral is the parking-lot anti-pattern.
-- **Applying a `Routing: Note` finding** – Notes surface for the user, never auto-fix (see INSTRUCTIONS / Phase 2a).
-- **Skipping Phase 2a Intent re-anchor** – `Routing: Fix` is necessary, not sufficient (see Phase 2a).
+- **Routing-gate lapses** – treating `Routing: Fix` as sufficient or auto-applying a `Routing: Note`. The Phase 2a Intent re-anchor is the gate (see INSTRUCTIONS / Phase 2a).
 - **Adding abstractions the finding didn't name** – named over-engineering shapes that creep in during remediation: a helper used once, a new config knob, a new wrapper or interface layer, a new error type, defensive validation at the wrong layer. None resolve the finding – they expand the change set under "while I'm here". If the finding doesn't name the abstraction, don't add it.
 
 
@@ -98,7 +97,7 @@ Apply the canonical anchor moves in [`intent-and-rules-context.md`](${CLAUDE_PLU
 - **Contradicts a stated Expected Outcome** → promote: correctness-critical regardless of upstream severity; if Phase 2 classified it `valid` at LOW/MEDIUM, escalate to HIGH for Phase 3 prioritization.
 - **No Intent Context discoverable** → record `no-intent-anchor` on each finding; routing falls back to severity policy and the upstream `Routing:` tag alone.
 
-Findings tagged `Routing: Note` upstream remain Note regardless of Phase 2a outcome (the upstream gate already declined to auto-apply). Phase 2a never *promotes* a Note into a Fix – that direction would re-introduce the over-application path the routing gate exists to prevent. Phase 2a only *demotes* (or surfaces) when the Intent bundle contradicts.
+Findings tagged `Routing: Note` upstream remain Note regardless of Phase 2a outcome (the upstream gate already declined to auto-apply). Phase 2a only *demotes* (or surfaces) when the Intent bundle contradicts.
 
 For reports with no per-finding `Routing:` tag, compute an **effective route** after Phase 2 and Phase 2a: `Fix` when the severity policy says the finding should be fixed and no blocker / Intent demotion applies; `SURFACED` when Phase 2a demotes it; `DEFERRED` only under the named blockers in Phase 2 – so untagged findings stay in remediation rather than being excluded.
 
@@ -155,8 +154,7 @@ Via the `andthen:ops` skill per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROO
 
 Run this step **before** the tech-debt persistence step below. If `REPORT_SOURCE` from Phase 1 was a local writable path (not a raw URL, not any other non-writable input shape), write a `## Remediation Status` section at the end of the report file:
 
-- Whole-section replace if the heading already exists: locate the LAST line that starts at column 0 with `## Remediation Status` and is not inside a fenced code block; overwrite from that line to EOF (so re-running on the same report leaves exactly one `## Remediation Status` H2). Append-with-leading-blank-line otherwise.
-- One bullet per finding, in the original report's finding order: `- **{finding title or short quote}** – {STATUS} – {one-line evidence or justification}` where `{STATUS}` is one of `RESOLVED` / `PARTIALLY RESOLVED` / `UNRESOLVED` / `DEFERRED` / `SURFACED` from the Phase 4 findings re-check. `SURFACED` entries include the upstream `Routing:` tag and/or the Phase 2a Intent-anchor citation in the justification.
+- Write the section per the deterministic mechanics in [`report-annotation.md`](references/report-annotation.md) – overwrite-to-EOF vs append, one bullet per finding in original order, with the STATUS enum (`RESOLVED` / `PARTIALLY RESOLVED` / `UNRESOLVED` / `DEFERRED` / `SURFACED`). Single-H2 invariant: a re-run leaves exactly one `## Remediation Status` heading.
 - Skip with a logged reason of `"remote URL – no local file to annotate"` (or an equivalent reason for any other non-writable input shape) when the input is not a local writable path. The skip is recorded in the completion report.
 - If annotation fails for any reason (filesystem error, permission issue, etc.), continue to the tech-debt persistence step below and surface the annotation failure in the completion report – losing the tech-debt write because annotation failed would create silent debt drift.
 
@@ -183,4 +181,4 @@ Report:
 - Which workflow artifacts were updated
 - **Tech-debt entries written**: count of new entries appended, target file path, and per-severity breakdown (e.g. `2 new entries → docs/TECH-DEBT-BACKLOG.md (High: 1, Medium: 1, Low: 0)`); state `0 entries` when no findings were `DEFERRED`
 - **Report annotation status**: `written` (new `## Remediation Status` section), `replaced` (existing section replaced in place), or `skipped: <reason>` (e.g. `skipped: remote URL – no local file to annotate`); state the report path when written or replaced
-- **Terminal signal** when applicable: `NO-OP: no-auto-applicable-findings` (surfaced list follows) or `BLOCKED: <reason>`. A clean run with applied fixes emits neither.
+- **Terminal signal** when applicable: `NO-OP: no-auto-applicable-findings` (surfaced list follows) or `BLOCKED: <reason>`. A clean run with applied fixes emits neither. Emit `NO-OP` in the machine-stable line form consuming loops branch on – bare line `NO-OP: no-auto-applicable-findings`, no fence/indent/marker (grammar in the `andthen:review` skill's `references/review-verdict.md` § Loop Convergence Signals); the surfaced list follows on subsequent lines.

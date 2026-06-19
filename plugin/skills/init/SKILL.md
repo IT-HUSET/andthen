@@ -17,7 +17,6 @@ PROJECT_NAME: $ARGUMENTS _(optional – inferred from directory name or package 
 - **Interactive** – Ask before creating optional documents. Don't assume what the user wants.
 - **Minimal by default** – Create only what's needed. Suggest optional additions.
 - **Detect, don't guess** – classify state from existing files (Step 1) before proposing changes.
-- **Gitignore hygiene** – the per-developer local state file and the agent workspace must be gitignored (else local state re-collides across developers). Mechanics live in steps 2a/2b.
 
 
 ## WORKFLOW
@@ -107,7 +106,7 @@ Run the `andthen:map-codebase` skill to auto-generate from codebase analysis? (r
 ```
 
 Wait for user response, then execute confirmed actions:
-- **Missing Core orientation stubs** (default): Scaffold from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` (same set as Step 2a).
+- **Missing Core orientation stubs** (default): scaffold per Step 2a.
 - **Gitignore hygiene** (default): apply the Step 2a gitignore entries (idempotent; create `.gitignore` if missing).
 - **Missing Index rows**: Append to existing table (don't rewrite the whole table)
 - **Missing documents**: Generate from templates, pre-fill where possible

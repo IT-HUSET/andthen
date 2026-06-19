@@ -12,14 +12,6 @@ Two shapes – **single-issue** (default `--to-issue`) and **granular** (`--to-i
 
 The optional `Owner` column makes claiming visible on the issue itself: a developer claims a story by setting its `Owner` cell (and opening the `feat/S0N-...` branch) so others don't pick it up. Advisory coordination, not a lock – the issue stays the durable contract. Omission/empty-cell semantics: `data-contract.md` (Plan Issue Catalog).
 
-## Contents
-- Link Conventions – exact link/provenance token forms
-- Parser-Friendly Section Markers – H2 anchors both shapes share
-- Single-Issue Shape – default `--to-issue` body skeleton
-- Granular Shape – parent plan issue + N child story issues
-- Shape Detection – how `--from-issue` decides shape from the parent body
-
-
 ## Link Conventions
 
 Exact link forms – contracts, not suggestions. `andthen:exec-plan --from-issue` extracts provenance from them.

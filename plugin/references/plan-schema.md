@@ -143,7 +143,7 @@ A plan in flight is **runtime state** – the agent re-reads it at session start
 
 **Preservation predicate** (full regeneration): a story's existing `status`, `fis`, and `owner` are preserved only when ALL hold – `id` survives regeneration; `scope` string-equal; `sourceRefs` set-equal; `assetRefs` set-equal; `provenance` string-equal; the preserved `fis` path still resolves. Content-equality (not name) is the load-bearing guard: a same-id story whose content-defining fields drifted would otherwise graft a stale FIS onto new content. Stories failing any clause reset to `status: "pending"`, `fis: null`, `owner: null`. `owner` is coordination state, not PRD-derived, so a content-stable story keeps its claim across a local `andthen:plan` regeneration; `--from-issue` reruns instead refresh `owner` from the issue's Owner cell.
 
-Exception: `andthen:exec-plan --from-issue` reconciliation rewrites `.agent_temp/from-issue-<N>/plan.json` as a full regeneration; the `andthen:exec-plan` skill owns the detailed from-issue flow.
+Exception: `andthen:exec-plan --from-issue` reconciliation rewrites `.agent_temp/from-issue-<N>/plan.json` as a full regeneration.
 
 User-initiated hand edits to `plan.json` are allowed and trusted – the contract guards agent behavior, not tampering. If a user edits the file, they own the consequences. Pre-existing legacy `metadata` blocks (e.g. `immutableDigest`) are ignored on read and dropped on the next regeneration.
 

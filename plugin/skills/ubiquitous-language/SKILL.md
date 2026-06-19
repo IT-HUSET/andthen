@@ -11,19 +11,11 @@ Read codebase, docs, and conversation as source material without modifying them;
 
 ## VARIABLES
 
-_Arguments (scope and optional flags):_
-ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--update` before interpreting the remainder as the scope/focus area)
+ARGUMENTS: $ARGUMENTS
 
 ### Parse Arguments
-- Extract `--update` flag → UPDATE_MODE (reads the existing `Ubiquitous Language` document and incorporates new terms)
-- Remaining text → SCOPE (focus area, e.g., "authentication", "billing", or blank for full project)
-
-
-## INSTRUCTIONS
-
-- **Read-only analysis** – do not modify any source code
-- **Domain focus** – extract terms that represent business/domain concepts, not generic programming terms
-- **Resolve, don't accumulate** – when two terms mean the same thing, pick one canonical name and list the other as a synonym to avoid
+- `--update` flag → UPDATE_MODE (reads the existing `Ubiquitous Language` document and incorporates new terms)
+- Remaining text (flag tokens excluded) → SCOPE (focus area, e.g., "authentication", "billing", or blank for full project)
 
 
 ## GOTCHAS
@@ -50,12 +42,7 @@ Use Explore (or general-purpose) sub-agent for large codebases.
 
 ### 2. Extract Domain Terms
 
-For each source, extract terms that represent:
-- **Entities**: Core business objects (User, Order, Invoice, Subscription)
-- **Actions/Processes**: Domain operations (Checkout, Onboard, Reconcile, Provision)
-- **States**: Business states (Active, Suspended, Pending Approval, Archived)
-- **Rules/Policies**: Business rules (Grace Period, Rate Limit, Retention Policy)
-- **Relationships**: Domain relationships (belongs to, manages, subscribes to)
+For each source, extract domain terms across the usual DDD categories – entities, actions/processes, states, rules/policies, and relationships.
 
 For each term, note:
 - Where it appears (file:line references)

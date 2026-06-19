@@ -40,7 +40,7 @@ A skill loads in three levels. Treat this as a **file-layout discipline**, not j
 
 ### Add a table of contents to long reference files
 
-For any reference file over **~100 lines**, place a short table of contents at the top. The model often previews large files with partial reads; without a TOC, it sees only the first slice and can't tell what else is in the file. A TOC ensures it can see the full scope on the first read and jump to the relevant section.
+For any reference file over **~200 lines**, place a short table of contents at the top. The model often previews large files with partial reads; without a TOC, it sees only the first slice and can't tell what else is in the file. A TOC ensures it can see the full scope on the first read and jump to the relevant section. Below the threshold a TOC is optional – a file that fits a single read needs no map, and forcing one just adds a drift surface.
 
 ```markdown
 # API Reference
@@ -60,6 +60,8 @@ For any reference file over **~100 lines**, place a short table of contents at t
 ```
 
 Keep the TOC compact – one line per section, no nested sub-bullets unless a section is genuinely deep. The TOC is a *map*, not an outline; the value is letting the model decide where to read next, not telling it everything the section will say.
+
+When you add, rename, or remove a section in a file that has a TOC, update the TOC in the same edit. A stale TOC that omits a section – especially one another file deep-links to – is worse than none, and is the failure mode that survives trimming because the body still reads fine on its own.
 
 ### Three disclosure patterns
 
@@ -588,7 +590,7 @@ Before publishing, verify:
 - [ ] Name uses gerund form (or other consistent convention) and avoids vague words
 - [ ] `SKILL.md` body is under 500 lines
 - [ ] References are one level deep
-- [ ] Long reference files (>100 lines) have a table of contents
+- [ ] Long reference files (>200 lines) have a table of contents
 - [ ] Consistent terminology throughout
 - [ ] No time-sensitive information (or quarantined in an "old patterns" block)
 - [ ] Workflows have clear steps and gates
