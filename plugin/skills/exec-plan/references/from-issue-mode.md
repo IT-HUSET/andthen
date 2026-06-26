@@ -67,7 +67,7 @@ Materialize the story's FIS into a local file before the per-story pipeline.
 **Update the local plan**: after FIS write + provenance injection, drive via the `andthen:ops` skill against the materialized path:
 
 - `andthen:ops update-plan-fis <local-plan-path> <story-id> <fis-path>`.
-- `andthen:ops update-plan <local-plan-path> <story-id> spec-ready`.
+- `andthen:ops update-plan <local-plan-path> <story-id> spec-ready` – only when spec's self-review reported no blocking signal (`MISSING REQUIREMENT:` / `BLOCKED:`). A blocking signal holds the story: keep the FIS pointer, do not advance to `spec-ready`, treat it as a spec failure (mark failed, skip exec per *Serial dispatch* below), and surface the unresolved decision.
 
 These land in `.agent_temp/from-issue-<N>/plan.json`, not the GitHub issue. Status updates do not propagate back to GitHub during the run; Step 5c posts closure comments.
 

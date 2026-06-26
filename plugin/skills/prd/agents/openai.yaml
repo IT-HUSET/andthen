@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - PRD"
-  short_description: "Create a self-contained Product Requirements Document from requirements; resolves load-bearing gaps via inline clarify and runs an automatic doc self-review; `--visual` delegates to the `andthen:visualize` skill"
-  default_prompt: "Create a self-contained Product Requirements Document from the provided requirements source (clarified requirements, draft PRD, file, URL, inline description, or GitHub issue). Resolve load-bearing gaps by clarifying them inline rather than guessing (unless running with `--auto`). Pass `--visual` to hand the produced `prd.md` to the `andthen:visualize` skill after the automatic self-review. Requirements source: "
+  short_description: "Create a self-contained Product Requirements Document from requirements; resolves load-bearing gaps via inline clarify and runs fresh-context doc self-review; `--visual` delegates to the `andthen:visualize` skill"
+  default_prompt: "Create a self-contained Product Requirements Document from the provided requirements source (clarified requirements, draft PRD, file, URL, inline description, or GitHub issue). Resolve load-bearing gaps by clarifying them inline rather than guessing (unless running with `--auto`), then run fresh-context doc self-review. Pass `--visual` to hand the produced `prd.md` to the `andthen:visualize` skill after self-review. Requirements source: "
 
 policy:
   allow_implicit_invocation: true

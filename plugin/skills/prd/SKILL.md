@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants a PRD. Creates a Product Requirements Document from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue. Trigger on 'create a PRD', 'write a PRD', 'draft a PRD', 'PRD from clarify output'.
+description: Use when the user wants a PRD. Creates a Product Requirements Document from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue, then runs fresh-context doc self-review. Trigger on 'create a PRD', 'write a PRD', 'draft a PRD', 'PRD from clarify output'.
 argument-hint: "[--to-issue] [--visual] [--auto] [specs directory or requirements source | --issue <number>]"
 ---
 
@@ -125,7 +125,7 @@ Self-check:
 
 ### 6. Self-Review _(automatic)_
 
-Invoke the `andthen:review --mode doc --fix` skill on the saved `prd.md` (append `--auto` when `AUTO_MODE=true`). `--fix` auto-applies mechanical document defects; substantive gaps surface as `Note` findings. Run this before any `--to-issue` / `--visual` post-step so those act on the fixed PRD.
+Spawn a generic fresh-context sub-agent whose prompt invokes the `andthen:review` skill with `--mode doc --fix <prd.md>` (append `--auto` when `AUTO_MODE=true`). `--fix` auto-applies mechanical document defects; substantive gaps surface as `Note` findings. Run this before any `--to-issue` / `--visual` post-step so those act on the fixed PRD.
 
 - **Conversational**: reflect on the residual `Note` findings. Route `ambiguous-intent` / requirement-gap Notes to a focused `andthen:clarify` pass (recommend it); otherwise recommend proceeding to the `andthen:plan` skill.
 - **`AUTO_MODE`**: fold residual `Note` findings into `Constraints & Assumptions` / `Decisions Log` so downstream skills inherit them; no conversational reflection.
@@ -161,7 +161,7 @@ After completion, suggest the following next steps. **Recommend a clean session*
 2. **Create implementation plan** _(clean session recommended)_: Invoke the `andthen:plan` skill on the PRD directory – it produces the full plan bundle (`plan.json` + all FIS).
 3. **Initialize project state** (if not already tracking): Create the `State` document via the `andthen:init` skill.
 
-> Step 6 Self-Review already ran `andthen:review --mode doc --fix`; don't re-suggest a doc review here.
+> Step 6 Self-Review already ran the `andthen:review` skill with `--mode doc --fix`; don't re-suggest a doc review here.
 
 
 ---

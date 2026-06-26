@@ -119,7 +119,7 @@ Each phase:
 | Value | Set by | Meaning |
 |---|---|---|
 | `pending` | `andthen:plan` (initial) | Story exists; FIS not yet generated. |
-| `spec-ready` | `andthen:plan` after FIS write | FIS file exists; ready to execute. |
+| `spec-ready` | `andthen:spec` after FIS write (withheld on a blocking self-review Note) | FIS file exists; ready to execute. |
 | `in-progress` | Explicit `andthen:ops update-plan <id> in-progress` (or future exec-spec entry hook) | Exec started; dependents must wait. Available for orchestrators that want explicit in-flight signaling; the bundled exec-spec flow transitions `spec-ready → done` directly. |
 | `done` | `andthen:exec-spec` after Acceptance Scenarios and Structural Criteria pass (via `andthen:ops`) | Story complete. |
 | `skipped` | Dependency containment or explicit `andthen:ops update-plan` | Story not attempted because an upstream dependency failed, or explicitly marked skipped by an orchestrator/user. |

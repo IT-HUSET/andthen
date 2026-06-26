@@ -393,7 +393,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `PSCH-11` Story optional fields: sourceRefs (required for PRD-backed stories), provenance (required only when no direct PRD coverage), assetRefs, notes.
 - `PSCH-12` fis values must be unique across stories for non-null values (1:1 story↔FIS invariant); multiple pending stories sharing null is valid pre-generation.
 - `PSCH-13` Status enum is closed – exactly six values: pending, spec-ready, in-progress, done, skipped, blocked.
-- `PSCH-14` pending set by andthen:plan (initial); spec-ready set by andthen:plan after FIS write; in-progress set by explicit `andthen:ops update-plan <id> in-progress`; done set by andthen:exec-spec after gates pass via andthen:ops; skipped reserved for stories not attempted because an upstream dependency failed or an explicit ops/manual skip; failed attempted stories keep their pre-run status unless an explicit `andthen:ops update-plan` changes it; blocked set by explicit `andthen:ops update-plan <id> blocked`.
+- `PSCH-14` pending set by andthen:plan (initial); spec-ready set after FIS write (withheld when spec's post-save self-review surfaces a blocking decision Note); in-progress set by explicit `andthen:ops update-plan <id> in-progress`; done set by andthen:exec-spec after gates pass via andthen:ops; skipped reserved for stories not attempted because an upstream dependency failed or an explicit ops/manual skip; failed attempted stories keep their pre-run status unless an explicit `andthen:ops update-plan` changes it; blocked set by explicit `andthen:ops update-plan <id> blocked`.
 - `PSCH-15` Forward transitions are skill-implicit per write-authority table; backward transitions require explicit andthen:ops update-plan calls; unknown values rejected at write time.
 - `PSCH-16` Only stories[].status, stories[].fis, and stories[].owner are mutable in flight; mutations must go through andthen:ops only.
 - `PSCH-17` skills exec-spec, exec-plan, review, quick-review, remediate-findings, now-what MUST NOT write to plan.json.
@@ -964,10 +964,10 @@ If --visual: andthen:visualize invoked on prd.md after Step 5 passes; visualizer
 - `PRD-15` Step 5 self-check: problem statement has measurable impact; all user stories have testable acceptance criteria; success metrics are specific and measurable; scope is explicit (in/out); every feature has error handling; NFRs have thresholds; no ambiguous terms without definitions; all assumptions documented; no conflicting requirements; problem-solution fit (bidirectional); Executive Summary is a summary not a source.
 - `PRD-16` Output path printed as relative path from project root – never absolute.
 - `PRD-17` In AUTO_MODE: skip FOLLOW-UP ACTIONS section; print only output path and completion summary.
-- `PRD-18` FOLLOW-UP ACTIONS (non-auto): suggest andthen:visualize on prd.md (skip if --visual already ran), andthen:plan for implementation plan, andthen:init for project state tracking; does NOT re-suggest a doc review (Step 6 self-review already ran andthen:review --mode doc --fix per PRD-37).
+- `PRD-18` FOLLOW-UP ACTIONS (non-auto): suggest andthen:visualize on prd.md (skip if --visual already ran), andthen:plan for implementation plan, andthen:init for project state tracking; does NOT re-suggest a doc review (Step 6 self-review already ran the andthen:review skill with --mode doc --fix per PRD-37).
 - `PRD-19` --to-issue without an input issue (no Refs #N appended): pass prd.md directly to --body-file instead of creating the `.agent_temp/prd/<feature-slug>-issue-body.md` temp body file.
 - `PRD-36` Load-bearing gap resolution (a gap whose answer changes user-visible behavior, scope, or acceptance criteria): conversationally, invoke andthen:clarify inline on the same requirements source / feature directory (or, in Step 3, on the residual gaps), then continue from its requirements-clarification.md; under --auto, andthen:clarify is unavailable, so assume conservatively per PRD-08/PRD-28/PRD-30. Applies to both Step 2 and Step 3.
-- `PRD-37` Step 6 Self-Review (automatic, both modes): invoke andthen:review --mode doc --fix on the saved prd.md (--auto appended when AUTO_MODE), before any --to-issue/--visual post-step. Conversationally: reflect on residual Note findings, routing ambiguous-intent/requirement-gap Notes to a recommended focused andthen:clarify pass, else recommend andthen:plan. Under --auto: fold residual Note findings into Constraints & Assumptions / Decisions Log; no conversational reflection.
+- `PRD-37` Step 6 Self-Review (automatic, both modes): spawn a generic fresh-context sub-agent whose prompt invokes the andthen:review skill with --mode doc --fix on the saved prd.md (--auto appended when AUTO_MODE), before any --to-issue/--visual post-step. Conversationally: reflect on residual Note findings, routing ambiguous-intent/requirement-gap Notes to a recommended focused andthen:clarify pass, else recommend andthen:plan. Under --auto: fold residual Note findings into Constraints & Assumptions / Decisions Log; no conversational reflection.
 - `PRD-38` Feature-level PRD is self-contained: inline the substance of transient discovery artifacts (requirements-clarification.md, prd-draft.md); never link or cite them by path. Durable references (GitHub issue, roadmap, ADRs) may be cited.
 
 **Gates / BLOCKED**
@@ -977,7 +977,7 @@ If --visual: andthen:visualize invoked on prd.md after Step 5 passes; visualizer
 - `PRD-23` Step 3 gate: source artifacts mapped, gaps filled with bounded assumptions.
 - `PRD-24` Step 4 gate: prd.md saved to resolved OUTPUT_DIR.
 - `PRD-25` Step 5 gate: all 11 self-check items pass before Step 6 self-review and any --visual / --to-issue post-steps execute.
-- `PRD-39` Step 6 gate: self-review complete (andthen:review --mode doc --fix ran; PRD reflects auto-applied fixes; residual Notes surfaced) before --to-issue / --visual post-steps act on the PRD.
+- `PRD-39` Step 6 gate: self-review complete (the andthen:review skill with --mode doc --fix ran; PRD reflects auto-applied fixes; residual Notes surfaced) before --to-issue / --visual post-steps act on the PRD.
 - `PRD-26` --to-issue in AUTO_MODE: BLOCKED: gh authentication required (auth failure) or BLOCKED: <verbatim gh error> (other gh error); never update-in-place the input issue.
 - `PRD-27` If body exceeds 65,536-char GitHub limit: create issue with largest section stubbed, then post omitted section via Pattern B comment; do not truncate.
 
@@ -995,7 +995,7 @@ If --visual: andthen:visualize invoked on prd.md after Step 5 passes; visualizer
 - Downstream of andthen:clarify – consumes requirements-clarification.md as a first-class prior artifact; also invokes andthen:clarify inline to resolve load-bearing gaps (PRD-36, conversational only – andthen:clarify has no --auto).
 - Upstream of andthen:plan – prd.md produced here is the canonical local input for andthen:plan; andthen:plan can also fetch a GitHub PRD issue via `--issue <N>` or GitHub issue URL.
 - Post-save: andthen:visualize invoked on prd.md when --visual flag present.
-- Post-save: andthen:review --mode doc --fix invoked automatically in Step 6 self-review (both modes; --auto propagated under AUTO_MODE), which in turn invokes andthen:remediate-findings (PRD-37).
+- Post-save: the andthen:review skill with --mode doc --fix is invoked automatically in Step 6 self-review via generic fresh-context sub-agent (both modes; --auto propagated under AUTO_MODE), which in turn invokes andthen:remediate-findings (PRD-37).
 - Uses prd-template.md (plugin/references/prd-template.md) for output structure.
 - GitHub publish mechanics follow github-publish.md Pattern A (plugin/references/github-publish.md): new issue create, Refs #N footer when --issue or a GitHub issue URL was supplied, never update input issue.
 - Reads automation-mode.md (plugin/references/automation-mode.md) for --auto behavior.
@@ -1009,7 +1009,7 @@ If --visual: andthen:visualize invoked on prd.md after Step 5 passes; visualizer
 **Surface**: Skill: andthen:spec
 argument-hint: [--visual] [--auto] <description | @<requirements-file> | story <story-id> of <path-to-plan.json>>
 Flags:
-  --visual      after FIS save and plan-status updates, invoke andthen:visualize on produced FIS; skip with message --visual skipped: OVERSIZE when OVERSIZE: fired
+  --visual      after FIS save, self-review, and plan-status updates, invoke andthen:visualize on produced FIS; skip with message --visual skipped: OVERSIZE when OVERSIZE: fired
   --auto   strict automation mode (AUTO_MODE=true)
 Input forms:
   inline description
@@ -1021,13 +1021,14 @@ user-invocable: true
 - Plan-story input: {plan-dir}/s{NN}-{name}.md (two-digit zero-padded story number; {name} is kebab-case slug from story name)
 - Standalone/other: docs/specs/{feature-name}.md (or as configured in Project Document Index)
 - GitHub issue input: filename includes issue reference, e.g. issue-123-feature-name.md
-- After plan-story FIS save: andthen:ops update-plan-fis {plan_path} {story_id} {fis_path} and andthen:ops update-plan {plan_path} {story_id} spec-ready invoked
+- After plan-story FIS save, OVERSIZE pass, and self-review: andthen:ops update-plan-fis {plan_path} {story_id} {fis_path} invoked; andthen:ops update-plan {plan_path} {story_id} spec-ready invoked only when self-review leaves no blocking Notes
+- Self-review report/remediation: generic fresh-context sub-agent invokes the andthen:review skill with --mode doc --fix on the FIS; --auto appended in AUTO_MODE
 - Visual review output (--visual): .agent_temp/visual-review/ (owned by andthen:visualize)
 - OVERSIZE: line printed to stdout when threshold exceeded
 
 **Requirements**
 - `SPEC-01` ARGUMENTS is required; skill stops if missing.
-- `SPEC-02` Spec generation only – no code changes, commits, or file modifications other than saving the FIS, updating plan status, and optional visualizer temp artifacts when `--visual` is set.
+- `SPEC-02` Spec generation only – no code changes, commits, or file modifications other than saving/self-reviewing the FIS, updating plan status, and optional visualizer temp artifacts when `--visual` is set.
 - `SPEC-03` Reads the Learnings document (per Project Document Index) before starting, if it exists.
 - `SPEC-04` Runs headless-first: proceeds to completion without routine clarification pauses even without --auto.
 - `SPEC-05` Step ordering is enforced: codebase orientation (Step 1) before specification (Step 5); Intent + Expected Outcomes (Step 3) before Acceptance Scenarios (Step 4).
@@ -1048,6 +1049,9 @@ user-invocable: true
 - `SPEC-20` OVERSIZE standalone recommendation: switch to /andthen:prd → /andthen:plan → /andthen:exec-plan chain.
 - `SPEC-21` OVERSIZE plan-story recommendation: story too broad – revisit {plan_path} and decompose before regenerating.
 - `SPEC-22` Plan-batch sub-agents echo OVERSIZE: line in completion summary.
+- `SPEC-57` Post-save self-review (skip when OVERSIZE: fired): after the OVERSIZE check, run doc self-review via the andthen:review skill with --mode doc --fix on the FIS – preferably a fresh-context sub-agent, in-context where nested sub-agents are unavailable; append --auto when AUTO_MODE.
+- `SPEC-58` Self-review blocking Notes: if residual Note findings require an architecture or requirements decision before the FIS is executable, emit MISSING REQUIREMENT: (interactive) or BLOCKED: (AUTO_MODE), name the upstream skill (for architecture trade-offs, the andthen:architecture skill with --mode trade-off), and do not mark the plan story spec-ready.
+- `SPEC-59` Non-blocking self-review Notes become explicit FIS assumptions, constraints, or follow-up notes before plan-status updates.
 - `SPEC-23` Applies the fis-authoring-guidelines.md Self-Check before saving; the regression-observable gates it enforces are captured individually – size signal (`SPEC-19`), reverse/forward coverage (`SPEC-29`/`SPEC-30`), confidence threshold (`SPEC-31`), canonical scenario shape (`SPEC-14`), empty-section discipline (`SPEC-24`). The named self-check principles themselves are authoring calibration, not independently regression-checkable.
 - `SPEC-24` Always-present sections with Leave empty when… prompts stay empty by default; filled only when named condition applies.
 - `SPEC-25` Required Context and Deeper Context sections are content-conditional omits: omitted entirely when no load-bearing spans or supplementary pointers exist.
@@ -1060,7 +1064,7 @@ user-invocable: true
 - `SPEC-32` In AUTO_MODE: makes most conservative assumption, records it as FIS assumption; stops with BLOCKED: if no defensible option exists; suppresses FOLLOW-UP ACTIONS; prints only artifact paths and completion summary.
 - `SPEC-33` --auto propagates to every nested AndThen skill invocation that accepts it (andthen:ops exempted).
 - `SPEC-34` After drafting Acceptance Scenarios (Step 4), applies the negative-path checklist from The Authoring Guidelines (omitted optional inputs with fragile defaults, no-match selectors/filters/lookups, rejection paths) – one scenario per uncovered category (riskiest gap), not one per parameter.
-- `SPEC-35` --visual visual-review handoff runs identically in AUTO_MODE (same gating: only when --visual present, post-save, after plan-status updates and OVERSIZE check).
+- `SPEC-35` --visual visual-review handoff runs identically in AUTO_MODE (same gating: only when --visual present, post-save, after self-review, plan-status updates, and OVERSIZE check).
 
 **Gates / BLOCKED**
 - `SPEC-36` ARGUMENTS missing → stop immediately.
@@ -1074,6 +1078,7 @@ user-invocable: true
 - `SPEC-44` Do not invoke architecture/UI/doc-lookup sub-agents from within spec.
 - `SPEC-45` Structural Criteria proved only by task Verify lines, not scenarios.
 - `SPEC-46` Do NOT emit ### S<NN> scenario headers – breaks checkbox proof shape.
+- `SPEC-60` Plan-story spec-ready gate: status advances only when OVERSIZE did not fire (SPEC-57) and self-review surfaced no blocking Note (SPEC-58); update-plan-fis still records the FIS pointer.
 
 **Edge cases**
 - `SPEC-47` plan.md / plan.yaml path → BLOCKED: (not silently treated as file description).
@@ -1091,11 +1096,11 @@ user-invocable: true
 - andthen:clarify → produces requirements-clarification.md consumed as directory-input form.
 - andthen:prd / andthen:plan → upstream of standalone spec; plan.json consumed for story inputs.
 - andthen:exec-spec → downstream executor of produced FIS.
-- andthen:visualize → invoked post-save when --visual present (owns HTML rendering and .agent_temp/visual-review/ output).
-- andthen:ops update-plan-fis and andthen:ops update-plan spec-ready → called after plan-story FIS save to update plan status.
+- andthen:visualize → invoked post-save/self-review/status when --visual present (owns HTML rendering and .agent_temp/visual-review/ output).
+- andthen:ops update-plan-fis → called after plan-story FIS save, OVERSIZE pass, and self-review to preserve the FIS pointer; andthen:ops update-plan spec-ready → called only when self-review leaves no blocking Notes.
 - andthen:architecture --mode trade-off → upstream escalation for architectural analysis exceeding 4 lines.
 - andthen:ui-ux-design --mode wireframes → upstream escalation when UI work lacks wireframes.
-- andthen:review --mode doc → suggested post-spec step before implementation.
+- andthen:review --mode doc --fix → invoked as the andthen:review skill by a generic fresh-context sub-agent after FIS save and OVERSIZE pass; blocking Notes prevent spec-ready status.
 - plugin/references/fis-template.md → canonical FIS template used for generation.
 - plugin/references/fis-authoring-guidelines.md → authoring rules applied during generation and Self-Check.
 - plugin/references/automation-mode.md → headless-first and BLOCKED: trigger rules.
@@ -1245,7 +1250,7 @@ Flags: `--max-parallel N` (concurrency cap, default 5, max 10); `--skip-review` 
 Retired flags rejected up-front: `--skip-specs`, `--stories`, `--phase`.
 Frontmatter: `user-invocable: true`; argument-hint lists all flags.
 **Outputs**: OUTPUT_DIR/plan.json – typed manifest per plan-schema.md; schemaVersion "1"; 2-space indent; schema key order.
-OUTPUT_DIR/s0N-*.md – one FIS file per story (named by andthen:spec sub-agents).
+OUTPUT_DIR/s0N-*.md – one FIS file per story (named by generic sub-agents invoking the andthen:spec skill).
 OUTPUT_DIR/prd.md – in local-output mode, materialized verbatim from GitHub issue body when --issue or a GitHub issue URL is used (not modified otherwise).
 Legacy plan.md left untouched after migration; not auto-deleted.
 --to-issue: no durable local artifacts (`plan.json`, FIS files) written; transient `.agent_temp/` body files may be written for `gh --body-file`; GitHub issue(s) created via gh.
@@ -1253,14 +1258,14 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 **Requirements**
 - `PLAN-01` A PRD source is required: directory with `prd.md`, `--issue <N>`, or GitHub issue URL. Missing local `prd.md` for a directory input → stop and redirect: print `andthen:prd <input> → andthen:plan <same-directory>`.
 - `PLAN-02` One story → one FIS invariant: each non-null stories[].fis value is unique across the catalog; multiple null values valid pre-generation.
-- `PLAN-03` Initial story status is `pending`; transitions to `spec-ready` after FIS generation in Step 5.
+- `PLAN-03` Initial story status is `pending`; transitions to `spec-ready` after FIS generation in Step 5, unless spec's self-review withholds it on a blocking decision Note (story stays non-spec-ready, surfaced in Step 6).
 - `PLAN-04` Stories without sourceRefs must carry provenance; prose in dependsOn is invalid.
 - `PLAN-82` Stories are vertical (demoable slices through all layers) by default; a story with no user-facing behavior to slice through (infrastructure, migration, cross-cutting sweep) may be layer-/module-shaped, verified by tests or fitness criteria instead of a demo; story size never licenses layer-shaped stories – oversized stories split into thinner verticals.
 - `PLAN-05` story.dependsOn elements must each be an existing stories[].id from the same catalog.
 - `PLAN-06` plan.json top-level fields and story content fields are written only by andthen:plan; only stories[].status, stories[].fis, and stories[].owner are mutable in-flight, only via andthen:ops.
 - `PLAN-07` Resume contract: re-running skips stories whose stories[].fis points at an existing file (status spec-ready or done preserved); only fills gaps.
 - `PLAN-08` Preservation predicate on regeneration: preserve existing status/fis/owner only when ALL hold – id survives, scope string-equal, sourceRefs set-equal, assetRefs set-equal, provenance string-equal, fis path still resolves; stories failing any clause reset to pending/null/null.
-- `PLAN-09` Step 5 orchestrator does not re-issue ops writes already driven by spec sub-agents; repairs only on verified miss (re-read plan.json post-wave; single andthen:ops update-plan-fis / update-plan repair; persistent miss recorded in Step 6 summary).
+- `PLAN-09` Step 5 orchestrator does not re-issue ops writes already driven by spec sub-agents; on a non-spec-ready status it repairs a write miss (single andthen:ops update-plan-fis / update-plan; re-read once; persistent miss recorded in Step 6) but never force-advances a deliberate hold – a story whose spec reported a blocking self-review signal (MISSING REQUIREMENT: / BLOCKED:) keeps its status and is surfaced in Step 6.
 - `PLAN-10` FIS sub-agents spawned as `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.json`; orchestrator does not author FIS content itself.
 - `PLAN-11` bindingConstraints[] entries flow unchanged into FIS Required Context blocks with each entry's anchor as the source pin; not narrowed or redistributed into Acceptance Scenarios / Structural Criteria.
 - `PLAN-12` sharedDecisions[] pre-resolves inter-story architectural decisions for sub-agents; when empty, strict wave ordering applies (W1 complete before W2).
@@ -1293,7 +1298,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 - `PLAN-35` Step 2 gate: feature mapping complete; PRD read once and held; when present, State, Ubiquitous Language, Architecture, Stack, and Product documents have constrained story scope, terminology, and anti-goals.
 - `PLAN-36` Step 3 gate: all stories defined; no two stories share a fis path.
 - `PLAN-37` Step 4 gate: plan.json saved and schema-validated (self-check checklist).
-- `PLAN-38` Step 5 gate per sub-wave: each story's fis points at reported path on disk and status is spec-ready; repaired on miss; persistent miss recorded.
+- `PLAN-38` Step 5 gate per sub-wave: each story's fis points at reported path on disk and status is spec-ready, except deliberate holds (spec reported a blocking self-review signal) which stay non-spec-ready and surface in Step 6; write misses repaired, persistent miss recorded.
 - `PLAN-39` Step 6 gate: review complete; CRITICAL/HIGH issues, confirmed phantom scope, PRD acceptance-criterion coverage gaps, and broken scenario chains resolved; FIS files updated.
 - `PLAN-40` Step 7 gate (--visual only): HTML rendered and browser-open attempted, or fallback path printed.
 - `PLAN-41` --to-issue: after issue workflow completes, stop – no durable local plan.json, FIS files, or State document written; transient `.agent_temp/` body files are allowed.
@@ -1321,7 +1326,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 
 **Integration**
 - Reads: prd.md (once in Step 2; sub-agents read only their sourceRefs anchors); plan-schema.md (plan.json shape); plan-issue-shape.md + templates/plan-template-issue.md (--to-issue rendering); data-contract.md (legacy plan.md parsing + issue catalog column order); automation-mode.md (BLOCKED/AUTO_MODE rules); fis-authoring-guidelines.md (passed to spec sub-agents); Learnings document (read before FIS generation if exists).
-- Calls andthen:spec sub-agents: `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.json` (one per in-scope story).
+- Calls generic sub-agents invoking the andthen:spec skill: `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.json` (one per in-scope story).
 - Calls andthen:ops: `update-state phase/status/note` (State document); `update-plan-fis` / `update-plan <story> spec-ready` (story state – repair only; authoritative writes are the spec sub-agent's job).
 - Calls andthen:visualize on plan.json when --visual and local output mode (Step 7).
 - Delegates cross-cutting review (Step 6) to a fresh-context sub-agent with plan.json + all FIS paths + prd.md, inheriting the session model and using high reasoning effort.
@@ -2088,6 +2093,9 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `REV-39` Step 6 (--fix) is skipped only when nothing is actionable – a single-lens gap PASS, a clean report with no findings, or a report where every finding routed to Note – and the skip reason must be stated explicitly.
 - `REV-40` AUTO_MODE positive output contract: when AUTO_MODE=true, print only the verdict/readiness, the absolute report path, and the remediation result when --fix ran.
 - `REV-81` Auto-Remediation signal: emit one additive line carrying one resolved token (`Auto-Remediation: STALLED`, not the menu; bare-line grammar per REV-80) beside (never inside) the `## Verdict` block. PENDING = ≥1 `Fix`-routed finding remains; STALLED = gating verdict AND zero `Fix`-routed findings; CLEAR = no `Fix`-routed findings and non-gating verdict. Under --council it is computed from the final post-synthesis routed findings only. It is the loop measure (orthogonal to CONVERGED); consumers branch on it, not on raw PASS/FAIL.
+- `REV-83` Doc lens reviewing a FIS/spec challenges architecture claims: unsupported structural prescriptions, missing trade-off evidence where alternatives matter, over-specific implementation direction, and standalone-FIS assumptions presented as facts.
+- `REV-84` Standalone FIS with no Architecture/ADR/Decisions baseline: architectural prescriptions must have code-pattern evidence or be framed as assumptions / execution-time discovery; otherwise the doc lens emits a finding.
+- `REV-85` Doc-lens architecture-decision gaps route to the andthen:architecture skill with --mode trade-off when the choice cannot be mechanically corrected; mechanical document defects still route to the andthen:remediate-findings skill.
 - `REV-82` Gating verdict (keeps a convergence loop alive), defined in review-verdict.md: gap FAIL; code/security Needs Fixes or Blocked; doc Needs Significant Rework or Not Ready; mixed overall readiness Needs Fixes or worse. Ready, doc Needs Minor Updates, and gap PASS are non-gating.
 - `REV-80` Loop-signal grammar is machine-stable (review-verdict.md § Loop Convergence Signals): `Auto-Remediation` carries one resolved token from the `PENDING|STALLED|CLEAR` value space (and remediate's `NO-OP: no-auto-applicable-findings`), emitted as a single bare line `<Prefix>: <TOKEN>` at line start – no indent, list/blockquote marker, or code fence – once in its source surface (Auto-Remediation beside the `## Verdict` block, NO-OP in remediation output), matchable line-anchored (`^Auto-Remediation: (PENDING|STALLED|CLEAR)$`, `^NO-OP: no-auto-applicable-findings$`). Auto-Remediation is the canonical loop input (derived from fix-character routing); the contract steers consumers to branch on it, not on a re-derived severity-based gating count.
 

@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Produces an execution-sized FIS; if the draft exceeds size thresholds, saves it anyway and warns – recommending the `andthen:prd → andthen:plan → andthen:exec-plan` chain for standalone inputs, or upstream plan decomposition for plan-story inputs. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
+description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Produces an execution-sized FIS, runs fresh-context doc self-review, and blocks plan `spec-ready` on unresolved architecture/requirements decision Notes. If oversized, saves and warns – recommending the `andthen:prd → andthen:plan → andthen:exec-plan` chain for standalone inputs, or upstream plan decomposition for plan-story inputs. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
 argument-hint: "[--visual] [--auto] <description | @<requirements-file> | story <story-id> of <path-to-plan.json>>"
 ---
 
@@ -14,7 +14,7 @@ Generate an execution-sized Feature Implementation Specification (FIS) from a fe
 ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--headless` before interpreting the remainder as the description / `@file` / `story <id> of <plan>`)
 
 ### Optional Flags
-- `--visual` → VISUAL_MODE: after the FIS is saved (and any plan-status updates land), invoke the `andthen:visualize` skill on the produced FIS. The visualizer owns HTML rendering, note export, browser-open behavior, and `.agent_temp/visual-review/` output.
+- `--visual` → VISUAL_MODE: after the FIS is saved, self-reviewed, and any plan-status updates land, invoke the `andthen:visualize` skill on the produced FIS. The visualizer owns HTML rendering, note export, browser-open behavior, and `.agent_temp/visual-review/` output.
 - `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 
@@ -26,7 +26,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--he
 - The executor only gets the context you provide – include all needed documentation, examples, and references.
 - Read the `Learnings` document (see **Project Document Index**) before starting, if it exists.
 - **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Spec-specific `BLOCKED:` triggers: missing input, unreadable sources, incompatible artifacts, ambiguity where no defensible FIS can be written.
-- **Visual review is a post-save handoff.** Run only when `--visual` is present (same in `AUTO_MODE`). Complete the normal FIS save (and any plan-status updates for plan-story inputs) first, then invoke the `andthen:visualize` skill on the produced FIS.
+- **Visual review is a post-self-review handoff.** Run only when `--visual` is present (same in `AUTO_MODE`). Complete the normal FIS save, self-review, and any plan-status updates for plan-story inputs first, then invoke the `andthen:visualize` skill on the produced FIS.
 
 
 ## GOTCHAS
@@ -126,10 +126,6 @@ Canonical shape:
 - Plan story input: save FIS in plan directory as `s{NN}-{name}.md` (two-digit zero-padded story number; `{name}` is a kebab-case slug derived from the story name). The FIS body must carry `**Plan**:` and `**Story-ID**:` between the H1 and `## Feature Overview and Goal`, populated from the source plan path and story ID.
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
-- **Update source plan** – if this spec was created for a plan story:
-  - Invoke `andthen:ops update-plan-fis <plan_path> <story_id> <fis_path>` to set `stories[].fis`
-  - Invoke `andthen:ops update-plan <plan_path> <story_id> spec-ready` to advance status
-
 **Oversize signal** – after saving, measure against the threshold from *Key Generation Guidelines #7* in *The Authoring Guidelines* (>700 lines or >18 tasks). If oversized, emit (interactive and `AUTO_MODE`):
 
 ```
@@ -141,8 +137,19 @@ OVERSIZE: {fis_path} – {N} lines, {T} tasks. Recommendation: {recommendation}
 
 Plan-batch sub-agents must echo the `OVERSIZE:` line in their completion summary so the `andthen:plan` orchestrator can revisit Step 3.
 
+### Self-Review _(automatic, skip when OVERSIZE fired)_
+After the FIS is saved and OVERSIZE passes, run a doc self-review: prefer a generic fresh-context sub-agent whose prompt invokes the `andthen:review` skill with `--mode doc --fix <fis_path>` (append `--auto` when `AUTO_MODE=true`); run it in-context where nested sub-agents aren't available. The pass owns review/remediation – spec consumes its result.
+
+- `--fix` auto-remediates mechanical doc defects.
+- Non-blocking residual Notes become explicit FIS assumptions, constraints, or follow-up notes.
+- A residual Note needing an architecture/requirements decision before the FIS is executable is **blocking** – name the upstream skill (architecture trade-offs → the `andthen:architecture` skill with `--mode trade-off`).
+
+**Update source plan** – for a plan-story FIS when `OVERSIZE:` did not fire (the FIS exists on disk, so its pointer is always recorded):
+  - `andthen:ops update-plan-fis <plan_path> <story_id> <fis_path>` – set `stories[].fis`.
+  - `andthen:ops update-plan <plan_path> <story_id> spec-ready` – **only** when self-review left no blocking Note. On a blocking Note, leave the status unchanged and emit `MISSING REQUIREMENT:` (interactive) or `BLOCKED:` (`AUTO_MODE`).
+
 ### Visual Review _(if --visual)_
-After save, plan-status updates, and OVERSIZE check, invoke the `andthen:visualize` skill on the produced FIS path. Print both the FIS path and the visualizer's output path. **Skip when `OVERSIZE:` fired** – the FIS is about to be discarded or regenerated; print `--visual skipped: OVERSIZE` instead.
+After save, self-review, plan-status updates, and OVERSIZE check, invoke the `andthen:visualize` skill on the produced FIS path. Print both the FIS path and the visualizer's output path. **Skip when `OVERSIZE:` fired** – the FIS is about to be discarded or regenerated; print `--visual skipped: OVERSIZE` instead.
 
 ---
 
@@ -154,8 +161,7 @@ Skip this section when `AUTO_MODE=true`; print only the generated artifact paths
 After the FIS is saved, suggest:
 
 1. **Implement the FIS**: Invoke the `andthen:exec-spec` skill.
-2. **Review first**: Invoke the `andthen:review` skill with `--mode doc` on the FIS before implementation.
-3. **Review visually**: Run `andthen:visualize <fis-path>` to spot scenario/task coverage and verify-line issues a markdown view obscures (skip when `--visual` already ran).
+2. **Review visually**: Run `andthen:visualize <fis-path>` to spot scenario/task coverage and verify-line issues a markdown view obscures (skip when `--visual` already ran).
 
 > **Session tip**: The `andthen:exec-spec` skill is context-intensive (it runs the full implementation + verification loop). Start a **clean session** for best results.
 

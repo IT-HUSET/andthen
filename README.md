@@ -255,9 +255,9 @@ These compose into the workflows above – from requirements through implementat
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Interactive requirements discovery at feature or product scope (`--mode product\|feature`) |
-| `prd` | Synthesize a Product Requirements Document from clarified requirements, a draft, file, URL, or issue |
+| `prd` | Synthesize a Product Requirements Document from clarified requirements, a draft, file, URL, or issue; includes fresh-context doc self-review |
 | `plan` | Turn a local or GitHub-sourced PRD into a plan bundle: typed `plan.json` + one on-disk FIS per story + cross-cutting review |
-| `spec` | Generate a Feature Implementation Specification (FIS) for one execution-sized feature |
+| `spec` | Generate a Feature Implementation Specification (FIS) for one execution-sized feature; includes fresh-context doc self-review |
 | `exec-spec` | Implement a FIS – code, tests, verification, completion attestation, and reconciliation notes when upstream docs go stale |
 | `exec-plan` | Execute a plan bundle story-by-story (`exec-spec` + `quick-review` each, final gap review, reconciliation rollup); `--team` for Agent Teams |
 | `remediate-findings` | Apply validated review findings with the smallest safe fixes, re-validate, update state and ledger entries |

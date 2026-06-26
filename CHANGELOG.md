@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.32.0] – 2026-06-26
+
+### Changed
+- **PRD/FIS doc self-review runs in fresh context** – the `andthen:prd` and `andthen:spec` skills run post-save doc review in fresh context; FIS review blocks `spec-ready` on unresolved architecture/requirements decision Notes, and FIS-generating callers (`andthen:plan`, `andthen:exec-plan --from-issue`) preserve that block instead of force-advancing the story.
+
+---
+
 ## [0.31.0] – 2026-06-14
 
 ### Changed

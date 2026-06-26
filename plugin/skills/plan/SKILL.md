@@ -179,7 +179,7 @@ For each in-scope story, spawn a sub-agent that runs `/andthen:spec --auto story
 - Acceptance Scenarios use the canonical `- [ ] **S<NN> [OC<NN>(,OC<NN>)*] [TI<NN>(,TI<NN>)*] <description>**` shape per *Acceptance Scenarios and Proof-of-Work* in *The Authoring Guidelines* (parser depends on the exact token shape; outcomes before tasks).
 - `## Feature Overview and Goal` carries `**Intent**:` and `**Expected Outcomes**:` sub-blocks per *Feature Overview and Goal Authoring*. Distil intent/outcomes from the story's scope and Source refs. Every `[OC<NN>]` exemplified by ≥1 scenario tagging it; every scenario carries ≥1 `[OC<NN>]` tag.
 - Run Plan-Spec Alignment Check, Self-Check, and Reverse Coverage Check from *The Authoring Guidelines*. Reverse Coverage runs against plan-level sources + `bindingConstraints[]`; PRD-level reverse coverage is the orchestrator's Step 6 job.
-- Report back: success/failure, FIS path, confidence score, any `PHANTOM_SCOPE` findings, any `OVERSIZE:` line (verbatim).
+- Report back (verbatim): success/failure, FIS path, confidence score, any `PHANTOM_SCOPE` findings, any `OVERSIZE:` line, and any blocking self-review signal (`MISSING REQUIREMENT:` / `BLOCKED:`).
 
 > **Size signal**: an `OVERSIZE:` line means the story was too broad – the orchestrator revisits Step 3 to decompose, then regenerates. The oversized FIS is overwritten by the regeneration.
 
@@ -189,15 +189,13 @@ Wait for all sub-agents in the current sub-wave to complete. Log any failures (c
 
 **Authoritative writes**: each spec sub-agent drives its own `andthen:ops update-plan-fis` and `update-plan <story> spec-ready` calls per the spec skill's `## OUTPUT` "Update source plan" contract. The plan orchestrator does **not** re-issue those calls (no double-write).
 
-**Gate** – per generated FIS, re-read `OUTPUT_DIR/plan.json` and verify:
-- The story's `fis` points at the reported FIS path on disk.
-- The story's `status` is `"spec-ready"` (or `"done"` if already terminal).
-
-Miss → repair with a single `andthen:ops update-plan-fis` / `update-plan <story> spec-ready`, re-read once. Persistent miss is a contract failure – record in the Step 6 review summary so the user sees which story did not converge.
+**Gate** – per generated FIS, re-read `OUTPUT_DIR/plan.json` and verify the story's `fis` points at the reported FIS on disk and `status` is `"spec-ready"` (or `"done"` if terminal). On a non-`spec-ready` status, distinguish:
+- **Deliberate hold** – spec reported a blocking self-review signal (`MISSING REQUIREMENT:` / `BLOCKED:`): the status is intentional. Do **not** force it; keep the `fis` pointer, carry the unresolved decision into the Step 6 summary, and resolve it before exec.
+- **Write miss** – no blocking signal: repair with a single `andthen:ops update-plan-fis` / `update-plan <story> spec-ready`, re-read once. Persistent miss is a contract failure – record in the Step 6 summary so the user sees which story did not converge.
 
 Worked sub-wave batching example: see [`wave-batching-example.md`](references/wave-batching-example.md).
 
-**Gate**: All specs complete; every story's `fis` set (each path unique) and `status` advanced to `spec-ready` – verified by re-reading `plan.json`, repaired by the orchestrator only on miss
+**Gate**: All specs complete; every story's `fis` set (each path unique); `status` is `spec-ready` except stories spec deliberately held on a blocking self-review signal – those surface in Step 6, never force-advanced.
 
 
 ### 6. Cross-Cutting Review & Fixes

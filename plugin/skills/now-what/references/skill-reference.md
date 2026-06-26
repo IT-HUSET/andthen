@@ -23,7 +23,7 @@ Discovery & Ideation for requirements at feature or product scope. Refines fuzzy
 **Use when:** the user has an idea but the requirements aren't yet pinned down – at feature scope, or at overall-product scope before specific features are planned. `--visual` delegates the produced clarification or product vision to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:spec` for one feature, `andthen:prd` for a multi-feature initiative, or (product mode) `andthen:architecture --mode strategic-design` for bounded-context decomposition.
 
 ### `andthen:prd`
-Creates a self-contained Product Requirements Document (`prd.md`) from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue. Conversationally, it resolves load-bearing gaps by invoking the `andthen:clarify` skill inline rather than assuming them, and runs an automatic `andthen:review --mode doc --fix` self-review before finishing.
+Creates a self-contained Product Requirements Document (`prd.md`) from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue. Conversationally, it resolves load-bearing gaps by invoking the `andthen:clarify` skill inline rather than assuming them, and runs an automatic fresh-context doc self-review via the `andthen:review` skill with `--mode doc --fix` before finishing.
 **Use when:** scoping a multi-feature initiative. `--visual` delegates `prd.md` to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:plan` to break the PRD into stories with FIS specs.
 
 ### `andthen:plan`
@@ -31,7 +31,7 @@ Consumes an existing local `prd.md`, `--issue <N>`, or a GitHub issue URL and pr
 **Use when:** turning a PRD into an executable, story-by-story plan. `--visual` delegates the local `plan.json` bundle to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-plan` to implement the bundle.
 
 ### `andthen:spec`
-Produces a single Feature Implementation Specification (FIS) for one execution-sized feature. If the feature exceeds size thresholds, escalates – standalone inputs route to the `andthen:prd → andthen:plan → andthen:exec-plan` chain; plan-story inputs go upstream for plan decomposition.
+Produces a single Feature Implementation Specification (FIS) for one execution-sized feature, then runs automatic fresh-context doc self-review via the `andthen:review` skill with `--mode doc --fix`. If the feature exceeds size thresholds, escalates – standalone inputs route to the `andthen:prd → andthen:plan → andthen:exec-plan` chain; plan-story inputs go upstream for plan decomposition.
 **Use when:** a single feature is clear enough to specify but isn't part of a multi-feature plan. `--visual` delegates the produced FIS to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-spec` to implement the FIS.
 
 ### `andthen:exec-spec`
