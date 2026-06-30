@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Preflight (Converge Blocking Decisions)"
+  short_description: "Drive a FIS or plan bundle to zero open blocking decisions before unattended exec; emits a machine-stable READY/DEFERRED/BLOCKED verdict"
+  default_prompt: "Drive a single FIS or a plan bundle to zero open blocking decisions before it is handed to an unattended exec run. Auto-detect the target from the path: a FIS file → single FIS; a directory containing plan.json → plan bundle; ambiguous or missing → ask (or BLOCKED under --auto). Always interactive – the interview that closes each implementation-blocking decision cannot be skipped; the only no-question path to READY is a target with zero blocking decisions. Detect with the `andthen:review` skill (--mode doc --inline-findings), settle open ADRs with the `andthen:architecture` skill (--mode trade-off), route requirements-altitude gaps to the `andthen:clarify` skill, and persist every resolution by altitude through the `andthen:ops` skill. Under --auto, never interview and never fabricate an answer – enumerate the unresolved blocking decisions as a signal. Emit the verdict as a single resolved `Preflight:` token (one of READY, DEFERRED, or BLOCKED) on its own line – never the menu form. Target: "
+
+policy:
+  allow_implicit_invocation: true

@@ -25,6 +25,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 - Require `FIS_FILE_PATH`. Stop if missing.
 - **Complete implementation** – finish the work.
 - **FIS is source of truth** – follow it exactly.
+- **Preflight is recommended, not required** – a prior `andthen:preflight` pass (which drives blocking decisions to zero and honors `spec-ready`) reduces mid-run forks, but exec-spec never hard-depends on it: an interactive gate cannot be a precondition of a headless run without risking deadlock. Execute the FIS as given whether or not preflight ran.
 - **Execution discipline** – Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (referenced below as *The Execution-Discipline Rules*).
 - **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
 - **Retry-safe dirty worktrees** – classify pre-existing dirty paths before editing; never discard unrelated edits. See Step 2.3 for the operational taxonomy.

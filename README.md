@@ -260,6 +260,7 @@ These compose into the workflows above – from requirements through implementat
 | `spec` | Generate a Feature Implementation Specification (FIS) for one execution-sized feature; includes fresh-context doc self-review |
 | `exec-spec` | Implement a FIS – code, tests, verification, completion attestation, and reconciliation notes when upstream docs go stale |
 | `exec-plan` | Execute a plan bundle story-by-story (`exec-spec` + `quick-review` each, final gap review, reconciliation rollup); `--team` for Agent Teams |
+| `preflight` | Drive a FIS or plan bundle to zero open blocking decisions before an unattended `exec-spec`/`exec-plan` run – interactively interviews each blocking decision, persists by altitude, and emits a machine-stable `READY`/`DEFERRED`/`BLOCKED` verdict |
 | `remediate-findings` | Apply validated review findings with the smallest safe fixes, re-validate, update state and ledger entries |
 | `ops` | Deterministic state (shared + local), plan/FIS, story ownership, reconciliation ledger, and git operations (status, checkboxes, commits) |
 

@@ -6,6 +6,16 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.33.0] – 2026-06-30
+
+### Added
+- **New `andthen:preflight` skill** – an interactive convergence gate that drives a single FIS or a whole plan bundle to zero open blocking decisions before an unattended `exec-spec`/`exec-plan` run. It detects decisions via `review --mode doc`, settles open ADRs inline via `architecture --mode trade-off`, routes requirements-altitude gaps to `clarify`, interviews the user on each implementation-blocking decision, and persists every resolution by altitude. Emits a machine-stable `Preflight: READY | DEFERRED | BLOCKED` verdict; under `--auto` it never interviews and instead enumerates the unresolved blocking decisions as a signal. A recommended gate – the executors honor it but never require it.
+
+### Changed
+- **`andthen:ops` records decisions** – two new write forms: `update-fis decision-note <key> <resolved|deferred>` persists a preflight decision to the FIS (resolved → `## Implementation Observations`; deferred → a signed-off `## Deferred Decisions` block), and `update-decisions still-current <topic>` appends a load-bearing non-ADR choice to the `DECISIONS.md` registry. The `Preflight:` token is registered alongside `Auto-Remediation` in the loop-convergence signal grammar; `spec`/`prd` now recommend a preflight pass on residual blocking decision Notes.
+
+---
+
 ## [0.32.0] – 2026-06-26
 
 ### Changed

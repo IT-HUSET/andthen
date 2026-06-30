@@ -127,7 +127,7 @@ Self-check:
 
 Spawn a generic fresh-context sub-agent whose prompt invokes the `andthen:review` skill with `--mode doc --fix <prd.md>` (append `--auto` when `AUTO_MODE=true`). `--fix` auto-applies mechanical document defects; substantive gaps surface as `Note` findings. Run this before any `--to-issue` / `--visual` post-step so those act on the fixed PRD.
 
-- **Conversational**: reflect on the residual `Note` findings. Route `ambiguous-intent` / requirement-gap Notes to a focused `andthen:clarify` pass (recommend it); otherwise recommend proceeding to the `andthen:plan` skill.
+- **Conversational**: reflect on the residual `Note` findings. Route `ambiguous-intent` / requirement-gap Notes to a focused `andthen:clarify` pass (recommend it); otherwise recommend proceeding to the `andthen:plan` skill. When residual Notes carry blocking decisions that would fork downstream execution, note that the `andthen:preflight` skill drives them to zero on the resulting plan bundle (after `andthen:plan`); preflight targets a FIS or plan bundle, not the PRD, and prd does not invoke it.
 - **`AUTO_MODE`**: fold residual `Note` findings into `Constraints & Assumptions` / `Decisions Log` so downstream skills inherit them; no conversational reflection.
 
 **Gate**: Self-review complete; PRD reflects auto-applied fixes; residual Notes surfaced (recommended conversationally, recorded under `--auto`)

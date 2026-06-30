@@ -389,8 +389,9 @@ _skill_assets_map_codebase="project-state-templates.md"
 _skill_assets_simplify_code="automation-mode.md execution-discipline.md intent-and-rules-context.md"
 _skill_assets_refactor="automation-mode.md execution-discipline.md"
 _skill_assets_remediate_findings="automation-mode.md execution-discipline.md intent-and-rules-context.md reconciliation-ledger.md"
+_skill_assets_preflight="automation-mode.md execution-discipline.md execution-named-blocks.md"
 
-_skills_with_canonical_assets="prd plan spec exec-spec exec-plan ops review quick-review architecture clarify testing quick-implement e2e-test triage init map-codebase simplify-code refactor remediate-findings"
+_skills_with_canonical_assets="prd plan spec exec-spec exec-plan ops review quick-review architecture clarify testing quick-implement e2e-test triage init map-codebase simplify-code refactor remediate-findings preflight"
 
 # Resolve the list of canonical assets for a given skill base name.
 # Prints a space-separated list of asset filenames.
@@ -416,6 +417,7 @@ _get_skill_assets() {
     simplify-code) printf '%s' "$_skill_assets_simplify_code" ;;
     refactor) printf '%s' "$_skill_assets_refactor" ;;
     remediate-findings) printf '%s' "$_skill_assets_remediate_findings" ;;
+    preflight) printf '%s' "$_skill_assets_preflight" ;;
     *)        printf '' ;;
   esac
 }

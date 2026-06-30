@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Ops"
   short_description: "Update state (shared + local), story status/ownership, and FIS checkboxes"
-  default_prompt: "Execute deterministic operation: update the project's shared or local `State` document (per the **Project Document Index**), update plan status or story owner, update FIS checkboxes, or create a standardized commit. Operation: "
+  default_prompt: "Execute deterministic operation: update the project's shared or local `State` document (per the **Project Document Index**), update plan status or story owner, update FIS checkboxes, record a resolved/deferred decision note in a FIS (`update-fis decision-note`), append a Still Current decision to the project Decisions registry (`update-decisions still-current`), or create a standardized commit. Operation: "
 
 policy:
   allow_implicit_invocation: true

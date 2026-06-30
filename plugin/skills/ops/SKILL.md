@@ -3,7 +3,7 @@ description: "Deterministic operations: update shared/local state, plan status, 
 context: fork
 agent: general-purpose
 user-invocable: true
-argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-plan-owner, update-fis, update-fis observations, update-fis discovered-requirements, update-fis design-change, update-ledger (add|reconcile|withdraw|bump-recurrence|override-close), update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
+argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-plan-owner, update-fis, update-fis observations, update-fis discovered-requirements, update-fis design-change, update-fis decision-note, update-decisions still-current, update-ledger (add|reconcile|withdraw|bump-recurrence|override-close), update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
 ---
 
 # Deterministic Operations Skill
@@ -106,6 +106,7 @@ Mutate a FIS document – mark checkboxes, append implementation observations, a
 - Append observations: `update-fis <fis_path> observations <markdown-body>`
 - Append discovered requirements: `update-fis <fis_path> discovered-requirements <markdown-body>`
 - Apply design-change amendment: `update-fis <fis_path> design-change <markdown-body>`
+- Record a resolved or deferred decision: `update-fis <fis_path> decision-note <decision_key> <resolved|deferred> <markdown-body>`
 
 Actions for `<task_id|all>` form:
 - When `task_id` is a specific ID: Mark that task's checkbox: `- [ ] **{task_id}**` → `- [x] **{task_id}**`
@@ -130,6 +131,27 @@ Actions for `design-change` form:
 - Idempotent retry and all-or-nothing: on a retry within the 2-minute window (per the [Append-Run Block Protocol](references/append-run-block-protocol.md)), if the body is identical and every missing `Old:` span's paired `New:` span is already present in the allowed Intent/scenario region, no-op instead of blocking; if the paired `New:` spans are present but the audit block is missing, append the audit block and report the retry repaired the audit trail. Otherwise validate every pair before applying any replacement; reject (no-op + `BLOCKED: invalid design-change body`) if any `Old:` span does not exactly match the current FIS text, and apply none if one pair fails. Treat replacements plus audit append as one logical mutation: if the audit append cannot be written, do not apply replacements.
 - Apply each exact old/new replacement to the FIS Intent and/or Acceptance Scenario text only. Do not edit task checkboxes, Structural Criteria, plan provenance, or Implementation Observations through this form.
 - Append the same body to `## Implementation Observations` using tag suffix `– design-change` via the [Append-Run Block Protocol](references/append-run-block-protocol.md), so the mutable spec edit is auditable and retry-safe. This form is distinct from `discovered-requirements`; do not use it for missing requirements or edge cases that should stay append-only.
+
+Actions for `decision-note` form (the `andthen:preflight` skill's resolved/deferred-decision write path; atomic, AUTO_MODE-safe, reject-malformed):
+- `<resolved|deferred>` is the decision class. Reject any other token with `BLOCKED: invalid decision-note body`.
+- **Body constraints**: `####`-or-deeper headings only (no `## ` headings, no `### Run:` line). The body MUST carry these fields, each on its own line: `Decision-Key:`, `Altitude:`, `Affected surface:`, `Decision:`, `Rationale:`, `Evidence:`. For the `deferred` class it MUST additionally carry `Signed-off-by:` (a signed-off deferral is the only sanctioned way a punted decision stops blocking). Reject (no-op + `BLOCKED: invalid decision-note body`) when the class token is invalid, a required field is missing, or the heading constraints are violated.
+- **Target by class**:
+  - `resolved` → append a `#### DECISION NOTE: <decision_key>` block under `## Implementation Observations` (create that section from the FIS template lead paragraph if absent).
+  - `deferred` → append a `#### DEFERRED DECISION: <decision_key>` block under a `## Deferred Decisions` section (create the section if absent; it collects signed-off punts so a reader finds them in one place).
+- **Idempotency** keyed on `<decision_key> + <resolved|deferred>`: if a block with the same `Decision-Key:` value and the same class already exists in the target section, replace that block in place rather than appending a duplicate; no-op when the new block is byte-identical. A `<decision_key>` may legitimately hold both a `resolved` and a `deferred` block only across re-runs – the later write of a given class supersedes the earlier one.
+- Do not touch task checkboxes, Acceptance Scenarios, Structural Criteria, plan provenance, or design-change audit blocks through this form.
+
+#### Update Decisions
+Append a load-bearing non-ADR choice to the project Decisions registry's `## Still Current` section. The `andthen:preflight` skill's project-decision-altitude write path; ADR indexing stays owned by the `andthen:architecture` skill (`--mode trade-off`).
+
+**Usage**: `update-decisions still-current <topic> <decision-and-rationale>`
+
+Resolve the target file path from the **Project Document Index** `Decisions` row (default `docs/DECISIONS.md`). If the file does not exist, refuse with `BLOCKED: Decisions document not found at <path> – run the andthen:init skill to scaffold it`; do not create it (the andthen:init skill owns creation, consistent with `update-learnings`).
+
+Actions for `still-current` form:
+- Locate `## Still Current` case-insensitively; if absent, create it as a new H2 (section-locate-or-create, as in `update-learnings`). Remove the `- ...` placeholder bullet if present (exact-string match only).
+- Append one bullet in the registry's existing format: `- **<Topic>**: <decision + brief rationale>.` (single bullet; substitute `<Topic>` and the decision/rationale).
+- **Idempotency**: `<topic>` is the key – no-op if a bullet with the same `- **<Topic>**:` prefix already exists; update its text in place when the rationale changed.
 
 #### Update Reconciliation Ledger
 Deterministic mutator for the Reconciliation Ledger – the durable, greppable record of deliberate spec-vs-code drift. Schema, stable-ID derivation, status lifecycle, and match/recurrence/escalation rules are owned by [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md); this form is the only sanctioned write path. Modeled on the `update-fis` write discipline: atomic, transition-audited, AUTO_MODE-safe, rejecting malformed transitions. **Single-document** – it mutates only the ledger; the completion-presentation gate that *reads* the ledger lives in the orchestrating skills (`exec-spec` / `exec-plan`), not here.

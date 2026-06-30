@@ -142,7 +142,7 @@ After the FIS is saved and OVERSIZE passes, run a doc self-review: prefer a gene
 
 - `--fix` auto-remediates mechanical doc defects.
 - Non-blocking residual Notes become explicit FIS assumptions, constraints, or follow-up notes.
-- A residual Note needing an architecture/requirements decision before the FIS is executable is **blocking** – name the upstream skill (architecture trade-offs → the `andthen:architecture` skill with `--mode trade-off`).
+- A residual Note needing an architecture/requirements decision before the FIS is executable is **blocking** – name the upstream skill (architecture trade-offs → the `andthen:architecture` skill with `--mode trade-off`). When one or more blocking Notes remain, recommend running the `andthen:preflight` skill on the FIS to drive them to zero before an unattended `andthen:exec-spec` run – spec recommends it; it does not invoke preflight.
 
 **Update source plan** – for a plan-story FIS when `OVERSIZE:` did not fire (the FIS exists on disk, so its pointer is always recorded):
   - `andthen:ops update-plan-fis <plan_path> <story_id> <fis_path>` – set `stories[].fis`.
