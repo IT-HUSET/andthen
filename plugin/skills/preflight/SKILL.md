@@ -38,7 +38,7 @@ TARGET: $ARGUMENTS (strip any flag token like `--auto` before interpreting the r
 
 ## DECISION RECORDS
 
-Preflight treats detection output as **decision records**, not raw review findings. The record schema, the blocking/non-blocking split, plan-bundle identity matching, the convergence loop, and the verdict semantics live in [`decision-records.md`](references/decision-records.md). The blocking-decision interview technique guide lives in [`blocking-decision-interview.md`](references/blocking-decision-interview.md). Load both before Step 3.
+Preflight treats detection output as **decision records**, not raw review findings. The record schema, the blocking/non-blocking split, plan-bundle identity matching, convergence, and the verdict semantics live in [`decision-records.md`](references/decision-records.md). The blocking-decision interview technique guide lives in [`blocking-decision-interview.md`](references/blocking-decision-interview.md). Load both before Step 2.
 
 A record is **blocking** only when implementation would fork on an observable behavior, persistence location, architecture choice, or requirements-altitude question that no cited source resolves. Mechanical doc defects and advisory review Notes are non-blocking and never gate the verdict.
 
@@ -96,10 +96,7 @@ After per-FIS convergence, match decision records across stories by `decision_ke
 
 For a plan bundle, flip each converged story to `spec-ready`: `andthen:ops update-plan <plan_path> <story_id> spec-ready`. A story that still carries an open blocking record keeps its current status – update the clear ones as they pass, even when the bundle as a whole is blocked.
 
-Emit the verdict per the bare-line grammar (one resolved token, once):
-- `Preflight: READY` – zero open blocking decisions remain (single FIS, or every story in a bundle clear).
-- `Preflight: DEFERRED` – convergence reached, but one or more remaining decisions are signed-off deferrals (none still open/unresolved).
-- `Preflight: BLOCKED` – an unresolved blocking decision remains (single FIS), or at least one bundle story is non-clear, or `AUTO_MODE` ran with blocking decisions outstanding. Under `AUTO_MODE`, accompany it with the enumerated unresolved set.
+Emit the verdict per the bare-line grammar (one resolved token, once), with the READY/DEFERRED/BLOCKED conditions and bundle precedence from `decision-records.md` § verdict semantics. Under `AUTO_MODE`, accompany `Preflight: BLOCKED` with the enumerated unresolved set.
 
 **Gate**: verdict emitted as a bare line-anchored single resolved token; bundle story statuses updated for every converged story.
 

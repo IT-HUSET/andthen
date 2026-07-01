@@ -1,13 +1,6 @@
 # Decision Records, Convergence, and Verdict Semantics
 
-The data model preflight runs on. Detection output is normalized into **decision records**; the convergence loop drives every blocking record to closure; the verdict reports the result in a machine-stable token.
-
-## Contents
-- Decision-record schema
-- Blocking vs. non-blocking split
-- Plan-bundle identity matching
-- Convergence loop
-- `Preflight:` verdict semantics
+The data model preflight runs on. Detection output is normalized into **decision records**; convergence drives every blocking record to closure; the verdict reports the result in a machine-stable token.
 
 
 ## Decision-record schema
@@ -44,15 +37,9 @@ The split is the whole point: preflight spends human attention on the few decisi
 For a plan bundle, after each story FIS converges on its own, the cross-story sweep matches records across stories by the composite key `decision_key + altitude + affected_surface`. When two stories carry matching records with **conflicting** `resolved` values, both are reopened as `open` blocking decisions and their stories re-converge before any story status flips to `spec-ready`. Matching records that agree are left alone; the sweep flags contradictions, it does not re-detect.
 
 
-## Convergence loop
+## Convergence
 
-1. Detect → normalize records → blocking-only drill-down.
-2. ADR sweep: settle / edit / (AUTO_MODE) record-as-blocking each `adr` record.
-3. Resolve each remaining blocking record: interview (own), or route requirements-altitude to `clarify`; persist by altitude.
-4. (Bundle) cross-story sweep; re-converge on contradiction.
-5. Flip converged stories to `spec-ready`; emit the verdict.
-
-A target **converges** when no record is left in `open` status. Deferral is a convergence outcome only with explicit user sign-off – a punted decision moves to `deferred` and stops counting as blocking; an un-signed-off punt stays `open`.
+A target **converges** when no record is left in `open` status. Deferral is a convergence outcome only with explicit user sign-off – a punted decision moves to `deferred` and stops counting as blocking; an un-signed-off punt stays `open`. The procedure that reaches this state is the skill's WORKFLOW; the cross-story sweep reopens contradictions before any story flips to `spec-ready`.
 
 
 ## `Preflight:` verdict semantics
