@@ -930,14 +930,27 @@ if [ "$install_claude_user" -eq 1 ] && [ -d "$repo_root/plugin/agents" ]; then
   done
 fi
 
-printf 'Installed %s skills into %s\n' "$skills_count" "$skills_dir"
-if [ "$codex_agents_count" -gt 0 ]; then
-  printf 'Installed %s Codex agents into %s\n' "$codex_agents_count" "$codex_agents_dir"
-fi
-if [ "$claude_skills_count" -gt 0 ]; then
-  printf 'Installed %s Claude Code user skills into %s\n' "$claude_skills_count" "$claude_skills_dir"
-fi
-if [ "$claude_agents_count" -gt 0 ]; then
-  printf 'Installed %s Claude Code user agents into %s\n' "$claude_agents_count" "$claude_agents_dir"
+if [ "$dry_run" -eq 1 ]; then
+  printf 'Would install %s skills into %s\n' "$skills_count" "$skills_dir"
+  if [ "$codex_agents_count" -gt 0 ]; then
+    printf 'Would install %s Codex agents into %s\n' "$codex_agents_count" "$codex_agents_dir"
+  fi
+  if [ "$claude_skills_count" -gt 0 ]; then
+    printf 'Would install %s Claude Code user skills into %s\n' "$claude_skills_count" "$claude_skills_dir"
+  fi
+  if [ "$claude_agents_count" -gt 0 ]; then
+    printf 'Would install %s Claude Code user agents into %s\n' "$claude_agents_count" "$claude_agents_dir"
+  fi
+else
+  printf 'Installed %s skills into %s\n' "$skills_count" "$skills_dir"
+  if [ "$codex_agents_count" -gt 0 ]; then
+    printf 'Installed %s Codex agents into %s\n' "$codex_agents_count" "$codex_agents_dir"
+  fi
+  if [ "$claude_skills_count" -gt 0 ]; then
+    printf 'Installed %s Claude Code user skills into %s\n' "$claude_skills_count" "$claude_skills_dir"
+  fi
+  if [ "$claude_agents_count" -gt 0 ]; then
+    printf 'Installed %s Claude Code user agents into %s\n' "$claude_agents_count" "$claude_agents_dir"
+  fi
 fi
 exit 0

@@ -15,16 +15,15 @@ Trigger · Partition Strategy (1. Vertical slice · 2. Package/module · 3. Lang
 
 ## Trigger
 
-Apply when any one fires (auto-detection):
+Apply when scale or semantic breadth makes single-pass recall unreliable:
 
-- Changed file count ≥ 20
-- Changed LOC ≥ 1000 (excluding generated / vendored / lockfile noise)
-- Diff spans 3+ top-level packages, modules, or app entry points
-- Caller passed `--fanout` explicitly
+- **Large surface** – ≥20 changed files, ≥1000 changed LOC excluding generated/vendor/lockfile noise, or 3+ top-level packages/modules/app entry points.
+- **Semantic breadth** – requirements-driven review has ≥3 distinct Work Areas / Acceptance Scenario clusters / proof surfaces.
+- **Proof-bearing artifacts changed** – tests, parsers, validators, release/sign-off registers, generated artifacts, locale-paired content, migrations, workflows, or public APIs carry the story's proof of correctness.
+- Caller passed `--fanout` explicitly.
 
-Below the threshold, run the lens inline. `--no-fanout` forces off even when
-auto-trigger fires (useful for interactive review where latency matters more
-than coverage).
+Below these triggers, run the lens inline. `--no-fanout` forces inline review and
+must be reported when it suppresses an active trigger.
 
 
 ## Partition Strategy

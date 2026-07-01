@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.34.0] – 2026-07-01
+
+### Changed
+- **`andthen:review` is leaner and proof-led** – the skill now centers reviews on a Coverage Matrix: each primary surface records evidence, positive proof, and the falsifier attempted before verdict. Test/sign-off artifacts get explicit test-contract falsification so weak assertions surface on the first pass instead of through repeated review loops.
+- **`andthen:review` code lens adds a named smell baseline** – code review now checks a curated Fowler-inspired smell set as heuristic findings: project standards override it, baseline smells are never hard violations, and tooling-owned issues stay with tooling.
+
+---
+
 ## [0.33.0] – 2026-06-30
 
 ### Added

@@ -27,6 +27,23 @@ Concise, actionable checklist for thorough code reviews.
 - [ ] Complex logic explained with comments where needed
 - [ ] Magic numbers/strings replaced with named constants
 
+### Baseline Smell Scan
+
+Use this fixed Fowler-inspired baseline even when the repo has no local standards. A documented project standard overrides the baseline, and every smell is a judgement call: report as "possible <smell>" with concrete diff evidence and a bounded remedy, never as a hard violation. Skip anything static tooling already enforces.
+
+- [ ] **Mysterious Name** – a function, variable, type, file, or test name hides what it does or represents; rename, or simplify until an honest name fits
+- [ ] **Duplicated Code** – the same logic shape appears in multiple hunks/files; extract the shared shape or justify the duplication
+- [ ] **Feature Envy** – behavior reaches into another object/module's data more than its own; move the behavior toward the data or expose an intention-revealing API
+- [ ] **Data Clumps** – the same fields/params travel together repeatedly; introduce a value object, parameter object, or domain type
+- [ ] **Primitive Obsession** – strings/numbers/booleans stand in for domain concepts with rules; model the concept explicitly where it protects invariants
+- [ ] **Repeated Switches** – the same switch/if-cascade on the same type recurs; centralize the decision, use a map/strategy, or let polymorphism carry it
+- [ ] **Shotgun Surgery** – one logical change forces scattered edits across many files; gather the reason-to-change behind one boundary
+- [ ] **Divergent Change** – one file/module is edited for unrelated reasons; split responsibilities so each module has a coherent reason to change
+- [ ] **Speculative Generality** – abstractions, hooks, params, or extension points serve no current requirement; inline/delete until a real need appears
+- [ ] **Message Chains** – callers navigate long internal object/module paths; hide the traversal behind one intention-revealing method/API
+- [ ] **Middle Man** – a wrapper mostly delegates without policy, translation, or boundary value; remove it or give it real responsibility
+- [ ] **Refused Bequest** – a subclass/implementer ignores or overrides most inherited behavior; replace inheritance with composition or split the contract
+
 ### Best Practices
 - [ ] Language/framework idioms followed
 - [ ] DRY principle applied pragmatically

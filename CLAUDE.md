@@ -196,9 +196,11 @@ AndThen has no traditional build/test cycle – it's a skill bundle. The command
 # anti-patterns and other drift):
 rg 'andthen:[a-z-]+' CLAUDE.md plugin/ docs/
 
-# Install skills locally for testing:
-bash scripts/install-skills.sh                # default (Codex / generic agents)
-bash scripts/install-skills.sh --claude-user  # Claude Code user-tier install
+# Install skills locally for Codex/generic smoke testing:
+bash scripts/install-skills.sh
+
+# Preview Claude Code user-tier packaging only when that path is touched:
+bash scripts/install-skills.sh --claude-user --dry-run
 
 # Validate a plan.json against the schema:
 bash scripts/validate-plan-json.sh <path-to-plan.json>
