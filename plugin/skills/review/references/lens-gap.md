@@ -1,12 +1,12 @@
 # Lens: Gap Analysis
 
-Rubric for comparing a current implementation against its requirements baseline (spec, PRD, plan, issue, FIS, or other source of truth) and producing remediation-focused output with a PASS/FAIL verdict. Load this reference when running `andthen:review --mode gap`.
+Rubric for comparing a current implementation against its requirements baseline (spec, PRD, plan, issue, FIS, or other source of truth) and producing remediation-focused output with a PASS/FAIL verdict. Load this reference when running the `andthen:review` skill with `--mode gap`.
 
 Default target is the implementation, not the requirements doc – but not absolutely. When coherent, tested code contradicts the FIS Intent, Expected Outcomes, or an ADR-backed decision, do not assume which party is wrong: classify the finding (`code-defect | design-changed | spec-stale | ambiguous-intent`, defined in §4 Spec/design drift) rather than reflexively routing to code remediation.
 
 ## Contents
 - Scope · §0 Resolve Review Target · §1 Compile Requirements · §2 Inspect Implementation
-- §3 Quality Review · §4 Gap Analysis · §5 Critic Sub-Lens (behavioral dry-run)
+- §3 Coverage Matrix · §4 Gap Finding Pass · §5 Critic Sub-Lens
 - FIS Upstream-Context Handling · §6 Findings Filter · Calibration · Large-Diff Fan-Out
 - §7 Dimensional Scoring & Verdict · Report Sections · Report Output Conventions
 
@@ -73,91 +73,41 @@ Map the current implementation state:
 - Stop if there is still nothing implemented to compare
 
 
-## 3. Quality Review
+## 3. Coverage Matrix
 
-Run project checks and gather evidence directly – do not delegate to the code lens. When an upstream step has already run code review (e.g. a `plan` pipeline's per-story `quick-review`), reuse that evidence; otherwise gather it here:
-- Run applicable build/package checks
-- Run applicable test suites
-- Run static analysis, linting, type checks
-- **Stub scan**: grep changed files for incomplete-implementation markers (`TODO`, `FIXME`, `XXX`, `NotImplementedError`, language-appropriate `pass`/empty-body/`throw.*not implemented` patterns). Triage intentional vs. forgotten.
-- **Wiring check**: for each new file, confirm at least one other file imports or references it (language-appropriate import/require/include grep on basename or module path). When the diff matches a [`refactor-invariants.md`](refactor-invariants.md) trigger (deletion, rename, lifecycle relocation, cache introduction, codegen, schema migration, parameter threading), expand this check into the full invariant pass – the existing wiring check is the deletion-completeness primitive that the refactor-invariants rubric generalizes.
-- Check substance and wiring using `verification-patterns.md`
-- Run available security tooling (e.g. `${CLAUDE_SKILL_DIR}/scripts/run-security-scan.sh <path>`) when applicable
+The gap lens succeeds by proving coverage, not by summarizing requirements. Build a compact matrix before judging readiness:
 
-Focus on requirements-vs-implementation alignment – the unique value of this lens.
+| surface | evidence read | positive proof | falsifier attempted | result |
+|---|---|---|---|---|
 
+Rows must cover every primary Acceptance Scenario, Structural Criterion, Work Area, Expected Outcome, changed proof artifact, and changed user-facing/data surface. `not reviewed` on a primary row is a finding unless Intent Context explicitly makes it a Non-Goal or defers it.
 
-## 4. Gap Analysis
+Use the matrix to force negative review. For each row, ask what bad state could still pass: malformed input, omitted locale sibling, extra/duplicate item, stale copy, wrong timezone, wrong fallback, unreferenced component, failing dependency, or edge case the requirement implies. A claimed test or register proof that lacks the relevant falsifier is itself a gap. A checked (`[x]`) Acceptance Scenario is re-attacked against its `[OC<NN>]` outcome and the Intent sentence, not trusted on checkbox state – an implementation that satisfies the literal scenario while defeating its outcome is a finding regardless of the check.
 
-Compare requirements to implementation; record gaps per the categories below – each targets a distinct failure mode, so skipping one silently narrows the review. Note affected file(s) and the violated requirement per finding.
-
-- **Functionality gaps** – missing or incomplete features, unfulfilled acceptance criteria, absent error handling, unhandled edge cases, weak input validation, missing user-facing feedback for failure paths.
-
-- **Forward-coverage gaps** _(FIS baselines)_ – Work Areas declared in the FIS that lack any corresponding task, scenario proof, or implementation evidence in the changed files. Distinct from missing-test or missing-feature gaps: a Work Area declares a surface that must be exercised; if nothing proves it was touched, the scope was claimed but not delivered.
-
-- **Integration gaps** – missing or broken integration points (API endpoints, database migrations, configuration, feature flags, jobs, workers, CLI entry points). Incomplete data flows between modules, broken or stale dependencies, contract mismatches at module boundaries, missing wiring for new components into the system.
-
-- **Requirement mismatches** – behavior or logic that does not match what the requirements specify. Incorrect defaults, inverted conditions, misinterpreted acceptance criteria. Unmet non-functional requirements: performance, security, accessibility, internationalization, observability, compatibility.
-
-- **Spec/design drift** – implementation is coherent and tested but contradicts the FIS Intent sentence, tagged Expected Outcomes, or recorded design decision. Classify `design-changed` (deliberate pivot), `spec-stale` (requirements simply trail the code), or `ambiguous-intent` (artifact cannot say which party is wrong). These require a human reconcile decision, not blind code remediation.
-
-- **Consistency gaps** – deviations from existing codebase patterns, conventions, and architecture. Documentation gaps (README, inline docs, user-facing copy). Test coverage gaps at the levels the project expects (unit, integration, end-to-end).
-
-- **Domain language gaps** – terminology drift between requirements and implementation: the same concept named differently, terms leaking across bounded contexts, or new domain concepts introduced without glossary entries. _Skip when no `Ubiquitous Language` document exists (see **Project Document Index**)._
-
-- **Holistic sanity check** – zoom out and ask whether the implementation makes sense end-to-end. Does it actually achieve the user-facing outcome, not just the technical checklist? Any hidden assumptions, tech debt, or architectural drift introduced? Would a reasonable user or operator be surprised by how it behaves?
-
-- **Verification depth** – fold the §3 stub-scan / wiring-check / passing-command evidence into the relevant category above: a stub or unwired component that violates a requirement is a Functionality or Integration gap, not just a quality note.
+Run or reuse verification evidence that strengthens the matrix: build/package checks, tests, lint/types, stub scan, wiring check, `verification-patterns.md`, refactor-invariants when triggered, and security tooling when applicable. Fold failed or skipped load-bearing checks into findings.
 
 
-## 5. Critic Sub-Lens (Always On): Behavioral Dry-Run Walkthrough
+## 4. Gap Finding Pass
+
+Compare the matrix to the implementation and record gaps by failure mode:
+
+- **Functionality** – required behavior missing, incomplete, or wrong; edge/failure path not handled.
+- **Forward coverage** – a FIS Work Area has no task, scenario proof, implementation evidence, or matrix row.
+- **Integration/wiring** – component exists but is not connected end-to-end, or data contracts disagree.
+- **Requirement mismatch** – implementation/test/docs prove a different behavior than Intent, Expected Outcomes, or acceptance text.
+- **Spec/design drift** – coherent implementation contradicts FIS/ADR intent; classify `design-changed`, `spec-stale`, or `ambiguous-intent` rather than forcing code remediation.
+- **Consistency/domain language** – changed artifacts drift from project patterns, architecture, terminology, locale pairs, or user-facing copy requirements.
+- **Verification depth** – tests/checks pass but do not fail for the bad state the requirement exists to prevent.
+- **Holistic outcome & observability** – zoom out: does the implementation achieve the user-facing outcome end-to-end, not just the technical checklist? Are failures observable (logs, metrics, user-facing feedback) or do they fail silently? Would a reasonable user or operator be surprised by how it behaves?
+
+
+## 5. Critic Sub-Lens (Always On)
 
 Use `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` for the posture of this walkthrough. The rubric below is the canonical gap-review Critic work.
 
 Dispatch per `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` § Sub-agent dispatch (prefer the `review-critic` agent with a read-first task prompt for the three calibration files; else a generic fresh-context sub-agent; inline fallback requires a `Critic Coverage` note).
 
-Methodically simulate how the implementation actually runs against each requirement, one path at a time. This surfaces issues that mechanical file-vs-spec comparison misses: latent state bugs, incorrect logic, fragile assumptions, missing defensive behavior, and requirements filled in by guessing.
-
-For each significant requirement, feature flow, or user-visible behavior the implementation claims to satisfy, perform the following passes. (Add an explicit **Behavioral** subcategory to Step 4 if needed; routing is in *Record and route* below.)
-
-### Trace execution
-
-- Identify the entry point that satisfies the requirement: handler, command, route, event, scheduled job, CLI, migration, UI action.
-- Walk the control flow step by step. Mentally execute each branch – do not jump to the happy path.
-- Track the shape, source, and trust level of data at each step (user input, external service response, database row, derived state).
-
-### Check conditions and invariants
-
-- **Preconditions** – guaranteed by the caller, enforced on entry, or silently assumed?
-- **Postconditions** – delivered on every path, including early returns and exceptions?
-- **Invariants** (transactional consistency, ordering, uniqueness, referential integrity, UI state) – any path that could violate them?
-- **Idempotency and re-entry** – safe to retry, replay, or run concurrently if the requirement implies that?
-
-### Stress the unhappy paths
-
-- What does each external call do when it fails, times out, returns an error, returns partial or malformed data, or returns stale data?
-- Which errors are caught, which are propagated, which are swallowed? Are failures observable (logs, metrics, traces, user-facing feedback)?
-- What happens under concurrent access, retries, partial writes, network partitions, duplicate events, out-of-order delivery?
-- What about empty, null, zero, negative, oversized, Unicode, mixed-case, or otherwise-boundary inputs?
-- What is the rollback / cleanup story when an operation fails halfway?
-
-### Test the assumptions
-
-- Which behaviors depend on an assumption about upstream, downstream, or environment state that the requirements did not pin down? List the assumption explicitly.
-- Where did the implementer fill a requirements gap with a guess? Is the guess defensible? Is it documented (comment, ADR, commit message) or invisible?
-- Is there logic that only works because of an unrelated implementation detail elsewhere (implicit coupling, load-bearing side effects)?
-- Are there places where the requirements themselves are ambiguous or contradictory – and the implementation picked one reading without flagging it?
-
-### Sanity-check the design
-
-- For each `[x]` FIS Acceptance Scenario, does the implementation satisfy the tagged `[OC<NN>]` outcome and the Intent sentence, not merely the literal **Then** clause? A scenario satisfiable by an implementation that defeats the Intent is a finding regardless of checkbox state.
-- Are there operations that look correct locally but compose incorrectly (e.g. correct individual queries that together violate an invariant)?
-- Are failure modes survivable – does a single external dependency outage degrade gracefully or cascade?
-- Could the same requirement be met with meaningfully less code, fewer abstractions, or fewer failure surfaces? If so, the complexity itself is a finding.
-
-### Record and route
-
-Every concern from the walkthrough is a finding. Each finding must carry: location, class (`code-defect | spec-stale | design-changed | ambiguous-intent`), the requirement or invariant it threatens, the path or input that triggers it, and the observable impact. Merge into the Step 4 categories so they are scored and filtered alongside the mechanical gap findings. When a `design-changed` finding fires and no ADR records the decision, emit a companion finding routing to the `andthen:architecture` skill in `--mode trade-off` to create the missing ADR before spec amendment.
+Use the Critic to attack the matrix, not to add a second checklist. Walk concrete requirement paths end-to-end, including branches, pre/postconditions, invariants, idempotency, retries, malformed/empty/boundary data, partial failures, hidden coupling, and guessed behavior. Every surviving concern becomes a normal gap finding with the threatened requirement/invariant, trigger path, evidence, impact, class, and routing. When a `design-changed` finding fires and no ADR records it, add the companion reconciliation finding for the `andthen:architecture` skill in `--mode trade-off`.
 
 
 ## FIS Upstream-Context Handling
@@ -174,7 +124,7 @@ Lens-specific placeholder values:
 - **Skill calibration**: `code-review-calibration.md`
 - **Context block**: `Review target context: {implementation target paths from Step 0}`
 - **Questions**: Is this a real gap? Is severity justified? Could there be an existing mitigation? Would a senior engineer flag this?
-- **Findings payload**: `{all findings from quality review, gap analysis, and behavioral dry-run walkthrough}`
+- **Findings payload**: `{all findings from the coverage matrix, gap finding pass, and Critic sub-lens}`
 
 Apply verdicts before scoring.
 
@@ -186,7 +136,7 @@ Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md`
 
 ## Large-Diff Fan-Out
 
-When the diff exceeds the threshold in [`large-diff-fanout.md`](large-diff-fanout.md) (≥20 files, ≥1000 LOC, 3+ top-level packages, or explicit `--fanout`), partition the diff into 2–5 vertical (feature/concern) slices – never horizontal layers – dispatch one lens sub-agent per partition, then run a boundary pass attacking cross-partition surface. For FIS-driven implementations the FIS Implementation Task IDs (`TI<NN>`) are the canonical slice signal; for plan rollouts use Story IDs. Composes with `--council` and chain dispatch – see [`large-diff-fanout.md`](large-diff-fanout.md) for the partition strategy (and why horizontal slicing hides cross-layer invariants), partition × specialist accounting, and the concurrency model.
+When the review surface is semantically wide or the diff is large per [`large-diff-fanout.md`](large-diff-fanout.md) § Trigger, partition the diff into 2–5 vertical (feature/concern) slices – never horizontal layers – dispatch one lens sub-agent per partition, then run a boundary pass attacking cross-partition surface. For FIS-driven implementations the FIS Implementation Task IDs (`TI<NN>`) are the canonical slice signal; for plan rollouts use Story IDs. Composes with `--council` and chain dispatch – see [`large-diff-fanout.md`](large-diff-fanout.md) for the partition strategy (and why horizontal slicing hides cross-layer invariants), partition × specialist accounting, and the concurrency model.
 
 
 ## 7. Dimensional Scoring & Verdict
@@ -202,7 +152,7 @@ When the diff exceeds the threshold in [`large-diff-fanout.md`](large-diff-fanou
 - If all dimensions meet threshold: **PASS**
 - No conditional verdicts
 
-Reproduce the canonical `## Verdict` summary block from [`review-verdict.md`](review-verdict.md) (§ Gap mode) verbatim in the Executive Summary. It is a byte-level compatibility contract parsed by `andthen:exec-plan` / `andthen:remediate-findings` – do not re-label, re-phrase, or re-order its columns.
+Reproduce the canonical `## Verdict` summary block from [`review-verdict.md`](review-verdict.md) (§ Gap mode) verbatim in the Executive Summary. It is a byte-level compatibility contract parsed by the `andthen:exec-plan` skill / `andthen:remediate-findings` skill – do not re-label, re-phrase, or re-order its columns.
 
 
 ## Report Sections
@@ -211,18 +161,10 @@ Reproduce the canonical `## Verdict` summary block from [`review-verdict.md`](re
 ## Executive Summary
 overview, verdict table, high-level findings, Findings Filter stats
 
-## Requirements Analysis
-
-## Implementation Overview
-
-## Quality Review Findings
-
-## Over-Engineering Analysis
+## Coverage Matrix
+surface/evidence/proof/falsifier/result rows
 
 ## Gap Analysis Results
-
-## Behavioral Dry-Run Findings
-(issues surfaced by the Step 5 walkthrough that are not already covered above – logic flaws, unstated assumptions, unhappy-path and edge-case gaps, fragile composition)
 
 ## Critic Coverage
 (assumptions, requirements paths, unhappy paths, hidden coupling, and incomplete wiring attacked. Required when Critic ran inline.)

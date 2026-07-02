@@ -19,7 +19,7 @@ ARGUMENTS: $ARGUMENTS _(optional – what the user wants to do, e.g. "build a to
 ## INSTRUCTIONS
 
 - **Detect first, ask second.** State already tells you most of what you need. Only ask the user what state cannot reveal (their actual idea or framing).
-- **Two questions max; never a menu.** State the route plus at most one disambiguating question, then commit – never a numbered "Choose-Your-Own-Adventure" menu of skills. One question to hear the idea, one to disambiguate if genuinely ambiguous.
+- **Two questions max; never a menu.** One question to hear the idea, one to disambiguate if genuinely ambiguous – then commit to a route. Never a numbered "Choose-Your-Own-Adventure" menu of skills.
 - **One handoff per invocation.** If a route involves a sequence (e.g. `architecture --mode advise` → `clarify`), recommend the first hop and ask the user to re-invoke `now-what` after, rather than auto-chaining.
 - **Do not re-implement downstream work.** Mention each recommended skill in one line; let its description and prompt do the rest.
 - **Use the user's words, not workflow vocabulary.** A first-time user does not yet know "FIS" or "PRD" – match them where they are, then introduce the term when handing off.
@@ -40,7 +40,7 @@ Read these signals **in order; stop at the first state-determining match.** Most
 |---|---|---|
 | `CLAUDE.md` or `AGENTS.md` at project root? | File exists | If no → `setup: not-started` |
 | `## Project Document Index` and `## Project-Specific Guidelines and Rules` in the root agent instruction file(s)? | Check every existing root instruction file. A single existing file may carry the contract; when both `CLAUDE.md` and `AGENTS.md` exist, both must carry the shared workflow sections. | If no → `setup: partial` |
-| Source code beyond config/README? | `git ls-files` count + extension distribution. Rough cut: >50 tracked files with substantive code extensions. **If genuinely unclear** (small repo, mixed signals), ask one question: "Is this a fresh project or are we working with existing code?" – never present a menu. | If yes & no map → `codebase: brownfield-unmapped` |
+| Source code beyond config/README? | `git ls-files` count + extension distribution. Rough cut: >50 tracked files with substantive code extensions. **If genuinely unclear** (small repo, mixed signals), ask one question: "Is this a fresh project or are we working with existing code?" | If yes & no map → `codebase: brownfield-unmapped` |
 | Map-codebase output present? | Files matching `project-state-templates.md` outputs (Architecture, Stack, etc.) per **Project Document Index** | If yes → `codebase: brownfield-mapped` |
 | Any in-flow artifact at indexed paths? | Read the **Project Document Index** and check for `requirements-clarification.md`, `prd.md`, `plan.json` (or legacy `plan.md`), standard plan-story FIS files (`s[0-9][0-9]-*.md`), standalone FIS docs by shape (`## Feature Overview and Goal` + `## Acceptance Scenarios`), `STATE.md` / `STATE.local.md` (the gitignored per-developer state – a mid-flow signal even when shared state is absent), the most recent architecture-report (`*-architecture-*.md`<sup>†</sup>), the most recent triage-report (`*-triage-*.md`), and the most recent ui-ux-design output (wireframes / design-system / design-review). | If any → `workflow: mid-flow` (and infer where in flow from the artifact type) |
 
@@ -69,7 +69,7 @@ Open with the mental model in three lines, no more:
 
 > AndThen guides features through a disciplined chain: **clarify → (spec → exec-spec) or (prd → plan → exec-plan) → review**. There are also optional design tools (architecture, UI/UX, glossary, diagrams). First we need to set up the workflow structure in this project.
 
-Recommend the `andthen:init` skill (one line: creates CLAUDE.md / AGENTS.md, Document Index, folder layout) and offer to invoke, passing `$ARGUMENTS` through as project name when relevant. After `init` returns the invocation ends – tell the user to re-invoke `/andthen:now-what` to continue.
+Recommend the `andthen:init` skill and offer to invoke, passing `$ARGUMENTS` through as project name when relevant. After `init` returns the invocation ends – tell the user to re-invoke `/andthen:now-what` to continue.
 
 #### Branch B – Brownfield codebase, no map yet
 
@@ -101,7 +101,7 @@ This is where users get lost: AndThen is set up, they have an idea, but they do 
 | Domain language / glossary | "glossary", "terminology", "what should we call" | → the `andthen:ubiquitous-language` skill |
 | Something is broken | "bug", "error", "build failing", "test failure" | → the `andthen:triage` skill |
 
-**Step 3 – Disambiguate only when needed.** If the framing is genuinely ambiguous between two shapes, ask **one** question – never two. Examples:
+**Step 3 – Disambiguate only when needed.** If the framing is genuinely ambiguous between two shapes, ask **one** question. Examples:
 
 - "Sounds like a single feature. Want me to dig into requirements first (`clarify`), or is the design question more pressing (`architecture --mode advise`)?"
 - "This sounds bigger than one feature – multiple capabilities. Treat it as a multi-feature initiative (PRD + plan), or focus on one slice first?"
@@ -121,7 +121,7 @@ When state shows the user is mid-flow, do not onboard. Just route. Output: 1–3
 
 **Freshness gate**: if the user's framing suggests new work ("I want to add a new feature", "let's start something new") and the mid-flow signal is from an old artifact (stale `STATE.md`, paused FIS), treat as Branch C instead. When in doubt, ask one question: "Continuing previous work, or starting something new?"
 
-**Match rule**: read top-down; first matching row wins. Order rows from most-specific to most-generic so a more-specific match (e.g. an architecture report *plus* pasted visual review notes) fires before a generic one (architecture report alone).
+**Match rule**: read top-down; first matching row wins – rows are ordered most-specific to most-generic (e.g. an architecture report *plus* pasted visual review notes fires before architecture report alone).
 
 | Detected state | Recommended next |
 |---|---|
@@ -147,4 +147,4 @@ Format: _"You're at X – next is the `andthen:<skill>` skill. Run it? (Y/n)"_
 ## Handoff Contract
 
 - **Invoke** the recommended skill via the Skill tool unless the user declines or `--no-handoff` is set; pass `$ARGUMENTS` through as downstream context so the user does not repeat themselves.
-- **Answer "what does X do?" from `references/skill-reference.md`** (purpose, produces, workflow position), then offer to invoke; for behavioral depth (flag mechanics, mode internals) read the target skill's SKILL.md – never answer from generic memory.
+- **Answer "what does X do?" from `references/skill-reference.md`**, then offer to invoke; for behavioral depth read the target skill's SKILL.md – never answer from generic memory.

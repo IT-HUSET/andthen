@@ -14,7 +14,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 - `--defer-shared-writes` → DEFER_SHARED_WRITES (boolean; default `false`; immutable for the run):
   - **`true`**: skip all shared-status writes (`plan.json` + `State`); see each Step 5b/4d substep for which writes it gates. FIS writes (5b.1) still run; emit the `## Deferred Shared Writes` audit block (5b.5) for the caller to apply.
   - **`false`** (standalone default): run the shared writes (5b = success, 4d = failure blocker). Mirrors `andthen:exec-plan`'s per-story/phase-boundary writes so standalone use keeps plan/State consistent. No audit block.
-  - Auto-propagated to `true` by `andthen:exec-plan --team --worktree` (avoids concurrent worktree-merge collisions) and `--from-issue` (orchestrator owns the local `plan.json`). Standalone: set only when you deliberately want deferral (see Step 5b.5 standalone-use note).
+  - Auto-propagated to `true` by `andthen:exec-plan --team --worktree` (avoids concurrent worktree-merge collisions) and `--from-issue` (orchestrator owns the local `plan.json`). Standalone: set only when you deliberately want deferral (see Step 5b.5).
 - `--to-pr <number>` → PUBLISH_PR: after the Step 5c completion-presentation gate passes, post the Step 5c summary verbatim as a PR comment via `gh pr comment <number> --body-file <summary-path>`. Explicit number only; no auto-detect. See Step 5d.
 
 
@@ -22,11 +22,10 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 
 ### Core Rules
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
-- Require `FIS_FILE_PATH`. Stop if missing.
 - **Complete implementation** – finish the work.
 - **FIS is source of truth** – follow it exactly.
 - **Preflight is recommended, not required** – a prior `andthen:preflight` pass (which drives blocking decisions to zero and honors `spec-ready`) reduces mid-run forks, but exec-spec never hard-depends on it: an interactive gate cannot be a precondition of a headless run without risking deadlock. Execute the FIS as given whether or not preflight ran.
-- **Execution discipline** – Stop-the-Line on red gates (build, tests, lint, stub, wiring, task `Verify`); iterate until green; escalate only on real external blockers. See [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (referenced below as *The Execution-Discipline Rules*).
+- **Execution discipline** – Stop-the-Line on red gates; iterate until green; escalate only on real external blockers. See [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md) (referenced below as *The Execution-Discipline Rules*).
 - **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Exec-spec-specific `BLOCKED:` triggers: missing/unreadable FIS, FIS contradiction with no defensible implementation, unsafe external action.
 - **Retry-safe dirty worktrees** – classify pre-existing dirty paths before editing; never discard unrelated edits. See Step 2.3 for the operational taxonomy.
 - **Direct execution** – implement code yourself. Sub-agents are advisory/review only.
@@ -55,7 +54,6 @@ Sub-agents inherit the session model; use **medium** effort for advisory analysi
 Rules:
 - Prefer multiple narrow questions over one broad prompt, spawned early – do not wait until fully blocked
 - If sub-agent guidance conflicts with the FIS, follow the FIS
-- Do not spawn a sub-agent for coding work you should do directly
 
 
 ## GOTCHAS
@@ -112,7 +110,7 @@ Rules:
 ### Step 3: Implement
 Implement the FIS yourself, task by task, in the order listed.
 
-When `TDD_MODE=true`, run every scenario-bearing task as a strict red→green→refactor loop; load `/andthen:testing --mode tdd` (or `--mode prove-it` for bug-fix tasks) for canon depth – the `--tdd` flag definition above carries the full description.
+When `TDD_MODE=true`, run every scenario-bearing task per the `--tdd` flag contract; for bug-fix tasks, load `/andthen:testing --mode prove-it`.
 
 For each task:
 1. Implement the outcome described; update `changed-files` and record the result in working notes.
@@ -136,18 +134,17 @@ In `AUTO_MODE` Tier C: pick the conservative interpretation, append with rationa
 
 **Design-change amendment path** – when execution reveals the correct approach legitimately changes the FIS Intent or scenario mechanism, do not hide the pivot in Discovered Requirements or ship divergent code. Stop, record an ADR via the `andthen:architecture` skill in `--mode trade-off`, amend the affected Intent/scenario through the `andthen:ops` skill's `update-fis <path> design-change <body>` form, then re-run the relevant Verify line(s) and Chain Attestation. Design pivots only; missing requirements still use Tier-C Discovered Requirements before dependent tests or code. In `AUTO_MODE`, do not auto-rewrite the Intent – that re-creates the silent drift this path exists to prevent; emit `BLOCKED:` with the proposed pivot and the required ADR in the completion report for human reconcile (never an interactive wait).
 
-**Reconciliation-ledger write** – when a `design-change` (or a Tier-C `discovered-requirements`) amendment leaves a *named upstream document* stale – a PRD section, sibling FIS, public doc, or a missing ADR – call the `andthen:ops` skill `update-ledger add <ledger-path> <stable-id> <class> <stale-targets> <source-run>` – where `<ledger-path>` is the ledger adjacent to this FIS (`{fis-without-ext}.reconciliation-ledger.md`) – to record an OPEN entry naming the stale target(s), per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md) (`design-changed` for a pivot, `spec-stale` for a discovered requirement that contradicts upstream). The entry is what makes the pivot durable so review stops re-discovering it. **AUTO_MODE ordering is load-bearing**: when the pivot itself emits `BLOCKED:`, write the OPEN ledger entry *first* (the entry-write precedes the `BLOCKED:` emit) so a deferred pivot is recorded rather than lost. The common-case flow (no drift, no amendment) writes no ledger entry and gains no new gates.
+**Reconciliation-ledger write** – when a `design-change` (or a Tier-C `discovered-requirements`) amendment leaves a *named upstream document* stale – a PRD section, sibling FIS, public doc, or a missing ADR – call the `andthen:ops` skill `update-ledger add <ledger-path> <stable-id> <class> <stale-targets> <source-run>` – where `<ledger-path>` is the ledger adjacent to this FIS (`{fis-without-ext}.reconciliation-ledger.md`) – to record an OPEN entry naming the stale target(s), per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md) (`design-changed` for a pivot, `spec-stale` for a discovered requirement that contradicts upstream). The entry is what makes the pivot durable so review stops re-discovering it. **AUTO_MODE ordering is load-bearing**: write the OPEN ledger entry *before* emitting `BLOCKED:` so a deferred pivot is recorded rather than lost. The common-case flow (no drift, no amendment) writes no ledger entry and gains no new gates.
 
 Implementation rules:
 - When stuck, emit named output blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:` → `-> Which approach?`, `NOTICED BUT NOT TOUCHING:` → `-> Want me to create tasks?`, `MISSING REQUIREMENT:` → `-> Which behavior?`. `AUTO_MODE`: see reference's AUTO_MODE Override.
-- Spawn proactive sub-agents for advisory work; retain code ownership.
 - If `changed-files` is incomplete/ambiguous, derive from the worktree diff before Step 4, subtracting `BASELINE_DIRTY`.
 
 ### Step 4: Validate
 Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues – integration, security, architectural coherence, spec drift – that survive per-task Verify lines.
 
 #### 4a. Direct Checks
-Use canonical commands from `Key Dev Commands` (Step 2.7); if absent, the discovery fallback from Step 2.7 stands. Per-task `Verify` lines drive Step 3's inner loop; 4a is the *additional* cross-cutting project-wide pass.
+Use canonical commands from `Key Dev Commands` (Step 2.7); if absent, its discovery fallback stands.
 
 1. **Build**: every applicable build/package step succeeds.
 2. **Tests**: all relevant tests pass (or pre-existing failures documented).
@@ -172,9 +169,7 @@ Apply Gate Classes from *The Execution-Discipline Rules*.
 
 1. **Collect** – combine 4a required failures with 4b/4c findings. A failed build/test/lint/format/stub/wiring check is a remediation input even if not separately flagged in review.
 2. **Review class/routing gate** – apply `Class:` and `Routing:` to 4b/4c findings before severity remediation. `code-defect` follows normal remediation below. `spec-stale` / `design-changed` do not enter code remediation; Stop-the-Line into the design-change amendment path above. `ambiguous-intent` blocks for human reconcile – `CONFUSION` interactive, or `BLOCKED:` in the completion report under `AUTO_MODE` (never a silent wait). `Routing: Note` findings are surfaced but never auto-remediated by exec-spec.
-3. **Triage code-remediation findings** – apply the Gate Classes from *The Execution-Discipline Rules* to `code-defect` severity.
-4. **Objective red gates (4a)** – iterate until green; invoke `andthen:triage` when iteration stalls.
-5. **Subjective code-defect findings (4b/4c)** – one pass on CRITICAL/HIGH, re-run the affected lens on touched scope; escalate if they persist.
+3. **Remediate `code-defect` findings by Gate Class**: 4a failures are objective red gates – iterate until green, invoking the `andthen:triage` skill when iteration stalls; 4b/4c findings are subjective – one pass on CRITICAL/HIGH, re-run the affected lens on touched scope, escalate if they persist.
 
 If any gate, Acceptance Scenario, or Structural Criterion stays red after repair, do not mark completion.
 
@@ -200,7 +195,7 @@ One line of evidence-anchored prose per link – not a checkbox flip:
 
 Legacy FIS without `[OC<NN>]` tags degrade gracefully: attest Task → Scenario only (plus structural-task branch), and note "FIS lacks outcome anchors – upper-chain attestation skipped". Narrower coverage, not failure.
 
-Orphan tasks – behavioral `TI<NN>` referenced by no scenario tag and no Structural Criterion Verify line – are **Stop-the-Line**. Any other un-evidenced link is also Stop-the-Line – return to Step 4d; articulate or fix.
+Any un-evidenced link – including orphan tasks (fitting neither category above) – is **Stop-the-Line**: return to Step 4d; articulate or fix.
 
 In `AUTO_MODE`, persistent attestation failure follows the Failed Story Report path: emit `BLOCKED: exec-spec attestation failed {STORY_ID-or-FIS_FILE_PATH}` plus `## Failed Story Report` including the **partial chain articulation** (links evidenced before Stop-the-Line, and which link failed) so a downstream remediator can resume. Do not degrade to a single `Chain Attestation: FAILED` line.
 
@@ -213,7 +208,7 @@ Hold per-link articulation lines for the 5c report (or Failed Story Report on fa
 Status writes are gates, not bookkeeping. Run each substep in order then verify. Do not collapse – the failure mode is _silent partial execution at end of context_.
 
 1. **FIS** (always) – invoke the `andthen:ops` skill:
-   - `update-fis {FIS_FILE_PATH} all` – marks task checkboxes, every Acceptance Scenario checkbox (canonical shape per fis-authoring-guidelines.md), every Structural Criteria checkbox, and Final Validation Checklist items (when present) in one pass.
+   - `update-fis {FIS_FILE_PATH} all` – marks task checkboxes, every Acceptance Scenario checkbox, every Structural Criteria checkbox, and Final Validation Checklist items (when present) in one pass.
    - **Persist observations**: when working notes hold `NOTICED BUT NOT TOUCHING` items or AUTO_MODE `ASSUMPTION` records, format as a markdown body with `#### NOTICED BUT NOT TOUCHING` and/or `#### ASSUMPTIONS (AUTO_MODE)` subsections (each item one line, file:line if applicable), then invoke `update-fis {FIS_FILE_PATH} observations '{body}'`. Skip when both lists are empty. Ops appends a timestamped `### Run:` block to `## Implementation Observations` (creating the section if absent).
    - **Persist Discovered Requirements**: Tier C normally appends before dependent tests/code in Step 3. If unpersisted entries remain, format as `#### DISCOVERED REQUIREMENTS` using the FIS template shape, then `update-fis {FIS_FILE_PATH} discovered-requirements '{body}'`. Skip when empty.
    - **Reconciliation-ledger catch-up**: if a Step 3 amendment staled a named upstream doc but its OPEN ledger entry was not yet written (per the Step 3 *Reconciliation-ledger write*), write it now via `andthen:ops update-ledger add`. Skip otherwise.
@@ -234,7 +229,7 @@ Status writes are gates, not bookkeeping. Run each substep in order then verify.
    - **State** (if 5b.3 ran): story absent from Active Stories.
    - Any miss → retry the matching `update-*` once. Persistent failure is Stop-the-Line.
 
-5. **Deferred shared writes** – when `DEFER_SHARED_WRITES=true` (typically under `/andthen:exec-plan --team --worktree` or `--from-issue`), substeps 2 and 3 are deferred so the executor does not mutate shared local status. Skip those invocations and emit this **audit block** in the completion report:
+5. **Deferred shared writes** – when `DEFER_SHARED_WRITES=true`, substeps 2 and 3 are deferred so the executor does not mutate shared local status. Skip those invocations and emit this **audit block** in the completion report:
 
    ```
    ## Deferred Shared Writes

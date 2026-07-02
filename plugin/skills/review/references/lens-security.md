@@ -19,7 +19,7 @@ Identify the project checks relevant to the security scope by inspecting the rep
 
 ## Escalation Triggers
 
-Surface signals that pull `security` into an auto-resolved lens set (used by the review skill's Step 2 escalation when `--mode` is absent and the heuristic selects `code` or `mixed`). Any one fires:
+Surface signals that pull `security` into an auto-resolved lens set (used by the review skill's Step 1 escalation when `--mode` is absent and the heuristic selects `code` or `mixed`). Any one fires:
 
 - auth/session/authz (login, JWT, OAuth, RBAC, password); payments/money; secrets/credentials/keys/crypto.
 - network-exposed handlers (HTTP/GraphQL/gRPC/webhooks/consumers) and user-input/file-upload parsing; LLM/agent/RAG/tool-call flows.
@@ -39,6 +39,11 @@ Load only the OWASP checklists that match the surface under review. Loading all 
 | [SECURITY-CHECKLIST-CICD.md](../checklists/SECURITY-CHECKLIST-CICD.md) | OWASP CI/CD Risks | Pipelines, IaC, deployment workflows, build scripts, supply chain changes |
 
 Multiple checklists may apply (e.g. a web app with an LLM backend → Web + API + LLM). Skip a checklist outright when its surface is not represented in the changed scope; do not include "for completeness."
+
+
+## Coverage Focus
+
+Before judging readiness, identify the security surfaces whose failure would matter: each external-data source/sink pair, auth/authz boundary, secret-handling path, and applicable OWASP-checklist surface in scope. Each needs evidence and an attacker-shaped falsifier; a primary surface left unattacked is a finding. Record the result in the Coverage Matrix report section.
 
 
 ## Trust-Boundary Analysis
@@ -141,6 +146,9 @@ Categorize findings using the unified severity scale from `review-verdict.md`:
 
 ## LOW
 [Brief list]
+
+## Coverage Matrix
+[Primary security surfaces (source/sink pairs, auth boundaries, applicable OWASP surfaces) with evidence, positive proof, falsifier attempted, result]
 
 ## Trust-Boundary Map
 - [Source → validation → sink, per analyzed flow]

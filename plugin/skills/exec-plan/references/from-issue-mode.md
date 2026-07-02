@@ -78,7 +78,7 @@ After capture + plan update, fall through to the standard per-story pipeline usi
 
 ## Step 5c: Issue closure comments
 
-After Final Verification, prepare shape-appropriate closure comments. Use per-story summaries (from the `andthen:exec-spec` skill's Step 5c) and the rolled-up plan summary (Step 5). The `andthen:exec-plan` skill posts them only after its Step 6 completion-presentation gate passes.
+After Final Verification, prepare shape-appropriate closure comments. Use per-story summaries (from the `andthen:exec-spec` skill's Step 5c) and the rolled-up plan summary (Step 5).
 
 - **Single-issue shape**: post one comment per story on plan issue `#N` with the story summary, then a final rolled-up summary on `#N`. Use `gh issue comment <N> --body-file <path>` per call. Plan issue is not auto-closed.
 - **Granular shape**: per story, prepare the **Pattern C** (comment-then-close) payloads from [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Then prepare the rolled-up summary for plan issue `#N`.

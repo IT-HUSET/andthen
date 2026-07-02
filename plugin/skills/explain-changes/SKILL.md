@@ -16,7 +16,7 @@ Turns a changeset – PR, branch, ref range, or working tree – into a **Change
 ## VARIABLES
 
 TARGET: $ARGUMENTS with all flags stripped – a base ref (e.g. `main`), an explicit range (`main..feat/x`), or empty (auto-resolve). `--from-pr <N>` supplies the scope instead of TARGET.
-AUTO_MODE: true when `--auto` is passed – make conservative assumptions, skip FOLLOW-UP ACTIONS, stop with `BLOCKED:` on contract failures.
+AUTO_MODE: true when `--auto` is passed – make conservative assumptions, stop with `BLOCKED:` on contract failures.
 
 
 ## WORKFLOW
@@ -50,7 +50,7 @@ Produce these analysis products (large diffs: delegate per-area scanning to para
 
 ### 3. Write the walkthrough artifact
 
-Write to `.agent_temp/walkthrough/<slug>-walkthrough-<YYYY-MM-DD>.md` (repo root; `<slug>` = `pr-<N>` or the kebab-cased branch name). Read and follow [`walkthrough-template.md`](references/walkthrough-template.md) exactly – its headings and table/fence shapes are the contract the `andthen:visualize` skill's changeset renderer parses.
+Write to `.agent_temp/walkthrough/<slug>-walkthrough-<YYYY-MM-DD>.md` (repo root; `<slug>` = `pr-<N>` or the kebab-cased branch name). Read and follow [`walkthrough-template.md`](references/walkthrough-template.md) exactly.
 
 ### 4. Render
 

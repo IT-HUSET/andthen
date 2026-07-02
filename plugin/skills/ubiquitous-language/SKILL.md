@@ -14,7 +14,7 @@ Read codebase, docs, and conversation as source material without modifying them;
 ARGUMENTS: $ARGUMENTS
 
 ### Parse Arguments
-- `--update` flag → UPDATE_MODE (reads the existing `Ubiquitous Language` document and incorporates new terms)
+- `--update` flag → UPDATE_MODE (merge mode)
 - Remaining text (flag tokens excluded) → SCOPE (focus area, e.g., "authentication", "billing", or blank for full project)
 
 

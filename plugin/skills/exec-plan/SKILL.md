@@ -14,22 +14,21 @@ PLAN_PATH: resolved in Step 1, used unchanged in Steps 3, 4, 5. Local-directory 
 ### Optional Flags
 - `--team` → USE_TEAM: force Agent Teams mode; error if unavailable
 - `--worktree` → USE_WORKTREE: enable isolated git worktrees for parallel execution (team mode only; default: `false`)
-- `--from-issue <number>` → ISSUE_INPUT: use a GitHub plan issue as input (`gh issue view <N>`). Auto-detects single-issue vs granular shape per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md), extracts `## Shared Decisions`, `## Binding Constraints`, and the PRD source for per-story FIS context, generates each story's FIS just-in-time via `andthen:spec` with a temp story-source file, then runs the per-story exec-spec + quick-review pipeline with shared local writes deferred. Posts shape-appropriate closure comments after Step 5. **Mutually exclusive with `--team`** (parallel JIT FIS generation not supported) – reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop otherwise.
+- `--from-issue <number>` → ISSUE_INPUT: use a GitHub plan issue as the plan source (`gh issue view <N>`); shape detection, JIT FIS generation, deferred shared writes, and closure comments are owned by `references/from-issue-mode.md` (loaded in Step 1). **Mutually exclusive with `--team`** (parallel JIT FIS generation not supported) – reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop otherwise.
 - `--to-pr <number>` → PUBLISH_PR: after Step 5 Final Verification, post the rolled-up completion summary + final gap verdict as a PR comment via `gh pr comment <number> --body-file <summary-path>`. Composes with `--from-issue`. See Step 5b.
 - `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 
 ## INSTRUCTIONS
 
-Require `PLAN_DIR` unless `--from-issue <N>` is set. **You are the orchestrator** – delegate story code to a sub-agent running `exec-spec` (or a teammate under `--team`); take over in-orchestrator only as a bounded recovery path when a story returns partial/non-green. In `AUTO_MODE`, persistent failures are recorded and reported at the end.
+Require `PLAN_DIR` unless `--from-issue <N>` is set. **You are the orchestrator** – delegate story code to a sub-agent running `exec-spec` (or a teammate under `--team`); take over in-orchestrator only as a bounded recovery path when a story returns partial/non-green. A sub-agent spawn tool missing from the visible tool list is not unavailability – where the host supports deferred tool loading, run its tool discovery before treating sub-agent delegation as unavailable or taking over in-orchestrator (`--team` availability is the separate `TeamCreate` check below).
 
 ### Rules
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
-- **Plan is source of truth** – `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md). Follow phase ordering, `dependsOn`, `parallel` exactly. In local-directory mode, every schedulable story (`status` ∈ {`pending`, `spec-ready`, `in-progress`}) must carry an existing `fis`; abort otherwise – no auto-recovery. `done`/`skipped` are terminal; `blocked` is a manual escape hatch. `--from-issue` relaxes the FIS requirement (JIT generation).
+- **Plan is source of truth** – `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md). Follow phase ordering, `dependsOn`, `parallel` exactly. `done`/`skipped` are terminal; `blocked` is a manual escape hatch. FIS-existence gating (incl. the `--from-issue` JIT relaxation): Step 1 item 5.
 - **Preflight is recommended, not required** – running the `andthen:preflight` skill on the bundle first drives blocking decisions to zero (converged stories reach `spec-ready`) and reduces mid-run forks, but exec-plan never hard-depends on it: an interactive gate cannot be a precondition of a headless run without risking deadlock. The bundle executes from whatever `spec-ready` / schedulable state it is in.
 - **Execution discipline** – Stop-the-Line on red gates per [`execution-discipline.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-discipline.md).
 - **Automation rules** – see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md) (referenced below as *The Automation-Mode Rules*). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions.
 - **Status updates are gates** – `plan.json` is mutated only via `andthen:ops update-plan` / `update-plan-fis` (no-double-write contract).
-- **Story failure containment** – see **Status-Write Contract** below.
 - **State document updates are gated** – update on phase transitions and blocker discovery (see **Project Document Index**).
 
 
@@ -96,7 +95,7 @@ Re-read `plan.json` (local-directory mode) or the materialized plan (`--from-iss
 
 **Per-story pipeline** (one FIS per story): `exec-spec` implements, then `quick-review` gates the changes (tagging each finding `Routing: Fix|Note`). Accepted **Fix-routed** findings are a story gate – remediate once, re-run, do not enter the Writes-Landed Checklist until they clear; persistent ones → contained story failure in `AUTO_MODE`. Accepted **Note-routed** findings do **not** gate the story: record them as the story's **surfaced notes** in the run ledger and proceed – they reach the human via the Step 6 rollup (the review→remediate escalate-once contract). Under `--from-issue`, the orchestrator updates the local plan post-merge and Step 5c handles issue-side closure (no local `State` target in `--from-issue` mode).
 
-**Spawn one sub-agent per story in the current wave, in parallel.** The orchestrator does not run `exec-spec` itself – delegate, then wait for the whole wave before scheduling the next. In-orchestrator execution is a recovery path only (delegated story returns partial/non-green and the repair is bounded), never the default.
+**Spawn one sub-agent per story in the current wave, in parallel.** The orchestrator does not run `exec-spec` itself – delegate, then wait for the whole wave before scheduling the next.
 
 Before scheduling, check dependencies against the run ledger. Any dependency failed/skipped → skip the story, record `blocked_by`, do not invoke `exec-spec`. `AUTO_MODE`: continue with independent stories; default mode: include skips in the next summary.
 
@@ -116,7 +115,7 @@ Worker Contract:
 
 #### 3c. Verify Green, Confirm Writes Landed (**Gate**)
 
-Run immediately after each story – not as a batch. Worker self-reports do not count. Enter only after exec-spec succeeded and per-story quick-review has no accepted **Fix-routed** findings (accepted Note-routed findings are recorded as surfaced notes, not a gate).
+Run immediately after each story – not as a batch. Worker self-reports do not count. Enter only after exec-spec succeeded and per-story quick-review has no accepted **Fix-routed** findings.
 
 **Green gate**: build clean, targeted tests pass, lint/types clean, no broken intermediate state. Fail → Stop-the-Line; repair locally, re-delegate, or invoke `andthen:triage`; iterate until green.
 
@@ -136,7 +135,7 @@ Pass → run the **Writes-Landed Checklist** below. Outside this repair path and
 
 Missing item → call the matching `andthen:ops update-*` once, then re-read that item only. Persistent miss is Stop-the-Line – do not advance on unverified status.
 
-Pass → append story id, FIS path, verification summary, and any **surfaced notes** (accepted Note-routed quick-review findings) to the ledger's `completed` list.
+Pass → append story id, FIS path, verification summary, and any **surfaced notes** to the ledger's `completed` list.
 
 **Re-delegation** (remediation in a fresh sub-agent): spawn a new sub-agent with the same prompt as Step 3b above, prepended with a `Failure list:` section enumerating the specific failures and a `Prior review findings:` line pointing at the prior review findings file path.
 
@@ -160,7 +159,7 @@ Per phase: update project state (Step 3a), then create and manage the Agent Team
 
 ### Step 4: Final Review
 
-The final gap review is the drift backstop – it must survive partial runs. **When the run ledger has failed/skipped stories, scope the gap review to the completed stories** rather than skipping it wholesale; the backstop is most valuable exactly when the run was messy. Emit a loud warning naming each skipped/failed story whose drift was **not** reviewed (it ran no completed-story gate and is covered only by this warning), so dropped coverage is visible rather than silent. When every story completed, the gap review covers the whole plan as usual.
+The final gap review is the drift backstop – it must survive partial runs. **When the run ledger has failed/skipped stories, scope the gap review to the completed stories** rather than skipping it wholesale; the backstop is most valuable exactly when the run was messy. Emit a loud warning naming each skipped/failed story whose drift was **not** reviewed, so dropped coverage is visible rather than silent. When every story completed, the gap review covers the whole plan as usual.
 
 **Spawn a fresh-context sub-agent** for the final gap review (orchestrator is biased by construction context). **Sub-agent model**: inherit the session model; **high** effort – gap review is cross-cutting.
 
@@ -193,7 +192,7 @@ After Final Verification passes, prepare the rolled-up summary payload (per-stor
 
 **Pattern B failure-handling override (only when `--from-issue` is also set)**: after Step 6 allows publish, if `gh` fails, record verbatim and continue to the gated issue-closure publish. Surface as `BLOCKED: gh pr comment failed for #<number>` in the final report (non-fatal here).
 
-Without `--from-issue`, Pattern B's default applies: surface the error and stop. No Step 5c to protect.
+Without `--from-issue`, Pattern B's default failure handling applies (no Step 5c to protect).
 
 **Gate**: PR publish payload prepared; actual posting waits for the Step 6 completion-presentation gate.
 

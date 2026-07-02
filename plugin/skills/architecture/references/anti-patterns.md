@@ -98,7 +98,7 @@ Abstract, unstable packages (I ≈ 1, A ≈ 1). Nobody depends on them.
 
 ## Microservices Premium
 
-Paying distribution costs without distribution benefits.
+Paying distribution costs (tracing, latency, service discovery, serialization, operational overhead) without distribution benefits.
 
 **Check these conditions** – if most are true, the premium is not justified:
 - Team smaller than ~8 engineers

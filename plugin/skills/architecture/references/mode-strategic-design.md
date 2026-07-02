@@ -11,7 +11,6 @@ Discover or audit the strategic shape of a domain – classify subdomains by inv
 - Team-Topology Alignment
 - Steps
 - Greenfield vs. Brownfield Cheat Sheet
-- Recommended Chains
 - Report Contents
 
 ## Subdomains – Quick Reference
@@ -52,12 +51,7 @@ Default the path from artifact presence; surface the choice in the Executive Sum
 For each capability the scope covers, name the subdomain, classify it (core / supporting / generic), and attach a one-line rationale referencing business differentiation and model complexity. When the call is genuinely contested (e.g. a capability that is core today but generic in 18 months), record both sides as a hotspot in the Recommendations section rather than forcing a single verdict.
 
 ### Step 3 – Bounded Context Discovery and Sizing
-Propose bounded contexts. For each context: name, purpose (one sentence), the subdomains it owns, the owning team (or "to be determined"), and the sizing rationale. Apply the heuristics from `ddd.md` §1.2:
-
-- One team owns one or more contexts; never split a context across teams.
-- Same term used two ways → two contexts (or a failure to distinguish them).
-- A single aggregate becoming the "God object" of a context → context is probably too broad.
-- Cognitive-load upper bound: 2–3 low-complexity domains per team (load `decomposition.md` Sizing Heuristics when sizing is contested).
+Propose bounded contexts. For each context: name, purpose (one sentence), the subdomains it owns, the owning team (or "to be determined"), and the sizing rationale. Apply the sizing heuristics from `ddd.md` §1.2 (load `decomposition.md` Sizing Heuristics when sizing is contested).
 
 For brownfield: name observed contexts (modules, services, packages) and note the gap to the target context list – what is currently merged but should split, what is currently scattered but should consolidate.
 
@@ -92,12 +86,6 @@ Synthesize: which subdomains warrant immediate investment (core), which integrat
 | UL touchpoints | Candidate terms to confirm | Observed conflicts in code/docs |
 | Hotspots | Open requirements-side questions | Conway's-Law mismatches, vocabulary collisions |
 | Hand-off emphasis | UL extraction, fitness functions | UL extraction, decomposition, refactor |
-
-## Recommended Chains
-
-- `event-storming → strategic-design → decompose` – discovery-to-decomposition: surface pivotal events, formalize the subdomain map, then score any contested boundary.
-- `strategic-design → fitness` – formalize the strategic decisions as architectural fitness functions so drift is visible in CI.
-- `strategic-design,trade-off` – when an integration-pattern choice between two contexts is genuinely contested (e.g. ACL vs. Conformist for a hostile upstream), chain into `--mode trade-off` for weighted-criteria comparison.
 
 ## Report Contents
 

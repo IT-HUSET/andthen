@@ -8,7 +8,7 @@ argument-hint: "[--to-issue] [--visual] [--auto] [specs directory or requirement
 
 Produce a `prd.md` from whatever requirements material is available: a clarified requirements doc, a draft PRD, an inline description, a requirements file, a URL, or a GitHub issue. If a `prd.md` already exists in the target directory, pass through and exit – do not regenerate.
 
-Upstream of the `andthen:plan` skill. The PRD created here is the canonical local input for `andthen:plan`; `andthen:plan` can also fetch a GitHub PRD issue directly.
+The PRD created here is the canonical local input for the `andthen:plan` skill, which can also fetch a GitHub PRD issue directly.
 
 **Philosophy**: PRDs focus on *what* must be true for users and the business – not *how* to build it. Story breakdown belongs in the `andthen:plan` skill; architecture/UX trade-offs belong in upstream specialist artifacts, and ad-hoc API/library lookup happens during execution.
 
@@ -34,19 +34,16 @@ OUTPUT_DIR: _(resolved per Step 1)_
 - Require `INPUT`. Stop if missing.
 - Delegate research and exploration to sub-agents (the `research` agent when available) to protect the main context window.
 - **Resolve load-bearing gaps, don't assume them.** A gap is load-bearing when its answer would change user-visible behavior, scope, or acceptance criteria (the `andthen:clarify` skill's litmus). Conversationally, escalate each load-bearing gap by invoking the `andthen:clarify` skill inline on the same requirements source / feature directory, then continue from its `requirements-clarification.md`. Fill only routine gaps (convention, codebase patterns, adjacent docs) with documented assumptions. Under `--auto` the `andthen:clarify` skill is unavailable, so fall back to the most conservative MVP assumption and record it (see Automation rules and GOTCHAS).
-- **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` triggers: missing input; ambiguity past the Vague-Input Bailout bar (see GOTCHAS); unsafe external actions on `--to-issue`.
+- **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). PRD-specific `BLOCKED:` trigger: ambiguity past the Vague-Input Bailout bar (see GOTCHAS).
 - **Visual review is a post-validation handoff.** In `AUTO_MODE`, the `--visual` handoff runs only when the flag is present (see OUTPUT > Visual Review).
 - Focus on *what* not *how* (see Philosophy). Replace vague terms with measurable criteria; record rationale and trade-offs. Significant technical constraints → `Constraints & Assumptions`.
 - **Feature-level PRDs are self-contained.** Inline the substance of transient discovery artifacts (`requirements-clarification.md`, `prd-draft.md`); never link or cite them by path. Durable references (GitHub issue, roadmap, ADRs) may be cited.
 
 
 ## GOTCHAS
-- **Vague-Input Bailout** (`--auto` / routine gaps) – never skip synthesis when only a vague one-liner exists: infer the smallest coherent MVP, document assumptions in `Constraints & Assumptions` and the `Decisions Log`, and continue. Conversationally, load-bearing gaps escalate to the `andthen:clarify` skill instead of being assumed (see INSTRUCTIONS); under `--auto`, assume conservatively and only `BLOCKED:` when multiple incompatible PRDs are equally plausible and none can be justified.
+- **Vague-Input Bailout** (`--auto` / routine gaps) – never skip synthesis when only a vague one-liner exists: infer the smallest coherent MVP, document assumptions in `Constraints & Assumptions` and the `Decisions Log`, and continue. Conversationally, load-bearing gaps escalate per INSTRUCTIONS; under `--auto`, assume conservatively and only `BLOCKED:` when multiple incompatible PRDs are equally plausible and none can be justified.
 - **Implementation leak** – route *how* to the **Decisions Log** or the `andthen:plan` skill (Philosophy; Step 3 owns extraction)
-- Writing `prd.md` into the wrong directory – follow **Output Path Semantics** exactly so the `prd → plan` chain stays stable
-
-
-_Output path resolution – see the dispatch table in Step 1._
+- Writing `prd.md` into the wrong directory – resolve `OUTPUT_DIR` from the Step 1 dispatch exactly so the `prd → plan` chain stays stable
 
 
 ## WORKFLOW
@@ -70,9 +67,7 @@ _Output path resolution – see the dispatch table in Step 1._
 
 ### 2. Requirements Synthesis _(skip if a prior artifact is the basis; go to Step 3)_
 
-Cover the same areas as the `andthen:clarify` skill Phase 2, but default to synthesis rather than interview: users & personas, core workflows, data model, integrations, constraints, NFRs, and success metrics. Fill ordinary gaps using explicit assumptions grounded in the source material, codebase patterns, adjacent artifacts, and standard product conventions.
-
-Fill routine gaps with documented assumptions; do not pause for them. Resolve load-bearing gaps per INSTRUCTIONS – conversationally this routes the clarification output back through the Step 3 path.
+Default to synthesis rather than interview – cover users & personas, core workflows, data model, integrations, constraints, NFRs, and success metrics. Fill routine gaps with explicit assumptions grounded in the source material, codebase patterns, adjacent artifacts, and standard product conventions – do not pause for them. Resolve load-bearing gaps per INSTRUCTIONS – conversationally this routes the clarification output back through the Step 3 path.
 
 Initial gap analysis – document what's explicitly stated, what's assumed/implied, and what's missing/unclear (functional requirements, user flows, edge cases, success criteria, business context, MVP scope).
 
@@ -81,7 +76,7 @@ Initial gap analysis – document what's explicitly stated, what's assumed/impli
 
 ### 3. PRD from Existing Artifacts _(skip if running synthesis in Step 2)_
 
-Use existing artifacts (`requirements-clarification.md` from the `andthen:clarify` skill and/or `prd-draft.md`) as the primary basis for the PRD. This path avoids duplicating discovery work already completed.
+Use existing artifacts (`requirements-clarification.md` from the `andthen:clarify` skill and/or `prd-draft.md`) as the primary basis for the PRD.
 
 - Map existing content against the PRD template (see [`prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md)); fill only the missing sections using bounded assumptions derived from the existing artifacts, codebase context, and adjacent documents.
 - Do not re-ask questions already answered in the existing artifacts; do not pause for routine clarification.
@@ -96,11 +91,9 @@ Use existing artifacts (`requirements-clarification.md` from the `andthen:clarif
 
 Structure the PRD from the synthesized or mapped requirements using the template at [`prd-template.md`](${CLAUDE_PLUGIN_ROOT}/references/prd-template.md). Keep the required sections, adapt optional subsections to the project, and preserve concrete decisions from discovery rather than generalizing them away. Apply MoSCoW prioritization (Must / Should / Could / Won't) and P0/P1/P2 levels to features.
 
-The `Executive Summary` is the **human review entry point** – a reviewer should be able to read it alone and understand what is being built, for whom, why, and what is explicitly not in scope. Fill its `Capabilities at a Glance` (one line per FR in `Functional Requirements > Feature Specifications`, with ID and name matching the canonical `#### FRn:` heading exactly), `Scope Highlights` (drawn from `## Scope`), and `Key Constraints, Assumptions & Dependencies` (drawn from `## Constraints & Assumptions`). Do not introduce requirements that live only in the summary; if a fact appears nowhere below, move it into the matching detail section. The inline priority tag in `Capabilities at a Glance` must match the canonical FR's `**Priority**:` line – if they conflict, the canonical line wins and the summary is the bug.
+The `Executive Summary` follows the template's summary-not-source contract: every summary bullet derives from a canonical row below (a fact that appears nowhere below moves into the matching detail section), and a conflicting `Capabilities at a Glance` priority tag resolves to the canonical FR's `**Priority**:` line – the summary is the bug.
 
-When running headlessly, do not leave important ambiguity implicit. Capture it as an explicit assumption, dependency, or deferred decision in the PRD so downstream skills inherit a usable contract.
-
-Save the PRD to the path resolved under **Output Path Semantics**.
+Save the PRD to the `OUTPUT_DIR` resolved in Step 1.
 
 **Gate**: PRD saved
 

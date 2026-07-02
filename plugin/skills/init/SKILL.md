@@ -59,7 +59,7 @@ Gitignore hygiene: append entries for the `State (local)` path (default `docs/ST
 
 Because the generated root agent instruction template references the starter guideline filenames directly, copy any missing files from `templates/guidelines/` into `docs/guidelines/` as part of baseline setup. Never overwrite existing guideline files; preserve project-specific files.
 
-Scaffold the **Core orientation stubs by default** – the documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md), `Decisions` (docs/DECISIONS.md), `Learnings` (docs/LEARNINGS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). For `Decisions`, scaffold an empty `Current ADRs` table plus a single `Still Current` placeholder bullet – the `andthen:architecture` skill in `--mode trade-off` auto-registers ADRs into this file when ADR creation is accepted. The user can fill these in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
+Scaffold the **Core orientation stubs by default** – the documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md), `Decisions` (docs/DECISIONS.md), `Learnings` (docs/LEARNINGS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). The `andthen:architecture` skill in `--mode trade-off` auto-registers accepted ADRs into the `Decisions` stub. The user can fill these in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
 
 Then present the **optional documents** together. **STOP and WAIT** for the user's selection before creating any of these:
 
@@ -107,7 +107,7 @@ Run the `andthen:map-codebase` skill to auto-generate from codebase analysis? (r
 
 Wait for user response, then execute confirmed actions:
 - **Missing Core orientation stubs** (default): scaffold per Step 2a.
-- **Gitignore hygiene** (default): apply the Step 2a gitignore entries (idempotent; create `.gitignore` if missing).
+- **Gitignore hygiene** (default): apply per Step 2a.
 - **Missing Index rows**: Append to existing table (don't rewrite the whole table)
 - **Missing documents**: Generate from templates, pre-fill where possible
 - **Missing guidelines**: Copy any missing starter guideline files referenced by the generated template from `templates/guidelines/`; never overwrite existing files

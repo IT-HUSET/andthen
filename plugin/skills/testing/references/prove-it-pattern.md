@@ -2,7 +2,7 @@
 
 Sources: Michael Feathers (*Working Effectively with Legacy Code*, 2004), Kent Beck (test-first discipline; *Test-Driven Development: By Example*, 2002), Adam Bender & Titus Winters (*Software Engineering at Google*, 2020 – Beyonce Rule).
 
-"Prove-It Pattern" is the AndThen project's internal name for the failing-test-first bugfix flow. The underlying principles are sourced above; the brand is local.
+"Prove-It Pattern" is the AndThen project's internal name for the failing-test-first bugfix flow.
 
 Home mode: `prove-it`. Use for any bug report, disputed behavior, or regression concern.
 
@@ -13,7 +13,7 @@ Home mode: `prove-it`. Use for any bug report, disputed behavior, or regression 
 
 A bug is fixed only when an automated test reliably fails *before* the fix and passes *after*. That test stays in the suite as the regression guard.
 
-Reinforced by the **Beyonce Rule** (Bender & Winters, *Software Engineering at Google*, 2020): *"If you liked it, you should have put a test on it."* Behavior anyone depends on must be pinned – otherwise a future refactor silently breaks it (cf. Hyrum's Law).
+Reinforced by the **Beyonce Rule**: *"If you liked it, you should have put a test on it."* Behavior anyone depends on must be pinned – otherwise a future refactor silently breaks it (cf. Hyrum's Law).
 
 
 ## Flow
@@ -51,7 +51,7 @@ The bug test is a regression guard. It stays. Delete only when:
 - The behavior it pins is intentionally removed (replace with a test for the new behavior).
 - The entire surface is deleted.
 
-The Anti-Cheat Invariant in `tdd-discipline.md` applies equally to bug-fix tests. A regression-pinning test cannot be deleted, disabled, or weakened to "make builds green." If the test is wrong, rewrite it so it still proves the bug boundary; if the product behavior intentionally changes, replace it with a test for the new behavior.
+The Anti-Cheat Invariant (`tdd-discipline.md`) applies equally here: never delete, disable, or weaken a regression-pinning test to make a build green – a wrong test is rewritten so it still proves the bug boundary.
 
 Rename and relocate freely. "It's old" is not a reason – that's how regressions return.
 

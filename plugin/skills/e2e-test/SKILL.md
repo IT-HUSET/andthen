@@ -17,11 +17,7 @@ FOCUS: $ARGUMENTS
 
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting – including any Visual Validation Workflow sections.
 - **Fix bugs found during testing** – this skill is not read-only; fix and document issues discovered
-- Use the `agent-browser` skill for all browser automation (snapshots, clicks, form fills, screenshots)
-- If `agent-browser` is unavailable, warn the user and stop
-- Delegate server startup failures to the `andthen:triage` skill
-- Delegate responsive screenshot analysis to the `andthen:visual-validation` skill in a sub-agent
-- Use sub-agents for parallel discovery work
+- Use the `agent-browser` skill for all browser automation (snapshots, clicks, form fills, screenshots); if unavailable, warn the user and stop
 
 
 ## GOTCHAS

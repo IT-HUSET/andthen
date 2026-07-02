@@ -20,17 +20,17 @@ _Requirements to clarify (**required**):_
 INPUT: $ARGUMENTS (strip any flag tokens like `--issue`, `--mode`, `--to-issue`, or `--visual` before interpreting the remainder as the requirements source – description or file path)
 
 _Scope mode:_
-MODE: `feature | product` – resolved in Step 1 substep 0. Default `feature`. Explicit `--mode` flag wins over inference.
+MODE: `feature | product` – resolved in Step 1 substep 0. Default `feature`.
 
 ### Optional Flags
 - `--issue <number>` → Fetch and use a GitHub issue as requirements input
-- `--mode product|feature` → MODE override; explicit value wins over inference. `product` runs the skill at overall-product scope (vision, personas, value props, anti-goals, metrics) and writes to the Project Document Index `Product` location.
-- `--to-issue` → After Step 4 Validation, save the doc locally, then create a NEW GitHub issue with the doc body (mechanics: see Step 4b). The flag never comments on or edits the input issue. Print the new issue URL.
-- `--visual` → After the clarification or product vision document is written and validated, invoke the `andthen:visualize` skill on the produced artifact.
+- `--mode product|feature` → MODE override (resolution: Step 1 substep 0; scope: **Product vs. Feature Scope**).
+- `--to-issue` → publish the validated doc as a NEW GitHub issue (Step 4b).
+- `--visual` → invoke the `andthen:visualize` skill on the produced artifact (Step 4c).
 
 _Output directory for clarified requirements (branched by MODE):_
 - **Feature mode** – OUTPUT_DIR: `<project_root>/docs/specs/` _(or as configured in **Project Document Index**)_.
-- **Product mode** – resolved from the **Project Document Index** `Product` row (default `<project_root>/docs/PRODUCT.md`); single file, no `<feature-name>/` wrapper.
+- **Product mode** – resolved from the **Project Document Index** `Product` row (default `<project_root>/docs/PRODUCT.md`).
 
 Full output paths: see **REPORT > Storage path**.
 
@@ -39,7 +39,6 @@ Full output paths: see **REPORT > Storage path**.
 
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - Require `INPUT`. Stop if missing.
-- **Interactive-by-Contract** – see **OPERATING PRINCIPLE**.
 - **Check before asking** – if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. In **feature mode**, the `Product` document (see **Project Document Index**) is the upstream framing – vision, personas, anti-goals; feature requirements should anchor to it, not contradict it. Also read the `Learnings` document (see **Project Document Index**) – prior traps inform Discovery probes. State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm. *Exception:* a prior clarification doc is a baseline to amend (see Step 1 *Amendment check*), not a lookup that closes discovery.
 - Clarify requirements, do not design solutions.
 - **Invoked mid-PRD.** When another skill invokes this skill inline to resolve supplied load-bearing gaps, scope Discovery to those gaps (reuse amendment-mode scoping); don't re-litigate content settled by the calling artifact.
@@ -54,8 +53,8 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
 
 ### Product vs. Feature Scope
 
-- **Feature scope (default)** – a single capability, user-story cluster, or epic. Output: `requirements-clarification.md`.
-- **Product scope** – the overall product/product-line, sitting **above PRDs** (one product spawns many PRDs over time). Output: the Project Document Index `Product` document (default `docs/PRODUCT.md`).
+- **Feature scope (default)** – a single capability, user-story cluster, or epic.
+- **Product scope** – the overall product/product-line, sitting **above PRDs** (one product spawns many PRDs over time).
 - Litmus: *"Is the user asking 'what should this product be?' or 'what should this feature do?'"* – the former is product; the latter is feature.
 
 
@@ -82,11 +81,11 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
    - **Amendment check (mode-aware)**:
      - **Feature mode**: derive a feature slug from INPUT, then check if `OUTPUT_DIR/<slug>/` (or a path in INPUT) contains a prior clarification doc – recognised by an `# Requirements Clarification:` H1 or a `Decisions Log` table, any filename, never a `prd.md` or FIS file. If yes, switch to **amendment mode**: existing doc = baseline, INPUT = delta. Multiple matches: prefer most-recently-modified.
      - **Product mode**: check the resolved Product path (default `docs/PRODUCT.md`). If the file is the init-scaffolded **stub** (≤ 10 lines AND contains a `TODO` or `[fill me in]` marker), treat as **fill mode** (write fresh content). Otherwise treat as **amendment mode**: existing doc = baseline, INPUT = delta.
-     - In amendment mode: re-run Step 2 *Discovery & Ideation Interview* only for new or still-open gaps; Step 3 updates the baseline in place at its existing path. A prior doc is a baseline to extend, not an authority that closes discovery.
+     - In amendment mode: Step 2 scopes to new or still-open gaps (see Step 2); Step 3 updates the baseline in place at its existing path.
 
 2. **Assess & identify gaps** – Document stated/assumed/missing and list gaps (functional, flows, edge cases, success criteria, scope boundaries). _(amendment mode: only what the delta adds, changes, or contradicts)_
 
-3. **Design space decomposition** – when the feature has **user-visible or product-level** decisions with multiple viable approaches, decompose load-bearing dimensions only (see `${CLAUDE_PLUGIN_ROOT}/references/design-tree.md` for the Dimension Independence + cross-consistency rubric). Implementation-only dimensions are downstream concerns for the `andthen:spec` skill or the `andthen:architecture` skill (`--mode trade-off`). Include the decomposition in the requirements output. _Skip for simple features with no meaningful design alternatives._
+3. **Design space decomposition** – when the feature has **user-visible or product-level** decisions with multiple viable approaches, decompose load-bearing dimensions only (see `${CLAUDE_PLUGIN_ROOT}/references/design-tree.md` for the Dimension Independence + cross-consistency rubric). Include the decomposition in the requirements output. _Skip for simple features with no meaningful design alternatives._
 
 **Gate**: Assessment complete with documented gap list and design space decomposition (if applicable)
 
@@ -130,9 +129,9 @@ Fix any issues found before finalizing.
 
 ### 4b. Publish to GitHub _(only when `--to-issue`)_
 
-After the local clarification doc is written and validated, publish per **Pattern A** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Title: `Requirements Clarification: <feature-name>`. Body temp file: `.agent_temp/clarify/<feature-slug>-issue-body.md` when `Refs #<N>` is appended; otherwise pass the local doc path directly to `--body-file`.
+After the local clarification doc is written and validated, publish per **Pattern A** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Title: `Requirements Clarification: <feature-name>`. Body temp file: `.agent_temp/clarify/<feature-slug>-issue-body.md` when `Refs #<N>` is appended; otherwise pass the local doc path directly to `--body-file`. Print the new issue URL.
 
-The flag is additive – the local doc is the source of truth; the issue is a durable transport record for downstream skills (`andthen:prd --issue <N>`).
+The flag is additive – the issue is a durable transport record for downstream skills (`andthen:prd --issue <N>`).
 
 **Gate**: Issue created (or skipped when `--to-issue` is absent)
 
@@ -146,7 +145,7 @@ After the document is written and Step 4 Validation passes, invoke the `andthen:
 
 ### 5. Domain Language Extraction _(if domain complexity warrants)_
 
-When domain complexity warrants (business rules, multiple bounded contexts, domain-specific terminology), create or update the `Ubiquitous Language` document (see **Project Document Index**) with an initial glossary grouped by domain cluster.
+When domain complexity warrants (business rules, multiple bounded contexts, domain-specific terminology), create or update the `Ubiquitous Language` document (see **Project Document Index**; default `docs/UBIQUITOUS_LANGUAGE.md`) with an initial glossary grouped by domain cluster.
 
 > **Skip** for simple projects (CRUD apps, utilities, scripts) or when domain language is obvious.
 
@@ -162,9 +161,7 @@ Generate a markdown document using the template that matches `MODE`:
 ### Storage path (branched by MODE)
 
 - **Feature mode**: `OUTPUT_DIR/<feature-name>/requirements-clarification.md`. If from GitHub issue: use `issue-{number}-{feature-name}/` as the output subdirectory name (e.g. `docs/specs/issue-42-data-export/requirements-clarification.md`). Include issue reference in the document header.
-- **Product mode**: the resolved Product path (default `<project_root>/docs/PRODUCT.md`) – single file, no subdirectory wrapper. Amendment mode preserves untouched sections verbatim per the existing baseline rule.
-
-If domain language extraction was performed, also store it in the `Ubiquitous Language` document location from the **Project Document Index** (default: `docs/UBIQUITOUS_LANGUAGE.md`).
+- **Product mode**: the resolved Product path (default `<project_root>/docs/PRODUCT.md`) – single file, no subdirectory wrapper.
 
 When complete, print the report's **relative path from the project root**.
 

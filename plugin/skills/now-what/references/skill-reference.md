@@ -35,7 +35,7 @@ Produces a single Feature Implementation Specification (FIS) for one execution-s
 **Use when:** a single feature is clear enough to specify but isn't part of a multi-feature plan. `--visual` delegates the produced FIS to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-spec` to implement the FIS.
 
 ### `andthen:exec-spec`
-Implements code from a single FIS – code, tests, and verification. Honors the FIS contract (Required Context, Acceptance Scenarios, Structural Criteria), runs intent/gap review alongside code review, and uses mechanism-aware Chain Attestation before completion. Legitimate design pivots route to ADR-backed FIS amendment rather than silent divergence; when an amendment leaves an upstream doc stale, opens a reconciliation-ledger entry and emits a recommend-only As-Built Upstream Reconciliation recommendation.
+Implements code from a single FIS – code, tests, and verification. Honors the FIS contract (Required Context, Acceptance Scenarios, Structural Criteria), runs intent/gap review alongside code review, and uses mechanism-aware Chain Attestation before completion. Legitimate design pivots route to ADR-backed FIS amendment rather than silent divergence; when an amendment leaves an upstream doc stale, opens a reconciliation-ledger entry and emits a recommend-only As-Built Upstream Reconciliation.
 **Typical next step:** `andthen:review` (or `andthen:quick-review` mid-flow) before committing.
 
 ### `andthen:exec-plan`
@@ -48,7 +48,7 @@ Accepts `--auto` for unattended runs.
 **Use when:** the change is small enough that authoring a FIS would be overhead. For larger features, prefer the `andthen:clarify → andthen:spec → andthen:exec-spec` chain.
 
 ### `andthen:architecture`
-Architecture design and analysis. Seven modes – `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming`. Outputs vary by mode (review reports, ADRs, fitness functions, trade-off analyses, strategic-design reports, event-storming boards). No code changes.
+Architecture design and analysis. Seven modes – `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming` – inferred from your phrasing (a menu appears only when the intent is genuinely ambiguous) or forced with `--mode`. Outputs vary by mode (review reports, ADRs, fitness functions, trade-off analyses, strategic-design reports, event-storming boards). No code changes.
 **Use when:** structural questions, comparing options, mapping a domain end-to-end, or before committing to a decomposition. `--visual` delegates structured reports (`review`, `trade-off`, `strategic-design`, `fitness`, `decompose`, `event-storming`, ADR) to the `andthen:visualize` skill for browser review; pure `advise` is text-only. **Typical next step:** back to `andthen:now-what` once the design question is resolved.
 
 ### `andthen:visualize`
@@ -60,7 +60,7 @@ Explains a PR, branch, ref range, or working tree as a narrative Changeset Walkt
 **Use when:** the user wants to understand or present what a changeset does before (or instead of) judging it. **Typical next step:** `andthen:review` (e.g. `--from-pr <N>`) for findings and a verdict, using the walkthrough's focus points as scope hints.
 
 ### `andthen:ui-ux-design`
-UI/UX work across the lifecycle. Four modes – `research`, `design-system` (tokens, `DESIGN.md`), `wireframes` (screens, user flows), `review` (validate implementation).
+UI/UX work across the lifecycle. Four modes – `research`, `design-system` (tokens, `DESIGN.md`), `wireframes` (screens, user flows), `review` (validate implementation) – inferred from your phrasing (a menu appears only when the intent is genuinely ambiguous) or forced with `--mode`.
 **Use when:** any design work upstream of UI implementation. **Typical next step:** `andthen:exec-spec` or `andthen:exec-plan` to build the designed work.
 
 ### `andthen:visual-validation`
@@ -80,7 +80,7 @@ Drives a single FIS or a plan bundle to **zero open blocking decisions** before 
 **Use when:** a spec or plan bundle is about to be handed to a headless exec run and you want every fork-the-run decision settled first. Recommended, never required by the executors. **Typical next step:** `andthen:exec-spec` / `andthen:exec-plan` on `READY`/`DEFERRED`.
 
 ### `andthen:review`
-The default review skill. Lenses: `code` (correctness, patterns), `doc` (clarity, completeness), `gap` (spec-vs-implementation), `security` (OWASP, exposure tier), `mixed` (chain). Critic posture is always on; findings are classified before Fix/Note routing, so mechanically-correctable defects can be fixed under `--fix` (routed by fix character, not severity) while spec/design drift routes to reconciliation instead of code remediation. Multi-perspective `--council` mode runs within-lens specialist councils for code/security and adds a cross-lens Critic / Devil's Advocate / Synthesis Challenger pass for 2+ lens chains. Loads the reconciliation ledger so already-tracked drift becomes a tracked Note (only `code-defect` feeds the gap verdict), withdrawn findings don't silently re-raise, and unreconciled recurrence escalates to a blocking `RECONCILE REQUIRED`; emits a CONVERGED stopping signal and a machine-stable `Auto-Remediation: PENDING/STALLED/CLEAR` loop signal so a converging review→remediate loop branches on the auto-applicable set, not the raw verdict or a severity count.
+The default proof-led review skill. Lenses: `code` (correctness, patterns, named smell baseline), `doc`, `gap`, `security`, `mixed` (chain) – chosen from the concerns you name ("check correctness and security"), or from the target when you don't, or forced with `--mode`; a bare "PR 42" reads that PR (read-only). `--council`, `--fanout`, `--team`, `--fix`, and `--to-pr` are explicit opt-ins, never inferred from phrasing. Each report includes a Coverage Matrix proving primary surfaces with evidence, positive proof, attempted falsifier, and result; changed tests/sign-off artifacts get explicit test-contract falsification. Critic posture is always on; findings are classified before Fix/Note routing, so mechanically-correctable defects can be fixed under `--fix` while spec/design drift routes to reconciliation. Emits CONVERGED and `Auto-Remediation: PENDING/STALLED/CLEAR` so loops branch on the auto-applicable set.
 **Use when:** before committing or merging significant changes. `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage. **Typical next step:** `andthen:remediate-findings` if findings need addressing.
 
 ### `andthen:quick-review`

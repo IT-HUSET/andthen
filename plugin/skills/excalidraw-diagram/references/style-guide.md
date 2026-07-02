@@ -75,7 +75,7 @@ Map a zone's concept → color family for a consistent visual vocabulary across 
 1. **Zone assignment**: When a zone represents one of these concepts, use its mapped color family. A "Data Layer" zone → Cyan. An "AI Pipeline" zone → Violet.
 2. **Multiple zones, same concept**: If two zones both represent "processing," use the same family (Teal) – differentiate with layout and labels, not color.
 3. **Unknown concepts**: Default to Blue for primary, Bronze for secondary.
-4. **Guidance, not law**: picks the family per zone; the zone-color rule still governs.
+4. **Guidance, not law**: the concept picks the family per zone; the zone-color rule still governs.
 
 ### Fill Style
 

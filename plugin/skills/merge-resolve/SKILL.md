@@ -27,7 +27,7 @@ Positional args (all required):
 1. `STORY_ID` – bare plan id, e.g. `S03` (no `story-` prefix)
 2. `BASE_BRANCH` – branch to merge into; must be currently checked out in CWD
 3. `WORKTREE_PATH` – absolute path to the story worktree directory
-4. `SUMMARY_FILE` – path to a file with the implementer's one-line completion summary. Empty / unreadable / blank → fallback subject `<STORY_ID>: completed (worktree merge)`.
+4. `SUMMARY_FILE` – path to a file with the implementer's one-line completion summary; empty / unreadable / blank falls back to the Step 3 default subject.
 
 Optional, repeatable:
 
@@ -59,7 +59,7 @@ The script does **not** commit. Final stdout line classifies the outcome:
 | `GUARD_FAIL:<tag>` | Emit `outcome: failed`, `error_message: guard:<tag>`. Stop. |
 | `SQUASH_FAIL:<reason>` | Emit `outcome: failed`, `error_message: squash:<reason>`. Stop. |
 
-Script exit code is non-zero for every status other than `SQUASH_OK` / `SQUASH_CONFLICT`; treat the stdout line as authoritative. On `SQUASH_FAIL` the script has already rolled back the partial squash on the main checkout (`git reset --hard HEAD`; `git merge --abort` does not work after `git merge --squash` because `--squash` suppresses `MERGE_HEAD`). The story branch is untouched in every failure path.
+Script exit code is non-zero for every status other than `SQUASH_OK` / `SQUASH_CONFLICT`; treat the stdout line as authoritative. On `SQUASH_FAIL` the script has already rolled back the partial squash on the main checkout (`git reset --hard HEAD`; `git merge --abort` does not work after `git merge --squash` because `--squash` suppresses `MERGE_HEAD`).
 
 ## Step 2 - Resolve Conflict Markers (only on `SQUASH_CONFLICT`)
 
@@ -126,13 +126,7 @@ printf 'story-%s: %s\n\nSquashed-story: %s\n' "<STORY_ID>" "$SUMMARY" "<STORY_ID
 
 `printf | git commit -F -` keeps `SUMMARY` off the shell argument vector. `--cleanup=verbatim` preserves any `#`-led lines in the summary.
 
-Commit failure (hook reject, signing key locked, commit-msg gate): roll back the staged squash on the main checkout, then emit failed:
-
-```
-git reset --hard HEAD
-```
-
-(`git merge --abort` is unusable here – see Step 1.) The story branch's commits are unaffected. Emit `outcome: failed`, `error_message: commit:<reason>`.
+Commit failure (hook reject, signing key locked, commit-msg gate): roll back the staged squash on the main checkout with `git reset --hard HEAD`, then emit `outcome: failed`, `error_message: commit:<reason>`.
 
 ## Step 4 - Emit Output
 

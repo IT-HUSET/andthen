@@ -18,12 +18,10 @@ ARGUMENTS: $ARGUMENTS _(optional – free-form focus for the next session)_
 
 ## INSTRUCTIONS
 
-- **Route by durability.** Shared mid-flow state → `plan.json` / shared `STATE.md`; session-local context (your continuity notes, current focus) → the gitignored `STATE.local.md`; defensive notes → `LEARNINGS.md`; structural decisions → ADR via the `andthen:architecture --mode trade-off` skill; everything else → the handoff doc.
-- **Auto-mutate bounded stores; recommend authorial ones.** Per-bin mechanics live in the Step 1 triage table; the one non-obvious case: uncertain `LEARNINGS.md` wording or topic placement → leave as recommendation, don't auto-write.
+- **Route by durability; auto-mutate bounded stores, recommend authorial ones.** Per-bin destinations and mechanics live in the Step 1 triage table; the one non-obvious case: uncertain `LEARNINGS.md` wording or topic placement → leave as recommendation, don't auto-write.
 - **Respect `ops` contracts.** `update-learnings add` rejects bullets that don't start with `- **{title}**` or exceed 200 chars – normalize first. `update-state` forms route by field: shared `active-story <id> "<name>" "In Progress"` (or `Done` to remove), `blocker "<text>"` (or `blocker remove "<text>"`), `decision "<text>"` → shared STATE.md; local `note "<text>"`, `focus "<text>"` → the gitignored STATE.local.md. Plan-governed story status/claims use `update-plan <plan> <id> <status>` (lowercase enum, e.g. `in-progress`/`done`) / `update-plan-owner <plan> <id> <owner>`; resolve `<plan>` from the Project Document Index `Specs & Plans` row, the State's FIS paths, or session context. `ops` timestamps decision/note automatically.
 - **Reference, don't duplicate.** Point to artifacts named in the **Project Document Index** (PRD, `plan.json`, FIS, review reports, ADRs, `Ubiquitous Language`) by path – the next session reads them directly.
 - **Redact secrets; omit when unsure.** Tokens, keys, credentials, PII, and shell output that may carry them → `[REDACTED:<kind>]` or drop the entry. The doc lands under `.agent_temp/` and may be picked up by IDE indexers, screen-share, or backups – assume non-private.
-- **Missing store → recommend, don't create** (the `andthen:init` skill owns creation).
 - **Pragmatic by default.** No per-mutation confirmation; show applied diffs inline at the end. `--no-mutate` is the escape hatch.
 
 

@@ -235,7 +235,7 @@ Approximate character widths per font at common sizes. Use to estimate `W` befor
 
 ### Roughness
 
-Style-guide concern – see `style-guide.md` §5. Default `1` (hand-drawn warmth, the signature personality); `0` only for formal/ultra-clean presentations (Clean Technical preset); `2` brainstorming only.
+Style-guide concern – see `style-guide.md` §5 (default `1`; presets override).
 
 ---
 

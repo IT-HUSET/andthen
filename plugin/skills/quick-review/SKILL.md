@@ -6,7 +6,7 @@ argument-hint: "[--inline] [--fix] [--auto] [focus or scope | commit <sha>]"
 
 # Quick Review
 
-Lightweight, ad-hoc review of recent work in the current conversation. By default, delegates the critique to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; `--inline` applies the rubric directly when the caller is already fresh (see Optional Flags). Either path catches errors, inconsistencies, and missed edge cases that in-context work tends to overlook.
+Lightweight, ad-hoc review of recent work in the current conversation. By default, delegates the critique to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; `--inline` applies the rubric directly when the caller is already fresh (see Optional Flags).
 
 `andthen:quick-review` is a **skill**, not an agent type. Invoke it via `/andthen:quick-review` or the Skill tool – do not pass it as `subagent_type`.
 
@@ -25,21 +25,18 @@ FOCUS: $ARGUMENTS (strip any flag tokens like `--inline`, `--fix`, `--auto`, or 
 ## INSTRUCTIONS
 
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
-- This is a **lightweight mid-conversation review** – a fast, focused checkpoint scoped to recent changes rather than a full formal pass.
 - Default read-only; only `--fix` on the current invocation unlocks edits (Phase 4).
 - Guardrails pass runs once per review in Phase 3.
-- Anti-leniency: if a finding is identified, it is a problem. Do not rationalize issues away.
 - Output findings inline – no separate report file.
 - **Automation mode** (`--auto` / `AUTO_MODE`): never ask the user what to do next; with `--fix` apply Fix findings only, else remain read-only and return both groups. Stop with `BLOCKED:` only when the review scope cannot be resolved (e.g. no change set, unreadable target).
 
 
 ## GOTCHAS
+- Skipping the fresh-context sub-agent because the spawn tool is missing from the visible tool list – that is not unavailability; where the host supports deferred tool loading, run its tool discovery before treating dispatch as unavailable.
 - Sending the sub-agent too little context (it needs to understand what was done and why)
 - Sending the sub-agent too much context (entire files when only a section changed)
 - Rationalizing away findings because "I just wrote that and it seemed fine"
 - Using this as a substitute for a proper review on significant changes
-- **Non-fresh-conversation `--inline`** → Phase 3 rejects + falls back.
-- **Editing without `--fix`** → read-only default; an in-conversation "looks good" / "ok" is not confirmation (Phase 4).
 - **Discarding uncommitted work as a fix** → never; may be unrelated WIP (Phase 4).
 - **Routing every accepted finding to Fix** → Phase 4 Routing gate.
 - **Reviewing without Intent Context** → strips Phase 4 of its falsifier source (Phase 3 collection).
@@ -75,11 +72,7 @@ Determine what type of work was done to frame the review appropriately:
 
 ### 3. Critic Review
 
-Apply the canonical Critic rubric to the change set. Default dispatches a single Critic pass to a fresh-context sub-agent (prefer the installed `review-critic` agent, else a generic fresh sub-agent – the installed-agent path still gets the read-first prompt); `--inline` applies the rubric directly when the caller is already fresh. The outer skill loads the same three references and collects the **Project Rules Context** and **Intent Context** bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) so Phase 4 can apply the same calibration.
-
-Dispatch with the prompt in [`dispatch-prompt.md`](references/dispatch-prompt.md), filling its Context / Review Lens / Project Rules Context / Intent Context / Changes-to-Review sections.
-
-Provide enough inline context that the sub-agent need not explore the codebase. **`--inline`** applies the same rubric, Guardrails pass, Finding Shape, and Project Rules / Intent Context collection inline, using the same [`dispatch-prompt.md`](references/dispatch-prompt.md) contract.
+Apply the canonical Critic rubric to the change set. Default dispatches a single Critic pass to a fresh-context sub-agent (prefer the installed `review-critic` agent, else a generic fresh sub-agent – the installed-agent path still gets the read-first prompt), using the prompt in [`dispatch-prompt.md`](references/dispatch-prompt.md) – fill its Context / Review Lens / Project Rules Context / Intent Context / Changes-to-Review sections and provide enough inline context that the sub-agent need not explore the codebase. The outer skill loads the same three references and collects the **Project Rules Context** and **Intent Context** bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) so Phase 4 can apply the same calibration. **`--inline`** applies the same rubric, Guardrails pass, Finding Shape, and context collection inline, per the same dispatch-prompt contract.
 
 Before applying the rubric, verify the calling conversation has not produced or substantively reasoned about the change set. If it has, emit `FALLBACK: --inline rejected, dispatching sub-agent (calling conversation not fresh w.r.t. change set)` and continue with default dispatch – surface the fallback in the final report so the caller knows the flag was overridden. In `AUTO_MODE`, the fallback is reported the same way; never silently swap mechanisms.
 
@@ -105,7 +98,7 @@ Each finding passes through two gates: a **Validity gate** (Accept / Dismiss) an
 
 Start the inline result with `Intent Context: <source path | none discoverable>`. Then present accepted findings inline, grouped by routing (**Fix** first, then **Note**). For each accepted finding, include exactly one class value as `Class: <code-defect | spec-stale | design-changed | ambiguous-intent>` (e.g. `Class: spec-stale`; never emit the enum string as the value) and a literal `Routing: Fix` or `Routing: Note` field plus the routing rationale in one short clause (severity / confidence / scope relation, plus the Intent-anchor citation when one applied). The output remains inline but must stay parseable as a full review report.
 
-- **Without `--fix` (default, read-only)**: report both groups and **STOP**. If any **Fix** findings exist, end with one hint line to re-run with `--fix`; if only **Note** findings exist, say so. Fixes run only on a re-invocation with `--fix`, never on a follow-up reply. In `AUTO_MODE`, remain read-only and return both groups.
+- **Without `--fix` (default, read-only)**: report both groups and **STOP**. If any **Fix** findings exist, end with one hint line to re-run with `--fix`; if only **Note** findings exist, say so. Fixes run only on a re-invocation with `--fix`, never on a follow-up reply.
 - **With `--fix`**: if zero **Fix** findings exist, report that plainly and stop. Otherwise apply only the **Fix** findings as one surgical patch set – no scope creep, no nearby cleanup, and **never** touch Note findings. Edits are **additive/corrective only**: never `git restore`, `git checkout --`, or delete to discard uncommitted working-tree changes – it may be unrelated WIP and is unrecoverable. A "this file shouldn't have been changed" finding is **flag-only / no auto-revert**. Then re-run the minimum verification that proves the fixes hold and report each in one tight line. **One pass only**: surface new issues, do not loop.
 
 No summary preamble; keep it tight.

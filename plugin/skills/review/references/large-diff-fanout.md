@@ -15,16 +15,15 @@ Trigger · Partition Strategy (1. Vertical slice · 2. Package/module · 3. Lang
 
 ## Trigger
 
-Apply when any one fires (auto-detection):
+Apply when scale or semantic breadth makes single-pass recall unreliable:
 
-- Changed file count ≥ 20
-- Changed LOC ≥ 1000 (excluding generated / vendored / lockfile noise)
-- Diff spans 3+ top-level packages, modules, or app entry points
-- Caller passed `--fanout` explicitly
+- **Large surface** – ≥20 changed files, ≥1000 changed LOC excluding generated/vendor/lockfile noise, or 3+ top-level packages/modules/app entry points.
+- **Semantic breadth** – requirements-driven review has ≥3 distinct Work Areas / Acceptance Scenario clusters / proof surfaces.
+- **Proof-bearing artifacts changed** – tests, parsers, validators, release/sign-off registers, generated artifacts, locale-paired content, migrations, workflows, or public APIs carry the story's proof of correctness.
+- Caller passed `--fanout` explicitly.
 
-Below the threshold, run the lens inline. `--no-fanout` forces off even when
-auto-trigger fires (useful for interactive review where latency matters more
-than coverage).
+Below these triggers, run the lens inline. `--no-fanout` forces inline review and
+must be reported when it suppresses an active trigger.
 
 
 ## Partition Strategy
@@ -97,6 +96,9 @@ signal to fall back to package partitioning, not to slice horizontally.
    - `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` and the
      lens-specific calibration
    - Target map, Intent Context, and Project Rules Context from Step 1
+   - The partition's slice of the Step 2 coverage plan (the surfaces and
+     falsifiers it owns) so the sub-agent's matrix rows carry its own
+     evidence rather than orchestrator back-fill
 3. After all partitions return, run a **boundary pass** inline (or as a final
    sub-agent when the diff is very large). The boundary pass:
    - Re-runs `refactor-invariants.md` checks 1 (deletion completeness), 2
@@ -127,9 +129,9 @@ signal to fall back to package partitioning, not to slice horizontally.
   fan-out is `specialists × partitions`. The boundary pass still runs once
   over the merged finding set.
 - **In a chain** (2+ lenses): each lens's partitions join the chain's single
-  flat batch as further leaf sub-agents (see SKILL.md Step 4 *Chain*), not
-  under a per-lens wrapper – the wrapper would re-summarize findings before the
-  synthesizer sees them and is unnecessary regardless of host nesting support.
+  flat batch as further leaf sub-agents (see SKILL.md Step 3 *Run Find-Passes*),
+  not under a per-lens wrapper – the wrapper would re-summarize findings before
+  the synthesizer sees them and is unnecessary regardless of host nesting support.
 
 **Concurrency**: dispatch the full leaf set as one flat parallel batch from the
 orchestrator and let the host schedule it – do not impose an artificial
@@ -146,13 +148,18 @@ review prompt replaces the per-specialist review prompt.
 ## Cost / Latency Note
 
 Each partition costs ~one full review – fan-out trades latency and token spend
-for coverage beyond the inline working set. The `--no-fanout` override's report
-line is contract: `Fan-out suppressed; inline review over <N>-file diff`.
+for coverage beyond the inline working set. The semantic-breadth and
+proof-bearing-artifact triggers make fan-out the default for a standard FIS
+(3-7 Work Areas) or any proof-bearing change – deliberately: recall on those
+surfaces is worth the spend, and this is the skill's one automatic cost
+multiplier (never inferred from phrasing – decided by surface shape). Callers
+who want inline pass `--no-fanout`; its report line is contract:
+`Fan-out suppressed; inline review over <N>-file diff`.
 
 
 ## Reporting
 
-The consolidated report (Step 5b in the skill workflow) gains two lines under
+The consolidated report (Step 5 in the skill workflow) gains two lines under
 the Executive Summary block when fan-out ran:
 
 ```markdown

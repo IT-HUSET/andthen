@@ -71,8 +71,6 @@ Callers (the `andthen:exec-spec`, `andthen:triage`, and `andthen:e2e-test` skill
 
 Output is advisory for `strategy`; the tests themselves are the artifact for `write` / `tdd` / `prove-it`.
 
-Persistent E2E suites are out of scope – hand off to the `andthen:e2e-test` skill.
-
 
 ## OUTPUT FORMAT
 

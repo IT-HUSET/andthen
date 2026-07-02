@@ -6,6 +6,18 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.34.0] – 2026-07-02
+
+### Changed
+- **`andthen:review` is leaner and proof-led** – the skill now centers reviews on a Coverage Matrix: each primary surface records evidence, positive proof, and the falsifier attempted before verdict. Test/sign-off artifacts get explicit test-contract falsification so weak assertions surface on the first pass instead of through repeated review loops.
+- **`andthen:review` code lens adds a named smell baseline** – code review now checks a curated Fowler-inspired smell set as heuristic findings: project standards override it, baseline smells are never hard violations, and tooling-owned issues stay with tooling.
+- **Skills infer intent from plain language – fewer flags needed.** `andthen:architecture` and `andthen:ui-ux-design` now proceed directly when your phrasing names a single mode (naming the mode so you can redirect), showing the guided menu only when the intent is genuinely ambiguous or a required input is missing. `andthen:review` picks its lens(es) from the concerns you name ("check correctness and security") above the target-signal fallback, and reads a bare "PR 42" as read-only scope.
+- **Cost/outward flags stay explicit by contract.** `--council`, `--team`, `--worktree`, `--fix`, `--to-pr`, and `--to-issue` are never inferred from phrasing – they spend tokens, write code, or post externally, so they require the explicit flag. Partition fan-out is the one deliberate exception – keyed on surface shape (a semantically wide or proof-bearing diff, e.g. a standard FIS or changed tests/migrations/APIs), it makes proof-led reviews parallelize by default; `--no-fanout` opts out. READMEs now lead with natural-language examples and show the flag form as the equivalent.
+- **`andthen:review` permits required sub-agents explicitly.** Review now treats skill invocation as permission for required review sub-agents and checks lazy-loaded delegation tooling before running inline.
+- **Plugin-wide skill tightening (behavior-preserving).** Applied the same lean, proof-led pass to the rest of the skills: removed restated contracts, wrong-altitude prose, and accreted seams across 49 skill files (~-22k chars). Every deduplicated contract keeps a single reachable home; parser tokens, deterministic grammars, cross-skill contracts, and calibration catalogs are unchanged. Also fixed three drift/correctness issues found in passing – the `andthen:map-codebase` skill's read-only wording now matches its documented outputs, the `andthen:visualize` skill's static affordances list `Copy section`, and a dangling "Output Path Semantics" pointer in the `andthen:prd` skill now targets the Step 1 dispatch.
+
+---
+
 ## [0.33.0] – 2026-06-30
 
 ### Added

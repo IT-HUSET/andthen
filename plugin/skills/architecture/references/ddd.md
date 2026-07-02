@@ -238,7 +238,7 @@ Complement, not replacement, for OO DDD. Useful when the target language is FP-f
 
 ## 7. DDD Anti-Patterns
 
-Retain from prior coverage: **Anemic Domain Model**, **Leaky Abstraction**, **Context Explosion**, **Generic Subdomains as Core**, **Big Ball of Mud**. Additions from this reference (DDD-specific; not in the general `anti-patterns.md` catalog – review under `review` or `decompose` mode should consult this section when the target is aggregate- or event-heavy):
+Classic DDD anti-patterns to check: **Anemic Domain Model**, **Leaky Abstraction**, **Context Explosion**, **Generic Subdomains as Core**, **Big Ball of Mud**. DDD-specific additions (not in the general `anti-patterns.md` catalog – consult this section under `review` or `decompose` mode when the target is aggregate- or event-heavy):
 
 - **False Invariant Aggregates** – aggregate grouped by navigational convenience, not a true commit-time invariant. Symptom: multiple use cases only touch a subset. Fix: apply the Discovery heuristic (§2.1); split.
 - **Leaky Integration Events** – internal aggregate structure exposed as a public event contract. Symptom: downstream consumers break when internal refactors ship. Fix: publish a purpose-built integration event via outbox; keep domain events internal.
@@ -249,7 +249,6 @@ Retain from prior coverage: **Anemic Domain Model**, **Leaky Abstraction**, **Co
 ## 8. When to Bend the Rules
 
 - Aggregate rules describe the *steady state*; legitimate migration steps may transiently violate them – converge back.
-- (Separate Ways / Conformist / Partnership caveats already in §1.3 "choose when".)
 
 ---
 

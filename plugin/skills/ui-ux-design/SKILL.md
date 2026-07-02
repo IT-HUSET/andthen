@@ -42,7 +42,7 @@ Modes `research` and `review` describe inputs in prose – see their mode refere
 
 ## INSTRUCTIONS
 
-- When `ARGUMENTS` is empty or ambiguous, start with guided setup (Phase 0). Do not pick a mode by default.
+- Resolve the mode from `ARGUMENTS` via the auto-detect table: when exactly one mode's triggers match, proceed in that mode and state which mode and why in one line so the user can redirect – mode selection is cheap and reversible, so a named, correctable choice beats a blocking menu. Enter guided setup (Phase 0) only when the intent is genuinely ambiguous (no mode matches, or 2+ match with no dominant intent) or the detected mode is missing its required input (per the Mode Inputs above – design-system / wireframes need `REQUIREMENTS`; research / review need the primary untagged input listed in their mode reference's `## Inputs` section) – a missing input scopes Phase 0 to eliciting just that input, not the full menu. Do not pick a mode from an empty invocation.
 - **Automation mode** (`--auto`) – never ask the user what to do next. Infer mode and inputs from the arguments via the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` listing the minimum missing inputs. Propagate `--auto` to nested `andthen:*` skill invocations that accept it.
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting – including relevant UX/UI and Web Dev guidelines.
 - **Intentional visual direction** – avoid generic AI aesthetics and default stacks. Choose typography with character. Use color intentionally with a dominant direction and clear accents.
@@ -51,14 +51,14 @@ Modes `research` and `review` describe inputs in prose – see their mode refere
 
 ## GOTCHAS
 
-- Picking a mode before understanding the user's actual goal
+- Guessing a mode when the goal is genuinely ambiguous instead of running Phase 0 – but equally, presenting the Phase 0 menu when the phrasing already names exactly one mode (auto-detect and proceed instead)
 - Over-engineering – too many tokens, too many components, pixel-perfect wireframes
 
 ## WORKFLOW
 
-### Phase 0: Guided Setup _(when ARGUMENTS is empty or ambiguous)_
+### Phase 0: Guided Setup _(only when mode is genuinely ambiguous or a required input is missing)_
 
-Skip this phase when `AUTO_MODE=true` (see the Automation mode contract in INSTRUCTIONS).
+Skip per the mode-resolution and Automation contracts in INSTRUCTIONS (never runs in AUTO_MODE); when only a required input is missing, elicit just that input.
 
 1. Present the available modes with one-line descriptions:
    - **research** – Understand users, flows, pain points, and the interface's job. Produces IA, journeys, and constraints.
@@ -75,8 +75,6 @@ Skip this phase when `AUTO_MODE=true` (see the Automation mode contract in INSTR
 ### Phase 1: Execute Mode
 
 Follow the selected mode's reference (see Mode table above). Each reference declares its own phases, outputs, and quality checklist.
-
-For multi-mode chains, run each mode in declared order, carrying forward artifacts produced earlier in the chain as inputs to later modes.
 
 **Gate**: Mode work complete
 

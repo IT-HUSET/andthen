@@ -39,28 +39,28 @@ The remaining non-flag argument text is treated as the decision topic (`TOPIC`) 
 
 ## INSTRUCTIONS
 
-- When `ARGUMENTS` is empty/ambiguous, or a declared chain is missing a required input for one of its modes (decompose boundary, advise question, trade-off topic), start with guided setup (Phase 0); do not assume a mode or run a full-project review by default.
+- Resolve the mode from `ARGUMENTS` via the auto-detect table: when exactly one mode's triggers match, proceed in that mode and state which mode and why in one line so the user can redirect – mode selection is cheap and reversible, so a named, correctable choice beats a blocking menu. Enter guided setup (Phase 0) only when the intent is genuinely ambiguous (no mode matches, or 2+ match with no dominant intent) or the detected mode is missing its required input (per the Phase 0 per-mode input list – e.g. decompose boundary, advise question, trade-off topic, strategic-design/event-storming scope, review/fitness scope path) – a missing input scopes Phase 0 to eliciting just that input, not the full menu. Never assume a mode from an empty invocation, and never default to a full-project review.
 - **Discovery / design modes are interactive.** `trade-off` and `event-storming` declare explicit user-confirmation gates in their mode references. Honor them: present the proposal back and wait for user input at each gate, using an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, numbered markdown otherwise). Detailed `ARGUMENTS` are never implicit confirmation of these gates – see the *implicit confirmation from detailed input* failure mode in `references/mode-trade-off.md`.
 - **Automation mode** (`--auto`) – never ask the user what to do next. Infer mode and scope from the arguments using the auto-detect table; if no defensible inference is possible, stop with `BLOCKED:` listing the minimum missing inputs (see Phase 0). Propagate `--auto` to nested `andthen:*` skill invocations that accept it (the `andthen:ops` skill is exempt – it is deterministic).
 - Analysis and design only. Do not modify code.
-- **Visual review is a post-filter handoff** (`--visual`): complete the report/filter gate first, then see `references/visual-review-handling.md`; pure `advise` is excluded.
 - Read the `Learnings` document (see **Project Document Index**) before starting.
 - Metric-computing modes (`review`/`decompose`/`fitness`) emit evidence-based, framework-attributed, C4-tagged, connascence-classified, remediation+fitness-function findings per each mode ref, `references/review-output.md`, and `references/fitness-functions.md` (frozen-rules pattern); the Findings Filter (Phase 3) enforces these.
 
 ## GOTCHAS
 
 - Running a full-project review when invoked with no arguments instead of asking the user what they want
+- Presenting the Phase 0 mode menu when the phrasing already names exactly one mode – auto-detect and proceed (naming the mode) instead
 - Loading all references when the mode only needs a subset
 - Calibration false-positive traps (infra in Zone of Pain, leaf packages with high Ce, dynamic connascence across boundaries, borderline-metric severity inflation): see `references/architecture-calibration.md`.
 - For `advise`/`trade-off`: recommending from popularity or novelty instead of fit for this project
 
 ## WORKFLOW
 
-### Phase 0: Guided Setup _(when ARGUMENTS is empty or ambiguous)_
+### Phase 0: Guided Setup _(only when mode is genuinely ambiguous or a required input is missing)_
 
-Skip this phase when `AUTO_MODE=true` – if mode and scope cannot be inferred from the arguments, stop with `BLOCKED:` listing the minimum missing inputs instead of prompting.
+Skip this phase entirely when `AUTO_MODE=true` – apply the Automation-mode rule in INSTRUCTIONS (`BLOCKED:` on missing inputs) instead of prompting.
 
-When invoked without clear mode and scope, guide the user interactively:
+When mode or scope is genuinely ambiguous, guide the user interactively:
 
 1. Present the available modes with one-line descriptions:
    - **review** – Full health assessment: dependency metrics, connascence analysis, anti-pattern scan, fitness function proposals
@@ -79,7 +79,7 @@ When invoked without clear mode and scope, guide the user interactively:
 
 ### Phase 1: Context & Setup
 
-1. Parse mode(s) from `ARGUMENTS` (auto-detect a single mode, or parse a comma-separated list from explicit `--mode`), or use the mode(s) confirmed in Phase 0. Preserve declared order for multi-mode chains.
+1. Use the mode(s) resolved per INSTRUCTIONS or confirmed in Phase 0; preserve declared order for multi-mode chains.
 2. Read project rules, guidelines, and existing ADRs. Also read the existing `Architecture` document (see **Project Document Index**) if present – it's the authoritative system-shape baseline for `review` / `decompose` / `fitness` modes. For `advise` / `trade-off` / `strategic-design` / `event-storming` modes, also read the `Product` document (see **Project Document Index**) if present – vision and anti-goals anchor design decisions and subdomain classification.
 3. Detect the primary language from project files (only required for modes that compute structural metrics – `review`, `decompose`, `fitness`); discovery/design modes (`advise`, `trade-off`, `strategic-design`, `event-storming`) skip it:
 
@@ -99,9 +99,7 @@ When invoked without clear mode and scope, guide the user interactively:
 
 ### Phase 2: Analysis / Design
 
-Execute the selected mode by following its mode-reference file. For multi-mode invocations, run each mode in declared order, carrying forward dependency graph, computed metrics, classified connascence, candidate options, and findings – never recompute work an earlier mode already produced.
-
-Dispatch each selected mode (`review`/`decompose`/`advise`/`fitness`/`trade-off`/`strategic-design`/`event-storming`) to its mode reference per the **Mode** table.
+Execute each selected mode by following its mode-reference file (per the **Mode** table). For chains, run modes in declared order, sharing computed context per the **Multi-mode** contract in VARIABLES – never recompute work an earlier mode already produced.
 
 **Gate**: Mode work complete with evidence-based findings or an evidence-based recommendation
 
@@ -157,7 +155,7 @@ Offer:
 3. **Create fitness function implementations** from proposals
 4. **Formalize an ADR** – primary path for an `advise` decision; for `trade-off`, Step 6 already produced the ADR unless the user opted out, so this is a late-add backstop only, running the same `DECISIONS.md` registration logic defined in `references/mode-trade-off.md` Step 6.
 5. **Code-level review** – invoke the `andthen:review` skill with `--mode code`
-6. **Review visually** – _supported for every mode except pure `advise` (see `references/visual-review-handling.md`); OMIT only after a pure `advise` run; skip when `--visual` already ran_. Runs the `andthen:visualize` skill on `<report-path>`.
+6. **Review visually** – runs the `andthen:visualize` skill on `<report-path>`; OMIT after a pure `advise` run (see `references/visual-review-handling.md`); skip when `--visual` already ran.
 7. **End session** – finalize the report and stop
 - **Common chains**: `review → decompose → fitness`; `advise → trade-off → ADR`; `review → advise → fitness`; `fitness → review`; `event-storming → strategic-design → decompose` _(end-to-end discovery into decomposition)_; `strategic-design → fitness` _(formalize strategic decisions as fitness functions)_; `strategic-design,trade-off` _(weighted-criteria comparison when an integration-pattern choice is contested)_
 

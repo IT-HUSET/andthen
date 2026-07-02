@@ -15,7 +15,7 @@ Preflight does not re-spec and does not implement. It **composes by altitude** �
 
 **Interactive-by-Contract.** Preflight's deliverable IS the interview that drives blocking decisions to closure – user input is the work, not an obstacle. Producing a verdict while a blocking decision the user has not answered remains open is a contract violation, not a shortcut. The "the spec looks complete" intuition is the agent rationalizing past the contract; run detection and the blocking-only drill-down anyway, and a no-op convergence (zero blocking decisions found) is the *only* sanctioned way to reach `READY` without a question.
 
-Under `AUTO_MODE` this inverts to strict-mode automation discipline (see *Automation* below): never interview, never fabricate an answer – run the non-interactive passes and surface the unresolved blocking set as a signal.
+Under `AUTO_MODE` this inverts to strict-mode automation discipline – see *Automation* below.
 
 
 ## VARIABLES
@@ -38,9 +38,7 @@ TARGET: $ARGUMENTS (strip any flag token like `--auto` before interpreting the r
 
 ## DECISION RECORDS
 
-Preflight treats detection output as **decision records**, not raw review findings. The record schema, the blocking/non-blocking split, plan-bundle identity matching, the convergence loop, and the verdict semantics live in [`decision-records.md`](references/decision-records.md). The blocking-decision interview technique guide lives in [`blocking-decision-interview.md`](references/blocking-decision-interview.md). Load both before Step 3.
-
-A record is **blocking** only when implementation would fork on an observable behavior, persistence location, architecture choice, or requirements-altitude question that no cited source resolves. Mechanical doc defects and advisory review Notes are non-blocking and never gate the verdict.
+Preflight treats detection output as **decision records**, not raw review findings. The record schema, the blocking/non-blocking split, plan-bundle identity matching, convergence, and the verdict semantics live in [`decision-records.md`](references/decision-records.md). The blocking-decision interview technique guide lives in [`blocking-decision-interview.md`](references/blocking-decision-interview.md). Load both before Step 2.
 
 
 ## WORKFLOW
@@ -56,9 +54,9 @@ Auto-detect from `TARGET` – no flag:
 
 ### 2. Detect
 
-For each FIS (the single FIS, or every story FIS in the bundle), run detection via a fresh-context pass that invokes the `andthen:review` skill with `--mode doc --inline-findings <fis_path>` (append `--auto` under `AUTO_MODE`). `--inline-findings` keeps findings inline – preflight persists resolutions into the mutated artifacts and the decision log, so there is no standalone report (a non-goal).
+For each FIS (the single FIS, or every story FIS in the bundle), run detection via a fresh-context pass that invokes the `andthen:review` skill with `--mode doc --inline-findings <fis_path>`. `--inline-findings` keeps findings inline – preflight persists resolutions into the mutated artifacts and the decision log, so there is no standalone report (a non-goal).
 
-Normalize each finding into a decision record per `decision-records.md`, then run the **blocking-only drill-down**: keep records that would fork unattended implementation; demote the rest to non-blocking. This is a blocking filter, not a second spec pass – do not re-derive requirements the FIS already settles.
+Normalize each finding into a decision record per `decision-records.md`, then run the **blocking-only drill-down**: keep records that would fork unattended implementation; demote the rest to non-blocking.
 
 **Gate**: every target FIS detected; records normalized; blocking set identified.
 
@@ -76,19 +74,19 @@ For each record at `adr` altitude:
 For each remaining blocking record, drive it to closure. **Skip this step entirely under `AUTO_MODE`** – blocking records stay open for the signal.
 
 - **Requirements-altitude** (`requirements`) → route to the `andthen:clarify` skill; do not resolve a requirements question at FIS level.
-- **Implementation-blocking** → run preflight's own interview per `blocking-decision-interview.md`. One decision per question; offer a recommendation with a one-line rationale; wait for the user's answer. Use an interactive user input tool when available (e.g. `AskUserQuestion`), numbered markdown otherwise.
-- **Deferral** → a decision the user chooses to punt converges only with explicit **sign-off**; on sign-off it moves to a Deferred Decisions block and stops counting as blocking.
+- **Implementation-blocking** → run preflight's own interview per `blocking-decision-interview.md`.
+- **Deferral** → converges only with explicit user **sign-off**, per `decision-records.md` § Convergence.
 
 Persist each outcome immediately, by altitude, through the `andthen:ops` skill:
-- Local / reversible, or a signed-off deferral → `andthen:ops update-fis <fis_path> decision-note <decision_key> <resolved|deferred> <body>`.
-- Long-term-important non-ADR → `andthen:ops update-decisions still-current <topic> <decision-and-rationale>`.
-- Architecture-significant → ADR via the `andthen:architecture` skill (already handled in Step 3); not written by hand.
+- `fis-local`, or a signed-off deferral → `andthen:ops update-fis <fis_path> decision-note <decision_key> <resolved|deferred> <body>`.
+- `project-decision` → `andthen:ops update-decisions still-current <topic> <decision-and-rationale>`.
+- `adr` → already settled in Step 3; never hand-written.
 
 **Gate**: every blocking record resolved-in-place, settled, deferred-with-sign-off, or routed to `clarify`; each persisted at its altitude.
 
 ### 5. Cross-Story Consistency Sweep _(plan bundle only)_
 
-After per-FIS convergence, match decision records across stories by `decision_key + altitude + affected_surface`. When two stories resolved the same dimension to **conflicting** values, reopen the affected records as new `open` blocking decisions and re-converge the affected stories (back to Step 4) before any story status flips. This sweep is lightweight – it flags contradictions, it does not re-detect.
+After per-FIS convergence, run the cross-story sweep per `decision-records.md` § Plan-bundle identity matching; re-converge stories with reopened records (back to Step 4) before any story status flips.
 
 **Gate**: no cross-story contradiction remains open.
 
@@ -96,10 +94,7 @@ After per-FIS convergence, match decision records across stories by `decision_ke
 
 For a plan bundle, flip each converged story to `spec-ready`: `andthen:ops update-plan <plan_path> <story_id> spec-ready`. A story that still carries an open blocking record keeps its current status – update the clear ones as they pass, even when the bundle as a whole is blocked.
 
-Emit the verdict per the bare-line grammar (one resolved token, once):
-- `Preflight: READY` – zero open blocking decisions remain (single FIS, or every story in a bundle clear).
-- `Preflight: DEFERRED` – convergence reached, but one or more remaining decisions are signed-off deferrals (none still open/unresolved).
-- `Preflight: BLOCKED` – an unresolved blocking decision remains (single FIS), or at least one bundle story is non-clear, or `AUTO_MODE` ran with blocking decisions outstanding. Under `AUTO_MODE`, accompany it with the enumerated unresolved set.
+Emit the verdict per the bare-line grammar, with the READY/DEFERRED/BLOCKED conditions and bundle precedence from `decision-records.md` § verdict semantics.
 
 **Gate**: verdict emitted as a bare line-anchored single resolved token; bundle story statuses updated for every converged story.
 

@@ -6,16 +6,9 @@ user-invocable: true
 
 # Visualize Workflow Artifact
 
-Supported artifacts: PRD, `plan.json`, Feature Implementation Specification (FIS), `requirements-clarification.md`, product vision, review report (any `andthen:review` lens or `andthen:architecture --mode review` output), changeset walkthrough (`andthen:explain-changes` output), architecture trade-off report, architecture strategic-design report, architecture fitness-functions report, architecture decompose report, architecture event-storming report, and ADR.
-
 **Open-loop by design:** emit HTML, open browser, exit. The skill does not block waiting for user interaction.
 
 **Read-only by contract:** reads one artifact, writes a separate HTML review surface, never edits the source.
-
-## When to Use
-
-Use to eyeball any supported artifact before handing it to its consuming skill, or to verify one retrospectively.
-
 
 ## How to Use
 
@@ -25,7 +18,7 @@ Use to eyeball any supported artifact before handing it to its consuming skill, 
 4. Load the matching per-artifact template from `templates/` (one per detected type – filename mirrors the Detection-table type, e.g. `templates/prd.md`, `templates/event-storming.md`, except `product-vision` renders via `templates/clarification.md` and `architecture-review` via `templates/review-report.md`). `templates/diagrams.md` and `templates/js-helpers.md` are pulled in by those templates as needed.
 5. Generate a single self-contained HTML file at `.agent_temp/visual-review/<slug>-<timestamp>.html`. Resolve the path against the repo root (`git rev-parse --show-toplevel`) when inside a git working tree, falling back to CWD when there is no repo. `<slug>` is the basename without extension; `<timestamp>` is `YYYYMMDD-HHMMSS`.
 6. Open the file in the user's browser via the OS-detected command (see *Browser-Open Detection*).
-7. Print the output path and exit. Do not block on user interaction.
+7. Print the output path and exit.
 
 
 ## Artifact Type Detection
@@ -77,8 +70,8 @@ These are contracts. The HTML/CSS/JS that satisfies them lives in `templates/ren
 
 - **Single self-contained HTML file.** All CSS, JS, and SVG inlined. No external scripts, fonts, stylesheets, icons. Must work from `file://` with no network access.
 - **Warm light Anthropic-style theme;** use the theme tokens in `templates/render-shell.md`.
-- **Two-pane layout.** Left = scrollable artifact content; right = sticky sidebar holding the **Copy notes** button (top), section navigator with note-count badges, and a unified note list. The sidebar is always visible at viewports ≥1100px and collapses to a top drawer below that. *Why:* a floating-TOC-only layout hides nav on laptop widths and buries affordances where users miss them. *Exception:* `changeset-walkthrough` renders as a tabbed app via the bundled deterministic renderer (`scripts/render-changeset.mjs`, per `templates/changeset.md`), never hand-authored; its output already embeds the notes machinery and affordances.
-- **Static affordances, JS-attached handlers.** The `+ Note` button, `View source` toggle, and per-section note-count span MUST be present in the static HTML body of each `<section>`. JavaScript only attaches click handlers and renders the dynamic note list. *Why:* if JS fails, errors out, or is delayed, the user must still see *that* notes are possible. Empty `<div class="sec-actions"></div>` placeholders waiting for JS injection are a known regression – never ship them.
+- **Two-pane layout.** Left = scrollable artifact content; right = sticky sidebar holding the **Copy notes** button (top), section navigator with note-count badges, and a unified note list. The sidebar is always visible at viewports ≥1100px and collapses to a top drawer below that. *Why:* a floating-TOC-only layout hides nav on laptop widths and buries affordances where users miss them. *Exception:* `changeset-walkthrough` renders as a tabbed app via the bundled deterministic renderer (`templates/changeset.md`); its output already embeds the notes machinery and affordances.
+- **Static affordances, JS-attached handlers.** The `+ Note` button, `View source` toggle, `Copy section` button, and per-section note-count span MUST be present in the static HTML body of each `<section>`. JavaScript only attaches click handlers and renders the dynamic note list. *Why:* if JS fails, errors out, or is delayed, the user must still see *that* notes are possible. Empty `<div class="sec-actions"></div>` placeholders waiting for JS injection are a known regression – never ship them.
 - **Read-only render + section-anchored notes.** No structured editing. One Note affordance + one View-source toggle per H2 section. Diagrams do not get their own Note affordance – the parent section's Note covers any diagram inside it.
 - **Notes payload via clipboard.** "Copy notes" writes a markdown payload via `navigator.clipboard.writeText`; on failure, reveals a textarea with payload pre-selected for manual copy.
 - **LocalStorage persistence.** Notes survive refresh; "Restore previous notes?" prompt on reload when a matching prior session exists.
@@ -89,10 +82,7 @@ These are contracts. The HTML/CSS/JS that satisfies them lives in `templates/ren
 
 Each markdown H2 section, or plan virtual H2 section, dispatches to **one** specialized renderer (defined per artifact type in `templates/`) chosen by case-insensitive substring match on the heading. **Schema mismatch is the failure mode to avoid:** if a section's content does not fit a renderer's shape, fall back to **Generic Prose** (rendered markdown with `<h3>`/`<h4>`/`<p>`/`<ul>`/`<ol>`/`<table>`). Never repurpose a renderer for a different schema just because the heading sits in a similar position. Past renders have shipped Non-Functional Requirements as five empty `story-card` placeholders because the user-stories renderer was reused for a Category/Requirement/Threshold table.
 
-**Per-section schema contract (PRD-shaped artifacts).** Per-heading PRD renderer specs live in `templates/prd.md` → Section Renderers. Two rules are load-bearing here:
-
-- **Non-Functional Requirements** use the NFR rows renderer (Category/Requirement/Threshold), never the user-stories renderer.
-- When the source markdown's columns do not match the documented shape, fall back to **Generic Prose** rather than forcing unfamiliar columns into renderer slots.
+**Per-section schema contract (PRD-shaped artifacts).** Per-heading PRD renderer specs live in `templates/prd.md` → Section Renderers, plus one dispatch rule stated only here: **Non-Functional Requirements** use the NFR rows renderer (Category/Requirement/Threshold – markup in `templates/render-shell.md`), never the user-stories renderer.
 
 **Cross-artifact dispatch (renderers shared across templates).** Three structural renderers live in `templates/diagrams.md` and may be dispatched from any artifact's template based on the heading + source-shape conditions below. Heading-substring match still wins over shape detection; mapviz wins over walkthrough wins over flowchart for the same heading.
 
@@ -102,7 +92,7 @@ Each markdown H2 section, or plan virtual H2 section, dispatches to **one** spec
 | Plan | Story Catalog | Story cards; `.risk-map` links to story sub-anchors – see `templates/plan.md` |
 | Plan | Dependency Graph | Phase/wave lanes + dependency edge list; invalid `dependsOn` references surface inline – see `templates/plan.md` |
 | Plan | Shared Decisions / Binding Constraints / Risk Summary / Execution Notes | Card renderers from `templates/plan.md`; omit optional virtual sections when source arrays/strings are empty |
-| PRD | User Flows | (1) `mapviz` fenced block → Module Map · (2) 2–9 H3 substeps where **every** substep's stripped body char-count ≥ 50 → Walkthrough · (3) else → Flowchart. (Char count: strip whitespace and markdown markers, count Unicode code points – see `templates/prd.md`.) |
+| PRD | User Flows | (1) `mapviz` fenced block → Module Map · (2) 2–9 H3 substeps where **every** substep's stripped body char-count ≥ 50 → Walkthrough · (3) else → Flowchart. (Deterministic char-count rule: `templates/prd.md`.) |
 | PRD | Risks | Risk rows + `.risk-map` chips + `<details class="analysis">` collapse |
 | PRD | Edge Cases | Styled generic table (Scenario/Expected) |
 | PRD | Constraints & Assumptions | Two-column constraints/assumptions + dependency cards (H3 subsections + Dependency table) |
@@ -141,7 +131,7 @@ Each markdown H2 section, or plan virtual H2 section, dispatches to **one** spec
 
 **DDD relationship vocabulary** recognized in `mapviz` edge labels (annotated, not parsed for layout) is specified in `templates/strategic-design.md` and `templates/diagrams.md#module-map`.
 
-**Section-block wrapper is universal.** Every markdown H2, plus every plan virtual H2, produces a `<section class="card" id="{anchor}">` block with the standard affordances (Note button, View source toggle, count span) per the *Section Block* contract in `templates/render-shell.md` – that's true regardless of which renderer matched. The renderer choice only changes what fills `.card-body`. Generic Prose is **not** a permission to skip the wrapper or the affordances; it is a body-level fallback only.
+**Section-block wrapper is universal.** Every markdown H2, plus every plan virtual H2, produces a `<section class="card" id="{anchor}">` block with the standard affordances (Note button, View source toggle, Copy section button, count span) per the *Section Block* contract in `templates/render-shell.md` – that's true regardless of which renderer matched. The renderer choice only changes what fills `.card-body`. Generic Prose is **not** a permission to skip the wrapper or the affordances; it is a body-level fallback only.
 
 **Cross-cutting render components** – markup + CSS in `templates/render-shell.md` → *Cross-cutting Component Renderers*; the correctness rules that a model gets wrong without them:
 
@@ -210,12 +200,6 @@ Traps NOT covered by a contract above (full rule here):
 - **Dropping notes on copy success** → reset `notesDirty = false` but preserve `notes[]`. The user may keep editing.
 - **Customizing the `beforeunload` message** → don't bother, browsers ignore it.
 - **Hand-building HTML for diagrams from scratch each time** → use `templates/diagrams.md` for the coordinate math; it's the part most likely to be wrong.
-
-Failures that invert a contract above (see the named contract for the rule + why):
-
-- Reusing a renderer for a wrong schema → *Renderer Discipline*.
-- TOC hidden on narrow viewports → *Two-pane layout* (drawer, never `display:none`).
-- Slug-normalizing the payload heading → *Notes Payload Format* (verbatim H2 text).
 
 
 ## FOLLOW-UP ACTIONS

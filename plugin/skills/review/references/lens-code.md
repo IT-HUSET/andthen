@@ -1,9 +1,9 @@
 # Lens: Code Review
 
-Rubric for reviewing implementation, config, tests, and code changes. Load this reference when running `andthen:review --mode code` or when the Mixed mode's code sub-pass runs.
+Rubric for reviewing implementation, config, tests, and code changes. Load this reference when running the `andthen:review` skill with `--mode code` or when the Mixed mode's code sub-pass runs.
 
 ## Contents
-- Scope · Lenses (applicable subset) · Critic Sub-Lens · Calibration
+- Scope · Coverage Focus · Lenses (applicable subset) · Critic Sub-Lens · Calibration
 - Verification Evidence · Parallelization · Refactor Invariants · Large-Diff Fan-Out
 - Findings Output · Report Sections · Report Output Conventions
 
@@ -15,11 +15,18 @@ Implementation files (source code, config, tests). Determine scope from: explici
 Identify the project checks relevant to the review scope by inspecting the repo's existing automation surfaces first: package scripts, Make targets, Justfiles, CI workflows, language-native config files, or documented contributor commands. Prefer the narrowest commands that still give trustworthy signal for the changed scope.
 
 
+## Coverage Focus
+
+Before judging readiness, identify the code surfaces whose failure would matter: changed behavior, changed tests/proofs, public APIs, callers/consumers, integration seams, persistence/config boundaries, user-facing copy, trust boundaries, and project-rule surfaces. Each high-risk surface needs evidence and a falsifier. A code review that only reads the happy-path diff is incomplete.
+
+When any proof-bearing artifact changed – tests, parsers, validators, release registers, sign-off artifacts, generated artifacts, locale-paired content, migrations, workflows, or public APIs – run a **test-contract falsification** pass: name the bad state each important assertion should reject. Extra/duplicate/malformed rows, omitted locale siblings, stale copy, timezone boundaries, wrong fallback selection, and weak set/contains assertions are typical failures. If a test can pass while the protected behavior is wrong, record a finding even when the suite is green.
+
+
 ## Lenses (applicable subset)
 
 Run only the lenses that actually apply to the changed scope. Use the checklists under `../checklists/`:
 
-1. **Code quality** – [CODE-REVIEW-CHECKLIST.md](../checklists/CODE-REVIEW-CHECKLIST.md): correctness, edge cases, readability, naming, maintainability, performance, duplication
+1. **Code quality** – [CODE-REVIEW-CHECKLIST.md](../checklists/CODE-REVIEW-CHECKLIST.md): correctness, edge cases, readability, naming, maintainability, performance, duplication, and the baseline smell scan. Smells are heuristic findings, not hard violations; documented project standards override the baseline, and tooling-enforced issues stay with tooling.
 2. **Architecture** – [ARCHITECTURAL-REVIEW-CHECKLIST.md](../checklists/ARCHITECTURAL-REVIEW-CHECKLIST.md): pattern adherence, coupling/cohesion, CUPID, DDD where relevant, resilience/performance trade-offs. When the `Architecture` document (see **Project Document Index**) exists, use it as the system-shape baseline – flag changes that drift from documented component boundaries or patterns as architectural findings rather than code-quality nits.
 3. **Domain language** – [DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md](../checklists/DOMAIN-LANGUAGE-REVIEW-CHECKLIST.md) when the `Ubiquitous Language` document (see **Project Document Index**) exists: terminology consistency
 4. **UI/UX** – [UI-UX-REVIEW-CHECKLIST.md](../checklists/UI-UX-REVIEW-CHECKLIST.md) when UI changed: usability, responsiveness, accessibility, interaction quality
@@ -56,7 +63,7 @@ When invoked standalone, treat those checks as part of the review evidence. When
 
 ## Parallelization
 
-When the review applies two or more lenses from the list above and sub-agents are supported, delegate each applicable lens to a parallel sub-agent. Otherwise run the same lenses sequentially inline. The security awareness pass is light enough to run inline; deep security review runs in its own lens (`andthen:review --mode security`) and parallelizes there.
+When the review applies two or more lenses from the list above and sub-agents are supported, delegate each applicable lens to a parallel sub-agent. Otherwise run the same lenses sequentially inline. The security awareness pass is light enough to run inline; deep security review runs through the `andthen:review` skill with `--mode security` and parallelizes there.
 
 Total fan-out is N specialists **plus one** generalist Critic sub-agent (per *Critic Sub-Lens (Always On)* above) – the generalist adds to the parallel set, it does not displace a specialist.
 
@@ -68,7 +75,7 @@ When the diff matches any trigger in [`refactor-invariants.md`](refactor-invaria
 
 ## Large-Diff Fan-Out
 
-When the diff exceeds the threshold in [`large-diff-fanout.md`](large-diff-fanout.md) (≥20 files, ≥1000 LOC, 3+ top-level packages, or explicit `--fanout`), partition the diff into 2–5 vertical (feature/concern) slices – never horizontal layers – dispatch one lens sub-agent per partition, then run a boundary pass attacking cross-partition surface. Composes with `--council` and chain dispatch – see [`large-diff-fanout.md`](large-diff-fanout.md) for the partition strategy (and why horizontal slicing hides cross-layer invariants), partition × specialist accounting, and the concurrency model.
+When the diff exceeds the threshold or the review surface is semantically wide per [`large-diff-fanout.md`](large-diff-fanout.md), partition the diff into 2–5 vertical (feature/concern) slices – never horizontal layers – dispatch one lens sub-agent per partition, then run a boundary pass attacking cross-partition surface. Composes with `--council` and chain dispatch – see the fan-out reference for partition strategy and concurrency.
 
 
 ## Findings Output
@@ -109,6 +116,9 @@ Categorize findings using the unified severity scale from `review-verdict.md` (C
 - [UI/UX if applicable]: [Assessment]
 
 _Security awareness covers obvious smells only; defer to the security lens for depth when applicable._
+
+## Coverage Matrix
+[High-risk code/test surfaces with evidence, positive proof, falsifier attempted, result]
 
 ## Critic Coverage
 [Assumptions, unhappy paths, hidden coupling, guessed behavior, and incomplete wiring attacked. Required when Critic ran inline; concise when a sub-agent produced findings.]

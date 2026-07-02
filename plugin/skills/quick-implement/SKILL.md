@@ -11,7 +11,7 @@ argument-hint: "[--tdd] [--pr|--no-pr] [--auto] <spec | --issue <number>>"
 ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, `--issue`, `--auto`, or `--headless` before interpreting the remainder as the inline spec; `--pr`/`--no-pr` couple to input mode – see "PR behavior" under INSTRUCTIONS)
 
 ### Optional Flags
-- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts. Follow [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md), propagate `--auto` to nested AndThen skill invocations that accept it, and never pass `--auto` to the deterministic `andthen:ops` skill.
+- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts. Follow [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md).
 - `--tdd` → TDD_MODE: strict TDD execution mode for quick fixes. Write one test at a time, observe red, drive red→green→refactor, then advance to the next behavior. Canon is owned by the `andthen:testing` skill (`--mode tdd`), but the executor remains the test author (canon consultation, not delegation). If `AUTO_MODE` is inherited from an orchestrating caller, honor `--tdd` without confirmation gates.
 
 
@@ -62,7 +62,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--tdd`, `--pr`, `--no-pr`, `-
 
 ### Phase 2: Implementation Loop
 
-Execute: Implementation → Verification → Evaluation. Repeat until all requirements met, no defects, all reviews pass.
+Execute: Implementation → Verification → Evaluation. Repeat until the Phase 2 gate passes.
 
 #### Step 1: Implementation
 

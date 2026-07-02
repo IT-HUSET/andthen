@@ -6,5 +6,4 @@ Parse the legacy Story Catalog (markdown contract per [`data-contract.md`](${CLA
 
 - Map legacy statuses per the **Migration from legacy `plan.md`** section of *The Plan Schema*. Unrecognized values (e.g. `Retired`) → `"skipped"` with a durable `executionNotes` annotation: `Migrated from legacy plan.md: status "<old>" mapped to "skipped" for stories <id-list>.`
 - Preserve `fis` paths and statuses for rows whose `FIS` cell points at an existing file. FIS-unset rows get `fis: null`, `status: "pending"`.
-- Step 5 generates FIS only for `fis: null` stories.
 - After Step 4's `plan.json` write, emit: `Migrated plan.md → plan.json. plan.md is no longer consumed; delete when ready.` Do not auto-delete `plan.md`.

@@ -100,11 +100,7 @@ For each successful worktree branch in sequence:
 
    - `resolved` → proceed to step 2.
    - `failed` with `error_message` starting `precondition:` → Stop-the-Line. CWD drifted off `BASE_BRANCH` or main checkout is dirty / wrong repo. Investigate before any further merges.
-   - `failed` with `error_message` starting `guard:` → record `FAILED:{error_message}`, preserve worktree (the skill wrote `.andthen-fail-reason` so teardown classifies it as `UNMERGED:<branch>:<reason>`), continue with the next story.
-   - `failed` with `error_message` starting `squash:` → record `FAILED:{error_message}`, preserve worktree, continue. The skill has already rolled back the partial squash on the main checkout.
-   - `failed` with `error_message` starting `logic_conflict:` or `verification:` → record `FAILED:{error_message}` with `conflicted_files` and `resolution_summary` from the skill output. If the skill wrote `.agent_temp/merge-resolve-{STORY_ID}.patch`, include the path so the user can replay. Preserve worktree. Continue. The skill has rolled back the partial squash on the main checkout.
-   - `failed` with `error_message` starting `commit:` → record `FAILED:{error_message}`, preserve worktree, continue. The skill has rolled back the staged squash.
-   - `cancelled` → record `FAILED:cancelled` (harness STOP between steps), preserve worktree, continue. If cancellation happened after conflict detection, the skill has rolled back the partial squash on the main checkout.
+   - Any other `failed`, and `cancelled` (harness STOP between steps; record as `FAILED:cancelled`) → record `FAILED:{error_message}`, preserve the worktree, continue with the next story. The skill is all-or-nothing: `{BASE_BRANCH}` is already rolled back / unchanged on every such path. Additionally: `logic_conflict:` / `verification:` → also record `conflicted_files` and `resolution_summary` from the skill output, plus the replay-patch path `.agent_temp/merge-resolve-{STORY_ID}.patch` when the skill wrote it (user can replay); `guard:` / `squash:` → the worktree carries `.andthen-fail-reason`, so teardown classifies it `UNMERGED:<branch>:<reason>`.
 
 2. **Verify build** on `{BASE_BRANCH}` post-commit.
 
@@ -136,8 +132,6 @@ Run all five steps for one worktree before starting the next – sequential orde
 
 **Deferred-write commits land before the next wave's worktrees are created.** Single-repo: the Merge Wave step 4 commit must reach `{BASE_BRANCH}` before any Wave N+1 worktree exists. Do not parallelize.
 
-Worktree creation is bash-only (`create-worktree.sh`). Never `EnterWorktree` / `ExitWorktree` / `Agent({isolation:"worktree"})`.
-
 
 ## Status Updates Gate
 
@@ -147,7 +141,7 @@ Checklist source-of-truth by mode:
 - **Worktree** – primary writes come from the Merge Wave post-review "apply deferred shared writes" substep, not the worktree branch. Run the checklist after deferred writes commit (single-repo: from `{BASE_BRANCH}`; multi-repo: from `PLAN_DIR`). Miss → one-shot repair via `andthen:ops update-*`.
 - **No worktree** – `exec-spec` Step 5b writes status in-place; same as Step 3c; one-shot repair on miss.
 
-Also verify the **Plan Acceptance Gate** before `Done`: every FIS scenario/criteria checkbox is `[x]` (Final Validation Checklist when present), implementation observations present when the FIS narrowed scope, `review-*` task completed without accepted **Fix-routed** findings (accepted Note-routed findings are recorded as surfaced notes, not a gate).
+Also verify the **Plan Acceptance Gate** before `Done`: every FIS scenario/criteria checkbox is `[x]` (Final Validation Checklist when present), implementation observations present when the FIS narrowed scope, `review-*` task completed without accepted **Fix-routed** findings.
 
 Pass → record in the ledger's `completed` list.
 

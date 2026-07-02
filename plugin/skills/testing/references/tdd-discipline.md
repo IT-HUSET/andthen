@@ -13,7 +13,7 @@ Home mode: `tdd`. Also used whenever a test drives *new* behavior.
 - What collaborators does it actually need?
 - What seams must exist for a test to observe behavior?
 
-Hard-to-test code is coupled code. See `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` §"Testability as Architecture Proxy". If a unit needs heavy mocks, shared state, or reflection to exercise, the architecture is the problem – not the test.
+Hard-to-test code is coupled code. See `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` §"Testability as Architecture Proxy".
 
 
 ## The loop

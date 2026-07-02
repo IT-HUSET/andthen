@@ -102,20 +102,7 @@ For "big ball of mud" codebases with no discernible structure.
 
 ## Anti-Patterns
 
-### The Entity Trap
-Decomposing by data entity (UserService, OrderService, ProductService) instead of business capability.
-- **Symptoms**: Most requests touch 3-5 services; business logic in API gateways; high fan-in to entity services
-- **Fix**: Decompose by capability and workflow using DDD bounded contexts
-
-### Distributed Monolith
-Split but still coupled.
-- **Symptoms**: Coordinated deployments, shared database, chatty inter-service calls, can't deploy independently
-- **Root cause**: Split without severing the architectural quantum
-
-### Microservices Premium
-The fixed cost of running any distributed architecture – tracing, latency, service discovery, serialization, operational complexity.
-- **Only justified when**: independent scaling, deployment, or team autonomy is actually needed and measurable
-- **Not justified when**: team < 8 engineers, domain unclear/greenfield, no independent scaling needed
+Entity Trap, Distributed Monolith, and Microservices Premium are cataloged with symptoms, root causes, and fixes in `anti-patterns.md` – check them before recommending any split. The premium is only justified when independent scaling, deployment, or team autonomy is actually needed and measurable.
 
 ---
 
@@ -193,7 +180,7 @@ For each split candidate, check all four:
 
 ## DDD Bounded Contexts
 
-A bounded context is a linguistic boundary – within it, all terms have a single unambiguous meaning. Each bounded context maps to at most one architectural quantum. Context maps are **logical**: they apply equally to microservices and to modules inside a modular monolith.
+Each bounded context maps to at most one architectural quantum; full bounded-context treatment (linguistic boundary, logical context maps) in `ddd.md` §1.2.
 
 ### Context Mapping Patterns
 

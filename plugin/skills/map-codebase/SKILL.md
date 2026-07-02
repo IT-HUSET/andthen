@@ -16,8 +16,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
-- **Read-only analysis** – No code changes, commits, or modifications
-- **Delegate heavily** – Spawn parallel sub-agents for codebase analysis
+- **Read-only source analysis** – no source-code changes or commits; documentation outputs and agent-instruction Conventions updates are the only expected writes
 - **Structured output** – All documents follow templates from `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`
 - **Discovery, not invention** – Document what exists, don't prescribe what should exist
 

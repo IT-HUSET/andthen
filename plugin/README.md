@@ -77,7 +77,7 @@ Use these individually for everyday development – no setup, no pipeline, no pr
 | `triage` | Investigate, diagnose, and fix build failures, config errors, runtime bugs, regressions, and test failures (`--plan-only` for a fix plan without applying; `--issue` reads a GitHub issue as scope; `--to-issue` files the diagnosis) |
 | `quick-implement` | Fast path for small features/fixes – implement + verify, bypassing the FIS workflow (`--tdd` strict red-green-refactor; `--issue` reads a GitHub issue → auto-PR; `--pr` / `--no-pr` control PR creation; `--auto` runs without prompts) |
 | `quick-review` | Quick in-conversation sanity-check via fresh-context Critic sub-agent; loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; routes accepted findings into **Fix** (mechanical/bounded correction needing no design decision, confidence ≥ 75, primary scope – by fix character, not defect severity) and **Note** buckets so `--fix` only auto-applies the former; emits the finding `Class:` axis (`code-defect`/`spec-stale`/`design-changed`/`ambiguous-intent`) so per-story drift is reconciliation-ledger-writable; reports Guardrails Coverage for diff-verifiable project rules |
-| `review` | Smart review entrypoint: runs a single lens (`code`, `doc`, `gap`, `security`) or a comma-separated chain (`--mode gap,code,security`) where each lens runs independently and findings consolidate into one `mixed`-mode report; optional structured multi-perspective council review (`--council` – within-lens specialist debate on `code` / `security`, plus a cross-lens Critic + Devil's Advocate + Synthesis Challenger pass on any chain of 2+ lenses that surfaces lens-boundary contradictions and silence-licenses-risk in a `## Cross-Lens Synthesis` section); loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; classifies accepted findings as `code-defect`, `spec-stale`, `design-changed`, or `ambiguous-intent`; routes defects into **Fix** by **fix character, not defect severity** (confidence ≥ 75, primary scope, no scope expansion past Intent, and a mechanical/bounded correction needing no product/design/architecture/requirements decision – so a bounded MEDIUM/LOW fix is Fix-eligible while a design-judgment gap stays Note at any severity; security fixes only when the secure correction is mechanical) and decision/reconciliation findings into **Note**; routes `spec-stale` / `design-changed` findings to spec amendment + ADR reconciliation; loads the reconciliation ledger and matches findings by stable ID (`{path}:{class}`) – OPEN reconciliation-class matches become tracked Notes (only `code-defect` feeds the gap verdict, so known drift can't drag it to FAIL), withdrawn/closed matches stay suppressed unless new evidence refutes the recorded falsifier, and unreconciled recurrence escalates once to a blocking `RECONCILE REQUIRED`; emits a CONVERGED stopping signal (no new `code-defect` ≥ MEDIUM) and a machine-stable `Auto-Remediation: PENDING/STALLED/CLEAR` loop-control signal (bare line-anchored grammar) beside the unchanged byte-level `## Verdict` block, so a converging review→remediate loop branches on the auto-applicable set instead of the raw verdict (and not on a re-derived severity count); emits Guardrails Coverage with per-finding rule citations; on refactor-shaped diffs (deletion, rename, lifecycle move, cache, codegen, schema migration, parameter threading) the `code`/`gap` lenses run a cross-file refactor-invariants pass; `--fanout` / `--no-fanout` force partition-based sub-agent fan-out for `code`/`gap` (auto on ≥20 files, ≥1000 LOC, or 3+ packages – partitions into vertical slices + a cross-partition boundary pass); `--visual` delegates the consolidated report to the `andthen:visualize` skill for severity-coded triage |
+| `review` | Smart proof-led review entrypoint: runs one lens (`code`, `doc`, `gap`, `security`) or a chain that consolidates into one `mixed` report; every report includes a Coverage Matrix with evidence, positive proof, falsifier attempted, and result for primary surfaces. Test/sign-off artifacts get explicit test-contract falsification; code reviews include the named smell baseline. Optional `--council` adds multi-perspective review; `--fanout` / auto fan-out split semantically wide or large `code`/`gap` surfaces into vertical slices with a boundary pass. Findings keep structured fields plus `Class:` (`code-defect`/`spec-stale`/`design-changed`/`ambiguous-intent`) and `Routing: Fix|Note`; `--fix` sends only Fix-routed findings to the `andthen:remediate-findings` skill. Emits Guardrails Coverage, CONVERGED, and machine-stable `Auto-Remediation: PENDING/STALLED/CLEAR`; `--visual` delegates to the `andthen:visualize` skill |
 | `explain-changes` | Explain a PR, branch, ref range, or working tree as a **Changeset Walkthrough** – changes untangled into intent clusters (behavior / refactor / config / tests / docs), ordered narratively, with key diff hunks, per-file risk tags (`attention`/`medium`/`safe`), an architectural-delta module map, reviewer focus points, scope boundary, and verification status – then rendered by the `andthen:visualize` skill as a tabbed interactive app via its bundled deterministic renderer, identical on every agent (Overview change-mosaic + cluster cards · guided cluster Tour with docked module map · Files table with filters and directory sunburst · zoomable Architecture module map; needs Node ≥18, plain-document fallback otherwise; default on, `--no-visual` skips). Comprehension only – no findings, no verdict (use `review` for judgment). Read-only: `--from-pr <N>` reads via `gh` without checkout; `--to-pr [<N>]` posts the walkthrough markdown as a PR comment (number from the flag, `--from-pr`, or the current branch's open PR; splits at the 65,536-char limit); `--auto` for unattended runs. Artifact: `.agent_temp/walkthrough/<slug>-walkthrough-<date>.md` |
 | `simplify-code` | Behavior-preserving code simplification and cleanup; loads Intent Context when present and drops cleanups that contradict Non-Goals, implement deferred outcomes, or restructure code the FIS explicitly chose a shape for (Boy Scout cleanup is intent-bounded, not just behavior-preserving) |
 | `refactor` | Deprecated – redirects to `simplify-code` with args forwarded verbatim; `--auto` suppresses only the deprecation notice |
@@ -126,23 +126,27 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 
 ## Usage Examples
 
+**You rarely need the flags.** Most examples below can be expressed in plain language – describe what you want and the skill routes it (mode-driven skills like `architecture`, `ui-ux-design`, and `review` infer the mode/lens from your phrasing; a menu appears only when the intent is genuinely ambiguous). The flag form is shown as the explicit equivalent. The exceptions are deliberate opt-ins that are **never** inferred from phrasing because they cost tokens, write, or post externally – `--council`, `--team`, `--worktree`, `--fix`, `--to-pr`, `--to-issue`. Reach for those explicitly.
+
 ### Standalone
 
 ```bash
 # Debug and fix a broken build
 /andthen:triage
 
-# Quick feature or bug fix from a GitHub issue
+# Quick feature or bug fix from a GitHub issue ("fix issue 123" → note: --issue auto-opens a PR)
 /andthen:quick-implement --issue 123
 
 # Sanity-check what you just built (mid-conversation)
 /andthen:quick-review
 
-# Review current changes, a PR, or a spec/plan
-/andthen:review
-/andthen:review --from-pr 42 --to-pr 42
+# Review current changes, a PR, or a spec/plan – say what to review, or name the lens
+/andthen:review                                       # current changes, lens auto-detected
+/andthen:review "does this match the spec?" <path>    # → gap lens
+/andthen:review "review PR 42"                        # → --from-pr 42 (read-only)
 /andthen:review --mode doc docs/specs/my-feature/plan.json
 /andthen:review --mode gap,code,security        # chain lenses → one consolidated report
+/andthen:review --from-pr 42 --to-pr 42         # --to-pr posts on the PR (explicit opt-in)
 
 # Understand a PR or branch before reviewing it – interactive HTML walkthrough
 /andthen:explain-changes --from-pr 42
@@ -152,13 +156,14 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 # Simplify messy code
 /andthen:simplify-code src/utils/
 
-# Trade-off analysis – evaluate architectural options, compare alternatives, write an ADR
-/andthen:architecture --mode trade-off "caching strategy for API responses"
+# Trade-off analysis – naming the intent routes the mode; no --mode needed
+/andthen:architecture "compare caching strategies for API responses"   # → trade-off mode
+/andthen:architecture --mode trade-off "caching strategy for API responses"   # explicit equivalent
 
 # Architecture health check
-/andthen:architecture src/
+/andthen:architecture src/                      # → review mode (default)
 
-# Multi-perspective review with adversarial debate
+# Multi-perspective review with adversarial debate (explicit opt-in – spends tokens/agents)
 /andthen:review --council
 
 # Understand a new codebase
@@ -188,30 +193,36 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 
 #### Architecture Modes
 
+The mode is inferred from your phrasing – you only need `--mode` to force a mode or when the intent is genuinely ambiguous (then the skill presents the menu). Each line below shows the natural phrasing; the `→ mode` comment is what it resolves to.
+
 ```bash
-# Interactive – presents modes and asks what you want to do
+# No mode, no scope → presents the mode menu (only when genuinely ambiguous)
 /andthen:architecture
 
 # Full architecture health assessment
-/andthen:architecture --mode review src/
+/andthen:architecture "assess the health of" src/                         # → review
+/andthen:architecture src/                                                # → review (default)
 
 # Evaluate a split/merge decision
-/andthen:architecture --mode decompose src/core
+/andthen:architecture "should I split" src/core                           # → decompose
 
 # Propose fitness functions for architectural governance
-/andthen:architecture --mode fitness
+/andthen:architecture "propose fitness functions for governance"          # → fitness
 
 # Design/advisory guidance grounded in CUPID, DDD, and architectural frameworks
-/andthen:architecture --mode advise "should I use event sourcing for the order domain"
+/andthen:architecture "should I use event sourcing for the order domain?"  # → advise
 
-# Trade-off analysis – compare options with weighted criteria, produce an evidence-based recommendation and ADR (default; opt out with "No ADR" at Step 5)
-/andthen:architecture --mode trade-off "SQL vs document DB for the events store"
+# Trade-off analysis – compare options with weighted criteria, produce an evidence-based recommendation and ADR
+/andthen:architecture "compare SQL vs document DB for the events store"   # → trade-off
 
-# Strategic design – subdomain classification, bounded contexts, context map, UL touchpoints (greenfield + brownfield)
-/andthen:architecture --mode strategic-design "order fulfillment domain"
+# Strategic design – subdomain classification, bounded contexts, context map, UL touchpoints
+/andthen:architecture "model the order fulfillment domain"                # → strategic-design
 
 # Event storming – Brandolini-style discovery of pivotal events, hotspots, and subdomain candidates
-/andthen:architecture --mode event-storming "loan origination workflow"
+/andthen:architecture "event storming for the loan origination workflow"  # → event-storming
+
+# Force a specific mode explicitly (equivalent to the inferred forms above)
+/andthen:architecture --mode decompose src/core
 
 # Pin the report destination (any mode) – tier-1 override of the report-location resolver
 /andthen:architecture --mode review src/ --output-dir docs/reviews/
@@ -223,18 +234,22 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 
 #### Multi-Perspective Review
 
+`--council`, `--fanout`, and `--team` are explicit opt-ins – phrasing never triggers them (they spend tokens/agents). Phrasing still picks the *lens* inside a council; the flag just opts into the council itself.
+
 ```bash
 # Adaptive review - analyzes scope and selects 5-7 relevant reviewers
 /andthen:review --council
 
-# Review specific PR with council
-/andthen:review --from-pr 123 --to-pr 123 --council
+# Review specific PR with council (PR read from NL; --to-pr posts back, explicit)
+/andthen:review "review PR 123" --council
+/andthen:review --from-pr 123 --to-pr 123 --council      # explicit + post findings on the PR
 
-# Deep security review with multi-perspective council
-/andthen:review --mode security --council
+# Deep security review with multi-perspective council (NL picks the lens, flag opts into council)
+/andthen:review "security review" --council
+/andthen:review --mode security --council                # explicit equivalent
 
-# Force partition-based fan-out on a large diff (auto-triggers at ≥20 files /
-# ≥1000 LOC / 3+ packages); --no-fanout forces inline when latency matters
+# Force partition-based fan-out (auto-triggers on a large or semantically wide
+# surface – see the review skill's large-diff-fanout triggers); --no-fanout forces inline
 /andthen:review --mode code --fanout
 
 # Chain + council – per-lens reviews plus a cross-lens Critic pass over the
@@ -283,9 +298,10 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 # 1. Clarify requirements (optional)
 /andthen:clarify "dashboard for analytics"
 
-# 2. Optional: create design assets
-/andthen:ui-ux-design --mode wireframes
-/andthen:ui-ux-design --mode design-system
+# 2. Optional: create design assets (mode inferred from phrasing, or forced with --mode)
+/andthen:ui-ux-design "wireframe the dashboard screens"    # → wireframes
+/andthen:ui-ux-design "create a design system" <reqs>      # → design-system
+/andthen:ui-ux-design --mode wireframes                    # explicit equivalent
 
 # 3a. Create the PRD
 /andthen:prd docs/specs/dashboard/
@@ -313,7 +329,7 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 /andthen:review --mode gap
 ```
 
-**GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --from-pr` and `explain-changes --from-pr` read a PR as scope; `review --to-pr`, `architecture --to-pr`, and `explain-changes --to-pr` post reports as PR comments. Everything else is local – use a branch + PR as the transport.
+**GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --from-pr` and `explain-changes --from-pr` read a PR as scope (also inferable from NL – "review PR 42"); `review --to-pr`, `architecture --to-pr`, and `explain-changes --to-pr` post reports as PR comments. The read-only side (`clarify`/`prd`/`plan`/`triage --issue`, `review`/`explain-changes --from-pr`) is safe to infer from phrasing; anything that writes or publishes is always an explicit flag, never triggered by phrasing – this includes `--to-issue`, `--to-pr`, and `quick-implement --issue` (which opens a PR with `Closes #N`, so despite reading an issue it is not phrasing-inferable). Everything else is local – use a branch + PR as the transport.
 
 ## Working in a Team
 

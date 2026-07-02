@@ -29,5 +29,5 @@ Use the Intent Context to sharpen, not soften, the find pass: gaps between Expec
 
 ## Output
 
-Report findings as a concise list using the **Finding Shape** from `lens-adversarial.md` (reviewer, severity, confidence, location, scope relation, finding, threatened assumption or invariant, evidence, impact, suggested fix, verification needed). No preamble, no summary section, no severity table. If no weakness survives the attack, say so explicitly using the wording in that file's Review Instructions. Include the `Guardrails Coverage` line and any guardrail-violation findings (cited by rule source) inline with the rest.
+Report findings as a concise list using the **Finding Shape** from `lens-adversarial.md`. No preamble, no summary section, no severity table. If no weakness survives the attack, say so explicitly using the wording in that file's Review Instructions. Include the `Guardrails Coverage` line and any guardrail-violation findings (cited by rule source) inline with the rest.
 ```

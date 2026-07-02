@@ -63,7 +63,7 @@ For **security-mode councils**, always include **Security Sentinel** and choose 
 
 For **code-mode councils**, select 2-4 specialists matched to the code-lens applicable subset: correctness, architecture, product/requirements, tests, project standards, UI/UX, prompt/agent workflow, or performance. Security Sentinel is optional in code mode because the code lens runs only thin security awareness; use a security-mode council for depth.
 
-When a chain runs council on both lenses, the rosters may differ, but each council keeps the Critic / Devil's Advocate / Synthesis Challenger spine. Specialist find-passes for both lenses dispatch together in the chain's single flat batch (SKILL.md Step 4 *Chain*) – they have no cross-lens data dependency; only the per-lens filter (Devil's Advocate → Synthesis Challenger) and the cross-lens pass (§ Cross-Lens Chain Mode) have ordering constraints.
+When a chain runs council on both lenses, the rosters may differ, but each council keeps the Critic / Devil's Advocate / Synthesis Challenger spine. Specialist find-passes for both lenses dispatch together in the chain's single flat batch (SKILL.md Step 3 *Run Find-Passes*) – they have no cross-lens data dependency; only the per-lens filter (Devil's Advocate → Synthesis Challenger) and the cross-lens pass (§ Cross-Lens Chain Mode) have ordering constraints.
 
 **Gate:** 5-7 reviewers selected per lens.
 
@@ -76,12 +76,14 @@ Both the Agent Teams path (§3a) and the sub-agent path (§3b) pass this read-fi
 {framing line – see §3a / §3b}
 Lens: {code|security}
 
+Coverage plan (Step 2 surfaces and falsifiers to attack in your focus area): {coverage plan slice}
+
 Read the relevant lens rubric before reviewing:
 - code council: references/lens-code.md
 - security council: references/lens-security.md
 - Critic Reviewer: ${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md plus ${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md and ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md
 
-Apply your persona and the Critic posture inside your focus area. Return findings using the Structured Finding Contract from council-mode.md. If clean, return the concrete assumptions, flows, failure paths, and surfaces you attacked.
+Apply your persona and the Critic posture inside your focus area, covering the assigned coverage-plan surfaces. Return findings using the Structured Finding Contract from council-mode.md. If clean, return the concrete assumptions, flows, failure paths, and surfaces you attacked.
 ```
 
 

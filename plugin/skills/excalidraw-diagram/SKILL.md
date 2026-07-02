@@ -28,7 +28,7 @@ OUTPUT_DIR: $2 (defaults to `<project_root>/docs/diagrams/` if not provided)
 
 ## GOTCHAS
 
-- **Uniform grid = AI-aesthetic failure** – 6+ shapes with identical `(type, width, height, backgroundColor)` is the defining generic look. Apply the Anti-Uniformity Rule from the style guide: anchor shape every 3–4 items, alternating row heights, or an evidence artifact insertion.
+- **Uniform grid = AI-aesthetic failure** – 6+ shapes with identical `(type, width, height, backgroundColor)` is the defining generic look. Apply the Anti-Uniformity Rule (rhythm breakers) from the style guide.
 - **Implied connections** – Phase headers sitting above their children, or two boxes near each other, communicate nothing. Every relationship needs an **explicit arrow** or a line+text tree structure.
 - **Label shorthand vs portable form** – the `label` form is render-only; export via `window.getConvertedJSON()` before saving (Phase 5 owns the contract), or the file opens as empty boxes in `app.excalidraw.com`.
 - **Arrow routing** – arrows crossing through elements. Add intermediate waypoints in the `points` array.
@@ -78,7 +78,7 @@ Pick an archetype from `references/composition-playbook.md` (Pipeline, Architect
 9. **Evidence artifacts** – count (technical diagrams: at least 1; ratio ~1 per 4–6 abstract nodes).
 10. **Rhythm breakers** – how you avoid a uniform grid for any category with ≥ 6 items (anchor upsize / alternating row heights / evidence insertion).
 
-**Gate**: The contract is written. The diagram has a clear narrative, chosen archetype, locked axis, named hero, committed size cascade, shape vocabulary, zone plan, canvas size, evidence artifact count, and anti-uniformity strategy.
+**Gate**: The contract is written in plain text – all 10 items committed.
 
 
 ### Phase 2: Generate JSON
@@ -90,7 +90,7 @@ Read, in this order:
 3. `references/element-format.md` – JSON shape, label auto-sizing math, font metrics
 4. `references/composition-playbook.md` – archetype recipes and the Pattern Catalog
 
-These files are the source of truth for visual styling, JSON shape rules, and design quality. Your Layout Contract from Phase 1.5 keyed off them; now you are executing it.
+These files are the source of truth for visual styling, JSON shape rules, and design quality.
 
 #### 2.2 Create Base File
 Write the initial `.excalidraw` document to _`OUTPUT_DIR`_:
@@ -136,10 +136,8 @@ Resolve the absolute path to `references/render_template.html`.
 agent-browser open "file://<absolute-path-to-skill>/references/render_template.html"
 
 # 2. Wait up to 60s for the Excalidraw ES-module graph to resolve from esm.sh.
-#    The template sets window.__moduleReady = true once ready. The default
-#    agent-browser wait timeout is 25s, a cold ESM load can take 30s+, and
-#    neither AGENT_BROWSER_DEFAULT_TIMEOUT nor any --timeout flag is honored
-#    by `wait --fn`. Poll the readiness flag directly:
+#    The template sets window.__moduleReady = true once ready. Poll it directly –
+#    see the ES-module readiness race GOTCHA (`wait --fn` ignores timeout overrides):
 for i in $(seq 1 60); do
   [[ "$(agent-browser eval 'String(window.__moduleReady)' 2>/dev/null)" == '"true"' ]] && break
   sleep 1
@@ -181,7 +179,7 @@ Use the **Read** tool on the PNG. Check against design vision (visual structure 
 #### 3.5 Fix & Re-render
 Edit the JSON to fix issues, then re-inject and re-screenshot using the same inject+screenshot block as Phase 3.2 (agent-browser keeps the page open).
 
-Typically 2–4 iterations. After each re-render, run `window.lintLayout()` again – the counts should monotonically decrease. Use the same re-render block in Phase 4 as needed.
+Typically 2–4 iterations. After each re-render, run `window.lintLayout()` again – the counts should monotonically decrease.
 
 **Gate**: The PNG is readable, balanced, and free of obvious layout defects
 
@@ -207,7 +205,7 @@ Invoke the `andthen:visual-validation` skill in a sub-agent with the latest PNG,
 
 ### Phase 5: Output (MANDATORY – Portable Save)
 
-Save the **portable / expanded** form to `<name>.excalidraw`, plus the PNG. The file you wrote in Phase 2.2 used the `label` shorthand (see GOTCHAS), which breaks every other consumer – most notably `app.excalidraw.com`, which shows empty shapes and clipped text.
+Save the **portable / expanded** form to `<name>.excalidraw`, plus the PNG – the file written in Phase 2.2 uses the render-only `label` shorthand (see GOTCHAS).
 
 Export the expanded form:
 

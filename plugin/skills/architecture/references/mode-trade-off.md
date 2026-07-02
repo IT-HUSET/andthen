@@ -66,7 +66,7 @@ Choose only the criteria that matter for this decision. Typical examples:
 - Cost and time-to-market
 - Team fit and long-term viability
 
-**Present a proposed weighting table** (criterion + suggested weight + one-line rationale) **and the candidate-options list** back to the user, and **ask them to confirm or adjust** before Step 3 deep research begins. Wait for the response. Wrong criteria/weights → wrong recommendation.
+**Present a proposed weighting table** (criterion + suggested weight + one-line rationale) **and the candidate-options list** back to the user, and **ask them to confirm or adjust** before Step 3 deep research begins. Wait for the response.
 
 ## Step 2 – Design It Twice _(optional)_
 

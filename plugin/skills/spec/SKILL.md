@@ -26,7 +26,6 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--he
 - The executor only gets the context you provide – include all needed documentation, examples, and references.
 - Read the `Learnings` document (see **Project Document Index**) before starting, if it exists.
 - **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Spec-specific `BLOCKED:` triggers: missing input, unreadable sources, incompatible artifacts, ambiguity where no defensible FIS can be written.
-- **Visual review is a post-self-review handoff.** Run only when `--visual` is present (same in `AUTO_MODE`). Complete the normal FIS save, self-review, and any plan-status updates for plan-story inputs first, then invoke the `andthen:visualize` skill on the produced FIS.
 
 
 ## GOTCHAS
@@ -35,15 +34,11 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--he
 
 **Scenarios before intent** – Step 3 (Intent + Expected Outcomes) must precede Step 4 (Acceptance Scenarios). Without outcomes named first, scenarios drift into implementation paths rather than success conditions.
 
-**Undefined behavior** – surface ambiguity and missing requirements per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:`, `NOTICED BUT NOT TOUCHING:`, `MISSING REQUIREMENT:`. In `AUTO_MODE`, choose the most conservative defensible option and record it as an FIS assumption; if none exists, stop with `BLOCKED:` listing the minimum missing decisions.
+**Undefined behavior** – surface ambiguity and missing requirements per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `CONFUSION:`, `NOTICED BUT NOT TOUCHING:`, `MISSING REQUIREMENT:`. In `AUTO_MODE`, apply that reference's override, recording the conservative choice as an FIS assumption.
 
-**Code changes instead of outcomes** – tasks state what must be TRUE when done, not what code to write. Bad: "Create lib/auth.ts with login() and logout()". Good: "Auth module with login/logout; follow pattern at lib/users.ts#getUser".
+**Implementation-shaped specs** – tasks state what must be TRUE when done, not what code to write; Given/When/Then asserts observable behavior, not internal code steps; every criterion carries a concrete verify check (if you can't write the **Then**, you don't understand the requirement yet). Shape rules and worked bad/good examples: *Key Generation Guidelines* and *Scenario Authoring Principles* in [the authoring guidelines](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) (referenced below as *The Authoring Guidelines*).
 
-**Unverifiable acceptance criteria** – every criterion needs a concrete verify command or observable check. If you can't write the scenario's **Then** clause, you don't understand the requirement yet.
-
-**Scenarios that describe implementation, not behavior** – Given/When/Then describes observable outcomes, not internal code steps. Bad: "Given a new AuthService class, When login() is called...". Good: "Given valid credentials, When the user submits login, Then a session token is returned."
-
-**Over-researching** – this skill inlines load-bearing upstream spans into Required Context; it is not a new research pass. A 30-line minimal FIS is fine; a spec that reads like a diff is too detailed. Size threshold and oversize handling: see *Key Generation Guidelines #7* in [the authoring guidelines](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) (referenced below as *The Authoring Guidelines*).
+**Over-researching** – this skill inlines load-bearing upstream spans into Required Context; it is not a new research pass. A 30-line minimal FIS is fine; a spec that reads like a diff is too detailed. Size threshold and oversize handling: see *Key Generation Guidelines #7* in *The Authoring Guidelines*.
 
 **Generic "What We're NOT Doing"** – record real non-goals or deferrals with reasons, not filler.
 
@@ -79,19 +74,12 @@ Do **not** invoke architecture / UI / documentation-lookup sub-agents from spec.
 
 ### 3. Articulate Intent and Expected Outcomes
 
-Lock down the FIS's intent anchor *before* writing scenarios – outcomes are what Step 4 tags into. For plan-story or clarify-output inputs, distil intent and outcomes from the upstream goal/value statement and the story's scope. See *Feature Overview and Goal Authoring* in *The Authoring Guidelines*.
-
-- **Intent** – one sentence: why this feature exists, the problem it solves or the user/business value it unlocks.
-- **Expected Outcomes** – 2-4 user- or business-observable success conditions, each `[OC<NN>]`-tagged.
+Read *The Authoring Guidelines* now – Steps 3-5 follow them. Lock down the FIS's intent anchor *before* writing scenarios – outcomes are what Step 4 tags into. For plan-story or clarify-output inputs, distil intent and outcomes from the upstream goal/value statement and the story's scope. Intent and Expected Outcome definitions and `[OC<NN>]` tagging: *Feature Overview and Goal Authoring* in *The Authoring Guidelines*.
 
 
 ### 4. Write Acceptance Scenarios
 
-Concrete BDD examples (Given/When/Then) serving triple duty: requirement, test specification, proof-of-work contract. Each tags the Expected Outcome(s) it exemplifies via `[OC<NN>]`, closing the Intent → Outcomes → Scenarios chain. Order: happy path, edge cases, error cases. 3-7 scenarios. After drafting, apply the **negative-path checklist** from *The Authoring Guidelines* (omitted optional inputs, no-match selectors/filters, rejection paths). See *Scenario Authoring Principles* and *Feature Overview and Goal Authoring* (Outcome ↔ Scenario coverage rule).
-
-**Canonical scenario shape** per *Acceptance Scenarios and Proof-of-Work* in *The Authoring Guidelines*: top-level checkbox with bold scenario-ID label carrying outcome-tag set then task-tag set, followed by nested Given/When/Then. The template carries the worked examples.
-
-**Proof-of-work**: every scenario's nested Given/When/Then IS the proof contract; Structural Criteria use task Verify lines.
+Concrete BDD examples (Given/When/Then) serving triple duty: requirement, test specification, proof-of-work contract. Each tags the Expected Outcome(s) it exemplifies via `[OC<NN>]`, closing the Intent → Outcomes → Scenarios chain. After drafting, apply the **negative-path checklist** from *The Authoring Guidelines*. Ordering, count, canonical checkbox shape, and proof-of-work semantics: *Acceptance Scenarios and Proof-of-Work* and *Scenario Authoring Principles* there, plus the Outcome ↔ Scenario coverage rule in *Feature Overview and Goal Authoring*; the template carries the worked examples.
 
 
 ### 5. Generate FIS
@@ -101,18 +89,18 @@ Concrete BDD examples (Given/When/Then) serving triple duty: requirement, test s
 - `Stack` document (see **Project Document Index**) when present – language, framework, runtime, DB, and testing-library baseline; FIS Approach, Code Patterns, and Testing Strategy must align with it
 - UI wireframes/mockups; design system references; external documentation URLs
 - `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions
-- For plan-story inputs: `sharedDecisions` and `bindingConstraints` arrays from `plan.json` (when non-empty) – `bindingConstraints[].verbatim` PRD spans become Required Context blocks with the entry's `anchor` as the source pin
+- For plan-story inputs: `sharedDecisions` and `bindingConstraints` handling per Step 0
 
 #### Resolve Cross-Document References
 
 Walk every upstream document the spec depends on, sorting each reference into **Required Context** (load-bearing spans inlined verbatim) or **Deeper Context** (anchored pointers) per *Cross-Document References* in *The Authoring Guidelines*. The walk is mandatory; both sections are conditional – omit either when the walk surfaces nothing for it.
 
 #### Generate from Template
-Use the template in the **Appendix** below. Then read and follow *The Authoring Guidelines*.
+Use the template in the **Appendix** below and follow *The Authoring Guidelines*.
 
 Canonical shape:
 
-- `## Acceptance Scenarios` – canonical checkbox shape from Step 4 (no `### S<NN>` headers).
+- `## Acceptance Scenarios` – canonical checkbox shape per *The Authoring Guidelines* (no `### S<NN>` headers).
 - `## Structural Criteria` – non-behavioral proof requirements (regression guards, invariants); each proved by a task Verify line.
 - `### Work Areas` under `## Scope & Boundaries` – 3-7 bullets inventorying components, files, or surfaces changed. Each Work Area maps to ≥1 task or scenario.
 - `## Architecture Decision` – 3-4 lines max (`**Approach**:`, optional `**Why this over alternatives**:`). Longer analysis routes to `andthen:architecture --mode trade-off`.
@@ -126,7 +114,7 @@ Canonical shape:
 - Plan story input: save FIS in plan directory as `s{NN}-{name}.md` (two-digit zero-padded story number; `{name}` is a kebab-case slug derived from the story name). The FIS body must carry `**Plan**:` and `**Story-ID**:` between the H1 and `## Feature Overview and Goal`, populated from the source plan path and story ID.
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
-**Oversize signal** – after saving, measure against the threshold from *Key Generation Guidelines #7* in *The Authoring Guidelines* (>700 lines or >18 tasks). If oversized, emit (interactive and `AUTO_MODE`):
+**Oversize signal** – after saving, measure against the threshold from *Key Generation Guidelines #7* in *The Authoring Guidelines*. If oversized, emit (interactive and `AUTO_MODE`):
 
 ```
 OVERSIZE: {fis_path} – {N} lines, {T} tasks. Recommendation: {recommendation}
@@ -138,7 +126,7 @@ OVERSIZE: {fis_path} – {N} lines, {T} tasks. Recommendation: {recommendation}
 Plan-batch sub-agents must echo the `OVERSIZE:` line in their completion summary so the `andthen:plan` orchestrator can revisit Step 3.
 
 ### Self-Review _(automatic, skip when OVERSIZE fired)_
-After the FIS is saved and OVERSIZE passes, run a doc self-review: prefer a generic fresh-context sub-agent whose prompt invokes the `andthen:review` skill with `--mode doc --fix <fis_path>` (append `--auto` when `AUTO_MODE=true`); run it in-context where nested sub-agents aren't available. The pass owns review/remediation – spec consumes its result.
+After the FIS is saved and OVERSIZE passes, run a doc self-review: prefer a generic fresh-context sub-agent whose prompt invokes the `andthen:review` skill with `--mode doc --fix <fis_path>`; run it in-context where nested sub-agents aren't available. The pass owns review/remediation – spec consumes its result.
 
 - `--fix` auto-remediates mechanical doc defects.
 - Non-blocking residual Notes become explicit FIS assumptions, constraints, or follow-up notes.
@@ -149,7 +137,7 @@ After the FIS is saved and OVERSIZE passes, run a doc self-review: prefer a gene
   - `andthen:ops update-plan <plan_path> <story_id> spec-ready` – **only** when self-review left no blocking Note. On a blocking Note, leave the status unchanged and emit `MISSING REQUIREMENT:` (interactive) or `BLOCKED:` (`AUTO_MODE`).
 
 ### Visual Review _(if --visual)_
-After save, self-review, plan-status updates, and OVERSIZE check, invoke the `andthen:visualize` skill on the produced FIS path. Print both the FIS path and the visualizer's output path. **Skip when `OVERSIZE:` fired** – the FIS is about to be discarded or regenerated; print `--visual skipped: OVERSIZE` instead.
+After save, self-review, plan-status updates, and OVERSIZE check – identically in `AUTO_MODE` – invoke the `andthen:visualize` skill on the produced FIS path. Print both the FIS path and the visualizer's output path. **Skip when `OVERSIZE:` fired** – the FIS is about to be discarded or regenerated; print `--visual skipped: OVERSIZE` instead.
 
 ---
 

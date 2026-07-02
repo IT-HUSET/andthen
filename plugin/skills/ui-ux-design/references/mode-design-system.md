@@ -2,8 +2,6 @@
 
 Transform feature requirements into a focused design system with essential visual language, design tokens, component styles, and documentation.
 
-**Platform-agnostic**: Design tokens and styles are the canonical reference for ALL platforms (web, mobile, desktop), adapted to each later.
-
 **Inputs/destinations**: `REQUIREMENTS`, `CONCEPT_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (each marked required, optional, or a default destination).
 
 ## Principles
@@ -41,10 +39,9 @@ Create essential design tokens. Tokens have two homes that must stay in sync: th
 - Effects: `--shadow-{level}` (3 levels), `--radius[-{variant}]`, `--transition`
 
 **Principles:**
-- Use system fonts unless brand requires otherwise
+- System fonts by default – but choose typography with character when the brief or brand warrants it, not safe/generic
 - Define semantic colors (success, error, warning) only if needed
 - 3 shadow levels and 3 border radius variants are sufficient for most projects
-- Choose typography with character when the brief warrants it – don't default to safe/generic
 
 **Gate**: Core tokens defined
 
@@ -58,7 +55,7 @@ For each component: base styles using design tokens, variant styles, state style
 
 ## Phase 5: Documentation & Showcase
 
-**5.1 DESIGN.md** – Create `OUTPUT_DIR/DESIGN.md` in the DESIGN.md format: machine-readable YAML front matter followed by a human-readable markdown body. This is the canonical design-system artifact; `tokens.css` is its CSS export.
+**5.1 DESIGN.md** – Create `OUTPUT_DIR/DESIGN.md` in the DESIGN.md format: machine-readable YAML front matter followed by a human-readable markdown body.
 
 Front matter (delimited by `---` fences) – the canonical token source, keyed by category:
 - `colors:` – role → CSS color value (hex/rgb/oklch)

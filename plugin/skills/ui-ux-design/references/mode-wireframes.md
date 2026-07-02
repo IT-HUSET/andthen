@@ -2,8 +2,6 @@
 
 Transform feature requirements into simple HTML wireframes that capture key layout and interaction patterns for all pages/screens.
 
-**Platform-agnostic**: HTML/CSS is the universal design language for ALL projects (web, mobile, desktop) – the canonical reference adapted to each platform later.
-
 **Inputs/destinations**: `REQUIREMENTS`, `DESIGN_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (each marked required, optional, or a default destination).
 
 ## Contents
@@ -21,7 +19,7 @@ Transform feature requirements into simple HTML wireframes that capture key layo
 - **Simple, grayscale layouts** – focus on structure, not visual polish
 - **100% page coverage** – an un-wireframed page becomes an un-designed surface downstream, so every distinct page/state in the inventory gets its own wireframe
 - **Delegate to sub-agents** for parallel wireframe creation
-- **Browser automation required** for visual validation – use the project's documented browser tooling (see `CLAUDE.md` / `AGENTS.md`); falls back to manual if unavailable
+- **Browser automation required** for visual validation – tool selection and fallback in Phase 3.1
 
 ## Phase 1: Requirements Analysis
 
@@ -74,7 +72,7 @@ Fan out one sub-agent per inventory page – each runs this skill with `--mode w
 
 ### 2.4 Completeness Verification
 
-Cross-check against Phase 1 inventory. Verify EVERY page has a corresponding wireframe. No page skipped because it seems "similar" to another – every distinct page/state in the inventory must have its own file.
+Cross-check against Phase 1 inventory: EVERY page has a corresponding wireframe, none skipped because it seems "similar" to another.
 
 **Gate**: All pages from inventory have wireframes
 

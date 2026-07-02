@@ -73,10 +73,6 @@ Greenfield and brownfield converge on the same outputs (event timeline, hotspots
 - **Greenfield** – drive the session from a clarification artifact (`requirements-clarification.md`) or the user's narrative description of the workflow. Keep the timeline shallow and surface hotspots aggressively; the goal is to find the questions, not to ship an exhaustive board.
 - **Brownfield** – drive the session from observed behaviour: existing endpoints, message contracts, persisted entities, and the `andthen:map-codebase` skill's outputs when available. Pivotal events often surface as cross-context API calls or transactional boundaries that look arbitrary in code but are load-bearing in the domain.
 
-## Recommended Chain
-
-`event-storming → strategic-design → decompose` is the canonical discovery-to-decomposition sequence: discover pivotal events, formalize the subdomain map, then evaluate any contested boundary with driver scoring. Run it as a single multi-mode invocation when the user wants the full sweep; run modes individually when only one level of formalization is needed.
-
 ## Report Contents
 
 Event-storming-mode report must include:

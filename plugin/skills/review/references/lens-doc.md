@@ -14,6 +14,8 @@ Specs, FIS, PRDs, plans, ADRs, design docs, prompts, or other written artifacts.
 
 Favor **proportional review** – judge a prototype/library/MVP by its scale, not an enterprise platform's. Flag over-engineering; recommend the smallest solution meeting the real need.
 
+**Coverage focus**: before judging readiness, identify the document's primary surfaces (requirement clusters, sections, structural claims) and attempt a falsifier for each; a primary surface left unreviewed is a finding. Record the result in the Coverage Matrix.
+
 
 ## Review Dimensions
 
@@ -87,8 +89,8 @@ After producing findings, classify the dominant pattern and name the right downs
 3. **Defect cluster** – clarity, technical accuracy, structural/anchor defects. Route → the `andthen:remediate-findings` skill (or let `--fix` invoke it). Fixes are mechanical edits to the doc.
 4. **Mature spec/FIS with requirement-fit concerns** – same triggers as the requirement-gap cluster but on a mature document. Route → the `andthen:remediate-findings` skill. Re-running the `andthen:clarify` skill on a near-final FIS produces churn; encode the concerns as targeted edits instead.
 
-**Interactivity contract** – this reference states which branch is interactive; the `SKILL.md` `FOLLOW-UP ACTIONS` step owns the gate. The clarify branch is interactive by nature (the `andthen:clarify` skill cannot run headless), so:
-- Under `AUTO_MODE=off`, the SKILL.md `FOLLOW-UP ACTIONS` step prompts the user to run the `andthen:clarify` skill inline against the listed gaps.
+**Interactivity contract** – this reference states which branch is interactive; the `SKILL.md` Step 6 (Optional Follow-Through) owns the gate. The clarify branch is interactive by nature (the `andthen:clarify` skill cannot run headless), so:
+- Under `AUTO_MODE=off`, the SKILL.md Step 6 offers to run the `andthen:clarify` skill inline against the listed gaps.
 - Under `AUTO_MODE=on`, the recommendation appears only in the report's **Recommended Next Action** – never prompt and never invoke the `andthen:clarify` skill automatically. The orchestrator decides.
 
 
@@ -97,6 +99,9 @@ After producing findings, classify the dominant pattern and name the right downs
 ```markdown
 ## Executive Summary
 Overall assessment, high-level findings, Findings Filter stats, key recommendations
+
+## Coverage Matrix
+Primary document surfaces (requirement clusters, sections, claims) with evidence read, positive proof, falsifier attempted, and result
 
 ## Scope and Context
 

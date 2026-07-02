@@ -40,7 +40,7 @@ Update specific fields, routed to the shared or local State document by field.
 
 **Usage**: `update-state <field> <value>`
 
-**Shared fields** → shared `State` document (default `docs/STATE.md`). If it does not exist, report "no shared state file" – do not create it (the andthen:init skill owns creation).
+**Shared fields** → shared `State` document. If it does not exist, report "no shared state file" – do not create it (the andthen:init skill owns creation).
 - `phase`: Current phase name/number (e.g. `"Phase 2: Core Features"`)
 - `status`: Overall project status – one of `On Track`, `At Risk`, `Blocked`
 - `active-story`: Add or update an active story entry. **Planless fallback only** – when the story id resolves in a governing `plan.json`, add/update forms no-op, reporting `NO-OP: story "<story_id>" is plan-governed – use update-plan / update-plan-owner` so the redirect is never silent; ad-hoc ids (in no governing plan) still write stored rows. `Done` removal still prunes stored rows.
@@ -53,7 +53,7 @@ Update specific fields, routed to the shared or local State document by field.
   - Remove: `update-state blocker remove "{description}"` → removes the matching entry
 - `decision`: Add a recent decision entry with timestamp
 
-**Local fields** → local `State (local)` document (default `docs/STATE.local.md`). **File-creation exception**: if the local file does not exist, scaffold it from the `## STATE.local.md` template in `project-state-templates.md` before writing (gitignored, so this does not violate the shared-State "init owns creation" rule). On every local-field write, also ensure `.gitignore` covers it – append the entry idempotently (create `.gitignore` if missing); a tracked local file reintroduces the collision surface.
+**Local fields** → local `State (local)` document. **File-creation exception**: if the local file does not exist, scaffold it from the `## STATE.local.md` template in `project-state-templates.md` before writing (gitignored, so this does not violate the shared-State "init owns creation" rule). On every local-field write, also ensure `.gitignore` covers it – append the entry idempotently (create `.gitignore` if missing); a tracked local file reintroduces the collision surface.
 - `note`: Add a session continuity note with timestamp (to `## Session Continuity Notes`)
 - `focus`: Set/replace My Current Focus (to `## My Current Focus`) – your private working scratch; the shared claim is `plan.json` `owner` + `in-progress`
 
@@ -114,7 +114,7 @@ Actions for `<task_id|all>` form:
   - **`## Acceptance Scenarios`** – each scenario is one canonical-shape checkbox (shape per [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) *Acceptance Scenarios and Proof-of-Work*). Flip each `- [ ]` to `- [x]`. Example: `- [ ] **S01 [OC01] [TI01,TI03] Happy path**` → `- [x] ...`.
   - **`## Structural Criteria`** – each checkbox flips `- [ ]` to `- [x]`.
   - **`## Final Validation Checklist`** – only when the section exists (it is optional content). When present, each checkbox flips `- [ ]` to `- [x]`.
-- Before marking done, verify that evidence of completion exists – the calling skill should have already performed verification; do not re-run it. When all tasks are done (or using `all`): also mark Acceptance Scenarios, Structural Criteria, and Final Validation Checklist items (when present).
+- Before marking done, verify that evidence of completion exists – the calling skill should have already performed verification; do not re-run it. When all tasks are done (or using `all`), also flip the proof-surface checkbox sets above.
 
 Both `observations` and `discovered-requirements` target `## Implementation Observations`; if that section is absent, append it to the end of the FIS using the standard lead paragraph from the FIS template, then apply the [Append-Run Block Protocol](references/append-run-block-protocol.md).
 
@@ -133,7 +133,7 @@ Actions for `design-change` form:
 - Append the same body to `## Implementation Observations` using tag suffix `– design-change` via the [Append-Run Block Protocol](references/append-run-block-protocol.md), so the mutable spec edit is auditable and retry-safe. This form is distinct from `discovered-requirements`; do not use it for missing requirements or edge cases that should stay append-only.
 
 Actions for `decision-note` form (the `andthen:preflight` skill's resolved/deferred-decision write path; atomic, AUTO_MODE-safe, reject-malformed):
-- `<resolved|deferred>` is the decision class. Reject any other token with `BLOCKED: invalid decision-note body`.
+- `<resolved|deferred>` is the decision class.
 - **Body constraints**: `####`-or-deeper headings only (no `## ` headings, no `### Run:` line). The body MUST carry these fields, each on its own line: `Decision-Key:`, `Altitude:`, `Affected surface:`, `Decision:`, `Rationale:`, `Evidence:`. For the `deferred` class it MUST additionally carry `Signed-off-by:` (a signed-off deferral is the only sanctioned way a punted decision stops blocking). Reject (no-op + `BLOCKED: invalid decision-note body`) when the class token is invalid, a required field is missing, or the heading constraints are violated.
 - **Target by class**:
   - `resolved` → append a `#### DECISION NOTE: <decision_key>` block under `## Implementation Observations` (create that section from the FIS template lead paragraph if absent).
@@ -146,15 +146,15 @@ Append a load-bearing non-ADR choice to the project Decisions registry's `## Sti
 
 **Usage**: `update-decisions still-current <topic> <decision-and-rationale>`
 
-Resolve the target file path from the **Project Document Index** `Decisions` row (default `docs/DECISIONS.md`). If the file does not exist, refuse with `BLOCKED: Decisions document not found at <path> – run the andthen:init skill to scaffold it`; do not create it (the andthen:init skill owns creation, consistent with `update-learnings`).
+Resolve the target file path from the **Project Document Index** `Decisions` row (default `docs/DECISIONS.md`). If the file does not exist, refuse with `BLOCKED: Decisions document not found at <path> – run the andthen:init skill to scaffold it`; do not create it.
 
 Actions for `still-current` form:
-- Locate `## Still Current` case-insensitively; if absent, create it as a new H2 (section-locate-or-create, as in `update-learnings`). Remove the `- ...` placeholder bullet if present (exact-string match only).
+- Locate `## Still Current` case-insensitively; if absent, create it as a new H2. Remove the `- ...` placeholder bullet if present (exact-string match only).
 - Append one bullet in the registry's existing format: `- **<Topic>**: <decision + brief rationale>.` (single bullet; substitute `<Topic>` and the decision/rationale).
 - **Idempotency**: `<topic>` is the key – no-op if a bullet with the same `- **<Topic>**:` prefix already exists; update its text in place when the rationale changed.
 
 #### Update Reconciliation Ledger
-Deterministic mutator for the Reconciliation Ledger – the durable, greppable record of deliberate spec-vs-code drift. Schema, stable-ID derivation, status lifecycle, and match/recurrence/escalation rules are owned by [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md); this form is the only sanctioned write path. Modeled on the `update-fis` write discipline: atomic, transition-audited, AUTO_MODE-safe, rejecting malformed transitions. **Single-document** – it mutates only the ledger; the completion-presentation gate that *reads* the ledger lives in the orchestrating skills (`exec-spec` / `exec-plan`), not here.
+Deterministic mutator for the Reconciliation Ledger – the durable, greppable record of deliberate spec-vs-code drift – and its only sanctioned write path: atomic, transition-audited, AUTO_MODE-safe, reject-malformed. **Single-document** – it mutates only the ledger; the completion-presentation gate that *reads* the ledger lives in the orchestrating skills (`exec-spec` / `exec-plan`), not here.
 
 The caller passes the **FIS-adjacent ledger path** (`{fis-without-ext}.reconciliation-ledger.md`, resolved per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md)) as the first argument; `ops` mutates exactly that file and does not discover a path. There is no project-global ledger.
 
@@ -167,12 +167,11 @@ The caller passes the **FIS-adjacent ledger path** (`{fis-without-ext}.reconcili
 
 Common rules:
 - Reuse the existing class vocabulary only (`code-defect | spec-stale | design-changed | ambiguous-intent`); reject any other class. Status values are `OPEN | RECONCILE REQUIRED | CLOSED | WITHDRAWN`.
-- Stable-ID format/derivation/matching, entry schema (surgical single-line edits), atomicity, and AUTO_MODE-safe reject-malformed behavior are owned by `reconciliation-ledger.md`.
+- Stable-ID format/derivation/matching, entry schema (surgical single-line edits), status lifecycle, recurrence/escalation, atomicity, and AUTO_MODE-safe reject-malformed behavior are owned by `reconciliation-ledger.md`.
 - Resolve dates via `date -u +"%Y-%m-%d"`; set `Updated:` on every mutation.
 
 Actions for `add` form:
-- **File-creation exception** (one of the two documented deviations from "ops never creates target files" – see GOTCHAS): if the passed ledger file does not exist, scaffold it from the canonical ledger template in `reconciliation-ledger.md` (H1 `# Reconciliation Ledger` + lead paragraph + `## Entries` carrying placeholder `_No reconciliation entries recorded yet._`) before appending.
-- Remove the `_No reconciliation entries recorded yet._` placeholder (exact-string match only) when appending the first entry.
+- **File-creation exception** (see GOTCHAS): if the passed ledger file does not exist, scaffold it from the canonical ledger template in `reconciliation-ledger.md` before appending.
 - Append a new entry with `Status: OPEN`, the given `Class:`, `Stale targets:`, `Source run:`, `Recurrence: 1`, `Falsifier: –`, `Override reason: –`, and `Created:`/`Updated:` set to today.
 - **Idempotent**: no-op only if a non-terminal (OPEN / RECONCILE REQUIRED) entry already matches the full stable ID. If another non-terminal entry shares `{relative-path}:{class}` but has a different slug, append the new entry.
 - **Terminal-match re-open**: when the stable ID matches a terminal (`CLOSED`/`WITHDRAWN`) entry, re-open it in place rather than appending – mechanics owned by `reconciliation-ledger.md` *Status lifecycle and transitions / add*. Requires refuting evidence in the call (the `[notes]` argument); reject (no-op + `BLOCKED: re-open requires refuting evidence`) when none is supplied.
@@ -216,7 +215,7 @@ Append defensive-knowledge entries to the project's Learnings file. **Not a run-
 - Topic entry: `update-learnings add <topic> <entry-markdown>`
 - Error-pattern row: `update-learnings error <error> <type> [conclusion]`
 
-Resolve the target file path from the **Project Document Index** `Learnings` row (default `docs/LEARNINGS.md`). If the file does not exist, refuse with `BLOCKED: Learnings document not found at <path> – run the andthen:init skill to scaffold it`; do not create it (the andthen:init skill owns creation).
+Resolve the target file path from the **Project Document Index** `Learnings` row (default `docs/LEARNINGS.md`). If the file does not exist, refuse with `BLOCKED: Learnings document not found at <path> – run the andthen:init skill to scaffold it`; do not create it.
 
 Actions for `add` form:
 - `<entry-markdown>`: a single bullet. MUST start with `- **{title}**` and be under 200 characters. Reject with `BLOCKED: invalid learnings entry – must start with "- **{title}**" and stay under 200 chars` if violated.

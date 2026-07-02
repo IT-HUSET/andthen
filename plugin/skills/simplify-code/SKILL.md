@@ -21,7 +21,6 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - **Intent + Rules Context** – per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) (collected in Phase 1.3). Behavior-preserving is not intent-preserving: the Phase 2 Intent anchor drops cleanups that contradict the Intent (surfaced in the completion summary, not applied).
 - **Preserve exact behavior** – change only *how* the code works, never *what* it does, unless explicitly requested
-- **Tests must pass** before and after simplification
 - Match the codebase's existing conventions and style – read the project guidelines before making style judgments
 - **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Simplify-code-specific `BLOCKED:` triggers: red baseline (tests/build/lint failing before any simplify edit), no defensible scope derivable from arguments, current-branch diff, or conversation context, ambiguity between two or more incompatible simplification directions with no conservative default.
 - **Anti-rationalization** – simplify-code's job is Boy Scout cleanup *within the user's requested scope* (per CRITICAL RULES); widening to other modules or files mid-flow is the failure mode. Reject these common rationalizations:
@@ -96,8 +95,6 @@ Cross-check against the `Architecture` document (see **Project Document Index**)
 - **Cleanup contradicts a Non-Goal** (e.g. "no external dependencies", "no shared helpers across feature boundaries", "no caching layer in v1") → drop the cleanup; record it in the completion summary as `dropped: contradicts Non-Goal in <FIS path>`.
 - **Cleanup implements behavior the artifact defers to a later story** (folds duplicate computation into a memo when the FIS deferred caching, extracts a façade the FIS deferred to a refactoring story) → drop; record `dropped: implements deferred outcome in <FIS path>`.
 - **Cleanup restructures code the FIS explicitly chose a shape for** (a flat function chosen for hot-path performance, an inlined branch chosen for readability over abstraction) → drop; record `dropped: contradicts Expected Outcome / Structural Criterion in <FIS path>`.
-
-When no Intent Context was collected, proceed on code-quality heuristics alone and note that in the completion summary – do not invent intent to justify or block cleanups.
 
 Produce a prioritized list of improvements. Ask user for confirmation before proceeding if changes are substantial. In `AUTO_MODE`, do not pause for confirmation – proceed with the conservative, lowest-risk subset (drop genuinely risky or scope-widening items and any cleanup the Intent anchor flagged) and record the deferred items in the completion summary.
 

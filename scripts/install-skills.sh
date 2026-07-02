@@ -930,14 +930,16 @@ if [ "$install_claude_user" -eq 1 ] && [ -d "$repo_root/plugin/agents" ]; then
   done
 fi
 
-printf 'Installed %s skills into %s\n' "$skills_count" "$skills_dir"
+verb='Installed'
+[ "$dry_run" -eq 1 ] && verb='Would install'
+printf '%s %s skills into %s\n' "$verb" "$skills_count" "$skills_dir"
 if [ "$codex_agents_count" -gt 0 ]; then
-  printf 'Installed %s Codex agents into %s\n' "$codex_agents_count" "$codex_agents_dir"
+  printf '%s %s Codex agents into %s\n' "$verb" "$codex_agents_count" "$codex_agents_dir"
 fi
 if [ "$claude_skills_count" -gt 0 ]; then
-  printf 'Installed %s Claude Code user skills into %s\n' "$claude_skills_count" "$claude_skills_dir"
+  printf '%s %s Claude Code user skills into %s\n' "$verb" "$claude_skills_count" "$claude_skills_dir"
 fi
 if [ "$claude_agents_count" -gt 0 ]; then
-  printf 'Installed %s Claude Code user agents into %s\n' "$claude_agents_count" "$claude_agents_dir"
+  printf '%s %s Claude Code user agents into %s\n' "$verb" "$claude_agents_count" "$claude_agents_dir"
 fi
 exit 0
