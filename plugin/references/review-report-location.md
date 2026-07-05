@@ -24,7 +24,7 @@ On completion, print the report's path **relative to the project root**.
 
 Resolve in order; first match wins.
 
-1. **`--output-dir <path>`** (when the caller passes it) – explicit override. Validate up-front: the path must exist and be writable. In `AUTO_MODE`, fail with `BLOCKED: --output-dir <path> not writable`. In default mode, **print a warning** naming the unusable path and **fall through to the heuristic tiers** – the skill stays headless and the next-best location is loud-by-default because the resolved relative path is printed on completion. Do not auto-create deep paths – only the report file itself.
+1. **`--output-dir <path>`** – explicit override. Create it with `mkdir -p` and check it's writable, using the argument **exactly as the caller wrote it** – never re-typed: a transcription slip misreports a real, writable directory as missing (env-var forms like `"$VAR"` are used as-is, left to the shell). Only genuine create-or-write failure fails: `BLOCKED: --output-dir <path> not writable` in `AUTO_MODE`; warning + **fall-through to the heuristic tiers** in default mode.
 
 2. **Spec directory** – when the review centers on, lives in, or is adjacent to a spec/FIS/plan/PRD directory. Any of the following qualifies:
    - The reviewed artifact (or the requirements baseline, when one exists) **lives inside** a spec directory per the **Project Document Index**'s `Specs & Plans` row (default `docs/specs/<feature>/`)

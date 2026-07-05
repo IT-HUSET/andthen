@@ -400,9 +400,9 @@ Throughout execution:
 
 ## Model and Effort Steering
 
-Do not maintain a model ladder in prompt guidelines. AndThen's policy is one top-tier model class plus task-appropriate effort; keep provider/version selection in the harness or provider docs.
+AndThen's *default* is inherit the session model plus task-appropriate effort; routing is an overridable **Sub-Agent Model Policy** (see the guide). Never maintain a version-pinned model ladder here – keep provider/version selection in the harness or provider docs.
 
-See [Model & Effort Selection Guide](../MODEL-EFFORT-SELECTION-GUIDE.md) for the durable policy.
+See [Model & Effort Selection Guide](../MODEL-EFFORT-SELECTION-GUIDE.md) for the default, the override seam, and the invariants.
 
 ---
 

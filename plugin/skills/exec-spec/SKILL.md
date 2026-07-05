@@ -49,7 +49,7 @@ Spawn narrow sub-agents when they materially improve a coding decision. Output i
 - the `andthen:visual-validation` skill – visual/design compliance against wireframes, screenshots, baselines
 - the `andthen:triage` skill – non-trivial build failures, dependency conflicts, cascading test failures
 
-Sub-agents inherit the session model; use **medium** effort for advisory analysis, **low** for retrieval.
+Sub-agents route per the **Sub-Agent Model Policy** (default: inherit); *advisory analysis* is routine at **medium** effort, *retrieval* at **low**.
 
 Rules:
 - Prefer multiple narrow questions over one broad prompt, spawned early – do not wait until fully blocked

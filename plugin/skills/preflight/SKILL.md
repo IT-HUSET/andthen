@@ -31,7 +31,7 @@ TARGET: $ARGUMENTS (strip any flag token like `--auto` before interpreting the r
 - Require `TARGET`. Stop if missing or unresolvable (see Step 1).
 - **Interactive-by-Contract** – see **OPERATING PRINCIPLE**.
 - **Composition, not reimplementation** – preflight owns the convergence loop and the blocking-decision interview; it delegates detection, ADR authoring, and deterministic writes. Do not copy a doc-review rubric or a full `clarify` interview flow; load the composed skills instead. The composed skills are referenced as skills, never passed as an agent type.
-- **The `andthen:ops` skill is the only sanctioned write path** for the status artifacts preflight touches: FIS decision-Notes, `docs/DECISIONS.md` Still Current notes, and `plan.json` `spec-ready` transitions. Never hand-edit them. ADR creation and indexing stays owned by the `andthen:architecture` skill.
+- **The `andthen:ops` skill is the only sanctioned write path** for the status artifacts preflight touches: FIS decision-Notes, `docs/DECISIONS.md` Still Current notes, and `plan.json` `spec-ready` transitions. Never hand-edit them. ADR creation and indexing stays owned by the `andthen:architecture` skill. Body reconciliation (Step 5) is preflight's own edit – spec surface, not a status artifact.
 - **`Preflight:` verdict grammar** – emit exactly one resolved token, once, as a bare line at line start beside (never inside) any verdict block: `^Preflight: (READY|DEFERRED|BLOCKED)$`. Never emit the menu form `Preflight: READY | DEFERRED | BLOCKED` literally – a consumer matches it line-anchored and the menu breaks the regex. The token is registered in `review-verdict.md` § Loop Convergence Signals as a sibling to `Auto-Remediation`; this line is the self-contained emit copy.
 - **Automation** (`AUTO_MODE`) – strict no-prompt, deterministic-signal stance per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Run detection, drill-down, evidence gathering, and the misapplied-ADR check (applying its mechanical, decision-free doc-defect fix) only; hold no interview and invoke no interactive `architecture --mode trade-off` loop. Emit named blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `BLOCKED:` for an unresolvable/ambiguous target or unsafe action; enumerate the unresolved blocking decisions as a signal/recommendation. Never invent an answer.
 
@@ -84,13 +84,21 @@ Persist each outcome immediately, by altitude, through the `andthen:ops` skill:
 
 **Gate**: every blocking record resolved-in-place, settled, deferred-with-sign-off, or routed to `clarify`; each persisted at its altitude.
 
-### 5. Cross-Story Consistency Sweep _(plan bundle only)_
+### 5. Reconcile
+
+A resolution the FIS body contradicts is not closed – the body is what an executor implements, and a body still stating the pre-decision mechanism re-creates the very fork preflight exists to remove. For each record resolved this run, rework its `affected_surface` sections to state the ratified decision directly (rework, don't accrete – the DECISION NOTE stays as provenance, never as a second home for the contract). The decision is settled, so this edit is mechanical and preflight's own. Deferred records leave the body untouched.
+
+Then check coherence: the resolved set against itself and against the reworked body. Two individually sound answers that share an affected surface may not compose – a contradiction reopens the involved records (back to Step 4).
+
+**Gate**: every resolved decision stated in the body it affects; no contradiction within the resolved set or between a resolution and the body.
+
+### 6. Cross-Story Consistency Sweep _(plan bundle only)_
 
 After per-FIS convergence, run the cross-story sweep per `decision-records.md` § Plan-bundle identity matching; re-converge stories with reopened records (back to Step 4) before any story status flips.
 
 **Gate**: no cross-story contradiction remains open.
 
-### 6. Converge and Emit Verdict
+### 7. Converge and Emit Verdict
 
 For a plan bundle, flip each converged story to `spec-ready`: `andthen:ops update-plan <plan_path> <story_id> spec-ready`. A story that still carries an open blocking record keeps its current status – update the clear ones as they pass, even when the bundle as a whole is blocked.
 

@@ -39,7 +39,7 @@ For a plan bundle, after each story FIS converges on its own, the cross-story sw
 
 ## Convergence
 
-A target **converges** when no record is left in `open` status. Deferral is a convergence outcome only with explicit user sign-off – a punted decision moves to `deferred` and stops counting as blocking; an un-signed-off punt stays `open`. The procedure that reaches this state is the skill's WORKFLOW.
+A target **converges** when no record is left in `open` status and every `resolved` record is **reconciled**: the FIS body states the ratified decision at its affected surfaces (the DECISION NOTE is provenance, not the contract's home), and no resolution contradicts another resolution or the body. An unreconciled or contradicting resolution counts as `open`. Deferral is a convergence outcome only with explicit user sign-off – a punted decision moves to `deferred` and stops counting as blocking; an un-signed-off punt stays `open`. The procedure that reaches this state is the skill's WORKFLOW.
 
 
 ## `Preflight:` verdict semantics

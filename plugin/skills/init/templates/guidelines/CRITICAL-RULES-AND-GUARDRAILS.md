@@ -35,4 +35,13 @@ Default to **staying focused on the problem at hand**.
 - **Use `git mv`** for tracked moves/renames (preserves blame). Never `git rebase --skip` (data loss) – ask for help with conflicts.
 - **Temp files** in `<project_root>/.agent_temp/`, named meaningfully, never the repo root.
 - **En dashes (–), not em dashes.**
-- **Delegate to sub-agents** for retrieval, review, research, and deep exploration; inherit the session model, vary effort by task (low scan / medium routine / high cross-cutting).
+- **Delegate to sub-agents** for retrieval, review, research, and deep exploration; route each per the **Sub-Agent Model Policy** below.
+
+## Sub-Agent Model Policy
+
+Default routing for every sub-agent. Override by defining your own Sub-Agent Model Policy – edit this section, or add one in project/user instructions; the nearest definition wins.
+
+- **Model: inherit.** Every sub-agent runs on the session model – one deliberate knob, and nothing rots because nothing is version-pinned.
+- **Depth: effort, not model class.** Vary effort by task: low scan / medium routine / high cross-cutting.
+- **Retrieval exception:** high-volume pure retrieval may pin the cheapest *tier alias*.
+- **Overrides** may route by task shape (e.g. task-tiered: judgment→top, implementation→mid, mechanical→cheap) but **never version-pin a model** (`claude-opus-4-8`, `gpt-5.4`) – tier aliases only.

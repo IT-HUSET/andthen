@@ -6,6 +6,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.35.0] – 2026-07-05
+
+### Changed
+- **`andthen:preflight` now reconciles resolutions into the FIS body.** Ratified decisions are reworked into the sections they affect (the DECISION NOTE stays as provenance) and the resolved set is checked for contradictions before the verdict – `READY` means a coherent artifact, not just an empty ledger.
+- **Review-family `--output-dir` now creates missing directories.** The directory is created (`mkdir -p`) and verified writable using the argument exactly as the caller wrote it (env-var form like `--output-dir "$VAR"` accepted) – no more re-typed existence pre-check; `BLOCKED` (auto) / warn-and-fallthrough (default) fires only on genuine create-or-write failure.
+- **Sub-agent model routing is now an overridable policy.** Inherit-the-session-model + vary-effort ships as the labeled **Sub-Agent Model Policy** default in the guardrails; orchestrating skills defer to it by name, so projects/users can swap in tiered or custom strategies as first-class overrides – never version-pinned, tier aliases only.
+
+---
+
 ## [0.34.0] – 2026-07-02
 
 ### Changed

@@ -198,7 +198,7 @@ Worked sub-wave batching example: see [`wave-batching-example.md`](references/wa
 
 > **Skip this step if `--skip-review` flag is set.**
 
-Delegate to one sub-agent (inheriting the session model) at **high** effort with the plan path and all FIS paths. This is the **second (and only other) full PRD read** in the flow – the sub-agent reads `prd.md` fresh plus all FIS and `plan.json`, then checks for:
+Delegate to one sub-agent, routed per the **Sub-Agent Model Policy** (default: inherit; *cross-cutting judgment*), at **high** effort, with the plan path and all FIS paths. This is the **second (and only other) full PRD read** in the flow – the sub-agent reads `prd.md` fresh plus all FIS and `plan.json`, then checks for:
 
 1. **Overlapping scope** – multiple stories modifying the same files/abstractions.
 2. **Inconsistent architectural decisions** – contradictory ADR choices across stories.

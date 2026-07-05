@@ -47,7 +47,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `SYS-19` exec-plan --worktree requires --team; AUTO_MODE emits BLOCKED: --worktree requires --team when --team is absent.
 - `SYS-20` exec-plan --from-issue is mutually exclusive with --team; AUTO_MODE emits BLOCKED: --from-issue is mutually exclusive with --team.
 - `SYS-21` Skill frontmatter contract: description is the primary routing surface – front-load primary use case, prefer 'Use when...' framing, include 2-4 natural trigger phrases and AndThen-native terms, keep concise so key terms survive truncation.
-- `SYS-22` Skill frontmatter fields: description (required, routing surface), argument-hint (optional, documents accepted args/flags), user-invocable (optional boolean – false means internal-only), context (optional – 'fork' triggers context isolation), agent (optional – e.g. 'general-purpose' for portability).
+- `SYS-22` Skill frontmatter fields: description (required, routing surface), argument-hint (optional, documents accepted args/flags), user-invocable (optional boolean – false means internal-only), context (optional – 'fork' triggers context isolation), agent (optional – e.g. 'general-purpose' for portability). Skills express sub-agent model routing in prose by referencing the named Sub-Agent Model Policy – there is no skill-frontmatter field for it.
 - `SYS-23` Maintenance contract – version bump: always updates all three locations together: CHANGELOG.md, .claude-plugin/marketplace.json, and plugin/.claude-plugin/plugin.json.
 - `SYS-24` Maintenance contract – user-invocable skill change: update README.md, plugin/README.md, CHANGELOG.md, and the ## Skill Reference section in plugin/skills/now-what/SKILL.md.
 - `SYS-25` Maintenance contract – internal-only skill (user-invocable: false): update agents/openai.yaml, CHANGELOG.md, and the owning caller's skill/reference docs; do not add to public skill inventories.
@@ -81,6 +81,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `SYS-52` Agent propagation overwrite-only: stale generated TOML files and copied Claude user-tier MD agent files from prior installs must be removed manually when the source agent set changes.
 - `SYS-53` --auto is the only official automation flag advertised in skill descriptions, argument hints, README surfaces, and user-facing examples. During transition, implementations MAY strip `--headless` as an undocumented compatibility alias for AUTO_MODE, but MUST NOT emit or propagate `--headless`.
 - `SYS-54` audit wording command: rg 'andthen:[a-z-]+' CLAUDE.md plugin/ docs/ – catches skill-as-agent anti-patterns and prose drift.
+- `SYS-55` A named Sub-Agent Model Policy ships in CRITICAL-RULES-AND-GUARDRAILS.md as an overridable default (inherit the session model + vary effort; nearest definition wins); orchestrating skills defer to it by name with an inline "(default: inherit)" fallback; the never-version-pin invariant (tier aliases only) binds any override.
 
 **Integration**
 - Skills read user project CLAUDE.md/AGENTS.md for Project Document Index and Project-Specific Guidelines (not this repo's CLAUDE.md).
@@ -641,7 +642,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `RCAL-28` [review-report-location] Report filename pattern: `<feature-name>-<suffix>-<agent>-<YYYY-MM-DD>.md`; on collision append -2, -3, …; `<agent>` is the executing agent's short name (claude, codex, etc.; fall back to agent); date is the local date at write time using `date +%Y-%m-%d`.
 - `RCAL-29` [review-report-location] On completion, print the report's path relative to the project root.
 - `RCAL-30` [review-report-location] Directory resolution is a four-tier priority cascade; first match wins.
-- `RCAL-31` [review-report-location] Tier 1: --output-dir override – validate up-front; in AUTO_MODE fail with BLOCKED: --output-dir <path> not writable; in default mode print a warning and fall through to heuristic tiers; do not auto-create deep paths – only the report file itself.
+- `RCAL-31` [review-report-location] Tier 1: --output-dir override – the directory is created (`mkdir -p`) and verified writable; only genuine create-or-write failure fails: in AUTO_MODE BLOCKED: --output-dir <path> not writable, in default mode a warning + fall-through to heuristic tiers.
 - `RCAL-32` [review-report-location] Tier 2: spec directory – when the reviewed artifact or requirements baseline lives inside a spec/FIS/plan/PRD directory per the Project Document Index, or an associated spec directory is discoverable from inputs/context.
 - `RCAL-33` [review-report-location] Tier 2 fires for doc targets co-located next to the target; for source-code targets tier 2 fires only via the spec-directory match, otherwise fall through to tier 3.
 - `RCAL-34` [review-report-location] Tier 3: current feature directory – infer from the in-progress rows' dirname(FIS), derived from the governing plan.json (`status: in-progress`, FIS = stories[].fis, null-fis rows excluded per-row) when one resolves, else the stored STATE.md Active Stories table; skip when neither source resolves, no candidate rows remain, or ancestry check fails.
@@ -669,7 +670,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `RCAL-56` [findings-filter-templates] WITHDRAWN requires one of three explicit falsifier shapes – no withdrawal without a concrete falsifier.
 - `RCAL-57` [findings-filter-templates] Filter sub-agent must receive both shared calibration path and skill-specific calibration path before filtering.
 - `RCAL-58` [lens-adversarial] Sub-agent must receive explicit instruction to read all three files (lens-adversarial.md, critic-calibration.md, review-calibration.md) – custom agent instructions alone are not a substitute for this read-first task prompt.
-- `RCAL-59` [review-report-location] --output-dir path must exist and be writable before proceeding; AUTO_MODE blocks with BLOCKED: prefix on unusable path.
+- `RCAL-59` [review-report-location] The --output-dir argument is used exactly as the caller wrote it (env-var form "$VAR" included) – never a re-typed copy; AUTO_MODE blocks with the BLOCKED: prefix only on genuine create/write failure.
 - `RCAL-60` [review-report-location] Tier 3 multi-in-progress rows: use dirname(FIS) only when that directory is an unambiguous ancestor of the review target's path; skip tier on ambiguity.
 - `RCAL-61` [intent-and-rules-context] Bundle collection is up-front – before any finding pass, routing decision, or mutation.
 - `RCAL-62` [intent-and-rules-context] Boy Scout cleanup that would alter behavior covered by Expected Outcomes, change a structure the artifact explicitly chose, or contradict a Non-Goal is out of scope even when code-quality heuristic favors it.
@@ -679,7 +680,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `RCAL-64` [findings-filter-templates] Synthesis Challenger holistic merge/reframe license does not override the WITHDRAWN-requires-falsifier floor.
 - `RCAL-65` [lens-adversarial] No sub-agent available → apply rubric inline with a Critic Coverage proof-of-work note; this matters most when no findings survive filtering.
 - `RCAL-66` [lens-adversarial] Zero findings → must explicitly state 'No weakness found after attacking {assumptions}, {unhappy paths}, and {hidden coupling}' rather than silently omitting the section.
-- `RCAL-67` [review-report-location] Tier 1 in default mode with unusable --output-dir: warn loudly but fall through to tiers 2–4 rather than blocking.
+- `RCAL-67` [review-report-location] Tier 1 in default mode: a genuinely failing --output-dir (create or write) warns loudly and falls through to tiers 2–4; a missing-but-createable path is created and used, never a fall-through.
 - `RCAL-68` [review-report-location] Tier 3 with multiple in-progress rows: directory ancestry is the only reliable signal; name-overlap or fuzzy matching must not be used.
 - `RCAL-69` [review-report-location] Ambiguous target classification → classify as source-code (falling through is safer than dropping a report in an unfamiliar tree).
 - `RCAL-70` [review-report-location] Tier 2 for architecture advise/trade-off modes: consuming skill may supply a substituted tier-2 destination (e.g. project's research/ADR location); tier 1 still wins and tiers 3/4 still apply on miss.
@@ -1269,7 +1270,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 - `PLAN-10` FIS sub-agents spawned as `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.json`; orchestrator does not author FIS content itself.
 - `PLAN-11` bindingConstraints[] entries flow unchanged into FIS Required Context blocks with each entry's anchor as the source pin; not narrowed or redistributed into Acceptance Scenarios / Structural Criteria.
 - `PLAN-12` sharedDecisions[] pre-resolves inter-story architectural decisions for sub-agents; when empty, strict wave ordering applies (W1 complete before W2).
-- `PLAN-13` Cross-cutting review (Step 6) reads prd.md fresh in its own sub-agent context (second and only other full PRD read); delegated to one fresh-context sub-agent that inherits the session model and uses high reasoning effort.
+- `PLAN-13` Cross-cutting review (Step 6) reads prd.md fresh in its own sub-agent context (second and only other full PRD read); delegated to one fresh-context sub-agent routed per the Sub-Agent Model Policy (default: inherit), using high reasoning effort.
 - `PLAN-14` CRITICAL/HIGH review findings and confirmed phantom scope must be resolved before the Step 6 gate passes.
 - `PLAN-15` Phantom-scope findings from sub-agents are re-checked against prd.md first; PRD-traceable criteria are suppressed as not phantom. PRD-FIS traceability is checked independently: every PRD acceptance criterion has ≥1 FIS scenario.
 - `PLAN-16` Scenario chain connectivity is checked for each PRD multi-step flow (User Flows preferred; sequenced User Stories fallback): each leg's Then output must satisfy the next leg's Given input. Broken chains are fixed by adding the missing scenario to the story that naturally owns it, adding a new story (re-enter Step 3/Step 5), or returning BLOCKED if a minimum upstream decision is missing.
@@ -1329,7 +1330,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 - Calls generic sub-agents invoking the andthen:spec skill: `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.json` (one per in-scope story).
 - Calls andthen:ops: `update-state phase/status/note` (State document); `update-plan-fis` / `update-plan <story> spec-ready` (story state – repair only; authoritative writes are the spec sub-agent's job).
 - Calls andthen:visualize on plan.json when --visual and local output mode (Step 7).
-- Delegates cross-cutting review (Step 6) to a fresh-context sub-agent with plan.json + all FIS paths + prd.md, inheriting the session model and using high reasoning effort.
+- Delegates cross-cutting review (Step 6) to a fresh-context sub-agent with plan.json + all FIS paths + prd.md, routed per the Sub-Agent Model Policy (default: inherit) and using high reasoning effort.
 - Consumed by andthen:exec-plan (reads plan.json; --from-issue parses issue body into .agent_temp/from-issue-<N>/plan.json).
 - Consumed by andthen:ops (reads/writes plan.json stories[].status, stories[].fis, and stories[].owner).
 - Consumed by andthen:review --mode gap (reads plan.json).
@@ -1385,7 +1386,7 @@ Positional args:
 - `XPLAN-20` andthen:merge-resolve drives all worktree merges; EnterWorktree / ExitWorktree / Agent({isolation:"worktree"}) are prohibited
 - `XPLAN-21` plan.json must never be staged inside a worktree branch; merge-resolve guard G2 fails the story if it is
 - `XPLAN-22` Worktree creation (create-worktree.sh) happens before TeamCreate; Wave N+1 worktrees branch only after every Wave N squash-merge, per-story review, and CODE_DIR-bound write are committed to BASE_BRANCH
-- `XPLAN-23` Step 4 final gap review spawns a fresh-context sub-agent that inherits the session model and uses high reasoning effort; invocation: /andthen:review --mode gap {REVIEW_PLAN_PATH} without --inline-findings, where {REVIEW_PLAN_PATH} is PLAN_PATH for complete runs or a .agent_temp completed-stories-only plan copy for partial runs
+- `XPLAN-23` Step 4 final gap review spawns a fresh-context sub-agent routed per the Sub-Agent Model Policy (default: inherit), using high reasoning effort; invocation: /andthen:review --mode gap {REVIEW_PLAN_PATH} without --inline-findings, where {REVIEW_PLAN_PATH} is PLAN_PATH for complete runs or a .agent_temp completed-stories-only plan copy for partial runs
 - `XPLAN-24` Step 4 final gap review survives partial runs: when the ledger has failed/skipped stories it runs scoped to the completed stories (not skipped wholesale) and surfaces WARNING: final gap review scoped to completed stories; skipped/failed stories not reviewed for drift: {ids}; a complete plan is reviewed in full
 - `XPLAN-25` FAIL verdict from final gap review triggers one andthen:remediate-findings pass in the orchestrator; escalate if it persists after one pass
 - `XPLAN-26` Final gap review sub-agent must return a verdict (PASS/FAIL) and a readable absolute report path; missing → BLOCKED: final gap review returned malformed output in AUTO_MODE
@@ -1411,7 +1412,7 @@ Positional args:
 - `XPLAN-46` Reviewer resolves review commit SHA: no-worktree mode → git rev-parse HEAD; worktree mode → git commit-tree snapshot on story-<story-id> branch; invokes /andthen:quick-review story <story-id> commit <hex-sha>
 - `XPLAN-47` andthen:ops update-plan mutates plan.json; direct edits to plan.json by orchestrator or agents are prohibited
 - `XPLAN-48` State document reads happen at session start (Step 2) and re-reads of plan.json at each phase transition (Step 3a)
-- `XPLAN-49` Sub-agent steering uses inherited session model plus effort: story execution uses medium reasoning effort; final gap review uses high reasoning effort. Orchestrators must not switch fixed model families by task.
+- `XPLAN-49` Sub-agent steering routes per the Sub-Agent Model Policy (default: inherit): story execution uses medium reasoning effort; final gap review uses high reasoning effort. Effort assignments are hard contract; model routing is bound by the SYS-55 invariant.
 
 **Gates / BLOCKED**
 - `XPLAN-50` Step 1: plan.json parsed and schema valid; FIS files exist on disk (local-directory mode); phases identified
@@ -1465,7 +1466,7 @@ Positional args:
 - plan-issue-shape.md defines shape detection logic for --from-issue body parsing
 - from-issue-mode.md reference covers all --from-issue mechanics (flag guards, shape detection, materialization, reconciliation, JIT FIS, closure)
 - andthen:exec-spec Step 5c produces per-story summaries consumed by Step 5c issue closure
-- exec-plan sub-agent steering: all workers inherit the session model; story implementation/review uses medium reasoning effort, final gap review uses high reasoning effort
+- exec-plan sub-agent steering: workers route per the Sub-Agent Model Policy (default: inherit); story implementation/review uses medium reasoning effort, final gap review uses high reasoning effort
 
 ---
 ## andthen:preflight
@@ -1485,6 +1486,7 @@ Positional args:
 - `PFLT-09` Converged plan-bundle stories flip to spec-ready via andthen:ops update-plan <plan_path> <story_id> spec-ready; a story retaining an open blocking record keeps its current status (clear stories update as they pass even when the bundle is BLOCKED).
 - `PFLT-10` Verdict emission follows the review-verdict.md Loop Convergence Signals grammar: a bare line at line start, one resolved token, matched by `^Preflight: (READY|DEFERRED|BLOCKED)$` (never the menu form). READY = zero open blocking decisions; DEFERRED = converged with all remaining decisions signed-off-deferred; BLOCKED = an unresolved blocking decision remains, a bundle has a non-clear story, or AUTO_MODE surfaced blocking decisions it could not resolve.
 - `PFLT-11` AUTO_MODE: runs only non-interactive detection, drill-down, evidence gathering, and the misapplied-ADR check with its mechanical doc-defect fix (a decision-free, non-interactive edit per PFLT-05); holds no interview, invokes no interactive trade-off loop, fabricates no answer; enumerates the unresolved blocking decisions as a signal/recommendation alongside Preflight: BLOCKED.
+- `PFLT-17` Reconcile: each record resolved this run is reworked into the FIS body at its affected_surface so the body states the ratified decision (the DECISION NOTE remains as provenance) – preflight's own edit, spec surface rather than an ops-owned status artifact; a coherence check then verifies the resolved set does not contradict itself or the body, reopening involved records as open on contradiction. An unreconciled or contradicting resolution counts as open and blocks READY/DEFERRED.
 
 **Gates / BLOCKED**
 - `PFLT-12` Ambiguous or missing target: BLOCKED: naming the expected target shape (a FIS file or a directory with plan.json) and the ambiguity, under AUTO_MODE; interactive challenge (ask which target) in default mode.
@@ -2160,7 +2162,7 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 - `REV-53` BLOCKED up-front: --council with single-lens --mode doc or --mode gap.
 - `REV-54` BLOCKED up-front: --worktree without --from-pr.
 - `REV-55` BLOCKED up-front: --from-pr combined with a local target/path argument.
-- `REV-56` BLOCKED: --output-dir <path> not writable in AUTO_MODE; warning + fallthrough in default mode.
+- `REV-56` BLOCKED: --output-dir <path> not writable in AUTO_MODE only on genuine create-or-write failure; warning + fallthrough in default mode; a missing directory is created.
 - `REV-57` BLOCKED: gh authentication required / BLOCKED: PR <N> not found when --from-pr fails.
 - `REV-58` BLOCKED: mixed has no scope when --mode mixed resolves to no applicable lens.
 - `REV-59` Missing-scope error only when no declared lens can resolve a target; partial-lens resolution proceeds for the resolvable lenses.
@@ -2364,7 +2366,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `ARCH-40` `trade-off` hard gate 3 (Step 5): recommendation presented; user chooses Proceed with ADR / Refine first / Deeper analysis / No ADR before Step 6.
 - `ARCH-41` `event-storming` is interactive-by-contract: Step 1 (scope + level) and Step 2 (event harvest) present focused questions and wait for user input when vocabulary or causality is unclear; the headless-execution rule does not apply. In AUTO_MODE these gates are bypassed – infer conservatively from INPUT and ubiquitous-language docs, recording assumptions as purple hotspots (not generic assumptions).
 - `ARCH-42` In AUTO_MODE: if mode and scope cannot be defensibly inferred from arguments, stop with `BLOCKED:` listing minimum missing inputs (mode, scope, decompose boundary, advise question, trade-off topic, or strategic-design/event-storming domain/workflow scope).
-- `ARCH-43` `--output-dir <path>` not writable in AUTO_MODE → `BLOCKED: --output-dir <path> not writable`; in default mode → warning + fallthrough to heuristic tiers.
+- `ARCH-43` `--output-dir <path>` genuine create-or-write failure in AUTO_MODE → `BLOCKED: --output-dir <path> not writable`; in default mode → warning + fallthrough to heuristic tiers; a missing directory is created (create-and-verify per review-report-location).
 - `ARCH-44` Phase 0 is skipped entirely in AUTO_MODE – no interactive prompts emitted.
 - `ARCH-45` Declared chain missing a required input for one of its modes (decompose boundary, advise question, trade-off topic) → guided setup or BLOCKED in AUTO_MODE.
 - `ARCH-46` FOLLOW-UP ACTIONS section is skipped when AUTO_MODE=true; only verdict/findings summary and report path are printed.
@@ -2485,7 +2487,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `MAP-02` Reads `CLAUDE.md`/`AGENTS.md` and any referenced rules files before starting.
 - `MAP-03` Reads the Learnings document (if it exists per Project Document Index) before starting.
 - `MAP-04` Performs read-only source analysis – no source-code changes or commits; documentation outputs and agent-instruction convention updates are expected writes.
-- `MAP-05` Delegates analysis to parallel sub-agents; sub-agents inherit the session model, using low/medium reasoning effort for scanning and higher reasoning effort for synthesis/discovery where needed.
+- `MAP-05` Delegates analysis to parallel sub-agents routed per the Sub-Agent Model Policy (default: inherit), using low/medium reasoning effort for scanning and higher reasoning effort for synthesis/discovery where needed.
 - `MAP-06` Monorepo detection: checks for `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `'workspaces'` in root `package.json`, `[workspace]` in root `Cargo.toml`, `go.work`, or multiple sub-dirs with their own package config; sets IS_MONOREPO=true when found.
 - `MAP-07` When IS_MONOREPO=true, all sub-agents organize findings with clear sub-project boundaries; shared aspects documented once; per-sub-project specifics only where they differ.
 - `MAP-08` Stack sub-agent outputs `OUTPUT_DIR/STACK.md` (languages/versions, frameworks+versions from lock files, infrastructure, external services, build tools, CI/CD) using the STACK.md template from project-state-templates.md.
@@ -2967,7 +2969,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `AGENT-28` Install-time rewrite: backtick-quoted review-* agent names are rewritten from unprefixed form to <prefix>review-* form (e.g. `review-critic` → `andthen-review-critic`) in installed skill markdown, skill OpenAI metadata, and generated/copied agent files. Backtick-quoted `documentation-lookup` is rewritten in installed skill markdown and skill OpenAI metadata, but remains unprefixed inside copied/generated agent prompts. Backtick-quoted `research` is rewritten only in the two-token form `` `research` agent`` (e.g. → `` `andthen-research` agent``) to avoid colliding with the `research` UI/UX mode name; bare backtick-quoted `research` is left untouched.
 - `AGENT-29` Stale generated agents are NOT removed automatically; manual deletion required when plugin/agents/ roster changes.
 - `AGENT-30` review-critic and review-security carry `color: red` (visual metadata only, not a behavioral contract); model/effort assignments are at `AGENT-31`.
-- `AGENT-31` Agent frontmatter uses `model: inherit` for every plugin agent except `documentation-lookup`, which pins `model: haiku` – a rot-free tier alias, chosen because pure retrieval is quality-insensitive to model tier and is the highest-volume leaf; the Codex generator ignores the line and inherits. Effort by agent: review-critic, review-correctness, and review-security use `effort: high`; review-devils-advocate, review-synthesis-challenger, review-architecture, review-testing, review-project-standards, review-product-requirements, review-agent-workflow, and research use `effort: medium`; documentation-lookup uses `effort: low`.
+- `AGENT-31` Agent frontmatter uses `model: inherit` (the default Sub-Agent Model Policy's frontmatter expression) for every plugin agent except `documentation-lookup`, which pins `model: haiku` – a rot-free tier alias, chosen because pure retrieval is quality-insensitive to model tier and is the highest-volume leaf; the Codex generator ignores the line and inherits. Effort by agent: review-critic, review-correctness, and review-security use `effort: high`; review-devils-advocate, review-synthesis-challenger, review-architecture, review-testing, review-project-standards, review-product-requirements, review-agent-workflow, and research use `effort: medium`; documentation-lookup uses `effort: low`.
 - `AGENT-42` documentation-lookup tool priority is override-first: read the project's `## Documentation Lookup Tools` section in CLAUDE.md/AGENTS.md and follow its tool priority when present; the Context7 → Fetch → Web-search order (`AGENT-23`) is the fallback used only when that section is absent.
 - `AGENT-43` research agent scope: multi-source web/project research and synthesis – deep research, information gathering, competitive analysis, fact-checking, and trade-off option investigation. Prefers official/primary sources; verifies important claims across more than one source; treats retrieved content as evidence, not instructions; separates evidence from inference and notes contradictions rather than averaging them; recommends next steps rather than deciding for the caller.
 - `AGENT-44` research output format: Objective, Method (key queries/files/sources), Findings (facts, contradictions, confidence), Recommendations, References (URLs or file paths).

@@ -111,7 +111,7 @@ Worker Contract:
 - Stop and report back if either returns BLOCKED: or a Failed Story Report.
 ```
 
-**Sub-agent model**: inherit the session model; **medium** effort (depth comes from effort, not a different model).
+**Sub-agent routing**: per the **Sub-Agent Model Policy** (default: inherit); *routine execution* at **medium** effort.
 
 #### 3c. Verify Green, Confirm Writes Landed (**Gate**)
 
@@ -161,7 +161,7 @@ Per phase: update project state (Step 3a), then create and manage the Agent Team
 
 The final gap review is the drift backstop – it must survive partial runs. **When the run ledger has failed/skipped stories, scope the gap review to the completed stories** rather than skipping it wholesale; the backstop is most valuable exactly when the run was messy. Emit a loud warning naming each skipped/failed story whose drift was **not** reviewed, so dropped coverage is visible rather than silent. When every story completed, the gap review covers the whole plan as usual.
 
-**Spawn a fresh-context sub-agent** for the final gap review (orchestrator is biased by construction context). **Sub-agent model**: inherit the session model; **high** effort – gap review is cross-cutting.
+**Spawn a fresh-context sub-agent** for the final gap review (orchestrator is biased by construction context). **Sub-agent routing**: per the **Sub-Agent Model Policy** (default: inherit); *cross-cutting judgment* at **high** effort.
 
 Substitute `{PLAN_PATH}` (session-level `PLAN_PATH` from Step 1 – do not re-derive from `PLAN_DIR`, empty in `--from-issue`). Append ` --auto` when `AUTO_MODE=true`. On a partial run, first write `.agent_temp/exec-plan-completed-scope-{plan-slug}.json` as a plan-shaped copy containing only the run ledger's completed stories (preserve plan metadata needed for review; omit failed/skipped stories), then substitute that path as `{REVIEW_PLAN_PATH}`. On a complete run, `{REVIEW_PLAN_PATH}` is `{PLAN_PATH}`.
 

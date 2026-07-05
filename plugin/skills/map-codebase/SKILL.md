@@ -38,7 +38,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 
 ### 2. Parallel Analysis
 
-Spawn parallel sub-agents (they inherit the session model), varying effort by task: **low** effort for scanning agents, **medium** for synthesis.
+Spawn parallel sub-agents, routing each per the **Sub-Agent Model Policy** (default: inherit): *scanning* (retrieval) at **low** effort, *synthesis* (routine) at **medium**.
 
 **Monorepo note** (apply to all sub-agents when `IS_MONOREPO = true`): organize findings with clear sub-project boundaries. Document shared aspects once; only call out per-sub-project specifics where they differ.
 

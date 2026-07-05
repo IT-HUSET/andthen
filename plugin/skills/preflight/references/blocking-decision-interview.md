@@ -7,6 +7,7 @@ Lean interview guidance for driving an implementation-blocking decision to a res
 - **One decision per question.** Each question closes a single `decision_key`. Do not bundle.
 - **Recommend, don't decide.** Offer a best-guess answer with a one-line rationale so the user can ratify or redirect. If you have no defensible basis, ask open-ended rather than fabricating one. An unaddressed recommendation is unanswered, not confirmed – wait for input.
 - **Resolve at the right altitude.** A requirements-altitude question (would a non-developer stakeholder care about the answer itself?) is not yours to settle – route it to the `andthen:clarify` skill. Implementation-blocking choices are yours.
+- **Decisions interact.** When a question shares an `affected_surface` with a decision already ratified this run, name the interaction in the question and check the new answer against the earlier decision's wording before persisting – two individually sound answers can contradict.
 - **Question delivery.** Use an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code); fall back to numbered markdown otherwise. First option = the recommendation with rationale; remaining options = real alternatives; leave room for free-form input.
 
 ## Probing techniques

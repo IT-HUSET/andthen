@@ -10,7 +10,7 @@ GPT-5.x+ specific behaviors, optimizations, and patterns.
 
 ## GPT Frontier Model Class
 
-Do not maintain static GPT version tables or cost/benchmark comparisons in prompt guidelines. AndThen's policy is one top-tier frontier GPT class plus task-appropriate `reasoning_effort`; keep concrete model ids in the harness or provider docs where they can track current availability.
+Do not maintain static GPT version tables or cost/benchmark comparisons in prompt guidelines. AndThen's *default* is inherit the session model plus task-appropriate `reasoning_effort`; routing is an overridable Sub-Agent Model Policy (see the guide). Keep concrete model ids in the harness or provider docs where they can track current availability.
 
 ### Core Capabilities
 
@@ -20,7 +20,7 @@ The GPT frontier family is optimized for:
 - Raw intelligence and reasoning
 - Steerability and instruction following
 
-See [Model & Effort Selection Guide](../MODEL-EFFORT-SELECTION-GUIDE.md) for the durable policy.
+See [Model & Effort Selection Guide](../MODEL-EFFORT-SELECTION-GUIDE.md) for the default, the override seam, and the invariants.
 
 ---
 
