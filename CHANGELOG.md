@@ -6,6 +6,20 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.36.0] – 2026-07-16
+
+### Added
+- **Codex plugin channel.** The same `plugin/` directory now installs as a Codex plugin – `plugin/.codex-plugin/plugin.json` plus a repo-level Codex marketplace (`codex plugin marketplace add IT-HUSET/andthen`, then `codex plugin add andthen@andthen`). Codex caches the plugin whole, so shared references travel with it (no build step) and skills register under the same `andthen:<name>` ids as Claude Code. CI now enforces version consistency across CHANGELOG and all three plugin manifests. Codex review agents (TOML) remain on the installer path.
+
+### Changed
+- **Sigil-free skill cross-references in shipped content.** Skill/reference/agent prose now references skills as "the `andthen:<name>` skill" – never host invocation sigils (`/andthen:<name>`, `$andthen-<name>`), which render as the wrong syntax on other hosts. The installer's slash-form rewrites are removed and a pre-copy validator rejects sigil forms – runnable standalone via `--validate-only` and CI-gated on plugin changes; `SYS-15` codifies the contract.
+- **Skill descriptions trimmed to a lean trigger surface.** 27 of 29 frontmatter descriptions reworked (two already lean) to front-load the primary use case, keep 2–4 distinct trigger phrases, and drop body restatement – the always-loaded description footprint shrinks ~36% (≈1,540 → ≈980 words) with cross-skill disambiguation constraints preserved. `SYS-21` updated to codify the tightened contract.
+- **Tighten pass over the five largest skill bodies.** `exec-spec`, `exec-plan`, `visualize`, `ops`, and `plan` pruned of duplication, sediment, and no-op prose (16 surgical edits, every removed fact still living at a reachable canonical); a stale `## Binding Constraints` pointer in `plan` now names the `bindingConstraints[]` array it feeds. Verified by a fresh-context contract-preservation review.
+- **Skill-authoring rubric extended with skill-craft concepts.** Leading words, a four-way pruning taxonomy (Duplication/Sediment/Sprawl/No-op), gate clarity × demand, the premature-completion failure mode, and negation→positive-target steering – landed in the authoring/prompt guidelines and the project-local tighten skill.
+- **`andthen:preflight` interview questions now carry decision context.** Each question leads with where the decision surfaced, what it affects, and why an unattended run would fork on it; each option states its observable consequence – enough to decide informed without re-opening the FIS, kept deliberately brief.
+
+---
+
 ## [0.35.0] – 2026-07-05
 
 ### Changed

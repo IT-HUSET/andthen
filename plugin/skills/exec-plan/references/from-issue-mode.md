@@ -57,8 +57,8 @@ Materialize the story's FIS into a local file before the per-story pipeline.
 
 **Invocation form** (both shapes): write the story body to `<run-tempdir>/story-<story-id>-body.md`. If `## Shared Decisions` and/or `## Binding Constraints` were extracted in Step 1, prepend them verbatim so the spec skill picks them up as user-supplied context (Binding Constraints' verbatim spans become Required Context blocks sourced from each entry's `prd.md#<heading-slug>`). Then append `## Source Material` with the PRD spans named by the story's `**Source refs**`; if span extraction is uncertain, include the full PRD body. Invoke the `andthen:spec` skill with the temp-file path (file-reference form). Passing the body as `$ARGUMENTS` risks newline/shell-escape issues; the temp-file form is the pinned recipe.
 
-- **Single-issue shape**: extract the matching `### Story S0N: <name>` section from the plan-issue body (H3 + compact brief), assemble the body file, then `/andthen:spec <run-tempdir>/story-<story-id>-body.md`. The spec skill's "Otherwise" branch reads the file and prints the relative `.md` path it wrote, resolved by the spec skill's own output-location rules.
-- **Granular shape**: `gh issue view <story-N> --json body --jq .body` for the story's mapped issue, assemble, invoke `/andthen:spec` the same way (the spec skill does not parse `--issue`).
+- **Single-issue shape**: extract the matching `### Story S0N: <name>` section from the plan-issue body (H3 + compact brief), assemble the body file, then invoke the andthen:spec skill on `<run-tempdir>/story-<story-id>-body.md`. The spec skill's "Otherwise" branch reads the file and prints the relative `.md` path it wrote, resolved by the spec skill's own output-location rules.
+- **Granular shape**: `gh issue view <story-N> --json body --jq .body` for the story's mapped issue, assemble, invoke the `andthen:spec` skill the same way (the spec skill does not parse `--issue`).
 
 **FIS path capture**: parse the spec skill's printed relative path (ends in `.md`). Use as `{fis_path}`. If the print format changes, this capture breaks – keep the spec skill's "print the output's relative path" contract pinned.
 

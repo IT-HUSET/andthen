@@ -1,5 +1,5 @@
 ---
-description: Set up AndThen workflow structure for a project – handles new projects, partial setups, and brownfield codebases. Trigger on 'set up AndThen', 'initialize the workflow', 'bootstrap this project for AndThen'.
+description: Set up the AndThen workflow structure – new projects, partial setups, and brownfield codebases. Trigger on 'set up AndThen', 'initialize the workflow', 'bootstrap AndThen'.
 argument-hint: "[project name or path]"
 ---
 
@@ -156,11 +156,11 @@ Created:
 
 Next steps:
   1. Review and customize CLAUDE.md / AGENTS.md (especially Project Overview)
-  2. Not sure where to start? Run /andthen:now-what (or $andthen:now-what)
+  2. Not sure where to start? Use the andthen:now-what skill
      – it inspects state and routes to the right skill (clarify, spec, plan,
      architecture, ui-ux-design, etc.). Pass your idea inline if you have one.
-  3. Already know what you need? Jump straight to /andthen:spec, /andthen:plan,
-     /andthen:quick-implement, /andthen:architecture, etc.
+  3. Already know what you need? Jump straight to the andthen:spec, andthen:plan,
+     andthen:quick-implement, andthen:architecture, etc. skills.
 ```
 
 

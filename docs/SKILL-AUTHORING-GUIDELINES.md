@@ -182,13 +182,19 @@ Match instruction specificity to **task fragility**. The same skill can use diff
 
 The wrong freedom level either over-constrains (model can't adapt when the situation deviates) or under-constrains (model freelances on a fragile step).
 
-### Named principles over unnamed rules
+### Named principles and leading words
 
 Give load-bearing rules a name. *Stop-the-Line*, *Chesterton's Fence*, *Surgical Scope*, *Anti-Rationalization* – a named principle is a conceptual anchor the model can recall, apply, and explain. An unnamed rule is just another bullet competing for attention.
+
+A good name works as a **leading word**: a compact concept the model thinks *with* while running the skill. Prefer an existing term that carries pretraining weight (*tracer bullet*, *fog of war*, *seam*) over a coined one – an invented term recruits no priors, so you pay in definition tokens what a real word gives free. Reuse the word verbatim wherever it applies (description, body, references) instead of restating its definition; consistent repetition of the *token* accumulates meaning, while paraphrase reads as a different concept. A leading word that also appears in users' actual prompts doubles as a discovery trigger.
 
 ### Gates over steps
 
 For workflow skills, name what must be **true to advance** at each phase, not just what to do. A gate ("PRD read once and held in working notes") is a falsifiable condition; a step ("read the PRD") is satisfiable by appearance.
+
+A gate has two independent dials. **Clarity**: can the model tell done from not-done – the defense against declaring victory early. **Demand**: how much work satisfying it requires – the way to induce thorough invisible work (reading, exploring, digging instead of asking) without scripting it as steps. "Every modified model accounted for" forces a sweep that "produce a change list" never will.
+
+**Premature completion** is the failure mode gates exist against: visible downstream steps pull the model toward *being done* rather than *finishing properly*, and the more future it can see, the stronger the pull. Fix in order: sharpen the current gate's clarity first – cheap and local. Only when rushing is still *observed* in runs, hide the later phases behind a real context boundary (a fresh sub-agent dispatch; an inline skill call clears nothing).
 
 ### Structured output blocks
 
@@ -203,9 +209,14 @@ MISSING REQUIREMENT: <undefined behavior> – <which behavior to choose>
 
 Named blocks let downstream skills and orchestrators parse responses deterministically, and discourage silent rationalization past uncertainty.
 
-### Repetition is dilution
+### Pruning: four named failure modes
 
-When a rule feels weak, the fix is *not* restating it three times. Restatements compete for attention and dilute every copy. Instead: name the specific failure mode being prevented, and explain the consequence.
+Prose debt in a skill takes four distinct shapes. Hunt each by name – they have different cures, and a pass that only checks "is it too long?" misses three of them.
+
+- **Duplication** – the same meaning stated in more than one place. *Repetition is dilution*: restatements compete for attention and weaken every copy. When a rule feels weak, the fix is not saying it again but naming the failure mode it prevents and its consequence. Cure: one canonical statement, pointers elsewhere.
+- **Sediment** – stale layers left by add-only edits, because adding feels safe and removing feels risky. The default fate of any skill nobody actively prunes; the cure is reworking sections whole ("rework, don't accrete").
+- **Sprawl** – sheer length independent of staleness: reference material sitting inline that only some paths need. Cure: push it down the disclosure ladder into a bundled reference file.
+- **No-op** – an instruction the model already follows unprompted ("be thorough"): pure context cost, zero behavior change. Whether a line is a no-op is model-relative, and is settled by running the skill and observing – not by debate.
 
 ---
 

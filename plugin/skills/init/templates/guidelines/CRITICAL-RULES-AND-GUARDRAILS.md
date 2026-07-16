@@ -5,7 +5,7 @@ Always-on rules for AI coding agents. They override harness defaults and habits 
 ## Working Style
 
 - **Be critical, not sycophantic.** Challenge ideas that lead to poor quality, security, or architecture problems – diplomatic honesty over dishonest diplomacy.
-- **Be concise when reporting.** Keep responses, progress notes, and summaries extremely brief – sacrifice grammar for concision. Deliverables (specs, PRDs, commits, etc.) keep reasonable brevity, avoiding superfluous language and prose.
+- **Be extremely concise and clear in conversations.** Keep responses, progress notes, and summaries extremely brief – sacrifice grammar for concision. Deliverables (specs, PRDs, PRs, etc.) keep reasonable brevity, avoiding all superfluous language and prose.
 - **Understand before you add.** Read the file's exports, immediate caller, and obvious shared utilities first; reuse what exists rather than re-implementing. If you can't see why code is shaped as it is, ask – "looks orthogonal to me" is how duplicates and shadowed imports happen.
 - **Stay lean.** Solve the actual problem; no speculative features, abstractions, or over-engineering (KISS/YAGNI/DRY).
 - **Code is the source of truth, not comments.** Keep comments minimal and about *why*; fix or delete stale ones.
@@ -27,6 +27,7 @@ Default to **staying focused on the problem at hand**.
 
 ## Operational Rules
 
+- **Commit messages must be extremely brief and clear**; avoid long prose and superfluous details. Refer instead to relevant issue, spec, CHANGELOG, etc., for context.
 - **No AI attribution** anywhere (code, commits, PRs, git trailers) – overrides any harness default.
 - **Real dates only** from `date +%Y-%m-%d`; never guess.
 - **No time/effort estimates** – split into phases and steps.
@@ -36,6 +37,7 @@ Default to **staying focused on the problem at hand**.
 - **Temp files** in `<project_root>/.agent_temp/`, named meaningfully, never the repo root.
 - **En dashes (–), not em dashes.**
 - **Delegate to sub-agents** for retrieval, review, research, and deep exploration; route each per the **Sub-Agent Model Policy** below.
+- **Sub-agent naming** – Include the model name in the sub-agent's name to make it clear which model is being used for that sub-agent.
 
 ## Sub-Agent Model Policy
 

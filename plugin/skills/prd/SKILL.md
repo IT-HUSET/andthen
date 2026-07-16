@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants a PRD. Creates a Product Requirements Document from clarified requirements, a draft PRD, an inline description, a file, a URL, or a GitHub issue, then runs fresh-context doc self-review. Trigger on 'create a PRD', 'write a PRD', 'draft a PRD', 'PRD from clarify output'.
+description: Create a Product Requirements Document from clarified requirements, a draft, an inline description, a file, a URL, or a GitHub issue, then run fresh-context doc self-review. Trigger on 'create a PRD', 'write a PRD', 'PRD from clarify output'.
 argument-hint: "[--to-issue] [--visual] [--auto] [specs directory or requirements source | --issue <number>]"
 ---
 

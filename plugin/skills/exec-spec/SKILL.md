@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants to execute or implement an existing spec or FIS. Implements code from a Feature Implementation Specification. Trigger on 'execute this spec', 'execute this FIS', 'implement this spec', 'implement this FIS', 'build from spec'.
+description: Implement code from an existing spec – a Feature Implementation Specification (FIS). Trigger on 'execute this spec', 'implement this FIS', 'build from spec'.
 argument-hint: "[--auto] [--tdd] [--defer-shared-writes] [--to-pr <number>] <path-to-fis>"
 ---
 
@@ -10,7 +10,7 @@ FIS_FILE_PATH: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, `-
 
 ### Optional Flags
 - `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
-- `--tdd` → TDD_MODE: strict TDD execution mode. Scaffold exactly one scenario test, observe it fail, drive red→green→refactor, then advance to the next scenario. The executor remains the test author. TDD canon is owned by the `andthen:testing` skill – load `/andthen:testing --mode tdd` for depth. `AUTO_MODE` honors `--tdd` without confirmation gates. Default off; opt in for logic-heavy or bug-mode FISes.
+- `--tdd` → TDD_MODE: strict TDD execution mode. Scaffold exactly one scenario test, observe it fail, drive red→green→refactor, then advance to the next scenario. The executor remains the test author. TDD canon is owned by the `andthen:testing` skill – load it with `--mode tdd` for depth. `AUTO_MODE` honors `--tdd` without confirmation gates. Default off; opt in for logic-heavy or bug-mode FISes.
 - `--defer-shared-writes` → DEFER_SHARED_WRITES (boolean; default `false`; immutable for the run):
   - **`true`**: skip all shared-status writes (`plan.json` + `State`); see each Step 5b/4d substep for which writes it gates. FIS writes (5b.1) still run; emit the `## Deferred Shared Writes` audit block (5b.5) for the caller to apply.
   - **`false`** (standalone default): run the shared writes (5b = success, 4d = failure blocker). Mirrors `andthen:exec-plan`'s per-story/phase-boundary writes so standalone use keeps plan/State consistent. No audit block.
@@ -41,7 +41,7 @@ Spawn narrow sub-agents when they materially improve a coding decision. Output i
 - For external best-practice research, use a sub-agent. Prefer official sources; separate evidence from inference.
 - **Codebase reconnaissance**: when the FIS leaves the read-set unpinned in a large or unfamiliar neighborhood, spawn an Explore (or general-purpose) sub-agent per work area to map callers, callees, conventions, and invariants – returning a distilled brief (signatures, traps, idioms), not file dumps.
 
-**Skills** (invoke as `/andthen:<name>`; for fresh-context isolation, spawn a sub-agent whose prompt runs the skill):
+**Skills** (in-context by default; for fresh-context isolation, spawn a sub-agent whose prompt invokes the skill):
 
 - the `andthen:testing` skill – test strategy, coverage, TDD / red-green-refactor, Prove-It bugfix flow, unfamiliar test-harness patterns
 - the `andthen:architecture` skill in `--mode trade-off` for unresolved trade-offs with concrete competing options; `--mode advise` for open design/integration-pattern ambiguity without crystallized options
@@ -91,7 +91,7 @@ Rules:
 
 5. **Process Required / Deeper Context** – `Required Context` blocks are authoritative; do not re-read source documents to reconfirm. `Deeper Context` pointers (`path#anchor`) are optional, on-demand reads when Required Context has gaps. Verify each followed anchor resolves; warn (do not stop) on broken anchors.
 
-6. Read these when present/relevant (see **Project Document Index**): `Learnings`; `Ubiquitous Language` – use canonical terms, avoid listed synonyms; `Architecture` – when the FIS touches structural or cross-component code (Required Context stays authoritative for execution; Architecture is the system-shape baseline). Build a quick codebase overview once (`tree -d`, `git ls-files | head -250`), then focus on the files the FIS touches.
+6. Read these when present/relevant (see **Project Document Index**): `Learnings`; `Ubiquitous Language` – use canonical terms, avoid listed synonyms; `Architecture` – when the FIS touches structural or cross-component code (Required Context stays authoritative for execution; Architecture is the system-shape baseline). Read only what the FIS touches.
 
 7. Read the `Key Dev Commands` document (default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) – canonical source for build, format, lint/type-check, test, run commands. Use these whenever a Verify line does not specify its own. If missing, fall back to discovery and language conventions.
 
@@ -110,7 +110,7 @@ Rules:
 ### Step 3: Implement
 Implement the FIS yourself, task by task, in the order listed.
 
-When `TDD_MODE=true`, run every scenario-bearing task per the `--tdd` flag contract; for bug-fix tasks, load `/andthen:testing --mode prove-it`.
+When `TDD_MODE=true`, run every scenario-bearing task per the `--tdd` flag contract; for bug-fix tasks, load the andthen:testing skill with `--mode prove-it`.
 
 For each task:
 1. Implement the outcome described; update `changed-files` and record the result in working notes.
@@ -144,7 +144,7 @@ Implementation rules:
 Step 3 verifies task-level outcomes. Step 4 catches cross-cutting issues – integration, security, architectural coherence, spec drift – that survive per-task Verify lines.
 
 #### 4a. Direct Checks
-Use canonical commands from `Key Dev Commands` (Step 2.7); if absent, its discovery fallback stands.
+Use canonical commands from `Key Dev Commands` (Step 2.7).
 
 1. **Build**: every applicable build/package step succeeds.
 2. **Tests**: all relevant tests pass (or pre-existing failures documented).
@@ -156,7 +156,7 @@ Use canonical commands from `Key Dev Commands` (Step 2.7); if absent, its discov
 8. **Tautology check**: for each test added/modified, the unit under test must be imported and called (not replaced by a mock); assertions must reference its return value or observable effect, not mock call arguments; fixtures must not substitute for the production computation (golden outputs are fine). Tests that pass with the asserted behavior removed are tautological – remediation input.
 
 #### 4b. Code Review (mandatory fresh-context review)
-Invoke the `andthen:review` **skill** with `--mode code,gap` for independent review: `code` runs the static-analysis/quality/security/wiring/simplification lens; `gap` is the independent falsifier for the self-attested Step 5a gate, comparing the implementation against the FIS Intent + Expected Outcomes. Prefer a fresh-context sub-agent whose prompt runs `/andthen:review --mode code,gap {FIS_FILE_PATH} {changed-files}`.
+Invoke the `andthen:review` **skill** with `--mode code,gap` for independent review: `code` runs the static-analysis/quality/security/wiring/simplification lens; `gap` is the independent falsifier for the self-attested Step 5a gate, comparing the implementation against the FIS Intent + Expected Outcomes. Prefer a fresh-context sub-agent whose prompt invokes the andthen:review skill with `--mode code,gap {FIS_FILE_PATH} {changed-files}`.
 
 #### 4c. Visual Validation (if UI)
 Invoke the `andthen:visual-validation` **skill** in a sub-agent per any Visual Validation Workflow in `CLAUDE.md` / `AGENTS.md`.
@@ -250,7 +250,7 @@ Status writes are gates, not bookkeeping. Run each substep in order then verify.
 
 **As-Built Upstream Reconciliation recommendation** _(only when this run wrote OPEN ledger entries)_: emit a recommendation block listing every OPEN ledger entry written this run and the upstream targets needing update; recommend-only, see [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md). Present interactively and as text in `AUTO_MODE` (never an interactive wait).
 
-**Completion-presentation gate** (standalone use): before presenting this run as **complete/shipped**, read this FIS's adjacent ledger and refuse to present a shipped summary while any `OPEN` or `RECONCILE REQUIRED` entry exists – name the blocking entries instead. The only bypass is an explicit override reason recorded against those entries via the `andthen:ops` skill `update-ledger override-close <ledger-path> <stable-id> <reason>`. This gate is a *presentation* refusal, not a per-story status block: the Step 5b writes (FIS / plan / State – the story records its own completion) already ran and are **not** gated, since upstream reconciliation is human-owned and recommend-only. In `AUTO_MODE`, surface the refusal as `BLOCKED:` text naming the blockers (never an interactive wait); the per-story writes still stand. Under `DEFER_SHARED_WRITES=true` (orchestrated by `andthen:exec-plan`), the orchestrator owns the consolidated gate at its completion summary – skip the standalone refusal here; the orchestrator reads each story's FIS-adjacent ledger (story-local, merged with the story branch) at its own completion gate.
+**Completion-presentation gate** (standalone use): before presenting this run as **complete/shipped**, read this FIS's adjacent ledger and refuse to present a shipped summary while any `OPEN` or `RECONCILE REQUIRED` entry exists – name the blocking entries instead. The only bypass is an explicit override reason recorded against those entries via the `andthen:ops` skill `update-ledger override-close <ledger-path> <stable-id> <reason>`. This gate is a *presentation* refusal, not a per-story status block: the Step 5b writes (FIS / plan / State) already ran and are **not** gated. In `AUTO_MODE`, surface the refusal as `BLOCKED:` text naming the blockers (never an interactive wait); the per-story writes still stand. Under `DEFER_SHARED_WRITES=true` (orchestrated by `andthen:exec-plan`), the orchestrator owns the consolidated gate at its completion summary – skip the standalone refusal here; the orchestrator reads each story's FIS-adjacent ledger (story-local, merged with the story branch) at its own completion gate.
 
 Report: per-task status, files created/modified, verification evidence – **Build** (exit code/status), **Tests** (pass/fail counts), **Linting/types** (error/warning counts), **Format** (clean/violations); add **Visual validation** and **Runtime** for UI/runtime stories – the **Chain Attestation** per-link articulation lines from 5a, and a brief summary of any persisted observations or Discovered Requirements. Reference `## Implementation Observations` for full `NOTICED BUT NOT TOUCHING`, `ASSUMPTIONS`, and Discovered Requirements detail – duplicating the full Discovered Requirements block only when `AUTO_MODE` Tier C required it.
 

@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants to understand, explain, or present what changed in a PR, branch, or changeset. Produces a narrative Changeset Walkthrough – changes grouped by intent, key diff hunks, architectural delta, reviewer focus points – and renders it as an interactive HTML tour via the andthen:visualize skill. Do not use when the user wants findings or a verdict – use the andthen:review skill for judgment. Trigger on 'explain this PR', 'explain these changes', 'walk me through this PR', 'what changed on this branch', 'explain this diff', 'changeset walkthrough', 'present these changes', 'visual PR tour'.
+description: Explain what changed in a PR, branch, or changeset as a narrative Changeset Walkthrough, rendered as an interactive HTML tour. Comprehension only – for findings or a verdict use the andthen:review skill. Trigger on 'explain this PR', 'what changed on this branch', 'changeset walkthrough'.
 argument-hint: "[<base-ref> | <base>..<head> | --from-pr <N>] [--to-pr [<N>]] [--no-visual] [--auto]"
 user-invocable: true
 ---

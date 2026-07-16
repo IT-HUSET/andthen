@@ -1,5 +1,5 @@
 ---
-description: Internal squash-merge for one story worktree branch into the integration branch (precondition + G1/G2/G3 guards, mechanical squash, semantic conflict resolution, commit with the load-bearing `Squashed-story:` trailer). Invoked per story by the `andthen:exec-plan` skill in team-mode Merge Wave. Not user-invocable.
+description: Internal squash-merge of one story worktree branch into the integration branch, guarded, committing with the load-bearing `Squashed-story:` trailer. Invoked per story by the `andthen:exec-plan` skill in team-mode Merge Wave; not user-invocable.
 context: fork
 user-invocable: false
 argument-hint: "<story-id> <base-branch> <worktree-path> <summary-file> [--guard-path PATH]..."

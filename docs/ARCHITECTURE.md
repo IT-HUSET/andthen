@@ -127,3 +127,17 @@ Both forms require the strict braces in their contexts (canonicals always; `${CL
 The installer also propagates `plugin/agents/*.md`: Claude user-tier installs get prefixed markdown agents, and Codex installs get generated TOMLs via `scripts/generate-codex-agents.sh`. `--no-codex-agents` skips Codex agent generation; `--claude-agents-dir` overrides the Claude agent destination alongside `--claude-skills-dir`.
 
 Agent propagation is overwrite-only. Removing or renaming a source agent does not delete stale generated `<prefix>*.toml` or copied `<prefix>*.md` files from prior installs; users must remove obsolete generated agents when they need the visible set to exactly match `plugin/agents/`.
+
+
+---
+
+
+## Distribution Channels
+
+One source directory, three channels – `plugin/` is never duplicated or pre-built into the repo:
+
+- **Claude Code plugin (primary)** – ships `plugin/` verbatim via `.claude-plugin/marketplace.json`; `${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_SKILL_DIR}` resolve at runtime.
+- **Codex plugin (primary)** – the same `plugin/` directory, described by `plugin/.codex-plugin/plugin.json` and served by the repo-level `.agents/plugins/marketplace.json` (`codex plugin marketplace add IT-HUSET/andthen`). Codex copies the whole plugin directory into its versioned cache, so `plugin/references/` travels with the skills – no inlining, no build step, no rewrites. Skills register as `andthen:<name>`, byte-identical to Claude Code, which is why shipped prose uses that form. Codex plugins cannot carry sub-agents; the TOML review agents remain on the installer path (`scripts/generate-codex-agents.sh`).
+- **Loose skills (secondary)** – `scripts/install-skills.sh` for the `~/.agents/skills` readers (Gemini CLI, Cursor, opencode, Amp, Copilot, plugin-less Codex), the Claude user tier, and white-label installs. This is the only channel where bundles leave the plugin structure, so it performs the inlining and rewrites described above.
+
+**Version contract**: `CHANGELOG.md`, `.claude-plugin/marketplace.json`, `plugin/.claude-plugin/plugin.json`, and `plugin/.codex-plugin/plugin.json` must carry the same version – enforced by CI (`validate-plugin.yml`), because manifest skew is an observed failure mode in dual-manifest repos.

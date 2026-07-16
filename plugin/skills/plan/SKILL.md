@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants an implementation plan with FIS specs for every story. Trigger on 'create a plan', 'break this into stories', 'plan this feature', 'spec all stories', 'batch spec this plan'. Produces the full plan bundle (`plan.json` + all FIS) from an existing local `prd.md`, `--issue <number>`, or a GitHub issue URL. Redirect to `andthen:prd` when no PRD source is resolvable.
+description: Produce the full plan bundle (`plan.json` + a FIS per story) from a local `prd.md`, `--issue <number>`, or a GitHub issue URL; redirects to the andthen:prd skill when no PRD source resolves. Trigger on 'create a plan', 'break this into stories', 'spec all stories'.
 argument-hint: "[--max-parallel N] [--skip-review] [--issue <number>] [--to-issue] [--create-story-issues] [--visual] [--auto] <path-to-directory-with-prd.md | GitHub issue URL>"
 ---
 
@@ -33,7 +33,7 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 
 ## INSTRUCTIONS
 
-- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting; use the minimum number of stories that cover requirements, organized into logical phases.
+- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - Require `INPUT`. Stop if missing.
 - Delegate research/exploration to sub-agents to protect the main context window. Do not author FIS content yourself – Step 5 delegates one sub-agent per story.
 - **Automation rules**: see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Plan-specific `BLOCKED:` trigger: missing PRD source (redirect to `andthen:prd`).
@@ -71,7 +71,7 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 
 Run a quick `tree -d` + `git ls-files | head -250` inline (no sub-agent) for natural implementation boundaries. Read `State`, `Ubiquitous Language`, `Architecture`, `Stack`, and `Product` documents (see **Project Document Index**) when present – priorities, canonical terminology, story splits, tech-stack constraints story scope must respect, and product anti-goals that bound decomposition. Do not restate Architecture boundaries in story scope.
 
-Synthesize: PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), implementation boundaries, dependencies, complexity/risk areas. Note "must support X" / "must not Y" language for the optional `## Binding Constraints` section in Step 4.
+Synthesize: PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), implementation boundaries, dependencies, complexity/risk areas. Note "must support X" / "must not Y" language for the optional `bindingConstraints[]` array in Step 4.
 
 **Existing-plan handling** (local-output mode, `OUTPUT_DIR/plan.json` exists): treat the rerun as a full regeneration preserving intact story state per [`resume-regeneration.md`](references/resume-regeneration.md); both this and the Step 1 legacy path converge on an in-memory plan ready for Step 5.
 
@@ -94,7 +94,7 @@ Each story is **vertical** (demoable slice through all layers), **bounded** (cle
 
 Organize into logical phases. Common pattern: **P1 Tracer Bullet** (thin e2e slice), **P2 Feature Slices** (parallel vertical slices), **P3 Hardening** (edges, polish, integration). Adapt to the project. Within a phase: **W1** = no dependencies, **W2** = depends only on W1, etc.; same-wave `parallel: true` stories run concurrently.
 
-**Goal-Backward Analysis**: for each story, work backward from the user-observable outcome – what must be TRUE when done, artifacts produced, system connections. Defines story boundary and FIS seed context; detailed Acceptance Scenarios / Structural Criteria belong in the FIS.
+**Goal-Backward Analysis**: for each story, work backward from the user-observable outcome – what must be TRUE when done, artifacts produced, system connections. Defines story boundary and FIS seed context.
 
 #### Story Definition
 
@@ -126,7 +126,7 @@ Run pairwise, iterate to a fixed point – 3-way merges compose from successive 
 
 **If `--to-issue` is set**: skip Steps 4–6 and run the GitHub-output flow in [`to-issue-mode.md`](references/to-issue-mode.md) (single-issue or granular shape; no durable local artifacts). Stop when that flow completes.
 
-Assemble the in-memory plan object per *The Plan Schema* and write it to `OUTPUT_DIR/plan.json`. Use 2-space indentation and the schema's documented key order so diffs reflect content changes, not ordering drift. Story `status`/`fis`/`owner` initialize to `"pending"`/`null`/`null` (`owner` is claimed later via `andthen:ops update-plan-owner`).
+Assemble the in-memory plan object per *The Plan Schema* and write it to `OUTPUT_DIR/plan.json`. Use 2-space indentation and the schema's documented key order so diffs reflect content changes, not ordering drift. Story `status`/`fis`/`owner` initialize to `"pending"`/`null`/`null`.
 
 **Top-level field assembly**: populate `schemaVersion` / `prd` / `references` / `overview.*` shapes per *The Plan Schema*. `prd` is `"github://issue/<N>"` when `--issue` was used.
 
@@ -137,7 +137,7 @@ Assemble the in-memory plan object per *The Plan Schema* and write it to `OUTPUT
 
 Both are inline extractions – no sub-agent fan-out.
 
-`riskSummary[]` aggregates per-story risk/mitigation pairs (replaces the legacy `## Risk Summary` table). `executionNotes` is a short narrative on running the plan (replaces the legacy `## Execution Guide`); place Step 1's `Migrated from legacy plan.md: ...` annotation here when applicable.
+`riskSummary[]` aggregates per-story risk/mitigation pairs. `executionNotes` is a short narrative on running the plan; place Step 1's `Migrated from legacy plan.md: ...` annotation here when applicable.
 
 Schema invariants per *The Plan Schema*; enforced by the Self-Check below.
 
@@ -169,7 +169,7 @@ Skip stories whose `stories[].fis` already points at a file that exists on disk 
 
 #### Sub-Agent Prompts
 
-For each in-scope story, spawn a sub-agent that runs `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.json`. The `andthen:spec` skill handles the full authoring flow per [the FIS authoring guidelines](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) (referenced below as *The Authoring Guidelines*).
+For each in-scope story, spawn a sub-agent that invokes the andthen:spec skill with `--auto story {story_id} of {OUTPUT_DIR}/plan.json`. The `andthen:spec` skill handles the full authoring flow per [the FIS authoring guidelines](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md) (referenced below as *The Authoring Guidelines*).
 
 **Additional context for each sub-agent**:
 - Reads `plan.json` (`sharedDecisions`, `bindingConstraints` as structured fields) plus only the PRD anchors in the story's `sourceRefs`. No whole-PRD re-read.

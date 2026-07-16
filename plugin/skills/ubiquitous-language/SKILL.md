@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants a glossary, ubiquitous language extraction, or domain terminology cleanup. Extracts and maintains the project's `Ubiquitous Language` document as defined in the **Project Document Index**, using the codebase, documentation, and conversation. Trigger on 'build a glossary', 'extract ubiquitous language', 'update the domain language'.
+description: Extract and maintain the project's Ubiquitous Language document (per the Project Document Index) from the codebase, documentation, and conversation. Trigger on 'build a glossary', 'extract ubiquitous language', 'domain terminology cleanup'.
 argument-hint: "[--update] [scope or focus area]"
 ---
 
@@ -101,6 +101,5 @@ Save to the `Ubiquitous Language` document location from the **Project Document 
 
 When complete, print the output path and suggest:
 1. Review the glossary for accuracy with domain experts
-2. Run the `andthen:ubiquitous-language` skill periodically to keep it current:
-   `/andthen:ubiquitous-language --update` (or `$andthen-ubiquitous-language --update` for Codex CLI)
+2. Run the `andthen:ubiquitous-language` skill with `--update` periodically to keep it current
 3. Run the `andthen:review` skill with `--mode code` to check code against the glossary

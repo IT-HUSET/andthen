@@ -68,6 +68,7 @@ Modern frontier LLMs (Claude 4.6+, GPT-5.2+) need clear instructions:
 - Explain WHY behavior matters (models generalize from context)
 - Use examples (models pay close attention to details)
 - Specify completeness: "as many features as needed" vs "minimal implementation"
+- Steer with positive targets, not prohibitions: naming what to avoid makes it *more* salient ("don't think of an elephant"). Prefer "write one-line comments" over "never write verbose comments"; reserve "never X" for hard guardrails, and pair it with the wanted behavior
 
 ### 4. Independent Verification
 Implementation ≠ Validation:

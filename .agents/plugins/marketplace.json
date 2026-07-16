@@ -1,0 +1,19 @@
+{
+  "name": "andthen",
+  "interface": {
+    "displayName": "AndThen"
+  },
+  "plugins": [
+    {
+      "name": "andthen",
+      "source": {
+        "source": "local",
+        "path": "./plugin"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
+    }
+  ]
+}

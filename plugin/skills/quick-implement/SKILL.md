@@ -1,5 +1,5 @@
 ---
-description: Quick implementation path for small features or fixes with verification. Bypasses the FIS workflow – for larger features, use the `andthen:clarify` → `andthen:spec` → `andthen:exec-spec` chain instead. Trigger on 'quick fix this', 'implement this quickly', 'make this small change'.
+description: Quick implementation path for small features or fixes, with verification. Bypasses the FIS workflow – larger features take the andthen:clarify → andthen:spec → andthen:exec-spec skill chain. Trigger on 'quick fix this', 'make this small change'.
 argument-hint: "[--tdd] [--pr|--no-pr] [--auto] <spec | --issue <number>>"
 ---
 

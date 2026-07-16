@@ -1,5 +1,5 @@
 ---
-description: "The default review skill - start here for code, docs, gap, security, mixed, PR, adversarial, critic, skeptic, red-team, and multi-reviewer reviews. Runs one or more lenses, proves coverage before verdict, routes findings into Fix/Note, and can remediate or visualize the report. Trigger on 'review this', 'audit this', 'does this match the spec', 'security review', 'OWASP review', 'council review', 'red-team this'."
+description: The default review skill – code, docs, gap, security, PR, adversarial/red-team, and multi-reviewer council reviews. Proves coverage before verdict, routes findings into Fix/Note, can remediate or visualize the report. Trigger on 'review this', 'audit this', 'does this match the spec', 'security review'.
 user-invocable: true
 argument-hint: "[--mode <mode>[,<mode>...]] [--council] [--team] [--fix] [--inline-findings] [--output-dir <path>] [--from-pr <number>] [--to-pr <number>] [--worktree] [--fanout|--no-fanout] [--visual] [--auto] [target/files/PR/spec path]"
 ---

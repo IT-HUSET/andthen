@@ -1,5 +1,5 @@
 ---
-description: "Investigate, diagnose, and fix issues – including build failures, configuration errors, runtime bugs, regressions, and test failures. Trigger on 'debug this', 'investigate this bug', 'what's broken', 'triage', 'fix this bug', 'fix the build', 'troubleshoot this build'. Flags: --plan-only, --to-issue."
+description: Investigate, diagnose, and fix issues – build failures, configuration errors, runtime bugs, regressions, test failures. Trigger on 'debug this', 'what's broken', 'triage', 'fix the build'.
 user-invocable: true
 argument-hint: "[--plan-only] [--to-issue] [--auto] [scope | --issue <number>]"
 ---

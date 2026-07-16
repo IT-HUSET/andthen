@@ -1,5 +1,5 @@
 ---
-description: Discovery & Ideation for requirements at feature or product scope – clarify requirements, product vision, and overall product requirements through systematic discovery of gaps, edge cases, scope boundaries, and alternatives the user hadn't considered. Trigger on 'clarify this', 'clarify requirements', 'what are the requirements', 'discover requirements', 'product vision', 'clarify the product', 'product-level requirements'.
+description: Discovery & Ideation for requirements at feature or product scope – systematic discovery of gaps, edge cases, scope boundaries, and alternatives the user hadn't considered. Trigger on 'clarify requirements', 'what are the requirements', 'product vision'.
 argument-hint: "[requirements source: description or file path | --issue <number>] [--mode product|feature] [--to-issue] [--visual]"
 ---
 

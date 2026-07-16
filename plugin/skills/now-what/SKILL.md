@@ -1,5 +1,5 @@
 ---
-description: Use when getting started with AndThen on a project, picking a starting skill, or unsure what to do next. Inspects project state (init'd? greenfield? brownfield? mid-flow?) and routes to the right skill – `init`, `map-codebase`, `clarify`, `prd`, `architecture`, `ui-ux-design`, etc. Trigger on 'where do I start', "I'm new to AndThen", "what's next", 'next step', "I'm stuck", 'now what', 'help me get started', 'is this a PRD or a spec', 'guide me'.
+description: First-stop router – inspects project state (init'd? greenfield? brownfield? mid-flow?) and routes to the right AndThen skill. Trigger on 'where do I start', 'now what', "I'm stuck", 'is this a PRD or a spec'.
 argument-hint: "[--auto] [--no-handoff] [brief description of what you want to do]"
 ---
 
@@ -69,7 +69,7 @@ Open with the mental model in three lines, no more:
 
 > AndThen guides features through a disciplined chain: **clarify → (spec → exec-spec) or (prd → plan → exec-plan) → review**. There are also optional design tools (architecture, UI/UX, glossary, diagrams). First we need to set up the workflow structure in this project.
 
-Recommend the `andthen:init` skill and offer to invoke, passing `$ARGUMENTS` through as project name when relevant. After `init` returns the invocation ends – tell the user to re-invoke `/andthen:now-what` to continue.
+Recommend the `andthen:init` skill and offer to invoke, passing `$ARGUMENTS` through as project name when relevant. After `init` returns the invocation ends – tell the user to invoke the `andthen:now-what` skill again to continue.
 
 #### Branch B – Brownfield codebase, no map yet
 
@@ -110,7 +110,7 @@ If still ambiguous after one question, commit to the most likely route; the down
 
 **Step 4 – Surface the optional tools, once.** After committing to a route, mention in two lines what *else* exists, so the user knows the toolkit:
 
-> "You're going into `clarify` next. Heads up that AndThen also has the `andthen:architecture`, `andthen:ui-ux-design`, `andthen:ubiquitous-language`, and `andthen:excalidraw-diagram` skills – useful as you go deeper. Type `/andthen:now-what` any time you're unsure what's next."
+> "You're going into `clarify` next. Heads up that AndThen also has the `andthen:architecture`, `andthen:ui-ux-design`, `andthen:ubiquitous-language`, and `andthen:excalidraw-diagram` skills – useful as you go deeper. Use the `andthen:now-what` skill any time you're unsure what's next."
 
 Then hand off via the Skill tool with the user's idea passed through.
 

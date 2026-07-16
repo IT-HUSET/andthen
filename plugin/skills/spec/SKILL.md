@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants to generate a new spec or FIS before implementation for a feature or plan story. Do not use when the user wants to execute or implement an existing spec or FIS. Produces an execution-sized FIS, runs fresh-context doc self-review, and blocks plan `spec-ready` on unresolved architecture/requirements decision Notes. If oversized, saves and warns – recommending the `andthen:prd → andthen:plan → andthen:exec-plan` chain for standalone inputs, or upstream plan decomposition for plan-story inputs. Trigger on 'create a spec for this', 'create a FIS for this', 'write a spec', 'write a FIS', 'specify this feature'.
+description: Generate a new spec (FIS) before implementation, for a standalone feature or a plan story, then run fresh-context doc self-review. Not for executing an existing spec – that is the andthen:exec-spec skill. Trigger on 'create a spec for this', 'write a FIS', 'specify this feature'.
 argument-hint: "[--visual] [--auto] <description | @<requirements-file> | story <story-id> of <path-to-plan.json>>"
 ---
 
@@ -49,7 +49,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--visual`, `--auto`, or `--he
 
 **ARGUMENTS is a directory with `requirements-clarification.md`** (from the `andthen:clarify` skill): read it; use clarified scope, functional requirements, edge cases, acceptance outcomes, design decisions, wireframes, and explicit non-goals/deferrals as the feature request. Skip or reduce research phases – the `andthen:clarify` skill already did discovery. Only do codebase research and any external/API research the requirements reference but haven't investigated.
 
-**ARGUMENTS match `story {story_id} of {path}` AND `path`'s basename matches `plan.*` but is not `plan.json`** (e.g. `plan.md`, `plan.yaml`): stop with `BLOCKED: only plan.json is consumed; got "{basename}". If you have a legacy plan.md, run /andthen:plan {dirname(path)} to migrate (existing FIS files are preserved), then retry: /andthen:spec story {story_id} of {dirname(path)}/plan.json`. Same in `AUTO_MODE`. Do not fall through to the file-reference branch – that would silently treat the path as a free-form description.
+**ARGUMENTS match `story {story_id} of {path}` AND `path`'s basename matches `plan.*` but is not `plan.json`** (e.g. `plan.md`, `plan.yaml`): stop with `BLOCKED: only plan.json is consumed; got "{basename}". If you have a legacy plan.md, run the andthen:plan skill on {dirname(path)} to migrate (existing FIS files are preserved), then retry the andthen:spec skill with: story {story_id} of {dirname(path)}/plan.json`. Same in `AUTO_MODE`. Do not fall through to the file-reference branch – that would silently treat the path as a free-form description.
 
 **ARGUMENTS use `story {story_id} of {path-to-plan.json}`**: read the plan JSON; locate the story by `id`; use its compact story brief fields (`scope`, `sourceRefs`, optional `provenance`, `assetRefs`, `notes`) plus catalog metadata (`phase`, `wave`, `dependsOn`, `parallel`, `risk`) as the feature request. Read the PRD anchors named in `sourceRefs` for detailed behavioral source material – do not re-read the whole PRD. Plan briefs do not carry Acceptance Scenarios or Structural Criteria; derive those from source-ref spans, scope, `bindingConstraints`, and Step 4 below. Store plan path and story ID for output updates. When `plan.json` carries non-empty `sharedDecisions` and/or `bindingConstraints` arrays, read them: `sharedDecisions` inform architectural alignment with siblings; each `bindingConstraints[]` entry's `verbatim` becomes a Required Context block with the entry's `anchor` as the source pin.
 
@@ -120,7 +120,7 @@ Canonical shape:
 OVERSIZE: {fis_path} – {N} lines, {T} tasks. Recommendation: {recommendation}
 ```
 
-- **Standalone input**: `switch to /andthen:prd <input> to start the prd → plan → exec-plan chain`
+- **Standalone input**: `switch to the andthen:prd skill with <input> to start the prd → plan → exec-plan chain`
 - **Plan-story input**: `story too broad – revisit {plan_path} and decompose before regenerating`
 
 Plan-batch sub-agents must echo the `OVERSIZE:` line in their completion summary so the `andthen:plan` orchestrator can revisit Step 3.

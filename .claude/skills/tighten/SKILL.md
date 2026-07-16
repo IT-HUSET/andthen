@@ -54,11 +54,11 @@ ARGUMENTS: $ARGUMENTS (strip flag tokens like `--auto` or `--path` before interp
 
 Fan out **read-only** analysis – one sub-agent per file or cohesive cluster for non-trivial scope; inline for a single small file. Each returns proposed `old → new` (or DELETE) spans with a char delta and a one-line **contract-preservation note** naming where the contract still lives (and, for pointer cuts, that the canonical is reachable per Phase 1.3). Apply these lenses:
 
-- **Redundant restatement** – the same contract stated 2+ times across co-installed content. Collapse to one canonical + pointer. The worst offenders are facts restated 4–7× across a feature's files, already drifting in wording.
-- **Wrong altitude** – step-by-step prescription, if-then chains, or exhaustive enumeration a frontier model would do unprompted. Replace with the principle + its *why*. (Keep counter-intuitive contracts and named failure modes specific – those are the right altitude.)
+- **Duplication** – the same contract stated 2+ times across co-installed content. Collapse to one canonical + pointer. The worst offenders are facts restated 4–7× across a feature's files, already drifting in wording.
+- **No-op / wrong altitude** – step-by-step prescription, if-then chains, exhaustive enumeration, or instructions a frontier model already follows unprompted ("be thorough"): context cost, zero behavior change. Replace with the principle + its *why*, or delete. No-op status is model-relative – when contested, it is settled by observing runs, not debate. (Keep counter-intuitive contracts and named failure modes specific – those are the right altitude.)
 - **Agent audience** – human-oriented narration, motivational filler, over-explanation. Skills are read by agents; cut what an agent infers.
-- **Accretion seams** – sentences bolted onto existing sections leaving doubled altitude or a contradiction with surrounding text. Rework so the section reads as one coherent statement ("Rework, don't accrete").
-- **Stale/version phrasing** – historical-change notes ("previously X, now Y", "as of 0.X"), format-version qualifiers (`v1`/`v2`) in shipped content. Describe the current shape only; history belongs in CHANGELOG/ADRs.
+- **Sediment** – stale layers left by add-only edits: accretion seams (sentences bolted onto sections, leaving doubled altitude or contradictions – rework the section whole per "Rework, don't accrete") and stale/version phrasing (historical-change notes, `v1`/`v2` qualifiers – describe the current shape only; history belongs in CHANGELOG/ADRs).
+- **Sprawl** – inline reference material only some paths need, in a file that is simply too long. The cure is a disclosure move (push down to a bundled reference file), not a cut – but bundle-layout changes touch installer asset arrays and doc tables (Maintenance Contracts), so propose these as `SURFACED:` items for the user, never auto-apply.
 
 **DON'T-CUT calibration** (keep; these earn their tokens): operational contracts and process outlines in `SKILL.md` openings; cross-skill integration contracts; deterministic grammars, exact tokens, and key-order rules; distinct named GOTCHAs; established canonical homes; TOCs on references over ~100 lines. When a sub-agent is unsure, it returns the span as DON'T-CUT, not as a cut.
 
@@ -95,7 +95,7 @@ In `--auto`, emit a deterministic block:
 - `FILES_CHANGED:` newline-separated repo-relative paths (empty if none)
 - `SIZE:` `before <N> → after <M> chars (Δ <±K>)` total, plus per-file lines
 - `VERIFY:` one line per check (`reachability: ok`, `wording-audit: clean`, `fresh-review: 0 contract findings`, …)
-- `SURFACED:` newline-separated contract-change items Phase 2 demoted (empty if none)
+- `SURFACED:` newline-separated items demoted to user decision – contract changes and Sprawl disclosure moves (empty if none)
 
 **Gate**: Size ledger reported, reachability + wording + contract checks pass, fresh review clean (or surviving findings fixed/reverted).
 

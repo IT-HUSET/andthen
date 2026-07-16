@@ -1,5 +1,5 @@
 ---
-description: Use for UI/UX design work across the full lifecycle – research, design system creation, wireframing, and validation/review of implementations. Operates in four modes – `research`, `design-system`, `wireframes`, `review` – runnable singly or as a chain (e.g. `--mode design-system,wireframes`). Trigger on 'design this', 'create a design system', 'make a style guide', 'define design tokens', 'create wireframes', 'wireframe this feature', 'sketch the screens', 'review this UI', 'validate this UI', 'UX review'.
+description: UI/UX design across the full lifecycle – research, design system creation, wireframing, and UI review/validation. Four modes, runnable singly or chained (`--mode design-system,wireframes`). Trigger on 'design this', 'create a design system', 'wireframe this feature', 'UX review'.
 user-invocable: true
 argument-hint: "[--mode <mode>[,<mode>...]] [--auto] [inputs/path]"
 ---

@@ -1,0 +1,50 @@
+name: Validate Plugin Content
+
+# The install-time validators (strict ${CLAUDE_PLUGIN_ROOT}/${CLAUDE_SKILL_DIR}
+# syntax, sigil-free skill references, canonical asset existence and closure)
+# otherwise run only when someone executes install-skills.sh locally. The
+# Claude Code marketplace ships plugin/ directly, so this gate keeps every
+# distribution channel behind the same pre-copy checks.
+#
+# The version gate keeps the dual-plugin manifests honest: the same plugin/
+# directory ships to Claude Code and Codex under separate manifests, and
+# skew between them is a real observed failure mode.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plugin/**"
+      - "scripts/**"
+      - ".claude-plugin/**"
+      - ".agents/**"
+      - "CHANGELOG.md"
+  pull_request:
+    paths:
+      - "plugin/**"
+      - "scripts/**"
+      - ".claude-plugin/**"
+      - ".agents/**"
+      - "CHANGELOG.md"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run install-time content validations
+        run: bash scripts/install-skills.sh --validate-only
+      - name: Check version consistency across manifests and CHANGELOG
+        run: |
+          v_market=$(jq -r '.plugins[0].version' .claude-plugin/marketplace.json)
+          v_claude=$(jq -r '.version' plugin/.claude-plugin/plugin.json)
+          v_codex=$(jq -r '.version' plugin/.codex-plugin/plugin.json)
+          v_changelog=$(grep -m1 -oE '\[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | tr -d '[]')
+          echo "marketplace=$v_market claude=$v_claude codex=$v_codex changelog=$v_changelog"
+          if [ "$v_market" != "$v_claude" ] || [ "$v_claude" != "$v_codex" ] || [ "$v_codex" != "$v_changelog" ]; then
+            echo "::error::version skew across CHANGELOG.md, .claude-plugin/marketplace.json, plugin/.claude-plugin/plugin.json, plugin/.codex-plugin/plugin.json"
+            exit 1
+          fi
+      - name: Check Codex marketplace manifest parses and points at ./plugin
+        run: |
+          test "$(jq -r '.plugins[0].source.path' .agents/plugins/marketplace.json)" = "./plugin"

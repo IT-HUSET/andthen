@@ -118,7 +118,7 @@ Dan North's "Introducing BDD" (2006) anchors scenarios in concrete examples; Liz
    - Weak: `Verify: traces list shows token breakdown`
    - Strong: `Verify: traces list output includes columns IN_TOKENS, OUT_TOKENS, CACHE_R, CACHE_W`
 
-7. Good FIS files land in 200-500 lines. Past ~700 lines or ~18 tasks signals this is no longer one execution-sized spec. Save anyway, but emit `OVERSIZE:` and recommend: standalone → `/andthen:prd → /andthen:plan → /andthen:exec-plan`; `story <id> of plan.json` → revisit the plan and decompose.
+7. Good FIS files land in 200-500 lines. Past ~700 lines or ~18 tasks signals this is no longer one execution-sized spec. Save anyway, but emit `OVERSIZE:` and recommend: standalone → the `andthen:prd → andthen:plan → andthen:exec-plan` chain; `story <id> of plan.json` → revisit the plan and decompose.
 8. **What We're NOT Doing**: 3-5 specific exclusions/deferrals with reasons.
 
 ## Constraints & Gotchas Authoring

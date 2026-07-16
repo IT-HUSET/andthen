@@ -1,5 +1,5 @@
 ---
-description: Use for architecture design, review, decomposition, trade-off analysis, ADRs, CUPID/DDD guidance, fitness functions, strategic design, and event storming. Operates in seven modes – `review`, `decompose`, `advise`, `fitness`, `trade-off`, `strategic-design`, `event-storming` – runnable singly or as a chain (e.g. `--mode review,fitness` or `--mode event-storming,strategic-design,decompose`). Trigger on 'architecture review', 'design architecture', 'CUPID', 'DDD', 'bounded context', 'subdomain', 'context map', 'event storming', 'strategic design', 'should we split this module', 'should we merge these packages', 'propose fitness functions', 'compare options', 'trade-off', 'write an ADR', 'which approach'.
+description: Architecture design and analysis – review, decomposition, trade-off analysis, ADRs, CUPID/DDD guidance, fitness functions, strategic design, event storming. Seven modes, runnable singly or chained (`--mode review,fitness`). Trigger on 'architecture review', 'bounded context', 'trade-off', 'write an ADR'.
 user-invocable: true
 argument-hint: "[--mode <mode>[,<mode>...]] [--output-dir <path>] [--to-pr <number>] [--visual] [--auto] [scope/path]"
 ---

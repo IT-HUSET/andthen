@@ -1,5 +1,5 @@
 ---
-description: Use when reviewing an existing AndThen artifact visually – PRD, plan.json, requirements-clarification, product vision, FIS (feature implementation spec), review report (any lens), changeset walkthrough, architecture review / trade-off / strategic-design / fitness / decompose / event-storming report, or ADR. Renders a self-contained HTML view in the user's browser, captures section-anchored notes, and exports them as a markdown payload via clipboard. Trigger on 'review visually', 'visualize this prd', 'visualize this plan', 'visualize this fis', 'visualize this review', 'visualize this walkthrough', 'visualize this clarification', 'visualize trade-off', 'andthen visualize'.
+description: Review an existing AndThen artifact visually – PRD, plan.json, FIS, clarification, product vision, review report, changeset walkthrough, architecture report, or ADR – rendered as a self-contained HTML view with section-anchored notes exported via clipboard. Trigger on 'visualize this <artifact>', 'review visually', 'andthen visualize'.
 argument-hint: "<path-to-artifact>"
 user-invocable: true
 ---
@@ -61,7 +61,7 @@ The renderer owns HTML production, but copied notes identify the skill that owns
 
 Use the owner in the copied payload header: `# <owner> visual review notes for <artifact-path>`.
 
-Owner = who maintains the source artifact, not the consumption target for the copied payload; FOLLOW-UP ACTIONS routing is authoritative for where notes go. The header is human/prompt-readable, not structurally parsed; pasting the markdown body into the chat alongside the consuming skill invocation is the contract.
+Owner = who maintains the source artifact, not the consumption target for the copied payload; FOLLOW-UP ACTIONS routing is authoritative for where notes go. The header is prompt-readable, not structurally parsed.
 
 
 ## Core Requirements (every render)
@@ -193,7 +193,7 @@ fi
 
 Traps NOT covered by a contract above (full rule here):
 
-- **Literal newlines in regex / quoted-string literals** → one regex SyntaxError disables the whole `<script>` (every button goes inert, TOC stays empty, copy never wires). See `templates/render-shell.md` → *JavaScript Authoring Discipline* rule 1.
+- **Literal newlines in regex / quoted-string literals** → one SyntaxError disables the whole `<script>`. See `templates/render-shell.md` → *JavaScript Authoring Discipline* rule 1.
 - **Markdown italicizes `_blank` in `target="_blank"`** → underscores passing through a Markdown→HTML pipeline get parsed as emphasis (`target="<em>blank"`). Emit doc-meta anchors as raw HTML, or wrap underscore-bearing identifiers (any `snake_case`) in code spans.
 - **Sections with `data-anchor` but no `id`** → URL-fragment navigation (TOC clicks, deep links) silently no-ops because `#anchor` resolves against `id`, not `data-*`. Always emit both attributes with the same kebab value.
 - **`agent-browser`** → wrong tool. It's used by the `andthen:excalidraw-diagram` skill for *automation*. Visualize wants the user's *primary* browser.
@@ -221,4 +221,4 @@ After the user reviews the rendered artifact and copies notes:
    - Fitness-functions review notes → next `andthen:architecture --mode fitness` invocation or implementation backlog
    - Decompose review notes → next `andthen:architecture --mode decompose` invocation
    - Event-storming review notes → `andthen:architecture --mode strategic-design` (Big Picture hand-off) or `--mode decompose` (Design Level hand-off)
-2. **Re-visualize after edits** – re-run `/andthen:visualize <path>` on the updated artifact to verify changes landed.
+2. **Re-visualize after edits** – re-run the `andthen:visualize` skill on the updated artifact to verify changes landed.

@@ -70,7 +70,7 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
      The State–Stack rows are optional. Starter templates for these documents
      are in the AndThen repo at plugin/references/project-state-templates.md.
      You can also generate Architecture, Conventions, and Stack docs
-     automatically using /andthen:map-codebase. -->
+     automatically using the andthen:map-codebase skill. -->
 
 
 ---

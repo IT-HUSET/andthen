@@ -40,13 +40,13 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `SYS-12` Foundational Rule – Correct date via shell: use `date +%Y-%m-%d` or `date -Iseconds`; never guess or hallucinate dates.
 - `SYS-13` Foundational Rule – Surface conflicts, don't average them: when two patterns contradict, pick one, name why, record the other in NOTICED BUT NOT TOUCHING.
 - `SYS-14` Foundational Rule – Validate UI visually: for UI changes, capture screenshots and compare against expectations; never assume correctness without actual visual verification.
-- `SYS-15` andthen:<name> wording contract: in user-facing, agent-facing, and prompt prose, every skill reference must have the type noun adjacent ('the andthen:<name> skill' or 'the andthen:<name> agent'); compact machine-contract identifiers, headings, command examples, and argument surfaces may use raw `andthen:<name>` when they are not instructing invocation/delegation; the known-bad form 'Spawn andthen:<skill-name> sub-agent' is forbidden because it primes passing skill names as agent types.
+- `SYS-15` andthen:<name> wording contract: in user-facing, agent-facing, and prompt prose, every skill reference must have the type noun adjacent ('the andthen:<name> skill' or 'the andthen:<name> agent'); compact machine-contract identifiers, headings, command examples, and argument surfaces may use raw `andthen:<name>` when they are not instructing invocation/delegation; the known-bad form 'Spawn andthen:<skill-name> sub-agent' is forbidden because it primes passing skill names as agent types; shipped prose (plugin/skills, plugin/references, plugin/agents) never uses host invocation sigils – `/andthen:<name>` (Claude slash syntax) and `$andthen-<name>` (Codex mention syntax) are host syntax, not skill identity, and render as the wrong syntax on every other host; install-skills.sh rejects sigil forms before any copy.
 - `SYS-16` Plugin-tier agents are limited to documentation-lookup, research, and review persona agents under plugin/agents/review-*.md; skill names must not be passed as agent types.
 - `SYS-17` Skills with `context: fork` frontmatter isolate automatically when invoked; other skills needing fresh context are run by a generic sub-agent whose prompt invokes the relevant skill.
 - `SYS-18` Agent Teams gating: `review --council` auto-detects and uses Agent Teams when available even without `--team`; `--team` forces Agent Teams for exec-plan and review --council (exec-plan uses Agent Teams only when `--team` is set); Agent Teams require CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 in env; when forced but unavailable, default mode informs the user and AUTO_MODE emits BLOCKED: Agent Teams unavailable (requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1).
 - `SYS-19` exec-plan --worktree requires --team; AUTO_MODE emits BLOCKED: --worktree requires --team when --team is absent.
 - `SYS-20` exec-plan --from-issue is mutually exclusive with --team; AUTO_MODE emits BLOCKED: --from-issue is mutually exclusive with --team.
-- `SYS-21` Skill frontmatter contract: description is the primary routing surface – front-load primary use case, prefer 'Use when...' framing, include 2-4 natural trigger phrases and AndThen-native terms, keep concise so key terms survive truncation.
+- `SYS-21` Skill frontmatter contract: description is the primary routing surface – front-load the primary use case, include 2-4 natural trigger phrases (one per distinct branch) and AndThen-native terms, never restate body content, keep concise so key terms survive truncation.
 - `SYS-22` Skill frontmatter fields: description (required, routing surface), argument-hint (optional, documents accepted args/flags), user-invocable (optional boolean – false means internal-only), context (optional – 'fork' triggers context isolation), agent (optional – e.g. 'general-purpose' for portability). Skills express sub-agent model routing in prose by referencing the named Sub-Agent Model Policy – there is no skill-frontmatter field for it.
 - `SYS-23` Maintenance contract – version bump: always updates all three locations together: CHANGELOG.md, .claude-plugin/marketplace.json, and plugin/.claude-plugin/plugin.json.
 - `SYS-24` Maintenance contract – user-invocable skill change: update README.md, plugin/README.md, CHANGELOG.md, and the ## Skill Reference section in plugin/skills/now-what/SKILL.md.
@@ -273,7 +273,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `FISA-21` Tasks are 1-3 lines each (outcome, pattern reference file#symbol, Verify line); >3 lines signals split-or-reduce.
 - `FISA-22` Every task is atomic with file#symbol pattern references; later tasks consuming something from an earlier task must state the dependency explicitly.
 - `FISA-54` In large or unfamiliar codebases, tasks also pin their read-set (critical callers, callees, registration/config sites of the changed surfaces) as file#symbol pointers – resolved at authoring time, not left to executor exploration.
-- `FISA-23` FIS size target: 200-500 lines, ~18 tasks maximum for single execution; past ~700 lines or ~18 tasks emit OVERSIZE: and recommend: standalone → /andthen:prd → /andthen:plan → /andthen:exec-plan; story <id> of plan.json → revisit plan and decompose.
+- `FISA-23` FIS size target: 200-500 lines, ~18 tasks maximum for single execution; past ~700 lines or ~18 tasks emit OVERSIZE: and recommend: standalone → the andthen:prd → andthen:plan → andthen:exec-plan chain; story <id> of plan.json → revisit plan and decompose.
 - `FISA-24` `### What We're NOT Doing` subsection (of `## Scope & Boundaries`, per FIST-12) required: 3-5 specific exclusions/deferrals with reasons. (Rendered as a `###` subsection, not a `##` top-level section.)
 - `FISA-25` ## Constraints & Gotchas bullets are restricted to cross-cutting concerns (≥2 tasks) or non-obvious framework-level traps; task-local concerns live in task descriptions.
 - `FISA-26` Task ordering: foundational first, widening, then polish/integration; related tasks kept adjacent; dependencies stated explicitly in later task descriptions.
@@ -817,7 +817,7 @@ Behavioral requirements for the AndThen plugin, reverse-engineered from the ship
 - `INIT-29` Brownfield + map-codebase declined: proceeds directly to Step 2a.
 - `INIT-30` Final summary lists only what the current run actually created, grouped by: Core orientation stubs, starter guidelines, optional confirmed documents.
 - `INIT-31` Final summary omits groups already in place.
-- `INIT-32` Final summary includes next-steps block recommending: review/customize CLAUDE.md/AGENTS.md, run /andthen:now-what, or jump to /andthen:spec, /andthen:plan, /andthen:quick-implement, /andthen:architecture.
+- `INIT-32` Final summary includes next-steps block recommending: review/customize CLAUDE.md/AGENTS.md, use the andthen:now-what skill, or jump to the andthen:spec, andthen:plan, andthen:quick-implement, andthen:architecture skills.
 - `INIT-33` All output file paths in summary are printed as relative paths only.
 - `INIT-34` Starter guideline files available in templates/guidelines/ are: CRITICAL-RULES-AND-GUARDRAILS.md, DEVELOPMENT-ARCHITECTURE-GUIDELINES.md, UX-UI-GUIDELINES.md, WEB-DEV-GUIDELINES.md.
 
@@ -1047,7 +1047,7 @@ user-invocable: true
 - `SPEC-17` Task titles use state-of-the-world verbs; bans: Replace, Refactor, Update, Modify, Add to.
 - `SPEC-18` Architecture Decision section: 3-4 lines max; longer analysis escalates to andthen:architecture --mode trade-off.
 - `SPEC-19` After saving, measures FIS against size threshold (>700 lines or >18 tasks); if exceeded emits OVERSIZE: {fis_path} – {N} lines, {T} tasks. Recommendation: {recommendation} in both interactive and AUTO_MODE.
-- `SPEC-20` OVERSIZE standalone recommendation: switch to /andthen:prd → /andthen:plan → /andthen:exec-plan chain.
+- `SPEC-20` OVERSIZE standalone recommendation: switch to the andthen:prd skill with <input> to start the prd → plan → exec-plan chain.
 - `SPEC-21` OVERSIZE plan-story recommendation: story too broad – revisit {plan_path} and decompose before regenerating.
 - `SPEC-22` Plan-batch sub-agents echo OVERSIZE: line in completion summary.
 - `SPEC-57` Post-save self-review (skip when OVERSIZE: fired): after the OVERSIZE check, run doc self-review via the andthen:review skill with --mode doc --fix on the FIS – preferably a fresh-context sub-agent, in-context where nested sub-agents are unavailable; append --auto when AUTO_MODE.
@@ -1141,7 +1141,7 @@ Completion report (5c) in conversation: per-task status, files created/modified,
 - `XSPEC-01` Requires FIS_FILE_PATH; stops with BLOCKED: if missing or unreadable.
 - `XSPEC-02` Extracts STORY_ID from `**Story-ID**:` and PLAN_FILE_PATH from `**Plan**:` in the FIS header.
 - `XSPEC-03` If PLAN_FILE_PATH ends in `.md` and a sibling `.json` exists, uses sibling `.json` and emits `WARN: FIS **Plan**: provenance points at legacy plan.md; using sibling plan.json (re-spec to upgrade).`
-- `XSPEC-04` If legacy `plan.md` exists alongside FIS but no `plan.json`, stops: `BLOCKED: legacy plan.md found alongside FIS but plan.json is required. Run /andthen:plan in <plan-dir> to migrate (existing FIS files are preserved).`
+- `XSPEC-04` If legacy `plan.md` exists alongside FIS but no `plan.json`, stops: `BLOCKED: legacy plan.md found alongside FIS but plan.json is required. Run the andthen:plan skill on <plan-dir> to migrate (existing FIS files are preserved).`
 - `XSPEC-05` If FIS is missing **Plan**:/**Story-ID**: fields, falls back to filename-prefix extraction and sibling `plan.json`, emitting `WARN: FIS missing **Plan**:/**Story-ID**: provenance fields; using filename/sibling fallback (re-spec to upgrade)`.
 - `XSPEC-06` If FIS provenance is `github://issue/<N>` and DEFER_SHARED_WRITES=false, stops: `BLOCKED: FIS provenance points at github://issue/<N>; no local plan.json to update. Re-invoke with --defer-shared-writes, or supply a materialized plan.json path explicitly.`
 - `XSPEC-07` If FIS_FILE_PATH is not an executable FIS, surfaces `CONFUSION: <path> not an executable FIS – <reason>` interactively; emits `BLOCKED:` in AUTO_MODE.
@@ -1267,7 +1267,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 - `PLAN-07` Resume contract: re-running skips stories whose stories[].fis points at an existing file (status spec-ready or done preserved); only fills gaps.
 - `PLAN-08` Preservation predicate on regeneration: preserve existing status/fis/owner only when ALL hold – id survives, scope string-equal, sourceRefs set-equal, assetRefs set-equal, provenance string-equal, fis path still resolves; stories failing any clause reset to pending/null/null.
 - `PLAN-09` Step 5 orchestrator does not re-issue ops writes already driven by spec sub-agents; on a non-spec-ready status it repairs a write miss (single andthen:ops update-plan-fis / update-plan; re-read once; persistent miss recorded in Step 6) but never force-advances a deliberate hold – a story whose spec reported a blocking self-review signal (MISSING REQUIREMENT: / BLOCKED:) keeps its status and is surfaced in Step 6.
-- `PLAN-10` FIS sub-agents spawned as `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.json`; orchestrator does not author FIS content itself.
+- `PLAN-10` FIS sub-agents spawned invoking the andthen:spec skill with `--auto story {story_id} of {OUTPUT_DIR}/plan.json`; orchestrator does not author FIS content itself.
 - `PLAN-11` bindingConstraints[] entries flow unchanged into FIS Required Context blocks with each entry's anchor as the source pin; not narrowed or redistributed into Acceptance Scenarios / Structural Criteria.
 - `PLAN-12` sharedDecisions[] pre-resolves inter-story architectural decisions for sub-agents; when empty, strict wave ordering applies (W1 complete before W2).
 - `PLAN-13` Cross-cutting review (Step 6) reads prd.md fresh in its own sub-agent context (second and only other full PRD read); delegated to one fresh-context sub-agent routed per the Sub-Agent Model Policy (default: inherit), using high reasoning effort.
@@ -1327,7 +1327,7 @@ Legacy plan.md left untouched after migration; not auto-deleted.
 
 **Integration**
 - Reads: prd.md (once in Step 2; sub-agents read only their sourceRefs anchors); plan-schema.md (plan.json shape); plan-issue-shape.md + templates/plan-template-issue.md (--to-issue rendering); data-contract.md (legacy plan.md parsing + issue catalog column order); automation-mode.md (BLOCKED/AUTO_MODE rules); fis-authoring-guidelines.md (passed to spec sub-agents); Learnings document (read before FIS generation if exists).
-- Calls generic sub-agents invoking the andthen:spec skill: `/andthen:spec --auto story {story_id} of {OUTPUT_DIR}/plan.json` (one per in-scope story).
+- Calls generic sub-agents invoking the andthen:spec skill with `--auto story {story_id} of {OUTPUT_DIR}/plan.json` (one per in-scope story).
 - Calls andthen:ops: `update-state phase/status/note` (State document); `update-plan-fis` / `update-plan <story> spec-ready` (story state – repair only; authoritative writes are the spec sub-agent's job).
 - Calls andthen:visualize on plan.json when --visual and local output mode (Step 7).
 - Delegates cross-cutting review (Step 6) to a fresh-context sub-agent with plan.json + all FIS paths + prd.md, routed per the Sub-Agent Model Policy (default: inherit) and using high reasoning effort.
@@ -1362,11 +1362,11 @@ Positional args:
 - Final gap review report file from Step 4 (path reported by sub-agent; consumed by `andthen:remediate-findings`; on partial runs scoped to completed stories rather than skipped)
 
 **Requirements**
-- `XPLAN-01` plan.json schemaVersion must be "1"; rejects unknown versions with BLOCKED: unsupported plan.json schemaVersion – re-run /andthen:plan to regenerate
-- `XPLAN-02` plan.md presence (no plan.json) stops with BLOCKED: plan.md is no longer consumed by exec-plan. Run /andthen:plan {PLAN_DIR} to migrate
-- `XPLAN-03` Every schedulable story (status in {pending, spec-ready, in-progress}) must have an existing fis file in local-directory mode; failure: Plan bundle has stories with missing FIS – run /andthen:plan {PLAN_DIR} to fill them
+- `XPLAN-01` plan.json schemaVersion must be "1"; rejects unknown versions with BLOCKED: unsupported plan.json schemaVersion – re-run the andthen:plan skill to regenerate
+- `XPLAN-02` plan.md presence (no plan.json) stops with BLOCKED: plan.md is no longer consumed by exec-plan. Run the andthen:plan skill on {PLAN_DIR} to migrate
+- `XPLAN-03` Every schedulable story (status in {pending, spec-ready, in-progress}) must have an existing fis file in local-directory mode; failure: Plan bundle has stories with missing FIS – run the andthen:plan skill on {PLAN_DIR} to fill them
 - `XPLAN-04` Invalid dependsOn references stop with BLOCKED: invalid dependency in {story_id}: "{value}" – story not in catalog
-- `XPLAN-05` Status values must be in the closed enum; parse errors stop with BLOCKED: malformed plan.json – re-run /andthen:plan
+- `XPLAN-05` Status values must be in the closed enum; parse errors stop with BLOCKED: malformed plan.json – re-run the andthen:plan skill
 - `XPLAN-06` blocked stories are logged as WARNING: story {id} is blocked – skipping and recorded in ledger skipped list as manually blocked; they are not gated by FIS existence
 - `XPLAN-07` Schedulable set is stories.filter(s => status not in done/skipped/blocked and depsSatisfied(s)); done and skipped are terminal
 - `XPLAN-08` BASE_BRANCH is resolved via git rev-parse --abbrev-ref HEAD; when BASE_BRANCH ≠ DEFAULT_BRANCH, default mode confirms; AUTO_MODE emits WARNING: BASE_BRANCH={value} is not the repo's default branch ({DEFAULT_BRANCH})
@@ -1386,7 +1386,7 @@ Positional args:
 - `XPLAN-20` andthen:merge-resolve drives all worktree merges; EnterWorktree / ExitWorktree / Agent({isolation:"worktree"}) are prohibited
 - `XPLAN-21` plan.json must never be staged inside a worktree branch; merge-resolve guard G2 fails the story if it is
 - `XPLAN-22` Worktree creation (create-worktree.sh) happens before TeamCreate; Wave N+1 worktrees branch only after every Wave N squash-merge, per-story review, and CODE_DIR-bound write are committed to BASE_BRANCH
-- `XPLAN-23` Step 4 final gap review spawns a fresh-context sub-agent routed per the Sub-Agent Model Policy (default: inherit), using high reasoning effort; invocation: /andthen:review --mode gap {REVIEW_PLAN_PATH} without --inline-findings, where {REVIEW_PLAN_PATH} is PLAN_PATH for complete runs or a .agent_temp completed-stories-only plan copy for partial runs
+- `XPLAN-23` Step 4 final gap review spawns a fresh-context sub-agent routed per the Sub-Agent Model Policy (default: inherit), using high reasoning effort; invocation: the andthen:review skill with --mode gap {REVIEW_PLAN_PATH} without --inline-findings, where {REVIEW_PLAN_PATH} is PLAN_PATH for complete runs or a .agent_temp completed-stories-only plan copy for partial runs
 - `XPLAN-24` Step 4 final gap review survives partial runs: when the ledger has failed/skipped stories it runs scoped to the completed stories (not skipped wholesale) and surfaces WARNING: final gap review scoped to completed stories; skipped/failed stories not reviewed for drift: {ids}; a complete plan is reviewed in full
 - `XPLAN-25` FAIL verdict from final gap review triggers one andthen:remediate-findings pass in the orchestrator; escalate if it persists after one pass
 - `XPLAN-26` Final gap review sub-agent must return a verdict (PASS/FAIL) and a readable absolute report path; missing → BLOCKED: final gap review returned malformed output in AUTO_MODE
@@ -1409,7 +1409,7 @@ Positional args:
 - `XPLAN-43` JIT spec failure → surface, mark story failed, continue remaining stories (log and continue)
 - `XPLAN-44` Team task naming: impl-{story_id} / review-{story_id}; same teammate never assigned both impl-Sxx and review-Sxx (no self-review)
 - `XPLAN-45` Team size: 1 implementer for ≤4 stories, 2 for 5–10, 3 for 11+; 1–2 reviewers added
-- `XPLAN-46` Reviewer resolves review commit SHA: no-worktree mode → git rev-parse HEAD; worktree mode → git commit-tree snapshot on story-<story-id> branch; invokes /andthen:quick-review story <story-id> commit <hex-sha>
+- `XPLAN-46` Reviewer resolves review commit SHA: no-worktree mode → git rev-parse HEAD; worktree mode → git commit-tree snapshot on story-<story-id> branch; invokes the andthen:quick-review skill with story <story-id> commit <hex-sha>
 - `XPLAN-47` andthen:ops update-plan mutates plan.json; direct edits to plan.json by orchestrator or agents are prohibited
 - `XPLAN-48` State document reads happen at session start (Step 2) and re-reads of plan.json at each phase transition (Step 3a)
 - `XPLAN-49` Sub-agent steering routes per the Sub-Agent Model Policy (default: inherit): story execution uses medium reasoning effort; final gap review uses high reasoning effort. Effort assignments are hard contract; model routing is bound by the SYS-55 invariant.
@@ -1480,7 +1480,7 @@ Positional args:
 - `PFLT-03` Detection runs a fresh-context pass invoking andthen:review --mode doc --inline-findings <fis_path> (append --auto under AUTO_MODE) per target FIS; --inline-findings keeps findings inline (no standalone report artifact); the detector's mechanical doc-defect slice may be fixed via review --fix or andthen:remediate-findings, which is NOT the decision-apply engine.
 - `PFLT-04` Decision-record normalization + blocking-only drill-down: each finding becomes a record (decision_key, source, altitude ∈ {fis-local, project-decision, adr, requirements}, affected_surface, status ∈ {open, resolved, deferred}, evidence); a record is blocking only when implementation would fork on an observable behavior / persistence location / architecture choice / requirements-altitude question no cited source resolves; mechanical doc defects and advisory Notes are non-blocking and never gate the verdict.
 - `PFLT-05` ADR sweep: misapplied-ADR records → blocking Note + mechanical doc-defect edit; genuinely open ADR records in default mode → settled inline via andthen:architecture --mode trade-off (which writes/indexes the ADR in docs/DECISIONS.md); genuinely open ADR records under AUTO_MODE → left as blocking records (no interactive trade-off loop).
-- `PFLT-06` Resolution loop (skipped entirely under AUTO_MODE): requirements-altitude records route to andthen:clarify; implementation-blocking records resolved via preflight's own interview (one decision per question, recommendation + rationale, wait for user input); a deferral converges only with explicit user sign-off, moving to a Deferred Decisions block and ceasing to count as blocking.
+- `PFLT-06` Resolution loop (skipped entirely under AUTO_MODE): requirements-altitude records route to andthen:clarify; implementation-blocking records resolved via preflight's own interview (one decision per question, led by brief decision context from the record – source, affected surface, blocking evidence – recommendation + rationale, options stating their observable consequence, wait for user input); a deferral converges only with explicit user sign-off, moving to a Deferred Decisions block and ceasing to count as blocking.
 - `PFLT-07` Persistence by altitude through andthen:ops only: fis-local / signed-off deferral → update-fis decision-note; project-decision → update-decisions still-current; adr → ADR via andthen:architecture (not hand-written). Preflight does not hand-edit ops-owned status artifacts.
 - `PFLT-08` Cross-story consistency sweep (plan bundle only, after per-FIS convergence): match records across stories by decision_key + altitude + affected_surface; conflicting resolved values reopen affected records as open blocking decisions and re-converge the affected stories before any story status flips.
 - `PFLT-09` Converged plan-bundle stories flip to spec-ready via andthen:ops update-plan <plan_path> <story_id> spec-ready; a story retaining an open blocking record keeps its current status (clear stories update as they pass even when the bundle is BLOCKED).
@@ -1622,7 +1622,7 @@ Positional args:
 - `REMED-37` Remediation scope bounded to currently valid findings (Phase 2 gate).
 - `REMED-38` Every valid finding carries an Intent-anchor classification; Phase 3 fixable set bounded to effective route Fix findings (Phase 2a gate).
 - `REMED-39` Minimal remediation plan is clear and bounded (Phase 3 gate).
-- `REMED-40` andthen:quick-review MUST be invoked via /andthen:quick-review or the Skill tool – NOT as subagent_type; invoking it as an agent type is the named anti-pattern this constraint guards against.
+- `REMED-40` andthen:quick-review MUST be invoked as a skill – NOT as subagent_type; invoking it as an agent type is the named anti-pattern this constraint guards against.
 - `REMED-41` Every Critical/High finding RESOLVED with evidence, Medium/Low RESOLVED/DEFERRED/SURFACED with justification, quick-review on touched scope clean, no new regressions (Phase 4 gate).
 - `REMED-42` Status artifacts reflect validated post-remediation state; input report annotated when writable; DEFERRED findings persisted to Tech Debt Backlog when present (Phase 5 gate).
 - `REMED-43` Recurring patterns captured or skip explicitly noted (Phase 6 gate).
@@ -1762,7 +1762,7 @@ Positional args:
 - `NOW-47` Mid-flow exec routing is owner-aware: when plan stories carry `owner` claims, the claims are surfaced and the recommendation steers toward an unclaimed, dependency-ready story (claim via andthen:ops update-plan-owner; in --from-issue workflows, on the issue's Owner cell instead).
 - `NOW-06` Architecture report mode is identified by reading the report's H1/H2, not the filename suffix (single suffix `architecture` is used for all 7 modes).
 - `NOW-07` Branches: A (setup not-started/partial) → init; B (brownfield-unmapped) → map-codebase; C (setup done, nothing-in-progress) → feature routing; D (mid-flow) → terse route.
-- `NOW-08` Branch A opens with exactly three-line mental model, then recommends andthen:init; after init returns, tells user to re-invoke /andthen:now-what – does not continue the invocation.
+- `NOW-08` Branch A opens with exactly three-line mental model, then recommends andthen:init; after init returns, tells user to invoke the andthen:now-what skill again – does not continue the invocation.
 - `NOW-09` Branch B recommends andthen:map-codebase; if user declines, notes trade-off briefly and proceeds to Branch C in the same invocation (no additional handoff rule violation).
 - `NOW-10` Branch C Step 1: asks exactly one open question "What do you want to build, change, or figure out?" if $ARGUMENTS is empty; skips if $ARGUMENTS has content.
 - `NOW-11` Branch C Step 2: silently classifies request shape to a route from the routing table without asking the user to pick.
@@ -2308,7 +2308,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `REFAC-09` Legacy /andthen:refactor invocations must continue to work unchanged via this alias.
 
 **Integration**
-- Calls andthen:simplify-code via Skill tool (/andthen:simplify-code <args>) with $ARGUMENTS forwarded verbatim.
+- Calls andthen:simplify-code via Skill tool with $ARGUMENTS forwarded verbatim.
 - Reads automation-mode.md (${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md) to define AUTO_MODE triggers --auto.
 - Produces no artifacts itself; all artifacts are owned by andthen:simplify-code.
 - Structured output block (STATUS: / FILES_CHANGED: / VERIFY: / DEFERRED:) is owned and emitted by andthen:simplify-code; orchestrators parse that block only.
@@ -2500,7 +2500,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `MAP-15` When IS_MONOREPO=true, generates lightweight per-sub-project agent instruction files (under ~40 lines each: name/description, key dev commands inline table, sub-project-specific notes) matching the root file choice, for each sub-project that doesn't already have them.
 - `MAP-16` On completion, prints each output file's relative path from the project root.
 - `MAP-17` On completion, prints a summary listing all generated files with brief descriptions.
-- `MAP-18` Suggests next steps: review discovered requirements and decisions with team, validate `decisions-discovered.md` and promote to `DECISIONS.md` when confirmed, invoke `andthen:plan` skill via `/andthen:plan docs/requirements-discovered.md`.
+- `MAP-18` Suggests next steps: review discovered requirements and decisions with team, validate `decisions-discovered.md` and promote to `DECISIONS.md` when confirmed, invoke the `andthen:plan` skill on `docs/requirements-discovered.md`.
 
 **Gates / BLOCKED**
 - `MAP-19` Gate after Step 1: project shape understood, technologies identified, monorepo status determined.
@@ -2520,7 +2520,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - Reads project-state-templates.md at `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` for STACK.md, ARCHITECTURE.md, KEY_DEVELOPMENT_COMMANDS.md, and DECISIONS.md template shapes.
 - Reads Project Document Index (from CLAUDE.md/AGENTS.md) to resolve configurable document locations.
 - Reads Learnings document location from Project Document Index before analysis.
-- requirements-discovered.md output is formatted as compatible input for the `andthen:plan` skill (`/andthen:plan docs/requirements-discovered.md`).
+- requirements-discovered.md output is formatted as compatible input for the `andthen:plan` skill (invoked on `docs/requirements-discovered.md`).
 - decisions-discovered.md output is formatted for manual promotion to DECISIONS.md; the `andthen:architecture --mode trade-off` skill auto-registers ADRs into DECISIONS.md.
 - Conventions section routes to `andthen:init` for insertion when no root agent instruction file exists.
 
@@ -2542,7 +2542,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `UL-08` Produces a document with sections: domain-cluster tables (Term | Definition | Avoid | Bounded Context), an Overloaded Terms table, and a Changelog entry dated to the current run.
 - `UL-09` Saves output to the `Ubiquitous Language` location from the Project Document Index; default path is `docs/UBIQUITOUS_LANGUAGE.md`.
 - `UL-10` After saving, prints the output path.
-- `UL-11` After saving, suggests three follow-up actions: (1) review with domain experts, (2) run `/andthen:ubiquitous-language --update` periodically, (3) run `andthen:review --mode code` to check code against glossary.
+- `UL-11` After saving, suggests three follow-up actions: (1) review with domain experts, (2) run the `andthen:ubiquitous-language` skill with `--update` periodically, (3) run `andthen:review --mode code` to check code against glossary.
 - `UL-12` If SCOPE is provided, focuses codebase exploration on that area only.
 - `UL-13` Does not modify any source code (read-only analysis).
 
@@ -2616,9 +2616,9 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `TEST-39` Snapshot/golden tests: require explicit update commands, not --update-all, to prevent bug-concealing rubber-stamp updates.
 
 **Integration**
-- Called by `andthen:exec-spec` as `/andthen:testing <target/scope>`.
-- Called by `andthen:triage` as `/andthen:testing <target/scope>`.
-- Called by `andthen:e2e-test` as `/andthen:testing <target/scope>`.
+- Called by `andthen:exec-spec` with `<target/scope>`.
+- Called by `andthen:triage` with `<target/scope>`.
+- Called by `andthen:e2e-test` with `<target/scope>`.
 - Hands off persistent E2E suite work to `andthen:e2e-test`.
 - Visual scenario stand-ins handed off to `andthen:visual-validation`.
 - New requirements discovered during tdd loop routed to `andthen:exec-spec` Discovered Requirements mechanism.
@@ -3001,11 +3001,11 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 
 ## Install-Time Propagation & Portability
 
-**Purpose**: Install/portability pipeline: scripts/install-skills.sh, scripts/generate-codex-agents.sh, scripts/validate-plan-json.sh – convert plugin/skills/* and plugin/agents/* into self-contained, target-specific bundles for Claude Code plugin, Claude Code user tier, and Codex/generic agents.
-**Surface**: install-skills.sh [--skills-dir PATH] [--codex-agents-dir PATH] [--no-codex-agents] [--claude | --claude-user] [--claude-skills-dir PATH] [--claude-agents-dir PATH] [--skills LIST] [--prefix PREFIX] [--display-brand BRAND] [--dry-run] [-h|--help]; generate-codex-agents.sh --agents-src PATH --out-dir PATH [--prefix PREFIX] [--display-brand BRAND] [-h|--help]; validate-plan-json.sh <path-to-plan.json>
-**Outputs**: ~/.agents/skills/<prefix><name>/ – Codex skill bundles (inlined canonicals, ${CLAUDE_PLUGIN_ROOT} rewritten, ${CLAUDE_SKILL_DIR} baked to absolute, `/andthen:` invocation forms → `$<prefix>`, bare `andthen:` tokens → `<prefix>` in markdown and OpenAI metadata).
+**Purpose**: Install/portability pipeline. Plugin channels (Claude Code and Codex) ship plugin/ verbatim under dual manifests with no build step (`INST-69`); scripts/install-skills.sh, scripts/generate-codex-agents.sh, scripts/validate-plan-json.sh convert plugin/skills/* and plugin/agents/* into self-contained, target-specific bundles for the secondary loose-skill channels (Claude Code user tier, ~/.agents/skills readers).
+**Surface**: install-skills.sh [--skills-dir PATH] [--codex-agents-dir PATH] [--no-codex-agents] [--claude | --claude-user] [--claude-skills-dir PATH] [--claude-agents-dir PATH] [--skills LIST] [--prefix PREFIX] [--display-brand BRAND] [--dry-run] [--validate-only] [-h|--help]; generate-codex-agents.sh --agents-src PATH --out-dir PATH [--prefix PREFIX] [--display-brand BRAND] [-h|--help]; validate-plan-json.sh <path-to-plan.json>
+**Outputs**: ~/.agents/skills/<prefix><name>/ – Codex skill bundles (inlined canonicals, ${CLAUDE_PLUGIN_ROOT} rewritten, ${CLAUDE_SKILL_DIR} baked to absolute, `andthen:` tokens → `<prefix>` in markdown and OpenAI metadata).
 ~/.codex/agents/<prefix><name>.toml – Codex agent TOML files generated from plugin/agents/*.md.
-~/.claude/skills/<prefix><name>/ – Claude user-tier skill bundles (inlined canonicals, ${CLAUDE_PLUGIN_ROOT} rewritten, ${CLAUDE_SKILL_DIR} left intact, `/andthen:` invocation forms → `/<prefix>`, bare `andthen:` tokens → `<prefix>` in markdown and OpenAI metadata).
+~/.claude/skills/<prefix><name>/ – Claude user-tier skill bundles (inlined canonicals, ${CLAUDE_PLUGIN_ROOT} rewritten, ${CLAUDE_SKILL_DIR} left intact, `andthen:` tokens → `<prefix>` in markdown and OpenAI metadata).
 ~/.claude/agents/<prefix><name>.md – Claude user-tier agent markdown copies with prefixed frontmatter name.
 
 **Requirements**
@@ -3019,8 +3019,12 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `INST-09` For Codex target: ${CLAUDE_SKILL_DIR} is replaced with the absolute install path of the skill, baked in at install time.
 - `INST-10` For plugin tier (Claude Code plugin): neither ${CLAUDE_PLUGIN_ROOT} nor ${CLAUDE_SKILL_DIR} is rewritten; both resolve at runtime.
 - `INST-11` Canonical shared assets are inlined (cp) into each consuming skill's local references/ before namespace rewrite, so inlined files are also namespace-rewritten in the same pass.
-- `INST-12` For Codex target: andthen: namespace tokens are rewritten using '$' as slash_target: backtick-prefixed '/andthen:' → '$<prefix>', line-start '/andthen:' → '$<prefix>', whitespace-prefixed '/andthen:' → '$<prefix>', bare 'andthen:' → '<prefix>'.
-- `INST-13` For Claude user tier: same namespace rewrite but slash_target is '/' so invocations use /<prefix><name> form.
+- `INST-12` Namespace rewrite (all non-plugin tiers): every 'andthen:' token in installed markdown and skill OpenAI metadata is rewritten to '<prefix>'. Shipped content is sigil-free by contract (`SYS-15`), so no slash/sigil-form rules exist.
+- `INST-13` Retired – previously pinned the Claude-user-tier slash-form rewrite; slash/sigil-form rewrites were removed when shipped content became sigil-free (SYS-15). The sigil validator is `INST-67`.
+- `INST-67` Sigil validator: '/andthen:' or '$andthen' anywhere under plugin/skills/, plugin/references/, or plugin/agents/ is rejected pre-copy with an error naming the file and line.
+- `INST-68` --validate-only runs the pre-copy content validations (strict variable syntax, the `INST-67` sigil validator, canonical asset existence and closure) and exits 0 without installing; any validation failure exits 1. CI runs it via .github/workflows/validate-plugin.yml on plugin/**, scripts/**, manifest, and CHANGELOG changes, gating the plugin-marketplace channel the installer never touches.
+- `INST-69` The Codex plugin channel serves the same plugin/ directory with no build step: plugin/.codex-plugin/plugin.json (name "andthen" ⇒ skills register as andthen:<name>, byte-identical to Claude Code; skills path "./skills/") plus repo-level .agents/plugins/marketplace.json whose plugins[0].source.path is "./plugin". Codex caches the plugin directory whole, so plugin/references/ travels with the skills and ${CLAUDE_PLUGIN_ROOT} canonicals need no inlining. Codex plugins carry no sub-agents; TOML agents stay on generate-codex-agents.sh.
+- `INST-70` Version consistency: CHANGELOG.md's topmost release heading, .claude-plugin/marketplace.json plugins[0].version, plugin/.claude-plugin/plugin.json version, and plugin/.codex-plugin/plugin.json version must be equal; CI (validate-plugin.yml) fails on skew and verifies .agents/plugins/marketplace.json parses and points at ./plugin.
 - `INST-14` Backtick-quoted review persona agent names (review-agent-workflow, review-architecture, review-correctness, review-critic, review-devils-advocate, review-product-requirements, review-project-standards, review-security, review-synthesis-challenger, review-testing) are rewritten in installed skill markdown, skill OpenAI metadata, and generated/copied agent files to '<prefix><agent-name>'. Backtick-quoted `documentation-lookup` is rewritten only in installed skill markdown and skill OpenAI metadata.
 - `INST-15` --display-brand BRAND rewrites 'AndThen' → BRAND in installed skill `agents/openai.yaml` metadata, Claude user-tier agent files, and generated Codex agent descriptions/bodies; no-op when brand is the default 'AndThen'; empty value is rejected.
 - `INST-16` Skills are exported as directories named <prefix><name>/; if a source dir already starts with <prefix>, it is not double-prefixed.

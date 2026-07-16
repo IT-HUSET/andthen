@@ -49,6 +49,10 @@ Options:
                             "andthen-" (e.g. --prefix dartclaw- pairs with
                             --display-brand DartClaw).
   --dry-run                 Print planned operations without copying files
+  --validate-only           Run the pre-copy content validations (strict
+                            variable syntax, sigil-free references, canonical
+                            asset existence and closure) and exit without
+                            installing. Intended for CI and pre-release checks.
   -h, --help                Show this help text
 
 Notes:
@@ -93,6 +97,7 @@ install_claude_user=0
 prefix="andthen-"
 display_brand="AndThen"
 dry_run=0
+validate_only=0
 selected_skills_raw=""
 selected_skills=""
 
@@ -178,6 +183,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --dry-run)
       dry_run=1
+      shift
+      ;;
+    --validate-only)
+      validate_only=1
       shift
       ;;
     -h|--help)
@@ -477,6 +486,31 @@ _validate_skill_dir_syntax() {
 }
 
 # ---------------------------------------------------------------------------
+# Sigil-free contract: shipped prose references skills as `the andthen:<name>
+# skill` – never host-specific invocation sigils (`/andthen:<x>` is Claude
+# slash-command syntax, `$andthen-<x>` is Codex mention syntax). Sigil forms
+# baked into installed bundles render as the wrong syntax on every other
+# host, so reject them at the source before any copy.
+# ---------------------------------------------------------------------------
+_validate_no_sigil_refs() {
+  _vnsr_list=$(grep -rElZ '/andthen:|\$andthen' \
+    "$repo_root/plugin/skills" \
+    "$repo_root/plugin/references" \
+    "$repo_root/plugin/agents" 2>/dev/null | tr '\0' '\n' || true)
+  if [ -n "$_vnsr_list" ]; then
+    printf '%s\n' "$_vnsr_list" | while IFS= read -r _vnsr_file; do
+      [ -z "$_vnsr_file" ] && continue
+      # grep -m1 (not `| head -1`): see _validate_plugin_root_syntax.
+      _vnsr_line=$(grep -m1 -nE '/andthen:|\$andthen' "$_vnsr_file")
+      printf 'error: %s:%s uses a sigil skill reference (/andthen: or $andthen); shipped prose must use the sigil-free form `the andthen:<name> skill`\n' \
+        "$_vnsr_file" "$_vnsr_line" >&2
+    done
+    return 1
+  fi
+  return 0
+}
+
+# ---------------------------------------------------------------------------
 # Canonical-asset existence check: verify all canonical assets exist before
 # any copy starts. Missing canonical exits non-zero with a clear error.
 # ---------------------------------------------------------------------------
@@ -689,21 +723,12 @@ copy_dir_contents() {
   find "$dst" -name '.DS_Store' -delete 2>/dev/null || true
 }
 
-# Apply namespace rewrite to a single markdown file.
-#   slash_target="$" → Codex sigil form: /andthen:<x> → $<prefix><x>
-#   slash_target="/" → Claude user slash-command form: /andthen:<x> → /<prefix><x>
-# Anchored on backtick, whitespace, or line-start so that path segments,
-# markdown links, and URLs with "/andthen:" substrings are not mangled.
-# The slash rule must run before the catch-all so the sigil swap is preserved.
+# Apply namespace rewrite to a single markdown file: andthen:<x> → <prefix><x>.
+# Shipped content is sigil-free by contract (no /andthen: or $andthen forms –
+# enforced by _validate_no_sigil_refs), so a single catch-all rewrite suffices
+# for every install tier.
 rewrite_namespace_file() {
   md="$1"
-  slash_target="$2"
-  sed -i.bak "s|\`/andthen:|\`${slash_target}${prefix}|g" "$md"
-  rm -f "$md.bak"
-  sed -i.bak "s|^/andthen:|${slash_target}${prefix}|g" "$md"
-  rm -f "$md.bak"
-  sed -i.bak "s|\([[:space:]]\)/andthen:|\1${slash_target}${prefix}|g" "$md"
-  rm -f "$md.bak"
   sed -i.bak "s|andthen:|${prefix}|g" "$md"
   rm -f "$md.bak"
 }
@@ -712,7 +737,6 @@ rewrite_namespace_dir() {
   # Use locally-unique names so this does not clobber the outer for-loop's
   # `dir` variable – POSIX sh has no function-local scope.
   _rwns_dir="$1"
-  _rwns_target="$2"
   # Resolve the file list up-front so `set -e` catches find errors. In a
   # `find | while` pipeline the pipeline's exit status is `while`'s, so find
   # failures (e.g. unreadable directory) would be silently swallowed.
@@ -720,7 +744,7 @@ rewrite_namespace_dir() {
   _rwns_list=$(find "$_rwns_dir" -name '*.md' -type f | LC_ALL=C sort)
   [ -z "$_rwns_list" ] && return 0
   printf '%s\n' "$_rwns_list" | while IFS= read -r md; do
-    rewrite_namespace_file "$md" "$_rwns_target"
+    rewrite_namespace_file "$md"
   done
 }
 
@@ -766,10 +790,9 @@ rewrite_review_agent_names_dir() {
 
 rewrite_skill_openai_metadata() {
   _rsom_dir="$1"
-  _rsom_target_prefix="$2"
   _rsom_yaml="$_rsom_dir/agents/openai.yaml"
   [ -f "$_rsom_yaml" ] || return 0
-  rewrite_namespace_file "$_rsom_yaml" "$_rsom_target_prefix"
+  rewrite_namespace_file "$_rsom_yaml"
   rewrite_review_agent_names_file "$_rsom_yaml"
 }
 
@@ -836,7 +859,7 @@ install_claude_agent() {
     return 1
   fi
 
-  rewrite_namespace_file "$_ica_dst" "/"
+  rewrite_namespace_file "$_ica_dst"
   # Agent prompts may describe plugin-tier invariants. Keep `documentation-lookup`
   # unprefixed there; frontmatter already makes the installed agent callable.
   rewrite_review_agent_names_file "$_ica_dst" 0
@@ -846,8 +869,14 @@ install_claude_agent() {
 # Run strict-syntax and canonical-asset checks before any copy.
 _validate_plugin_root_syntax || exit 1
 _validate_skill_dir_syntax || exit 1
+_validate_no_sigil_refs || exit 1
 _check_canonical_assets || exit 1
 _check_skill_asset_closure || exit 1
+
+if [ "$validate_only" -eq 1 ]; then
+  printf 'Validation passed: plugin content is install-clean.\n'
+  exit 0
+fi
 
 skills_count=0
 claude_skills_count=0
@@ -877,9 +906,9 @@ for dir in "$repo_root/plugin/skills"/*; do
     inline_canonical_assets "$skills_dir/$target_name" "$name"
     rewrite_plugin_root_dir "$skills_dir/$target_name"
     rewrite_skill_dir_dir "$skills_dir/$target_name" "$skills_dir/$target_name"
-    rewrite_namespace_dir "$skills_dir/$target_name" '$'
+    rewrite_namespace_dir "$skills_dir/$target_name"
     rewrite_review_agent_names_dir "$skills_dir/$target_name"
-    rewrite_skill_openai_metadata "$skills_dir/$target_name" '$'
+    rewrite_skill_openai_metadata "$skills_dir/$target_name"
     rewrite_display_brand_dir "$skills_dir/$target_name" "$display_brand"
   else
     inline_canonical_assets "$skills_dir/$target_name" "$name"
@@ -894,9 +923,9 @@ for dir in "$repo_root/plugin/skills"/*; do
     if [ "$dry_run" -eq 0 ]; then
       inline_canonical_assets "$claude_skills_dir/$target_name" "$name"
       rewrite_plugin_root_dir "$claude_skills_dir/$target_name"
-      rewrite_namespace_dir "$claude_skills_dir/$target_name" '/'
+      rewrite_namespace_dir "$claude_skills_dir/$target_name"
       rewrite_review_agent_names_dir "$claude_skills_dir/$target_name"
-      rewrite_skill_openai_metadata "$claude_skills_dir/$target_name" '/'
+      rewrite_skill_openai_metadata "$claude_skills_dir/$target_name"
       rewrite_display_brand_dir "$claude_skills_dir/$target_name" "$display_brand"
     else
       inline_canonical_assets "$claude_skills_dir/$target_name" "$name"

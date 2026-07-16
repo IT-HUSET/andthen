@@ -16,7 +16,7 @@ _The Critical, Non-Negotiable and Foundational Rules, Guardrails and Principles 
 
 AndThen is an experimental, lightweight spec-driven development framework for AI coding agents, with the goal of being open, modular, and adoptable piece by piece, and not forcing the user into a rigid workflow or directory structure.
 
-AndThen is shipped to Claude Code (as a marketplace plugin) and Codex CLI / generic agents (via `scripts/install-skills.sh`). Skills are the primary unit (invoked as `andthen:<name>`); shared content lives at `plugin/references/` and is inlined into each consuming skill at install time so installed bundles stay self-contained.
+AndThen is shipped to Claude Code and Codex CLI as marketplace plugins – one shared `plugin/` directory under dual manifests, no build step – and to generic agents via `scripts/install-skills.sh` (secondary loose-skill channel). Skills are the primary unit (invoked as `andthen:<name>` on both plugin hosts); shared content lives at `plugin/references/` and travels whole with the plugin, while the loose-skill installer inlines it per skill so those bundles stay self-contained.
 
 For the deeper architectural picture (skill anatomy, shared-asset propagation, reference-path syntax, install-time rewrites), read `docs/ARCHITECTURE.md`.
 
@@ -34,7 +34,9 @@ For the deeper architectural picture (skill anatomy, shared-asset propagation, r
 - `plugin/skills/<name>/agents/openai.yaml` – Codex/OpenAI metadata for a skill.
 - `plugin/references/` – shared canonical reference files consumed by multiple skills.
 - `plugin/agents/*.md` – Claude Code plugin-tier agents: `documentation-lookup`, `research`, plus review persona agents.
-- `scripts/install-skills.sh` – install-time portability rewrites and shared reference inlining.
+- `plugin/.codex-plugin/plugin.json` – Codex plugin manifest for the same `plugin/` directory (dual-manifest layout).
+- `.agents/plugins/marketplace.json` – Codex plugin marketplace, serving `./plugin`.
+- `scripts/install-skills.sh` – install-time portability rewrites and shared reference inlining (loose-skill channel).
 - `README.md` – public intro and one-line skill purposes only.
 - `plugin/README.md` – canonical user-facing skill reference with flags, modes, options, and edge-case behavior.
 
@@ -55,8 +57,10 @@ For the deeper architectural picture (skill anatomy, shared-asset propagation, r
 | Prompt guidelines    | `docs/prompt-guidelines/`             | Prompt engineering rules; Claude/GPT companion files                 |
 | Dev guidelines       | `docs/guidelines/`                    | Development / architecture / UX / web standards                      |
 | Research notes       | `docs/temp/research/`                 | Working research artifacts; transient, not shipped                   |
-| Marketplace manifest | `.claude-plugin/marketplace.json`     | Plugin marketplace metadata                                          |
-| Plugin manifest      | `plugin/.claude-plugin/plugin.json`   | Plugin install metadata                                              |
+| Marketplace manifest | `.claude-plugin/marketplace.json`     | Claude Code plugin marketplace metadata                              |
+| Plugin manifest      | `plugin/.claude-plugin/plugin.json`   | Claude Code plugin install metadata                                  |
+| Codex marketplace    | `.agents/plugins/marketplace.json`    | Codex plugin marketplace, serving `./plugin`                         |
+| Codex plugin manifest| `plugin/.codex-plugin/plugin.json`    | Codex plugin install metadata (version-synced with Claude manifests) |
 | Agent temp           | `.agent_temp/`                        | Temporary agent workspace (reviews, research, QA)                    |
 
 
@@ -74,7 +78,7 @@ Modern frontier models understand *why* things matter. Skills should express **i
 **Core principles:**
 - **Why over what**: Explain the reasoning behind non-obvious rules so the model can generalize to novel situations. A rule without a "why" is followed rigidly; a rule with a "why" is followed intelligently.
 - **Right altitude**: Use heuristics and principles, not step-by-step prescriptions. If a frontier model would naturally do something, don't instruct it. Be specific about counter-intuitive behaviors, cross-skill integration contracts, and named failure modes. Be general about standard engineering practices.
-- **Named principles over unnamed rules**: A named principle (Chesterton's Fence, Prove-It Pattern, Proof-of-Work, Stop-the-Line) gives the model a conceptual anchor for *when* and *why* the principle applies. An unnamed rule is just a constraint to follow or ignore.
+- **Named principles over unnamed rules**: A named principle (Chesterton's Fence, Prove-It Pattern, Proof-of-Work, Stop-the-Line) gives the model a conceptual anchor for *when* and *why* the principle applies. An unnamed rule is just a constraint to follow or ignore. Names work as *leading words*: prefer existing terms with pretraining weight over coined jargon, and reuse the same term verbatim wherever it applies.
 - **Intent reasoning is not waste**: Token efficiency is a *consequence* of intent-driven authoring, not the goal. Explaining why a verification gate exists or why test scaffolding precedes implementation is worth the tokens – it prevents the model from rationalizing its way past the step.
 - **Brevity and clear language**: Pragmatic, actionable, plain. Skills are part of every prompt – words cost tokens.
 - **Repetition is dilution**: When a rule feels weak, name the failure mode at the right altitude. More restatements just compete with each other for attention.
@@ -112,7 +116,7 @@ Always fully read relevant guidelines below as needed, based on the type of work
 - When updating **internal-only skills** (`user-invocable: false`), update `agents/openai.yaml`, `CHANGELOG.md`, and the owning caller's skill/reference docs; do not add the skill to public skill inventories unless users invoke it directly.
 - **Keep CHANGELOG.md entries extremely concise**: focus on the user-facing changes and avoid too low level internal implementation details.
 - Adding, renaming, or removing a shared canonical in `plugin/references/` requires updates to `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table AND `scripts/install-skills.sh`'s `_canonical_assets` and the per-skill `_skill_assets_*` arrays of every consuming skill.
-- Bumping the version **always updates all three locations**: `CHANGELOG.md`, `.claude-plugin/marketplace.json`, and `plugin/.claude-plugin/plugin.json`.
+- Bumping the version **always updates all four locations**: `CHANGELOG.md`, `.claude-plugin/marketplace.json`, `plugin/.claude-plugin/plugin.json`, and `plugin/.codex-plugin/plugin.json` (CI fails on skew).
 
 
 
@@ -126,6 +130,7 @@ Always fully read relevant guidelines below as needed, based on the type of work
 - Outside the Claude Code plugin tier, documentation lookup is ordinary sub-agent work unless generated agents are installed: spawn a sub-agent and have it consult this file's "Documentation Lookup Tools" section.
 - Skills with `context: fork` isolate automatically when invoked. Other skills that need fresh context should be run by a generic sub-agent whose prompt invokes the relevant `/andthen:<name>` command.
 - In prose, every `andthen:<name>` reference must have the type noun adjacent: write "the `andthen:<name>` skill" or "the `andthen:<name>` agent". Avoid the known-bad wording "Spawn `andthen:<skill-name>` sub-agent" because it primes agents to pass skill names as agent types.
+- Shipped content (`plugin/skills`, `plugin/references`, `plugin/agents`) never uses invocation sigils (`/andthen:<name>`, `$andthen-<name>`): sigils are host syntax, not skill identity, and render as the wrong syntax on other hosts. `install-skills.sh` rejects sigil forms. User-facing docs (README, plugin/README) may show real commands.
 
 Audit wording with:
 
@@ -206,4 +211,4 @@ bash scripts/install-skills.sh --claude-user --dry-run
 bash scripts/validate-plan-json.sh <path-to-plan.json>
 ```
 
-Version bumps must update all three locations together (per the Maintenance Contracts above): `CHANGELOG.md`, `.claude-plugin/marketplace.json`, `plugin/.claude-plugin/plugin.json`.
+Version bumps must update all four locations together (per the Maintenance Contracts above): `CHANGELOG.md`, `.claude-plugin/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`.

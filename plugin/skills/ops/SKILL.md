@@ -1,5 +1,5 @@
 ---
-description: "Deterministic operations: update shared/local state, plan status, story ownership, FIS checkboxes, standardized commits. Trigger on 'update state', 'mark story done', 'claim story', 'update FIS checkboxes', 'progress summary'."
+description: Deterministic operations – update shared/local state, plan status, story ownership, FIS checkboxes, standardized commits. Trigger on 'mark story done', 'claim story', 'update FIS checkboxes', 'progress summary'.
 context: fork
 agent: general-purpose
 user-invocable: true
@@ -154,7 +154,7 @@ Actions for `still-current` form:
 - **Idempotency**: `<topic>` is the key – no-op if a bullet with the same `- **<Topic>**:` prefix already exists; update its text in place when the rationale changed.
 
 #### Update Reconciliation Ledger
-Deterministic mutator for the Reconciliation Ledger – the durable, greppable record of deliberate spec-vs-code drift – and its only sanctioned write path: atomic, transition-audited, AUTO_MODE-safe, reject-malformed. **Single-document** – it mutates only the ledger; the completion-presentation gate that *reads* the ledger lives in the orchestrating skills (`exec-spec` / `exec-plan`), not here.
+Deterministic mutator for the Reconciliation Ledger and its only sanctioned write path: atomic, transition-audited, AUTO_MODE-safe, reject-malformed. **Single-document** – it mutates only the ledger; the completion-presentation gate that *reads* the ledger lives in the orchestrating skills (`exec-spec` / `exec-plan`), not here.
 
 The caller passes the **FIS-adjacent ledger path** (`{fis-without-ext}.reconciliation-ledger.md`, resolved per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md)) as the first argument; `ops` mutates exactly that file and does not discover a path. There is no project-global ledger.
 

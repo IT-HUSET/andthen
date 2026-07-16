@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants to compact the current conversation into a handoff document a fresh agent can resume from – before `/clear`, before running out of context, or at a natural session boundary. Trigger on 'hand off', 'handoff', 'compact this', 'wrap up for resume', 'before I /clear', 'fresh start', "I'm running out of context".
+description: Compact the current conversation into a handoff document a fresh agent can resume from – before `/clear`, when running low on context, or at a session boundary. Trigger on 'handoff', 'wrap up for resume', 'fresh start'.
 argument-hint: "[what the next session will focus on] [--no-mutate]"
 ---
 
@@ -27,7 +27,7 @@ ARGUMENTS: $ARGUMENTS _(optional – free-form focus for the next session)_
 
 ## GOTCHAS
 
-- Re-running `/andthen:handoff` in quick succession duplicates `decision` / `note` entries (`update-learnings add` is idempotent at `ops`; decision/note are not). Re-run only after substantive new conversation.
+- Re-running the `andthen:handoff` skill in quick succession duplicates `decision` / `note` entries (`update-learnings add` is idempotent at `ops`; decision/note are not). Re-run only after substantive new conversation.
 - Treating the handoff as a transcript dump – compress to what changes the next session's decisions, not what happened.
 
 
@@ -77,10 +77,10 @@ Resolve project root via `git rev-parse --show-toplevel` (fallback: CWD). Save t
 - <only what changes the next session's decisions>
 
 ## Pending durable writes
-<omit when empty; otherwise: ADRs to consider via `andthen:architecture --mode trade-off`; LEARNINGS candidates left as recommendations; missing durable files named (e.g. "STATE.md absent – run /andthen:init to enable durable routing")>
+<omit when empty; otherwise: ADRs to consider via `andthen:architecture --mode trade-off`; LEARNINGS candidates left as recommendations; missing durable files named (e.g. "STATE.md absent – run the andthen:init skill to enable durable routing")>
 
 ## Recommended next skill
-<workflow skill to run after resuming context; usually `/andthen:now-what`, or a specific skill when one obvious next step exists>
+<workflow skill to run after resuming context; usually the `andthen:now-what` skill, or a specific skill when one obvious next step exists>
 
 ## Index
 - PRD: <path or omit>

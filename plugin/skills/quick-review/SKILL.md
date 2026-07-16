@@ -1,5 +1,5 @@
 ---
-description: Quick in-conversation skill for critic review of recent changes in fresh context. Use mid-conversation to sanity-check work before moving on. Trigger on 'quick review this', 'sanity-check this', 'give this a quick pass', 'critic this', 'red-team this'.
+description: Quick critic review of recent changes in fresh context – a mid-conversation sanity check before moving on. Trigger on 'quick review this', 'sanity-check this', 'critic this'.
 user-invocable: true
 argument-hint: "[--inline] [--fix] [--auto] [focus or scope | commit <sha>]"
 ---
@@ -8,7 +8,7 @@ argument-hint: "[--inline] [--fix] [--auto] [focus or scope | commit <sha>]"
 
 Lightweight, ad-hoc review of recent work in the current conversation. By default, delegates the critique to a fresh-context sub-agent so confirmation bias from the calling conversation can't soften findings; `--inline` applies the rubric directly when the caller is already fresh (see Optional Flags).
 
-`andthen:quick-review` is a **skill**, not an agent type. Invoke it via `/andthen:quick-review` or the Skill tool – do not pass it as `subagent_type`.
+`andthen:quick-review` is a **skill**, not an agent type. Invoke it as a skill – do not pass it as `subagent_type`.
 
 
 ## VARIABLES

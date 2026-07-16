@@ -1,5 +1,5 @@
 ---
-description: Analyze an existing codebase to produce structured documentation and discover implicit requirements. Trigger on 'map codebase', 'map this repo', 'analyze the project', 'understand this codebase', 'what does this repo do'.
+description: Analyze an existing codebase into structured documentation and discovered implicit requirements. Trigger on 'map codebase', 'understand this codebase', 'what does this repo do'.
 argument-hint: "[output directory (defaults to docs/)]"
 ---
 
@@ -104,7 +104,7 @@ Also emit `OUTPUT_DIR/decisions-discovered.md` using the `DECISIONS.md` template
 1. Write all documents to `OUTPUT_DIR/`
 2. Print summary listing all generated files with brief descriptions
 3. If `IS_MONOREPO = true`: generate lightweight sub-project agent instruction file(s) that match the root file choice (`CLAUDE.md`, `AGENTS.md`, or both) for each sub-project that doesn't already have them (under ~40 lines: name/description, key development commands inline table, sub-project-specific notes)
-4. Suggest next steps: review discovered requirements and decisions with team (validate `decisions-discovered.md` and promote to `DECISIONS.md` when confirmed), invoke the `andthen:plan` skill: `/andthen:plan docs/requirements-discovered.md`
+4. Suggest next steps: review discovered requirements and decisions with team (validate `decisions-discovered.md` and promote to `DECISIONS.md` when confirmed), invoke the `andthen:plan` skill on `docs/requirements-discovered.md`
 
 
 ## OUTPUT

@@ -1,5 +1,5 @@
 ---
-description: "Use when you need test strategy, coverage assessment, test authoring, or test-first (red-green-refactor) discipline – including the Prove-It bugfix flow and FIS scenario → test mapping. Covers unit and integration levels; defer persistent end-to-end suites to the `andthen:e2e-test` skill. Trigger on 'write tests for this', 'cover this module', 'TDD this', 'test-first', 'red-green-refactor', 'prove it with a test', 'assess test coverage', 'improve coverage', 'test strategy for this'."
+description: Test strategy, coverage assessment, test authoring, and test-first (red-green-refactor) discipline – including the Prove-It bugfix flow and FIS scenario → test mapping. Unit and integration levels; persistent end-to-end suites belong to the andthen:e2e-test skill. Trigger on 'write tests for this', 'TDD this', 'prove it with a test', 'test coverage'.
 argument-hint: "[--mode strategy|write|tdd|prove-it] [target/scope]"
 user-invocable: true
 ---
@@ -67,7 +67,7 @@ Reuse the project's framework; any new tool must run in CI without extra ceremon
 
 ## CALLER INTEGRATION
 
-Callers (the `andthen:exec-spec`, `andthen:triage`, and `andthen:e2e-test` skills) invoke this skill as `/andthen:testing <target/scope>`. Runs in the caller's context by default – continuity matters for `tdd` and `prove-it`. For fresh-context isolation, the caller wraps the invocation in a sub-agent.
+Callers (the `andthen:exec-spec`, `andthen:triage`, and `andthen:e2e-test` skills) invoke this skill with `<target/scope>`. Runs in the caller's context by default – continuity matters for `tdd` and `prove-it`. For fresh-context isolation, the caller wraps the invocation in a sub-agent.
 
 Output is advisory for `strategy`; the tests themselves are the artifact for `write` / `tdd` / `prove-it`.
 

@@ -1,5 +1,5 @@
 ---
-description: Drive a FIS or plan bundle to zero open blocking decisions before an unattended exec run. Interactively interviews the user on each implementation-blocking decision, settles open ADRs, persists every resolution by altitude, and emits a machine-stable READY/DEFERRED/BLOCKED verdict. Do not use to author a spec or PRD (use the andthen:spec / andthen:prd skills) or to execute one (use the andthen:exec-spec / andthen:exec-plan skills). Trigger on 'preflight this spec', 'preflight this plan', 'harden this FIS before exec', 'resolve blocking decisions', 'is this spec ready for unattended exec'.
+description: Drive a FIS or plan bundle to zero open blocking decisions before an unattended exec run – interviews the user per decision, settles open ADRs, emits a machine-stable READY/DEFERRED/BLOCKED verdict. Authoring belongs to the andthen:spec / andthen:prd skills, execution to the andthen:exec-spec / andthen:exec-plan skills. Trigger on 'preflight this spec', 'resolve blocking decisions', 'ready for unattended exec'.
 argument-hint: "[target: FIS path | plan-bundle dir] [--auto]"
 user-invocable: true
 ---

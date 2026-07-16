@@ -40,7 +40,7 @@ Placeholders pre-substituted by the orchestrator at TeamCreate: `{AUTO_SUFFIX}`,
 Per `impl-*` task assigned to you (orchestrator pre-assigns owners – work only your assigned tasks, no shared-queue claiming):
 - `cd {CODE_DIR_ABS}` (worktree mode: `cd {WORKTREE_PATH_ABS}` instead).
 - **Worktree mode** (`{WORKTREE_PATH_ABS}` non-empty), as first action after `cd`: `bash ${CLAUDE_SKILL_DIR}/scripts/verify-in-worktree.sh {STORY_ID} {WORKTREE_PATH_ABS}`. Anything other than `VERIFY_OK` → STOP, report `VERIFY_FAIL:<reason>`, fail the task. Subsequent operations use absolute paths only (relative paths silently leak to the main checkout). Pass the `## Deferred Shared Writes` audit block through to your report; do NOT stage `plan.json` or the State document inside the worktree branch – the `andthen:merge-resolve` skill's G2 guard fails the story.
-- `/andthen:exec-spec {fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}`.
+- Invoke the andthen:exec-spec skill with `{fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}`.
 - On success: report `exec-spec` Step 4a numbers (build, tests, lint/type-check, format). Orchestrator handles squash-merge and cleanup.
 - On `BLOCKED:` or Failed Story Report: do not mark done; preserve the worktree and report details.
 - Do not call `andthen:ops update-*` yourself – `exec-spec` Step 5b owns those (Worker Contract).
@@ -58,7 +58,7 @@ Per `review-*` task assigned to you (orchestrator pre-assigns owners; `impl-Sxx`
 - **Resolve the review commit SHA** – the change set is committed in both modes, so `git diff` is empty; `quick-review`'s `commit <sha>` FOCUS form provides the change set:
   - **Worktree mode**: create an unreferenced review snapshot for the full branch diff: `git commit-tree "story-<story-id>^{tree}" -p "$(git merge-base {BASE_BRANCH} story-<story-id>)" -m "review snapshot <story-id>"`. Empty result → escalate.
   - **No worktree mode**: `git rev-parse HEAD`. Task-dependency ordering (`impl-<story-id>` completes before `review-<story-id>`) guarantees the implementer's commit is at HEAD.
-- **Substitute `<story-id>` and `<hex-sha>` as literals** (slash-command lines are not bash; `$VAR` and `<placeholder>` reach `quick-review` unexpanded). Invoke: `/andthen:quick-review story <story-id> commit <hex-sha>{AUTO_SUFFIX}`.
+- **Substitute `<story-id>` and `<hex-sha>` as literals** (skill-invocation lines are not bash; `$VAR` and `<placeholder>` reach `quick-review` unexpanded). Invoke the andthen:quick-review skill with `story <story-id> commit <hex-sha>{AUTO_SUFFIX}`.
 - Accepted findings → report to orchestrator, do not mark done. Else mark done.
 - Do not call `andthen:ops update-*` yourself (Worker Contract).
 
@@ -84,15 +84,15 @@ After current-wave `impl-*` and `review-*` succeed or are recorded failed, merge
 
 For each successful worktree branch in sequence:
 
-1. **Invoke `/andthen:merge-resolve`** with the story's parameters.
+1. **Invoke the `andthen:merge-resolve` skill** with the story's arguments (one logical line):
 
    First, extract the implementer's `Completion summary` from the audit block (regex `^Completion summary:\s*(.+)$`, trimmed; fallback `"{STORY_ID}: completed (worktree merge)"`) and write it to `.agent_temp/merge-summary-{STORY_ID}.txt` so prose never reaches the shell argument vector. Reuse this `SUMMARY` in step 3's `update-state note`.
 
    ```
-   /andthen:merge-resolve {STORY_ID} {BASE_BRANCH} {WORKTREE_PATH_ABS} .agent_temp/merge-summary-{STORY_ID}.txt \
-     --guard-path {PLAN_FILE_PATH} \
-     [--guard-path {STATE_FILE_PATH}]   # only when the State document exists per Project Document Index
+   {STORY_ID} {BASE_BRANCH} {WORKTREE_PATH_ABS} .agent_temp/merge-summary-{STORY_ID}.txt --guard-path {PLAN_FILE_PATH} [--guard-path {STATE_FILE_PATH}]
    ```
+
+   `[--guard-path {STATE_FILE_PATH}]` only when the State document exists per the Project Document Index.
 
    Multi-repo (`PLAN_DIR ≠ CODE_DIR`): pass `--guard-path` unchanged – the skill's underlying script drops guard paths that resolve outside `CODE_DIR` and emits a `GUARD_SKIPPED:G2:<path>` line on stderr (informational; multi-repo plan/state files cannot leak into `CODE_DIR`'s history).
 

@@ -1,5 +1,5 @@
 ---
-description: Use when validating UI screenshots, running visual regression checks, or comparing implementation against wireframes/design specs. Captures states, checks responsive layout, classifies visual issues, and recommends fixes. Do not use for full end-to-end browser journeys (use the andthen:e2e-test skill) or for design-system/wireframe authoring (use the andthen:ui-ux-design skill). Trigger on 'visual validation', 'validate screenshots', 'check UI against design', 'visual regression'.
+description: Validate UI screenshots and run visual regression checks against wireframes/design specs. Full browser journeys belong to the andthen:e2e-test skill; design-system/wireframe authoring to the andthen:ui-ux-design skill. Trigger on 'visual validation', 'check UI against design', 'visual regression'.
 argument-hint: "[<screens-or-states-to-validate>] [design-reference/baseline]"
 user-invocable: true
 ---

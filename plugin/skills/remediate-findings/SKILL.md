@@ -1,5 +1,5 @@
 ---
-description: Use when the user wants review findings or review comments addressed. Implements actionable findings from a review report with minimal, guideline-aligned fixes across code, specs, plans, PRDs, and documentation, then re-validates the result and updates plan/FIS status. Trigger on 'address these review findings', 'fix review comments', 'remediate findings'.
+description: Implement actionable findings from a review report – minimal, guideline-aligned fixes across code, specs, plans, PRDs, and documentation – then re-validate and update plan/FIS status. Trigger on 'address these review findings', 'fix review comments', 'remediate findings'.
 user-invocable: true
 argument-hint: "[--auto] <review-report-path(s) | report URL(s)>"
 ---
@@ -124,7 +124,7 @@ For reports with no per-finding `Routing:` tag, compute an **effective route** a
    - Implementation fixes: tests, linting, type checks, builds – use the commands from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`); fall back to discovery (package.json scripts, Makefile targets, language conventions) only when the document is missing
    - Document fixes: verify terminology, cross-references, linked paths, commands/examples, consistency with source of truth
    - Workflow artifact fixes: verify templates, status semantics, cross-document consistency
-4. Invoke the `andthen:quick-review` skill on the touched scope (via `/andthen:quick-review` or the Skill tool – not as `subagent_type`).
+4. Invoke the `andthen:quick-review` skill on the touched scope (as a skill – not as `subagent_type`).
 5. **Findings re-check**: Walk through every finding from the original report and verify resolution against the current workspace. For each finding, state: `RESOLVED` (with evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), `DEFERRED` (citing a named blocker from Phase 2's severity policy – an uncited deferral is invalid; fix the finding instead), or `SURFACED` (Phase 2a demoted or upstream `Routing: Note`; cite the tag and/or Intent-anchor reason, not a Phase 2 blocker). This is the primary close-the-loop validation.
 6. If both implementation and document artifacts changed, verify consistency across them.
 7. If Critical/High findings remain after one remediation pass, escalate rather than looping. In `AUTO_MODE`, return `BLOCKED:` with unresolved findings and verification evidence.

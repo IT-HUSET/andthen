@@ -109,6 +109,17 @@ The core pipeline and standalone execution/review skills accept `--auto` for ext
 
 **Enable auto-update** (recommended): run `/plugin`, open the **Marketplaces** tab, select `andthen`, and choose **Enable auto-update**.
 
+### Codex CLI plugin
+
+```bash
+codex plugin marketplace add IT-HUSET/andthen
+codex plugin add andthen@andthen
+```
+
+Skills register under the same `andthen:<name>` ids as in Claude Code. Codex plugins can't ship sub-agents – to also install the optional review-council agents, run `./scripts/generate-codex-agents.sh --agents-src plugin/agents --out-dir ~/.codex/agents` from a clone.
+
+> Switching from a previous `install-skills.sh` install? Remove the old `~/.agents/skills/andthen-*` directories first – Codex shows duplicates (`andthen-review` and `andthen:review`) side by side otherwise.
+
 ### Other agents (Codex CLI, Aider, Cursor)
 
 Skills use capability detection and work without the plugin infrastructure. The installer exports skills under `andthen-`-prefixed names to your agent's skills directory, generates Codex agents, and copies reference docs, shared templates, and helper scripts:
