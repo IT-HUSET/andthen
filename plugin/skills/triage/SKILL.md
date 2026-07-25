@@ -1,5 +1,5 @@
 ---
-description: Investigate, diagnose, and fix issues – build failures, configuration errors, runtime bugs, regressions, test failures. Trigger on 'debug this', 'what's broken', 'triage', 'fix the build'.
+description: Investigate, diagnose, and fix issues – build failures, configuration errors, runtime bugs, regressions, test failures. Trigger on 'debug this', 'what's broken', 'triage', 'fix the build'. Sorting incoming tracker items into a backlog is the andthen:issue-triage skill instead.
 user-invocable: true
 argument-hint: "[--plan-only] [--to-issue] [--auto] [scope | --issue <number>]"
 ---
@@ -41,7 +41,7 @@ ARGUMENTS: `$ARGUMENTS`
 
 ### 1. Assess Current State
 
-1. If `SCOPE` is a GitHub issue URL or `--issue <number>` is used, fetch the issue body with `gh issue view <number>` and use its content as the scope description. If the body contains a structured fix plan (e.g. from a prior `triage --plan-only --to-issue` run), follow its steps directly rather than re-analysing from scratch.
+1. If `SCOPE` is a GitHub issue URL or `--issue <number>` is used, resolve the tracker per [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md) → **Tracker resolution**, fetch the body (GitHub default: `gh issue view <number>`), and use its content as the scope description. If the body contains a structured fix plan (e.g. from a prior `triage --plan-only --to-issue` run), follow its steps directly rather than re-analysing from scratch.
 2. Inspect the current implementation state, uncommitted changes, and recent evolution.
 3. Understand the project structure and the scope implied by `SCOPE`.
 4. Read additional docs only when they change the diagnosis or fix. The `Architecture` document (see **Project Document Index**) is often the one that does – consult it when the bug spans components, touches integration points, or appears wiring-related, since Step 2's architecture/wiring sweep depends on knowing the documented shape.

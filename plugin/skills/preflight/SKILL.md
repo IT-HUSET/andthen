@@ -8,7 +8,7 @@ user-invocable: true
 
 Drive a single FIS or a plan bundle to **zero open blocking decisions** before it is handed to an unattended `andthen:exec-spec` / `andthen:exec-plan` run, so the autonomous run never forks on an undecided choice. The premise is a trade in attention: spend a human's now so the executors spend none later.
 
-Preflight does not re-spec and does not implement. It **composes by altitude** – it detects decisions with the `andthen:review` skill, settles open ADRs with the `andthen:architecture` skill, routes requirements-altitude gaps back to the `andthen:clarify` skill, resolves implementation-blocking decisions with its own interview, and persists every resolution through the `andthen:ops` skill.
+Preflight does not re-spec and does not implement. It **composes by altitude** – it detects decisions with the `andthen:review` skill, settles open ADRs with the `andthen:architecture` skill, routes requirements-altitude gaps back to the `andthen:clarify` skill, resolves implementation-blocking decisions with its own interview (settling any that turn on an empirical unknown with the `andthen:spike` skill), and persists every resolution through the `andthen:ops` skill.
 
 
 ## OPERATING PRINCIPLE
@@ -33,7 +33,7 @@ TARGET: $ARGUMENTS (strip any flag token like `--auto` before interpreting the r
 - **Composition, not reimplementation** – preflight owns the convergence loop and the blocking-decision interview; it delegates detection, ADR authoring, and deterministic writes. Do not copy a doc-review rubric or a full `clarify` interview flow; load the composed skills instead. The composed skills are referenced as skills, never passed as an agent type.
 - **The `andthen:ops` skill is the only sanctioned write path** for the status artifacts preflight touches: FIS decision-Notes, `docs/DECISIONS.md` Still Current notes, and `plan.json` `spec-ready` transitions. Never hand-edit them. ADR creation and indexing stays owned by the `andthen:architecture` skill. Body reconciliation (Step 5) is preflight's own edit – spec surface, not a status artifact.
 - **`Preflight:` verdict grammar** – emit exactly one resolved token, once, as a bare line at line start beside (never inside) any verdict block: `^Preflight: (READY|DEFERRED|BLOCKED)$`. Never emit the menu form `Preflight: READY | DEFERRED | BLOCKED` literally – a consumer matches it line-anchored and the menu breaks the regex. The token is registered in `review-verdict.md` § Loop Convergence Signals as a sibling to `Auto-Remediation`; this line is the self-contained emit copy.
-- **Automation** (`AUTO_MODE`) – strict no-prompt, deterministic-signal stance per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Run detection, drill-down, evidence gathering, and the misapplied-ADR check (applying its mechanical, decision-free doc-defect fix) only; hold no interview and invoke no interactive `architecture --mode trade-off` loop. Emit named blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `BLOCKED:` for an unresolvable/ambiguous target or unsafe action; enumerate the unresolved blocking decisions as a signal/recommendation. Never invent an answer.
+- **Automation** (`AUTO_MODE`) – strict no-prompt, deterministic-signal stance per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Run detection, drill-down, evidence gathering, and the misapplied-ADR check (applying its mechanical, decision-free doc-defect fix) only; hold no interview, run no spike, and invoke no interactive `architecture --mode trade-off` loop. Emit named blocks per [`execution-named-blocks.md`](${CLAUDE_PLUGIN_ROOT}/references/execution-named-blocks.md): `BLOCKED:` for an unresolvable/ambiguous target or unsafe action; enumerate the unresolved blocking decisions as a signal/recommendation. Never invent an answer.
 
 
 ## DECISION RECORDS
@@ -75,6 +75,7 @@ For each remaining blocking record, drive it to closure. **Skip this step entire
 
 - **Requirements-altitude** (`requirements`) → route to the `andthen:clarify` skill; do not resolve a requirements question at FIS level.
 - **Implementation-blocking** → run preflight's own interview per `blocking-decision-interview.md`.
+- **Empirical unknown** → a blocking decision that turns on evidence only a spike can supply settles via the `andthen:spike` skill on that one question, closing per `blocking-decision-interview.md` § Closing a decision.
 - **Deferral** → converges only with explicit user **sign-off**, per `decision-records.md` § Convergence.
 
 Persist each outcome immediately, by altitude, through the `andthen:ops` skill:
@@ -116,4 +117,4 @@ Print: the resolved target, the verdict line, and a per-decision ledger (decisio
 
 Skip under `AUTO_MODE` (print only the verdict, ledger, and downstream command shape).
 
-On `READY` / `DEFERRED`, suggest the unattended run: the `andthen:exec-spec` skill for a single FIS, the `andthen:exec-plan` skill for a bundle. On `BLOCKED`, name the still-open decisions and the upstream skill each needs (the `andthen:clarify` skill for requirements gaps, the `andthen:architecture` skill with `--mode trade-off` for open ADRs).
+On `READY` / `DEFERRED`, suggest the unattended run: the `andthen:exec-spec` skill for a single FIS, the `andthen:exec-plan` skill for a bundle. On `BLOCKED`, name the still-open decisions and the upstream skill each needs (the `andthen:clarify` skill for requirements gaps, the `andthen:architecture` skill with `--mode trade-off` for open ADRs, the `andthen:spike` skill for a decision blocked on an empirical unknown).

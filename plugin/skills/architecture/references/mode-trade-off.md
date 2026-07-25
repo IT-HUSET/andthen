@@ -97,6 +97,8 @@ Each option should return:
 - Concrete evidence
 - Critical warnings
 
+When a criterion's score turns on an empirical unknown that research cannot settle – does this option actually clear the latency budget, does that migration path hold – the `andthen:spike` skill answers it by building a throwaway spike; fold its Spike Verdict back in as evidence for that criterion. Run these spikes serially from the orchestrating context, never inside the parallel research sub-agents – a spike checks out its own branch and stashes, so concurrent spikes would race on the shared working tree; and under `--auto`, do not spike headless – record the unknown as an open evidence gap in the report instead.
+
 ## Step 4 – Analysis
 
 Produce a compact comparison that includes:

@@ -379,7 +379,7 @@ _canonical_assets="automation-mode.md critic-calibration.md data-contract.md des
 
 # Map of skill-name → space-separated list of canonical asset names it consumes.
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
-_skill_assets_prd="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md prd-template.md"
+_skill_assets_prd="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md prd-template.md project-state-templates.md"
 _skill_assets_plan="automation-mode.md data-contract.md execution-discipline.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md plan-schema.md"
 _skill_assets_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md fis-authoring-guidelines.md fis-template.md plan-issue-shape.md plan-schema.md"
 _skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md plan-issue-shape.md plan-schema.md reconciliation-ledger.md"
@@ -388,7 +388,7 @@ _skill_assets_ops="data-contract.md fis-authoring-guidelines.md plan-issue-shape
 _skill_assets_review="critic-calibration.md data-contract.md findings-filter-templates.md fis-authoring-guidelines.md intent-and-rules-context.md lens-adversarial.md plan-issue-shape.md plan-schema.md reconciliation-ledger.md review-calibration.md review-report-location.md trust-boundaries.md"
 _skill_assets_quick_review="critic-calibration.md intent-and-rules-context.md lens-adversarial.md reconciliation-ledger.md review-calibration.md"
 _skill_assets_architecture="design-tree.md farley-framework.md findings-filter-templates.md project-state-templates.md review-calibration.md review-report-location.md"
-_skill_assets_clarify="data-contract.md design-tree.md github-publish.md plan-issue-shape.md plan-schema.md"
+_skill_assets_clarify="data-contract.md design-tree.md github-publish.md plan-issue-shape.md plan-schema.md project-state-templates.md"
 _skill_assets_testing="farley-framework.md"
 _skill_assets_quick_implement="automation-mode.md execution-discipline.md execution-named-blocks.md"
 _skill_assets_e2e_test="trust-boundaries.md"
@@ -399,8 +399,9 @@ _skill_assets_simplify_code="automation-mode.md execution-discipline.md intent-a
 _skill_assets_refactor="automation-mode.md execution-discipline.md"
 _skill_assets_remediate_findings="automation-mode.md execution-discipline.md intent-and-rules-context.md reconciliation-ledger.md"
 _skill_assets_preflight="automation-mode.md execution-discipline.md execution-named-blocks.md"
+_skill_assets_issue_triage="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md project-state-templates.md"
 
-_skills_with_canonical_assets="prd plan spec exec-spec exec-plan ops review quick-review architecture clarify testing quick-implement e2e-test triage init map-codebase simplify-code refactor remediate-findings preflight"
+_skills_with_canonical_assets="prd plan spec exec-spec exec-plan ops review quick-review architecture clarify testing quick-implement e2e-test triage init map-codebase simplify-code refactor remediate-findings preflight issue-triage"
 
 # Resolve the list of canonical assets for a given skill base name.
 # Prints a space-separated list of asset filenames.
@@ -427,6 +428,7 @@ _get_skill_assets() {
     refactor) printf '%s' "$_skill_assets_refactor" ;;
     remediate-findings) printf '%s' "$_skill_assets_remediate_findings" ;;
     preflight) printf '%s' "$_skill_assets_preflight" ;;
+    issue-triage) printf '%s' "$_skill_assets_issue_triage" ;;
     *)        printf '' ;;
   esac
 }

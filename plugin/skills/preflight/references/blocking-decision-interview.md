@@ -21,8 +21,9 @@ Apply the matching technique when an answer is vague, over-confident, or solutio
 
 ## Closing a decision
 
-A blocking decision closes one of three ways:
+A blocking decision closes one of four ways:
 - **Resolved in place** – the user picks; persist by altitude via the `andthen:ops` skill (FIS decision-Note, `DECISIONS.md` Still Current note, or ADR via the `andthen:architecture` skill). The record goes `resolved` and stops blocking.
+- **Resolved by spike** – when the decision turns on an empirical unknown a discussion cannot settle (which approach is faster, whether an integration is feasible), answer it by building: invoke the `andthen:spike` skill on that one question, then close on its Spike Verdict exactly like *Resolved in place* – same altitude persistence via the `andthen:ops` skill. The spike is throwaway evidence; only the decision persists.
 - **Deferred with sign-off** – the user explicitly chooses to punt and signs off the deferral; it moves to a Deferred Decisions block (FIS decision-Note, `deferred`) and stops blocking. Sign-off is required – a punt without it stays `open`.
 - **Routed to clarify** – a requirements-altitude question hands off to the `andthen:clarify` skill; it leaves preflight's blocking set once clarify resolves it.
 

@@ -290,6 +290,8 @@ Use these on their own for everyday development – no setup, no pipeline, no pr
 | `now-what` | First-stop router – inspects project state and routes to the right skill |
 | `handoff` | Compact the conversation into a resumable handoff doc; routes durable state to `STATE.md` / `STATE.local.md` / `LEARNINGS.md` via `ops` |
 | `triage` | Investigate, diagnose, and fix issues – build failures, config errors, runtime bugs, regressions (`--plan-only` to plan without fixing) |
+| `issue-triage` | Triage incoming issue-tracker items – categorize, label, and route untriaged bugs/enhancements toward implementation or a human decision (`--auto`, `--limit`) |
+| `spike` | Answer one design question by building a throwaway runnable spike, then report a verdict – the decision flows on, the code never merges |
 | `quick-implement` | Fast path for small features/fixes/issues, with verification (`--tdd`, `--issue`, `--pr`, `--auto`) |
 | `quick-review` | Lightweight mid-conversation Critic review of recent changes in fresh context (`--fix` applies Fix-bucket findings only) |
 | `review` | Default review entrypoint – `code` / `doc` / `gap` / `security` / mixed lenses, optional `--council` debate, optional `--fix` |

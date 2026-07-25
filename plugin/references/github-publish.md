@@ -2,9 +2,25 @@
 
 Canonical `gh` CLI recipes for publishing AndThen artifacts. Three reusable patterns cover every call site.
 
-> Skills that reference this document: `clarify`, `exec-plan`, `exec-spec`, `plan`, `prd`, `triage`.
+> Skills that reference this document: `clarify`, `exec-plan`, `exec-spec`, `issue-triage`, `plan`, `prd`, `triage`.
 
 Load when implementing or modifying any `--to-issue` / `--to-pr` / `--from-issue` step. Host skills keep artifact-specific bits (title, labels, temp-file path) inline and defer here for publish mechanics. Issue **body shape** (link conventions, parser anchors, single-issue vs granular) lives in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md); this document covers **mechanics** only.
+
+
+## Tracker resolution
+
+`docs/ISSUE-TRACKER.md` is security-critical executable config – its operation-table values are run as commands, so review changes to it as code.
+
+- **Resolve** – before any issue operation, resolve the `Issue Tracker` document (see **Project Document Index**; default `docs/ISSUE-TRACKER.md`). Absent, `Backend: none`, or `Backend: GitHub` → use the `gh` patterns in this file (`none` ≡ absent: the built-in default, exact current behavior). Any other named backend → substitute each operation per the document's operation table. A present document whose `Backend:` line is missing or unparseable → `BLOCKED: issue-tracker backend unspecified – set the Backend: line in <tracker-doc path>`.
+- **Operation vocabulary** – used wherever an issue op is named: `fetch issue`, `list issues`, `create issue`, `comment`, `edit body`, `add label` / `remove label`, `close issue`. Child-issue publishing, the `Depends on #N` / `Part of #N` / `Refs #N` footers, Owner cells, and `andthen-finalizing` are conventions layered on these ops – they carry no ops of their own and keep their names on every backend.
+- **Value constraints** – every body shape, label name, and footer token stays identical across backends (the document maps transport, not contract). Backends must expose numeric issue identifiers; `<N>` in every flag, footer, and token is the backend's issue number. Each operation-table value is a single direct command invocation – an executable, fixed arguments, and `<placeholders>` – with no pipes, shell operators, command substitution, or piping to an interpreter.
+- **Validate** – before the first tracker operation (reads included), validate that every operation the invoked flow needs is mapped; an unmapped load-bearing operation → `BLOCKED: issue-tracker operation <op> unmapped` before any external call, so a read-only flow with an unmapped `fetch issue` stops up front and a multi-op write never strands partial external state. An operation used only in a best-effort posture (e.g. Pattern C closure) degrades per that Pattern's failure posture instead of hard-stopping.
+
+Pattern B (`gh pr comment`) and every PR flow stay GitHub-native: PRs are not tracker-abstracted.
+
+## Durability rule
+
+Descriptive published bodies – PRD issues, plan-issue overview/summary sections, issue-triage agent briefs, comments – outlive the code snapshot: no file paths, no line numbers, no code snippets; name interfaces (types, signatures, commands) and behavior instead. Exception: a snippet that itself encodes a settled decision (schema, state machine, type) may be inlined, trimmed to the decision-carrying part. Exempt: the machine-parsed catalog/anchor and footer tokens consumers resolve (story `Source refs`, `Refs #N` / `Part of #N` / `Depends on #N`); embedded FIS payloads in story issues (transport for `--from-issue` execution, consumed promptly – Required Context stays load-bearing); and local FIS/plan files.
 
 
 ## Shared Gotchas

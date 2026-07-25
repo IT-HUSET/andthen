@@ -53,7 +53,7 @@ OUTPUT_DIR: `INPUT` (when `INPUT` is a directory containing `prd.md`), or resolv
 0. **Flag-combination guard** – before any I/O, reject retired/incompatible flags per [`removed-flag-guards.md`](references/removed-flag-guards.md): `--skip-specs`, `--stories`/`--phase`, and `--create-story-issues` without `--to-issue`.
 
 1. **Parse INPUT** – determine type:
-   - **`--issue <N>` (or INPUT is a GitHub issue URL)**: fetch with `gh issue view <N>` and treat as PRD source. Resolve `OUTPUT_DIR` per the dispatch below; in local-output modes use `<base-output-dir>/issue-<N>-<feature-slug>/` (mirrors `clarify` / `prd`) and write the fetched body verbatim to `OUTPUT_DIR/prd.md` before Step 2 so later FIS sub-agents can resolve `Source refs`. Slug = lowercase issue title (alphanumerics + hyphen). Store the issue number for the plan's document-references header. `gh` failure: surface verbatim and stop (`BLOCKED: gh authentication required` / `BLOCKED: PR/issue <N> not found` in `AUTO_MODE`). Proceed to Step 2.
+   - **`--issue <N>` (or INPUT is a GitHub issue URL)**: resolve the tracker per [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md) → **Tracker resolution**, then fetch the issue (GitHub/absent → `gh issue view <N>`) and treat as PRD source. Resolve `OUTPUT_DIR` per the dispatch below; in local-output modes use `<base-output-dir>/issue-<N>-<feature-slug>/` (mirrors `clarify` / `prd`) and write the fetched body verbatim to `OUTPUT_DIR/prd.md` before Step 2 so later FIS sub-agents can resolve `Source refs`. Slug = lowercase issue title (alphanumerics + hyphen). Store the issue number for the plan's document-references header. `gh` failure: surface verbatim and stop (`BLOCKED: gh authentication required` / `BLOCKED: PR/issue <N> not found` in `AUTO_MODE`). Proceed to Step 2.
    - **Directory with `prd.md`**: set `OUTPUT_DIR = INPUT`; proceed.
    - **Directory without `prd.md`**: stop and redirect to `andthen:prd`. Print: `andthen:prd <input> → andthen:plan <same-directory>`.
    - **Any other input** (file, non-GitHub URL, inline): stop and redirect to `andthen:prd`.
@@ -88,7 +88,11 @@ For multi-dimensional features, use design space decomposition: independent dime
 
 Each story is **vertical** (demoable slice through all layers), **bounded** (clear scope, single responsibility), **verifiable** (enough source refs/scope to generate FIS Acceptance Scenarios and Structural Criteria), and **independent** (minimal coupling after dependencies met). Minimum stories to cover requirements; no overlap; no over-granularity.
 
+**Single-session rule**: a story plus its FIS must fit one fresh-context exec run with comfortable headroom – the FIS size thresholds are the proxy for that budget, and an `OVERSIZE:` line signals the rule is broken. Split rather than push on, since attention degrades near the window edge: a thinner story beats a large one executed on saturated context.
+
 **Enabler exception**: a story with no user-facing behavior to slice through (infrastructure, migration, cross-cutting sweep) may be layer- or module-shaped, verified by tests or fitness criteria instead of a demo. Size is never the trigger – an oversized vertical story splits into thinner verticals, not layers.
+
+**Wide-refactor exception**: a mechanical change with a large blast radius (rename, API migration, dependency bump) is sequenced **expand → migrate in batches → contract** rather than forced into vertical slices – each batch is its own story that keeps the build green, with the contract story last. Batches slice by module/consumer group, and the enabler verification rule applies.
 
 #### Implementation Phases and Wave Assignment
 

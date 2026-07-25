@@ -20,7 +20,7 @@ Apply both guards before any other Step 1 work. The `--worktree` guard is duplic
 
 ## Step 1: Plan-source resolution (`--from-issue` branch)
 
-Replaces the local `PLAN_DIR/plan.json` read. Fetch with `gh issue view <N> --json body,labels` and parse per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md):
+Replaces the local `PLAN_DIR/plan.json` read. Resolve the tracker per [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md) → **Tracker resolution** – the `gh` calls in this reference are the GitHub default. Fetch the issue with `gh issue view <N> --json body,labels` and parse per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md):
 
 - **Finalization gate** (granular race protection): if the issue carries the label `andthen-finalizing` (set by `andthen:plan --to-issue --create-story-issues` during its two-pass rewrite window), stop. Default mode: `Plan issue #<N> is still being finalized by andthen:plan – retry once the andthen-finalizing label has been removed.` `AUTO_MODE`: `BLOCKED: plan issue #<N> is still being finalized – retry after the producer completes`. Apply before any other parsing.
 - **Detect shape**: `## Story Issues` H2 with ≥1 story-issue reference line under it → **granular**; otherwise **single-issue** (per Shape Detection in `plan-issue-shape.md`, which strips fenced code/HTML comments before regex). The canonical granular producer shape is a bullet line beginning `- #<story-issue-N>`; parser ambiguity → `BLOCKED: cannot parse plan issue shape` in `AUTO_MODE`.

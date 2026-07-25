@@ -43,7 +43,7 @@ Context-mapping patterns map onto Team Topologies interaction modes – full tab
 Confirm the scope (whole project, one product line, or a named slice) and the input source. Two paths:
 
 - **Greenfield** – drive from `requirements-clarification.md`, a PRD, or the user's narrative description. Treat the user as the domain expert; ask focused questions when subdomain boundaries or vocabulary are ambiguous.
-- **Brownfield** – drive from observed structure: the `andthen:map-codebase` skill's outputs (Architecture, Stack), existing module boundaries, persisted entities, and cross-module API calls. Surface drift between the apparent map and the proposed target map.
+- **Brownfield** – drive from observed structure: the `andthen:map-codebase` skill's outputs (Architecture, Stack), existing module boundaries, persisted entities, and cross-module API calls, plus the registered `Context Map` document when one exists (see **Project Document Index**) – read it first; Step 6 reports drift against it.
 
 Default the path from artifact presence; surface the choice in the Executive Summary.
 
@@ -64,7 +64,7 @@ For brownfield, produce two maps: **Current** (what exists in code today) and **
 For each context, name the 3–8 vocabulary items whose meaning is contested or load-bearing – terms that mean different things across contexts, terms that have drifted between business and engineering use, and terms with no agreed-on definition yet. The list is a hand-off note, not a glossary; the actual extraction and curation is delegated. Recommend invoking the `andthen:ubiquitous-language` skill against the context list this mode produced, and pass the touchpoint names through as the seed list.
 
 ### Step 6 – Drift Findings _(brownfield only)_
-For each delta between the Current and Target context maps: name the gap, the likely root cause (vocabulary collision, Conway's-Law mismatch, premature decomposition, accidental coupling), and the smallest move that would close it. Skip the section entirely on greenfield runs.
+For each delta across three inputs – the code-observed Current map, the registered `Context Map` document (when one exists), and the proposed Target map – name the gap, the likely root cause (vocabulary collision, Conway's-Law mismatch, premature decomposition, accidental coupling, or drift from the registered map), and the smallest move that would close it. Skip the section entirely on greenfield runs.
 
 ### Step 7 – Recommendations
 Synthesize: which subdomains warrant immediate investment (core), which integration patterns need to change (and toward what), which contexts are sized wrong, and which UL touchpoints are blocking communication. Each recommendation names a framework or principle (Evans, Khononov, Tune, the 9-pattern catalog) and a concrete next step – typically a hand-off to another mode or skill. Hand-off catalog:
@@ -72,9 +72,20 @@ Synthesize: which subdomains warrant immediate investment (core), which integrat
 - Bounded-context boundary contested → invoke the `andthen:architecture` skill in `--mode decompose`.
 - Strategic decisions need fitness-function enforcement → invoke the `andthen:architecture` skill in `--mode fitness`.
 - Per-context UL extraction → invoke the `andthen:ubiquitous-language` skill.
+- Accepted context map → register it into the `Context Map` document (Step 8) so later runs and other skills read one durable source.
 - Subdomain-tree, context-map, or team-topology diagram → invoke the `andthen:excalidraw-diagram` skill (the textual report is the source of truth; the diagram is for human review).
 - Visual review of the textual report itself – section-anchored notes that round-trip via clipboard back into a follow-up architecture run – invoke the `andthen:visualize` skill on the report path, or use `andthen:architecture --visual` while producing the report.
 - Big-picture event-storming as upstream input when the domain is unfamiliar – invoke the `andthen:architecture` skill in `--mode event-storming` first, then chain back into `--mode strategic-design`.
+
+### Step 8 – Register the Context Map _(gated on user acceptance)_
+
+Distil the accepted map into the `Context Map` document – the durable record later runs and other skills read first. Registration graduates the **accepted Target** map (or **Current**, when a brownfield audit confirms it is the intended shape) into the document; the report's Current/Target tables stay as authored. Gate on explicit user acceptance – the map has organizational implications the user owns; do not register a map the user has not accepted.
+
+- Resolve the `Context Map` location from the **Project Document Index** (default: `docs/CONTEXT-MAP.md`).
+- If the file does not exist, create it from the `CONTEXT-MAP.md` template in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`.
+- Write the **Bounded Contexts** rows and the **Integration Patterns** rows from the accepted map, plus the per-context **Ubiquitous Language** pointers into the UL document's clusters. When the UL document does not exist yet, record the Step 5 touchpoint terms in that column instead and note that the `andthen:ubiquitous-language` skill has not run yet, so the row is not left pointing at a missing target.
+- **Idempotent per context and per ordered pair**: when a row for the same context or the same pair already exists, update its fields in place rather than appending a duplicate. Never delete – the record is cumulative and its lineage is load-bearing.
+- Append a dated `Changelog` line naming what changed.
 
 ## Greenfield vs. Brownfield Cheat Sheet
 
@@ -97,5 +108,6 @@ Strategic-design-mode report must include:
 4. **Bounded Contexts** – per-context entry: purpose, subdomains owned, sizing rationale, owning team
 5. **Context Map** – table of context pairs with the named integration pattern and rationale; brownfield runs include both Current and Target tables
 6. **Ubiquitous Language Touchpoints** – per-context list of contested or load-bearing terms; closes with the hand-off pointer to the `andthen:ubiquitous-language` skill
-7. **Drift Findings** – brownfield only; gaps between Current and Target with root cause and smallest closing move
+7. **Drift Findings** – brownfield only; gaps across the Current, registered `Context Map`, and Target maps with root cause and smallest closing move
 8. **Recommendations** – synthesized next steps with framework attribution and explicit hand-offs to other modes / skills
+9. **Context Map Registration** – once the user accepts the map, where it was registered (`Context Map` document path) and the `Changelog` line added; omitted when the user declines

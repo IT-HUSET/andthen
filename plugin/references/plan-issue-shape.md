@@ -6,6 +6,8 @@
 
 Local plans are JSON ([`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md)). The markdown body shape here is the **GitHub transport** only – `--to-issue` renders the in-memory plan as markdown; `--from-issue` parses the body into a local `plan.json` once and drives execution from it.
 
+Descriptive prose in these bodies – the plan summary and per-story scope briefs – follows the **Durability rule**.
+
 Two shapes – **single-issue** (default `--to-issue`) and **granular** (`--to-issue --create-story-issues`). Both use the same parser-friendly H2 anchors so consumers detect shape and extract sections without bespoke regex. Story Catalog column order: see [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md) (Plan Issue Catalog).
 
 `Dependencies` cells follow the local-plan contract: `-` or comma-separated Story IDs. No prose (`Blocks A-G complete`). Granular story bodies may add optional `Depends on #<sibling-issue-N>` navigation; the parent catalog stays authoritative for scheduling.

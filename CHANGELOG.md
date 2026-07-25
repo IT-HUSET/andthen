@@ -6,6 +6,23 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.37.0] – 2026-07-25
+
+### Added
+- **New `andthen:issue-triage` skill.** Triages incoming issue-tracker items into a routed backlog – one category and one recommended state per item, ratified before any write, then labels, an AI-attributed comment, and (for `ready-for-agent`) a durable agent brief; `--auto` applies only safe transitions. Distinct from the `andthen:triage` skill, which debugs a live failure.
+- **New `andthen:spike` skill.** Answers exactly one named design question by building a throwaway runnable spike on a `spike/<slug>` branch, then reports a Spike Verdict; the spike is evidence, not product – it never merges and is never reused directly, only the decision flows on. Model- and user-invocable; upstream skills route empirical-unknown questions to it; screen/flow/mockup questions redirect to the `andthen:ui-ux-design` skill.
+- **Three new document types.** `Issue Tracker` (`docs/ISSUE-TRACKER.md` – backend, label role mapping, and an operation table for non-GitHub trackers), `Context Map` (`docs/CONTEXT-MAP.md` – bounded contexts + integration patterns), and `Out of Scope Registry` (`docs/OUT-OF-SCOPE.md` – cross-feature rejected concepts), with ready-made templates.
+
+### Changed
+- **Issue operations resolve through a tracker backend (GitHub default).** Issue-facing skills resolve the optional `Issue Tracker` document before any issue op; absent or `Backend: GitHub` keeps the exact `gh` behavior, another named backend substitutes per its operation table with every body shape, label, and footer unchanged. PR flows stay GitHub-native.
+- **`andthen:init` gains a tracker gate and recommendation-first optional docs.** A dedicated gate settles where agent workflows read and publish issues (recommend GitHub when a remote is detected, else local artifacts); optional docs now lead with a detection-derived recommendation ("default" accepts it) and add the Out of Scope Registry to the Domain group.
+- **`andthen:architecture --mode strategic-design` registers a Context Map.** The accepted map graduates into the `Context Map` document (user-gated, idempotent per context/pair); the `andthen:spec`, `andthen:clarify`, and `andthen:ubiquitous-language` skills read it, and glossary clusters group by its bounded contexts.
+- **`andthen:plan` names two story-sizing rules.** The **Single-session rule** – a story plus its FIS must fit one fresh-context exec run, so an `OVERSIZE:` signal (shared with the `andthen:spec` skill) means split rather than push on – and the **Wide-refactor exception** – large mechanical changes sequenced expand → migrate → contract, one build-green story per batch.
+- **Firmly rejected directions graduate to the Out of Scope Registry.** The `andthen:clarify` and `andthen:prd` skills record rejected concepts (not deferrals) into the registry, and the `andthen:clarify` and `andthen:issue-triage` skills check it before acting so an already-rejected concept isn't silently re-litigated; already-implemented closures never enter it.
+- **Published descriptive bodies follow a Durability rule.** PRD issues, plan-issue summaries, triage agent briefs, and comments name interfaces and behavior, not file paths, line numbers, or code snippets, so they outlive the code snapshot.
+
+---
+
 ## [0.36.0] – 2026-07-16
 
 ### Added

@@ -63,7 +63,7 @@ Quick `tree -d` + `git ls-files | head -250` scan to orient. Stop there – file
 
 ### 2. Identify Required Inputs
 
-Walk the references the FIS will need (`Product`, PRD, plan, ADRs, `Decisions`, `Architecture`, `Stack`, design system, wireframes, glossary, `Ubiquitous Language` – per **Project Document Index** where applicable). Confirm existence or note absence. The `Product` and `Architecture` documents anchor feature scope and structural patterns respectively when standalone PRD/ADR coverage is thin; the `Stack` document pins language/framework/runtime/DB/testing baseline when Architecture coverage is thin; the `Decisions` document indexes ADRs and load-bearing non-ADR choices, so a row in **Current ADRs** or **Still Current** narrows the option space before the FIS is written.
+Walk the references the FIS will need (`Product`, PRD, plan, ADRs, `Decisions`, `Architecture`, `Context Map`, `Stack`, design system, wireframes, glossary, `Ubiquitous Language` – per **Project Document Index** where applicable). Confirm existence or note absence. The `Product` and `Architecture` documents anchor feature scope and structural patterns respectively when standalone PRD/ADR coverage is thin; the `Stack` document pins language/framework/runtime/DB/testing baseline when Architecture coverage is thin; the `Decisions` document indexes ADRs and load-bearing non-ADR choices, so a row in **Current ADRs** or **Still Current** narrows the option space before the FIS is written.
 
 Contradictions between the feature request and a row in `DECISIONS.md` surface in the FIS Constraints/Context section as `NOTICED:` observations, not Stop-the-Line – `DECISIONS.md` is a registry, not a gate, and the user owns reconciliation.
 
@@ -87,6 +87,7 @@ Concrete BDD examples (Given/When/Then) serving triple duty: requirement, test s
 #### Gather Context
 - ADRs, the `Decisions` registry, and the `Architecture` document (see **Project Document Index**); `file#symbol` references for patterns to follow (see *Cross-Document References* rule #1 for the symbol-anchor ladder)
 - `Stack` document (see **Project Document Index**) when present – language, framework, runtime, DB, and testing-library baseline; FIS Approach, Code Patterns, and Testing Strategy must align with it
+- `Context Map` document (see **Project Document Index**) when present – align FIS boundaries and integration assumptions to the registered bounded contexts; flag contradictions
 - UI wireframes/mockups; design system references; external documentation URLs
 - `Ubiquitous Language` document (see **Project Document Index**) – use canonical terms; flag any contradictions
 - For plan-story inputs: `sharedDecisions` and `bindingConstraints` handling per Step 0
@@ -114,7 +115,7 @@ Canonical shape:
 - Plan story input: save FIS in plan directory as `s{NN}-{name}.md` (two-digit zero-padded story number; `{name}` is a kebab-case slug derived from the story name). The FIS body must carry `**Plan**:` and `**Story-ID**:` between the H1 and `## Feature Overview and Goal`, populated from the source plan path and story ID.
 - Otherwise: save at `docs/specs/{feature-name}.md` _(or as configured in **Project Document Index**)_
   - GitHub issue input: include issue reference in filename, e.g. `issue-123-feature-name.md`
-**Oversize signal** – after saving, measure against the threshold from *Key Generation Guidelines #7* in *The Authoring Guidelines*. If oversized, emit (interactive and `AUTO_MODE`):
+**Oversize signal** – after saving, measure against the threshold from *Key Generation Guidelines #7* in *The Authoring Guidelines*. That threshold is the proxy for the **Single-session rule** – a story plus its FIS must fit one fresh-context exec run with headroom – so `OVERSIZE:` is the signal the rule is violated. If oversized, emit (interactive and `AUTO_MODE`):
 
 ```
 OVERSIZE: {fis_path} – {N} lines, {T} tasks. Recommendation: {recommendation}

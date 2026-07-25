@@ -1,6 +1,8 @@
 # Project State Document Templates
 
-Lightweight starter templates for the supplementary project documents referenced in the **Project Document Index** of the root agent instruction file (`CLAUDE.md` / `AGENTS.md`). Fill in what applies, remove what doesn't.
+Canonical starter templates for the supplementary project documents referenced in the **Project Document Index** of the root agent instruction file (`CLAUDE.md` / `AGENTS.md`), consumed at scaffold- and write-time by the skills that create or maintain these documents – where a specific skill owns a document, its template's `>` note says so. Read the section you need (see Contents), not the whole file. Fill in what applies, remove what doesn't.
+
+The `>` notes address the consuming skill and do not ship. Everything inside a fenced block is emitted verbatim into the created file – **including the HTML comments**, which are deliberate embedded guidance for whoever later maintains that document in the target repo, with or without AndThen installed. The comments are contract, not noise: do not strip them when scaffolding, and do not prune them from this reference.
 
 ## Contents
 - STATE.md – shared, committed cross-session state snapshot
@@ -15,12 +17,15 @@ Lightweight starter templates for the supplementary project documents referenced
 - STACK.md – technology stack with versions
 - KEY_DEVELOPMENT_COMMANDS.md – dev/test/build/deploy commands
 - UBIQUITOUS_LANGUAGE.md – domain glossary
+- ISSUE-TRACKER.md – agent issue-tracker backend + label role mapping
+- CONTEXT-MAP.md – bounded contexts and integration patterns
+- OUT-OF-SCOPE.md – cross-feature registry of rejected concepts
 
 ---
 
 ## STATE.md
 
-> **Shared, committed** cross-session state – a snapshot of _current_ team-wide state, not a history log. Keep under ~60 lines so agents can consume it quickly.
+> **Shared, committed** cross-session state – a snapshot of _current_ team-wide state, not a history log. Keep under ~60 lines so agents can consume it quickly. Created by the `andthen:init` skill; field updates go through the `andthen:ops` skill (`update-state` form).
 >
 > **Team note**: STATE.md holds only shared, low-churn team state; high-churn per-developer context lives in the **gitignored** `STATE.local.md` so teammates never collide.
 
@@ -431,6 +436,8 @@ Application URL: `TODO` <!-- e.g. http://localhost:3000 -->
 
 ## UBIQUITOUS_LANGUAGE.md
 
+> Domain glossary – scaffolded by the `andthen:init` skill on confirm; extracted and maintained by the `andthen:ubiquitous-language` skill, clustering terms by the Context Map's bounded contexts when one exists.
+
 ```markdown
 # Ubiquitous Language
 
@@ -452,4 +459,114 @@ Application URL: `TODO` <!-- e.g. http://localhost:3000 -->
 
 ## Changelog
 - [date]: Initial extraction
+```
+
+---
+
+## ISSUE-TRACKER.md
+
+> Maps the issue-tracker backend agent workflows read from and publish to. Resolved before any issue operation via **Tracker resolution**. `Backend: GitHub`, or an absent document, uses the built-in `gh` flows – leave the Operation Table out. Any other backend fills the Operation Table so skills substitute each transport call; body shapes, label names, and footer tokens stay identical (the document maps transport, not contract). The `andthen:init` skill registers it.
+
+```markdown
+# Issue Tracker
+
+Backend: GitHub
+<!-- One of: GitHub | <named backend, e.g. Jira, Linear>. GitHub (or no file) uses the built-in gh default –
+     omit the Operation Table below. -->
+
+## Operation Table
+<!-- Non-GitHub backends only. Map every abstract operation to the backend's concrete command/API call.
+     A required operation left unmapped blocks triage/publish (BLOCKED: issue-tracker operation <op> unmapped).
+     Each value is a single direct command invocation (executable + fixed args + <placeholders>) – no pipes,
+     shell operators, command substitution, or piping to an interpreter.
+     This file is security-critical executable config: review changes as code.
+     The backend must expose numeric issue ids; <N> is the issue number. -->
+
+| Operation      | Backend call |
+|----------------|--------------|
+| fetch issue    | ...          |
+| list issues    | ...          |
+| create issue   | ...          |
+| comment        | ...          |
+| edit body      | ...          |
+| add label      | ...          |
+| remove label   | ...          |
+| close issue    | ...          |
+
+## Label Role Mapping
+<!-- Canonical role → the label this repo actually uses. Defaults equal the canonical names;
+     change the right column only when your tracker uses different label text. -->
+
+| Canonical role  | Repo label      |
+|-----------------|-----------------|
+| needs-triage    | needs-triage    |
+| needs-info      | needs-info      |
+| ready-for-agent | ready-for-agent |
+| ready-for-human | ready-for-human |
+| wontfix         | wontfix         |
+| bug             | bug             |
+| enhancement     | enhancement     |
+
+## Notes
+<!-- Backend-specific quirks: auth, project/board scoping, required fields, rate limits. -->
+
+- ...
+```
+
+---
+
+## CONTEXT-MAP.md
+
+> Bounded contexts and the patterns that integrate them. Registered and refreshed by the `andthen:architecture` skill in `--mode strategic-design` – the accepted Target map (or the confirmed Current map when auditing) graduates here; brownfield re-runs read it first and report drift against it. Idempotent per context and per context pair.
+
+```markdown
+# Context Map
+
+## Bounded Contexts
+
+| Context | Purpose | Code location |
+|---------|---------|---------------|
+| ...     | ...     | ...           |
+
+## Integration Patterns
+<!-- One row per ordered context pair that exchanges data. Pattern names come from the 9-pattern catalog
+     (Partnership, Shared Kernel, Customer/Supplier, Conformist, Anticorruption Layer, Open Host Service,
+     Published Language, Separate Ways, Big Ball of Mud). Split a multi-channel pair into separate rows. -->
+
+| Upstream | Downstream | Pattern | Notes |
+|----------|------------|---------|-------|
+| ...      | ...        | ...     | ...   |
+
+## Ubiquitous Language
+<!-- Per-context pointer into the matching cluster(s) of the Ubiquitous Language document – a pointer, not a copy. -->
+
+| Context | Language clusters |
+|---------|-------------------|
+| ...     | ...               |
+
+## Changelog
+- [date]: Initial registration
+```
+
+---
+
+## OUT-OF-SCOPE.md
+
+> Cross-feature registry of deliberately rejected *concepts* – institutional memory plus a concept-level dedup surface so the same idea is not re-litigated under a new name ("night theme" matches a dark-mode entry). Distinct from a document's own `Out of Scope` section (per-feature non-goals): only firmly rejected directions graduate here; deferred follow-ups stay in the backlog. The `andthen:clarify`, `andthen:prd`, and `andthen:issue-triage` skills write it; the `andthen:init` skill scaffolds it.
+>
+> **Graduation contract** (all writers): resolve the registry location from the **Project Document Index** (default `docs/OUT-OF-SCOPE.md`); create the file from this template and add its index row when missing (the `DECISIONS.md` create-if-missing pattern); append or update the concept's `## <Concept>` section with the **Decision** (why rejected, dated) and its **Prior requests** source. Never record a request closed as already-implemented – it was built, not rejected.
+
+```markdown
+# Out of Scope Registry
+
+<!-- One `## <Concept>` section per rejected concept – match on the concept, not the wording.
+     Poisoning rule: never record a request closed as already-implemented. That closure points at the
+     implementation; it is not a rejection, and recording it here would falsely block the real feature. -->
+
+## [Concept]
+
+**Decision**: [why it was rejected] _(YYYY-MM-DD)_
+
+**Prior requests**:
+- [source / where it came up]
 ```

@@ -43,12 +43,15 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
 |----------------------|-------------------------------------|-----------------------------------------|
 | Product              | `docs/PRODUCT.md`                   | Product vision and high-level requirements etc   |
 | Product Backlog      | `docs/PRODUCT-BACKLOG.md`           | Product backlog for future work (REQ-IDs) |
+| Out of Scope Registry| `docs/OUT-OF-SCOPE.md`              | Cross-feature registry of rejected concepts (optional) |
 | Roadmap              | `docs/ROADMAP.md`                   | Phase structure with success criteria   |
 | Specs & Plans        | `docs/specs/<version-or-feature>/`  | PRDs, implementation plans, FIS, story breakdowns &dagger; |
+| Issue Tracker        | `docs/ISSUE-TRACKER.md`             | Backend + label role mapping for agent issue workflows (optional) |
 | Decisions            | `docs/DECISIONS.md`                 | Decisions registry – ADR index + Still Current notes; points into `docs/adrs/` |
 | ADRs                 | `docs/adrs/`                        | Architecture Decision Records           |
 | Research             | `docs/research/`                    | Trade-off analysis output               |
 | Architecture         | `docs/ARCHITECTURE.md`              | System architecture overview            |
+| Context Map          | `docs/CONTEXT-MAP.md`               | Bounded contexts + integration patterns (registered by strategic-design) |
 | Stack                | `docs/STACK.md`                     | Technology stack documentation          |
 | Ubiquitous Language  | `docs/UBIQUITOUS_LANGUAGE.md`       | Domain glossary – canonical terms, definitions, synonyms to avoid |
 | Guidelines           | `docs/guidelines/`                  | Development guidelines                  |
@@ -67,10 +70,15 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
 
 <!-- Workflow commands read this table to determine where to write output.
      If a location isn't specified, commands use the defaults shown above.
-     The State–Stack rows are optional. Starter templates for these documents
-     are in the AndThen repo at plugin/references/project-state-templates.md.
-     You can also generate Architecture, Conventions, and Stack docs
-     automatically using the andthen:map-codebase skill. -->
+     Every row is a location declaration – it ships present so workflows know where a document lives
+     before its file exists (as the State and Stack rows do). The Issue Tracker, Context Map, and Out of
+     Scope Registry files arrive when needed: Issue Tracker is created by init on confirm when you point
+     agent workflows at a tracker (an absent file means the on-demand GitHub default); Context Map is
+     created by the andthen:architecture skill in --mode strategic-design; Out of Scope Registry is
+     created by init on confirm or when the first rejected concept graduates into it. Starter
+     templates for these documents are in the AndThen repo at
+     plugin/references/project-state-templates.md. You can also generate
+     Architecture, Conventions, and Stack docs automatically using the andthen:map-codebase skill. -->
 
 
 ---

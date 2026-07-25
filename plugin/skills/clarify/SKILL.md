@@ -39,7 +39,7 @@ Full output paths: see **REPORT > Storage path**.
 
 - Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
 - Require `INPUT`. Stop if missing.
-- **Check before asking** – if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. In **feature mode**, the `Product` document (see **Project Document Index**) is the upstream framing – vision, personas, anti-goals; feature requirements should anchor to it, not contradict it. Also read the `Learnings` document (see **Project Document Index**) – prior traps inform Discovery probes. State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm. *Exception:* a prior clarification doc is a baseline to amend (see Step 1 *Amendment check*), not a lookup that closes discovery.
+- **Check before asking** – if the answer lives in the codebase, existing docs, or the **Project Document Index**, look it up. In **feature mode**, the `Product` document (see **Project Document Index**) is the upstream framing – vision, personas, anti-goals; feature requirements should anchor to it, not contradict it. Also read, when they exist (all per the **Project Document Index**), the `Learnings` document (prior traps inform Discovery probes), the `Out of Scope Registry` (a rejected direction that concept-matches the INPUT is surfaced to the user, not silently re-litigated), and the `Context Map` (bounded contexts and integration assumptions the requirements must sit within). State derivable facts directly; surface ambiguous findings or codebase-vs-INPUT conflicts as recommendations to confirm. *Exception:* a prior clarification doc is a baseline to amend (see Step 1 *Amendment check*), not a lookup that closes discovery.
 - Clarify requirements, do not design solutions.
 - **Invoked mid-PRD.** When another skill invokes this skill inline to resolve supplied load-bearing gaps, scope Discovery to those gaps (reuse amendment-mode scoping); don't re-litigate content settled by the calling artifact.
 
@@ -77,7 +77,7 @@ Litmus when the load-bearing test is unclear: *would a non-developer stakeholder
    - **Surface the inferred mode in the response** before proceeding to Step 2, so the user can redirect ("Treating as product-level – say so if you want feature scope instead").
 
 1. **Parse INPUT** – Resolve INPUT by type (inline / file / URL / issue) and extract requirements.
-   - If `--issue <number>` flag present (or INPUT is a GitHub issue URL): fetch the body with `gh issue view <number>` and use its content as raw requirements input. Store the issue number for reference in the output header. On re-invocation against an existing `issue-{n}-*/` directory, the issue body becomes the delta and *Amendment check* below applies.
+   - If `--issue <number>` flag present (or INPUT is a GitHub issue URL): resolve the tracker per [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md) → **Tracker resolution**, fetch the body (GitHub default: `gh issue view <number>`), and use its content as raw requirements input. Store the issue number for reference in the output header. On re-invocation against an existing `issue-{n}-*/` directory, the issue body becomes the delta and *Amendment check* below applies.
    - **Amendment check (mode-aware)**:
      - **Feature mode**: derive a feature slug from INPUT, then check if `OUTPUT_DIR/<slug>/` (or a path in INPUT) contains a prior clarification doc – recognised by an `# Requirements Clarification:` H1 or a `Decisions Log` table, any filename, never a `prd.md` or FIS file. If yes, switch to **amendment mode**: existing doc = baseline, INPUT = delta. Multiple matches: prefer most-recently-modified.
      - **Product mode**: check the resolved Product path (default `docs/PRODUCT.md`). If the file is the init-scaffolded **stub** (≤ 10 lines AND contains a `TODO` or `[fill me in]` marker), treat as **fill mode** (write fresh content). Otherwise treat as **amendment mode**: existing doc = baseline, INPUT = delta.
@@ -102,6 +102,8 @@ Ask targeted questions based on identified gaps, unresolved design dimensions, a
 
 **Ideation moves** – additive to Discovery, not a replacement. Propose alternative MVPs (smaller/faster/different shape); surface anti-goals; suggest pruning candidates (deferrable stated requirements); offer adjacent capability spaces in/out of scope so the user confirms boundaries explicitly.
 
+**Answer-by-building.** When a load-bearing question hinges on an empirical unknown only runnable code can settle (feasibility, performance, integration shape), offer the `andthen:spike` skill to resolve it with a throwaway spike rather than ratifying a guess.
+
 **Question delivery.** One question per gap; first option = recommendation with rationale; remaining options = real alternatives; leave room for free-form input. Use an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, cap 4 questions per call – iterate if more gaps remain); fall back to 3–5 numbered markdown questions otherwise.
 
 **Question scope branches by MODE:**
@@ -114,6 +116,8 @@ Ask targeted questions based on identified gaps, unresolved design dimensions, a
 ### 3. Consolidate Requirements
 
 Structure all findings into the requirements document using the template in **REPORT** below (amendment mode: preserve unchanged sections verbatim, add missing template sections only when the delta requires them).
+
+**Rejected directions graduate to the Out of Scope Registry.** A direction the user firmly rejects as a concept – not a deferral, which is backlog – graduates to the cross-feature `Out of Scope Registry`, distinct from this doc's own feature-level `Out of Scope`, per the **Graduation contract** in [`project-state-templates.md`](${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md) § OUT-OF-SCOPE.md.
 
 **Gate**: Requirements document complete and structured
 
@@ -129,7 +133,7 @@ Fix any issues found before finalizing.
 
 ### 4b. Publish to GitHub _(only when `--to-issue`)_
 
-After the local clarification doc is written and validated, publish per **Pattern A** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Title: `Requirements Clarification: <feature-name>`. Body temp file: `.agent_temp/clarify/<feature-slug>-issue-body.md` when `Refs #<N>` is appended; otherwise pass the local doc path directly to `--body-file`. Print the new issue URL.
+After the local clarification doc is written and validated, resolve the tracker per [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md) → **Tracker resolution**, then publish per **Pattern A** there (GitHub is the built-in default backend). Title: `Requirements Clarification: <feature-name>`. Body temp file: `.agent_temp/clarify/<feature-slug>-issue-body.md` when `Refs #<N>` is appended; otherwise pass the local doc path directly to `--body-file`. Print the new issue URL.
 
 The flag is additive – the issue is a durable transport record for downstream skills (`andthen:prd --issue <N>`).
 

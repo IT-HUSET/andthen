@@ -14,7 +14,7 @@ PLAN_PATH: resolved in Step 1, used unchanged in Steps 3, 4, 5. Local-directory 
 ### Optional Flags
 - `--team` → USE_TEAM: force Agent Teams mode; error if unavailable
 - `--worktree` → USE_WORKTREE: enable isolated git worktrees for parallel execution (team mode only; default: `false`)
-- `--from-issue <number>` → ISSUE_INPUT: use a GitHub plan issue as the plan source (`gh issue view <N>`); shape detection, JIT FIS generation, deferred shared writes, and closure comments are owned by `references/from-issue-mode.md` (loaded in Step 1). **Mutually exclusive with `--team`** (parallel JIT FIS generation not supported) – reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop otherwise.
+- `--from-issue <number>` → ISSUE_INPUT: use a plan issue as the plan source (`gh issue view <N>` on the GitHub default); tracker resolution (per `github-publish.md` → **Tracker resolution**), shape detection, JIT FIS generation, deferred shared writes, and closure comments are owned by `references/from-issue-mode.md` (loaded in Step 1). **Mutually exclusive with `--team`** (parallel JIT FIS generation not supported) – reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop otherwise.
 - `--to-pr <number>` → PUBLISH_PR: after Step 5 Final Verification, post the rolled-up completion summary + final gap verdict as a PR comment via `gh pr comment <number> --body-file <summary-path>`. Composes with `--from-issue`. See Step 5b.
 - `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
 

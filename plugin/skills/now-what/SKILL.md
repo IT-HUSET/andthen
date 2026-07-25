@@ -94,11 +94,13 @@ This is where users get lost: AndThen is set up, they have an idea, but they do 
 | Simplify existing code | "simplify this code", "clean this up", "refactor this", "reduce complexity" | → the `andthen:simplify-code` skill |
 | How should I structure X? | "how do I organize", "what's the right pattern for" | → the `andthen:architecture` skill in `--mode advise` |
 | Compare two approaches | "X vs Y", "should we use A or B" | → the `andthen:architecture` skill in `--mode trade-off` |
+| Answer a design question by building | "prototype this", "spike", "answer by building", "which approach is actually faster/feasible" | → the `andthen:spike` skill _(throwaway runnable evidence; for analysis-only comparison use `--mode trade-off` above; for screens/flows/mockups use the `andthen:ui-ux-design` skill below)_ |
 | Module split / merge decision | "should we split this", "decompose", "boundaries" | → the `andthen:architecture` skill in `--mode decompose` |
 | Domain discovery / subdomain mapping / context boundaries | "bounded contexts", "subdomains", "domain map", "what are our domains", "model the domain", "event storming" | → the `andthen:architecture` skill in `--mode strategic-design` _(or `--mode event-storming` when "event storming" is the explicit cue)_ |
 | UI screens or flow | "screens", "wireframes", "user flow" | → the `andthen:ui-ux-design` skill in `--mode wireframes` |
 | Design system / tokens | "style guide", "colors and typography", "design tokens" | → the `andthen:ui-ux-design` skill in `--mode design-system` |
 | Domain language / glossary | "glossary", "terminology", "what should we call" | → the `andthen:ubiquitous-language` skill |
+| Process incoming issues / backlog | "triage the backlog", "process incoming issues", "label new issues" | → the `andthen:issue-triage` skill _(sorting tracker items; distinct from a failing build – that is the `andthen:triage` skill below)_ |
 | Something is broken | "bug", "error", "build failing", "test failure" | → the `andthen:triage` skill |
 
 **Step 3 – Disambiguate only when needed.** If the framing is genuinely ambiguous between two shapes, ask **one** question. Examples:

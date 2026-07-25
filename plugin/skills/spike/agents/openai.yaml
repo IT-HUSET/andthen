@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Spike"
+  short_description: "Answer one design question with a throwaway runnable spike"
+  default_prompt: "Answer one design question by building a throwaway runnable spike on a spike branch, then report a verdict – the decision flows onward, the code never merges. Question: "
+
+policy:
+  allow_implicit_invocation: true

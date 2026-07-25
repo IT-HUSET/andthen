@@ -35,6 +35,15 @@
 | sharedDecisions | `plan.json` top-level array of inter-story interface or design contracts referenced by producing and consuming stories. Markdown/prose section: `Shared Decisions`; singular entry: shared decision. | cross-story notes |
 | riskSummary | `plan.json` top-level array tying stories to risk levels and mitigations. Markdown/prose section: `Risk Summary`. | risk table, risk log |
 | FIS Provenance | The FIS header fields `**Plan**:` and `**Story-ID**:` linking a plan-backed FIS to its source plan and story. | provenance header |
+| Spike | Throwaway runnable code the `andthen:spike` skill builds to answer one named design question, on a `spike/<slug>` branch; evidence, never merged product – only the decision flows on. | prototype, PoC branch |
+| Spike Verdict | The block the `andthen:spike` skill prints answering its one question, folded back as evidence by the `andthen:clarify`, `andthen:architecture --mode trade-off`, and `andthen:preflight` skills. | spike result |
+| Agent Brief | The `ready-for-agent` handoff the `andthen:issue-triage` skill appends to an issue body (Current/Desired behavior, Key interfaces, Acceptance criteria, Out of scope) so a fresh executor can act alone. | handoff comment |
+| Tracker resolution | The `github-publish.md` step that resolves the `Issue Tracker` document before any issue op; GitHub (or absent) is the built-in default, a named backend substitutes per its operation table, contract unchanged. | backend switch |
+| Out of Scope Registry | Cross-feature registry (`docs/OUT-OF-SCOPE.md`) of firmly rejected *concepts* for concept-level dedup; distinct from a document's own feature-level Out of Scope section. | rejection log |
+| Context Map | The `docs/CONTEXT-MAP.md` document of bounded contexts and their integration patterns, registered by the `andthen:architecture` skill in `--mode strategic-design`. | context diagram |
+| Single-session rule | Story-sizing rule (`andthen:plan`): a story plus its FIS must fit one fresh-context exec run; an `OVERSIZE:` signal means split, not push on. | story budget |
+| Wide-refactor exception | Large mechanical changes sequenced expand → migrate → contract, one build-green story per batch. | big-bang refactor |
+| Canonical triage roles | The fixed `andthen:issue-triage` label set – states `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; categories `bug`, `enhancement` – mapped to repo labels via Label Role Mapping. | triage statuses |
 
 ## Execution and Review
 | Term | Definition | Avoid |
@@ -64,6 +73,7 @@
 | Prove-It Pattern | Test-first bugfix flow where a failing test proves the defect before the fix makes it pass. | regression test after fix |
 | Anti-Cheat Invariant | TDD rule that a proof test cannot be deleted, disabled, or weakened to make the build green. | weaken the test |
 | Status-Write Contract | Multi-story execution rule centralizing plan, FIS, and state writes to prevent double-writing shared status artifacts. | bookkeeping rule |
+| Durability rule | Authoring rule (`github-publish.md`) that descriptive published bodies – PRD issues, plan summaries, issue-triage agent briefs, comments – name interfaces and behavior, not file paths, line numbers, or code snapshots, so they outlive the code snapshot. | durable body note |
 
 ## Distribution
 | Term | Definition | Avoid |
@@ -101,6 +111,7 @@
 | Plan schema fields | Use exact camelCase for JSON fields (`sourceRefs`, `assetRefs`, `bindingConstraints`, `sharedDecisions`, `riskSummary`). Use markdown labels only in GitHub Issue Transport. |
 
 ## Changelog
+- 2026-07-19: Added 0.37 terms – Spike, Spike Verdict, Agent Brief, Tracker resolution, Durability rule, Single-session rule, Wide-refactor exception, Out of Scope Registry, Context Map, Canonical triage roles.
 - 2026-06-09: Added Shared State / Local State terms for the team-collaboration state split.
 - 2026-06-06: Reserved "ledger" for the Reconciliation Ledger; renamed the `--from-issue` `plan.json` materialization from "ledger" to "plan"; added Reconciliation Ledger and Run Ledger terms.
 - 2026-05-13: Added FIS context terms and GitHub Issue Transport.

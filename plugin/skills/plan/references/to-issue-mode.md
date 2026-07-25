@@ -2,12 +2,14 @@
 
 GitHub-output sibling of Step 4 in the `andthen:plan` skill. Load when running with `--to-issue`, or when changing the plan-issue body shape.
 
+Before any issue operation, resolve the tracker per [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md) → **Tracker resolution** (GitHub/absent → the `gh` patterns referenced below).
+
 **No durable local artifacts are written** – no `plan.json`, no FIS. The in-memory plan object (built in Steps 2–3) renders to a GitHub issue body per [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). A transient `.agent_temp/` body file may be written for `gh --body-file`. Steps 5–6 are skipped.
 
 
 ## 1. Build the plan-issue body
 
-Render the in-memory plan using [`templates/plan-template-issue.md`](../templates/plan-template-issue.md) per the **Single-Issue Shape** skeleton in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). This is the GitHub-transport view; the canonical local artifact remains JSON.
+Render the in-memory plan using [`templates/plan-template-issue.md`](../templates/plan-template-issue.md) per the **Single-Issue Shape** skeleton in [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md). This is the GitHub-transport view; the canonical local artifact remains JSON. The plan summary and per-story scope briefs are the descriptive prose here – author them per the **Durability rule** ([`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md)).
 
 `sharedDecisions` / `bindingConstraints` come straight from the in-memory plan – same extraction feeds both the local path (Step 4) and here. Omit either section when its array is empty.
 

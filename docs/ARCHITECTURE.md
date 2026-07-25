@@ -76,22 +76,22 @@ The 21 canonical assets live at `plugin/references/` – a single canonical loca
 | Asset | Consumed by |
 |---|---|
 | `findings-filter-templates.md` | review, architecture |
-| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings |
+| `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings, preflight, issue-triage |
 | `critic-calibration.md` | review, quick-review |
-| `data-contract.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage |
+| `data-contract.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage, issue-triage |
 | `design-tree.md` | clarify, architecture |
-| `execution-discipline.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings |
-| `execution-named-blocks.md` | spec, exec-spec, quick-implement, triage |
+| `execution-discipline.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings, preflight, issue-triage |
+| `execution-named-blocks.md` | spec, exec-spec, quick-implement, triage, preflight |
 | `farley-framework.md` | architecture, testing |
 | `fis-authoring-guidelines.md` | spec, plan, review, ops |
 | `fis-template.md` | spec |
-| `github-publish.md` | clarify, prd, triage, exec-spec, exec-plan, plan |
+| `github-publish.md` | clarify, prd, triage, exec-spec, exec-plan, plan, issue-triage |
 | `intent-and-rules-context.md` | review, quick-review, remediate-findings, simplify-code |
 | `lens-adversarial.md` | review, quick-review |
-| `plan-issue-shape.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage |
-| `plan-schema.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage |
+| `plan-issue-shape.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage, issue-triage |
+| `plan-schema.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage, issue-triage |
 | `prd-template.md` | prd |
-| `project-state-templates.md` | init, map-codebase, ops, architecture |
+| `project-state-templates.md` | clarify, prd, init, map-codebase, ops, architecture, issue-triage |
 | `reconciliation-ledger.md` | ops, exec-spec, exec-plan, quick-review, review, remediate-findings |
 | `review-calibration.md` | review, quick-review, architecture |
 | `review-report-location.md` | review, architecture |

@@ -58,7 +58,7 @@ OUTPUT_DIR: _(resolved per Step 1)_
    | Directory with prior artifacts (`requirements-clarification.md` and/or `prd-draft.md`, no finalized `prd.md`) | Proceed to Step 3 (PRD from Existing Artifacts). |
    | File path that is a prior artifact (`prd-draft.md` or `requirements-clarification.md`) | Proceed to Step 3. |
    | Other file path, URL, or inline description | Proceed to Step 2 (Synthesis). |
-   | `--issue <N>` or GitHub issue URL | Fetch the body with `gh issue view <N>` and use its content as raw requirements input. Store the issue number for reference in the PRD header. Proceed to Step 2 (Synthesis). |
+   | `--issue <N>` or GitHub issue URL | Resolve the tracker per [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md) → **Tracker resolution**, fetch the body (GitHub default: `gh issue view <N>`), and use its content as raw requirements input. Store the issue number for reference in the PRD header. Proceed to Step 2 (Synthesis). |
 
 2. **Document optional assets** if present in the resolved directory (Architecture/ADRs, Design system, Wireframes). At the project level (see **Project Document Index**), read the `Product` document for vision/personas/anti-goals/success metrics, the `Architecture` document for structural constraints the PRD must not contradict, the `Decisions` document for recorded architectural constraints the PRD inherits, the `Roadmap` document for release phasing the PRD sits within, and the `Learnings` document for prior traps – when each exists. The PRD is a feature/release-scope derivative within these framings, not a re-derivation. Keep pointers to in-directory assets; don't inline contents.
 
@@ -126,6 +126,15 @@ Spawn a generic fresh-context sub-agent whose prompt invokes the `andthen:review
 **Gate**: Self-review complete; PRD reflects auto-applied fixes; residual Notes surfaced (recommended conversationally, recorded under `--auto`)
 
 
+### 7. Registry Graduation _(after self-review)_
+
+Once Step 6 has settled the `Scope > Out of Scope` section, graduate firmly rejected directions (not deferrals to a later release – those are backlog) to the cross-feature `Out of Scope Registry` per the **Graduation contract** in [`project-state-templates.md`](${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md) § OUT-OF-SCOPE.md. Only entries traceable to **explicit user input** – a rejection the user stated in the source material or this session – graduate; an agent-assumed rejection does not.
+
+Under `AUTO_MODE`, do not write the registry – emit the candidate `## <Concept>` entries as recommendations in the PRD output for a human pass.
+
+**Gate**: user-traceable rejections graduated (or, under `--auto`, emitted as recommendations); no already-implemented closure recorded
+
+
 ## OUTPUT
 
 ```
@@ -138,7 +147,7 @@ OUTPUT_DIR/
 When complete, print the output's **relative path from the project root**. Do not use absolute paths.
 
 ### Publish to GitHub _(if --to-issue)_
-If `PUBLISH_ISSUE` is `true`, publish `prd.md` per **Pattern A** in [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md). Title: `[PRD] {project-name}: Product Requirements Document`. Labels: `prd`, `andthen-artifact`. Body temp file: `.agent_temp/prd/<feature-slug>-issue-body.md` when `Refs #<N>` is appended (input issue supplied via `--issue <N>` or a GitHub issue URL); otherwise pass `prd.md` directly to `--body-file`. Print the local path (`prd.md`) alongside the issue URL.
+If `PUBLISH_ISSUE` is `true`, resolve the tracker per [`github-publish.md`](${CLAUDE_PLUGIN_ROOT}/references/github-publish.md) → **Tracker resolution**, then publish `prd.md` per **Pattern A** there (GitHub is the built-in default backend). Title: `[PRD] {project-name}: Product Requirements Document`. Labels: `prd`, `andthen-artifact`. Body temp file: `.agent_temp/prd/<feature-slug>-issue-body.md` when `Refs #<N>` is appended (input issue supplied via `--issue <N>` or a GitHub issue URL); otherwise pass `prd.md` directly to `--body-file`. Print the local path (`prd.md`) alongside the issue URL.
 
 ### Visual Review _(if --visual)_
 After Step 6 Self-Review completes, invoke the `andthen:visualize` skill on the produced `prd.md`. Print both the PRD path and the visualizer's output path.

@@ -33,7 +33,7 @@ ARGUMENTS: $ARGUMENTS
 - Domain model files (entities, value objects, aggregates, services)
 - API endpoints and route definitions
 - Database schemas and migrations
-- Documentation: the `Product` document and the `Architecture` document (see **Project Document Index**), PRDs, specs, README
+- Documentation: the `Product`, `Architecture`, and `Context Map` documents (see **Project Document Index**), PRDs, specs, README
 - Test descriptions (often reveal intended behavior in domain terms)
 
 Use Explore (or general-purpose) sub-agent for large codebases.
@@ -67,6 +67,8 @@ For each term, note:
 **3.4** If UPDATE_MODE: merge new terms with existing glossary, marking changes with `(new)` or `(updated)`.
 
 ### 4. Generate Glossary
+
+When a `Context Map` document exists (see **Project Document Index**), group the `## [Domain Cluster]` headings by its bounded contexts and draw the `Bounded Context` values from it, so the glossary and the map stay aligned; otherwise cluster by domain theme as usual.
 
 Output the `Ubiquitous Language` document using this structure:
 

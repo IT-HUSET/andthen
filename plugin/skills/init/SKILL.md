@@ -61,13 +61,21 @@ Because the generated root agent instruction template references the starter gui
 
 Scaffold the **Core orientation stubs by default** – the documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md), `Decisions` (docs/DECISIONS.md), `Learnings` (docs/LEARNINGS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). The `andthen:architecture` skill in `--mode trade-off` auto-registers accepted ADRs into the `Decisions` stub. The user can fill these in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
 
-Then present the **optional documents** together. **STOP and WAIT** for the user's selection before creating any of these:
+Then settle the **issue-tracker backend** – where agent workflows (triage, PRD/plan issue publishing) read and publish issues. **STOP and WAIT** for the answer:
+
+Ask: _"Where should agent workflows read and publish issues?"_ Recommend **GitHub** when a GitHub remote is detected, otherwise **none (local plan artifacts)**; offer a third option: any other backend, named, with a free-form description of how its operations map.
+- **GitHub** or **another named backend** → create `docs/ISSUE-TRACKER.md` from the `ISSUE-TRACKER.md` template (set `Backend:`; for a non-GitHub backend complete the Operation Table from the user's description).
+- **none** → create no file; the `Issue Tracker` Index row stays as a dormant location declaration – it names where a tracker config would live if one is ever added, and Tracker resolution treats the absent file as today's on-demand GitHub default (same as the always-present State/Stack rows shipping before their files exist).
+
+**Gate**: Tracker backend chosen (file created only for GitHub/other; Index row always present)
+
+Then present the **optional documents**, recommendation-first. **STOP and WAIT** for the user's selection before creating any of these:
 
 - **Planning** (optional): `State` (docs/STATE.md), `Product Backlog` (docs/PRODUCT-BACKLOG.md), `Roadmap` (docs/ROADMAP.md). When `State` is created, also add the `State (local)` row (`docs/STATE.local.md`) to the Project Document Index – the gitignored, per-developer companion the `andthen:ops` skill auto-creates for session-local notes. Do not create the local file itself (ops owns that); just register the row (its gitignore entry already landed with the base structure).
-- **Domain** (optional): `Ubiquitous Language` document (or generate later via the `andthen:ubiquitous-language` skill)
+- **Domain** (optional): `Ubiquitous Language` document (or generate later via the `andthen:ubiquitous-language` skill) and `Out of Scope Registry` (docs/OUT-OF-SCOPE.md) – the cross-feature registry of rejected concepts.
 - **Monorepo** (if `IS_MONOREPO = true`): offer per-sub-project agent instruction files matching the root file choice
 
-Ask: _"Which optional documents would you like to create alongside the Core stubs? (e.g. 'State, Roadmap' or 'all planning' or 'none for now')"_
+Lead with a recommendation drawn from what Step 2a detected, and let the user reply **"default"** to accept it: `State` earns its place on nearly every project; add `Roadmap` when the intent spans multiple features or phases; add `Ubiquitous Language` and the `Out of Scope Registry` for domain-heavy work. State the recommendation, then ask: _"Which optional documents would you like to create alongside the Core stubs? Reply 'default' to accept the recommendation, name specific documents (e.g. 'State, Roadmap'), 'all planning', or 'none for now'."_
 
 For each confirmed document type, generate the file from templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`, using the location from the **Project Document Index** or the default path above.
 
@@ -80,7 +88,7 @@ For each confirmed sub-project agent instruction file, generate a lightweight fi
 
 Read the existing root agent instruction file(s) and check for: Project Document Index (table present? which rows exist?), Project-Specific Guidelines and Rules section, Project Overview filled in, the Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md`, `LEARNINGS.md` – same set Step 2a scaffolds by default), and referenced documents that actually exist. If both `CLAUDE.md` and `AGENTS.md` exist, check both and keep shared workflow sections aligned. If only one exists, repair that file and offer to create the missing counterpart for cross-agent portability.
 
-Present findings and offer fixes. **Missing Core orientation stubs and gitignore hygiene are applied by default** (consistent with Step 2a) – not listed as optional. Only Planning / Domain / Monorepo docs are offered interactively.
+Present findings and offer fixes. **Missing Core orientation stubs and gitignore hygiene are applied by default** (consistent with Step 2a) – not listed as optional. Planning / Domain / Monorepo docs, the issue-tracker backend, and the optional Index rows (`Context Map`, `Out of Scope Registry`) are offered interactively – never added by default.
 
 ```
 Current setup analysis:
@@ -108,6 +116,8 @@ Run the `andthen:map-codebase` skill to auto-generate from codebase analysis? (r
 Wait for user response, then execute confirmed actions:
 - **Missing Core orientation stubs** (default): scaffold per Step 2a.
 - **Gitignore hygiene** (default): apply per Step 2a.
+- **Issue-tracker backend**: ask the same tracker question as Step 2a; on GitHub/other create the `Issue Tracker` document (path per its Index row, default `docs/ISSUE-TRACKER.md`) from template only when it does not already exist – leave an existing valid file untouched (Non-destructive rule), though a malformed one (a missing or unparseable `Backend:` line – the `BLOCKED: issue-tracker backend unspecified` state) may be repaired interactively here on confirmation. The `Issue Tracker` row is always present (add it if an older file lacks it); a declined tracker leaves the row as a dormant location declaration, so don't re-litigate the absent tracker file as a missing referenced document to create.
+- **New optional Index rows** (`Context Map`, `Out of Scope Registry`): append the row only when confirmed. Create the `Out of Scope Registry` file from template with its row; the Context Map file is written later by the `andthen:architecture` skill in `--mode strategic-design`, so add its row without a file.
 - **Missing Index rows**: Append to existing table (don't rewrite the whole table)
 - **Missing documents**: Generate from templates, pre-fill where possible
 - **Missing guidelines**: Copy any missing starter guideline files referenced by the generated template from `templates/guidelines/`; never overwrite existing files
