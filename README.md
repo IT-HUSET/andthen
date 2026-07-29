@@ -296,7 +296,7 @@ Use these on their own for everyday development – no setup, no pipeline, no pr
 | `quick-review` | Lightweight mid-conversation Critic review of recent changes in fresh context (`--fix` applies Fix-bucket findings only) |
 | `review` | Default review entrypoint – `code` / `doc` / `gap` / `security` / mixed lenses, optional `--council` debate, optional `--fix` |
 | `explain-changes` | Explain a PR, branch, or changeset as a narrative walkthrough – intent-grouped changes, key hunks, architectural delta – rendered as an interactive HTML tour |
-| `simplify-code` | Behavior-preserving code simplification and cleanup (intent-bounded) |
+| `simplify-code` | Behavior-preserving code simplification, de-bloat (YAGNI), and cleanup (intent-bounded) |
 | `architecture` | Design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, event storming (seven modes) |
 | `ui-ux-design` | UI/UX work – research, design systems, wireframes, design review (four modes) |
 | `testing` | Test strategy, coverage, authoring, and TDD / red-green-refactor / Prove-It discipline |

@@ -2249,7 +2249,7 @@ user-invocable: true (description triggers: 'quick fix this', 'implement this qu
 ---
 ## andthen:simplify-code
 
-**Purpose**: andthen:simplify-code – behavior-preserving code improvement skill that simplifies scoped code for clarity, reuse, quality, and efficiency without changing what it does.
+**Purpose**: andthen:simplify-code – behavior-preserving code improvement skill that simplifies scoped code for clarity, reuse, quality, efficiency, and leanness without changing what it does.
 **Surface**: Invocation: andthen:simplify-code [--auto] [--path <dir/file>] [scope/description]
 
 Flags:
@@ -2272,7 +2272,7 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `SIMP-08` Phase 1.3: collects Project Rules Context and Intent Context bundles per intent-and-rules-context.md before any mutation; walks up from scope paths to find governing FIS, PRD, clarify artifact, or active plan story, and also consults the Project Document Index in CLAUDE.md when present.
 - `SIMP-09` Phase 1.3: when no governing artifact is discoverable, records 'Intent Context: none discoverable' in completion summary and Phase 2 falls back to code-quality heuristics alone.
 - `SIMP-10` Phase 1 gate: scope defined, baseline passing, Intent + Rules Context bundles collected (or recorded absent with reason) before proceeding.
-- `SIMP-11` Phase 2 analysis covers three lenses: Reuse (existing utilities/patterns that replace new code, duplication), Quality (redundant state, parameter sprawl, dead code, unused imports/exports – preferring configured analyzers or structural search over plain text grep when proving usage, stringly typed code, nested conditionals, unnecessary comments), Efficiency (redundant computation, N+1 patterns, missed concurrency, unbounded structures, event/listener leaks).
+- `SIMP-11` Phase 2 analysis covers four lenses: Reuse (existing utilities/patterns that replace new code, duplication, divergence from the codebase's dominant pattern for the same job), Quality (redundant state, parameter sprawl, dead code, unused imports/exports – preferring configured analyzers or structural search over plain text grep when proving usage, stringly typed code, nested conditionals, unnecessary comments), Efficiency (redundant computation, N+1 patterns, missed concurrency, unbounded structures, event/listener leaks), Necessity (YAGNI: Speculative Generality, defensive code guarding conditions ruled out by the type system/caller contract/an upstream layer, tests that add no protection).
 - `SIMP-12` Phase 2 Intent anchor: for each proposed cleanup, consults Intent Context; cleanup contradicting a Non-Goal → dropped and recorded as 'dropped: contradicts Non-Goal in <FIS path>'.
 - `SIMP-13` Phase 2 Intent anchor: cleanup implementing behavior the artifact defers to a later story → dropped and recorded as 'dropped: implements deferred outcome in <FIS path>'.
 - `SIMP-14` Phase 2 Intent anchor: cleanup restructuring code the FIS explicitly chose a shape for → dropped and recorded as 'dropped: contradicts Expected Outcome / Structural Criterion in <FIS path>'.
@@ -2292,6 +2292,10 @@ Frontmatter: argument-hint "[--auto] [--path <dir/file>] [scope/description]"
 - `SIMP-28` Chesterton's Fence: before removing any code, checks callers, tests, and git history; never removes code that is not understood.
 - `SIMP-29` Key Dev Commands document (default: docs/KEY_DEVELOPMENT_COMMANDS.md via Project Document Index) is authoritative for baseline and verification calls; discovery fallback only when document missing.
 - `SIMP-30` BLOCKED: triggers (AUTO_MODE): red baseline before any edit, no defensible scope derivable from arguments/diff/conversation, ambiguity between two or more incompatible simplification directions with no conservative default.
+- `SIMP-44` Necessity findings split by observability: provably inert complexity (guard whose condition is already guaranteed, abstraction with one caller, test fully subsumed by another) is behavior-preserving and applied like any other cleanup.
+- `SIMP-45` Necessity findings that would change observable behavior (error handling, fallbacks, or retries that can fire) are marked behavior-affecting in the Phase 2 prioritized list and applied only on explicit user approval.
+- `SIMP-46` AUTO_MODE never applies behavior-affecting Necessity findings; they are recorded under DEFERRED: in the output block.
+- `SIMP-47` Phase 3 applies removals before refinements.
 
 **Gates / BLOCKED**
 - `SIMP-31` Phase 1 gate: scope defined + baseline passing + Intent+Rules Context bundles collected (or absence recorded) before Phase 2.

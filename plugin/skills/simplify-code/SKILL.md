@@ -1,5 +1,5 @@
 ---
-description: Simplify and refine code for clarity, reuse, quality, and efficiency while preserving exact behavior. Trigger on 'simplify this code', 'clean this up', 'refactor this', 'reduce complexity'.
+description: Simplify and refine code for clarity, reuse, quality, efficiency, and leanness (YAGNI) – reduce complexity and over-engineering while preserving exact behavior. Trigger on 'simplify this code', 'clean this up', 'refactor this', 'remove over-engineering'.
 argument-hint: "[--auto] [--path <dir/file>] [scope/description]"
 ---
 
@@ -30,7 +30,7 @@ ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--
 
 ### Simplification Philosophy
 
-Favor **readable, explicit code** over compact or clever solutions. Reduce complexity, improve naming, remove dead code, and eliminate duplication where it genuinely helps. Preserve helpful abstractions; over-simplification that makes code harder to debug is not an improvement.
+Favor **readable, explicit code** over compact or clever solutions, and **lean code** over defensive bulk – every abstraction, guard, and test must be paid for by a present requirement, not a hypothetical one (YAGNI). Reduce complexity, improve naming, remove dead code, and eliminate duplication where it genuinely helps. Preserve helpful abstractions; over-simplification that makes code harder to debug is not an improvement.
 
 
 ## GOTCHAS
@@ -64,12 +64,13 @@ When no governing artifact is discoverable, record `Intent Context: none discove
 
 ### Phase 2: Analysis
 
-Analyze the scoped code through three lenses:
+Analyze the scoped code through four lenses:
 
 **Reuse**
 - Existing utilities, helpers, components, or project patterns that replace newly written code
 - New functions or inline logic duplicating existing behavior
 - Hand-rolled string/path/env/type-guard code where the project already has a better primitive
+- Divergence from the codebase's dominant pattern for the same job (error-handling shape, data access, naming) – align with the established pattern rather than keeping a second way
 
 **Quality**
 - Redundant state, parameter sprawl, copy-paste with slight variation, leaky abstractions
@@ -85,6 +86,13 @@ Analyze the scoped code through three lenses:
 - Recurring no-op state/store updates that notify downstream consumers without a real change
 - Pre-checking resource existence before operating where direct operation plus error handling is safer
 - Unbounded data structures, missing cleanup, event/listener leaks, or overly broad reads/loads
+
+**Necessity** (YAGNI)
+- Speculative Generality – abstractions, layers, parameters, config knobs, or extension points serving no current requirement: one-implementation interfaces, pass-through wrappers, generality with a single consumer; inline or delete until a real need appears
+- Defensive code guarding conditions the type system, caller contract, or an upstream layer already rules out – re-validation at every layer, existence checks on values that cannot be absent, catch blocks around code that cannot throw
+- Tests that add no protection – duplicate coverage another test already locks down, assertions pinning implementation details rather than behavior, mock-heavy tests exercising the mock instead of the code
+
+Necessity findings split by observability. Provably inert complexity – a guard whose condition is already guaranteed, an abstraction with one caller, a test fully subsumed by another – is behavior-preserving to remove: treat it like any other cleanup. Error handling, fallbacks, or retries that *can* fire are behavior, however overcautious they look: mark them `behavior-affecting` in the prioritized list and apply them only on explicit user approval; in `AUTO_MODE`, never apply them – record them under `DEFERRED:`.
 
 Before proposing removal of any code, understand why it exists – check callers, tests, and git history. Never remove what you don't understand (Chesterton's Fence).
 
@@ -102,9 +110,10 @@ Produce a prioritized list of improvements. Ask user for confirmation before pro
 ### Phase 3: Simplification
 
 Execute improvements from the prioritized list:
+- Apply removals before refinements – code another finding deletes isn't worth polishing
 - Work file-by-file or by logical unit
 - For large or separable scopes, use parallel sub-agents by lens or path; pass each the resolved scope or full diff
-- Verify each change preserves existing behavior
+- Verify each change preserves existing behavior; for approved `behavior-affecting` removals, verify tests and callers reflect the removal instead
 - Keep individual changes small and verifiable – don't batch unrelated improvements
 
 

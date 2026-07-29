@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.38.0] – 2026-07-29
+
+### Changed
+- **`andthen:simplify-code` hunts over-engineering.** Phase 2 gains a fourth **Necessity (YAGNI)** lens – speculative generality, defensive code guarding conditions already ruled out upstream, and tests that add no protection. Provably inert findings are removed as normal cleanups; error handling that can actually fire is marked behavior-affecting and applied only on explicit approval (deferred under `--auto`). The Reuse lens now also flags divergence from the codebase's dominant pattern for the same job.
+
+---
+
 ## [0.37.0] – 2026-07-25
 
 ### Added
