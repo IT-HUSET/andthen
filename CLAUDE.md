@@ -57,6 +57,8 @@ For the deeper architectural picture (skill anatomy, shared-asset propagation, r
 | Prompt guidelines    | `docs/prompt-guidelines/`             | Prompt engineering rules; Claude/GPT companion files                 |
 | Dev guidelines       | `docs/guidelines/`                    | Development / architecture / UX / web standards                      |
 | Research notes       | `docs/temp/research/`                 | Working research artifacts; transient, not shipped                   |
+| Learnings            | `docs/LEARNINGS.md`                   | Accumulated project knowledge and error patterns                     |
+| Decisions            | `docs/DECISIONS.md`                   | Decisions registry – ADR index + Still Current notes                 |
 | Marketplace manifest | `.claude-plugin/marketplace.json`     | Claude Code plugin marketplace metadata                              |
 | Plugin manifest      | `plugin/.claude-plugin/plugin.json`   | Claude Code plugin install metadata                                  |
 | Codex marketplace    | `.agents/plugins/marketplace.json`    | Codex plugin marketplace, serving `./plugin`                         |
@@ -95,11 +97,7 @@ For Anthropic/Claude models, see also _`docs/prompt-guidelines/PROMPT-ENGINEERIN
 For OpenAI GPT models, see also _`docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES-GPT.md`_
 
 ### Foundational Development Guidelines and Standards
-Always fully read relevant guidelines below as needed, based on the type of work being done:
-- _`docs/guidelines/DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`_ when doing development work (coding, architecture, etc.)
-- _`docs/guidelines/UX-UI-GUIDELINES.md`_ when doing UX/UI related work
-- _`docs/guidelines/WEB-DEV-GUIDELINES.md`_ when doing web development work
-- _`docs/SKILL-AUTHORING-GUIDELINES.md`_ when authoring or modifying skills (SKILL.md bundles)
+**Read** _`docs/SKILL-AUTHORING-GUIDELINES.md`_ when authoring or modifying skills (SKILL.md bundles).
 
 ### Before Editing
 

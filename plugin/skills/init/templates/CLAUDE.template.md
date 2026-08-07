@@ -60,7 +60,7 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
 | Diagram Style Guide  | `docs/design/diagram-style-guide.md` | Excalidraw diagram visual style (colors, fills, typography) |
 | State                | `docs/STATE.md`                     | Shared, committed cross-session state – phase, blockers, decisions, owner-annotated active stories |
 | State (local)        | `docs/STATE.local.md`               | Per-developer, **gitignored** session-local state – your current focus + session continuity notes (never committed) |
-| Learnings            | `docs/LEARNINGS.md`                 | Accumulated project knowledge and error patterns |
+| Learnings            | `docs/LEARNINGS.md`                 | Trap/knowledge index; overflow topics shard to `docs/learnings/` |
 | Tech Debt            | `docs/TECH-DEBT-BACKLOG.md`         | Known technical debt                    |
 | Key Dev Commands     | `docs/KEY_DEVELOPMENT_COMMANDS.md`  | Dev, test, build, deploy commands       |
 | Changelog            | `CHANGELOG.md`                      | Release history                         |
@@ -88,12 +88,13 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
 
 <!-- Add references to project-specific guideline files here (don't @ them, just list the paths). -->
 
-### Foundational Development Guidelines and Standards
-**Read** the relevant guideline below before starting work of its type:
+### Project Guidelines and Standards
 
-- _`docs/guidelines/DEVELOPMENT-ARCHITECTURE-GUIDELINES.md`_ when doing development work (coding, architecture, etc.)
-- _`docs/guidelines/UX-UI-GUIDELINES.md`_ when doing UX/UI related work
-- _`docs/guidelines/WEB-DEV-GUIDELINES.md`_ when doing web development work
+<!-- List project-specific guideline files in docs/guidelines/, each with a "read when" condition
+     so agents load them only for matching work. Keep guidelines at the right altitude: project
+     conventions and counter-intuitive rules, not standard practices agents already follow. -->
+
+_**TODO**: List project guideline files here, e.g.: **Read** `docs/guidelines/<TOPIC>-GUIDELINES.md` when doing <type of work>._
 
 
 ### Do Not / Never
@@ -128,7 +129,6 @@ Default priority:
 2. **Fetch MCP** – known documentation URLs, including `llms.txt` navigation when useful
 3. **Web search** – locating official sources or the highest-authority fallback when no official source exists
 
-
 ---
 
 
@@ -141,46 +141,9 @@ Default priority:
 
 ## Useful Tools and MCP Servers
 
-<!-- List tools and available MCP servers that are particularly useful for working in this project, especially those (CLI commands) that are not widely known or used. Include brief descriptions and example usage. -->
-
-### Command line file search and code exploration tools
-- **ripgrep (rg)**: Fast recursive search. Example: `rg "createServerSupabaseClient"`. _Use instead of grep_ for better search performance.
-- **ast-grep**: Search by AST node types. Example: `ast-grep 'import { $X } from "supabase"' routes/`
-- **tree**: Directory structure visualization. Example: `tree -L 2 routes/`
-
-### Context7 MCP - Library and Framework Documentation Lookup (https://github.com/upstash/context7)
-Context7 MCP pulls up-to-date, version-specific documentation and code examples straight from the source.
-
-### Fetch (https://github.com/modelcontextprotocol/servers/tree/main/src/fetch)
-Retrieves and processes content from web pages, converting HTML to markdown for easier consumption.
-
-### Code Analysis and Style (Analysis, Linting and Formatting)
-
-**Automatically use the IDE's built-in diagnostics tool to check for analysis, linting and type errors:**
-- Run `mcp__ide_getDiagnostics` to check all files for diagnostics
-- Fix any linting or type errors before considering the task complete
-- Do this for any file you create or modify
-
-### Tools and MCP Servers for visual validation and UI testing/exploration
-
-#### Agent Browser (`https://github.com/vercel-labs/agent-browser`)
-
-Use `agent-browser` for web automation and quick and efficient visual validation.
-
-Run `agent-browser --help` for all commands.
-Core workflow:
-1. `agent-browser open <url>` - Navigate to page
-2. `agent-browser snapshot -i` - Get interactive elements with refs (@e1, @e2)
-3. `agent-browser click @e1` / `fill @e2 "text"` - Interact using refs
-4. Re-snapshot after page changes
-
-See also this skill: `agent-browser`
-
-#### Chrome DevTools MCP (`https://github.com/ChromeDevTools/chrome-devtools-mcp`)
-Use the `chrome-devtools` for deeper visual validation and UI testing/exploration, as well as debugging, analysis/execution of JavaScript etc.
-
-See also this skill: `chrome-devtools`
-
+<!-- List project-specific tools and MCP servers here – especially CLI commands and servers that are
+     niche, in-house, or otherwise unlikely to be known. Skip tutorials for well-known tools (rg,
+     ast-grep, tree, git, etc.) – agents already know them. Brief description + example usage for the rest. -->
 
 ---
 

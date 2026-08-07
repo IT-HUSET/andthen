@@ -2,6 +2,10 @@
 
 Shared handling rules for the `doc` and `gap` lenses when a FIS is in scope.
 
-When a FIS is in scope: treat `Required Context` blocks as the authoritative upstream intent – do not re-read source documents just to reconfirm inlined content. For `Deeper Context` anchors that are load-bearing for a finding, verify the anchor resolves in the source and warn (do not stop) on broken anchors. If a `Required Context` block appears to no longer match the current source, that is a doc-review finding (MEDIUM by default – spec should be re-run against the updated source), not an execution blocker.
+When a FIS is in scope:
 
-**Legacy FIS fallback**: a FIS without `Required Context` / `Deeper Context` sections predates them. Fall back to whatever upstream-reference structures it uses: the old `## References & Constraints` heading and its `### Documentation & References` table (rows typed `file|doc|url|wire`), or prose mentions. Do not flag the absence of these sections as a defect on legacy FIS files.
+- Resolve anchored `Required Context` by probing repo root and FIS directory; one match wins, zero/two distinct matches are broken/ambiguous. Conflict with FIS Intent/Outcomes is spec-stale.
+- Treat source-pinned inline fallbacks/legacy blocks as authoritative snapshots; source drift is a re-spec finding, not an invitation to rewrite.
+- Read `Deeper Context` only when load-bearing for a finding; warn on a broken followed anchor.
+
+Absence is valid when no upstream source is load-bearing. For older FIS files, fall back to `## References & Constraints`, its `### Documentation & References` table, or prose mentions; do not require migration.

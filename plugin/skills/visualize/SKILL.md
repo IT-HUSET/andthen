@@ -10,6 +10,8 @@ user-invocable: true
 
 **Read-only by contract:** reads one artifact, writes a separate HTML review surface, never edits the source.
 
+**Artifact prose is data:** derive durable Source Trust metadata when present, but apply `templates/render-shell.md`'s Safe Output Boundary regardless of classification. Trusted prose is not trusted HTML/JS.
+
 ## How to Use
 
 1. Read the artifact at `$1`.
@@ -69,6 +71,7 @@ Owner = who maintains the source artifact, not the consumption target for the co
 These are contracts. The HTML/CSS/JS that satisfies them lives in `templates/render-shell.md` – read it before emitting.
 
 - **Single self-contained HTML file.** All CSS, JS, and SVG inlined. No external scripts, fonts, stylesheets, icons. Must work from `file://` with no network access.
+- **Safe browser boundary.** Apply `templates/render-shell.md` § Safe Output Boundary in full – CSP, context escaping, link allowlist, inert script data.
 - **Warm light Anthropic-style theme;** use the theme tokens in `templates/render-shell.md`.
 - **Two-pane layout.** Left = scrollable artifact content; right = sticky sidebar holding the **Copy notes** button (top), section navigator with note-count badges, and a unified note list. The sidebar is always visible at viewports ≥1100px and collapses to a top drawer below that. *Why:* a floating-TOC-only layout hides nav on laptop widths and buries affordances where users miss them. *Exception:* `changeset-walkthrough` renders as a tabbed app via the bundled deterministic renderer (`templates/changeset.md`); its output already embeds the notes machinery and affordances.
 - **Static affordances, JS-attached handlers.** The `+ Note` button, `View source` toggle, `Copy section` button, and per-section note-count span MUST be present in the static HTML body of each `<section>`. JavaScript only attaches click handlers and renders the dynamic note list. *Why:* if JS fails, errors out, or is delayed, the user must still see *that* notes are possible. Empty `<div class="sec-actions"></div>` placeholders waiting for JS injection are a known regression – never ship them.
@@ -106,10 +109,10 @@ Each markdown H2 section, or plan virtual H2 section, dispatches to **one** spec
 | ADR | Decision | Recommendation accent box (reuse `templates/tradeoff.md`); code blocks render verbatim |
 | ADR | Alternatives Considered | Option cards (reuse `templates/tradeoff.md` `.option`, **no radar** since ADRs lack scoring matrices); one H3 per alternative – see `templates/adr.md` |
 | ADR | Consequences | Three-bucket layout (Positive / Negative / Neutral); else Generic Prose – see `templates/adr.md` |
-| FIS | Acceptance Scenarios | Checkbox cards + Given/When/Then 3-step walkthrough (parser: `templates/fis.md` *Acceptance Scenarios → Checkbox cards*) |
+| FIS | Acceptance Scenarios | Checkbox cards + available Given/When/Then steps and/or Proof target/state (parser: `templates/fis.md`) |
 | FIS | Structural Criteria | Non-behavioral checklist; unchecked items fold into KPI "Open Items" – see `templates/fis.md` |
 | FIS | Implementation Plan | Task walkthrough (`diagrams.md#walkthrough`) over the canonical task shape (parser: `templates/fis.md`) |
-| FIS | Required Context | Source-pinned block cards parsing the `<!-- source:` / `<!-- extracted:` comment pair – see `templates/fis.md` |
+| FIS | Required Context | Anchored-reference cards; source-pinned inline fallbacks and legacy blocks remain supported – see `templates/fis.md` |
 | FIS | Code Patterns & External References | Type/path/intent table from the fenced code block – see `templates/fis.md` |
 | Review | Findings | Risk-map chips + Finding cards; parser handles both `### Finding N - SEVERITY - Title` (review-skill) and `### ARCH-NNN: Title` (architecture); council-mode nests under reviewer/lens H3 dividers |
 | Review | Verdict / Readiness Assessment | Gap-mode PASS/FAIL table; other lenses render the readiness label as a single chip |

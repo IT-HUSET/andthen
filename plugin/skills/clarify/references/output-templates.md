@@ -7,6 +7,8 @@ Output-contract templates for the `andthen:clarify` skill. Every section heading
 ```markdown
 # Requirements Clarification: [Name]
 
+> **Source Trust**: trusted-local|untrusted-external
+
 ## Summary
 [2-3 sentences: what this is, who it's for, core value]
 
@@ -70,7 +72,8 @@ Output-contract templates for the `andthen:clarify` skill. Every section heading
 | Dependency | Purpose | Risk |
 
 ## Open Questions
-- [Remaining ambiguities for later phases]
+- [Question precise enough to be picked up and closed as written]
+- Area to revisit: [area not yet stateable as a question] – [what would sharpen it]
 
 ## Decisions Log
 | Decision | Rationale | Date |
@@ -80,6 +83,8 @@ Output-contract templates for the `andthen:clarify` skill. Every section heading
 
 ```markdown
 # Product Vision: [Product Name]
+
+> **Source Trust**: trusted-local|untrusted-external
 
 ## Vision
 [One paragraph: what this product is, why it exists, the change it makes for users]
@@ -115,7 +120,8 @@ Output-contract templates for the `andthen:clarify` skill. Every section heading
 - **[Theme]** – [what this theme unlocks, when it matters]
 
 ## Open Questions
-- [Strategic ambiguities deferred to future product clarification rounds]
+- [Strategic question precise enough to be picked up and closed as written]
+- Area to revisit: [area not yet stateable as a question] – [what would sharpen it]
 
 ## Decisions Log
 | Decision | Rationale | Date |

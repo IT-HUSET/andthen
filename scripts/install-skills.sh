@@ -379,29 +379,32 @@ _canonical_assets="automation-mode.md critic-calibration.md data-contract.md des
 
 # Map of skill-name → space-separated list of canonical asset names it consumes.
 # Only skills that reference ${CLAUDE_PLUGIN_ROOT}/references/<asset> are listed.
-_skill_assets_prd="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md prd-template.md project-state-templates.md"
-_skill_assets_plan="automation-mode.md data-contract.md execution-discipline.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md plan-schema.md"
+_skill_assets_prd="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md prd-template.md project-state-templates.md trust-boundaries.md"
+_skill_assets_plan="automation-mode.md data-contract.md execution-discipline.md fis-authoring-guidelines.md github-publish.md plan-issue-shape.md plan-schema.md trust-boundaries.md"
 _skill_assets_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md fis-authoring-guidelines.md fis-template.md plan-issue-shape.md plan-schema.md"
-_skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md plan-issue-shape.md plan-schema.md reconciliation-ledger.md"
-_skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md reconciliation-ledger.md"
+_skill_assets_exec_spec="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md plan-issue-shape.md plan-schema.md reconciliation-ledger.md trust-boundaries.md"
+_skill_assets_exec_plan="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md reconciliation-ledger.md trust-boundaries.md"
 _skill_assets_ops="data-contract.md fis-authoring-guidelines.md plan-issue-shape.md plan-schema.md project-state-templates.md reconciliation-ledger.md"
 _skill_assets_review="critic-calibration.md data-contract.md findings-filter-templates.md fis-authoring-guidelines.md intent-and-rules-context.md lens-adversarial.md plan-issue-shape.md plan-schema.md reconciliation-ledger.md review-calibration.md review-report-location.md trust-boundaries.md"
 _skill_assets_quick_review="critic-calibration.md intent-and-rules-context.md lens-adversarial.md reconciliation-ledger.md review-calibration.md"
-_skill_assets_architecture="design-tree.md farley-framework.md findings-filter-templates.md project-state-templates.md review-calibration.md review-report-location.md"
-_skill_assets_clarify="data-contract.md design-tree.md github-publish.md plan-issue-shape.md plan-schema.md project-state-templates.md"
-_skill_assets_testing="farley-framework.md"
-_skill_assets_quick_implement="automation-mode.md execution-discipline.md execution-named-blocks.md"
+_skill_assets_architecture="design-tree.md farley-framework.md findings-filter-templates.md project-state-templates.md review-calibration.md review-report-location.md trust-boundaries.md"
+_skill_assets_clarify="data-contract.md design-tree.md github-publish.md plan-issue-shape.md plan-schema.md project-state-templates.md trust-boundaries.md"
+_skill_assets_spike="trust-boundaries.md"
+_skill_assets_testing="farley-framework.md trust-boundaries.md"
+_skill_assets_ui_ux_design="trust-boundaries.md"
+_skill_assets_visual_validation="trust-boundaries.md"
+_skill_assets_quick_implement="automation-mode.md execution-discipline.md execution-named-blocks.md trust-boundaries.md"
 _skill_assets_e2e_test="trust-boundaries.md"
 _skill_assets_triage="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md github-publish.md plan-issue-shape.md plan-schema.md trust-boundaries.md"
 _skill_assets_init="project-state-templates.md"
 _skill_assets_map_codebase="project-state-templates.md"
 _skill_assets_simplify_code="automation-mode.md execution-discipline.md intent-and-rules-context.md"
 _skill_assets_refactor="automation-mode.md execution-discipline.md"
-_skill_assets_remediate_findings="automation-mode.md execution-discipline.md intent-and-rules-context.md reconciliation-ledger.md"
-_skill_assets_preflight="automation-mode.md execution-discipline.md execution-named-blocks.md"
+_skill_assets_remediate_findings="automation-mode.md data-contract.md execution-discipline.md intent-and-rules-context.md plan-issue-shape.md plan-schema.md reconciliation-ledger.md"
+_skill_assets_preflight="automation-mode.md data-contract.md execution-discipline.md execution-named-blocks.md plan-issue-shape.md plan-schema.md"
 _skill_assets_issue_triage="automation-mode.md data-contract.md execution-discipline.md github-publish.md plan-issue-shape.md plan-schema.md project-state-templates.md"
 
-_skills_with_canonical_assets="prd plan spec exec-spec exec-plan ops review quick-review architecture clarify testing quick-implement e2e-test triage init map-codebase simplify-code refactor remediate-findings preflight issue-triage"
+_skills_with_canonical_assets="prd plan spec exec-spec exec-plan ops review quick-review architecture clarify spike testing ui-ux-design visual-validation quick-implement e2e-test triage init map-codebase simplify-code refactor remediate-findings preflight issue-triage"
 
 # Resolve the list of canonical assets for a given skill base name.
 # Prints a space-separated list of asset filenames.
@@ -418,7 +421,10 @@ _get_skill_assets() {
     quick-review) printf '%s' "$_skill_assets_quick_review" ;;
     architecture) printf '%s' "$_skill_assets_architecture" ;;
     clarify)  printf '%s' "$_skill_assets_clarify" ;;
+    spike)    printf '%s' "$_skill_assets_spike" ;;
     testing)  printf '%s' "$_skill_assets_testing" ;;
+    ui-ux-design) printf '%s' "$_skill_assets_ui_ux_design" ;;
+    visual-validation) printf '%s' "$_skill_assets_visual_validation" ;;
     quick-implement) printf '%s' "$_skill_assets_quick_implement" ;;
     e2e-test) printf '%s' "$_skill_assets_e2e_test" ;;
     triage)   printf '%s' "$_skill_assets_triage" ;;

@@ -3,6 +3,7 @@
 Canonical chrome shared by every artifact render: theme tokens, page layout, the section-block contract, cross-cutting component renderers, and the JavaScript layer (state, clipboard, persistence, payload). The per-artifact `templates/*.md` files fill `.card-body`; this file defines everything around them. Read it when emitting HTML. Copy CSS/HTML/JS blocks verbatim – they are tuned for AA contrast, `file://` operation, and SyntaxError-free scripts.
 
 ## Contents
+- Safe Output Boundary
 - Theme Tokens
 - Layout Skeleton
 - KPI Summary Band
@@ -17,6 +18,18 @@ Canonical chrome shared by every artifact render: theme tokens, page layout, the
 - Clipboard Write with Fallback
 - LocalStorage
 - `beforeunload` Warning
+
+
+## Safe Output Boundary
+
+Artifacts are data even when marked `trusted-local`; generated HTML is executable browser context. Apply these rules to every renderer and helper before using the shell:
+
+- Parse Markdown into the renderer's allowlisted elements; never pass source HTML through. Escape artifact text (`&`, `<`, `>`) and attribute values (also `"`, `'`) for their exact context. Artifact-derived values never enter HTML comments, tag names, inline event handlers, CSS, or `innerHTML`/`outerHTML`/`insertAdjacentHTML`; dynamic DOM content uses `textContent` and fixed element creation.
+- Emit only fragment links generated from normalized `[a-z0-9-]+` anchors. For an explicit source URL, allow only parsed `http:` or `https:` URLs and emit `target="_blank" rel="noopener noreferrer"`; reject every other scheme and malformed URL as inert text. Local source paths remain non-clickable.
+- Serialize artifact-derived JavaScript data with `JSON.stringify`, escaping `<`, `>`, `&`, U+2028, and U+2029, into `<script type="application/json">`; parse its `textContent`. Never interpolate artifact data into executable script or style source.
+- Emit the Layout Skeleton CSP before any style/script; artifact data stays inert JSON and inline event handlers are forbidden. Fill `{{SCRIPT_HASHES}}` by render path: a deterministic script renderer (Node) hashes each executable script's exact emitted bytes and substitutes SHA-256 base64 tokens (`'sha256-<base64>'`), verifying the final HTML hashes match. A model-authored render uses a fresh per-render nonce instead – generate one unpredictable token, emit `'nonce-<token>'` as `{{SCRIPT_HASHES}}` and `nonce="<token>"` on every authored `<script>`. Never hand-write a hash token: one wrong byte silently blocks every script while the page still paints, so a hash you did not compute over the exact final bytes (e.g. via `shasum -a 256`) is worse than a nonce.
+
+A renderer that cannot preserve formatting within these constraints falls back to escaped text.
 
 
 ## Theme Tokens
@@ -72,6 +85,15 @@ The palette is a warm-ivory light theme inspired by Anthropic's product surfaces
 ## Layout Skeleton
 
 ```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src {{SCRIPT_HASHES}}; script-src-attr 'none'; img-src data:; font-src data:; connect-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{escaped artifact title}}</title>
+  <style>{{trusted shell CSS}}</style>
+</head>
 <body>
   <div class="app">
     <header class="topbar">
@@ -115,6 +137,7 @@ The palette is a warm-ivory light theme inspired by Anthropic's product surfaces
     </aside>
   </div>
 </body>
+</html>
 ```
 
 CSS grid for the shell:
@@ -250,7 +273,7 @@ Sits in the main column between the `.kpi-band` and the first `<section class="c
 
 **Deterministic priority heuristic** (cap 5 items; order = kind-priority, then source order within a kind):
 
-1. **Unresolved Open Questions** – any bullet under `## Open Questions` not marked `(resolved)` / `→` / `lean:`, or any `**Open question:**` substring in a section body. Label: *"Open question: <text>"*.
+1. **Unresolved Open Questions** – any bullet under `## Open Questions` not marked `(resolved)` / `→` / `lean:`, or any `**Open question:**` substring in a section body. Label: *"Open question: <text>"* – except a bullet led by `Area to revisit:`, which is fog rather than an answerable question and takes the label *"Area to revisit: <text>"*. Labelling fog as a question is what the authoring rule exists to prevent, so the lead token wins over the generic case.
 2. **High-severity items** – `severity: high` / `risk: high` on a source line (case-insensitive, optional whitespace after the colon), or a Risks-table row whose Risk column starts with "High" (case-insensitive). Label: *"High risk: <row text>"*.
 3. **Recommended trade-off with caveat** – the recommended option's body contains a line beginning `caveat:` / `risk:` / `however`. Label: *"Caveat on chosen option: <caveat text>"*.
 4. **Long sections** – word count > 500 in the rendered section body. Label: *"Deep read: <heading> (~N words)"*.
@@ -399,7 +422,7 @@ Shared renderers dispatched from any artifact template per the SKILL.md *Rendere
 
 Above any section that summarizes a list of items (trade-off Options, PRD Risks, clarification Open Questions), emit a `<nav class="risk-map">` row of `<a class="risk-map-chip">` anchor links – one chip per item. Chips are color-semantic: `.safe` (olive) for resolved / low-risk, `.medium` (warn amber), `.attention` (clay) for items needing review, `.neutral` (gray) for everything else. Each chip's `href` points to its target's anchor (`#options-foo`, etc.) and clicking pulses the target via the delegated `pulseAnchor` handler in the IIFE.
 
-**Emission-time gap check (two-pass renderer required):** the gap check is against a pre-built anchor index, **not** the partially-emitted HTML stream. Pass 1 walks the parsed source, collects every section/H3 anchor it will eventually emit, and produces an anchor set. Pass 2 emits HTML; when it reaches a `.risk-map-chip`, it looks up the target href in the set built by Pass 1. When the target is missing (typo, dropped section, broken cross-reference), emit an inline HTML comment `<!-- risk-map: chip target "#X" not found -->` adjacent to the chip so the View-source panel surfaces the gap, and add `aria-disabled="true"` (plus `pointer-events: none` via the `.risk-map-chip[aria-disabled="true"]` CSS rule below) to the chip itself. A single-pass renderer cannot satisfy this rule – chips are emitted *above* the H3 list they reference, so the target IDs don't exist in the emitted stream yet.
+**Emission-time gap check (two-pass renderer required):** Pass 1 builds an anchor set from every section/H3 the parsed source will emit; Pass 2 validates each `.risk-map-chip` target. A missing target emits adjacent static `<!-- risk-map: chip target not found -->` and adds `aria-disabled="true"`; CSS supplies `pointer-events: none`. Never put the artifact-derived target in a comment. Chips precede their H3 targets, so single-pass validation is invalid.
 
 ```html
 <nav class="risk-map" aria-label="{{section name}} overview">
@@ -521,10 +544,11 @@ The four interactive-affordance helpers (`pulseAnchor`, `copySectionWithNote`, w
 Single state object. Every interaction reads/writes through it. Persist on every change.
 
 ```javascript
+const boot = JSON.parse(document.getElementById('artifact-state').textContent);
 const state = {
-  artifactPath: '<the path the user passed to the skill>',  // use as-given (typically project-relative); do NOT canonicalize to absolute – downstream skills receive this in the payload header and match against their own working-tree paths
-  artifactOwner: '<andthen:prd|andthen:plan|andthen:spec|andthen:clarify|andthen:review|andthen:architecture>',
-  artifactSha1: '<sha-1 hex of artifactPath>',
+  artifactPath: boot.artifactPath,  // as-given, typically project-relative; do NOT canonicalize to absolute
+  artifactOwner: boot.artifactOwner,
+  artifactSha1: boot.artifactSha1,
   tabUuid: sessionStorage.getItem('andthen-visualize-tab-uuid') || (() => {
     const u = crypto.randomUUID();
     sessionStorage.setItem('andthen-visualize-tab-uuid', u);
@@ -541,6 +565,8 @@ const state = {
   notesDirty: false  // set to true on every add/edit/delete; reset to false ONLY after a successful clipboard copy
 };
 ```
+
+Before the IIFE, emit `<script type="application/json" id="artifact-state">{"artifactPath":...,"artifactOwner":...,"artifactSha1":...}</script>` via Safe Output Boundary serialization; serialize even fixed owner/SHA values.
 
 **`notesDirty` write sites** – set to `true` in every code path that mutates `state.notes` (add note, edit note text, delete note). The reset to `false` lives in the success branch of `copyNotes()` only. A second edit after a copy MUST flip the flag back to `true` so `beforeunload` re-arms.
 

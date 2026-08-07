@@ -17,10 +17,10 @@ Each detected decision normalizes to a record with these fields:
 | `evidence` | One sentence: why this is (or is not) a blocking decision, citing the source that does or does not resolve it. |
 
 `altitude` and persistence destination are 1:1:
-- `fis-local` → FIS decision-Note only (`ops update-fis … decision-note`); local/reversible.
+- `fis-local` → one atomic `ops update-fis … decision-note resolved` write: exact affected-surface amendment plus its provenance Note; local/reversible.
 - `project-decision` → `docs/DECISIONS.md` **Still Current** note (`ops update-decisions still-current`); long-term-important, non-ADR.
 - `adr` → ADR authored and indexed by the `andthen:architecture` skill (`--mode trade-off`); never hand-written.
-- `requirements` → not resolved at FIS level; routed to the `andthen:clarify` skill.
+- `requirements` → not resolved at FIS level; routed to the `andthen:clarify` skill, then re-detected and reconciled before the record closes.
 
 
 ## Blocking vs. non-blocking split
@@ -39,7 +39,7 @@ For a plan bundle, after each story FIS converges on its own, the cross-story sw
 
 ## Convergence
 
-A target **converges** when no record is left in `open` status and every `resolved` record is **reconciled**: the FIS body states the ratified decision at its affected surfaces (the DECISION NOTE is provenance, not the contract's home), and no resolution contradicts another resolution or the body. An unreconciled or contradicting resolution counts as `open`. Deferral is a convergence outcome only with explicit user sign-off – a punted decision moves to `deferred` and stops counting as blocking; an un-signed-off punt stays `open`. The procedure that reaches this state is the skill's WORKFLOW.
+A target **converges** when no record is left in `open` status and every `resolved` record is **reconciled**: the FIS body states the ratified decision at its affected surfaces (the DECISION NOTE is provenance, not the contract's home), and no resolution contradicts another resolution or the body. An upstream-routed record remains `open` until the handoff returns, detection reruns, and the affected body resolves it. An unreconciled or contradicting resolution counts as `open`. Explicit sign-off moves a punt to `deferred`, documenting the hold without resolving it; unsigned punts stay `open`. `DEFERRED` is converged documentation, not executable readiness.
 
 
 ## `Preflight:` verdict semantics
@@ -47,7 +47,7 @@ A target **converges** when no record is left in `open` status and every `resolv
 Emit grammar and consumer regex: the SKILL's `Preflight:` verdict-grammar INSTRUCTIONS bullet is the self-contained copy.
 
 - **READY** – zero open blocking decisions. Single FIS fully converged, or every story in a bundle clear. A target with no blocking decisions reaches READY immediately, with no interview.
-- **DEFERRED** – converged, but one or more remaining decisions are signed-off deferrals; none still `open`.
-- **BLOCKED** – at least one blocking decision is still `open`: a single FIS with an unresolved decision, a bundle with any non-clear story, or an `AUTO_MODE` run that surfaced blocking decisions it could not resolve without an interview.
+- **DEFERRED** – no decision remains unanswered, but signed-off execution holds remain; do not run unattended execution.
+- **BLOCKED** – at least one decision is `open`, or a bundle has a non-clear story not explained solely by a signed deferral.
 
 Precedence for a bundle: any `open` → BLOCKED; else any `deferred` → DEFERRED; else READY.

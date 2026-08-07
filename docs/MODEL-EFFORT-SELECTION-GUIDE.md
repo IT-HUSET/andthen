@@ -4,17 +4,19 @@ How AndThen steers reasoning depth across Claude Code and Codex CLI. Principles 
 
 ---
 
-## Default policy: inherit the model, vary the effort
+## Default policy: session · top · cheap
 
-AndThen ships a named, overridable **Sub-Agent Model Policy** (defined in `CRITICAL-RULES-AND-GUARDRAILS.md`). The default: every agent – orchestrator and sub-agents alike – runs on **whatever model the session is using** (`inherit`), and the only thing that varies per task is **reasoning effort**.
+AndThen ships a named, overridable **Sub-Agent Model Policy** (defined in `CRITICAL-RULES-AND-GUARDRAILS.md`). Three tiers: **session** (the root conversation model, and the ceiling – nothing routes above it), **top** (a strong coding model, never above session), **cheap** (a small fast model). Routing is by task, classified on **specification × judgment**: high judgment (orchestration, planning, architecture, design, reviews, security, creative or ambiguous work) → session at `xhigh`; implementation and other medium/larger subtasks → top at `medium`; small, well-specified, verifiable work → cheap at `medium` when simple, otherwise `xhigh`.
 
-Under the default there is **one model knob**: the session model the user launches with. AndThen names no *version-pinned* model anywhere, so nothing goes stale, and the user's choice (including a 1M-context variant) flows through to every sub-agent automatically. Reasoning depth – the thing that actually differs between scanning a file and auditing security – is set directly via effort, not by swapping to a bigger or smaller model.
+Top/cheap examples are used only when exposed by the host and within the session ceiling; otherwise inherit. Concrete examples live in generated guardrails, not executable config.
 
-**The one exception is `documentation-lookup`**, which pins `model: haiku` (see the alias-pin principle below). Pure retrieval is quality-flat across model tiers and is the highest-volume leaf, so the cheap tier is strictly better there. This is a *tier alias*, not a version pin, so it does not rot; on Codex the generator omits the line and the agent inherits.
+Downshifting requires an exact scope, output contract, and done-criterion; the generated guardrails own that rule.
+
+Review and research plugin agents inherit the model with fixed effort; documentation lookup retains the cheap-tier alias exception. The policy governs ad-hoc delegated work.
 
 ### Overriding the default
 
-Projects or users that want task-tiered routing (e.g. judgment→top tier, implementation→mid, mechanical→cheap) replace the Sub-Agent Model Policy section in their guardrails copy, or define one in project/user instructions – the nearest definition wins. Skills defer to the policy by *name* and describe each sub-agent's **task shape** (retrieval / routine / cross-cutting judgment) plus effort, so an override re-routes them without skill edits. The never-version-pin invariant (see the durable principles below) binds every strategy.
+Projects or users that want different routing replace the Sub-Agent Model Policy section in their guardrails copy, or define one in project/user instructions – the nearest definition wins. Generic skill callers provide only the **task shape** (retrieval / implementation / cross-cutting judgment); the policy selects model and effort. The never-version-pin invariant governs AndThen's shipped content; a project's own copy is the project's to maintain.
 
 ---
 
@@ -26,8 +28,8 @@ Effort is a **behavioral signal, not a hard token cap** – even at `low`, the m
 |-------|----------|---------|
 | **low** | Minimal thinking, max speed. | Retrieval, doc-lookup, scanning, formatting, trivial edits, high-volume parallel leaves |
 | **medium** | Balanced – thinks when useful. The default. | Routine coding, tests, docs, execution sub-agents, routine reviews |
-| **high** | Almost always thinks deeply. | Architecture, trade-offs/ADRs, security audits, subtle debugging, cross-cutting gap review, specs |
-| **xhigh / max** | No constraints on depth. (`max` is Anthropic-only; Codex tops out at `xhigh`.) | Critical one-off decisions, the hardest problems |
+| **high** | Almost always thinks deeply. | Subtle debugging, gap review, specs; the shipped review personas |
+| **xhigh / max** | No constraints on depth. (`max` is Anthropic-only; Codex tops out at `xhigh`.) | Judgment work: planning, architecture, design, trade-offs/ADRs, security and standalone review, creative or ambiguous work; the hardest one-off decisions |
 
 ---
 
@@ -53,14 +55,14 @@ Agent TOMLs **omit `model` entirely** to inherit the session/profile model – t
 
 ### AndThen agents
 
-The review-council and `research` agents (`plugin/agents/*.md`) carry `model: inherit` plus an explicit `effort:` (reasoning-heavy personas like security/correctness/critic at `high`; specialists, filters, and `research` at `medium`). `documentation-lookup` is the sole model-pinned exception – `model: haiku`, `effort: low` – because pure retrieval is tier-flat and high-volume (see the alias-pin principle below). Orchestrating skills that spawn ad-hoc sub-agents defer to the Sub-Agent Model Policy by name and set effort by task.
+The review-council and `research` agents (`plugin/agents/*.md`) carry `model: inherit` plus an explicit `effort:` (reasoning-heavy personas like security/correctness/critic at `high`; specialists, filters, and `research` at `medium`). `documentation-lookup` is the shipped cheap-tier leaf – `model: haiku`, `effort: low` – because pure retrieval is tier-flat and high-volume (see the alias-pin principle below). These dedicated configs are the exception; ad-hoc callers provide task shape and defer both model and effort to the policy.
 
 ---
 
 ## Durable principles
 
-- **Alias-pin only for tier-flat, high-volume retrieval; never version-pin.** Naming a *version ID* (`claude-opus-4-8`, `gpt-5.4`) rots and is forbidden. Naming a *tier alias* (`haiku`) floats to the current model in that tier, so it does not rot. The one place this earns its keep is `documentation-lookup`: pure retrieval is quality-flat across tiers and is the highest-volume leaf, so it pins `model: haiku` on Claude. Codex omits the model line and inherits, since it has no rot-free small-tier alias to pin. Everything else inherits under the default policy; a tiered override may route by task, but the never-version-pin invariant binds it just the same.
-- **The session model is the single deliberate knob.** Choose it consciously: under the default policy every sub-agent inherits it. If the session runs a 1M-context variant, fan-out leaves inherit that too – so pick the session variant with fan-out cost in mind, not just the orchestrator's needs.
+- **Alias-pin the cheap tier for small, well-specified work; never version-pin executable config.** Naming a *version ID* (`claude-opus-4-8`, `gpt-5.4`) rots and is forbidden in executable config. Naming a *tier alias* (`haiku`) floats to the current model in that tier, so it does not rot. Where this earns its keep is tier-flat, high-volume leaves – `documentation-lookup` pins `model: haiku` on Claude; Codex omits the model line and inherits, since it has no rot-free small-tier alias to pin. The guardrails template's concrete names are non-executable, availability-checked examples in a document the project maintains; unavailable examples inherit rather than being guessed.
+- **The session model is the single deliberate knob.** Choose it consciously: it is the ceiling, and every delegated task routes at or below it. If the session runs a 1M-context variant, fan-out leaves inherit that too – so pick the session variant with fan-out cost in mind, not just the orchestrator's needs.
 - **Adaptive thinking > static budgets.** On current models, interleaved thinking between tool calls matters more for agentic work than a high effort floor everywhere. Prefer letting the model think adaptively over forcing high effort on routine work.
 - **Diminishing returns on pure thinking.** For tool-heavy agentic tasks, the number and quality of tool calls matters as much as thinking depth. Raising effort is not a substitute for a well-scoped brief.
 - **Fan-out cost compounds with parallelism.** A council or batch can spawn many agents at once. Default leaves to `low`/`medium` and escalate per-turn (`ultrathink`) or per-agent rather than raising the session floor globally.

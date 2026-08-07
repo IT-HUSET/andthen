@@ -48,7 +48,7 @@ Body lives in a temp file under the host's temp-dir convention (typical: `.agent
 
 **Used by**: `exec-spec --to-pr`, `exec-plan --to-pr`. (`review --to-pr` and `architecture --to-pr` use inline `gh pr comment`; not wired through this pattern.)
 
-Body is whatever the host's prior step produced – **no new content generation here**. If not on disk, write to the host's temp-dir convention (typical: `.agent_temp/<skill>-completion-<slug>.md`). Then: `gh pr comment <number> --body-file <summary-path>`.
+Body is whatever the host's prior step produced – **no new content generation here**. If not on disk, write to the host's temp-dir convention (typical: `.agent_temp/<skill>-completion-<slug>.md`). Resolve the canonical GitHub `owner/name` from the implementation target's captured git root, verify the numbered PR there with `gh pr view <number> --repo <owner/name>`, then post via `gh pr comment <number> --repo <owner/name> --body-file <summary-path>`. Unresolved identity or membership blocks.
 
 **Failure handling (default)**: surface `gh` errors verbatim and stop. `AUTO_MODE`: `BLOCKED: gh pr comment failed for #<number>` and exit. Never roll back the local completion – the local artifact is durable; the PR-side post is transport.
 

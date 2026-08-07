@@ -49,10 +49,10 @@ GitHub-issue mode (`--to-issue` / `--from-issue`) uses the **markdown** body sha
 | `references` | array of strings | no | Free-form upstream-artifact references (ADRs, design system, wireframes, glossary, research). `[]` when none. |
 | `overview` | object | yes | See below. |
 | `sharedDecisions` | array of objects | no | Inter-story interface contracts. `[]` when none. |
-| `bindingConstraints` | array of objects | no | Verbatim PRD spans that flow unchanged into FIS Required Context. `[]` when none. |
+| `bindingConstraints` | array of objects | no | PRD constraints with durable anchors and exact transport/fallback text. `[]` when none. |
 | `stories` | array of objects | yes | The Story Catalog. Order is human reading order; consumers MUST look up by `id`, never by array index. |
 | `riskSummary` | array of objects | no | Structured replacement for the legacy `## Risk Summary` table. `[]` when none. |
-| `executionNotes` | string | no | Short narrative on how to run the plan. Replaces legacy `## Execution Guide`. `""` when none. |
+| `executionNotes` | string | no | Short narrative on how to run the plan. Replaces legacy `## Execution Guide`. `""` when none. Preserves the exact `UNTRUSTED REQUIREMENTS DATA:` line when the PRD's Source Trust is `untrusted-external`; consumers derive the child-prompt trust boundary from it. |
 
 ### `overview` object
 
@@ -83,13 +83,13 @@ Each phase:
 |---|---|---|---|
 | `featureId` | string | yes | PRD feature ID (e.g. `"FR-2"`). |
 | `anchor` | string | yes | PRD heading anchor (e.g. `"prd.md#export-rules"`). |
-| `verbatim` | string | yes | Verbatim PRD span – flows unchanged into FIS Required Context. |
+| `verbatim` | string | yes | Verbatim PRD span retained for issue transport or inline fallback; generated FIS files reference `anchor` when durable. |
 
 ### `stories[]` object – the Story Catalog
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `id` | string | yes | Pattern `S\d{2,}` (uppercase `S` + zero-padded number). Unique across `stories`. |
+| `id` | string | yes | Pattern `S\d{2}` (uppercase `S` + exactly two digits). Unique across `stories`. |
 | `name` | string | yes | Short descriptive name. |
 | `phase` | string | yes | Matches an `overview.phases[].id`. |
 | `wave` | string | yes | Matches one of the waves listed for the story's phase. |
@@ -97,7 +97,7 @@ Each phase:
 | `parallel` | boolean | yes | `true` when the story can run in parallel with wave siblings. |
 | `risk` | string | yes | One of `"low"`, `"medium"`, `"high"`. |
 | `status` | string | yes | See **Status enum** below. |
-| `fis` | string or null | yes | Relative POSIX path, or `null` when not yet generated. Unique across stories **for non-null values** (1:1 story↔FIS invariant); multiple pending stories sharing `null` is valid pre-generation. |
+| `fis` | string or null | yes | `null` before generation, otherwise the story's canonical `s{NN}-{story-name-slug}.md` basename; pointer/target validity per `data-contract.md` § FIS Filename Convention. Non-null values are unique (1:1 story↔FIS invariant). |
 | `owner` | string or null | no | Coordination field: who is executing the story (name or forge handle), or `null`/absent when unclaimed. Advisory, not a lock – makes "who's on what" visible so teammates don't collide. Must not contain `|`/newlines or equal a FIS-Unset Sentinel form (per `data-contract.md`) – such values break the issue round-trip. Solo plans leave it `null`. Legacy plans without the key are valid; regeneration writes `null` when unset. |
 | `scope` | string | yes | One paragraph: outcome, inclusions, exclusions. No implementation approach. |
 | `sourceRefs` | array of strings | no | PRD feature IDs and anchors. Required for PRD-backed stories. |
@@ -119,11 +119,11 @@ Each phase:
 | Value | Set by | Meaning |
 |---|---|---|
 | `pending` | `andthen:plan` (initial) | Story exists; FIS not yet generated. |
-| `spec-ready` | `andthen:spec` after FIS write (withheld on a blocking self-review Note) | FIS file exists; ready to execute. |
+| `spec-ready` | The `andthen:spec` skill (standalone) or `andthen:plan` skill (batch), via `andthen:ops` skill after FIS write | FIS file exists and passed authoring gates; ready to execute. |
 | `in-progress` | Explicit `andthen:ops update-plan <id> in-progress` (or future exec-spec entry hook) | Exec started; dependents must wait. Available for orchestrators that want explicit in-flight signaling; the bundled exec-spec flow transitions `spec-ready → done` directly. |
 | `done` | `andthen:exec-spec` after Acceptance Scenarios and Structural Criteria pass (via `andthen:ops`) | Story complete. |
 | `skipped` | Dependency containment or explicit `andthen:ops update-plan` | Story not attempted because an upstream dependency failed, or explicitly marked skipped by an orchestrator/user. |
-| `blocked` | Explicit `andthen:ops update-plan <id> blocked` | Manual block; consumers skip and warn. |
+| `blocked` | Explicit `andthen:ops update-plan <id> blocked` | Manual block, persisted authoring hold (`BLOCKED:` / `MISSING REQUIREMENT:` / `OVERSIZE:`), or active signed-deferral execution hold; consumers skip and warn. |
 
 Forward transitions are skill-implicit per the write-authority table below. Backward transitions require explicit `andthen:ops update-plan` calls. Unknown values rejected at write time.
 
@@ -138,10 +138,12 @@ A plan in flight is **runtime state** – the agent re-reads it at session start
 |---|---|---|
 | `schemaVersion`, `prd`, `references`, `overview`, `sharedDecisions`, `bindingConstraints`, story `id`/`name`/`phase`/`wave`/`dependsOn`/`parallel`/`risk`/`scope`/`sourceRefs`/`provenance`/`assetRefs`/`notes`, `riskSummary`, `executionNotes` | `andthen:plan` (initial creation) | `andthen:plan` rerun – full regeneration that **preserves** existing `status`/`fis`/`owner` per the predicate below |
 | `stories[].status` | `andthen:plan` (`"pending"`) | `andthen:ops update-plan <plan> <id> <status>` |
-| `stories[].fis` | `andthen:plan` after FIS write (or `null`) | `andthen:ops update-plan-fis <plan> <id> <fis-path>` |
+| `stories[].fis` | `andthen:plan` after FIS write (or `null`) | `andthen:ops update-plan-fis <plan> <id> <canonical-basename-pointer|null>` |
 | `stories[].owner` | `andthen:plan` (`null`) | `andthen:ops update-plan-owner <plan> <id> <owner>` (pass `-` to clear) |
 
-**Preservation predicate** (full regeneration): a story's existing `status`, `fis`, and `owner` are preserved only when ALL hold – `id` survives regeneration; `scope` string-equal; `sourceRefs` set-equal; `assetRefs` set-equal; `provenance` string-equal; the preserved `fis` path still resolves. Content-equality (not name) is the load-bearing guard: a same-id story whose content-defining fields drifted would otherwise graft a stale FIS onto new content. Stories failing any clause reset to `status: "pending"`, `fis: null`, `owner: null`. `owner` is coordination state, not PRD-derived, so a content-stable story keeps its claim across a local `andthen:plan` regeneration; `--from-issue` reruns instead refresh `owner` from the issue's Owner cell.
+**Preservation predicate** (full regeneration): a story's existing `status`, `fis`, and `owner` are preserved only when ALL hold – `id` survives regeneration; `scope` string-equal; `sourceRefs` set-equal; `assetRefs` set-equal; `provenance` string-equal; the preserved FIS passes the canonical filename, containment, regular non-symlink file, and Plan/Story provenance checks in `data-contract.md`. Content-equality (not name) is the load-bearing guard: a same-id story whose content-defining fields drifted would otherwise graft a stale FIS onto new content. Stories failing any clause reset to `status: "pending"`, `fis: null`, `owner: null`. `owner` is coordination state, not PRD-derived, so a content-stable story keeps its claim across a local `andthen:plan` regeneration; `--from-issue` reruns instead refresh `owner` from the issue's Owner cell.
+
+**Schema v1 reader compatibility**: current writers emit only the canonical basename above. A v1 reader may accept an older relative POSIX pointer solely for one-time normalization when its project-root-relative realpath is exactly the canonical sibling beside `plan.json`, the target is a regular non-symlink file, and Plan/Story provenance matches. Normalize through `andthen:ops update-plan-fis` before scheduling or preserving the story. Any other non-canonical pointer is invalid. This keeps existing v1 bundles runnable without weakening the current write contract.
 
 Exception: `andthen:exec-plan --from-issue` reconciliation rewrites `.agent_temp/from-issue-<N>/plan.json` as a full regeneration.
 
@@ -180,7 +182,9 @@ When `andthen:plan` reruns in a directory with a legacy `plan.md` but no `plan.j
 
 Unrecognized legacy values (e.g. `Retired`) map to `skipped` with a one-line annotation appended to `executionNotes` describing the rename – durable audit trail, not removed on subsequent reruns.
 
-Stories whose legacy `FIS` cell pointed at an existing file preserve path and status and **skip FIS regeneration**. Stories with sentinel or missing FIS paths get `fis: null`, `status: "pending"`, and FIS generation runs as in a fresh plan. The legacy `plan.md` is left in place for the user to delete; downstream consumers ignore it.
+External provenance follows the `executionNotes` contract above and survives regeneration.
+
+Legacy `FIS` cells apply **Schema v1 reader compatibility** above: valid pointers normalize, preserve status, and skip regeneration; invalid pointers reset to `fis: null`, `status: "pending"`. The legacy `plan.md` remains for the user to delete; consumers ignore it.
 
 
 ## Example

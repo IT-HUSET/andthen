@@ -26,7 +26,7 @@
 
 > _Optional – include only when the PRD contains "must support X"-style language at risk of being silently dropped during plan decomposition. Omit when none apply._
 >
-> Each entry: verbatim PRD span + heading anchor + source feature ID. These flow unchanged into FIS Required Context blocks – they are not subject to architectural trade-offs or scope narrowing by individual stories.
+> Each entry: verbatim PRD span + heading anchor + source feature ID. Generated FIS files reference durable anchors; verbatim text remains the transport/inline fallback. Individual stories must not narrow the constraint.
 
 - **[FR-N – short label]**: "[verbatim PRD text span]" – source: [`prd.md#<heading-slug>`](./prd.md#heading-slug)
 - **[FR-N – short label]**: "[verbatim text]" – source: [`prd.md#<heading-slug>`](./prd.md#heading-slug)

@@ -218,6 +218,8 @@ Prose debt in a skill takes four distinct shapes. Hunt each by name – they hav
 - **Sprawl** – sheer length independent of staleness: reference material sitting inline that only some paths need. Cure: push it down the disclosure ladder into a bundled reference file.
 - **No-op** – an instruction the model already follows unprompted ("be thorough"): pure context cost, zero behavior change. Whether a line is a no-op is model-relative, and is settled by running the skill and observing – not by debate.
 
+**Pruning calibration – directives masquerade as description.** An opening that enumerates outputs, phases, or counter-prior guards ("Transform X into Y + Z", "while preserving exact behavior", "bypasses the FIS workflow") is an operational contract, not restatement – cutting it changes behavior. Markers: imperative lead verb, enumerated inputs/outputs/modes, counter-prior phrases, verification commitments. A prominent fail-fast gate near the top is not duplication of the same rule in INSTRUCTIONS – position is part of the contract (early exit vs. procedural enforcement). The same test protects craft content: pattern catalogs, comparison tables, and concrete dimension values in design-heavy skills teach judgment and are operational – relocate them down the disclosure ladder if needed, never flatten them into summary bullets. When unsure, keep: an unneeded sentence costs tokens; a cut contract costs behavior. Always-safe cuts: USAGE blocks restating slash syntax (frontmatter `argument-hint` owns it) and true frontmatter-description restatement ("This skill helps you…").
+
 ---
 
 ## Workflows and Feedback Loops
@@ -535,6 +537,7 @@ The body sections above already frame their own anti-patterns as named positive 
 
 - **Too many options.** Listing four libraries that can each solve the task and asking the model to pick. Choose a default, add an escape hatch (*"For scanned PDFs requiring OCR, use pdf2image with pytesseract instead"*).
 - **Time-sensitive instructions.** *"If before August 2025, use the old API."* Replace with a current path and an "old patterns" reference block that quarantines deprecated guidance from the main flow.
+- **Maintenance narrative.** AndThen version numbers (*"pre-0.13.0"*) and historical framing (*"no longer does X"*, *"previously…"*) in skill prompts, references, or templates address maintainers, not the executing agent – that story belongs in the CHANGELOG. Rewrite guards as present-tense directives (*"do not synthesize a PRD here"*) and version-cutoff mappings as timeless facts. Audit: `rg '\b(pre-|post-|since )?\d+\.\d+\.\d+|no longer|previously|formerly|now-removed' plugin/`, filtering legitimate current-tense uses.
 - **Inconsistent terminology.** Mixing *endpoint* / *URL* / *route* / *path*, or *field* / *box* / *element*, in the same skill. Pick one term per concept and use it throughout – the model treats lexical drift as semantic drift.
 
 ---

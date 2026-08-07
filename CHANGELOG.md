@@ -6,6 +6,26 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.38.0] – 2026-08-07
+
+### Removed
+- **Generic starter guidelines dropped.** `DEVELOPMENT-ARCHITECTURE-`, `UX-UI-`, and `WEB-DEV-GUIDELINES.md` no longer ship – frontier models follow these practices unprompted, and generic guides dilute the rules that matter. `CRITICAL-RULES-AND-GUARDRAILS.md` is now the sole starter guideline (absorbing the few unique rules); the template's guidelines section becomes a placeholder for project-authored guidelines.
+
+### Changed
+- **Learnings become a bounded index with topic shards.** `LEARNINGS.md` is capped at 150 lines: `ops update-learnings` routes entries to sharded topics, graduates overflow topics to `learnings/<topic-slug>.md`, and gains a `remove` form for check-superseded or stale entries; skills read the index whole and open only task-relevant shards. Entries stay under 200 chars (trap + pointer, postmortems linked not inlined), and recurring traps prefer encoding as a lint rule/test over prose. CRITICAL-RULES adds the matching boundary: harness auto-memory holds personal/machine-local context only – project-durable knowledge belongs in committed docs.
+- **Executors investigate before blocking.** A five-rung Resolution Ladder governs ambiguity; `exec-spec --auto` may amend scenario articulation only with fixed tags/Proof, while Intent/outcome changes still stop. Review ambiguity is re-tested only with new evidence.
+- **Reconciliation gates are durable.** Same-run entries stay visible, AUTO_MODE cannot self-clear them, and completion is not presented as shipped before human reconciliation. `exec-plan` persists drift/ambiguity before Done, repairs worker input blockers once, and serializes multi-repo FIS writes.
+- **Discovery records sharp questions, not fog.** `clarify` emits imprecise areas as `Area to revisit:`, `now-what` excludes those from open-question counts, and signed Preflight deferrals remain execution holds.
+- **Sub-agent routing runs on three tiers.** The **Sub-Agent Model Policy** owns model and effort: judgment routes to session/xhigh, implementation to top/medium, and small well-specified work to cheap/medium-or-xhigh. Availability/ceiling-checked examples otherwise inherit; dedicated agent configs are the explicit exception.
+- **Browser and simplification work are capability-led.** E2E selects any qualifying browser provider; simplify-code adds a Necessity/YAGNI lens that removes only proven-inert complexity and defers observable removals without approval.
+- **Generated guidance and FIS files are leaner.** Init drops generic tool tutorials; skills avoid redundant rule reloads; optional FIS sections are omitted; bound scenarios may use precise title + executable Proof without duplicated GWT. Verify describes outcomes, and OVERSIZE measures words as well as lines.
+- **Review gates are consolidated.** Plan batches use one cross-cutting fresh-context review with external-claim falsification; standalone PRD/spec use one full review plus bounded verification. Plan writes batch verified or cleared FIS pointers per sub-wave, and final gap remediation must re-pass.
+- **External inputs remain inert end to end.** Trust survives agent boundaries; operations and paths are re-derived/contained; PR reads and publication are SHA/repo-bound; visual HTML is escaped and CSP-locked.
+- **Issue triage follows the no-attribution rule.** Tracker comments and Agent Briefs no longer add an AI-attribution marker.
+- **Document/visual gates focus on substance.** Doc lint collapses into one aggregate LOW finding; visual completion uses the same canonical scenario/task sets as its KPIs.
+
+---
+
 ## [0.37.0] – 2026-07-25
 
 ### Added

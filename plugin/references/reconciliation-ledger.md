@@ -62,7 +62,7 @@ Each entry is a greppable markdown block under `## Entries`. The stable ID is th
 - Status: OPEN | RECONCILE REQUIRED | CLOSED | WITHDRAWN
 - Class: code-defect | spec-stale | design-changed | ambiguous-intent
 - Stale targets: {comma-separated upstream docs left stale, e.g. docs/PRODUCT.md#admin-roles, README.md} | –
-- Source run: {skill + brief run ref, e.g. exec-spec reconciliation-ledger 2026-06-04}
+- Source run: {skill + collision-resistant run ref, e.g. exec-spec-s01-payment-2026-06-04T14:02:17Z-<fresh-suffix>}
 - Recurrence: {integer; initial OPEN = 1}
 - Falsifier: {recorded falsifier text when WITHDRAWN; – otherwise}
 - Override reason: {reason recorded by override-close; – otherwise}
@@ -72,6 +72,8 @@ Each entry is a greppable markdown block under `## Entries`. The stable ID is th
 ```
 
 Fields stay one-per-line so transitions are surgical single-line edits and the file diffs cleanly.
+
+The producing run generates one collision-resistant run ref, reuses it byte-for-byte for every entry it writes, and supplies it to review calls as the exact line `SOURCE_RUN: <value>`.
 
 
 ## Status lifecycle and transitions
@@ -110,7 +112,7 @@ Escalation is class-gated and count-gated, never time- or run-count-gated:
 
 When a review run loads the ledger and computes a finding's stable ID, route by the matched entry's **status and class** (a finding can only match an entry of its own class, since `{class}` is part of the matching key – so the OPEN-match branch is class-aware):
 
-- **OPEN match, `spec-stale` / `design-changed`** → already-tracked reconciliation work, **not** a fresh blocker: record the finding as Note tied to the existing entry. Reconciliation-class findings never feed the verdict's three code-correctness dimensions. If still unreconciled, `bump-recurrence` (which may escalate to `RECONCILE REQUIRED`).
+- **OPEN match, `spec-stale` / `design-changed`** → already-tracked reconciliation work, **not** a fresh blocker: record the finding as Note tied to the existing entry. Reconciliation-class findings never feed the verdict's three code-correctness dimensions. If still unreconciled, `bump-recurrence` (which may escalate to `RECONCILE REQUIRED`). **Prior-run entries only**: the demotion applies when the entry's `Source run` differs from the run under review – the caller supplies its run ref when it has one (the `andthen:exec-spec` skill does at Step 4b); with none supplied, treat every entry as prior-run. A same-run entry is that run's own claim about itself, and letting it pre-file its own immunity defeats the review commissioned to falsify it: match it, but report it as a fresh reconciliation Note and do not bump recurrence.
 - **OPEN match, `code-defect`** → a known-but-unfixed bug: keep class `code-defect` and **continue feeding the verdict** (it stays a real blocker until fixed – do *not* demote it to Note, which would hide an unfixed defect). No recurrence escalation. It is *not* "new" for the CONVERGED criterion, so a re-matched code-defect keeps the verdict FAIL without blocking convergence.
 - **OPEN match, `ambiguous-intent`** → decision-blocked: record as Note tied to the entry; no recurrence escalation; stays OPEN until the missing decision is supplied. Does not feed the verdict.
 - **RECONCILE REQUIRED match** → existing blocking reconciliation work: record as Note tied to the entry, do not bump recurrence, do not duplicate, and do not feed reconciliation-class findings into the verdict dimensions. The completion-presentation gate remains the blocker until the sanctioned design-change + ADR reconciliation closes the entry.
@@ -126,7 +128,7 @@ When a review run loads the ledger and computes a finding's stable ID, route by 
 
 The gate lives in the **orchestrating skills** (the `exec-plan` completion summary and the `exec-spec` standalone completion summary), **not** in the `ops` status mutators – `ops` mutators stay single-document. The orchestrating skill resolves each ledger adjacent to its governing FIS (exec-plan across all its stories' FISes) and reads it directly.
 
-- A run **cannot be presented as shipped/complete** while the ledger holds any `OPEN` or `RECONCILE REQUIRED` entry, unless an explicit override reason is recorded against those entries (`ops update-ledger override-close`). The refusal names the blocking entries.
+- A run **cannot be presented as shipped/complete** while the ledger holds any `OPEN` or `RECONCILE REQUIRED` entry, unless an explicit override reason is recorded against those entries (`ops update-ledger override-close`). The refusal names the blocking entries. **`override-close` is human-sourced** – the reason records a person's ratification, so an `AUTO_MODE` run may never issue one against an entry it or a worker it delegated to wrote: an orchestrator overriding its own story workers is still the gated agent holding the key.
 - **Per-story status writes are NOT gated**: `ops update-state active-story ... Done` and per-story `ops update-plan ... done` proceed normally even when the story opened a reconciliation entry. The entry is the durable record; upstream reconciliation is human-owned and recommend-only, so a story legitimately records its own completion. Gating per-story writes would deadlock the autonomous pipeline.
 
 
@@ -137,7 +139,7 @@ When a run (exec-spec, exec-plan rolling up its stories, or remediation) wrote O
 
 ## AUTO_MODE invariant
 
-Every new path surfaces its recommendation / `BLOCKED:` text and never waits interactively. Critically, a **deferred (`BLOCKED:`) design pivot still writes its OPEN ledger entry** – the entry write precedes the `BLOCKED:` emit – so the pivot is durably recorded rather than lost. Letting the AUTO_MODE `BLOCKED:` path skip the ledger write defeats the whole point.
+Every `AUTO_MODE` path surfaces recommendation / `BLOCKED:` text without waiting. Every design pivot writes an OPEN entry before any `BLOCKED:` emit – continued or deferred, with named stale targets or `–`. The completion-presentation gate then awaits human ratification; same-run review gets no demotion.
 
 
 ## Canonical template

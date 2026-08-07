@@ -50,7 +50,7 @@ The four-cell `.kpi-band` (rendered per the render-shell.md *KPI Summary Band* c
 
 | Cell | Label | Source |
 |---|---|---|
-| 1 | Open Questions | Count of bullets under `## Open Questions` not marked `(resolved)` / `→` / `lean:` |
+| 1 | Open Questions | Count of bullets under `## Open Questions` not marked `(resolved)` / `→` / `lean:` and not led by `Area to revisit:` (fog is not open work) |
 | 2 | Resolved | Count of rows in `## Decisions Log` table |
 | 3 | Decisions | Count of dimension rows in `## Design Decisions` → "Resolved Decisions" table |
 | 4 | Edge Cases | Count of rows in `## Edge Cases` table |

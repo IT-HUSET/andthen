@@ -14,7 +14,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 
 ## INSTRUCTIONS
 
-- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
+- Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and read the referenced guideline files relevant to this work.
 - **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
 - **Read-only source analysis** – no source-code changes or commits; documentation outputs and agent-instruction Conventions updates are the only expected writes
 - **Structured output** – All documents follow templates from `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`
@@ -38,7 +38,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 
 ### 2. Parallel Analysis
 
-Spawn parallel sub-agents, routing each per the **Sub-Agent Model Policy** (default: inherit): *scanning* (retrieval) at **low** effort, *synthesis* (routine) at **medium**.
+Spawn parallel sub-agents and describe each task shape to the nearest **Sub-Agent Model Policy** (absent a policy: inherit). Stack/command inventory is small retrieval when tightly scoped. Architecture, boundary analysis, conventions synthesis, and implicit-requirements/decision discovery are high-judgment work – never downshift them as scanning.
 
 **Monorepo note** (apply to all sub-agents when `IS_MONOREPO = true`): organize findings with clear sub-project boundaries. Document shared aspects once; only call out per-sub-project specifics where they differ.
 
@@ -67,7 +67,7 @@ Output: the `Key Dev Commands` document (see **Project Document Index**; default
 
 ### 3. Requirements & Decisions Discovery
 
-Spawn a sub-agent (capable coding model) to reverse-engineer a discovered requirements document by analyzing:
+Spawn a high-judgment sub-agent per the **Sub-Agent Model Policy** to reverse-engineer a discovered requirements document by analyzing:
 
 - **What the System Does**: user-facing features/workflows (routes, UI, API), admin/operator features, background processes
 - **Implicit Requirements**: validation rules, business logic, access control, data integrity rules

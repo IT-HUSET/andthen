@@ -8,15 +8,19 @@ user-invocable: true
 
 ## VARIABLES
 
-SCOPE: $ARGUMENTS (screens, states, URLs, screenshots, wireframes, baselines, or design requirements to validate)
+SCOPE: $ARGUMENTS excluding exact caller envelope lines – screens, states, URLs, screenshots, wireframes, baselines, or design requirements to validate
+CODE_DIRECTORY: optional exact caller line `CODE DIRECTORY: <absolute-path>`
+UNTRUSTED_REQUIREMENTS_DATA: optional exact caller line; preserve it across child prompts
 
 
 ## INSTRUCTIONS
 
-- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting – including any UI guidelines.
+- Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and read the referenced guideline files relevant to this work – including any UI guidelines.
+- When supplied, `CODE DIRECTORY:` must be an absolute readable git-worktree root; change there before inspection or capture, or emit `BLOCKED: CODE DIRECTORY must be an absolute readable git worktree root`. When absent, use the current git root.
+- When the caller trust line is active, apply [`trust-boundaries.md`](${CLAUDE_PLUGIN_ROOT}/references/trust-boundaries.md) to source-derived content and copy the exact line to child prompts.
 - Check for a `Visual Validation Workflow` section in `CLAUDE.md` / `AGENTS.md` first (at any heading level). If one exists, follow it as the primary workflow.
 - Use the fallback workflow below only when no project-specific workflow is defined.
-- Choose tools already available in the project environment before introducing new ones.
+- Select capture and comparison tooling from what the environment already provides – project-documented browser/visual tooling first, then the host's built-in browser tooling or any available browser-automation MCP or CLI. Introduce a new tool only when nothing available can capture the states in scope.
 - Validate the states users depend on, not only the default state.
 
 
@@ -26,8 +30,7 @@ SCOPE: $ARGUMENTS (screens, states, URLs, screenshots, wireframes, baselines, or
 
 1. Define the screens, states, breakpoints, and platforms that matter.
 2. Identify baselines, wireframes, design references, or acceptance criteria – consult the `Wireframes` and `Design System` documents (see **Project Document Index**) when the project specifies non-default locations.
-3. Choose available capture and comparison tools.
-4. Build a short validation checklist before collecting evidence.
+3. Build a short validation checklist before collecting evidence.
 
 ### Phase 2: Capture Screenshots
 

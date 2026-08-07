@@ -44,7 +44,8 @@ const assert = (cond, msg) => { assertCount++; if (!cond) fail(msg); };
 const at = (lineIdx) => ' (artifact line ' + (lineIdx + 1) + ')';
 
 /* ===================== helpers ===================== */
-const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+const jsonForHtml = (v) => JSON.stringify(v).replace(/[<>&\u2028\u2029]/g, c => ({ '<': '\\u003c', '>': '\\u003e', '&': '\\u0026', '\u2028': '\\u2028', '\u2029': '\\u2029' })[c]);
 const kebab = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 function mdInline(s) {
   const codes = [];
@@ -471,7 +472,7 @@ if (hasMap) {
       Object.values(cm[cid]).forEach(v => { maxCell = Math.max(maxCell, v); });
     });
     const out = ['<div class="imx-wrap"><table class="imx">'];
-    out.push('<thead><tr><th></th>' + imxCols.map(k => '<th data-col="' + k + '"><span>' + esc(moduleNames[k] || k) + '</span></th>').join('') + '</tr></thead><tbody>');
+    out.push('<thead><tr><th></th>' + imxCols.map(k => '<th data-col="' + esc(k) + '"><span>' + esc(moduleNames[k] || k) + '</span></th>').join('') + '</tr></thead><tbody>');
     clusters.forEach(c => {
       const cid = 'c' + c.n;
       let title = stripMd(c.title);
@@ -479,10 +480,10 @@ if (hasMap) {
       out.push('<tr data-cluster="' + cid + '" style="--ch:' + hues[cid] + '"><th><span class="mg-dot"></span>' + esc(c.id + ' · ' + title) + '</th>'
         + imxCols.map(k => {
           const v = cm[cid][k];
-          if (!v) return '<td data-col="' + k + '"></td>';
+          if (!v) return '<td data-col="' + esc(k) + '"></td>';
           imxDots++;
           const sz = v <= maxCell / 3 ? 's1' : v <= 2 * maxCell / 3 ? 's2' : 's3';
-          return '<td data-col="' + k + '"><button type="button" class="imx-dot ' + sz + '" data-mk="' + k + '" data-step="' + c.n + '" style="--ch:' + hues[cid] + '"'
+          return '<td data-col="' + esc(k) + '"><button type="button" class="imx-dot ' + sz + '" data-mk="' + esc(k) + '" data-step="' + c.n + '" style="--ch:' + hues[cid] + '"'
             + ' aria-label="' + esc(c.id + ' → ' + (moduleNames[k] || k)) + '" title="' + esc(c.id + ' → ' + (moduleNames[k] || k) + ' · ' + v + ' lines') + '"></button></td>';
         }).join('') + '</tr>');
     });
@@ -808,7 +809,7 @@ function miniMapSvg() {
   });
   archLayout.nodes.forEach(n => {
     const dc = (clusterModulesInverse[n.key] || []).length ? ' data-clusters="' + clusterModulesInverse[n.key].join(' ') + '"' : '';
-    out.push('<rect class="mn" data-k="' + n.key + '"' + dc + ' x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="14"><title>' + esc(n.name) + '</title></rect>');
+    out.push('<rect class="mn" data-k="' + esc(n.key) + '"' + dc + ' x="' + n.x + '" y="' + n.y + '" width="' + n.w + '" height="' + n.h + '" rx="14"><title>' + esc(n.name) + '</title></rect>');
   });
   out.push('</svg>');
   return out.join('\n');
@@ -940,7 +941,7 @@ function moduleMapSvg() {
     const stCls = n.state === 'new' ? ' is-new' : n.state === 'removed' ? ' is-removed' : '';
     const selCls = n.key === bfsFrom ? ' sel' : '';
     const classes = ['node', n.hot ? 'hot' : '', n.gate ? 'gate' : '', n.terminal ? 'term' : '', n.chosen ? 'chosen' : ''].filter(Boolean).join(' ') + stCls + selCls;
-    out.push('<g class="' + classes + '" data-k="' + n.key + '"' + dc + '>');
+    out.push('<g class="' + classes + '" data-k="' + esc(n.key) + '"' + dc + '>');
     if (n.pad > 0) {
       out.push('<rect class="ring" x="' + (n.x - n.pad) + '" y="' + (n.y - n.pad) + '" width="' + (n.w + 2 * n.pad) + '" height="' + (n.h + 2 * n.pad) + '" rx="' + (6 + n.pad) + '"/>');
     }
@@ -967,7 +968,7 @@ const relChip = (label) => {
 function zonesHtml(k) {
   const d = archDetailData[k];
   const linkBtns = (list) => list.length
-    ? list.map(mk => '<button type="button" class="ad-link" data-selnode="' + mk + '">' + esc(moduleNames[mk] || mk) + '</button>').join('')
+    ? list.map(mk => '<button type="button" class="ad-link" data-selnode="' + esc(mk) + '">' + esc(moduleNames[mk] || mk) + '</button>').join('')
     : '<span class="ad-empty">—</span>';
   const out = [];
   out.push('<div class="ad-zone"><h4>mapped churn</h4><div class="ad-bar"><i style="width:' + d.pct + '%"></i></div><span class="ad-num">' + d.churn + ' lines across mapped files</span></div>');
@@ -1039,20 +1040,17 @@ function archView() {
 const archHtml = hasArch ? sectionBlock('Architectural Delta', archView(), sections['Architectural Delta'].raw) : '';
 
 /* ===================== baked runtime data ===================== */
-/* archDetail ships only what the selection layer reads (st/t/m/b) plus the
-   pre-rendered zone markup `z` — zonesHtml() is the single owner of that markup */
 const archDetailBaked = Object.fromEntries(Object.keys(archDetailData).map((k) => {
   const d = archDetailData[k];
-  return [k, { st: d.st, t: d.t, m: d.m, b: d.b, z: zonesHtml(k) }];
+  return [k, { st: d.st, t: d.t, m: d.m, b: d.b }];
 }));
-const vxData = JSON.stringify({ sha: sha1, hues, clusterModules, moduleNames, blast, bfs, bfsFrom, palette, archDetail: archDetailBaked, archEdges: archEdgesData })
-  .replace(/</g, NUL).split(NUL).join('\\u003c');
+const vxData = jsonForHtml({ sha: sha1, hues, clusterModules, moduleNames, blast, bfs, bfsFrom, palette, archDetail: archDetailBaked, archEdges: archEdgesData });
+const artifactData = jsonForHtml({ artifactPath: srcArg, artifactOwner: 'andthen:explain-changes', artifactSha1: sha1 });
+const zoneTemplates = Object.keys(archDetailData).map(k => '<template data-zone-key="' + esc(k) + '">' + zonesHtml(k) + '</template>').join('');
+const executableScripts = [APP_JS, NOTES_JS].map(s => '\n' + s + '\n');
+const scriptHashes = executableScripts.map(s => "'sha256-" + crypto.createHash('sha256').update(s).digest('base64') + "'").join(' ');
 
 /* ===================== assemble page ===================== */
-const jsEscape = (s) => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-const notesJsFinal = NOTES_JS
-  .replace('__ARTIFACT_PATH__', jsEscape(srcArg))
-  .replace('__ARTIFACT_SHA1__', sha1);
 const basenameSrc = srcArg.split('/').pop();
 const riskPillClass = riskProfileWord ? ' risk-' + kebab(riskProfileWord) : '';
 const headPills = [
@@ -1067,6 +1065,7 @@ const html = [
   '<html lang="en">',
   '<head>',
   '<meta charset="utf-8">',
+  '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; script-src ' + scriptHashes + '; script-src-attr \'none\'; img-src data:; font-src data:; connect-src \'none\'; media-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'; frame-src \'none\'">',
   '<meta name="viewport" content="width=device-width, initial-scale=1">',
   '<title>' + esc(h1) + '</title>',
   '<style>',
@@ -1081,7 +1080,7 @@ const html = [
   '<div class="tb-row">',
   '<span class="crumb">andthen:visualize · changeset · ' + esc(basenameSrc) + '</span>',
   '<div class="tb-actions">',
-  '<button class="btn-ghost" id="open-cmdk-hint" type="button" onclick="document.dispatchEvent(new KeyboardEvent(\'keydown\',{key:\'k\',metaKey:true}))"><kbd class="khint">⌘K</kbd> Jump</button>',
+  '<button class="btn-ghost" id="open-cmdk-hint" type="button"><kbd class="khint">⌘K</kbd> Jump</button>',
   '<button class="btn-notes" id="notes-toggle" type="button">Notes <span class="note-total">0</span></button>',
   '<button class="btn-primary" id="copy-notes" type="button" disabled>Copy notes</button>',
   '</div></div>',
@@ -1118,6 +1117,7 @@ const html = [
   '<div class="tip" id="tip" hidden></div>',
   '<div class="lightbox" id="lightbox" hidden role="dialog" aria-label="Module map"><div class="lb-card"></div></div>',
   '<div class="imx-pop" id="imx-pop" hidden></div>',
+  zoneTemplates,
   '<div class="cmdk" id="cmdk" hidden role="dialog" aria-label="Jump to">',
   '<div class="cmdk-panel">',
   '<input id="cmdk-in" type="text" placeholder="Jump to cluster, file' + (hasMap ? ', or module' : '') + '…" autocomplete="off" spellcheck="false">',
@@ -1134,12 +1134,9 @@ const html = [
   '<tr><td><kbd>esc</kbd></td><td>close overlays</td></tr>',
   '</table></div>',
   '<script type="application/json" id="vx-data">' + vxData + '</' + 'script>',
-  '<script>',
-  APP_JS,
-  '</' + 'script>',
-  '<script>',
-  notesJsFinal,
-  '</' + 'script>',
+  '<script type="application/json" id="artifact-state">' + artifactData + '</' + 'script>',
+  '<script>' + executableScripts[0] + '</' + 'script>',
+  '<script>' + executableScripts[1] + '</' + 'script>',
   '</body>',
   '</html>'
 ].join('\n');
@@ -1188,7 +1185,7 @@ if (archLayout) {
 assert(html.indexOf(NUL) === -1, 'NUL bytes leaked into the output');
 /* sibling assets are inlined verbatim into <style>/<script> blocks — a literal close tag would truncate the page */
 assert(!CSS.includes('</' + 'style>'), 'changeset.css must not contain a literal style close tag');
-[['changeset-app.js', APP_JS], ['changeset-notes.js', notesJsFinal]].forEach(([name, s]) =>
+[['changeset-app.js', APP_JS], ['changeset-notes.js', NOTES_JS]].forEach(([name, s]) =>
   assert(!s.includes('</' + 'script>'), name + ' must not contain a literal script close tag'));
 assert(/\.pseg\.lit\s*\{[^}]*box-shadow:\s*none[^}]*brightness\(/.test(CSS), 'progress segments must highlight by brightness only — outline treatment reads as noise on 3px segments');
 /* behavior self-test: the node/edge click path must be intact (pointer capture regression) */
@@ -1215,7 +1212,7 @@ if (hasMap) {
     'detail panel must pre-select the most-churned node ' + bfsFrom);
   assert((html.match(/class="node[^"]*\bsel\b[^"]*"/g) || []).length === 1, 'exactly one node must be pre-selected');
   Object.keys(archDetailBaked).forEach(k =>
-    assert(archDetailBaked[k].z.includes('ad-zone'), 'baked zone markup missing for node ' + k));
+    assert(zoneTemplates.includes('data-zone-key="' + esc(k) + '"') && zonesHtml(k).includes('ad-zone'), 'zone template missing for node ' + k));
   assert(html.includes('id="ad-zones"'), 'detail panel zones must be baked (panel never empty)');
   const newCount = mapNodes.filter(n => n.state === 'new').length + mapEdges.filter(e => e.state === 'new').length;
   const remCount = mapNodes.filter(n => n.state === 'removed').length + mapEdges.filter(e => e.state === 'removed').length;
@@ -1233,6 +1230,11 @@ if (hasMap) {
     'no-architecture artifacts must omit toggle, matrix, and detail panel');
 }
 assert(!/src="http|href="http|url\(http|@import/.test(html), 'external resources are forbidden');
+const emittedScripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+assert(emittedScripts.length === executableScripts.length, 'every executable script must be hashable');
+emittedScripts.forEach(s => assert(html.includes("'sha256-" + crypto.createHash('sha256').update(s).digest('base64') + "'"), 'emitted script hash missing from CSP'));
+assert(html.includes("script-src 'sha256-") && html.includes("script-src-attr 'none'"), 'hashed script CSP required');
+assert(!/<[^>]+\son[a-z]+=/i.test(html), 'inline event handlers are forbidden');
 
 fs.writeFileSync(outArg, html);
 console.log('written: ' + outArg);

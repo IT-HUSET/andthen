@@ -91,7 +91,7 @@ This is where users get lost: AndThen is set up, they have an idea, but they do 
 | Build a single feature | "add X", "implement Y", "I want users to be able to Z" | → the `andthen:clarify` skill (default feature mode) |
 | Build a bigger initiative | "build a whole X", multiple capabilities mentioned, "platform", "system" | → the `andthen:clarify` skill (default feature mode; entry point for the multi-feature `prd → plan → exec-plan` chain). If the framing carries architectural ambiguity ("multi-tenant", "real-time", "how should I structure a..."), use Step 3 to disambiguate between `clarify` and the `andthen:architecture` skill in `--mode advise`. |
 | Quick fix / small change | "fix typo", "rename X", "bump version" | → the `andthen:quick-implement` skill |
-| Simplify existing code | "simplify this code", "clean this up", "refactor this", "reduce complexity" | → the `andthen:simplify-code` skill |
+| Simplify existing code | "simplify this code", "clean this up", "refactor this", "reduce complexity", "remove over-engineering" | → the `andthen:simplify-code` skill |
 | How should I structure X? | "how do I organize", "what's the right pattern for" | → the `andthen:architecture` skill in `--mode advise` |
 | Compare two approaches | "X vs Y", "should we use A or B" | → the `andthen:architecture` skill in `--mode trade-off` |
 | Answer a design question by building | "prototype this", "spike", "answer by building", "which approach is actually faster/feasible" | → the `andthen:spike` skill _(throwaway runnable evidence; for analysis-only comparison use `--mode trade-off` above; for screens/flows/mockups use the `andthen:ui-ux-design` skill below)_ |
@@ -127,7 +127,7 @@ When state shows the user is mid-flow, do not onboard. Just route. Output: 1–3
 
 | Detected state | Recommended next |
 |---|---|
-| `requirements-clarification.md` just produced, before `prd` / `spec` | offer the `andthen:visualize` skill as a review checkpoint, or route to the next workflow skill |
+| `requirements-clarification.md` just produced, before `prd` / `spec` | offer the `andthen:visualize` skill or the next workflow skill; name unresolved question-shaped Open Questions, excluding `Area to revisit:`. If the user wants one closed first, route the document to the `andthen:clarify` skill in amendment mode. |
 | `prd.md` exists, no `plan.json` | the `andthen:plan` skill (or offer the `andthen:visualize` skill as a review checkpoint first) |
 | `plan.json` exists, FIS files missing | the `andthen:plan` skill to resume the bundle and fill missing FIS files (or offer the `andthen:visualize` skill first when the user wants to inspect the incomplete bundle) |
 | Legacy `plan.md` exists, no `plan.json` | the `andthen:plan` skill – re-running migrates `plan.md` → `plan.json` and preserves existing FIS files |

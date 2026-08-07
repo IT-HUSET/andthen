@@ -2,25 +2,17 @@
 
 Loaded when `--team` is active (Step 3T). Single source of truth for team-mode behavior; default-mode does not load it.
 
-## Contents
-- Team Setup
-- Implementer Prompt
-- Reviewer Prompt
-- Task Management
-- Merge Wave
-- Status Updates Gate
-- Multi-Repo Rules
-- Monitoring
-- Final Worktree Teardown
-
-
 ## Team Setup
 
-Create team `"plan-pipeline"` with pre-assigned tasks. Size: 1 implementer (≤4 stories), 2 (5–10), 3 (11+). Add 1–2 reviewers for `quick-review`. Use a capable coding model for all teammates.
+Create team `"plan-pipeline"` with pre-assigned tasks. Size: 1 implementer (≤4 stories), 2 (5–10), 3 (11+). Add 1–2 reviewers for `quick-review`. Implementers are medium/larger implementation tasks; reviewers are high-judgment review tasks. Let the nearest Sub-Agent Model Policy choose model and effort, or inherit when none exists.
 
-Define `AUTO_SUFFIX = " --auto"` when `AUTO_MODE=true`, else `""`. Define `WORKTREE_SUFFIX = " --defer-shared-writes"` when `USE_WORKTREE=true`, else `""` (propagated form of `--worktree`; exec-spec's flag describes its own behavior).
+Define `AUTO_SUFFIX = " --auto"` when `AUTO_MODE=true`, else `""`. Define `DEFER_SUFFIX = " --defer-shared-writes"` in every mode; the orchestrator owns shared status only after review.
 
-**Pre-create worktrees in bash** _(when `USE_WORKTREE=true`)_. Harness isolation is unreliable under `team_name`; every worktree is created by the orchestrator before TeamCreate. Per `impl-*`:
+Before `TeamCreate`, require `CODE_DIR` to be on `{BASE_BRANCH}` with an empty porcelain status. This attribution baseline is mandatory in both modes; never stash, commit, or move pre-existing user changes. A dirty checkout is Stop-the-Line and recommends `--worktree` only after the user makes the base checkout clean.
+
+Apply the parent skill's **Multi-repo FIS attribution** rule before assigning tasks. In that topology, only the next story gets an active implementer or worktree.
+
+**Pre-create worktrees in bash** _(when `USE_WORKTREE=true`)_. Harness isolation is unreliable under `team_name`; the orchestrator creates worktrees for currently active `impl-*` tasks before TeamCreate. Multi-repo mode activates one.
 
 ```
 bash ${CLAUDE_SKILL_DIR}/scripts/create-worktree.sh {STORY_ID} {BASE_BRANCH} {CODE_DIR_ABS}
@@ -28,42 +20,42 @@ bash ${CLAUDE_SKILL_DIR}/scripts/create-worktree.sh {STORY_ID} {BASE_BRANCH} {CO
 
 Capture `WORKTREE_PATH=` from stdout into `{WORKTREE_PATH_ABS}`. Non-zero exit → Stop-the-Line. Pre-existing branch/directory → run `teardown-worktrees.sh` first.
 
-**Substitution scope** – at team creation, replace in every teammate system prompt: `{AUTO_SUFFIX}`, `{WORKTREE_SUFFIX}`, `{CODE_DIR_ABS}`, `{BASE_BRANCH}`. Per-task placeholders for implementers – `{STORY_ID}` (bare plan id, e.g. `S03`; derived by the orchestrator from the task's story binding), `{fis_path}`, and (under `USE_WORKTREE=true`) `{WORKTREE_PATH_ABS}` – filled at TeamCreate. Reviewer derives `STORY_ID` from its task name at runtime. Scripts always receive bare `{STORY_ID}`, never the team task name. Teammates have no access to orchestrator-side variables; anything not substituted is derived at runtime.
+**Substitution scope** – at team creation, replace in every teammate system prompt: `{AUTO_SUFFIX}`, `{DEFER_SUFFIX}`, `{CODE_DIR_ABS}`, `{BASE_BRANCH}`, `{UNTRUSTED_REQUIREMENTS_LINE}` (the run's exact line when externally derived, otherwise empty), and `{GOVERNING_PLAN_LINE}` (exact `GOVERNING PLAN PATH: {PLAN_PATH}` in local-directory mode, empty under `--from-issue`). Per story tasks fill `{STORY_ID}`, `{FIS_PATH}`, `{WORKTREE_PATH_ABS}`, and `{IMPLEMENTATION_ROOT}` (worktree path when active, otherwise `CODE_DIR`). In a single repo, translate `{FIS_PATH}` into that worktree; in a multi-repo run, keep the canonical absolute plan-repo path. Reviewer derives `STORY_ID` from its task name; before each initial/re-review unblock, the orchestrator sets exact task input `REVIEW_COMMIT: <full-sha>` to the implementation/repair commit. Scripts receive the bare story ID. Anything not substituted is derived at runtime.
 
 
 ## Implementer Prompt
 
 Apply the **Worker Contract** from `exec-plan/SKILL.md` Step 3b. The team Implementer runs only the `exec-spec` half of the canonical Worker Prompt – the `quick-review` half is the Reviewer's task.
 
-Placeholders pre-substituted by the orchestrator at TeamCreate: `{AUTO_SUFFIX}`, `{WORKTREE_SUFFIX}`, `{CODE_DIR_ABS}`, `{BASE_BRANCH}`. Per-task: `{STORY_ID}`, `{fis_path}`, and (worktree mode) `{WORKTREE_PATH_ABS}`.
+{UNTRUSTED_REQUIREMENTS_LINE}
+{GOVERNING_PLAN_LINE}
+CODE DIRECTORY: {IMPLEMENTATION_ROOT}
 
 Per `impl-*` task assigned to you (orchestrator pre-assigns owners – work only your assigned tasks, no shared-queue claiming):
 - `cd {CODE_DIR_ABS}` (worktree mode: `cd {WORKTREE_PATH_ABS}` instead).
 - **Worktree mode** (`{WORKTREE_PATH_ABS}` non-empty), as first action after `cd`: `bash ${CLAUDE_SKILL_DIR}/scripts/verify-in-worktree.sh {STORY_ID} {WORKTREE_PATH_ABS}`. Anything other than `VERIFY_OK` → STOP, report `VERIFY_FAIL:<reason>`, fail the task. Subsequent operations use absolute paths only (relative paths silently leak to the main checkout). Pass the `## Deferred Shared Writes` audit block through to your report; do NOT stage `plan.json` or the State document inside the worktree branch – the `andthen:merge-resolve` skill's G2 guard fails the story.
-- Invoke the andthen:exec-spec skill with `{fis_path}{AUTO_SUFFIX}{WORKTREE_SUFFIX}`.
-- On success: report `exec-spec` Step 4a numbers (build, tests, lint/type-check, format). Orchestrator handles squash-merge and cleanup.
+- Invoke the `andthen:exec-spec` skill with `{FIS_PATH}{AUTO_SUFFIX}{DEFER_SUFFIX}`. The Worker Contract delegates exec-spec's standalone completion-presentation gate: skip it – the orchestrator owns the consolidated one.
+- On success, require a non-empty story delta and confirm deferred `plan.json` / State writes are absent. Stage the attributable story delta, commit it with the brief subject `story {STORY_ID}`, and require the checkout clean. Report `IMPLEMENTATION_COMMIT: <full-sha>` plus `exec-spec` Step 4a numbers (build, tests, lint/type-check, format). Orchestrator handles squash-merge and cleanup. A missing commit, shared-write leak, or residual dirty status fails the task.
 - On `BLOCKED:` or Failed Story Report: do not mark done; preserve the worktree and report details.
-- Do not call `andthen:ops update-*` yourself – `exec-spec` Step 5b owns those (Worker Contract).
-
-Escalate unresolvable issues. Absolute FIS paths.
 
 
 ## Reviewer Prompt
 
 Apply the **Worker Contract** from `exec-plan/SKILL.md` Step 3b. The team Reviewer runs only the `quick-review` half of the canonical Worker Prompt.
 
+{UNTRUSTED_REQUIREMENTS_LINE}
+{GOVERNING_PLAN_LINE}
+INTENT CONTEXT: {FIS_PATH}
+
 Per `review-*` task assigned to you (orchestrator pre-assigns owners; `impl-Sxx` and `review-Sxx` are never assigned to the same teammate, so self-review cannot occur):
 - Derive story id by stripping `review-` from your task name (`review-S03` → `S03`).
 - `cd {CODE_DIR_ABS}`.
-- **Resolve the review commit SHA** – the change set is committed in both modes, so `git diff` is empty; `quick-review`'s `commit <sha>` FOCUS form provides the change set:
-  - **Worktree mode**: create an unreferenced review snapshot for the full branch diff: `git commit-tree "story-<story-id>^{tree}" -p "$(git merge-base {BASE_BRANCH} story-<story-id>)" -m "review snapshot <story-id>"`. Empty result → escalate.
-  - **No worktree mode**: `git rev-parse HEAD`. Task-dependency ordering (`impl-<story-id>` completes before `review-<story-id>`) guarantees the implementer's commit is at HEAD.
-- **Substitute `<story-id>` and `<hex-sha>` as literals** (skill-invocation lines are not bash; `$VAR` and `<placeholder>` reach `quick-review` unexpanded). Invoke the andthen:quick-review skill with `story <story-id> commit <hex-sha>{AUTO_SUFFIX}`.
-- Accepted findings → report to orchestrator, do not mark done. Else mark done.
+- **Resolve `REVIEW_COMMIT`** from the task's exact input, require a commit object, and bind it to current state:
+  - **Worktree mode**: require it to equal `git rev-parse story-<story-id>`, then create an unreferenced full-branch snapshot: `git commit-tree "story-<story-id>^{tree}" -p "$(git merge-base {BASE_BRANCH} story-<story-id>)" -m "review snapshot <story-id>"`. Require the snapshot tree to differ from its parent.
+  - **No worktree mode**: require it to equal `git rev-parse HEAD`; use that exact SHA. Sequential dependencies guarantee no later implementation has started.
+- **Substitute `<story-id>` and `<hex-sha>` as literals** (skill-invocation lines are not bash; `$VAR` and `<placeholder>` reach `quick-review` unexpanded). Invoke the `andthen:quick-review` skill with `story <story-id> commit <hex-sha>{AUTO_SUFFIX}` and preserve the exact `INTENT CONTEXT:` line.
+- Apply `exec-plan` Step 3b class handling before routing: reconciliation classes return to the orchestrator's Step 3c persistence gate. For `code-defect`, Notes complete; Fix findings leave the task open for one repair/re-review and complete only when clear. No findings → complete.
 - Do not call `andthen:ops update-*` yourself (Worker Contract).
-
-Escalate unresolvable issues.
-
 
 ## Task Management
 
@@ -71,16 +63,16 @@ Escalate unresolvable issues.
 
 **Pre-assignment** (no self-claim): at TeamCreate, the orchestrator round-robin distributes `impl-*` across implementer teammates and `review-*` across reviewer teammates, setting the `owner` field on every task. Same-task races are prevented by ownership, and self-review is prevented at assignment time – the same teammate is never assigned both `impl-Sxx` and `review-Sxx`. Teammates work only their assigned tasks; no claim discipline needed.
 
-**Dependencies** (sequential, `USE_WORKTREE=false`): each `impl-*` blocked by the previous `review-*`. `AUTO_MODE` may unblock the next independent story after recording a failure. Parallel markers ignored.
+**Dependencies** (sequential, `USE_WORKTREE=false`): each `impl-*` is blocked by the previous `review-*`. In one repo, `AUTO_MODE` may unblock the next independent story after failure; multi-repo stops. Parallel markers ignored.
 
-**Dependencies** (worktree, `USE_WORKTREE=true`): current-wave `impl-*` unblocked; each `review-*` blocked until matching `impl-*` succeeds; merge waits for review pass or recorded failure; W2+ `impl-*` blocked until prior wave's merged successes + recorded failures land.
+**Dependencies** (worktree, `USE_WORKTREE=true`): in one repo, current-wave `impl-*` tasks unblock together; multi-repo activates only the next story after the prior review, persistence, shared writes, and plan-repo commit. Each `review-*` waits for its implementation; merge waits for review pass or recorded failure.
 
-**Failure containment**: a failed `impl-*` blocks only its own `review-*` and downstream stories. `AUTO_MODE`: record failure, preserve worktree/branch, skip dependents, continue independent work. No-worktree: prove shared checkout clean before unblocking another `impl-*`.
+**Failure containment**: a reported `BLOCKED:` first goes through **Worker `BLOCKED:` triage** (Step 3c). A repairable blocker re-opens the `impl-*` task once for its existing owner, reusing the story's existing worktree – no second `create-worktree.sh`, with `verify-in-worktree.sh` still the retried task's first action. After bounded repair, multi-repo preserves the plan delta and stops; in one repo the failed story blocks only its reviewer/dependents while `AUTO_MODE` continues independent work. No-worktree continuation requires a clean shared checkout.
 
 
 ## Merge Wave _(worktree mode only)_
 
-After current-wave `impl-*` and `review-*` succeed or are recorded failed, merge only reviewed-successful implementations. Before each merge, take `{WORKTREE_PATH_ABS}` from the `create-worktree.sh` capture (fall back to step 5's `git worktree list --porcelain` lookup only after orchestrator restart). Implementer `BLOCKED:` / Failed Story Report, quick-review accepted **Fix-routed** findings, or dirty worktree → record failed story; no merge, no deferred writes, no cleanup for that story. Accepted **Note-routed** findings are recorded as the story's surfaced notes (Step 6 rollup), not a merge blocker.
+After current-wave `impl-*` and `review-*` succeed or are recorded failed, merge only reviewed-successful implementations. Before each merge, take `{WORKTREE_PATH_ABS}` from the `create-worktree.sh` capture (fall back to step 5's `git worktree list --porcelain` lookup only after orchestrator restart). Implementer `BLOCKED:` past triage, Failed Story Report, `ambiguous-intent`, persistent code-defect Fix, or dirty worktree → failed story; no merge, deferred writes, or cleanup. Ordinary and ledger-linked drift Notes surface in Step 6 without blocking the merge.
 
 For each successful worktree branch in sequence:
 
@@ -89,7 +81,7 @@ For each successful worktree branch in sequence:
    First, extract the implementer's `Completion summary` from the audit block (regex `^Completion summary:\s*(.+)$`, trimmed; fallback `"{STORY_ID}: completed (worktree merge)"`) and write it to `.agent_temp/merge-summary-{STORY_ID}.txt` so prose never reaches the shell argument vector. Reuse this `SUMMARY` in step 3's `update-state note`.
 
    ```
-   {STORY_ID} {BASE_BRANCH} {WORKTREE_PATH_ABS} .agent_temp/merge-summary-{STORY_ID}.txt --guard-path {PLAN_FILE_PATH} [--guard-path {STATE_FILE_PATH}]
+   {STORY_ID} {BASE_BRANCH} {WORKTREE_PATH_ABS} .agent_temp/merge-summary-{STORY_ID}.txt --guard-path {PLAN_PATH} [--guard-path {STATE_FILE_PATH}]
    ```
 
    `[--guard-path {STATE_FILE_PATH}]` only when the State document exists per the Project Document Index.
@@ -100,14 +92,15 @@ For each successful worktree branch in sequence:
 
    - `resolved` → proceed to step 2.
    - `failed` with `error_message` starting `precondition:` → Stop-the-Line. CWD drifted off `BASE_BRANCH` or main checkout is dirty / wrong repo. Investigate before any further merges.
-   - Any other `failed`, and `cancelled` (harness STOP between steps; record as `FAILED:cancelled`) → record `FAILED:{error_message}`, preserve the worktree, continue with the next story. The skill is all-or-nothing: `{BASE_BRANCH}` is already rolled back / unchanged on every such path. Additionally: `logic_conflict:` / `verification:` → also record `conflicted_files` and `resolution_summary` from the skill output, plus the replay-patch path `.agent_temp/merge-resolve-{STORY_ID}.patch` when the skill wrote it (user can replay); `guard:` / `squash:` → the worktree carries `.andthen-fail-reason`, so teardown classifies it `UNMERGED:<branch>:<reason>`.
+   - Any other `failed`, and `cancelled` (harness STOP between steps; record as `FAILED:cancelled`) → record `FAILED:{error_message}` and preserve the worktree. Multi-repo stops; one repo continues with the next story. The skill is all-or-nothing: `{BASE_BRANCH}` is already rolled back / unchanged. Additionally: `logic_conflict:` / `verification:` → record `conflicted_files`, `resolution_summary`, and any replay patch; `guard:` / `squash:` → `.andthen-fail-reason` lets teardown classify the preserved worktree.
 
 2. **Verify build** on `{BASE_BRANCH}` post-commit.
 
-3. **Apply deferred shared writes** (this is the **primary** write path for `plan.json` / State in worktree mode, not a repair). `STORY_ID`, `FIS_FILE_PATH`, and `PLAN_FILE_PATH` come from Step 1's plan parse; the audit block contributes only `Completion summary` (already captured into `SUMMARY` above). Run:
+3. **Apply deferred shared writes** (this is the **primary** write path for `plan.json` / State in worktree mode, not a repair). `STORY_ID`, `FIS_PATH`, and `PLAN_PATH` come from Step 1's plan parse; the audit block contributes only `Completion summary` (already captured into `SUMMARY` above). Run:
 
-   - `andthen:ops update-plan {PLAN_FILE_PATH} {STORY_ID} done`
-   - `andthen:ops update-plan-fis {PLAN_FILE_PATH} {STORY_ID} {FIS_FILE_PATH}` – only when the story's `fis` is `null` or differs from `{FIS_FILE_PATH}` after path normalization.
+   - `andthen:ops update-plan-fis {PLAN_PATH} {STORY_ID} {FIS_POINTER}` – only when the story's `fis` is `null` or differs from the canonical basename pointer `{FIS_POINTER}` derived from trusted plan/story data; `{FIS_PATH}` remains the resolved artifact path.
+   - Re-read and require that `fis === {FIS_POINTER}`, resolves beside the plan to `{FIS_PATH}`, and carries matching Plan/Story provenance. Failure leaves the prior status unchanged and contains the story.
+   - Only after that gate: `andthen:ops update-plan {PLAN_PATH} {STORY_ID} done`.
    - `andthen:ops update-state active-story {STORY_ID} Done` – only if the State document exists.
    - `andthen:ops update-state note "{SUMMARY}"`.
 
@@ -139,7 +132,7 @@ Same green-gate discipline as Step 3c, then run the **Writes-Landed Checklist** 
 
 Checklist source-of-truth by mode:
 - **Worktree** – primary writes come from the Merge Wave post-review "apply deferred shared writes" substep, not the worktree branch. Run the checklist after deferred writes commit (single-repo: from `{BASE_BRANCH}`; multi-repo: from `PLAN_DIR`). Miss → one-shot repair via `andthen:ops update-*`.
-- **No worktree** – `exec-spec` Step 5b writes status in-place; same as Step 3c; one-shot repair on miss.
+- **No worktree** – after the reviewer clears accepted Fix findings, apply Step 3c's Primary Shared Writes, then run the checklist; one-shot repair on miss. In a single repo, commit these orchestrator-owned shared writes before unblocking the next story and require the checkout clean.
 
 Also verify the **Plan Acceptance Gate** before `Done`: every FIS scenario/criteria checkbox is `[x]` (Final Validation Checklist when present), implementation observations present when the FIS narrowed scope, `review-*` task completed without accepted **Fix-routed** findings.
 
@@ -152,15 +145,15 @@ Advance to the next phase only after every current-phase story is verified green
 - **No worktree** – gate after each `impl-*`, before the matching `review-*` unblocks.
 
 **Take-over topology** (orchestrator repair):
-- **Worktree, pre-merge** – `cd {WORKTREE_PATH_ABS}`, apply fix, re-run `Key Dev Commands` verification, `git -C {WORKTREE_PATH_ABS} commit -am "<repair summary>"`. Never `EnterWorktree` / `ExitWorktree`. Merge Wave continues. `AUTO_MODE` permits this only for bounded fix-forward; otherwise preserve and record failure.
-- **Worktree post-merge** or **no worktree** – repair on `{BASE_BRANCH}` in orchestrator's CWD.
+- **Worktree, pre-merge** – `cd {WORKTREE_PATH_ABS}`, apply the one bounded repair, re-run `Key Dev Commands` verification, and commit it. Never `EnterWorktree` / `ExitWorktree`. Re-open the matching review task with `REVIEW_COMMIT` set to that SHA; it creates a fresh full-branch snapshot and re-runs once. Clear/Note-only completes; persistent Fix fails and preserves the worktree.
+- **Worktree post-merge** or **no worktree** – repair on `{BASE_BRANCH}` in orchestrator's CWD. Commit the one bounded repair, re-open the matching review task with `REVIEW_COMMIT` set to that SHA, and apply the same transition; no-worktree must again be clean before the next story starts.
 
 
 ## Multi-Repo Rules _(CODE_DIR ≠ PLAN_DIR's git root)_
-- All git operations target `CODE_DIR` – never the plan repo.
+- Implementation, worktree, and merge git operations target `CODE_DIR`.
 - `create-worktree.sh` receives `CODE_DIR_ABS` as its third argument so worktrees land under `CODE_DIR/.claude/worktrees/`.
 - FIS paths passed to agents are **absolute**.
-- Plan repo is **read-only for git operations** – only the orchestrator updates `plan.json`.
+- Only the orchestrator updates plan/State files; the parent skill's Multi-repo FIS attribution rule owns serialization and commits.
 
 
 ## Monitoring

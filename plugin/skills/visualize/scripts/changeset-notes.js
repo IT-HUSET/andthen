@@ -1,7 +1,8 @@
 (function(){'use strict';
-var ARTIFACT_PATH='__ARTIFACT_PATH__';
-var ARTIFACT_OWNER='andthen:explain-changes';
-var ARTIFACT_SHA1='__ARTIFACT_SHA1__';
+var BOOT={};try{BOOT=JSON.parse(document.getElementById('artifact-state').textContent);}catch(e){}
+var ARTIFACT_PATH=BOOT.artifactPath||'';
+var ARTIFACT_OWNER=BOOT.artifactOwner||'andthen:explain-changes';
+var ARTIFACT_SHA1=BOOT.artifactSha1||'';
 var $=function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s));};
 
 /* ---- state (render-shell.md Notes State Shape) ---- */

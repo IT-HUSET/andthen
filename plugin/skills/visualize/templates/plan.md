@@ -170,7 +170,7 @@ Render a compact dependency view that privileges scheduling clarity over graph c
 1. Group stories by `phase`, then `wave`.
 2. Within each wave, render story pills with status/risk color.
 3. Below the lanes, render an edge list for every `dependsOn` relationship (`S02 ← S01`). Use links to story anchors.
-4. Flag invalid dependencies inline when a `dependsOn` ID does not exist: `<!-- plan: dependency "S99" from "S02" not found -->` and add `.attention` to the dependent story pill.
+4. Flag invalid dependencies inline when a `dependsOn` ID does not exist: `<!-- plan: dependency target not found -->` and add `.attention` to the dependent story pill. Keep artifact-derived IDs out of comments.
 
 Do not hand-draw a dense SVG graph for large plans. Lanes stay readable for 5 stories and for 50 stories; dense node-link diagrams do not.
 

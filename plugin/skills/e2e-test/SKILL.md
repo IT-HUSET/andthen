@@ -15,9 +15,9 @@ FOCUS: $ARGUMENTS
 
 ## INSTRUCTIONS
 
-- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting – including any Visual Validation Workflow sections.
+- Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and read the referenced guideline files relevant to this work – including any Visual Validation Workflow section, wherever defined.
 - **Fix bugs found during testing** – this skill is not read-only; fix and document issues discovered
-- Use the `agent-browser` skill for all browser automation (snapshots, clicks, form fills, screenshots); if unavailable, warn the user and stop
+- **Browser automation is required; the provider is not.** Select any available provider that can navigate, inspect DOM state, click/fill, and capture screenshots; prefer project-documented tooling. Name it in the report and stop only when none qualifies.
 
 
 ## GOTCHAS
@@ -31,9 +31,9 @@ FOCUS: $ARGUMENTS
 
 ### Phase 1: Pre-flight
 
-Confirm macOS/Linux/WSL (warn and stop otherwise), verify a frontend exists, confirm `agent-browser` skill is available, and read project guidelines.
+Verify a frontend exists, select a browser-automation provider with the required capabilities on the current platform, and read project guidelines. Do not require application reachability before Phase 4 starts or discovers the server. Platform identity alone is never a gate; provider capabilities are.
 
-**Gate**: Environment confirmed suitable for E2E testing
+**Gate**: Frontend present and a capable browser provider selected and named
 
 
 ### Phase 2: Parallel Discovery
@@ -74,7 +74,7 @@ Execute journeys sequentially. For each journey:
 
 **5.1 Setup** – Clear auth state; prepare required test data.
 
-**5.2 Execution (via `agent-browser` skill)** – navigate to the starting URL; snapshot to identify elements; execute steps (navigate, click, fill, submit); screenshot + verify after each significant step; on completion verify final state and check DB/API for data persistence.
+**5.2 Execution (via the selected browser provider)** – navigate to the starting URL; snapshot to identify elements; execute steps (navigate, click, fill, submit); screenshot + verify after each significant step; on completion verify final state and check DB/API for data persistence.
 
 **5.3 Issue Handling** – Classify: **Critical** (flow blocked) / **High** (degraded UX) / **Low** (cosmetic). Fix if root cause is clear and contained; otherwise document steps-to-reproduce + screenshot and continue.
 
@@ -106,7 +106,7 @@ Obtain the date with `date +%Y-%m-%d` (never guess) for the report title and fil
 [2-3 sentences: scope, overall result, key findings]
 
 ## Test Environment
-- Base URL: [url] | Platform: [platform] | Focus: [FOCUS or "Full coverage"]
+- Base URL: [url] | Platform: [platform] | Browser provider: [selected provider] | Focus: [FOCUS or "Full coverage"]
 
 ## Journeys Tested
 | Journey | Result | Steps | Issues |

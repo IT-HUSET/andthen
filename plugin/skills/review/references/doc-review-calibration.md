@@ -81,3 +81,5 @@ Common patterns that look like document issues but aren't:
 4. **Treating brevity as incompleteness.** Example: flagging a concise, clear requirement ("Users can export data as CSV") as "underspecified" when the implementation path is obvious. Not every requirement needs a paragraph of elaboration.
 
 5. **Projecting a different project's needs.** Example: reviewing a prototype/MVP spec with production-system expectations (HA, multi-region, 99.99% uptime). Calibrate to the project's actual stage and goals.
+
+6. **Enumerating template and style conformance as substantive findings.** Punctuation, heading shape, tag-format slips, provenance-comment drift, and other mechanical conformance defects are `--fix` fodder, not review signal. Report them as **one aggregate LOW finding** naming the classes and counts – never one per instance (the sanctioned exception to *Severity is per-finding*), and never above LOW unless the defect changes meaning. A review whose Prioritized Recommendations are mostly conformance items has crowded out the findings that justify the pass: what a fresh reviewer uniquely adds is evidence from outside the document, not a lint sweep.

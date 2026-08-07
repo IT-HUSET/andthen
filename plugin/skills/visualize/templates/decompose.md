@@ -201,7 +201,7 @@ One card per top coupling point. Each card lists the connascence type (CoN/CoT/C
 .dc-con-fields dd { margin: 0.1rem 0 0.3rem; font-size: 0.88rem; color: var(--text); }
 ```
 
-**Dynamic connascence crossing a package boundary always reads as HIGH or CRITICAL** per the architecture skill; if a card has `data-kind="dynamic" data-locality="cross-boundary"` and a lower severity, emit `<!-- decompose: dynamic cross-boundary CoX but severity Y -->` in `View source` so the gap surfaces.
+**Dynamic connascence crossing a package boundary always reads as HIGH or CRITICAL** per the architecture skill; if a card has `data-kind="dynamic" data-locality="cross-boundary"` and a lower severity, emit the static `<!-- decompose: dynamic cross-boundary severity mismatch -->` comment in `View source` so the gap surfaces. Artifact-derived values stay out of comments.
 
 ### Consumer Analysis → Consumer-profile cards (when present)
 

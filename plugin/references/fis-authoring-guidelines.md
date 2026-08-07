@@ -6,10 +6,10 @@ Shared authoring guidelines for generating Feature Implementation Specifications
 
 - FIS Authoring Principles
 - Feature Overview and Goal Authoring – Intent + Expected Outcomes; outcomes as scenario anchor
-- Cross-Document References – two-tier model + authoring rules + why inlined text is authoritative
-- Acceptance Scenarios and Proof-of-Work – canonical shape, BDD principles, negative-path checklist
+- Cross-Document References – required vs. deeper references; reference substitution
+- Acceptance Scenarios and Proof-of-Work – compact bound shape, BDD principles, negative-path checklist
 - Architecture Decision Authoring – 3-4 line cap, ADR escalation
-- Key Generation Guidelines – outcome-shape audit, Verify prescribed-detail audit, size signal
+- Key Generation Guidelines – outcome-shape audit, Verify outcome rule, size signal
 - Constraints & Gotchas Authoring
 - Task Ordering
 - Plan-Spec Alignment Check (when FIS originated from a plan story)
@@ -30,7 +30,7 @@ FIS is an executable spec: intent over implementation, references over content, 
 The `## Feature Overview and Goal` section is the FIS's intent anchor. Two load-bearing sub-blocks – do not collapse into prose.
 
 - **Intent** – one sentence naming *why* the feature exists: the problem solved or user/business value unlocked. Not a scope summary, not a title restatement. If it reads identically to the feature name, it is missing.
-- **Expected Outcomes** – 2-4 bulleted user-/business-observable success conditions, each `[OC<NN>]`-tagged (same two-digit zero-padded convention as `S<NN>` / `TI<NN>`). The FIS's own internal contract – distinct from upstream PRD outcomes (inlined into Required Context) and from Acceptance Scenarios (concrete BDD examples exemplifying each outcome).
+- **Expected Outcomes** – 2-4 bulleted user-/business-observable success conditions, each `[OC<NN>]`-tagged (same two-digit zero-padded convention as `S<NN>` / `TI<NN>`). The FIS's own internal contract – distinct from upstream PRD outcomes (linked from Required Context) and from Acceptance Scenarios (concrete examples exemplifying each outcome).
 
 **Outcome ↔ Scenario coverage** – every Expected Outcome exemplified by ≥1 scenario tagged with its `[OC<NN>]`; every scenario tags ≥1 outcome. Untagged scenarios are decoupled from intent; unexemplified outcomes are unproven.
 
@@ -41,52 +41,42 @@ The `## Feature Overview and Goal` section is the FIS's intent anchor. Two load-
 
 ## Cross-Document References
 
-Every cross-doc reference is a **trust boundary**: the intent behind it lives with the author, not the executor. Punting resolution ("see the plan") forces every downstream reader to re-discover what the author already knew.
+A cross-document reference is a **trust boundary**: resolve it while authoring with an anchor and intent, never a bare "see the plan".
 
 ### Two-tier model
 
-- **Required Context** (load-bearing, inlined verbatim) – spans the executor *must* know. Pulled at spec time, inlined as a block, pinned with `<!-- source: path#anchor -->` and `<!-- extracted: <commit-sha when source is in this repo; YYYY-MM-DD otherwise> -->`. The inlined text is authoritative (see *Why the inlined text is authoritative* below).
-- **Deeper Context** (optional, anchored pointers) – supplementary, read-on-demand. Each bullet is `path/to/source.md#heading-slug – one-line description`.
+- **Required Context** – load-bearing anchored references the executor reads before implementation. Each bullet is ``- `path#anchor` – what to learn and why it constrains this FIS``.
+- **Deeper Context** – supplementary anchored references read on demand, using the same shape.
 
-### Authoring rules
+### Reference substitution
 
-1. **Anchors over line numbers.** `prd.md#error-handling`, `src/auth.ts#validateToken` survive source edits; `prd.md:42-78` rots on the first line shift. Anchor by heading slug (markdown), symbol or `Container.member` (code), unquoted dotted key path (YAML/JSON), or quoted `#"key.with.dots"` when the key contains dots. Fall back to `path:LINE-LINE` only when no stable identifier exists. Never use comma-joined fragments (`path#A,B`) – they break URL encoding on GitHub.
+Prefer a durable, addressable artifact over a description or copied extract: an executable test over restated acceptance prose, a function over pseudocode, an HTML mockup over a visual description. The FIS states the intent and delta; the reference carries the detail.
 
-   **Pair every reference with intent**: name *what the executor should learn* ("Dialog pattern – copy focus-trap + escape-key handling", not "Pattern for dialog handling").
+1. **Anchors over line numbers.** Emit local reference and Proof paths as repo-root-relative POSIX paths. Anchor Markdown by heading, code by symbol, and YAML/JSON by dotted key path; use lines only without a stable identifier. Never comma-join fragments (`path#A,B`). Every reference names what to learn. Consumers probe repo root and FIS directory: one match wins, zero is broken, two distinct matches ambiguous.
+2. **Resolve at authoring time.** Open every reference and run every Proof binding. Required sources must be durable and available to the executor. Pin cross-repo ports by commit and name the parity expectation; for UI work, prefer a real HTML mockup from the `andthen:ui-ux-design` skill.
+3. **Do not duplicate the source.** If the durable reference carries the needed detail, omit the equivalent FIS prose. Without a durable address, inline only the irreducible span (≤20 lines each, ≤40 total) using the existing H3 + `source` / `extracted` comments + blockquote shape. Exact issue-transported requirements may exceed these budgets when no durable source exists; never narrow or omit them.
+4. **Either tier may contain code, tests, docs, ADRs, or mockups.**
+5. **Omit empty sections.** Standalone FIS files with no upstream context commonly need neither tier.
 
-   **Scope**: governs *new* authoring; pre-existing rows are not retroactive findings.
-
-2. **Resolve at authoring time, not execution time.** Walk every reference, extract spans, decide required vs deeper. A bare "see the plan" without anchor or inlined content is not acceptable.
-
-3. **Required Context unavailability test.** A span belongs in Required Context only if the executor cannot proceed without it should the source vanish. Otherwise it belongs in Deeper Context. This filters defensive copying.
-
-4. **Inline budget.** Per block: typically 30-100 lines, hard cap 200. Total ≤ 250 lines. Not additive – two blocks at the per-block hard cap (400 lines) breach the total.
-
-5. **Keep code pointers out of Required Context.** `src/foo.ts#parseFoo` pattern pointers belong in task descriptions or `Code Patterns & External References`. Required/Deeper Context is reserved for upstream *intent* documents (PRD, plan, ADRs, guidelines, glossary).
-
-6. **Omit empty sections.** No load-bearing spans → omit Required Context entirely. Same for Deeper Context. Standalone FIS with no PRD/plan upstream typically have neither.
-
-7. **One focus per block.** Each `### From ...` block carries one decision/constraint/contract. Split when one source span carries multiple distinct intents.
-
-### Why the inlined text is authoritative
-
-A FIS is a contract with the executor. The text the author pulled at spec time is the intent the FIS commits to, even if the upstream later changes. Drift is a *review* signal, not an *execution* failure.
+Existing inline blocks remain valid. Missing/conflicting Required targets are spec-stale `CONFUSION:`; a followed broken Deeper target warns.
 
 
 ## Acceptance Scenarios and Proof-of-Work
 
-Each scenario: one behavior, concrete Given/When/Then using actual codebase identifiers. Order: happy path, edge cases, ≥1 error case. 3-7 scenarios. If you can't write the **Then**, surface as ambiguity.
+Use 3-7 single-behavior scenarios: happy path, edges, then ≥1 error. If neither prose nor executable proof states the observable outcome, surface the ambiguity.
 
-**Canonical shape** – every scenario is a single top-level checkbox under `## Acceptance Scenarios` whose bold label carries a scenario ID, `[OC<NN>(,OC<NN>)*]`, then `[TI<NN>(,TI<NN>)*]`, followed by nested Given/When/Then. Tag groups appear as separate bracketed tokens, outcomes before tasks. The bold label functions as a pseudo-heading while remaining a checkbox – letting `ops update-fis all` flip per-scenario checkboxes. Do NOT emit scenarios as `### S<NN> ...` headers – that breaks the checkbox proof shape.
+**Canonical shape** – one top-level checkbox with a bold label carrying ID, `[OC<NN>(,OC<NN>)*]`, then `[TI<NN>(,TI<NN>)*]`. It is the mutable pseudo-heading; never use `### S<NN>`.
+
+- **Unbound** – nest concrete Given/When/Then.
+- **Fully bound** – precise title + Proof only when the title itself states every acceptance-significant precondition, action, observable outcome, and required mechanism. Add GWT whenever the title cannot carry that contract clearly; the inspected target is evidence, never the contract's only home.
+- **Supplemented** – add only missing Given/When/Then detail before Proof; never transcribe the test.
 
 ### Scenario Authoring Principles
 
-Dan North's "Introducing BDD" (2006) anchors scenarios in concrete examples; Liz Keogh's "Acceptance Criteria vs. Scenarios" (2011) separates abstract rules from concrete examples. Apply these:
-
-- **Concrete over Abstract** – use actual data: "Given Fluffy is 3 weeks old" not "Given an animal under selling age".
+- **Concrete over Abstract** – unbound scenarios use actual data: "Fluffy is 3 weeks old", not "an animal under selling age". Proof may carry the data.
 - **Observable Boundary** – assert visible behavior: "Then checkout rejects the sale" not "Then `AgePolicy.validate()` returns false".
-- **Declarative over Imperative** – state precondition, event, outcome: "When checkout runs" not "When the test constructs mocks and calls methods".
-- **Mechanism Fidelity** – when the requirement itself is a mechanism (LLM/agent turn, specific algorithm, external call), at least one scenario's **Then** asserts a mechanism-distinguishing observable a trivial or deterministic substitute would fail. A scenario satisfiable by a stub or copy does not specify the feature.
+- **Declarative over Imperative** – state precondition, event, outcome, not test mechanics.
+- **Mechanism Fidelity** – for a required mechanism (LLM turn, algorithm, external call), title or GWT must distinguish it from a trivial substitute; Proof verifies that articulated mechanism.
 
 **Negative-path checklist** – after drafting, add one scenario per uncovered category (the riskiest gap), not one per parameter:
 
@@ -94,7 +84,14 @@ Dan North's "Introducing BDD" (2006) anchors scenarios in concrete examples; Liz
 - **No-match cases** – selectors/filters/lookups where "nothing matches" falls through to an unintended default?
 - **Rejection paths** – external integration points where unmatched/invalid input should be explicitly ignored or rejected?
 
-**Proof-of-Work**: each scenario's nested Given/When/Then IS the proof contract. Each Structural Criterion is proved by a task Verify line. `[OC<NN>]` anchors the proof to the Expected Outcome(s) exemplified; `[TI<NN>]` maps it to producing tasks. Together they close Intent → Outcomes → Scenarios → Tasks.
+**Proof Binding** – bind an existing test/suite as ``- **Proof**: `path[#test-name]` – <state>``; bare suites are valid. Resolve and run it before finalizing. States:
+
+- `red at spec time` – new behavior/bug repro; failure matches the scenario contract or expected symptom. A suite identifies the covering failure.
+- `green – parity/regression` – behavior-preservation only (ports, refactors, conformance); it cannot prove new behavior.
+
+Bindings are never aspirational; brevity never excuses an ambiguous title or weak test.
+
+**Proof-of-Work**: title plus any GWT is the complete articulated contract; Proof is executable evidence and never owns acceptance semantics. Task Verify lines prove Structural Criteria. `[OC<NN>]` and `[TI<NN>]` close Intent → Outcomes → Scenarios → Tasks.
 
 **Traceability**: legacy plan **Key Scenarios** or acceptance criteria are seeds – map each retained seed to ≥1 FIS Acceptance Scenario.
 
@@ -109,16 +106,17 @@ Dan North's "Introducing BDD" (2006) anchors scenarios in concrete examples; Liz
 1. **Outcomes, not code changes**: each task describes what must be TRUE when done. The executor determines implementation.
 2. **Outcome-shape audit on task titles**: ban implementation verbs (`Replace`, `Refactor`, `Update`, `Modify`, `Add to`). Use state-of-the-world verbs. "Replace foo with bar" → "Module X uses bar (foo retired)".
 3. **Task brevity**: 1-3 lines per task – outcome, pattern reference (`file#symbol`), Verify line. >3 lines means too large (split) or too detailed (describe outcome).
-4. Each task atomic, self-contained, with `file#symbol` pattern references. In large or unfamiliar codebases, also pin the task's **read-set** – the critical callers, callees, and registration/config sites of the surfaces it changes – as `file#symbol` pointers. Resolve-at-authoring-time (Cross-Document References rule 2) applies to code pointers too. Order so later tasks build on earlier ones without hidden dependencies (see Task Ordering).
+4. Each task atomic, self-contained, with `file#symbol` pattern references. Pin a task's **read-set** – critical callers, callees, registration/config sites – only for wiring the executor would not find by searching from the surfaces it already knows: implicit registration, generated or reflective call sites, a consumer in another package. Discoverable callers are the executor's job; an exhaustive read-set rots faster than it helps. Resolve-at-authoring-time (Cross-Document References rule 2) applies to code pointers too. Order so later tasks build on earlier ones without hidden dependencies (see Task Ordering).
 5. Reference patterns; do not reproduce them.
 6. Every task has a **`Verify:`** line – a concrete observable check proving the outcome. **Verify must assert the described behavior, not just build success.** Trace to Acceptance Scenarios where applicable.
 
-   **Verify prescribed-detail audit**: every prescribed value (column name, format string, error message, file path, flag value) named in the FIS appears verbatim in ≥1 Verify line.
+   **Verify names the outcome, not the command transcript** – the executor picks the check at exec time. Prescribe a literal value only when the value *is* the contract (a column name a consumer parses, a mandated error string). Exact counts and line numbers bind the spec to today's code and rot on the first unrelated edit – assert presence, absence, or the covering invariant instead.
 
    - Weak: `Verify: traces list shows token breakdown`
    - Strong: `Verify: traces list output includes columns IN_TOKENS, OUT_TOKENS, CACHE_R, CACHE_W`
+   - Rotting: `Verify: rg -c 'IN_TOKENS' src/ prints 3`
 
-7. Good FIS files land in 200-500 lines. Past ~700 lines or ~18 tasks signals this is no longer one execution-sized spec. Save anyway, but emit `OVERSIZE:` and recommend: standalone → the `andthen:prd → andthen:plan → andthen:exec-plan` chain; `story <id> of plan.json` → revisit the plan and decompose.
+7. A FIS is as short as completeness allows; a reference-rich small feature may need only 30-150 lines. Judge size in **words** first – dense 150-character lines defeat a line count, and the word bar is set to match ~700 lines of ordinary prose, not to tighten the norm. Past ~6,000 words, ~700 lines, or ~18 tasks signals this is no longer one execution-sized spec. Save anyway, but emit `OVERSIZE:` and recommend: standalone → run the `andthen:prd` skill, `andthen:plan` skill, then `andthen:exec-plan` skill; `story <id> of plan.json` → revisit the plan and decompose.
 8. **What We're NOT Doing**: 3-5 specific exclusions/deferrals with reasons.
 
 ## Constraints & Gotchas Authoring
@@ -135,10 +133,7 @@ When a later task consumes something from an earlier one (API, type, component),
 
 ## Plan-Spec Alignment Check (when FIS originated from a plan story)
 
-Before finalizing, cross-check the plan story brief, its Source refs, and applicable Binding Constraints against the FIS:
-- FIS scenarios + criteria deliver the story scope and every applicable Binding Constraint.
-- If the FIS can't fully satisfy the scope: (a) expand the FIS, or (b) add a scope note explaining the narrowing and flag for the `andthen:plan` skill's cross-cutting review.
-- Do not finalize a FIS that silently narrows a plan story or Binding Constraint.
+Before finalizing a plan-derived FIS, require its scenarios and criteria to cover story scope, Source refs, and every applicable Binding Constraint. Expand the FIS or add an explicit narrowing note and flag Step 6; never narrow silently.
 
 
 ## Reverse Coverage Check (phantom-scope guard)
@@ -174,13 +169,14 @@ Named principles to verify before saving. Each names a failure mode.
     - *Failure modes*: unreferenced task that proves no criterion → unproven scope; scenario tag pointing at a missing task → broken wiring; task fitting neither path → decoupled, must be split/removed/anchored.
     - *Classification*: behavioral/structural split is exhaustive, set at authoring time, re-asserted by exec-spec Step 5a. No syntactic suffix on criteria – linkage lives in the Verify-line text matching the criterion.
 - **Scope-consistency** – every Work Area exercised by a scenario or Verify line.
-- **Canonical scenario shape** – matches *Acceptance Scenarios and Proof-of-Work* above (outcomes before tasks); no `### S<NN>` headers; negative-path checklist applied; every prescribed value appears verbatim in ≥1 Verify line.
+- **Canonical scenario shape** – outcomes before tasks; no `### S<NN>`; valid Proof omits only detail title + target encode; negative paths applied.
+- **Reference substitution** – every durable source replaces copied detail; Required Context is anchored bullets by default; inline fallbacks stay within budget except exact issue transport.
 - **Mechanism Fidelity** – matches *Scenario Authoring Principles* above (mechanism-distinguishing observable; no stub/copy-satisfiable scenario).
 - **Outcome-shape audit on task titles** – no outcome-shaped violations per Key Generation Guidelines #2.
-- **Anchor and Verify dry-run audit** – every cited `path#anchor` resolves against the actual source heading slug; every `rg`/`grep`/shell command in a Verify was executed against the current source and the prose claim matches the output. Catches `rg -c` exit-semantics traps (no match exits 1, does not print `0`), case-sensitivity mismatches, stale line numbers.
+- **Anchor and Proof dry-run audit** – resolve every anchor and Proof target; run bound tests and confirm recorded state and red reason match. Do **not** run Verify lines – they are exec-time checks, and one writable only as a command transcript is over-prescribed (Key Generation Guidelines #6). Where a Verify does prescribe a shell check, mind `rg -c` exit semantics (no match exits 1, prints nothing).
 - **Cross-consumer surface inventory** (cross-cutting renames/restructures across multiple consuming skills/references) – before writing tasks, sweep with `grep -rni` for every literal string being renamed; the inventory IS the rename surface; every match maps to a task or a documented exclusion. Skip when the FIS is local to one surface.
 - **Prose-vs-Verify scope alignment** – when an audit says "rename all X" / "strip all Y", the Verify enforces the same scope (not narrower).
-- **Empty-section discipline** – sections with "**Leave empty** when…" prompts stay empty in the typical case. Fill only when the named condition holds. Empty headings are a feature, not a gap.
+- **Conditional-section discipline** – sections with an "**Omit this entire section**" prompt are absent in the typical case; emit one only when its named condition holds. A retained empty heading reads as a gap and gets filled with filler on the next pass.
 
 ### Confidence Check
 Rate the FIS 1-10 for single-pass success:

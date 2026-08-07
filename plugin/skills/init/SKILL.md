@@ -57,7 +57,7 @@ docs/
 
 Gitignore hygiene: append entries for the `State (local)` path (default `docs/STATE.local.md`) and the agent workspace (`.agent_temp/`) to `.gitignore` idempotently (only if absent); create `.gitignore` if missing.
 
-Because the generated root agent instruction template references the starter guideline filenames directly, copy any missing files from `templates/guidelines/` into `docs/guidelines/` as part of baseline setup. Never overwrite existing guideline files; preserve project-specific files.
+Because the generated root agent instruction template references `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` directly, copy it from `templates/guidelines/` if missing as part of baseline setup. Never overwrite existing guideline files; preserve project-specific files.
 
 Scaffold the **Core orientation stubs by default** – the documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md), `Decisions` (docs/DECISIONS.md), `Learnings` (docs/LEARNINGS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). The `andthen:architecture` skill in `--mode trade-off` auto-registers accepted ADRs into the `Decisions` stub. The user can fill these in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
 
@@ -98,7 +98,7 @@ Current setup analysis:
   - 9/13 document types configured
   - Missing: State, Requirements, Roadmap, Conventions
 ✓ Project-Specific Guidelines and Rules section configured
-✗ Required starter guideline files are missing from docs/guidelines/
+✗ CRITICAL-RULES-AND-GUARDRAILS.md is missing from docs/guidelines/
 ✗ Core orientation stubs missing: PRODUCT.md, ARCHITECTURE.md, DECISIONS.md, LEARNINGS.md
 
 Would you also like to:
@@ -120,8 +120,8 @@ Wait for user response, then execute confirmed actions:
 - **New optional Index rows** (`Context Map`, `Out of Scope Registry`): append the row only when confirmed. Create the `Out of Scope Registry` file from template with its row; the Context Map file is written later by the `andthen:architecture` skill in `--mode strategic-design`, so add its row without a file.
 - **Missing Index rows**: Append to existing table (don't rewrite the whole table)
 - **Missing documents**: Generate from templates, pre-fill where possible
-- **Missing guidelines**: Copy any missing starter guideline files referenced by the generated template from `templates/guidelines/`; never overwrite existing files
-- **Missing sections**: Add to the root agent instruction file(s) at the appropriate location. If this adds the template's Project-Specific Guidelines and Rules section or creates a missing counterpart file from the template, also copy any missing starter guideline files so the new references resolve.
+- **Missing guidelines**: Copy `CRITICAL-RULES-AND-GUARDRAILS.md` from `templates/guidelines/` if missing; never overwrite existing files
+- **Missing sections**: Add to the root agent instruction file(s) at the appropriate location. If this adds the template's Foundational Rules section or creates a missing counterpart file from the template, also copy `CRITICAL-RULES-AND-GUARDRAILS.md` if missing so the reference resolves.
 - **map-codebase**: Invoke the `andthen:map-codebase` skill; skip creating the `Architecture` and `Stack` documents from templates since map-codebase produces them from actual analysis
 
 **Gate**: All selected gaps filled
@@ -161,7 +161,6 @@ Created:
   docs/DECISIONS.md                           – Decisions registry (stub)
   docs/LEARNINGS.md                           – Defensive knowledge / traps (empty template)
   docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md
-  docs/guidelines/DEVELOPMENT-ARCHITECTURE-GUIDELINES.md
   [+ any optional documents the user selected, e.g. docs/STATE.md, docs/ROADMAP.md, …]
 
 Next steps:

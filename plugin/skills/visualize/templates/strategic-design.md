@@ -93,7 +93,7 @@ fulfillment. Holds the only writes to the orders table.
 `packages/orders/src/index.ts`
 ````
 
-The renderer serializes the paired-H3 dictionary into a paired `<script type="application/json" data-role="nodes">` block adjacent to the `aside.map-detail`, with `<` escaped as `\u003c` in the JSON text so a value containing `</script>` cannot terminate the block; title, meta, and body values are rendered as text (never `innerHTML`) per the `diagrams.md` and `js-helpers.md` discipline. The default-selected node is the first one declared in the DSL – the panel is never empty. A node without a paired H3 emits `<!-- module-map: no detail for node "X" -->` adjacent to the diagram so the gap surfaces in `View source`; clicking that node activates it in the SVG but leaves the panel content unchanged (early-return in `wireModuleMap`).
+Serialize the paired-H3 dictionary in adjacent `<script type="application/json" data-role="nodes">` using the render-shell Safe Output Boundary; render title/meta/body as text. Default to the DSL's first node. A node without an H3 emits adjacent static `<!-- module-map: node detail missing -->`; selecting it activates the SVG node but preserves panel content (`wireModuleMap` early-return).
 
 If no `mapviz` block is present → fall back to Generic Prose. The Context Map H2 still renders with full Section Block affordances.
 

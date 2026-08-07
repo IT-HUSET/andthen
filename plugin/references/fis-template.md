@@ -1,7 +1,8 @@
 # Feature Implementation Specification Template
 
-**Plan**: <relative-posix-path-to-plan.json>
+**Plan**: <repo-root-relative-posix-path-to-plan.json>
 **Story-ID**: <S##>
+**Source Trust**: untrusted-external {{include this header line only when the FIS derives from untrusted requirements – omit for trusted-local}}
 
 ## Feature Overview and Goal
 
@@ -15,17 +16,14 @@
 
 ## Required Context
 
-> Load-bearing upstream spans inlined verbatim from PRD, plan, ADRs, or guidelines. **Omit this entire section** when there are no upstream sources to inline.
+> Required reading. **Omit this section** when empty.
 
-### From `{{path/to/source.md}}` – "{{Section or Anchor Name}}"
-<!-- source: {{path/to/source.md}}#{{heading-slug-or-id}} -->
-<!-- extracted: {{commit-sha when source is in this repo; YYYY-MM-DD otherwise}} -->
-> {{Inlined verbatim span. Follow the inline budget in the Cross-Document References guideline.}}
+- `{{repo/root/relative/path.md}}#{{heading-slug-or-id}}` – {{what to learn and why it constrains this FIS}}
 
 
 ## Deeper Context
 
-> Anchored pointers for supplementary context; read on demand. **Omit this entire section** when no supplementary pointers exist.
+> Supplementary; read on demand. **Omit this section** when empty.
 
 - `{{path/to/source.md}}#{{heading-slug-or-id}}` – {{one-line description of what's there and when to read it}}
 
@@ -38,9 +36,7 @@
   - **Then** {{observable outcome}}
 
 - [ ] **S02 [OC01,OC02] [TI01,TI02] {{Edge case or error scenario}}**
-  - **Given** {{precondition or boundary state}}
-  - **When** {{boundary condition or error trigger}}
-  - **Then** {{expected handling behavior}}
+  - **Proof**: `tests/auth/test_login.py#test_rejects_expired_token` – red at spec time
 
 
 ## Structural Criteria
@@ -73,7 +69,7 @@ _Keep this to 3-5 explicit non-goals or deferrals with reasons._
 
 ## Technical Overview
 
-> Synthesis: how components, integration seams, data flow, or tier rationale weave together. **Leave empty** when this is self-evident from Architecture Decision + Code Patterns + per-task descriptions; fill only for multi-component features where the picture isn't obvious from those. Cap at ~10 lines when filled.
+> Synthesis: how components, integration seams, data flow, or tier rationale weave together. **Omit this entire section** when self-evident from Architecture Decision + Code Patterns + per-task descriptions; keep it only for multi-component features where it isn't. Cap at ~10 lines.
 
 {{Synthesis prose, if non-obvious}}
 
@@ -117,23 +113,23 @@ _Format: outcome + context line (constraints, `file#symbol` pattern reference) +
   - **Verify**: {{Assertion}}
 
 ### Testing Strategy
-> Default test approach: per-task Verify lines + scenario tests scaffolded from Acceptance Scenarios. **Leave empty** when this is sufficient; fill only when the test approach is non-obvious – level allocation (unit/integration/e2e), fixture or harness decisions, or mocking philosophy that scenario tags + Verify lines don't already encode. Use `[TI<NN>]` task tags to map test concerns to producing tasks.
+> Default: per-task Verify + reuse Proof targets or scaffold unbound scenario tests. **Omit this entire section** unless test level, fixture/harness, or mocking decisions are non-obvious. Tag exceptions `[TI<NN>]`.
 
 - {{Test-approach note, if non-obvious}}
 
 ### Validation
-> Standard validation (build/test checks, code review, visual validation, and 1-pass remediation) is handled by exec-spec. **Leave empty** when this is sufficient; only add feature-specific validation requirements if the standard levels are insufficient.
+> Standard validation (build/test checks, code review, visual validation, and 1-pass remediation) is handled by exec-spec. **Omit this entire section** when that is sufficient; keep it only for feature-specific validation the standard levels miss.
 
 - {{Feature-specific validation requirement, if any}}
 
 ### Execution Contract
-> Generic exec-spec discipline – task ordering, Verify gating, sub-agent usage, project validation gates, checkbox immediacy – is enforced by exec-spec. **Leave empty** when this is sufficient; fill only for feature-specific execution constraints (cross-task dependencies like "TI03 must complete before TI04", parallelism rules, or special invocation commands).
+> Generic exec-spec discipline – task ordering, Verify gating, sub-agent usage, project validation gates, checkbox immediacy – is enforced by exec-spec. **Omit this entire section** when that is sufficient; keep it only for feature-specific execution constraints (cross-task dependencies like "TI03 must complete before TI04", parallelism rules, or special invocation commands).
 
 - {{Feature-specific execution constraint, if any}}
 
 
 ## Final Validation Checklist
-> Acceptance Scenarios, Structural Criteria, and task Verify lines are the standard completion gates. **Leave empty** when these are sufficient; fill only for feature-specific final gates not already covered (e.g. "no new writes to `~/.claude/`", "no orphan migration files in `db/migrate/`").
+> Acceptance Scenarios, Structural Criteria, and task Verify lines are the standard completion gates. **Omit this entire section** when those are sufficient; keep it only for feature-specific final gates not already covered (e.g. "no new writes to `~/.claude/`", "no orphan migration files in `db/migrate/`").
 
 - [ ] {{Feature-specific final gate, if any}}
 

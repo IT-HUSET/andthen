@@ -7,13 +7,17 @@ argument-hint: "[--mode <mode>[,<mode>...]] [--council] [--team] [--fix] [--inli
 # Review
 
 ## VARIABLES
-ARGUMENTS: $ARGUMENTS (strip flag tokens before interpreting the remainder as target/path/PR/focus)
+ARGUMENTS: $ARGUMENTS with flags and their values removed – target/path/PR/focus
+SOURCE_RUN: optional exact caller line `SOURCE_RUN: <value>`
+UNTRUSTED_REQUIREMENTS_DATA: optional exact caller line `UNTRUSTED REQUIREMENTS DATA: <value>`
+COMPLETED_STORY_IDS: optional exact caller line `COMPLETED STORY IDS: S01,S03,...`
+CODE_DIRECTORY: optional exact caller line `CODE DIRECTORY: <absolute-path>`
 
 Flags:
 - `--mode <mode>[,<mode>...]`: `code`, `doc`, `gap`, `security`, or `mixed`; chains share one target map. `mixed` is a resolver and cannot be combined with explicit lenses.
 - `--council`: opt-in multi-perspective review; load `references/council-mode.md`. Reject single-lens `doc` or `gap`.
 - `--team`: force Agent Teams for council; error if unavailable.
-- `--from-pr <number>` / `--worktree` / `--to-pr <number>`: PR input, optional full-fidelity checkout, optional PR comment. Load `references/from-pr-mode.md` when `--from-pr` is set; `--worktree` requires it.
+- `--from-pr <number>` / `--worktree` / `--to-pr <number>`: PR input, optional checkout-free full-tree static inspection (legacy flag name), optional PR comment. Load `references/from-pr-mode.md` when `--from-pr` is set; `--worktree` requires it.
 - `--fanout` / `--no-fanout`: force partition fan-out on/off for `code` and `gap`; otherwise use `references/large-diff-fanout.md` triggers.
 - `--output-dir <path>`: writable report directory override.
 - `--inline-findings`: return the report inline; incompatible with `--fix`, `--visual`, or `--output-dir`.
@@ -24,14 +28,15 @@ Flags:
 
 ## NON-NEGOTIABLES
 
-- Read project rules (`CLAUDE.md` / `AGENTS.md`) and collect **Project Rules Context** + **Intent Context** per `${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md` before reviewing.
+- Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and collect **Project Rules Context** + **Intent Context** per `${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md` before reviewing.
 - Review is read-only unless `--fix` runs. Only the `andthen:remediate-findings` skill edits review findings; only the `andthen:ops` skill may update ledgers/learnings.
+- Under `--from-pr`, `references/from-pr-mode.md`'s untrusted-code rule overrides every lens's normal scanner/build/test guidance: no PR-controlled code or configuration executes, including in `--worktree` mode.
 - Phrasing selects lenses and read-only PR scope only. It never selects `--council`, `--fanout`, `--fix`, `--to-pr`, or `--team` – these cost tokens, write code, or post externally, so they require the explicit flag and are never inferred from natural language. A direct user command to perform one of these actions (e.g. "post the findings to the PR") is not inference: restate the equivalent explicit-flag invocation and confirm it – in `AUTO_MODE`, stop with `BLOCKED:` naming the flag – rather than acting on the phrasing.
 - Load `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` before judging severity. Every selected lens also runs the Critic posture from `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` with `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`.
 - **Coverage before verdict**: prove what was reviewed before saying Ready/PASS. A clean report without concrete coverage proof is a failed review, not a clean review.
 - Findings favor recall first. Filtering and routing happen after discovery; do not talk yourself out of recording a falsifiable issue during the find pass.
 - Invoking this skill authorizes spawning required review sub-agents. A spawn tool missing from the visible tool list is not unavailability – where the host supports deferred tool loading, run its tool discovery before falling back inline.
-- Reject up-front (emit the `BLOCKED:` reason in `AUTO_MODE`): `--fix`/`--visual`/`--output-dir` with `--inline-findings`; any chain containing `mixed`; single-lens `--council --mode doc` or `--council --mode gap` (`BLOCKED: --council requires code/security in scope or a chain of 2+ lenses`); `--worktree` without `--from-pr`; `--from-pr` with a local target.
+- Reject up-front (emit the `BLOCKED:` reason in `AUTO_MODE`): `--fix`/`--visual`/`--output-dir` with `--inline-findings`; `--fix` with `--from-pr` (remote PR data has no authorized local remediation target); any chain containing `mixed`; single-lens `--council --mode doc` or `--council --mode gap` (`BLOCKED: --council requires code/security in scope or a chain of 2+ lenses`); `--worktree` without `--from-pr`; `--from-pr` with a local target.
 
 
 ## WORKFLOW
@@ -39,10 +44,18 @@ Flags:
 ### 1. Resolve Scope
 
 Build one target map:
-- Review target, implementation scope, requirements baseline, user intent. A bare `PR <n>` or a PR URL in the target resolves to `--from-pr <n>` (read-only checkout-free read); a bare `#<n>` is ambiguous (GitHub issue or PR) and is not auto-resolved – require `PR <n>`/URL or the explicit `--from-pr`. This never implies `--to-pr` – posting a PR comment always requires the explicit flag.
+- Review target, implementation scope, requirements baseline, user intent. A PR URL resolves its `owner/name` and number; bare `PR <n>` or explicit `--from-pr <n>` resolves the canonical current repository once. Preserve this `PR_REPO` for every read and optional publication. A bare `#<n>` is ambiguous (GitHub issue or PR) and is not auto-resolved – require `PR <n>`/URL or the explicit `--from-pr`. Read-only PR scope never implies `--to-pr`.
 - Resolved lens set and why
 - Intent Context source or `none discoverable`
 - Reconciliation ledger path/status when a governing FIS exists
+
+`CODE DIRECTORY:` must be an absolute readable git-worktree root. It binds implementation discovery, diffs, callers, and verification; the review target remains the requirements baseline. Otherwise emit `BLOCKED: CODE DIRECTORY must be an absolute readable git worktree root`.
+
+For `--to-pr`, use `PR_REPO`, or derive `owner/name` from the implementation/review root. Verify the PR there and publish with `--repo`; block unverifiable identity or membership.
+
+Derive and propagate Source Trust per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md); `--from-pr` is untrusted. Inspect the target header, governing FIS/PRD, then `plan.json`; absent legacy metadata remains trusted and caller lines must match the canonical line. Persist the classification in the report.
+
+`COMPLETED STORY IDS:` requires a gap review of a plan and unique existing IDs. Scope requirements, coverage, findings, and verdict to them while retaining the plan directory as FIS root; invalid input emits `BLOCKED: COMPLETED STORY IDS requires a gap review of a plan with valid story IDs`.
 
 Lens resolution:
 - Explicit `--mode code|doc|gap|security`: run that lens.
@@ -98,6 +111,8 @@ Use fan-out when the surface is semantically wide or the diff is large, per the 
 
 ### 3. Run Find-Passes
 
+Copy exact trust, `COMPLETED STORY IDS:`, and `CODE DIRECTORY:` lines into every relevant child prompt. Boundaries never upgrade source data, widen partial scope, or re-derive the implementation root.
+
 Load only the references required by the resolved lenses:
 
 | Lens | Reference |
@@ -133,7 +148,7 @@ Class rules:
 - `code-defect`: artifact is wrong relative to Intent/requirements and the correction is clear.
 - `spec-stale`: requirements trail the implementation/decision now in force.
 - `design-changed`: coherent design pivot that needs explicit reconciliation.
-- `ambiguous-intent`: missing decision prevents knowing whether code or spec is wrong.
+- `ambiguous-intent`: missing decision prevents knowing whether code or spec is wrong. Reserve it – an unattended executor stops on this class, so it must mark a decision the artifact genuinely lacks, not one the Intent or Expected Outcomes resolve.
 
 Route to `Fix` only when confidence ≥75, scope relation is `primary`, class is `code-defect`, the fix is mechanical/bounded/uniquely determined, and it does not expand past Intent. Everything else routes `Note`. Severity affects verdict, not auto-apply eligibility. Security fixes must be mechanically secure, not merely plausible.
 
@@ -145,7 +160,7 @@ Intent anchor routing:
 | Stated Expected Outcome | `Fix`-eligible regardless of severity heuristics when other Fix criteria hold. |
 | No Intent Context | Route on severity/confidence/scope; ties default to `Note`. |
 
-When a reconciliation ledger is loaded, match findings by `${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md`; tracked reconciliation-class findings route Note, closed/withdrawn entries stay suppressed unless refuted, and recurring unreconciled drift escalates per the ledger contract.
+When a reconciliation ledger is loaded, first resolve any exact `SOURCE_RUN: <value>` caller line, then match findings by `${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md`; tracked reconciliation-class findings route Note, closed/withdrawn entries stay suppressed unless refuted, and recurring unreconciled drift escalates per the ledger contract.
 
 Emit:
 - `CONVERGED` when no new `code-defect` at severity ≥ MEDIUM appeared.
@@ -168,7 +183,7 @@ Use `${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md` for path resolu
 | single `code`/`security` + `--council` | `council-review` | `council` |
 
 Report content:
-- Scope, `Review mode used:`, `Resolved chain:` when mixed, Intent Context, Reconciliation Ledger
+- Scope, resolved implementation root when `CODE DIRECTORY:` was supplied, `Review mode used:`, `Resolved chain:` when mixed, Intent Context, exact `Source Trust: trusted-local|untrusted-external`, the canonical `UNTRUSTED REQUIREMENTS DATA:` line when untrusted, Reconciliation Ledger
 - `Coverage Matrix` with the surface/evidence/proof/falsifier/result rows, compact but specific
 - Guardrails Coverage and findings
 - Cross-Lens Synthesis when chain + `--council`
@@ -176,17 +191,17 @@ Report content:
 - Verdict/readiness from `references/review-verdict.md`; gap reports preserve the canonical `## Verdict` table exactly
 - CONVERGED, Auto-Remediation, ledger annotations, verification evidence, readiness/counts
 
-For `--inline-findings`, return the same structured content inline. For `--to-pr`, post the written report via `gh pr comment <number> --body-file <report-path>`.
+For `--inline-findings`, return the same structured content inline. For `--to-pr`, post via `gh pr comment <number> --repo <owner/name> --body-file <report-path>` using Step 1's verified repository.
 
 **Gate**: one consolidated parseable result delivered.
 
 
 ### 6. Optional Follow-Through
 
-`--fix`: invoke the `andthen:remediate-findings` skill with `<report-path>` and `--auto` when set. Skip only for a clean report, single-lens gap PASS with no findings, or all findings routed Note; state the reason.
+`--fix`: invoke the `andthen:remediate-findings` skill with `<report-path>`, any exact resolved `CODE DIRECTORY:` and `UNTRUSTED REQUIREMENTS DATA:` lines, and `--auto` when set. Skip only for a clean report, single-lens gap PASS with no findings, or all findings routed Note; state the reason.
 
 `--visual`: invoke the `andthen:visualize` skill with `<report-path>` after report write and any publication/remediation – invoked or explicitly skipped with a stated reason.
 
-After the report (any lens), if findings expose a recurring trap – a defect class repeated across findings, or a repeat of an existing `Learnings` entry – append it via the `andthen:ops` skill (`update-learnings add`).
+After the report (any lens), if findings expose a recurring trap – a defect class repeated across findings, or a repeat of an existing `Learnings` entry – append it via the `andthen:ops` skill (`update-learnings add`); when a lint rule or test could catch it, recommend that check with the findings – the entry is deleted once a check enforces it.
 
 On completion, print the report path relative to the project root. When `AUTO_MODE=true`, skip all follow-up offers and print only the verdict/readiness, the **absolute** report path, and the remediation result when `--fix` ran. Otherwise offer remediation for actionable findings, a narrower rerun when coverage gaps remain, or visualization when the report is large. When the doc lens produced a requirement-gap cluster (per `references/lens-doc.md` Downstream Routing) and `--fix` did not run, offer to run the `andthen:clarify` skill against the listed gaps.

@@ -1,5 +1,5 @@
 ---
-description: Simplify and refine code for clarity, reuse, quality, and efficiency while preserving exact behavior. Trigger on 'simplify this code', 'clean this up', 'refactor this', 'reduce complexity'.
+description: Simplify and refine code for clarity, reuse, quality, efficiency, and leanness (YAGNI) – reduce complexity and over-engineering while preserving exact behavior. Trigger on 'simplify this code', 'clean this up', 'refactor this', 'remove over-engineering'.
 argument-hint: "[--auto] [--path <dir/file>] [scope/description]"
 ---
 
@@ -10,27 +10,29 @@ Make scoped code easier to read, reuse, test, and change.
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--auto`, `--headless`, or `--path` before interpreting the remainder as the scope/description)
+ARGUMENTS: $ARGUMENTS with flags and their values removed – the scope/description
+PATH_SCOPE: value supplied to `--path`, when present
 
 ### Optional Flags
 - `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
+- `--path <dir/file>` → PATH_SCOPE: authoritative directory or file scope
 
 
 ## INSTRUCTIONS
 
-- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
+- Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and read the referenced guideline files relevant to this work.
 - **Intent + Rules Context** – per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) (collected in Phase 1.3). Behavior-preserving is not intent-preserving: the Phase 2 Intent anchor drops cleanups that contradict the Intent (surfaced in the completion summary, not applied).
 - **Preserve exact behavior** – change only *how* the code works, never *what* it does, unless explicitly requested
-- Match the codebase's existing conventions and style – read the project guidelines before making style judgments
+- Ground style judgments in the codebase's existing conventions and the project guidelines – not in generic taste
 - **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Simplify-code-specific `BLOCKED:` triggers: red baseline (tests/build/lint failing before any simplify edit), no defensible scope derivable from arguments, current-branch diff, or conversation context, ambiguity between two or more incompatible simplification directions with no conservative default.
 - **Anti-rationalization** – simplify-code's job is Boy Scout cleanup *within the user's requested scope* (per CRITICAL RULES); widening to other modules or files mid-flow is the failure mode. Reject these common rationalizations:
   - "I'll clean this adjacent module too while I'm here" – that widens scope; leave it for a separate simplify pass.
-  - "This behavior change is obviously safe" – simplification preserves behavior exactly; behavior changes are a separate commit.
+  - "This behavior change is obviously safe" – "obviously safe" is not explicit approval; behavior changes ride only the Phase 2 Necessity `behavior-affecting` path.
   - "Tests can come later" – a green baseline before and after is the simplification safety net.
 
 ### Simplification Philosophy
 
-Favor **readable, explicit code** over compact or clever solutions. Reduce complexity, improve naming, remove dead code, and eliminate duplication where it genuinely helps. Preserve helpful abstractions; over-simplification that makes code harder to debug is not an improvement.
+Favor **readable, explicit code** over compact or clever solutions, and **lean code** over defensive bulk – every abstraction, guard, and test must be paid for by a present requirement, not a hypothetical one (YAGNI). Reduce complexity, improve naming, remove dead code, and eliminate duplication where it genuinely helps. Preserve helpful abstractions; over-simplification that makes code harder to debug is not an improvement.
 
 
 ## GOTCHAS
@@ -44,7 +46,7 @@ Favor **readable, explicit code** over compact or clever solutions. Reduce compl
 
 #### 1.1. Determine Scope
 
-Resolve scope in precedence order: `--path` > described files (analyze the codebase to identify matches) > current branch diff against its base/upstream (fall back to `git diff HEAD`) > files named or edited earlier in this conversation. Treat the resolved scope as authoritative – never widen it.
+Resolve scope in precedence order: `PATH_SCOPE` > described files (analyze the codebase to identify matches) > current branch diff against its base/upstream (fall back to `git diff HEAD`) > files named or edited earlier in this conversation. Treat the resolved scope as authoritative – never widen it.
 
 In `AUTO_MODE`, the diff/conversation fallback is defensible only when it yields a non-empty, cohesive set; otherwise stop with `BLOCKED: no defensible scope (no --path, no description, branch-diff/conversation fallback yielded {nothing | shallow-clone error | a wide cross-module set})` rather than simplifying against noise.
 
@@ -64,12 +66,13 @@ When no governing artifact is discoverable, record `Intent Context: none discove
 
 ### Phase 2: Analysis
 
-Analyze the scoped code through three lenses:
+Analyze the scoped code through four lenses:
 
 **Reuse**
 - Existing utilities, helpers, components, or project patterns that replace newly written code
 - New functions or inline logic duplicating existing behavior
 - Hand-rolled string/path/env/type-guard code where the project already has a better primitive
+- Divergence from the codebase's dominant pattern for the same job (error-handling shape, data access, naming)
 
 **Quality**
 - Redundant state, parameter sprawl, copy-paste with slight variation, leaky abstractions
@@ -86,7 +89,12 @@ Analyze the scoped code through three lenses:
 - Pre-checking resource existence before operating where direct operation plus error handling is safer
 - Unbounded data structures, missing cleanup, event/listener leaks, or overly broad reads/loads
 
-Before proposing removal of any code, understand why it exists – check callers, tests, and git history. Never remove what you don't understand (Chesterton's Fence).
+**Necessity (YAGNI)**
+- Generality with no current requirement: one-use abstractions, pass-through layers, unused parameters/configuration.
+- Guards for states already excluded by types, caller contracts, or upstream validation.
+- Tests that duplicate the same intent/boundary/failure sensitivity or assert implementation rather than behavior.
+
+Remove only complexity proved inert across its real boundary. One caller or overlapping coverage is not proof; check callers, tests, and history (Chesterton's Fence). Observable or exported removals are `behavior-affecting`: propose them, require explicit approval, and defer them in `AUTO_MODE`.
 
 Cross-check against the `Architecture` document (see **Project Document Index**) if it exists – simplification should respect documented component boundaries and not silently change architectural shape. A cleanup that crosses boundaries belongs in the `andthen:architecture` skill with `--mode advise` first, not bundled into this run.
 
@@ -102,9 +110,10 @@ Produce a prioritized list of improvements. Ask user for confirmation before pro
 ### Phase 3: Simplification
 
 Execute improvements from the prioritized list:
+- Apply removals before refinements – code another finding deletes isn't worth polishing
 - Work file-by-file or by logical unit
 - For large or separable scopes, use parallel sub-agents by lens or path; pass each the resolved scope or full diff
-- Verify each change preserves existing behavior
+- Verify each change preserves existing behavior; for approved `behavior-affecting` removals, verify tests and callers reflect the removal instead
 - Keep individual changes small and verifiable – don't batch unrelated improvements
 
 
@@ -130,5 +139,5 @@ In `AUTO_MODE`, suppress conversational sections per [`automation-mode.md`](${CL
 - `STATUS:` `OK` | `BLOCKED:` (use the `BLOCKED:` line shape from the canonical when not OK)
 - `FILES_CHANGED:` newline-separated paths (relative to repo root); empty if no edits landed
 - `VERIFY:` one line per check, format `<check>: <result>` (e.g. `tests: 42/42 pass`, `lint: 0 errors / 0 warnings`, `build: ok`)
-- `DEFERRED:` newline-separated items dropped from Phase 2's prioritized list under `AUTO_MODE` conservatism (Phase 2 clause); empty if none
+- `DEFERRED:` newline-separated items dropped from Phase 2's prioritized list under `AUTO_MODE` conservatism (Phase 2 clauses, including unapproved `behavior-affecting` findings); empty if none
 - Print only this block plus the artifact paths above; skip "Next Steps" / "FOLLOW-UP" prose

@@ -87,7 +87,7 @@ quick-implement → (optional) quick-review → (optional) remediate-findings
 
 Before `spec` or `prd`, supporting skills sharpen the input when the problem isn't yet clear:
 
-- **`clarify`** – interactive requirements discovery. Turns a fuzzy idea into solid requirements by probing gaps, edge cases, scope boundaries, and alternatives. Runs at **feature scope** (default → `requirements-clarification.md`) or **product scope** (`--mode product` → `PRODUCT.md`, for vision/personas/anti-goals before features are planned).
+- **`clarify`** – interactive requirements discovery. Turns a fuzzy idea into solid requirements by probing gaps, edge cases, scope boundaries, and alternatives. Runs at **feature scope** (default → `requirements-clarification.md`) or **product scope** (`--mode product` → `PRODUCT.md`).
 - **`architecture`** – design and analysis across seven modes (no code changes). Most relevant here: **`--mode trade-off`** compares competing options (e.g. *"SQL vs document DB for the events store"*) and produces an evidence-based recommendation plus an ADR; **`--mode strategic-design`** and **`--mode event-storming`** carve domain boundaries before a multi-feature `prd`. Full mode list in the [skill reference](plugin/README.md#architecture-modes).
 - **`ui-ux-design`** – research, design systems, wireframes, and design review when UI work is in scope.
 
@@ -150,7 +150,7 @@ The quickest way to get started:
 /andthen:init
 ```
 
-The single entry point for all project types – new, partial setups, and existing codebases. It interactively generates `CLAUDE.md` / `AGENTS.md`, scaffolds Core orientation docs (Product, Architecture, Stack, Key Dev Commands, Decisions, Learnings), and copies starter guidelines. For existing codebases it offers to run `map-codebase`, which auto-generates architecture, stack, commands, conventions, and discovered-requirements docs from code analysis.
+The single entry point for all project types – new, partial setups, and existing codebases. It interactively generates `CLAUDE.md` / `AGENTS.md`, scaffolds Core orientation docs (Product, Architecture, Stack, Key Dev Commands, Decisions, Learnings), and installs the foundational rules guideline. For existing codebases it offers to run `map-codebase`, which auto-generates architecture, stack, commands, conventions, and discovered-requirements docs from code analysis.
 
 **Manual setup** – skills read two sections from your root agent instruction file (`CLAUDE.md` / `AGENTS.md`): a **Project Document Index** (where skills write specs, plans, etc.) and **Project-Specific Guidelines**. See [`plugin/skills/init/templates/CLAUDE.template.md`](plugin/skills/init/templates/CLAUDE.template.md) for a starter, and [plugin/README.md](plugin/README.md#setup) for the foundational-guardrails wiring options.
 
@@ -272,14 +272,14 @@ These compose into the workflows above – from requirements through implementat
 |-------|---------|
 | `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield) |
 | `clarify` | Interactive requirements discovery at feature or product scope (`--mode product\|feature`) |
-| `prd` | Synthesize a Product Requirements Document from clarified requirements, a draft, file, URL, or issue; includes fresh-context doc self-review |
-| `plan` | Turn a local or GitHub-sourced PRD into a plan bundle: typed `plan.json` + one on-disk FIS per story + cross-cutting review |
-| `spec` | Generate a Feature Implementation Specification (FIS) for one execution-sized feature; includes fresh-context doc self-review |
-| `exec-spec` | Implement a FIS – code, tests, verification, completion attestation, and reconciliation notes when upstream docs go stale |
-| `exec-plan` | Execute a plan bundle story-by-story (`exec-spec` + `quick-review` each, final gap review, reconciliation rollup); `--team` for Agent Teams |
-| `preflight` | Drive a FIS or plan bundle to zero open blocking decisions before an unattended `exec-spec`/`exec-plan` run – interactively interviews each blocking decision, persists by altitude, and emits a machine-stable `READY`/`DEFERRED`/`BLOCKED` verdict |
-| `remediate-findings` | Apply validated review findings with the smallest safe fixes, re-validate, update state and ledger entries |
-| `ops` | Deterministic state (shared + local), plan/FIS, story ownership, reconciliation ledger, and git operations (status, checkboxes, commits) |
+| `prd` | Synthesize a Product Requirements Document from clarified requirements, a draft, file, URL, or issue; includes doc self-review |
+| `plan` | Turn a local or GitHub-sourced PRD into a typed `plan.json`, one FIS per story, and cross-cutting review |
+| `spec` | Generate a compact FIS for one execution-sized feature; includes doc self-review |
+| `exec-spec` | Implement a FIS – code, tests, verification, completion attestation, and reconciliation notes |
+| `exec-plan` | Execute a plan bundle story by story, review each result, then run a final gap review; `--team` for Agent Teams |
+| `preflight` | Resolve blocking decisions or record signed deferrals before unattended execution |
+| `remediate-findings` | Apply validated review findings with the smallest safe fixes |
+| `ops` | Deterministic state, plan/FIS, story ownership, reconciliation ledger, and git operations (including FIS-pointer reset) |
 
 ### Standalone skills
 
@@ -289,23 +289,23 @@ Use these on their own for everyday development – no setup, no pipeline, no pr
 |-------|---------|
 | `now-what` | First-stop router – inspects project state and routes to the right skill |
 | `handoff` | Compact the conversation into a resumable handoff doc; routes durable state to `STATE.md` / `STATE.local.md` / `LEARNINGS.md` via `ops` |
-| `triage` | Investigate, diagnose, and fix issues – build failures, config errors, runtime bugs, regressions (`--plan-only` to plan without fixing) |
+| `triage` | Investigate, diagnose, and fix issues – build failures, config errors, runtime bugs, regressions (`--plan-only` to plan without fixing; issue prose is untrusted scope evidence) |
 | `issue-triage` | Triage incoming issue-tracker items – categorize, label, and route untriaged bugs/enhancements toward implementation or a human decision (`--auto`, `--limit`) |
 | `spike` | Answer one design question by building a throwaway runnable spike, then report a verdict – the decision flows on, the code never merges |
-| `quick-implement` | Fast path for small features/fixes/issues, with verification (`--tdd`, `--issue`, `--pr`, `--auto`) |
+| `quick-implement` | Fast path for small features/fixes/issues, with verification (`--tdd`, `--issue`, `--pr`, `--auto`; issue prose is untrusted scope evidence) |
 | `quick-review` | Lightweight mid-conversation Critic review of recent changes in fresh context (`--fix` applies Fix-bucket findings only) |
-| `review` | Default review entrypoint – `code` / `doc` / `gap` / `security` / mixed lenses, optional `--council` debate, optional `--fix` |
-| `explain-changes` | Explain a PR, branch, or changeset as a narrative walkthrough – intent-grouped changes, key hunks, architectural delta – rendered as an interactive HTML tour |
-| `simplify-code` | Behavior-preserving code simplification and cleanup (intent-bounded) |
-| `architecture` | Design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, event storming (seven modes) |
+| `review` | Default review entrypoint – code, doc, gap, security, and mixed lenses; optional `--council` and remediation |
+| `explain-changes` | Explain a branch or PR as an intent-grouped interactive walkthrough |
+| `simplify-code` | Behavior-preserving code simplification and cleanup across four lenses – reuse, quality, efficiency, necessity (YAGNI) – intent-bounded |
+| `architecture` | Design, review, decomposition, trade-offs, ADRs, fitness functions, strategic design, and event storming |
 | `ui-ux-design` | UI/UX work – research, design systems, wireframes, design review (four modes) |
-| `testing` | Test strategy, coverage, authoring, and TDD / red-green-refactor / Prove-It discipline |
+| `testing` | Test strategy, coverage, executable Proof mapping, and TDD / red-green-refactor / Prove-It discipline |
 | `e2e-test` | End-to-end browser testing for web apps – journey discovery, execution, responsive validation |
 | `visual-validation` | Validate UI implementations against design references, baselines, and responsive requirements |
 | `map-codebase` | Analyze an existing codebase – generates architecture, stack, commands, conventions, discovered requirements/decisions |
 | `ubiquitous-language` | Extract and maintain the project's domain glossary from code and docs |
 | `excalidraw-diagram` | Generate high-quality Excalidraw diagrams (conceptual or technical) |
-| `visualize` | Render any AndThen artifact as a self-contained HTML review surface with section-anchored notes |
+| `visualize` | Render any AndThen artifact as self-contained interactive HTML with section-anchored notes |
 | `refactor` | Deprecated alias – redirects to `simplify-code` (legacy invocations only) |
 
 
@@ -326,14 +326,7 @@ Everything else – architecture, UI/UX design, triage, visual validation, artif
 
 ### Guidelines (`docs/guidelines/`)
 
-Simplified starting points – copy into your project and adapt. Workflow skills reference these via your `CLAUDE.md` / `AGENTS.md`, so you can replace them with your own. Canonical files live in `plugin/skills/init/templates/guidelines/`; `docs/guidelines/` is a symlink to that directory so there's one source of truth.
-
-| Guide | Purpose |
-|-------|---------|
-| `DEVELOPMENT-ARCHITECTURE-GUIDELINES.md` | Development standards and architecture patterns |
-| `UX-UI-GUIDELINES.md` | UX/UI design guidelines |
-| `WEB-DEV-GUIDELINES.md` | Web development best practices |
-| `CRITICAL-RULES-AND-GUARDRAILS.md` | Safety rules and behavioral guardrails for AI agents |
+One starter guideline ships with AndThen: `CRITICAL-RULES-AND-GUARDRAILS.md` – always-on safety rules and behavioral guardrails for AI agents. The canonical file lives in `plugin/skills/init/templates/guidelines/`; `docs/guidelines/` is a symlink to that directory so there's one source of truth. All other guidelines are project-authored: add your own conventions and counter-intuitive rules, referenced from your `CLAUDE.md` / `AGENTS.md` – frontier models don't need generic best-practice guides.
 
 ### Starter templates
 
@@ -342,7 +335,7 @@ Canonical user-facing starter templates (owned by the `init` skill).
 | Template | Purpose |
 |----------|---------|
 | `plugin/skills/init/templates/CLAUDE.template.md` | Starter for project `CLAUDE.md` / `AGENTS.md` |
-| `plugin/skills/init/templates/guidelines/` | Starter guideline files copied by `init` |
+| `plugin/skills/init/templates/guidelines/` | Foundational rules guideline copied by `init` |
 | `plugin/references/project-state-templates.md` | Starter templates for STATE.md, ROADMAP.md, etc. |
 
 Other reference docs: [`docs/MODEL-EFFORT-SELECTION-GUIDE.md`](docs/MODEL-EFFORT-SELECTION-GUIDE.md) (model and thinking-effort selection).

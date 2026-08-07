@@ -401,14 +401,12 @@ try{
     var m=adBody.querySelector('[data-role="meta"]');if(m){m.textContent=meta;}
     var b=adBody.querySelector('[data-role="body"]');if(b){b.textContent=body;}
   }
-  /* node zone markup has a single owner: the build-time zonesHtml(), baked per
-     node into VX.archDetail[k].z — swapping innerHTML keeps the initial panel
-     and every later selection pixel-identical (no dual-renderer drift) */
   function renderNodeZones(k){
     var d=AD[k];
     var zones=document.getElementById('ad-zones');
     if(!d||!zones){return;}
-    zones.innerHTML=d.z||'';
+    var tpl=$('template[data-zone-key]').find(function(x){return x.getAttribute('data-zone-key')===k;});
+    zones.replaceChildren(tpl?tpl.content.cloneNode(true):document.createTextNode(''));
   }
   function withFade(fn){
     if(!adBody||RM){fn();return;}
@@ -617,6 +615,7 @@ try{
   }
   function openK(){if(!cmdk){return;}cmdk.hidden=false;if(cin){cin.value='';cin.focus();}filter();}
   function closeK(){if(cmdk){cmdk.hidden=true;}}
+  var openHint=document.getElementById('open-cmdk-hint');if(openHint){openHint.addEventListener('click',openK);}
   function go(it){
     closeK();
     if(it.t==='cluster'){activate('tour',function(){goStep(it.n-1,true);});}

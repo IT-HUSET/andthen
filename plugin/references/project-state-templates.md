@@ -302,31 +302,30 @@ _No tech debt recorded yet._
 
 ## LEARNINGS.md
 
-> Defensive knowledge for future contributors – traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically.
+> Defensive knowledge for future contributors – traps, domain insights, procedural knowledge, and error patterns. Organized by topic, not chronologically. The file is a bounded **index**: skills read it whole at task start, so its size is paid on nearly every run.
 >
-> **Boundary**: LEARNINGS = _"watch out for X"_. `DECISIONS.md` = _"we chose X over Y because…"_. `STATE.md` = _"we're currently doing X"_ (transient). Prefer DECISIONS for choices with rationale, LEARNINGS for traps without.
+> **Boundary**: LEARNINGS = _"watch out for X"_. `DECISIONS.md` = _"we chose X over Y because…"_. `STATE.md` = _"we're currently doing X"_ (transient). Route overlapping entries to their owner.
+>
+> **Graduation ladder** – record each insight at the strongest tier it supports: encode it as a lint rule/test/hook (prose is advisory; a red check is enforced) > DECISIONS/ADR > an entry here > a harness-memory note (personal context only – project-durable knowledge belongs in committed docs, visible to every agent and teammate). Delete entries once encoded or stale.
 
 ```markdown
 # Project Learnings
 
-<!-- Organize by topic. Entries brief (1-2 sentences).
-     Bar: "Would a competent developer with code and git access still get bitten?"
-     Maintain: merge overlapping entries, remove stale knowledge, split large sections.
-     Append via the `andthen:ops` skill (`update-learnings add` form). -->
+<!-- Traps only, one bullet each: `- **{title}** – …` under 200 chars, trap + pointer; postmortem
+     depth lives in the spec archive or an ADR. Bar: "Would a competent developer with code and
+     git access still get bitten?" Skills read this index whole – keep it lean. Maintain via the
+     `andthen:ops` skill (`update-learnings` forms), which owns the 150-line ceiling and
+     `learnings/` shard graduation. Delete entries once encoded as checks or stale. -->
 
 ## [Topic Area 1]
 <!-- e.g. "Language Traps", "Framework Patterns", "API Quirks", "Deployment", etc. -->
 
 - **[Trap/insight]**: [Description] _(context/version)_
 
-## [Topic Area 2]
-
-- ...
-
 ## Error Patterns
 <!-- Log recurring errors. Deterministic errors (bad schema, wrong type) → conclude immediately.
      Infrastructure errors (timeout, rate limit) → log, no conclusion until pattern emerges.
-     Conclusions graduate into the relevant topic section above. -->
+     Conclusions are promoted into the relevant topic section (or its shard). -->
 
 | Error | Type | Conclusion |
 |-------|------|------------|

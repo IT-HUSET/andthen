@@ -33,7 +33,7 @@ Exact link forms – contracts, not suggestions. `andthen:exec-plan --from-issue
 Both shapes use these H2 anchors, matched by `^## <name>$`. Do not introduce identical H2s elsewhere.
 
 - **`## Shared Decisions`** – optional; bullets naming inter-story interface contracts/naming conventions/shared abstractions (renders JSON `sharedDecisions[]`).
-- **`## Binding Constraints`** – optional; verbatim PRD spans + heading anchors that flow unchanged into FIS Required Context (renders JSON `bindingConstraints[]`).
+- **`## Binding Constraints`** – optional; heading anchors plus verbatim transport/fallback text (renders JSON `bindingConstraints[]`; generated FIS files reference durable anchors).
 - **`## Story Catalog`** – markdown table; columns per [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md).
 - **`## Story Issues`** – granular-shape only; the **shape-detection signal** for `exec-plan --from-issue` (full rule: see Shape Detection below).
 
@@ -59,7 +59,7 @@ Body skeleton:
 
 ## Binding Constraints
 
-<optional – verbatim PRD spans + heading anchors; omit section when none apply>
+<optional – heading anchors + verbatim transport/fallback text; omit section when none apply>
 
 ## Story Catalog
 

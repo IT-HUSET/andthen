@@ -13,7 +13,9 @@ Lightweight, ad-hoc review of recent work in the current conversation. By defaul
 
 ## VARIABLES
 
-FOCUS: $ARGUMENTS (strip any flag tokens like `--inline`, `--fix`, `--auto`, or `--headless` before interpreting the remainder as focus)
+FOCUS: $ARGUMENTS with flags and their values removed – the review focus
+UNTRUSTED_REQUIREMENTS_DATA: optional exact caller line beginning `UNTRUSTED REQUIREMENTS DATA:`; preserve it across the Critic dispatch
+INTENT_CONTEXT_PATH: optional exact caller line `INTENT CONTEXT: <absolute-FIS-path>` from an orchestrator
 
 
 ### Optional Flags
@@ -24,7 +26,7 @@ FOCUS: $ARGUMENTS (strip any flag tokens like `--inline`, `--fix`, `--auto`, or 
 
 ## INSTRUCTIONS
 
-- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
+- Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and read the referenced guideline files relevant to this work.
 - Default read-only; only `--fix` on the current invocation unlocks edits (Phase 4).
 - Guardrails pass runs once per review in Phase 3.
 - Output findings inline – no separate report file.
@@ -45,6 +47,8 @@ FOCUS: $ARGUMENTS (strip any flag tokens like `--inline`, `--fix`, `--auto`, or 
 ## WORKFLOW
 
 ### 1. Determine Scope
+
+When `INTENT CONTEXT:` is supplied, require an absolute readable regular non-symlink FIS. Invalid input is `BLOCKED: INTENT CONTEXT must name an absolute readable FIS`.
 
 Identify what to review, in priority order:
 
@@ -72,7 +76,7 @@ Determine what type of work was done to frame the review appropriately:
 
 ### 3. Critic Review
 
-Apply the canonical Critic rubric to the change set. Default dispatches a single Critic pass to a fresh-context sub-agent (prefer the installed `review-critic` agent, else a generic fresh sub-agent – the installed-agent path still gets the read-first prompt), using the prompt in [`dispatch-prompt.md`](references/dispatch-prompt.md) – fill its Context / Review Lens / Project Rules Context / Intent Context / Changes-to-Review sections and provide enough inline context that the sub-agent need not explore the codebase. The outer skill loads the same three references and collects the **Project Rules Context** and **Intent Context** bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) so Phase 4 can apply the same calibration. **`--inline`** applies the same rubric, Guardrails pass, Finding Shape, and context collection inline, per the same dispatch-prompt contract.
+Apply the canonical Critic rubric to the change set. Default dispatches a single Critic pass to a fresh-context sub-agent (prefer the installed `review-critic` agent, else a generic fresh sub-agent – the installed-agent path still gets the read-first prompt), using the prompt in [`dispatch-prompt.md`](references/dispatch-prompt.md) – fill its Context / Review Lens / Project Rules Context / Intent Context / Changes-to-Review sections and provide enough inline context that the sub-agent need not explore the codebase. Copy the exact `UNTRUSTED REQUIREMENTS DATA:` caller line into the dispatch when present. The outer skill loads the same three references and collects the **Project Rules Context** and **Intent Context** bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md), using `INTENT_CONTEXT_PATH` as the primary intent source when supplied. **`--inline`** applies the same rubric, Guardrails pass, Finding Shape, and context collection inline, per the same dispatch-prompt contract.
 
 Before applying the rubric, verify the calling conversation has not produced or substantively reasoned about the change set. If it has, emit `FALLBACK: --inline rejected, dispatching sub-agent (calling conversation not fresh w.r.t. change set)` and continue with default dispatch – surface the fallback in the final report so the caller knows the flag was overridden. In `AUTO_MODE`, the fallback is reported the same way; never silently swap mechanisms.
 
@@ -90,7 +94,7 @@ Each finding passes through two gates: a **Validity gate** (Accept / Dismiss) an
 - **Fix**: confidence ≥ 75, scope relation is `primary` (the finding traces to a line, section, or stated outcome the change set itself adds, modifies, or claims to deliver), the fix does not introduce new scope beyond the change set's stated Intent / Expected Outcomes, AND the correction is **mechanical and bounded** – the correct replacement is *uniquely determined* by the artifact, rules, requirements, or a cited source, needing no product / design / architecture / requirements decision; if it means choosing between plausible fixes or depends on behavior the artifact does not pin down, it is not mechanical → Note (so a gap needing a design decision stays Note whatever its severity). Security fixes are Fix-eligible only when the secure correction is mechanical and unambiguous. Eligible for auto-apply under `--fix`.
 - **Note**: everything else – lower confidence, scope relation `secondary` / `pre_existing`, "consider adding X" / "could be cleaner" shapes, fixes needing a product / design / requirements decision, or any fix that would expand scope past the stated Intent. Surfaced inline but **never auto-applied**, even under `--fix`. This matches the **Surgical scope; surface – don't fix** rule in `CRITICAL-RULES-AND-GUARDRAILS.md` and the `NOTICED BUT NOT TOUCHING` channel.
 
-**Class axis (orthogonal to routing).** This skill already runs an intent-aware Critic pass; the delta is emitting a finding **`Class:`** so per-story drift is writable to the reconciliation ledger by the orchestrating skill (`andthen:exec-plan`). On each accepted finding, set `Class:` to exactly one of `code-defect | spec-stale | design-changed | ambiguous-intent` per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md): `code-defect` (the change is wrong relative to Intent/Expected Outcomes and the fix is clear), `spec-stale` (the spec no longer describes what was built), `design-changed` (a coherent pivot from the spec needing reconciliation), `ambiguous-intent` (not enough intent to decide). The class is orthogonal to Fix/Note routing – a `spec-stale` finding is still `spec-stale` whether routed Fix or Note. Keep this lightweight – emit the axis, don't re-derive the intent-awareness.
+**Class axis.** Class every accepted finding per [`reconciliation-ledger.md`](${CLAUDE_PLUGIN_ROOT}/references/reconciliation-ledger.md). Reserve `ambiguous-intent` for a decision genuinely absent from Intent/Expected Outcomes – unattended execution stops on it. Class remains orthogonal to Fix/Note routing.
 
 **Intent anchor.** When Intent Context was collected in Phase 3, apply the canonical anchor moves from [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md), mapped to this skill's vocabulary: Non-Goal → Dismiss; deferred → Note; contradicts Expected Outcome → Fix-eligible regardless of severity heuristics. When no Intent Context was collected, the Routing gate operates on severity, confidence, and scope relation alone – do not invent intent to justify routing. **On tie, default to Note**.
 

@@ -18,7 +18,7 @@ Apply these rules when evaluating findings:
 6. **Do not dismiss findings you've already identified.** If your analysis found an issue, record it at the severity it deserves. The remediation plan can deprioritize it – your job is accurate identification, not triage.
 7. **No hedging language.** Don't soften findings with "could be an issue", "might cause problems", or "probably fine" – state the condition that fails and the impact if it does. Hedging is the verbal form of the leniency bias: it lets the reviewer mark a problem as a non-problem without writing down a falsifier.
 8. **Disclaimer-as-finding inside changed files.** "Did not touch pre-existing X" or "out of scope" applied to issues sitting *inside the files modified by the change set under review* are themselves findings, not disclaimers – flag them. Issues in unchanged files remain out of scope. Default to MEDIUM unless the lens reference sets a different severity.
-9. **Severity is per-finding, not cumulative.** A group of five LOW issues is five LOW findings, not one HIGH – do not escalate a finding because many others sit near it. Aggregate volume informs the overall readiness verdict, never an individual finding's severity.
+9. **Severity is per-finding, not cumulative.** A group of five LOW issues is five LOW findings, not one HIGH – do not escalate a finding because many others sit near it. Aggregate volume informs the overall readiness verdict, never an individual finding's severity. Domain calibrations may define narrow aggregation exceptions for mechanical conformance classes (findings merge, severity still never escalates).
 
 
 ## Over-Lenient Review Calibration

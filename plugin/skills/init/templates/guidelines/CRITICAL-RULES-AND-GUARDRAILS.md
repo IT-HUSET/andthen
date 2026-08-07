@@ -8,7 +8,7 @@ Always-on rules for AI coding agents. They override harness defaults and habits 
 - **Be extremely concise and clear in conversations.** Keep responses, progress notes, and summaries extremely brief – sacrifice grammar for concision. Deliverables (specs, PRDs, PRs, etc.) keep reasonable brevity, avoiding all superfluous language and prose.
 - **Understand before you add.** Read the file's exports, immediate caller, and obvious shared utilities first; reuse what exists rather than re-implementing. If you can't see why code is shaped as it is, ask – "looks orthogonal to me" is how duplicates and shadowed imports happen.
 - **Stay lean.** Solve the actual problem; no speculative features, abstractions, or over-engineering (KISS/YAGNI/DRY).
-- **Code is the source of truth, not comments.** Keep comments minimal and about *why*; fix or delete stale ones.
+- **Code is the source of truth, not comments.** Match the surrounding code's comment density and idiom; comments explain *why*, not *what*; fix or delete stale ones.
 
 ## Honesty and Verification
 
@@ -34,16 +34,25 @@ Default to **staying focused on the problem at hand**.
 - **Stay on the current branch** unless told otherwise.
 - **Commit only your own changes** – review the diff; never stage others' work.
 - **Use `git mv`** for tracked moves/renames (preserves blame). Never `git rebase --skip` (data loss) – ask for help with conflicts.
+- **Never overwrite `.env` files** without explicit confirmation.
 - **Temp files** in `<project_root>/.agent_temp/`, named meaningfully, never the repo root.
+- **Harness auto-memory is personal, not project storage** – user preferences and machine-local facts only; project-durable knowledge (traps, decisions, conventions) goes to committed docs (Learnings/Decisions/guidelines), visible to every agent and teammate.
 - **En dashes (–), not em dashes.**
 - **Delegate to sub-agents** for retrieval, review, research, and deep exploration; route each per the **Sub-Agent Model Policy** below.
 - **Sub-agent naming** – Include the model name in the sub-agent's name to make it clear which model is being used for that sub-agent.
 
 ## Sub-Agent Model Policy
 
-Default routing for every sub-agent. Override by defining your own Sub-Agent Model Policy – edit this section, or add one in project/user instructions; the nearest definition wins.
+Delegated work inherits the session model *by default*; downshift when the task qualifies below. Classify the **task**, not the model – model names go stale, task properties don't. Two axes decide the tier: **specification** (scope, inputs, and outputs pinned down, with a checkable done-criterion?) and **judgment** (needs taste, trade-offs, creativity, or cross-cutting reasoning?).
 
-- **Model: inherit.** Every sub-agent runs on the session model – one deliberate knob, and nothing rots because nothing is version-pinned.
-- **Depth: effort, not model class.** Vary effort by task: low scan / medium routine / high cross-cutting.
-- **Retrieval exception:** high-volume pure retrieval may pin the cheapest *tier alias*.
-- **Overrides** may route by task shape (e.g. task-tiered: judgment→top, implementation→mid, mechanical→cheap) but **never version-pin a model** (`claude-opus-4-8`, `gpt-5.4`) – tier aliases only.
+This policy owns both model and effort for generic delegation; callers state task shape, not a competing effort. Dedicated installed agents keep their declared fixed effort as the explicit exception.
+
+**Routing** (models: session = the root conversation model, and the ceiling: nothing routes above it · top = e.g. Opus 5 / GPT-5.6-Sol, never above session · cheap = e.g. Sonnet 5 / GPT-5.6-Luna):
+- **High judgment** – orchestration, planning, architecture, design, reviews, security, creative or ambiguous work → session at xhigh. Never downshift.
+- **Implementation and other medium/larger subtasks** – including fully-specced FIS/story execution (a complete spec doesn't shrink a sizeable story to the tier below) → top model at medium effort.
+- **Small, well-specified, verifiable subtasks** – information retrieval, scans, mechanical edits, small clear-spec fixes, doc lookups → cheap model at medium for simple tasks, otherwise xhigh. Downshifting moves the burden to the prompt: exact scope, output contract, and done-criteria come from the orchestrator.
+
+The named models are examples, not unconditional identifiers. Before overriding, verify the model is callable on this host and does not exceed the session ceiling; otherwise inherit the session model.
+
+**Rules:**
+- On a quality miss, escalate immediately – a tier up or an effort notch up; never a second unchanged attempt on what just failed.

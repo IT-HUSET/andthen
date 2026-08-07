@@ -8,6 +8,7 @@
 
 # Product Requirements Document: [Project Name]
 
+> **Source Trust**: trusted-local|untrusted-external
 > **Context**: [durable references only – GitHub issue, backlog item, roadmap entry. The PRD is self-contained: inline the substance of transient discovery artifacts (`requirements-clarification.md`, `prd-draft.md`); never link or cite them by path.]
 > **Related Assets**: [durable companion assets – ADRs, design system, wireframes – when they materially shape the requirements]
 

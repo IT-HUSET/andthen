@@ -82,7 +82,7 @@ Cross-check against Phase 1 inventory: EVERY page has a corresponding wireframe,
 
 **CRITICAL**: Use browser automation to capture and validate wireframes across viewports.
 
-**Tool selection**: Prefer the browser/visual tooling the project documents in `CLAUDE.md` / `AGENTS.md` (e.g. the `agent-browser` skill, Chrome DevTools MCP, or Playwright MCP). If none is documented, use any available browser-automation MCP. If no automation is available, invoke the `andthen:visual-validation` skill in a sub-agent with a manually opened browser.
+**Tool selection**: Prefer the browser/visual tooling the project documents in `CLAUDE.md` / `AGENTS.md` (e.g. the `agent-browser` skill, Chrome DevTools MCP, or Playwright MCP). If none is documented, use the host's built-in browser tooling or any available browser-automation MCP or CLI. If none can set viewports, capture screenshots, inspect DOM geometry, and read console/network failures, stop with `BLOCKED: wireframe validation requires browser automation`; a manually opened browser cannot satisfy this gate.
 
 **Viewport Matrix:**
 | Device | Width | Height |

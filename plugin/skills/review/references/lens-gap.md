@@ -33,8 +33,8 @@ When the caller provides a directory path or a plan file, discover the full requ
 - Also check the Project Document Index in the project's root agent instruction file (`CLAUDE.md` / `AGENTS.md`) for additional pointers
 
 **Plan file** – read the plan and extract related requirements:
-- Look for a sibling `prd.md` in the same directory
-- Read `stories[]` from `plan.json`; collect each story's `fis` value (skip entries where `fis` is `null`)
+- Look for a sibling `prd.md` in the same directory. Under `COMPLETED STORY IDS:`, include only the PRD anchors named by the selected stories' `sourceRefs`; the rest of the PRD is context, not reviewed scope.
+- Read `stories[]` from `plan.json`; collect each story's `fis` value (skip entries where `fis` is `null`). When the caller supplies `COMPLETED STORY IDS:`, select exactly those stories after validating every ID; do not include other plan stories or their PRD requirements in the review baseline.
 - Read all referenced FIS files that exist on disk
 
 **Any other input** (specific file, issue, URL) – use as-is without further discovery.
@@ -58,7 +58,7 @@ Gather the requirements baseline from docs, issues, comments, and caller context
 
 When the requirements baseline includes a FIS, compile the three proof surfaces by their distinct roles:
 
-- **Acceptance Scenarios** as behavioral requirements – each canonical `- [ ] **S<NN> [OC<NN>(,OC<NN>)*] [TI<NN>(,TI<NN>)*] <description>**` checkbox is one behavioral requirement; the nested Given/When/Then is the contract. Canonical shape: see [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#acceptance-scenarios-and-proof-of-work). A concrete instance reads like `- [ ] **S01 [OC01] [TI01,TI03] Happy path – user can export filtered results**`.
+- **Acceptance Scenarios** as behavioral requirements – each canonical checkbox is one requirement. Its contract is the title + any GWT; inspect Proof separately as executable evidence and never use it to supply missing acceptance semantics. Canonical shape: [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#acceptance-scenarios-and-proof-of-work).
 - **Structural Criteria** as non-behavioral proof requirements – each checkbox names a verifiable structural property that must hold (e.g. "existing tests pass", "API contract unchanged"). These are proved by task Verify lines, not scenarios.
 - **Work Areas** as forward-coverage anchors – each bullet names a component, file, or surface that must be covered by at least one task or scenario. A Work Area with no implementing task, scenario, or implementation evidence is a gap (see Forward-coverage gaps in Step 4).
 

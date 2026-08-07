@@ -3,7 +3,7 @@ description: Deterministic operations – update shared/local state, plan status
 context: fork
 agent: general-purpose
 user-invocable: true
-argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-plan-owner, update-fis, update-fis observations, update-fis discovered-requirements, update-fis design-change, update-fis decision-note, update-decisions still-current, update-ledger (add|reconcile|withdraw|bump-recurrence|override-close), update-tech-debt append, update-learnings add, update-learnings error, commit, branch, changelog, progress, stale)"
+argument-hint: "<operation> [args...] (operations: read-state, update-state, update-plan, update-plan-fis, update-plan-owner, update-fis, update-fis observations, update-fis discovered-requirements, update-fis design-change, update-fis decision-note, update-decisions still-current, update-ledger (add|reconcile|withdraw|bump-recurrence|override-close), update-tech-debt append, update-learnings add, update-learnings remove, update-learnings error, commit, branch, changelog, progress, stale)"
 ---
 
 # Deterministic Operations Skill
@@ -14,7 +14,7 @@ Template-driven operations to avoid LLM interpretation drift: follow the operati
 ## GOTCHAS
 - Creating the shared `State` document when it doesn't exist – initialization is the andthen:init skill's job; ops only reads/writes an existing shared `State` document as defined in the **Project Document Index**.
 - Letting Active Stories (shared) or Session Continuity Notes (local) grow unbounded – apply the maintenance rules under *Update State* on every write.
-- **File-creation exceptions** – three forms may create their target file: `update-tech-debt append` (Tech Debt Backlog only; mechanics in *Update Tech Debt*), `update-ledger add` (Reconciliation Ledger only; mechanics in *Update Reconciliation Ledger*), and `update-state note`/`update-state focus` (the **gitignored** `State (local)` document, plus its `.gitignore` entry – the one sanctioned side-write; mechanics in *Update State*). No other form may – do not extend to the shared State, Plan, FIS, or any future target. Ledger *transition* forms (`reconcile`, `withdraw`, `bump-recurrence`, `override-close`) never create the file; they require an existing matching entry.
+- **File-creation exceptions** – four operations may create their target file: `update-tech-debt append` (Tech Debt Backlog only; mechanics in *Update Tech Debt*), `update-ledger add` (Reconciliation Ledger only; mechanics in *Update Reconciliation Ledger*), `update-state note`/`update-state focus` (the **gitignored** `State (local)` document, plus its `.gitignore` entry – the one sanctioned side-write; mechanics in *Update State*), and `update-learnings` (topic **shard** files under `learnings/` only – never the Learnings index itself; mechanics in *Update Learnings*). No other form may – do not extend to the shared State, Plan, FIS, or any future target. Ledger *transition* forms (`reconcile`, `withdraw`, `bump-recurrence`, `override-close`) never create the file; they require an existing matching entry.
 
 
 ## OPERATIONS
@@ -66,24 +66,26 @@ State document format (both files): see [`project-state-templates.md`](${CLAUDE_
 #### Update Plan Status
 Mutate `stories[].status` in `plan.json` per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md).
 
-**Usage**: `update-plan <plan_path> <story_id> <status>`
+**Usage**: `update-plan <plan_path> <story_id> <status> [<story_id> <status> ...]`
 
 Actions:
-- Read `plan.json`, locate the entry in `stories[]` whose `id === <story_id>`, validate `<status>` against the closed enum (`pending` / `spec-ready` / `in-progress` / `done` / `skipped` / `blocked`), set the field, write back per `plan-schema.md` Formatting conventions.
+- Read `plan.json` once; for each `<story_id> <status>` pair locate the entry in `stories[]` whose `id === <story_id>`, validate `<status>` against the closed enum (`pending` / `spec-ready` / `in-progress` / `done` / `skipped` / `blocked`), set the field; write back once per `plan-schema.md` Formatting conventions.
+- **Batched pair form** (`update-plan`, `update-plan-fis`): before any write, emit `BLOCKED: expected <story_id> <value> pairs` if post-path arity is odd, an ID position is not `S` + exactly two digits, or a value position matches that ID pattern. Otherwise process pairs independently: invalid, absent, or repeated IDs/values and pointer/path/provenance failures emit story-named `REJECTED:` lines; rejected/no-op pairs do not block siblings. Reserve `BLOCKED:` for unreadable plans, mis-paired arguments, or write failure. A caller may batch a wave.
 - Transition authority: see `plan-schema.md` Writability rules.
-- Reject unknown status values with `BLOCKED: invalid status "<value>" – must be one of pending, spec-ready, in-progress, done, skipped, blocked`.
-- Unknown `<story_id>` (no matching `stories[]` entry): refuse with `BLOCKED: story "<story_id>" not found in <plan_path>` – applies to all `update-plan*` forms; never append a new story object (the andthen:plan skill owns story creation).
+- Reject an unknown status pair with `REJECTED: story "<story_id>" – invalid status "<value>" – must be one of pending, spec-ready, in-progress, done, skipped, blocked`.
+- Reject an unknown `<story_id>` pair with `REJECTED: story "<story_id>" – not found in <plan_path>` for every `update-plan*` operation. Never append a new story object (the andthen:plan skill owns story creation).
 - No-op when `status` already equals the target value.
 
 #### Update Plan FIS
 Mutate `stories[].fis` in `plan.json`.
 
-**Usage**: `update-plan-fis <plan_path> <story_id> <fis_path>`
+**Usage**: `update-plan-fis <plan_path> <story_id> <fis_pointer|null> [<story_id> <fis_pointer|null> ...]`
 
 Actions:
-- Read `plan.json`, locate the entry in `stories[]` whose `id === <story_id>`, set `fis` to `<fis_path>` (relative POSIX), write back.
-- Reject duplicates: if any other story already has `fis === <fis_path>`, refuse with `BLOCKED: fis path "<fis_path>" already used by story <other-id> – the 1:1 story↔FIS invariant must hold`.
-- No-op when `fis` already equals `<fis_path>` (path-normalized).
+- Read `plan.json` once. Literal `null` clears `fis`; otherwise derive the story's canonical basename per `data-contract.md`, accept only that no-directory value, and require its sibling target to be a regular non-symlink with matching `**Story-ID**:` / `**Plan**:` provenance before setting it. Write once.
+- **Batched pair form**: arity guard, per-pair semantics, and reporting are identical to *Update Plan Status* – the arity guard matters most here, since an omitted pointer could otherwise put a story id in the value position. The duplicate check spans the invocation as well as stories on disk – two pairs claiming one pointer reject the second.
+- For non-null pointers, if another story already claims it, emit `REJECTED: story "<story_id>" – fis pointer "<fis_pointer>" already used by story <other-id>; the 1:1 story↔FIS invariant must hold`.
+- No-op when `fis` already equals `<fis_pointer>`.
 
 #### Update Plan Owner
 Mutate `stories[].owner` in `plan.json` – the optional coordination field recording who is executing a story (per [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md)).
@@ -129,17 +131,17 @@ Actions for `discovered-requirements` form:
 Actions for `design-change` form:
 - Body constraint variant: MUST contain `#### DESIGN CHANGE`, `#### ADR`, and one or more exact amendment pairs with `Old:` and `New:` fenced blocks. Body headings must be `####`-or-deeper and MUST NOT contain `## ` headings or another `### Run:` line. Reject (no-op + `BLOCKED: invalid design-change body`) if the ADR entry is missing, if an old/new pair is missing, or if the heading constraints are violated.
 - Idempotent retry and all-or-nothing: on a retry within the 2-minute window (per the [Append-Run Block Protocol](references/append-run-block-protocol.md)), if the body is identical and every missing `Old:` span's paired `New:` span is already present in the allowed Intent/scenario region, no-op instead of blocking; if the paired `New:` spans are present but the audit block is missing, append the audit block and report the retry repaired the audit trail. Otherwise validate every pair before applying any replacement; reject (no-op + `BLOCKED: invalid design-change body`) if any `Old:` span does not exactly match the current FIS text, and apply none if one pair fails. Treat replacements plus audit append as one logical mutation: if the audit append cannot be written, do not apply replacements.
-- Apply each exact old/new replacement to the FIS Intent and/or Acceptance Scenario text only. Do not edit task checkboxes, Structural Criteria, plan provenance, or Implementation Observations through this form.
+- Apply each exact old/new replacement to the FIS Intent and/or Acceptance Scenario text only. A scenario-only amendment may change title/Given/When/Then articulation but must leave tags and Proof path/selector/state byte-identical. Do not edit task checkboxes, Structural Criteria, plan provenance, or Implementation Observations through this form.
 - Append the same body to `## Implementation Observations` using tag suffix `– design-change` via the [Append-Run Block Protocol](references/append-run-block-protocol.md), so the mutable spec edit is auditable and retry-safe. This form is distinct from `discovered-requirements`; do not use it for missing requirements or edge cases that should stay append-only.
 
 Actions for `decision-note` form (the `andthen:preflight` skill's resolved/deferred-decision write path; atomic, AUTO_MODE-safe, reject-malformed):
 - `<resolved|deferred>` is the decision class.
-- **Body constraints**: `####`-or-deeper headings only (no `## ` headings, no `### Run:` line). The body MUST carry these fields, each on its own line: `Decision-Key:`, `Altitude:`, `Affected surface:`, `Decision:`, `Rationale:`, `Evidence:`. For the `deferred` class it MUST additionally carry `Signed-off-by:` (a signed-off deferral is the only sanctioned way a punted decision stops blocking). Reject (no-op + `BLOCKED: invalid decision-note body`) when the class token is invalid, a required field is missing, or the heading constraints are violated.
+- Validate the canonical body and persisted-block grammar in [`data-contract.md`](${CLAUDE_PLUGIN_ROOT}/references/data-contract.md); reject malformed input with `BLOCKED: invalid decision-note body`.
 - **Target by class**:
-  - `resolved` → append a `#### DECISION NOTE: <decision_key>` block under `## Implementation Observations` (create that section from the FIS template lead paragraph if absent).
-  - `deferred` → append a `#### DEFERRED DECISION: <decision_key>` block under a `## Deferred Decisions` section (create the section if absent; it collects signed-off punts so a reader finds them in one place).
-- **Idempotency** keyed on `<decision_key> + <resolved|deferred>`: if a block with the same `Decision-Key:` value and the same class already exists in the target section, replace that block in place rather than appending a duplicate; no-op when the new block is byte-identical. A `<decision_key>` may legitimately hold both a `resolved` and a `deferred` block only across re-runs – the later write of a given class supersedes the earlier one.
-- Do not touch task checkboxes, Acceptance Scenarios, Structural Criteria, plan provenance, or design-change audit blocks through this form.
+  - `resolved` → validate every exact pair before changing anything. Each `Old:` span must occur exactly once in the named `Affected surface` above the mutable-section boundary; reject pairs touching the H1 provenance block, completion checkbox state, task/scenario IDs and tags, or Proof identity. Once implementation has begun, pairs touching Acceptance Scenario or Structural Criteria prose belong to the ADR-audited `design-change` form – reject them here. Apply all replacements and append the `#### DECISION NOTE: <decision_key>` block under `## Implementation Observations` as one logical mutation; if either half cannot write, apply neither. A retry with replacements already present repairs only a missing audit block; otherwise a missing `Old:` span rejects the whole call.
+  - `deferred` → append a `#### DEFERRED DECISION: <decision_key>` block under a `## Deferred Decisions` section (create the section at the end of the FIS if absent – it and `## Implementation Observations` must stay below all spec content, since the FIS read-only boundary is positional; it collects signed-off punts so a reader finds them in one place).
+- Apply the shared same-key/class replacement rule; byte-identical retries are no-ops.
+- Do not touch completion state, plan provenance, or design-change audit blocks through this form.
 
 #### Update Decisions
 Append a load-bearing non-ADR choice to the project Decisions registry's `## Still Current` section. The `andthen:preflight` skill's project-decision-altitude write path; ADR indexing stays owned by the `andthen:architecture` skill (`--mode trade-off`).
@@ -209,25 +211,34 @@ Actions for `append` form:
 - Apply the [Append-Run Block Protocol](references/append-run-block-protocol.md) (once per affected severity section).
 
 #### Update Learnings
-Append defensive-knowledge entries to the project's Learnings file. **Not a run-block append** – LEARNINGS is a topic-organized knowledge base, not a chronological log (template: `project-state-templates.md` `## LEARNINGS.md`).
+Maintain defensive-knowledge entries in the project's Learnings index. **Not a run-block append** – LEARNINGS is a topic-organized knowledge base, not a chronological log (template: `project-state-templates.md` `## LEARNINGS.md`).
 
 **Usage**:
 - Topic entry: `update-learnings add <topic> <entry-markdown>`
+- Entry removal: `update-learnings remove <topic> <title>`
 - Error-pattern row: `update-learnings error <error> <type> [conclusion]`
 
-Resolve the target file path from the **Project Document Index** `Learnings` row (default `docs/LEARNINGS.md`). If the file does not exist, refuse with `BLOCKED: Learnings document not found at <path> – run the andthen:init skill to scaffold it`; do not create it.
+Resolve the index file path from the **Project Document Index** `Learnings` row (default `docs/LEARNINGS.md`); topic shards live in a `learnings/` directory beside it. If the index does not exist, refuse with `BLOCKED: Learnings document not found at <path> – run the andthen:init skill to scaffold it`; do not create it – shard files are the sanctioned creation exception (see GOTCHAS).
+
+**Pointer grammar and shard identity** – a shard's first line is `# {Topic}`, and that H1, never the filename, is shard↔topic identity; the slug only names the file (topic lowercased, non-alphanumeric runs → `-`, edge hyphens trimmed, plus a `-2`/`-3` suffix when the slug's existing shard names a different topic). The canonical pointer is `→ learnings/<topic-slug>.md – {hook}`, written exactly as the template shows; on any pointer write the hook defaults to the topic's first bullet's `{title}` (from the shard when sharded), else the topic name. A topic is **sharded** when a `→` pointer whose path ends in `learnings/<slug>.md` appears anywhere under its H2 and the pointed file's H1 matches the topic (case-insensitive); a pointer to a missing file still counts (the next mutating write creates it), while a pointer whose H1 names a different topic is inert – treat the topic as inline, surface the mismatch, never merge. Tolerate backticks or extra formatting around the path when detecting; normalization rewrites formatting only – the path is preserved verbatim (a suffixed shard keeps its suffixed path). **Shard-wins invariant**: any *mutating* write touching a topic first merges leftover inline content – or an unpointed shard whose H1 matches – into the shard, idempotent on the `- **{title}**` prefix, leaving only the pointer; a call resolving to `NO-OP`/`BLOCKED` mutates nothing, normalization included.
 
 Actions for `add` form:
 - `<entry-markdown>`: a single bullet. MUST start with `- **{title}**` and be under 200 characters. Reject with `BLOCKED: invalid learnings entry – must start with "- **{title}**" and stay under 200 chars` if violated.
-- Locate `## {topic}` case-insensitively; if absent, create it as a new H2 above `## Error Patterns` (or at EOF). Append the bullet under the topic.
-- **Idempotency**: no-op if a bullet matching the `- **{title}**` prefix already exists in the topic.
+- Locate `## {topic}` case-insensitively in the index. Sharded topic: append the bullet to the shard, creating it if missing. Inline topic: append under the H2. Absent: create as a new H2 above `## Error Patterns` (or at EOF).
+- **Idempotency**: no-op if a bullet matching the `- **{title}**` prefix already exists in the topic (index or shard).
+
+Actions for `remove` form (graduation-ladder delete step: entries superseded by an enforced check, or stale):
+- Delete the bullet matching the `- **{title}**` prefix from the topic (index or shard); `NO-OP: entry not found` when absent – a NO-OP mutates nothing else.
+- After a successful deletion, if nothing remains beyond the H2 (and pointer) in the index and, when sharded, beyond the shard's H1, remove the H2 (never `## Error Patterns`) and delete the emptied shard together with its pointer. Remaining non-bullet content keeps section and shard in place; when a surviving shard's pointer hook matches the deleted title, refresh the hook (per the grammar default).
 
 Actions for `error` form:
 - `<type>`: `Deterministic` / `Infrastructure`. Default `Deterministic`.
 - `[conclusion]`: optional; omit or pass `-` for empty.
 - Append `| {error} | {type} | {conclusion} |` to the `## Error Patterns` table; if the section or table is missing, recreate it (`## Error Patterns` + header `| Error | Type | Conclusion |` + separator) first.
 - **Idempotency**: if a row with identical `{error}` exists, update its other columns; do not duplicate.
-- Graduation (row → topic section) is judgment-driven; rows stay until a human promotes them.
+- Row promotion (row → topic section) is judgment-driven; rows stay until a human promotes them.
+
+**Ceiling** (checked after every `update-learnings` write, any form): while the index exceeds 150 lines and inline topics remain, graduate the largest inline topic – most lines under its H2, tie → first in file, never `## Error Patterns` – by moving its entire section body verbatim into its shard, created if missing, else merged idempotently on the `- **{title}**` prefix keeping non-bullet content, leaving under the H2 only the canonical pointer. Graduation is atomic: if either the shard write or the index rewrite cannot apply, apply neither. A graduation performed when no sharded topic pre-exists in the index also replaces a header comment differing from the current template's – inserting it when absent – so legacy files gain the read contract their shards now depend on; later graduations leave the header alone. When the index still exceeds 150 lines with no inline topic left, report `NOTICE: Learnings index over ceiling – promote Error Patterns rows or remove stale entries`.
 
 ### 2. Git Operations
 

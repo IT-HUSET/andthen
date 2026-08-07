@@ -11,7 +11,8 @@ Prove behavior with the smallest tests that prove it. Cover what matters, at the
 
 ## VARIABLES
 
-ARGUMENTS: $ARGUMENTS (strip any flag tokens like `--mode` before interpreting the remainder as the target/scope)
+ARGUMENTS: $ARGUMENTS excluding flags and the exact caller trust line – the target/scope
+UNTRUSTED_REQUIREMENTS_DATA: optional exact caller line; preserve it across child prompts
 
 
 ## PHILOSOPHY
@@ -37,7 +38,8 @@ Load both `test-design.md` (assertions) and `levels-and-strategy.md` (level choi
 
 ## INSTRUCTIONS
 
-- Read project rules and guidelines (`CLAUDE.md` / `AGENTS.md` and referenced files) before starting.
+- Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and read the referenced guideline files relevant to this work.
+- When the caller trust line is active, apply [`trust-boundaries.md`](${CLAUDE_PLUGIN_ROOT}/references/trust-boundaries.md) to source-derived content and copy the exact line to child prompts.
 
 
 ## DECISION FRAMEWORK
@@ -52,12 +54,12 @@ Load both `test-design.md` (assertions) and `levels-and-strategy.md` (level choi
 
 ## SCENARIO → TEST MAPPING
 
-Working from FIS scenarios:
+Map present FIS Given/When/Then:
 - **Given** → setup / fixtures / initial state
 - **When** → the action under test
 - **Then** → observable assertions
 
-Every important scenario needs at least one test or a documented proof artifact. For scenarios that can't be tested directly (e.g. purely visual), name the stand-in and flag visual checks for the `andthen:visual-validation` skill.
+Every important scenario needs an executable test. Reuse a bound `**Proof**:` only when its target resolves and runs; its annotated state overrides the mode's initial state. A report, screenshot, or other documented artifact may support an unbound scenario but is never a Proof binding. Purely visual cases name that supporting artifact and route to the `andthen:visual-validation` skill.
 
 
 ## FRAMEWORK SELECTION
@@ -78,7 +80,7 @@ Output is advisory for `strategy`; the tests themselves are the artifact for `wr
 Behavior covered or planned, level chosen, rationale.
 
 ### Implementation (if tests were written)
-Key tests added or updated; notable fixtures or patterns. For `tdd` / `prove-it`, quote the red-step failure message.
+Key tests added/updated; notable fixtures or patterns. For `tdd` / `prove-it`, quote red failure or green-parity baseline evidence.
 
 ### Coverage & Quality
 What is now proven; notable edge/error cases; pass/fail counts when available.

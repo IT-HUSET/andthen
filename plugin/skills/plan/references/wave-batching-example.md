@@ -8,6 +8,7 @@ Worked illustration of Step 5 sub-wave batching for the `andthen:plan` skill.
 Step 5 (MAX_PARALLEL=4):
   Sub-wave 1: spec-S01, spec-S02, spec-S03, spec-S04 (parallel)
   Sub-wave 2: spec-S05, spec-S06, spec-S07, spec-S08 (parallel)
-  → After each sub-wave: re-read plan.json and verify each story's fis + status landed
-    (spec sub-agents drive the ops writes; orchestrator only repairs on miss)
+  → After each sub-wave: orchestrator issues one batched update-plan-fis + one batched
+    update-plan spec-ready, then re-reads plan.json once to verify both landed
+    (spec sub-agents write only their FIS artifact; the orchestrator owns plan writes)
 ```

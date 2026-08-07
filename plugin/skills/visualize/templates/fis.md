@@ -31,13 +31,13 @@ A FIS is *execution input* – the visualization optimizes for "is this implemen
 | [ Generic prose (1-2 sentences) ]              [ Note ] [ <> ]|
 +-------------------------------------------------------------+
 | ## Required Context                                         |
-| [ Source-pinned block cards ]                  [ Note ] [ <> ]|
+| [ Anchored refs / source-pinned fallback ]     [ Note ] [ <> ]|
 +-------------------------------------------------------------+
 | ## Deeper Context                                           |
 | [ Anchored pointer list ]                      [ Note ] [ <> ]|
 +-------------------------------------------------------------+
 | ## Acceptance Scenarios                                     |
-| [ Checkbox cards with Given/When/Then walk ]   [ Note ] [ <> ]|
+| [ Checkbox cards with articulation / Proof ]   [ Note ] [ <> ]|
 +-------------------------------------------------------------+
 | ## Structural Criteria                                      |
 | [ Non-behavioral checklist ]                   [ Note ] [ <> ]|
@@ -48,7 +48,7 @@ A FIS is *execution input* – the visualization optimizes for "is this implemen
 | ## Architecture Decision                                    |
 | [ Accent box (reuse tradeoff.md .recommendation) ][ Note ] [<>]|
 +-------------------------------------------------------------+
-| ## Technical Overview  (often empty)                        |
+| ## Technical Overview  (often absent)                       |
 | [ Generic prose with H3 subsections ]          [ Note ] [ <> ]|
 +-------------------------------------------------------------+
 | ## Code Patterns & External References                      |
@@ -59,9 +59,9 @@ A FIS is *execution input* – the visualization optimizes for "is this implemen
 +-------------------------------------------------------------+
 | ## Implementation Plan                                      |
 | [ Task walkthrough; Testing Strategy / Validation /         |
-|   Execution Contract sub-H3s render below (often empty) ]    |
+|   Execution Contract sub-H3s render below (often absent) ]   |
 +-------------------------------------------------------------+
-| ## Final Validation Checklist  (often empty)                |
+| ## Final Validation Checklist  (often absent)               |
 | [ Checklist ]                                  [ Note ] [ <> ]|
 +-------------------------------------------------------------+
 | ## Implementation Observations  (post-exec, append-only)    |
@@ -83,9 +83,13 @@ When neither is present (standalone FIS not generated from a plan), the eyebrow 
 
 **Status pill** (derived – FIS has no source status field):
 
-- `complete` / `status-done` when every Implementation-Plan task checkbox is checked AND every Final-Validation checkbox is checked (when the checklist exists).
-- `in-progress` / `status-review` when any Implementation-Plan checkbox is checked but not all.
-- `draft` / `status-draft` when no task checkbox is checked.
+- `complete` / `status-done` when all of:
+  - the canonical Acceptance Scenario and Implementation Task sets counted by the KPIs are non-empty and fully checked,
+  - Structural Criteria has a non-empty, fully checked checkbox set,
+  - no non-canonical scenario/task checkbox exists,
+  - every Final-Validation checkbox is checked when that optional section exists.
+- `in-progress` / `status-review` when any checkbox on those proof surfaces is checked but the complete condition is false.
+- `draft` / `status-draft` when none of those proof-surface checkboxes is checked.
 
 
 ## KPI Cells
@@ -96,7 +100,7 @@ The four-cell `.kpi-band` sits between `.doc-header` and the first section. FIS 
 |---|---|---|
 | 1 | Scenarios | Count of `- [ ]`/`- [x]` checkboxes directly under `## Acceptance Scenarios` that match the canonical scenario shape (see *Acceptance Scenarios → Checkbox cards* below); non-canonical checkboxes counted separately and surfaced via the non-canonical-shape comment in `View source` |
 | 2 | Tasks | Count of `- [ ]`/`- [x]` checkboxes under `## Implementation Plan` → `### Implementation Tasks` whose bold label starts with `TI` + two digits (canonical task shape – see *Implementation Plan* renderer below) |
-| 3 | Open Items | Count of unchecked task checkboxes + unchecked `## Structural Criteria` checkboxes + unchecked `## Final Validation Checklist` checkboxes (when the section is present). Open scenarios are *not* added (scenarios prove tasks; the task box is the actionable item) |
+| 3 | Open Items | Count of unchecked Acceptance Scenario + Implementation Task + Structural Criteria checkboxes + unchecked `## Final Validation Checklist` checkboxes when present |
 | 4 | Discovered | Count of `Discovered Requirements` entries under `## Implementation Observations` (one entry = one `**Title**:` line). `0` for a freshly authored FIS |
 
 Auto-`.attention`: cell 3 when count > 0; cell 4 when count > 0.
@@ -116,9 +120,9 @@ If the FIS is legacy (no `**Expected Outcomes**:` sub-block), fall back to Gener
 
 Use `.tldr-light` callout when the source authors one explicitly per the render-shell.md *Light TL;DR callout* contract.
 
-### Required Context → Source-pinned block cards
+### Required Context → Anchored reference cards
 
-Each H3 (`### From \`path\` – "Section"`) renders as a card. Parse the two HTML comments (`<!-- source: ... -->`, `<!-- extracted: ... -->`) into a metadata strip; the `> {{inlined span}}` blockquote becomes the body.
+Default shape: each `- \`path#anchor\` – intent` bullet renders as a compact card. The bounded inline fallback (also the legacy shape) uses H3 + `source` / `extracted` comments + blockquote and renders as the expanded card below.
 
 ```html
 <article class="fis-context-card">
@@ -149,17 +153,17 @@ Each H3 (`### From \`path\` – "Section"`) renders as a card. Parse the two HTM
 .fis-context-body p:last-child { margin-bottom: 0; }
 ```
 
-When a card lacks one of the metadata comments, omit the missing field – do not fabricate.
+When an inline card lacks metadata, omit that field – do not fabricate. Empty/omitted Required Context suppresses the H2.
 
 ### Deeper Context → Anchored pointer list
 
 Bullet list of `path#anchor – description`. Render each entry with the path/anchor in mono and the description in body text; no card decoration (it is intentionally lightweight). Empty section bodies (or section omitted) → suppress the H2 entirely so the card isn't a blank shell.
 
-### Acceptance Scenarios → Checkbox cards with Given/When/Then walk
+### Acceptance Scenarios → Checkbox cards with articulation and Proof
 
-**Canonical shape** – defined in `plugin/references/fis-authoring-guidelines.md` *Acceptance Scenarios and Proof-of-Work*; worked example below. Each canonical scenario is one top-level checkbox whose bold label is `S` + two digits, a space, an outcome-tag set `[OC` + two digits (optionally comma-joined repeats) `]`, a space, a task-tag set `[TI` + two digits (optionally comma-joined repeats) `]`, a space, then the description – followed by nested Given/When/Then bullets. Outcome tags precede task tags; the two groups have distinct semantics (outcome tags anchor the scenario to Expected Outcomes in *Feature Overview and Goal*; task tags backlink to Implementation Tasks that prove the scenario). The structural-integrity gate in `data-contract.md` is loose (one `- [ ]` anywhere in the section span); strict canonical-shape enforcement lives in authoring discipline.
+**Canonical shape** – one top-level checkbox whose bold label is `S` + two digits, outcome tags, task tags, then the description. Nested content is concrete Given/When/Then, a Proof target/state, or both; a fully bound title + Proof with no GWT is canonical. Outcome tags precede task tags. Strict completeness belongs to authoring/review, not this renderer.
 
-Render each scenario as a card. Extract the scenario ID, the outcome-tag set, the task-tag set, the description, and the checked state from the bold label. Nested Given/When/Then bullets become a three-step **walkthrough** (reuse `diagrams.md#walkthrough`).
+Render each scenario as a card. Extract ID, tags, description, and checked state from the label. Render any Given/When/Then lines as an ordered walkthrough containing only present steps. Render Proof as a target/state row; Proof-only is not a non-canonical fallback.
 
 ```html
 <article class="fis-scenario" data-anchor-parent="acceptance-scenarios" data-checked="{{1|0}}">
@@ -180,6 +184,7 @@ Render each scenario as a card. Extract the scenario ID, the outcome-tag set, th
     <li><span class="fis-scen-step">When</span> <span class="fis-scen-body">the user exports CSV</span></li>
     <li><span class="fis-scen-step">Then</span> <span class="fis-scen-body">the CSV contains only filtered rows with the required columns</span></li>
   </ol>
+  <div class="fis-scen-proof"><span class="fis-scen-step">Proof</span> <code>tests/export_test.py#filtered_csv</code> <span>– red at spec time</span></div>
 </article>
 ```
 
@@ -209,11 +214,13 @@ Render each scenario as a card. Extract the scenario ID, the outcome-tag set, th
 .fis-scen-step { font-family: var(--mono); font-size: 0.74rem; color: var(--text-muted);
                  text-transform: uppercase; letter-spacing: 0.06em; }
 .fis-scen-body { color: var(--text); font-size: 0.92rem; }
+.fis-scen-proof { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: baseline;
+                  color: var(--text-muted); font-size: 0.86rem; }
 ```
 
 Each scenario card gets `id="acceptance-scenarios-s01"` (lowercase ID). Task-tag chips backlink to Implementation Plan tasks (`href="#implementation-plan-ti01"`); outcome-tag chips backlink to Expected Outcome bullets in Feature Overview and Goal (`href="#feature-overview-and-goal-oc01"`). Only task tags participate in the *Where-to-Focus* task-state mismatch check; outcome tags are anchors, not state.
 
-**Non-canonical fallback** – when a `## Acceptance Scenarios` section contains plain `- [ ]` checkboxes that do *not* match the canonical shape above, render each line as a single-line scenario card (description-only, no walk) and leave a `<!-- fis-scenario: non-canonical shape -->` HTML comment in `View source` so the gap surfaces. Do not silently coerce.
+**Non-canonical fallback** – when a checkbox label does not match the canonical ID/tag shape, render a description-only card and leave `<!-- fis-scenario: non-canonical shape -->` in `View source`. Missing GWT alone is not this signal when Proof is present.
 
 ### Structural Criteria → Checklist
 
@@ -243,7 +250,7 @@ When the body links to an external ADR (`See ADR: <path>/NNN-<slug>.md`), surfac
 
 ### Technical Overview → Generic Prose
 
-Render as-is with H3 sub-anchors. No special dispatch. The section often ships empty (template-default for the typical feature where synthesis is self-evident); when the body is empty or carries only the template's `{{Synthesis prose, if non-obvious}}` placeholder, render a muted "no synthesis needed" note rather than the prompt text.
+Render as-is with H3 sub-anchors. No special dispatch. The section is omitted for the typical feature where synthesis is self-evident. An absent heading emits no section; a present empty body or template-only `{{Synthesis prose, if non-obvious}}` body renders a muted "no synthesis needed" note rather than the prompt text.
 
 ### Code Patterns & External References → Type/path/intent table
 
@@ -337,13 +344,15 @@ The headline section. Each task uses the canonical FIS shape – `- [ ] **TI<NN>
 
 **Sub-sections** of `## Implementation Plan`:
 
-- `### Testing Strategy` H3 renders as a bullet list below the task walkthrough with `[TIxx]` tags styled as `<a>` chips backlinking to the task cards (same pattern as scenario tag chips). Empty body (only the template's `{{Test-approach note, if non-obvious}}` placeholder) → render a muted "standard test approach" note rather than the prompt text.
-- `### Validation` H3 renders as a muted prose block. Empty body (only the template's `{{Feature-specific validation requirement, if any}}` placeholder) → render a muted "no feature-specific validation" note.
-- `### Execution Contract` H3 renders as Generic Prose. Empty body (only the template's `{{Feature-specific execution constraint, if any}}` placeholder) → render a muted "no feature-specific execution constraints" note.
+A FIS whose defaults suffice omits these three H3s. An absent H3 emits nothing; a present empty/template-only H3 renders its muted fallback note below.
+
+- `### Testing Strategy` H3 renders as a bullet list below the task walkthrough with `[TIxx]` tags styled as `<a>` chips backlinking to the task cards (same pattern as scenario tag chips). Fallback note: "standard test approach".
+- `### Validation` H3 renders as a muted prose block. Fallback note: "no feature-specific validation".
+- `### Execution Contract` H3 renders as Generic Prose. Fallback note: "no feature-specific execution constraints".
 
 ### Final Validation Checklist → Checklist
 
-Render `- [ ]` / `- [x]` bullets as disabled checkboxes (reuse the clarification checklist renderer). Empty body (only the template's `{{Feature-specific final gate, if any}}` placeholder) → render a muted "no feature-specific final gates" note rather than synthesizing an empty checkbox.
+Render `- [ ]` / `- [x]` bullets as disabled checkboxes (reuse the clarification checklist renderer). An absent section emits nothing; a present body carrying only the template's `{{Feature-specific final gate, if any}}` placeholder renders a muted "no feature-specific final gates" note rather than synthesizing an empty checkbox.
 
 ### Implementation Observations → Discovered Requirements cards
 
@@ -407,7 +416,7 @@ Per render-shell.md *Where-to-Focus Priority Section* heuristic, in source-relev
 - **FIS with no Implementation Plan tasks yet** (early draft) → KPI cell 2 = 0; task list renders the boilerplate `TI00 (example – delete this block)` row as muted, with a `<!-- fis: tasks not yet authored -->` comment in `View source`.
 - **FIS with no Acceptance Scenarios** → KPI cell 1 = 0; render the section as a single Generic Prose card with a muted "no scenarios authored" note; the structural-integrity gate is `exec-spec`'s job, not the visualizer's.
 - **FIS with no `## Structural Criteria` section** (early draft or hand-authored skip) → omit the section entirely; a missing heading is a `## Structural Criteria → Checklist` renderer no-op rather than a synthesized empty card. The `exec-spec` completion gate is the enforcement boundary, not the visualizer.
-- **Long Required Context blockquotes** (> 30 lines) → render the first 12 lines, then wrap the remainder in `<details class="analysis">` with summary `Show full inlined span`. Reuses the render-shell.md *Supporting-detail collapse* contract.
+- **Long inline Required Context blockquotes** (> 30 lines) → render the first 12 lines, then wrap the remainder in `<details class="analysis">` with summary `Show full inlined span`.
 - **Cross-references to plan-story sub-anchors** (`See plan S03`) → leave as plain text; cross-document anchors aren't resolvable from a single-artifact view.
 - **AUTO_MODE assumption blocks in `## Implementation Observations`** (per `automation-mode.md`) → render as observation cards with the `Interpretation` field surfaced; same template otherwise.
 

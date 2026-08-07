@@ -78,7 +78,7 @@ The 21 canonical assets live at `plugin/references/` – a single canonical loca
 | `findings-filter-templates.md` | review, architecture |
 | `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings, preflight, issue-triage |
 | `critic-calibration.md` | review, quick-review |
-| `data-contract.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage, issue-triage |
+| `data-contract.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, preflight, remediate-findings, triage, issue-triage |
 | `design-tree.md` | clarify, architecture |
 | `execution-discipline.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings, preflight, issue-triage |
 | `execution-named-blocks.md` | spec, exec-spec, quick-implement, triage, preflight |
@@ -95,7 +95,7 @@ The 21 canonical assets live at `plugin/references/` – a single canonical loca
 | `reconciliation-ledger.md` | ops, exec-spec, exec-plan, quick-review, review, remediate-findings |
 | `review-calibration.md` | review, quick-review, architecture |
 | `review-report-location.md` | review, architecture |
-| `trust-boundaries.md` | review, e2e-test, triage |
+| `trust-boundaries.md` | architecture, clarify, prd, plan, spike, testing, ui-ux-design, visual-validation, exec-spec, exec-plan, review, quick-implement, e2e-test, triage |
 
 
 ---
