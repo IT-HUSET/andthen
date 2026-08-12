@@ -375,6 +375,12 @@ Each downstream picks its own `--prefix` (must end with `-`). Skills install as 
 
 See [CHANGELOG.md](../CHANGELOG.md) for full release notes. Entries below cover migration steps for recent releases – both breaking changes and non-breaking shape additions that affect the FIS or plan surfaces consumers parse.
 
+### 0.38.1 – Plan fix rounds severity-gated and policy-routed (behavior change + non-breaking shape addition)
+
+The `andthen:plan` skill's cross-cutting review (Step 6) now dispatches fix rounds only for readiness-affecting findings – CRITICAL/HIGH, cross-story contract breaks, coverage/chain gaps at any severity, and mechanical-validity defects. Lesser findings fold into a dispatch their story already receives or surface under a new **Documented residuals** field in the plan completion summary, never a dedicated round. Fix dispatches route per the **Sub-Agent Model Policy** by the heaviest finding carried (all-mechanical rounds downshift to the cheap tier), and reviewer/validator reports are findings-only, citing FIS/PRD anchors instead of restating content.
+
+**To migrate**: no action required. Bundles may now report residuals a prior release would have spent an extra fix round resolving; the readiness gate itself is unchanged. Parsers of the plan completion summary should tolerate the new **Documented residuals** field.
+
 ### 0.38.0 – Compact FIS references and canonical plan pointers
 
 An Acceptance Scenario may bind an existing test/suite as ``- **Proof**: `path[#test-name]` – <state>``. When the precise title and inspected target fully encode the behavior and mechanism, the scenario omits duplicated Given/When/Then; partial bindings retain only missing articulation. Required Context now points at durable anchored sources by default instead of copying extracts. The executor reads required targets and reuses Proof rather than scaffolding duplicates.

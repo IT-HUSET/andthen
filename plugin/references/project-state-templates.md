@@ -313,7 +313,8 @@ _No tech debt recorded yet._
 
 <!-- Traps only, one bullet each: `- **{title}** – …` under 200 chars, trap + pointer; postmortem
      depth lives in the spec archive or an ADR. Bar: "Would a competent developer with code and
-     git access still get bitten?" Skills read this index whole – keep it lean. Maintain via the
+     git access still get bitten?" Skills read this index whole – keep it lean; shards load per
+     touched topic, and a repeat-check touches its topic. Maintain via the
      `andthen:ops` skill (`update-learnings` forms), which owns the 150-line ceiling and
      `learnings/` shard graduation. Delete entries once encoded as checks or stale. -->
 

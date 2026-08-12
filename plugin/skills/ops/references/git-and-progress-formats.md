@@ -4,20 +4,16 @@ Output formats for the Git Operations (`commit`, `branch`, `changelog`) and Prog
 
 ## Commit
 
-Standardized commit message formatting.
-
 **Format**: `{type}({scope}): {description}`
 
 Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`, `perf`, `ci`
 
 Rules:
-- Scope is optional but recommended
+- Scope is optional but recommended – omit the parens when absent
 - Description: imperative mood, lowercase, no period, max 72 chars
 - If story context exists, append story ID: `feat(auth): add login form [S03]`
 
 ## Branch
-
-Standardized branch naming.
 
 **Format**: `{type}/{story-id}-{slug}`
 

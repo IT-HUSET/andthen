@@ -30,7 +30,7 @@ A skill loads in three levels. Treat this as a **file-layout discipline**, not j
 | 2. Body | `SKILL.md` body | When the skill is triggered | Target <500 lines / ~5k tokens |
 | 3. Resources | Reference files, scripts | On demand, via explicit read / execute | Effectively unbounded |
 
-`SKILL.md` is an **overview that points to deeper material** – like a table of contents in an onboarding guide. It carries the quick-start and common-path content *inline* and defers advanced, conditional, and reference detail to bundled files. The "table of contents" framing describes its *navigational* role; it is not a license to strip the body to bare links – a body up to ~500 lines is well within budget.
+`SKILL.md` is an **overview that points to deeper material** – like a table of contents in an onboarding guide. It carries the quick-start and common-path content *inline* and defers advanced, conditional, and reference detail to bundled files. The framing is *navigational*, not a license to strip the body to bare links – up to ~500 lines is well within budget.
 
 ### Bundle layout rules
 
@@ -40,7 +40,7 @@ A skill loads in three levels. Treat this as a **file-layout discipline**, not j
 
 ### Add a table of contents to long reference files
 
-For any reference file over **~200 lines**, place a short table of contents at the top. The model often previews large files with partial reads; without a TOC, it sees only the first slice and can't tell what else is in the file. A TOC ensures it can see the full scope on the first read and jump to the relevant section. Below the threshold a TOC is optional – a file that fits a single read needs no map, and forcing one just adds a drift surface.
+For any reference file over **~200 lines**, place a short table of contents at the top. The model often previews large files with partial reads; without a TOC it sees only the first slice and can't tell what else is in the file. Below the threshold a TOC is optional – a file that fits a single read needs no map, and forcing one adds a drift surface.
 
 ```markdown
 # API Reference
@@ -59,9 +59,9 @@ For any reference file over **~200 lines**, place a short table of contents at t
 …
 ```
 
-Keep the TOC compact – one line per section, no nested sub-bullets unless a section is genuinely deep. The TOC is a *map*, not an outline; the value is letting the model decide where to read next, not telling it everything the section will say.
+Keep the TOC compact – one line per section, no nested sub-bullets unless a section is genuinely deep. It is a *map*, not an outline.
 
-When you add, rename, or remove a section in a file that has a TOC, update the TOC in the same edit. A stale TOC that omits a section – especially one another file deep-links to – is worse than none, and is the failure mode that survives trimming because the body still reads fine on its own.
+Update the TOC in the same edit that adds, renames, or removes a section. A stale TOC omitting a section – especially one another file deep-links to – is worse than none, and survives review because the body still reads fine on its own.
 
 ### Three disclosure patterns
 
@@ -121,15 +121,7 @@ For simple edits, modify the XML directly.
 
 ### Naming conventions
 
-Prefer **gerund form** (verb + `-ing`) – it clearly describes the activity:
-
-- `processing-pdfs`
-- `analyzing-spreadsheets`
-- `managing-databases`
-- `testing-code`
-- `writing-documentation`
-
-Acceptable alternatives: noun phrases (`pdf-processing`), action-oriented (`process-pdfs`).
+Prefer **gerund form** (verb + `-ing`) – it clearly describes the activity: `processing-pdfs`, `analyzing-spreadsheets`, `testing-code`. Acceptable alternatives: noun phrases (`pdf-processing`), action-oriented (`process-pdfs`).
 
 Avoid: `helper`, `utils`, `tools`, `documents`, `data`, `files`, reserved words.
 
@@ -218,7 +210,7 @@ Prose debt in a skill takes four distinct shapes. Hunt each by name – they hav
 - **Sprawl** – sheer length independent of staleness: reference material sitting inline that only some paths need. Cure: push it down the disclosure ladder into a bundled reference file.
 - **No-op** – an instruction the model already follows unprompted ("be thorough"): pure context cost, zero behavior change. Whether a line is a no-op is model-relative, and is settled by running the skill and observing – not by debate.
 
-**Pruning calibration – directives masquerade as description.** An opening that enumerates outputs, phases, or counter-prior guards ("Transform X into Y + Z", "while preserving exact behavior", "bypasses the FIS workflow") is an operational contract, not restatement – cutting it changes behavior. Markers: imperative lead verb, enumerated inputs/outputs/modes, counter-prior phrases, verification commitments. A prominent fail-fast gate near the top is not duplication of the same rule in INSTRUCTIONS – position is part of the contract (early exit vs. procedural enforcement). The same test protects craft content: pattern catalogs, comparison tables, and concrete dimension values in design-heavy skills teach judgment and are operational – relocate them down the disclosure ladder if needed, never flatten them into summary bullets. When unsure, keep: an unneeded sentence costs tokens; a cut contract costs behavior. Always-safe cuts: USAGE blocks restating slash syntax (frontmatter `argument-hint` owns it) and true frontmatter-description restatement ("This skill helps you…").
+**Pruning calibration – directives masquerade as description.** Contract markers: imperative lead verb, enumerated inputs/outputs/modes/phases, counter-prior phrases ("while preserving exact behavior"), verification commitments. An opening carrying any of these is an operational contract, not restatement – cutting it changes behavior. A prominent fail-fast gate atop the body is not duplication of the same rule in INSTRUCTIONS – position is part of the contract (early exit vs. procedural enforcement). Craft content passes the same test: pattern catalogs, comparison tables, and concrete dimension values teach judgment – push down the disclosure ladder if needed, never flatten into summary bullets. When unsure, keep: an unneeded sentence costs tokens, a cut contract costs behavior. Always-safe cuts: USAGE blocks restating slash syntax (`argument-hint` owns it) and frontmatter-description restatement ("This skill helps you…").
 
 ---
 
@@ -241,12 +233,10 @@ Copy this checklist and check off items as you complete them:
 
 **Step 1: Analyze the form**
 Run: `python scripts/analyze_form.py input.pdf`
-This extracts form fields and their locations, saving to `fields.json`.
-
 […]
 ```
 
-The pattern works equally well for **non-code workflows** (research synthesis, document review). The checklist's value is structural, not language-specific.
+Works equally for **non-code workflows** (research synthesis, document review) – the value is structural, not language-specific.
 
 ### Implement feedback loops on quality-critical steps
 
@@ -292,18 +282,7 @@ ALWAYS use this exact template:
 …
 ```
 
-**Flexible** – use when adaptation is genuinely useful:
-
-```markdown
-## Report structure
-
-Here is a sensible default format; adapt sections to the analysis type:
-
-# [Analysis Title]
-## Executive summary
-[Overview]
-…
-```
+**Flexible** – same shape, introduced with *"Here is a sensible default format; adapt sections to the analysis type"*. Use when adaptation is genuinely useful.
 
 ### Examples pattern
 
@@ -396,12 +375,7 @@ Not `TIMEOUT = 47` with no explanation.
 
 ### Prefer utility scripts over generated code
 
-When the same operation appears repeatedly, ship a script. Benefits:
-
-- **More reliable** than freshly generated code (no syntax drift, no missing edge cases).
-- **Saves tokens** – script body is never loaded into context.
-- **Saves time** – no code-generation step.
-- **Ensures consistency** across uses.
+When the same operation appears repeatedly, ship a script: more reliable than freshly generated code (no syntax drift, no missing edge cases), zero context cost, no generation step, consistent across uses.
 
 **Make execution intent explicit.** State whether the model should *execute* the script or *read* it as reference:
 
@@ -515,11 +489,9 @@ with pdfplumber.open("file.pdf") as pdf:
 
 PDF (Portable Document Format) files are a common file format that contains
 text, images, and other content. To extract text from a PDF, you'll need to
-use a library. There are many libraries available for PDF processing, but
-pdfplumber is recommended because it's easy to use…
+use a library. There are many libraries available… [~100 tokens of baseline
+knowledge the model already has]
 ```
-
-The verbose version assumes the model doesn't know what PDFs are and how libraries work. It wastes ~100 tokens on baseline knowledge the model has.
 
 Token-saving moves:
 
@@ -537,7 +509,7 @@ The body sections above already frame their own anti-patterns as named positive 
 
 - **Too many options.** Listing four libraries that can each solve the task and asking the model to pick. Choose a default, add an escape hatch (*"For scanned PDFs requiring OCR, use pdf2image with pytesseract instead"*).
 - **Time-sensitive instructions.** *"If before August 2025, use the old API."* Replace with a current path and an "old patterns" reference block that quarantines deprecated guidance from the main flow.
-- **Maintenance narrative.** AndThen version numbers (*"pre-0.13.0"*) and historical framing (*"no longer does X"*, *"previously…"*) in skill prompts, references, or templates address maintainers, not the executing agent – that story belongs in the CHANGELOG. Rewrite guards as present-tense directives (*"do not synthesize a PRD here"*) and version-cutoff mappings as timeless facts. Audit: `rg '\b(pre-|post-|since )?\d+\.\d+\.\d+|no longer|previously|formerly|now-removed' plugin/`, filtering legitimate current-tense uses.
+- **Maintenance narrative.** Version numbers (*"pre-0.13.0"*) and historical framing (*"no longer does X"*, *"previously…"*) address maintainers, not the executing agent – that story belongs in the CHANGELOG. Rewrite guards as present-tense directives, version-cutoff mappings as timeless facts. Audit: `rg '\b(pre-|post-|since )?\d+\.\d+\.\d+|no longer|previously|formerly|now-removed' plugin/`, filtering current-tense uses.
 - **Inconsistent terminology.** Mixing *endpoint* / *URL* / *route* / *path*, or *field* / *box* / *element*, in the same skill. Pick one term per concept and use it throughout – the model treats lexical drift as semantic drift.
 
 ---
@@ -587,11 +559,11 @@ Run skills against Haiku, Sonnet, and Opus where available. Different questions 
 - **Sonnet** – is the skill clear and efficient?
 - **Opus** – does the skill avoid *over*-explaining?
 
-What works for Opus often needs more detail for Haiku; what's right for Haiku may be over-specified noise for Opus. The mismatch tells you where the skill is leaning on raw model capability rather than its own structure.
+The tier mismatch tells you where the skill is leaning on raw model capability rather than its own structure.
 
 ### Gather real-usage feedback
 
-If the skill is used by others (or other agents), share it and observe usage. Ask: does the skill activate when expected? Are instructions clear? What's missing? Real usage reveals blind spots that authoring-time review never surfaces.
+Where the skill has other users (or agents), observe real usage – activation timing, unclear instructions, gaps. It reveals blind spots authoring-time review never surfaces.
 
 ---
 

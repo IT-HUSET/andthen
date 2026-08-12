@@ -28,3 +28,4 @@
 ## Process & Tooling
 
 - **Parallel-authority enumerations drift** – installer asset arrays, the ARCHITECTURE shared-assets table, REQUIREMENTS-SPEC bullets, plugin/README, and the skill-reference catalog desync repeatedly; audit all five on any change to one.
+- **Spec-pipeline cost is remediation-shaped, not review-shaped** – 2026-08 benchmark: fix rounds 41% vs authoring 14% of cost; fixer dispatches outcost small fixes. Mitigated 0.38.1 (see CHANGELOG).

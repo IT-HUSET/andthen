@@ -223,13 +223,13 @@ Delegate to one sub-agent, routed per the **Sub-Agent Model Policy** (absent a p
 
 > Batch review substitutes inter-story coherence plus one external-claim falsifier for per-FIS full lenses. Run the `andthen:review` skill with `--mode doc` directly for a security-sensitive FIS or an unproven mechanism.
 
-Per finding: severity (CRITICAL/HIGH/MEDIUM/LOW), stories affected, description, recommendation, FIS sections to update. Summary: findings by severity, readiness (READY/NEEDS FIXES/BLOCKED), FIS files needing updates.
+Per finding: severity (CRITICAL/HIGH/MEDIUM/LOW), stories affected, description, recommendation, FIS sections to update. Summary: findings by severity, readiness (READY/NEEDS FIXES/BLOCKED), FIS files needing updates. Findings and summary are the whole report – cite FIS/PRD anchors instead of restating their content; a narrative walkthrough is context spent twice.
 
 #### Fix Issues
 
-Resolve every readiness finding through the owning `andthen:spec` skill sub-agent; the orchestrator never edits FIS prose. Pass exact findings/evidence, current Self-Check, and Proof bindings; missing decisions block. Every reauthor re-enters Step 5 for that story with the same batch marker, delta gate, validation, and pointer/status transitions; `OVERSIZE:` re-enters Step 3. A chain leg with no owner re-enters Steps 3–5 as a new story. Re-check `PHANTOM_SCOPE` against `prd.md`; retain traced scope and remove confirmed phantom scope through its author.
+Resolve every readiness-affecting finding – CRITICAL/HIGH, cross-story contract breaks, coverage/chain gaps at any severity, and mechanical-validity defects (13) – through the owning `andthen:spec` skill sub-agent; the orchestrator never edits FIS prose. To keep a fresh-context dispatch cheaper than the fixes it carries: lesser findings fold into a dispatch their story is already receiving or surface as documented residuals in the completion summary – never a dedicated round – and each dispatch routes per the **Sub-Agent Model Policy** by its heaviest finding (structural or CRITICAL/HIGH rework is spec-authoring judgment; an all-mechanical round is small well-specified work). Pass exact findings/evidence, current Self-Check, and Proof bindings; missing decisions block. Every reauthor re-enters Step 5 for that story with the same batch marker, delta gate, validation, and pointer/status transitions; `OVERSIZE:` re-enters Step 3. A chain leg with no owner re-enters Steps 3–5 as a new story. Re-check `PHANTOM_SCOPE` against `prd.md`; retain traced scope and remove confirmed phantom scope through its author.
 
-Resume the reviewer, or dispatch a fresh-context validator with the original checklist/findings. Only independent final-state validation establishes readiness; malformed/failed output fails.
+Resume the reviewer, or dispatch a fresh-context validator with the original checklist/findings; either way the report keeps the findings-only shape and classifies every remaining finding as readiness-affecting or residual. Only independent final-state validation establishes readiness; malformed/failed output fails.
 
 **Gate**: review succeeded; every readiness-affecting finding is resolved; affected Self-Checks, Proofs, seams, and PRD flows pass on the final artifacts
 
@@ -257,7 +257,7 @@ Before printing completion, re-check that every FIS path listed in the summary e
 
 ## COMPLETION
 
-Print a summary: **plan.json** path; **FIS files created** count; **Stories specced**, **skipped**, **failed**; **Cross-cutting review** findings by severity and readiness; **Fixes applied**; **Readiness**; **Migration notice** (only when Step 1 migrated a legacy `plan.md`).
+Print a summary: **plan.json** path; **FIS files created** count; **Stories specced**, **skipped**, **failed**; **Cross-cutting review** findings by severity and readiness; **Fixes applied**; **Documented residuals**; **Readiness**; **Migration notice** (only when Step 1 migrated a legacy `plan.md`).
 
 
 ## FOLLOW-UP ACTIONS

@@ -28,7 +28,7 @@
 <!-- Load-bearing decisions that don't warrant a full ADR. One bullet each.
      Format: **<Topic>**: <decision + brief rationale>. -->
 
-- **Sibling-story batching in plan spec authoring**: rejected – breaks 1 story ↔ 1 sub-agent ↔ 1 FIS, muddies OVERSIZE/PHANTOM_SCOPE attribution, and the preamble-amortization win shrank once per-FIS self-review was removed. Revisit only if measurements show preamble cost still dominating.
+- **Sibling-story batching in plan spec authoring**: rejected – breaks 1 story ↔ 1 sub-agent ↔ 1 FIS, muddies OVERSIZE/PHANTOM_SCOPE attribution, and the preamble-amortization win shrank once per-FIS self-review was removed. Revisit hook resolved 2026-08-10: benchmark measured authoring (incl. preamble) at 14% of bundle cost vs remediation 41% – preamble does not dominate; rejection stands (`docs/temp/research/2026-08-10-spec-cost-remeasure.md`).
 - **`disable-model-invocation` on skills**: rejected – it blocks Skill-tool invocation, breaking now-what routing and cross-skill chaining; the one open candidate is the deprecated `refactor` alias (smoke-test first). Reopens if a skill-invocable third tier ships.
 
 ## Pending

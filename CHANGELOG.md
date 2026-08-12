@@ -6,6 +6,18 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.38.1] – 2026-08-12
+
+### Changed
+- **Plan fix rounds are severity-gated and policy-routed.** Step 6 dispatches rework only for readiness-affecting findings (CRITICAL/HIGH, cross-story contract breaks, coverage/chain gaps, mechanical-validity defects); lesser findings fold into an occurring dispatch or land as **Documented residuals** in the completion summary – never a dedicated round. Fix dispatches route per the Sub-Agent Model Policy by heaviest finding (all-mechanical rounds downshift), and reviewer/validator reports are findings-only, citing anchors. Targets the measured dominant cost of bundle generation: remediation dispatch overhead.
+- **Ops hot path slimmed.** `update-learnings` shard mechanics and `update-ledger` per-form actions moved to the skill-local references `learnings-shards.md` and `ledger-forms.md` (read on use), plus a dedup/tighten pass across the skill and its references – ~5.5k chars off every ops invocation; contracts unchanged.
+
+### Fixed
+- **Spec drift fix.** Removed stale pre-batching OPS-34 and realigned OPS-59 to the per-pair `REJECTED:` grammar (spec-only; skill behavior unchanged).
+- **Learnings shard contract polish.** Shard-wins merges keep non-bullet content on every path (not only ceiling graduation), repeat-checking a trap counts as touching its topic's shard, and the Decisions `BLOCKED:` string is aligned between skill and spec.
+
+---
+
 ## [0.38.0] – 2026-08-07
 
 ### Removed
