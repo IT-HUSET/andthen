@@ -16,6 +16,6 @@ Shared by 5b.3 success and 4d failure; the failure path appends its blocker befo
 
 ## Deferred-write replay mechanics
 
-The orchestrator constructs the actual `andthen:ops update-*` invocations from the audit-block values plus its single-repo vs multi-repo knowledge: in worktree mode applied post-merge (see `andthen:exec-plan` Step 3T Merge Wave); in `--from-issue` mode against `.agent_temp/from-issue-<N>/plan.json` after exec-spec + quick-review clear. Do not emit a list of `andthen:ops` lines – the orchestrator does not parse that.
+The orchestrator constructs the actual `andthen:ops update-*` invocations from the audit-block values plus its single-repo vs multi-repo knowledge: in worktree mode applied post-merge (see the exec-plan `worktree-mode.md` merge flow); in `--from-issue` mode against `.agent_temp/from-issue-<N>/plan.json` after exec-spec + quick-review clear. Do not emit a list of `andthen:ops` lines – the orchestrator does not parse that.
 
 **Standalone use** (no orchestrator): when `Plan` is a local path, the user applies the deferred writes (the same `update-plan` / `update-state` calls listed in 5b.2 / 5b.3) after committing FIS changes. When `Plan` is `github://issue/<N>`, do not run local `ops update-plan` unless the caller supplies the materialized plan.json path; post or close the issue record instead.

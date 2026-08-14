@@ -13,7 +13,7 @@ For everyday rules and routing, see `CLAUDE.md` instead.
 Skills read the **user's project** `CLAUDE.md` (not this repo's) for two key integration points:
 
 - **Project Document Index** – a table mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `plugin/skills/init/templates/CLAUDE.template.md` for the table format.
-- **Project-Specific Guidelines and Rules** – project-specific guidelines and workflow notes that skills load before starting work (e.g. project conventions, prohibitions, visual-validation workflow). The universal `Foundational Rules, Guardrails and Principles` are wired in separately at the top of the file.
+- **Project-Specific Guidelines and Rules** – project-specific guidelines and workflow notes that skills load before starting work (e.g. project conventions, prohibitions, visual-validation workflow). The universal Foundational Rules (CRITICAL-RULES-AND-GUARDRAILS.md) are wired per project choice – user-level copy preferred; the template's Foundational Rules section documents the options as comments.
 
 **Project state is split by collaboration semantics.** Shared, low-churn team state lives in the committed `State` document (default `docs/STATE.md`); per-developer session state (current focus, continuity notes) lives in the gitignored `State (local)` companion (default `docs/STATE.local.md`, auto-created by the `andthen:ops` skill). The Active Stories view derives from `plan.json` when a plan governs (eliminating the shared-table merge-conflict surface for plan-driven teams); the stored table is the fallback for planless projects and ad-hoc stories. Templates: `plugin/references/project-state-templates.md`.
 
@@ -71,11 +71,11 @@ Reusable canonical content lives at `plugin/references/` and is consumed via `${
 
 ## Shared Plugin Assets
 
-The 21 canonical assets live at `plugin/references/` – a single canonical location for install-inlined reference content.
+The 22 canonical assets live at `plugin/references/` – a single canonical location for install-inlined reference content.
 
 | Asset | Consumed by |
 |---|---|
-| `findings-filter-templates.md` | review, architecture |
+| `architecture-model.md` | map-codebase, ubiquitous-language |
 | `automation-mode.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings, preflight, issue-triage |
 | `critic-calibration.md` | review, quick-review |
 | `data-contract.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, preflight, remediate-findings, triage, issue-triage |
@@ -83,13 +83,14 @@ The 21 canonical assets live at `plugin/references/` – a single canonical loca
 | `execution-discipline.md` | prd, plan, spec, exec-spec, exec-plan, quick-implement, triage, simplify-code, refactor, remediate-findings, preflight, issue-triage |
 | `execution-named-blocks.md` | spec, exec-spec, quick-implement, triage, preflight |
 | `farley-framework.md` | architecture, testing |
+| `findings-filter-templates.md` | review, architecture |
 | `fis-authoring-guidelines.md` | spec, plan, review, ops |
 | `fis-template.md` | spec |
 | `github-publish.md` | clarify, prd, triage, exec-spec, exec-plan, plan, issue-triage |
 | `intent-and-rules-context.md` | review, quick-review, remediate-findings, simplify-code |
 | `lens-adversarial.md` | review, quick-review |
 | `plan-issue-shape.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage, issue-triage |
-| `plan-schema.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, triage, issue-triage |
+| `plan-schema.md` | clarify, prd, plan, spec, exec-spec, exec-plan, ops, review, preflight, remediate-findings, triage, issue-triage |
 | `prd-template.md` | prd |
 | `project-state-templates.md` | clarify, prd, init, map-codebase, ops, architecture, issue-triage |
 | `reconciliation-ledger.md` | ops, exec-spec, exec-plan, quick-review, review, remediate-findings |
@@ -109,6 +110,16 @@ Two patterns, distinct purposes:
 - `${CLAUDE_SKILL_DIR}/<rest>` – **required for bash invocations of skill-bundled scripts**, where the agent's cwd is not guaranteed. Use for any bash invocation of a bundled script (e.g. `bash ${CLAUDE_SKILL_DIR}/scripts/teardown-worktrees.sh`); avoid `../scripts/foo.sh`. **Markdown links and prose references** to bundled files (`templates/`, `scripts/`, non-canonical `references/`) may use bare-relative paths – they're read as documentation, not executed. Bash invocations are the only context where `${CLAUDE_SKILL_DIR}` is mandatory.
 
 Both forms require the strict braces in their contexts (canonicals always; `${CLAUDE_SKILL_DIR}` in bash invocations); bare `$CLAUDE_PLUGIN_ROOT` and `$CLAUDE_SKILL_DIR` are rejected by `install-skills.sh`.
+
+
+---
+
+
+## Typed Artifacts and Deterministic Renderers
+
+Three visualize artifact types are too complex for model-authored HTML to be reliable or byte-verifiable: the changeset walkthrough and the two atlas model kinds (architecture and domain). For those, the `andthen:visualize` skill ships **bundled deterministic renderers** – plain Node ≥18 scripts inside the skill bundle (`scripts/render-changeset.mjs`, `scripts/render-atlas.mjs`) that emit a fully self-contained HTML app with a hash-pinned CSP. Identical input bytes produce identical output bytes – that is what makes the CSP hash and review-by-diff possible – and the skill prompt dispatches to the script rather than hand-authoring these types.
+
+The atlas also has a typed data contract with two kinds sharing one invariant core (schema canonical: `plugin/references/architecture-model.md`): `architecture-model.json`, produced by the `andthen:map-codebase` skill under `--model` – deterministic extraction (dependency tooling, import scans, doc/manifest declarations, git change-coupling) owns nodes and edges, agent judgment is confined to clustering, naming, summaries, and tours, and every claim carries an `evidence` tag – and `domain-model.json`, produced by the `andthen:ubiquitous-language` skill under `--model` as a 1:1 projection of the Ubiquitous Language document (contexts from its clusters, doc-anchored `ref`s, overloaded terms carrying per-context `meanings`). Producer and renderer enforce the same machine-checkable invariant set for both kinds: `scripts/validate-architecture-model.sh` is the repo-local dev gate, and `render-atlas.mjs` re-checks the identical invariants before rendering, so a model that passes one gate cannot fail the other. Both models are **transient projections** (default `.agent_temp/models/`) – the code and the Ubiquitous Language document are the persistent sources of truth, and a `Context Map`, when present, owns bounded-context identity across both kinds; committing a model is a deliberate per-project choice via the Project Document Index.
 
 
 ---

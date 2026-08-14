@@ -1,5 +1,5 @@
 ---
-description: Review an existing AndThen artifact visually – PRD, plan.json, FIS, clarification, product vision, review report, changeset walkthrough, architecture report, or ADR – rendered as a self-contained HTML view with section-anchored notes exported via clipboard. Trigger on 'visualize this <artifact>', 'review visually', 'andthen visualize'.
+description: Review an existing AndThen artifact visually – PRD, plan.json, FIS, clarification, product vision, review report, changeset walkthrough, architecture report, architecture or domain model (3D atlas), or ADR – rendered as a self-contained HTML view with section-anchored notes exported via clipboard. Trigger on 'visualize this <artifact>', 'review visually', 'andthen visualize'.
 argument-hint: "<path-to-artifact>"
 user-invocable: true
 ---
@@ -16,8 +16,8 @@ user-invocable: true
 
 1. Read the artifact at `$1`.
 2. Detect the artifact type by content (filename advisory only) – see *Artifact Type Detection*.
-3. Read `templates/render-shell.md` – the shared chrome (theme tokens, layout skeleton, section-block contract, cross-cutting component renderers, and the JavaScript layer). Every render uses it.
-4. Load the matching per-artifact template from `templates/` (one per detected type – filename mirrors the Detection-table type, e.g. `templates/prd.md`, `templates/event-storming.md`, except `product-vision` renders via `templates/clarification.md` and `architecture-review` via `templates/review-report.md`). `templates/diagrams.md` and `templates/js-helpers.md` are pulled in by those templates as needed.
+3. Read `templates/render-shell.md` – the shared chrome (theme tokens, layout skeleton, section-block contract, cross-cutting component renderers, and the JavaScript layer). Every markdown-shell render uses it; the bundled deterministic renderers (`changeset-walkthrough`, `architecture-model`, `domain-model`) embed their own shell – skip it for those.
+4. Load the matching per-artifact template from `templates/` (one per detected type – filename mirrors the Detection-table type, e.g. `templates/prd.md`, `templates/event-storming.md`, except `product-vision` renders via `templates/clarification.md`, `architecture-review` via `templates/review-report.md`, and `architecture-model` / `domain-model` via `templates/atlas.md`). `templates/diagrams.md` and `templates/js-helpers.md` are pulled in by those templates as needed.
 5. Generate a single self-contained HTML file at `.agent_temp/visual-review/<slug>-<timestamp>.html`. Resolve the path against the repo root (`git rev-parse --show-toplevel`) when inside a git working tree, falling back to CWD when there is no repo. `<slug>` is the basename without extension; `<timestamp>` is `YYYYMMDD-HHMMSS`.
 6. Open the file in the user's browser via the OS-detected command (see *Browser-Open Detection*).
 7. Print the output path and exit.
@@ -29,7 +29,9 @@ Run heuristics in order; first match wins. **Filename hints are advisory only �
 
 | Type | Markers |
 |---|---|
-| `plan` | Valid JSON object with `schemaVersion === "1"`, `overview`, and `stories` array. *Ordered before markdown heuristics because `plan.json` has no H1/H2 headings. If JSON parses but these keys are missing, do not fall through to markdown detection – report unsupported JSON artifact shape. If the keys are present but `schemaVersion` is not `"1"`, stop with `andthen:visualize: unsupported plan.json schemaVersion "<value>"` and write no HTML.* |
+| `architecture-model` | Valid JSON object with `kind === "architecture-model"`. *First of the JSON rows – an explicit `kind` discriminator wins before the `plan` key-shape check. If `schemaVersion` is not `"1"`, stop with `andthen:visualize: unsupported architecture-model schemaVersion "<value>"` and write no HTML.* |
+| `domain-model` | Valid JSON object with `kind === "domain-model"`. *Same discriminator-before-key-shape ordering as `architecture-model`. If `schemaVersion` is not `"1"`, stop with `andthen:visualize: unsupported domain-model schemaVersion "<value>"` and write no HTML.* |
+| `plan` | Valid JSON object with `schemaVersion === "1"`, `overview`, and `stories` array. *The JSON rows are ordered before markdown heuristics because JSON artifacts have no H1/H2 headings. A file that parses as JSON but matches no JSON row never falls through to markdown detection – report unsupported JSON artifact shape. If the plan keys are present but `schemaVersion` is not `"1"`, stop with `andthen:visualize: unsupported plan.json schemaVersion "<value>"` and write no HTML.* |
 | `fis` | H2 contains "Feature Overview and Goal" AND (H2 contains "Implementation Plan" OR H2 contains "Acceptance Scenarios" OR H2 contains "Structural Criteria"). |
 | `prd` | H1 contains "PRD" or "Product Requirements"; H2 contains both "Executive Summary" and "Functional Requirements" |
 | `clarification` | H1 starts with "Requirements Clarification"; H2 contains "Decisions Log" |
@@ -44,7 +46,7 @@ Run heuristics in order; first match wins. **Filename hints are advisory only �
 | `architecture-review` | H1 contains "Architecture Review" as a phrase; AND H2 set contains "Executive Summary"; AND H2 set contains at least one of "Findings", "Metrics Dashboard", or "Proposed Fitness Functions". *Uses `templates/review-report.md`, but ownership routes back to the `andthen:architecture` skill, not the generic review/remediation loop.* |
 | `review-report` | H1 contains "Review" as a standalone word (case-insensitive – e.g. "Doc Review", "Code Review", "Council Review"); AND H2 set contains "Executive Summary"; AND H2 set contains at least one of "Findings", "Verdict", "Readiness Assessment", "Metrics Dashboard". *Last among markdown reports; overlaps `tradeoff`/`fitness`/`decompose` via `Executive Summary`, so the "Review" H1 + Findings/Verdict pair is the discriminator.* |
 
-If no match, exit with the message *"andthen:visualize: cannot detect artifact type. Supported: PRD (`prd.md`), `plan.json`, FIS, `requirements-clarification.md`, product vision, review reports (any lens), changeset walkthroughs, architecture review / trade-off / strategic-design / fitness / decompose / event-storming reports, ADRs (`NNN-title.md` with `# ADR-NNN:` H1)."* and write no HTML.
+If no match, exit with the message *"andthen:visualize: cannot detect artifact type. Supported: PRD (`prd.md`), `plan.json`, `architecture-model.json`, `domain-model.json`, FIS, `requirements-clarification.md`, product vision, review reports (any lens), changeset walkthroughs, architecture review / trade-off / strategic-design / fitness / decompose / event-storming reports, ADRs (`NNN-title.md` with `# ADR-NNN:` H1)."* and write no HTML.
 
 
 ## Artifact Owner Identity
@@ -60,6 +62,8 @@ The renderer owns HTML production, but copied notes identify the skill that owns
 | `architecture-review`, `tradeoff`, `strategic-design`, `fitness`, `decompose`, `event-storming`, `adr` | `andthen:architecture` |
 | `review-report` | `andthen:review` |
 | `changeset-walkthrough` | `andthen:explain-changes` |
+| `architecture-model` | `andthen:map-codebase` |
+| `domain-model` | `andthen:ubiquitous-language` |
 
 Use the owner in the copied payload header: `# <owner> visual review notes for <artifact-path>`.
 
@@ -72,8 +76,8 @@ These are contracts. The HTML/CSS/JS that satisfies them lives in `templates/ren
 
 - **Single self-contained HTML file.** All CSS, JS, and SVG inlined. No external scripts, fonts, stylesheets, icons. Must work from `file://` with no network access.
 - **Safe browser boundary.** Apply `templates/render-shell.md` § Safe Output Boundary in full – CSP, context escaping, link allowlist, inert script data.
-- **Warm light Anthropic-style theme;** use the theme tokens in `templates/render-shell.md`.
-- **Two-pane layout.** Left = scrollable artifact content; right = sticky sidebar holding the **Copy notes** button (top), section navigator with note-count badges, and a unified note list. The sidebar is always visible at viewports ≥1100px and collapses to a top drawer below that. *Why:* a floating-TOC-only layout hides nav on laptop widths and buries affordances where users miss them. *Exception:* `changeset-walkthrough` renders as a tabbed app via the bundled deterministic renderer (`templates/changeset.md`); its output already embeds the notes machinery and affordances.
+- **Warm light Anthropic-style theme;** use the theme tokens in `templates/render-shell.md`. *Exception:* the atlas (`architecture-model` / `domain-model`) is a deliberate dark immersive view (`templates/atlas.md`).
+- **Two-pane layout.** Left = scrollable artifact content; right = sticky sidebar holding the **Copy notes** button (top), section navigator with note-count badges, and a unified note list. The sidebar is always visible at viewports ≥1100px and collapses to a top drawer below that. *Why:* a floating-TOC-only layout hides nav on laptop widths and buries affordances where users miss them. *Exception:* the bundled deterministic renderers own their layouts – `changeset-walkthrough` is a tabbed app (`templates/changeset.md`), `architecture-model` and `domain-model` an immersive atlas app (`templates/atlas.md`); all embed the notes machinery and affordances themselves, and every other contract in this list still binds their output.
 - **Static affordances, JS-attached handlers.** The `+ Note` button, `View source` toggle, `Copy section` button, and per-section note-count span MUST be present in the static HTML body of each `<section>`. JavaScript only attaches click handlers and renders the dynamic note list. *Why:* if JS fails, errors out, or is delayed, the user must still see *that* notes are possible. Empty `<div class="sec-actions"></div>` placeholders waiting for JS injection are a known regression – never ship them.
 - **Read-only render + section-anchored notes.** No structured editing. One Note affordance + one View-source toggle per H2 section. Diagrams do not get their own Note affordance – the parent section's Note covers any diagram inside it.
 - **Notes payload via clipboard.** "Copy notes" writes a markdown payload via `navigator.clipboard.writeText`; on failure, reveals a textarea with payload pre-selected for manual copy.
@@ -119,6 +123,7 @@ Each markdown H2 section, or plan virtual H2 section, dispatches to **one** spec
 | Review | Metrics Dashboard | Per-package metrics table – see `templates/review-report.md` |
 | Review | Proposed Fitness Functions | Reuses `fitness.md` `.fitness-card` / `.fitness-lanes` renderer when present in an architecture review report |
 | Changeset | (whole artifact) | Bundled deterministic renderer – run `node "${CLAUDE_SKILL_DIR}/scripts/render-changeset.mjs" <artifact> <output>` per `templates/changeset.md`; never hand-author this type's HTML. Document-shell fallback only when Node is unavailable |
+| Architecture model / Domain model | (whole artifact) | Bundled deterministic renderer – run `node "${CLAUDE_SKILL_DIR}/scripts/render-atlas.mjs" <artifact> <output>` per `templates/atlas.md` (one renderer, lens keyed off the model `kind`); never hand-author this type's HTML. When Node is unavailable, print the render invocation and a brief artifact summary – never a hand-authored 3D substitute |
 | Fitness | Proposed Fitness Functions | Four-level lanes (L1 commit / L2 PR / L3 nightly / L4 prod) with per-proposal cards – see `templates/fitness.md` |
 | Fitness | ADR Gap Analysis | ADR cards with `data-gap` chips; cross-link to Proposed Fitness Functions cards – see `templates/fitness.md` |
 | Decompose | Driver Scores | Two-radar pair (6 disintegration + 4 integration axes) + driver-score table – see `templates/decompose.md` |
@@ -219,6 +224,8 @@ After the user reviews the rendered artifact and copies notes:
    - Architecture-review notes → next `andthen:architecture` invocation in the matching mode (usually `--mode review`, or `--mode trade-off` when the note asks for an ADR)
    - Review-report notes → `andthen:remediate-findings` for actionable findings, or back to `andthen:review` for re-scoping
    - Changeset-walkthrough notes → the PR conversation (paste as review comments), or `andthen:review` as scope/focus context for a follow-up findings review
+   - Architecture-model (atlas) notes → `andthen:architecture` in a design mode (e.g. `--mode strategic-design` or `--mode review`) for design follow-ups, or `andthen:map-codebase` for model corrections and regeneration
+   - Domain-model (atlas) notes → `andthen:ubiquitous-language` for glossary corrections, then `--model` to regenerate the projection
    - Trade-off review notes → next `andthen:architecture` invocation (e.g. ADR formalization)
    - Strategic-design review notes → next `andthen:architecture --mode strategic-design` invocation
    - Fitness-functions review notes → next `andthen:architecture --mode fitness` invocation or implementation backlog

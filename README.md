@@ -150,7 +150,7 @@ The quickest way to get started:
 /andthen:init
 ```
 
-The single entry point for all project types – new, partial setups, and existing codebases. It interactively generates `CLAUDE.md` / `AGENTS.md`, scaffolds Core orientation docs (Product, Architecture, Stack, Key Dev Commands, Decisions, Learnings), and installs the foundational rules guideline. For existing codebases it offers to run `map-codebase`, which auto-generates architecture, stack, commands, conventions, and discovered-requirements docs from code analysis.
+The single entry point for all project types – new, partial setups, and existing codebases. It interactively generates `CLAUDE.md` / `AGENTS.md` (for dual-tool projects: `AGENTS.md` canonical, `CLAUDE.md` a thin `@AGENTS.md` import), scaffolds Core orientation docs (Product, Architecture, Stack, Key Dev Commands, Decisions, Learnings), and installs the foundational rules guideline. For existing codebases it offers to run `map-codebase`, which auto-generates architecture, stack, commands, conventions, and discovered-requirements docs from code analysis.
 
 **Manual setup** – skills read two sections from your root agent instruction file (`CLAUDE.md` / `AGENTS.md`): a **Project Document Index** (where skills write specs, plans, etc.) and **Project-Specific Guidelines**. See [`plugin/skills/init/templates/CLAUDE.template.md`](plugin/skills/init/templates/CLAUDE.template.md) for a starter, and [plugin/README.md](plugin/README.md#setup) for the foundational-guardrails wiring options.
 
@@ -276,7 +276,7 @@ These compose into the workflows above – from requirements through implementat
 | `plan` | Turn a local or GitHub-sourced PRD into a typed `plan.json`, one FIS per story, and cross-cutting review |
 | `spec` | Generate a compact FIS for one execution-sized feature; includes doc self-review |
 | `exec-spec` | Implement a FIS – code, tests, verification, completion attestation, and reconciliation notes |
-| `exec-plan` | Execute a plan bundle story by story, review each result, then run a final gap review; `--team` for Agent Teams |
+| `exec-plan` | Execute a plan bundle story by story, review each result, then run a final gap review; `--team` for Agent Teams, `--worktree` for per-story isolation |
 | `preflight` | Resolve blocking decisions or record signed deferrals before unattended execution |
 | `remediate-findings` | Apply validated review findings with the smallest safe fixes |
 | `ops` | Deterministic state, plan/FIS, story ownership, reconciliation ledger, and git operations (including FIS-pointer reset) |

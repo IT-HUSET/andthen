@@ -73,7 +73,7 @@ SOURCE_TRUST: `trusted-local | untrusted-external`; untrusted derives the canoni
 
 **Read the resolved PRD source here** (local `prd.md`, or fetched issue body materialized as `OUTPUT_DIR/prd.md`). Single PRD read for plan generation; Step 5 sub-agents get spans only (no re-read), Step 6 re-reads fresh in its own sub-agent context.
 
-Run a quick `tree -d` + `git ls-files | head -250` inline (no sub-agent) for natural implementation boundaries. Read `State`, `Ubiquitous Language`, `Architecture`, `Stack`, and `Product` documents (see **Project Document Index**) when present – priorities, canonical terminology, story splits, tech-stack constraints story scope must respect, and product anti-goals that bound decomposition. Do not restate Architecture boundaries in story scope.
+Discover natural implementation boundaries: read the `Architecture Model` document (see **Project Document Index**) when present, else run a quick `tree -d` + `git ls-files | head -250` inline (no sub-agent). Read `State`, `Ubiquitous Language`, `Architecture`, `Stack`, and `Product` documents (see **Project Document Index**) when present – priorities, canonical terminology, story splits, tech-stack constraints story scope must respect, and product anti-goals that bound decomposition. Do not restate Architecture boundaries in story scope.
 
 Synthesize: PRD requirements and user stories, MVP scope, success criteria, prioritization (P0/P1/P2), implementation boundaries, dependencies, complexity/risk areas. Note "must support X" / "must not Y" language for the optional `bindingConstraints[]` array in Step 4.
 
@@ -93,6 +93,8 @@ For multi-dimensional features, use design space decomposition: independent dime
 Each story is **vertical** (demoable slice through all layers), **bounded** (clear scope, single responsibility), **verifiable** (enough source refs/scope to generate FIS Acceptance Scenarios and Structural Criteria), and **independent** (minimal coupling after dependencies met). Minimum stories to cover requirements; no overlap; no over-granularity.
 
 **Single-session rule**: a story plus its FIS must fit one fresh-context exec run with comfortable headroom – the FIS size thresholds are the proxy for that budget, and an `OVERSIZE:` line signals the rule is broken. Split rather than push on, since attention degrades near the window edge: a thinner story beats a large one executed on saturated context.
+
+**Module fan-out rule** (Single-session corollary): the session budget is breadth as well as length – every module/package/service a story touches loads into the exec context. Where module boundaries are strong, confine each story to one module; a genuinely cross-module feature splits along the seam into per-module stories – each vertical within its module – interface pinned in `sharedDecisions[]`.
 
 **Enabler exception**: a story with no user-facing behavior to slice through (infrastructure, migration, cross-cutting sweep) may be layer- or module-shaped, verified by tests or fitness criteria instead of a demo. Size is never the trigger – an oversized vertical story splits into thinner verticals, not layers.
 

@@ -46,7 +46,7 @@ Classify into one of three paths:
 
 Ask the user for basic project context (or accept from `PROJECT_NAME`): project name, brief description, primary tech stack (if not auto-detected).
 
-Generate the root agent instruction file(s) using `templates/CLAUDE.template.md` as the base. Create `CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents, and both when the target agent is unclear. Fill in the Project Overview section; keep the Project Document Index and Project-Specific Guidelines and Rules sections intact; remove TODO comments from filled sections. When creating both files, keep the shared workflow sections byte-equivalent so agents read the same document contract.
+Generate the root agent instruction file(s) using `templates/CLAUDE.template.md` as the base. A single-tool target gets one full file: `CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents. When both tools are in play or the target is unclear, `AGENTS.md` carries the full template content and `CLAUDE.md` is a thin import – `@AGENTS.md` as the first line, Claude-specific additions (if any) below it under a `## Claude Code` heading. Claude Code expands the import at session start; Codex never reads `CLAUDE.md`, so the `@` sigil is safe there, and shared content has exactly one authored home. Fill in the Project Overview section; keep the Project Document Index and Project-Specific Guidelines and Rules sections intact; remove TODO comments from filled sections.
 
 Create base directory structure:
 ```
@@ -57,7 +57,7 @@ docs/
 
 Gitignore hygiene: append entries for the `State (local)` path (default `docs/STATE.local.md`) and the agent workspace (`.agent_temp/`) to `.gitignore` idempotently (only if absent); create `.gitignore` if missing.
 
-Because the generated root agent instruction template references `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` directly, copy it from `templates/guidelines/` if missing as part of baseline setup. Never overwrite existing guideline files; preserve project-specific files.
+Copy `CRITICAL-RULES-AND-GUARDRAILS.md` from `templates/guidelines/` to `docs/guidelines/` if missing as part of baseline setup – the template's Foundational Rules section documents wiring options (commented) that point at it. Never overwrite existing guideline files; preserve project-specific files.
 
 Scaffold the **Core orientation stubs by default** – the documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md), `Decisions` (docs/DECISIONS.md), `Learnings` (docs/LEARNINGS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). The `andthen:architecture` skill in `--mode trade-off` auto-registers accepted ADRs into the `Decisions` stub. The user can fill these in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
 
@@ -79,14 +79,14 @@ Lead with a recommendation drawn from what Step 2a detected, and let the user re
 
 For each confirmed document type, generate the file from templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`, using the location from the **Project Document Index** or the default path above.
 
-For each confirmed sub-project agent instruction file, generate a lightweight file (under ~40 lines) containing: sub-project name and description, key development commands (inline table), and any conventions that differ from root. Mirror the root file choice (`CLAUDE.md`, `AGENTS.md`, or both). Also update the root `Key Dev Commands` document (see **Project Document Index**) if created to include per-sub-project sections.
+For each confirmed sub-project agent instruction file, generate a lightweight file (under ~40 lines) containing: sub-project name and description, key development commands (inline table), and any conventions that differ from root. Mirror the root file choice (`CLAUDE.md`, `AGENTS.md`, or both – both uses the same thin-import pattern; `@` paths resolve relative to the importing file, so the sub-project `CLAUDE.md` imports its sibling `AGENTS.md`). Also update the root `Key Dev Commands` document (see **Project Document Index**) if created to include per-sub-project sections.
 
 **Gate**: Agent instruction file(s), required starter guidelines, and selected documents generated
 
 
 ### 2b. Partial Setup (CLAUDE.md and/or AGENTS.md exists)
 
-Read the existing root agent instruction file(s) and check for: Project Document Index (table present? which rows exist?), Project-Specific Guidelines and Rules section, Project Overview filled in, the Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md`, `LEARNINGS.md` – same set Step 2a scaffolds by default), and referenced documents that actually exist. If both `CLAUDE.md` and `AGENTS.md` exist, check both and keep shared workflow sections aligned. If only one exists, repair that file and offer to create the missing counterpart for cross-agent portability.
+Read the existing root agent instruction file(s) and check for: Project Document Index (table present? which rows exist?), Project-Specific Guidelines and Rules section, Project Overview filled in, the Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md`, `LEARNINGS.md` – same set Step 2a scaffolds by default), and referenced documents that actually exist. If both `CLAUDE.md` and `AGENTS.md` exist with duplicated content, offer conversion to the thin-import layout (Step 2a): merge any CLAUDE.md-only content into `AGENTS.md`, then rewrite `CLAUDE.md` to `@AGENTS.md` plus a `## Claude Code` section for genuinely Claude-specific instructions – on confirm only; if declined, apply repairs to both keeping shared sections aligned. If only one exists, repair that file and offer the missing counterpart for cross-agent portability: existing `AGENTS.md` → a thin `CLAUDE.md` import; existing `CLAUDE.md` only → promote it (`git mv CLAUDE.md AGENTS.md`, preserving blame) and create the thin `CLAUDE.md` import.
 
 Present findings and offer fixes. **Missing Core orientation stubs and gitignore hygiene are applied by default** (consistent with Step 2a) – not listed as optional. Planning / Domain / Monorepo docs, the issue-tracker backend, and the optional Index rows (`Context Map`, `Out of Scope Registry`) are offered interactively – never added by default.
 
@@ -118,10 +118,10 @@ Wait for user response, then execute confirmed actions:
 - **Gitignore hygiene** (default): apply per Step 2a.
 - **Issue-tracker backend**: ask the same tracker question as Step 2a; on GitHub/other create the `Issue Tracker` document (path per its Index row, default `docs/ISSUE-TRACKER.md`) from template only when it does not already exist – leave an existing valid file untouched (Non-destructive rule), though a malformed one (a missing or unparseable `Backend:` line – the `BLOCKED: issue-tracker backend unspecified` state) may be repaired interactively here on confirmation. The `Issue Tracker` row is always present (add it if an older file lacks it); a declined tracker leaves the row as a dormant location declaration, so don't re-litigate the absent tracker file as a missing referenced document to create.
 - **New optional Index rows** (`Context Map`, `Out of Scope Registry`): append the row only when confirmed. Create the `Out of Scope Registry` file from template with its row; the Context Map file is written later by the `andthen:architecture` skill in `--mode strategic-design`, so add its row without a file.
-- **Missing Index rows**: Append to existing table (don't rewrite the whole table)
+- **Missing Index rows**: Append to existing table (don't rewrite the whole table). The `Architecture Model` and `Domain Model` rows are always present (add them if an older file lacks them); their JSON is written later by the `andthen:map-codebase` skill with `--model` and the `andthen:ubiquitous-language` skill with `--model` respectively, so the rows are location declarations, not missing referenced documents to create.
 - **Missing documents**: Generate from templates, pre-fill where possible
 - **Missing guidelines**: Copy `CRITICAL-RULES-AND-GUARDRAILS.md` from `templates/guidelines/` if missing; never overwrite existing files
-- **Missing sections**: Add to the root agent instruction file(s) at the appropriate location. If this adds the template's Foundational Rules section or creates a missing counterpart file from the template, also copy `CRITICAL-RULES-AND-GUARDRAILS.md` if missing so the reference resolves.
+- **Missing sections**: Add to the root agent instruction file(s) at the appropriate location (in the thin-import layout, sections belong in `AGENTS.md`, never the thin `CLAUDE.md`). If this adds the template's Foundational Rules section, also copy `CRITICAL-RULES-AND-GUARDRAILS.md` if missing so the section's setup options resolve.
 - **map-codebase**: Invoke the `andthen:map-codebase` skill; skip creating the `Architecture` and `Stack` documents from templates since map-codebase produces them from actual analysis
 
 **Gate**: All selected gaps filled

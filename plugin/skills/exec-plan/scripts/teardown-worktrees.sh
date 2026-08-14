@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # teardown-worktrees.sh – Classify and clean up leftover story-* worktrees
-# Used by: exec-plan (team mode, Final Worktree Teardown)
+# Used by: exec-plan (worktree mode, Final Worktree Teardown)
 
 set -euo pipefail
 
@@ -8,7 +8,7 @@ usage() {
   cat <<'EOF'
 Usage: teardown-worktrees.sh BASE_BRANCH [--help]
 
-Inventories and classifies leftover story-* worktrees after a team-mode run.
+Inventories and classifies leftover story-* worktrees after a worktree-mode run.
 Must be run from CODE_DIR (the main checkout), not inside a story-* worktree
 (git refuses to remove the worktree you are currently in).
 

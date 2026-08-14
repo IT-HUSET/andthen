@@ -52,7 +52,7 @@ When `INTENT CONTEXT:` is supplied, require an absolute readable regular non-sym
 
 Identify what to review, in priority order:
 
-1. **Commit SHA in FOCUS** (highest priority): if `FOCUS` matches the form `[story <id> ]commit <sha>` – i.e. contains the literal token `commit` followed by a 7+ character hex string – set the change set to the output of `git show <sha>` and skip steps 2–3. Verify the SHA resolves first (`git cat-file -e <sha>`); if it doesn't, stop with `BLOCKED: commit <sha> not found in current repo`. This form is used by orchestrated callers (e.g. the `andthen:exec-plan` skill's team-mode reviewer) where the change is already committed and `git diff` would be empty.
+1. **Commit SHA in FOCUS** (highest priority): if `FOCUS` matches the form `[story <id> ]commit <sha>` – i.e. contains the literal token `commit` followed by a 7+ character hex string – set the change set to the output of `git show <sha>` and skip steps 2–3. Verify the SHA resolves first (`git cat-file -e <sha>`); if it doesn't, stop with `BLOCKED: commit <sha> not found in current repo`. This form is used by orchestrated callers (e.g. the `andthen:exec-plan` skill's team-mode reviewer and worktree story workers) where the change is already committed and `git diff` would be empty.
 2. **Explicit focus** (FOCUS without a SHA): if `FOCUS` is provided as free-text scope hint, use it to narrow scope from the priorities below
 3. **Pending changes**: Run `git diff --stat` and `git diff` for uncommitted changes
 4. **Recent conversation work**: If no pending changes, identify artifacts created or modified in this conversation (specs, configs, docs, etc.)

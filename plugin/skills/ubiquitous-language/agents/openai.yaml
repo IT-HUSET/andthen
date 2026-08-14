@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Ubiquitous Language"
-  short_description: "Build or update the `Ubiquitous Language` document"
-  default_prompt: "Extract domain terms from codebase and docs – resolve ambiguity, produce or update the project's `Ubiquitous Language` document as defined in the **Project Document Index**. Scope: "
+  short_description: "Build or update the `Ubiquitous Language` document, or project it into a typed Domain Model (`--model`)"
+  default_prompt: "Extract domain terms from codebase and docs – resolve ambiguity, produce or update the project's `Ubiquitous Language` document as defined in the **Project Document Index**; with --model, project the existing document into the typed `domain-model.json` for atlas rendering. Scope: "
 
 policy:
   allow_implicit_invocation: true

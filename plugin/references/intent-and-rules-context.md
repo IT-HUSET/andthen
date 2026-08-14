@@ -19,7 +19,7 @@ Two compact bundles, collected up-front by the consuming skill before any findin
 
 - The governing artifact(s) for the change set: the Product document (project-level vision; default `docs/PRODUCT.md` via the Project Document Index `Product` row when present), PRD, FIS, `clarify` output, or active plan story. Any tier present contributes its falsifiers – higher tiers (Product, PRD) anchor strategic intent; lower tiers (FIS, plan story) anchor feature- and story-level intent.
 - Extract: **Intent**, **Expected Outcomes**, **Non-Goals / anti-goals / Out-of-Scope**, and any explicit **deferrals** to later stories. Anti-goals is the Product-tier naming for the same semantic role as Non-Goals at the FIS tier – treat them identically for routing.
-- Locate by walking up from changed paths; when present, consult the **Project Document Index** in `CLAUDE.md`. Do not invent intent the artifact does not state.
+- Locate by walking up from changed paths; when present, consult the **Project Document Index** in the root agent instruction file (`CLAUDE.md` / `AGENTS.md`; a thin `CLAUDE.md` imports `AGENTS.md` – follow it). Do not invent intent the artifact does not state.
 - Record source paths (with tier) so any routing decision against the bundle can cite the anchor – e.g. `dismissed: anti-goal in docs/PRODUCT.md`, `demoted: Non-Goal in <FIS path>`.
 
 If no governing artifact is discoverable, omit the Intent Context bundle entirely – consuming skills degrade gracefully (routing operates on severity, confidence, and scope alone). Do not synthesize intent from the code itself; an unanchored review is better than a fabricated one.

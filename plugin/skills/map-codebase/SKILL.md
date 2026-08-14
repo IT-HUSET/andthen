@@ -1,6 +1,6 @@
 ---
-description: Analyze an existing codebase into structured documentation and discovered implicit requirements. Trigger on 'map codebase', 'understand this codebase', 'what does this repo do'.
-argument-hint: "[output directory (defaults to docs/)]"
+description: Analyze an existing codebase into structured documentation and discovered implicit requirements, optionally emitting a typed Architecture Model (`--model`) for atlas rendering. Trigger on 'map codebase', 'understand this codebase', 'what does this repo do', 'generate an architecture model', 'refresh the architecture model'.
+argument-hint: "[--model] [--model-only] [output directory (defaults to docs/)]"
 ---
 
 # Map Codebase
@@ -9,7 +9,11 @@ argument-hint: "[output directory (defaults to docs/)]"
 ## VARIABLES
 
 _Output directory (defaults to `docs/`, or as configured in **Project Document Index**):_
-OUTPUT_DIR: $ARGUMENTS or `docs/`
+OUTPUT_DIR: $ARGUMENTS excluding flags, or `docs/`
+
+_Architecture Model emission:_
+MODEL: true when `--model` is passed or the user explicitly asks for an architecture model / atlas
+MODEL_ONLY: true when `--model-only` is passed (implies MODEL) – emit only the Architecture Model, write no documentation outputs
 
 
 ## INSTRUCTIONS
@@ -19,6 +23,7 @@ OUTPUT_DIR: $ARGUMENTS or `docs/`
 - **Read-only source analysis** – no source-code changes or commits; documentation outputs and agent-instruction Conventions updates are the only expected writes
 - **Structured output** – All documents follow templates from `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`
 - **Discovery, not invention** – Document what exists, don't prescribe what should exist
+- **Model-only fast path** (`MODEL_ONLY`) – run only the codebase survey (step 1) and the Architecture Model emission from step 2b; skip every documentation output and the discovery steps. Existing `Architecture` and `Context Map` documents inform clustering. This is the normal way to refresh the transient projection before rendering an atlas.
 
 
 ## GOTCHAS
@@ -49,6 +54,13 @@ Output: the `Stack` document (see **Project Document Index**; default: `OUTPUT_D
 #### 2b. Architecture Analysis (sub-agent)
 Analyze and document system design and component boundaries, key modules and responsibilities, data flow, entry points (routes, CLI, event handlers), and integration points with external systems. If monorepo: document sub-project boundaries and inter-project relationships.
 Output: the `Architecture` document (see **Project Document Index**; default: `OUTPUT_DIR/ARCHITECTURE.md`)
+
+When `MODEL`, the same sub-agent also emits an **Architecture Model** – the typed JSON defined in [`architecture-model.md`](${CLAUDE_PLUGIN_ROOT}/references/architecture-model.md) – to the `Architecture Model` location (see **Project Document Index**; default: `.agent_temp/models/architecture-model.json` – a transient projection per the schema's Persistence and precedence, regenerated on demand; the code is the record). Method contract:
+- **Deterministic first** – nodes and edges come from ecosystem dependency tooling or import scans plus git change-coupling (evidence `imports` / `git-coupling`) – or, where the ecosystem has no import graph, from structured declarations in project docs and manifests (evidence `declared`); agent judgment is confined to clustering nodes into contexts, naming, summaries, and optional tours (evidence `inferred`). The split keeps every rendered dependency traceable to a verifiable source instead of recollection.
+- Every node carries a real repo-relative `ref` – a node whose location can't be named is invention, not discovery.
+- When a `Context Map` document exists (see **Project Document Index**), bounded-context ids/names come from it – never a second name for a mapped context.
+- Target 10–60 module-level nodes: file-level granularity renders as an unreadable hairball. When extraction lands far above that, re-cluster instead of emitting.
+- Validate against the schema contract in `architecture-model.md` before writing – unique ids, resolvable `contextId`/`from`/`to`/tour-step refs, valid enums; do not assume a validation script exists in the analyzed project.
 
 #### 2c. Conventions Analysis (sub-agent)
 Analyze and document naming conventions, file organization patterns, error handling, logging, testing patterns, and code style (formatting, imports, exports).
@@ -104,9 +116,9 @@ Also emit `OUTPUT_DIR/decisions-discovered.md` using the `DECISIONS.md` template
 1. Write all documents to `OUTPUT_DIR/`
 2. Print summary listing all generated files with brief descriptions
 3. If `IS_MONOREPO = true`: generate lightweight sub-project agent instruction file(s) that match the root file choice (`CLAUDE.md`, `AGENTS.md`, or both) for each sub-project that doesn't already have them (under ~40 lines: name/description, key development commands inline table, sub-project-specific notes)
-4. Suggest next steps: review discovered requirements and decisions with team (validate `decisions-discovered.md` and promote to `DECISIONS.md` when confirmed), invoke the `andthen:plan` skill on `docs/requirements-discovered.md`
+4. Suggest next steps: review discovered requirements and decisions with team (validate `decisions-discovered.md` and promote to `DECISIONS.md` when confirmed), invoke the `andthen:plan` skill on `docs/requirements-discovered.md`; when the Architecture Model was emitted, suggest rendering it with the `andthen:visualize` skill
 
 
 ## OUTPUT
 
-Print each output file's **relative path from the project root**.
+Print each output file's **relative path from the project root**, including the Architecture Model JSON when emitted. With `MODEL_ONLY`, print only the model's path and suggest rendering it with the `andthen:visualize` skill.

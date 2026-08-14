@@ -36,14 +36,28 @@ For loose-skill installs on Codex CLI and other agents, see [Other agents](../RE
 
 ## Setup
 
-Skills reference your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents) for two things:
+Skills reference your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents; when both tools are used, `AGENTS.md` is the canonical file and `CLAUDE.md` is a thin `@AGENTS.md` import with any Claude-specific additions below it) for two things:
 
 - **Project Document Index** – tells skills where to write output (specs, plans, etc.)
-- **Project-Specific Guidelines and Rules** – project-specific guidelines and workflow notes (the universal `Foundational Rules, Guardrails and Principles` are wired in separately, above)
+- **Project-Specific Guidelines and Rules** – project-specific guidelines and workflow notes (the universal Foundational Rules are wired per the setup options in the template's Foundational Rules section)
 
 See [`plugin/skills/init/templates/CLAUDE.template.md`](skills/init/templates/CLAUDE.template.md) for a starter template.
 
-**Foundational Rules and Guardrails** – [`skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md`](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) is the source file; `andthen:init` installs it to `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` in your project and the template wires it in by reference. For stronger adherence, prefer copying its contents into your user-level `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` once – this works for both Claude Code and Codex with no per-project setup. Alternatives: `@`-import via `@docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` (Claude Code only – Codex treats `@` as literal text); shell-alias injection into the system prompt (terminal workflows only).
+### How AndThen describes a project
+
+Markdown documents are the **persistent sources of truth**; typed models are **transient projections** rendered as atlases:
+
+| Aspect | Source of truth | Transient projection |
+|---|---|---|
+| Product intent | `PRODUCT.md` | – |
+| Domain language | `UBIQUITOUS_LANGUAGE.md` (glossary); `CONTEXT-MAP.md` owns bounded-context identity and relationships when present | `domain-model.json` via `ubiquitous-language --model` |
+| System structure | the code itself (`ARCHITECTURE.md` is prose orientation) | `architecture-model.json` via `map-codebase --model` |
+
+Projections default to `.agent_temp/models/` and are regenerated on demand – a projection that disagrees with its source is stale, never authoritative. Point a model's Project Document Index row at a committed path only to pin reviewed snapshots deliberately.
+
+**Division of responsibility**: *describers* maintain the descriptions and own their projections – `map-codebase` for system structure, `ubiquitous-language` for domain language; the *decider* – `architecture` – produces judgments (reviews, ADRs, the Context Map); the *renderer* – `visualize` – draws any of it. Atlas notes always route back to the describer that owns the projection's source.
+
+**Foundational Rules and Guardrails** – [`skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md`](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) is the source file; `andthen:init` installs it to `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` in your project; the template's Foundational Rules section documents the wiring options as comments (no active reference line ships). For stronger adherence, prefer copying its contents into your user-level `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` once – this works for both Claude Code and Codex with no per-project setup. Alternatives: `@`-import via `@docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` (Claude Code only – Codex treats `@` as literal text); shell-alias injection into the system prompt (terminal workflows only).
 
 ### Agent Teams (Optional, Claude Code only)
 
@@ -91,12 +105,12 @@ Use these individually for everyday development – no setup, no pipeline, no pr
 | `refactor` | Deprecated – redirects to `simplify-code` with args forwarded verbatim; `--auto` suppresses only the deprecation notice |
 | `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, and event storming (seven modes). `trade-off` updates accepted ADRs and may route empirical unknowns to the `andthen:spike` skill; `strategic-design` registers accepted context maps. `--visual` delegates structured reports to the `andthen:visualize` skill; pure `advise` is text-only. `--to-pr` is pinned to the target repository |
 | `ui-ux-design` | UI/UX work – research, design systems, wireframes, and design review (modes: `research`, `design-system`, `wireframes`, `review`) |
-| `map-codebase` | Codebase analysis – auto-generates architecture, stack, Key Dev Commands docs, conventions, and discovered requirements/decisions (called by `init` or standalone) |
+| `map-codebase` | Codebase analysis – auto-generates architecture, stack, Key Dev Commands docs, conventions, and discovered requirements/decisions (called by `init` or standalone). `--model` additionally emits a typed **Architecture Model** (a transient projection of the code, default `.agent_temp/models/architecture-model.json`): contexts, module-level nodes with repo-relative refs, and evidence-tagged edges, deterministic-first (dependency tooling / import scans / change coupling) with agent judgment confined to clustering, naming, and tours – rendered as the 3D atlas by the `andthen:visualize` skill; `--model-only` refreshes just the model with no documentation outputs |
 | `testing` | Test strategy, coverage assessment, executable Proof mapping, authoring, and TDD / red-green-refactor discipline (modes: `strategy`, `write`, `tdd`, `prove-it`; Prove-It for bugfixes). Unit + integration; defers persistent E2E suites to `e2e-test` |
-| `ubiquitous-language` | Extract and maintain the domain glossary from codebase and docs (`--update` merges new terms with the existing glossary; when a `Context Map` document exists, clusters group by its bounded contexts and the `Bounded Context` column draws from it, keeping glossary and map aligned) |
+| `ubiquitous-language` | Extract and maintain the domain glossary from codebase and docs (`--update` merges new terms with the existing glossary; when a `Context Map` document exists, clusters group by its bounded contexts and the `Bounded Context` column draws from it, keeping glossary and map aligned). `--model` projects the existing document into a typed **Domain Model** (a transient projection, default `.agent_temp/models/domain-model.json`; sibling kind of the architecture model): contexts from the doc's clusters, one doc-anchored node per term, overloaded terms carrying per-context meanings – the document stays canonical, and a missing or empty document is a clean stop, never a fabricated model – rendered as the 3D atlas by the `andthen:visualize` skill |
 | `excalidraw-diagram` | Generate high-quality Excalidraw diagrams from a topic, file, URL, or concept reference – outputs portable `.excalidraw` JSON + a rendered PNG |
 | `visual-validation` | Validate UI screenshots and implementations against visual, responsive, and design expectations; use `e2e-test` for browser journeys and `ui-ux-design` for design-system or wireframe authoring (`andthen:visual-validation` skill) |
-| `visualize` | Render any AndThen artifact – PRD, `plan.json`, FIS, requirements-clarification, product vision, review report, changeset walkthrough, architecture report, or ADR – as CSP-locked, context-escaped, self-contained HTML; section notes export with the artifact owner's identity. Open-loop and read-only. Output: `.agent_temp/visual-review/<slug>-<ts>.html` |
+| `visualize` | Render any AndThen artifact – PRD, `plan.json`, `architecture-model.json`, `domain-model.json`, FIS, requirements-clarification, product vision, review report, changeset walkthrough, architecture report, or ADR – as CSP-locked, context-escaped, self-contained HTML; section notes export with the artifact owner's identity. Architecture and domain models render as an immersive 3D **atlas** (contexts as drafting sheets, nodes as markers, `inferred` items dashed) via a bundled deterministic renderer – the one deliberate dark-theme view, with a 2D list fallback. The domain lens floats overloaded terms between their contexts' sheets on dashed tethers with italic labels and strikethrough avoid-term chips; domain-atlas notes route to the `andthen:ubiquitous-language` skill. Open-loop and read-only. Output: `.agent_temp/visual-review/<slug>-<ts>.html` |
 | `e2e-test` | End-to-end browser testing for web apps – discovers user journeys, runs interactive tests, fixes bugs found, and validates responsive behavior across viewports (pass routes/features positionally to focus). Browser automation is required but no specific provider is: project-documented tooling wins, else the host's built-in browser tooling or any available browser-automation MCP or CLI; stops only when nothing can navigate, snapshot, interact, and screenshot |
 
 ### Pipeline Skills
@@ -110,8 +124,8 @@ These compose into structured workflows – from requirements through implementa
 | `prd` | Create a self-contained Product Requirements Document. Load-bearing gaps route through the `andthen:clarify` skill; source trust persists from clarification/fetched input into `prd.md`; rejected scope graduates to the Out of Scope Registry; an automatic fresh-context doc self-review runs before finishing. Supports `--issue`/`--to-issue`, `--visual`, and `--auto` |
 | `spec` | Generate a compact Feature Implementation Specification from requirements, substituting durable tests/sources for duplicated prose; walks the `Context Map` among its required inputs and sizes against the **Single-session rule** (measured in words as well as lines), so an `OVERSIZE:` signal means split. After save, runs one top-level fresh-context doc self-review via the `andthen:review` skill with `--mode doc --fix` (report to agent temp) and blocks `spec-ready` on unresolved architecture/requirements decision Notes; plan-batch invocations skip the per-FIS review – the plan's cross-cutting review is the bundle's fresh-context gate. Supports `--visual` |
 | `exec-spec` | Execute a FIS with validation, intent/gap review, and Chain Attestation. Active signed deferrals block before edits; untrusted operational fields are contained and re-derived. OPEN reconciliation entries prevent a shipped presentation until resolved; `--to-pr` posts through the verified implementation repository |
-| `plan` | Full plan bundle: typed `plan.json` + one on-disk FIS per story + a failure-closed cross-cutting review. Consumes local `prd.md`, `--issue <N>`, or a GitHub issue URL; interruption-safe source trust persists into `plan.json`, and model-reported FIS paths are validated for canonical containment/provenance. Stories obey the **Single-session rule**; wide mechanical changes use **expand → migrate in batches → contract**. `--skip-review` leaves all generated FIS files unreviewed; supports `--visual` |
-| `exec-plan` | Execute a fully-specced plan bundle in the resolved code repo. Per-story review persists drift before Done, contains ambiguity, and remediates code Fix findings once. Multi-repo FIS writes serialize for attribution; final gap remediation must re-pass. `--from-issue` materializes a tracker plan; `--team` enables Agent Teams |
+| `plan` | Full plan bundle: typed `plan.json` + one on-disk FIS per story + a failure-closed cross-cutting review. Consumes local `prd.md`, `--issue <N>`, or a GitHub issue URL; interruption-safe source trust persists into `plan.json`, and model-reported FIS paths are validated for canonical containment/provenance. Stories obey the **Single-session rule** and its **Module fan-out** corollary (strong module boundaries → single-module stories, cross-module features seam-split per module, interfaces in `sharedDecisions[]`; boundary discovery consumes the Architecture Model when present); wide mechanical changes use **expand → migrate in batches → contract**. `--skip-review` leaves all generated FIS files unreviewed; supports `--visual` |
+| `exec-plan` | Execute a fully-specced plan bundle in the resolved code repo. Per-story review persists drift before Done, contains ambiguity, and remediates code Fix findings once. **Wave Discovery Triage** propagates mid-run discoveries to not-yet-started stories at wave boundaries (constraints append to their FIS via ops; contract impacts surface for decision, `--auto` blocks the story). Multi-repo FIS writes serialize for attribution; final gap remediation must re-pass. `--from-issue` materializes a tracker plan; `--team` enables Agent Teams; `--worktree` isolates each story in its own git worktree (either mode; not with `--from-issue`) |
 | `preflight` | Drive valid FIS decision holds to **zero open blocking decisions** without clearing other holds. Only resolved holds become schedulable after final doc/Proof revalidation; signed deferrals remain execution holds. Durable Source Trust follows composed skills; writes use `ops`. Emits `Preflight: READY \| DEFERRED \| BLOCKED`; `--auto` never invents answers |
 | `remediate-findings` | Implement validated findings with re-validation while preserving Source Trust; untrusted reports can mutate only inside a caller-authorized code root. Honors `Routing: Fix\|Note` and Intent, surfaces contradictions, and routes FIS pointer defects to re-spec Notes. An empty auto-applicable set returns `NO-OP: no-auto-applicable-findings`; Phase 5 reconciles ledger entries and keeps PRD-targeted changes recommend-only. Recurring traps may be encoded as run-verified lint rules/tests inside the authorized root, superseding (and deleting) their Learnings entries |
 | `ops` | Deterministic state management, plan/FIS mutations, Tech Debt and Learnings appends, git conventions, and progress tracking. `update-state` routes by field: `note`/`focus` → the gitignored `STATE.local.md` (auto-created), everything else (`phase`/`status`/`active-story`/`blocker`/`decision`) → shared `STATE.md`. `update-plan-owner` sets story ownership; `update-plan` and `update-plan-fis` accept repeated pairs, with literal `null` clearing a FIS pointer. `read-state` derives Active Stories from governing plans. `update-fis design-change` owns ADR-backed amendments; `decision-note resolved` atomically applies exact affected-surface pairs plus its provenance Note, while `deferred` appends only with sign-off. `update-decisions still-current` records non-ADR choices; `update-ledger` owns reconciliation-ledger mutation. `update-learnings` writes to a Learnings index capped at 150 lines, routing sharded topics to – and graduating overflow topics into – `learnings/<topic-slug>.md` files beside it; `remove` deletes check-superseded or stale entries |
@@ -176,9 +190,12 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 
 # Understand a new codebase
 /andthen:map-codebase
+/andthen:map-codebase --model                  # also emit the Architecture Model (transient projection)
+/andthen:map-codebase --model-only             # refresh just the model, no doc regeneration
 
 # Build a domain glossary
 /andthen:ubiquitous-language
+/andthen:ubiquitous-language --model           # also project it into the Domain Model (transient projection)
 
 # Draw an architecture or workflow
 /andthen:excalidraw-diagram "data pipeline architecture"
@@ -187,6 +204,8 @@ Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Produ
 # with section-anchored notes (notes round-trip to downstream skills via clipboard)
 /andthen:visualize docs/specs/auth-feature/prd.md
 /andthen:visualize docs/specs/auth-feature/plan.json
+/andthen:visualize .agent_temp/models/architecture-model.json                 # architecture model → 3D atlas
+/andthen:visualize .agent_temp/models/domain-model.json                       # domain model → 3D atlas (domain lens)
 /andthen:visualize docs/specs/auth-feature/requirements-clarification.md
 /andthen:visualize docs/specs/auth-feature/s01-login.md                       # FIS
 /andthen:visualize docs/specs/auth-feature/s01-login-doc-review-claude-*.md   # review report
@@ -321,11 +340,11 @@ The mode is inferred from your phrasing – you only need `--mode` to force a mo
 
 # 4a. Execute all stories via pipeline (default per-story review)
 /andthen:exec-plan docs/specs/dashboard/
+# Optionally with per-story worktree isolation (composes with either mode):
+/andthen:exec-plan --worktree docs/specs/dashboard/
 
 # 4b. OR use Agent Teams for enhanced parallelism (Claude Code only)
 /andthen:exec-plan --team docs/specs/dashboard/
-# Or with worktree isolation for parallel execution:
-/andthen:exec-plan --team --worktree docs/specs/dashboard/
 
 # 4c. OR execute story by story manually (plan already produced FIS for every story):
 /andthen:exec-spec docs/specs/dashboard/s01-project-setup.md
@@ -348,7 +367,7 @@ AndThen supports multiple people working the same repo concurrently. The design 
 - **State is split.** Shared `STATE.md` (committed) holds team-wide, low-churn state – phase, blockers, decisions, recently-completed, and an owner-annotated Active Stories view. Your personal context – current focus, session continuity notes – lives in `STATE.local.md`, which `andthen:init` **gitignores**, so it never merge-conflicts.
 - **`plan.json` is the source of truth for "who's doing what".** It already supports multiple `in-progress` stories at once. Claim a story by setting its `owner` (`andthen:ops update-plan-owner <plan> <id> <you>`) and opening its branch – `owner` is advisory coordination, not a lock, but it makes claims visible so two people don't grab the same story. Surgical per-row edits and fixed key order let concurrent status/owner updates 3-way merge cleanly across branches; in a single shared checkout they are last-writer-wins – prefer the `--from-issue` per-developer workflow there.
 - **Branch per story.** Use the `feat/S03-...` convention (`andthen:ops branch`), land via PR, and let `dependsOn` order the work. Per-story FIS files and per-FIS reconciliation ledgers are naturally partitioned – different stories touch different files.
-- **GitHub issues as the durable contract (recommended team mode).** `andthen:plan --to-issue` publishes the Story Catalog (with an optional `Owner` column) to an issue; each developer runs `andthen:exec-plan --from-issue <N>`, which materializes a *private* local `plan.json` under `.agent_temp/` and generates FIS just-in-time. The issue is the shared contract, runtime state is per-developer, so there is nothing shared to clobber. Claim a story by editing its `Owner` cell on the issue – reruns of `--from-issue` refresh `owner` from it, so claims and un-claims propagate to every teammate's local plan. (`--from-issue` is mutually exclusive with the intra-session `--team` mode – combining the flags is rejected.)
+- **GitHub issues as the durable contract (recommended team mode).** `andthen:plan --to-issue` publishes the Story Catalog (with an optional `Owner` column) to an issue; each developer runs `andthen:exec-plan --from-issue <N>`, which materializes a *private* local `plan.json` under `.agent_temp/` and generates FIS just-in-time. The issue is the shared contract, runtime state is per-developer, so there is nothing shared to clobber. Claim a story by editing its `Owner` cell on the issue – reruns of `--from-issue` refresh `owner` from it, so claims and un-claims propagate to every teammate's local plan. (`--from-issue` is mutually exclusive with the intra-session `--team` mode and with `--worktree` – issue-derived FIS files live under untracked `.agent_temp` and cannot translate into story worktrees.)
 - **Append-logs are merge-friendly.** `TECH-DEBT-BACKLOG.md`, `DECISIONS.md`, and `CHANGELOG.md` use timestamped, idempotent append blocks via `andthen:ops`, so concurrent appends rarely conflict and resolve trivially when they do. `LEARNINGS.md` appends are idempotent but topic-organized, and ceiling graduation rewrites index sections – coordinate around it like any shared doc edit.
 
 ## Bundling Into a Downstream Toolkit
@@ -374,6 +393,12 @@ Each downstream picks its own `--prefix` (must end with `-`). Skills install as 
 ## Migration Notes
 
 See [CHANGELOG.md](../CHANGELOG.md) for full release notes. Entries below cover migration steps for recent releases – both breaking changes and non-breaking shape additions that affect the FIS or plan surfaces consumers parse.
+
+### 0.39.0 – Atlas model artifacts + atlas artifact types (non-breaking addition)
+
+The `andthen:map-codebase` skill's new `--model` flag emits an **Architecture Model** and the `andthen:ubiquitous-language` skill's new `--model` flag emits a **Domain Model** – two typed kinds sharing one schema (`references/architecture-model.md`: `schemaVersion` `"1"`, `kind` `"architecture-model"` or `"domain-model"`, `contexts[]`, `nodes[]` with mandatory repo-relative `ref`, evidence-tagged `edges[]`, optional `tours[]`; domain nodes may carry `avoid`/`meanings`, domain `edges` must be `[]`). The `andthen:visualize` skill gains matching artifact types (detection: the `kind` discriminator, checked before the `plan.json` key shape; notes-payload owners: `andthen:map-codebase` / `andthen:ubiquitous-language`), rendered via a bundled deterministic Node script (`skills/visualize/scripts/render-atlas.mjs`, Node ≥18, no dependencies) as a self-contained 3D atlas; without Node the skill prints the render invocation and an artifact summary. `scripts/validate-architecture-model.sh` checks the schema invariants for both kinds (exit `0` valid, `1` violations, `2` bad usage). Existing artifact types, detection outcomes for them, and the notes payload format are unchanged; the visualizer's no-match message now also lists `architecture-model.json` and `domain-model.json`. Parsers that enumerate supported types should add the new ones.
+
+**To migrate**: no action required – models are opt-in, transient projections written to `.agent_temp/models/` by default (the code and the Ubiquitous Language document remain the sources of truth). Point the `Architecture Model` / `Domain Model` Project Document Index rows at a committed path only to pin reviewed snapshots deliberately.
 
 ### 0.38.1 – Plan fix rounds severity-gated and policy-routed (behavior change + non-breaking shape addition)
 

@@ -41,6 +41,9 @@
 | Tracker resolution | The `github-publish.md` step that resolves the `Issue Tracker` document before any issue op; GitHub (or absent) is the built-in default, a named backend substitutes per its operation table, contract unchanged. | backend switch |
 | Out of Scope Registry | Cross-feature registry (`docs/OUT-OF-SCOPE.md`) of firmly rejected *concepts* for concept-level dedup; distinct from a document's own feature-level Out of Scope section. | rejection log |
 | Context Map | The `docs/CONTEXT-MAP.md` document of bounded contexts and their integration patterns, registered by the `andthen:architecture` skill in `--mode strategic-design`. | context diagram |
+| Architecture Model | The typed `architecture-model.json` artifact emitted by the `andthen:map-codebase` skill with `--model`: contexts, nodes each anchored to a repo-relative `ref`, and evidence-tagged edges. A transient projection of the code, regenerated on demand – describes what exists, and the code is the record. | dependency dump, code map |
+| Domain Model | The typed `domain-model.json` artifact emitted by the `andthen:ubiquitous-language` skill with `--model`: a projection of the Ubiquitous Language document – contexts from its clusters, one node per glossary term, overloaded terms carrying per-context meanings. A transient projection, regenerated on demand – the document is the record. | glossary dump, term map |
+| Atlas | The `andthen:visualize` skill's immersive rendered view of a typed atlas model (Architecture Model or Domain Model) – contexts as drafting sheets, nodes as markers, `inferred` items dashed. The view, never the artifact. | 3D view, code city |
 | Single-session rule | Story-sizing rule (`andthen:plan`): a story plus its FIS must fit one fresh-context exec run; an `OVERSIZE:` signal means split, not push on. | story budget |
 | Wide-refactor exception | Large mechanical changes sequenced expand → migrate → contract, one build-green story per batch. | big-bang refactor |
 | Canonical triage roles | The fixed `andthen:issue-triage` label set – states `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; categories `bug`, `enhancement` – mapped to repo labels via Label Role Mapping. | triage statuses |
@@ -111,6 +114,9 @@
 | Plan schema fields | Use exact camelCase for JSON fields (`sourceRefs`, `assetRefs`, `bindingConstraints`, `sharedDecisions`, `riskSummary`). Use markdown labels only in GitHub Issue Transport. |
 
 ## Changelog
+- 2026-08-14: Typed models reclassified as transient projections (persistence posture in Architecture Model / Domain Model terms).
+- 2026-08-13: Added Domain Model; made Atlas kind-neutral over both model kinds.
+- 2026-08-12: Added 0.39 terms – Architecture Model, Atlas.
 - 2026-07-19: Added 0.37 terms – Spike, Spike Verdict, Agent Brief, Tracker resolution, Durability rule, Single-session rule, Wide-refactor exception, Out of Scope Registry, Context Map, Canonical triage roles.
 - 2026-06-09: Added Shared State / Local State terms for the team-collaboration state split.
 - 2026-06-06: Reserved "ledger" for the Reconciliation Ledger; renamed the `--from-issue` `plan.json` materialization from "ledger" to "plan"; added Reconciliation Ledger and Run Ledger terms.

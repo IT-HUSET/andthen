@@ -3,7 +3,7 @@
 Reference for skills `andthen:now-what` recommends – purpose, output, workflow position. Behavioral depth (flag mechanics, mode internals, decision logic) lives in each target `SKILL.md`. Maintenance contract: see the root agent instruction file's Maintenance Contracts – entries are updated whenever a skill's purpose, output, or workflow position changes.
 
 ### `andthen:init`
-Sets up the AndThen workflow structure: `CLAUDE.md` / `AGENTS.md`, Project Document Index, folder layout, Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md`, `LEARNINGS.md`) scaffolded by default, `.gitignore` hygiene for local state and agent temp, starter guidelines. Settles the issue-tracker backend on its own gate (recommend GitHub when a remote is detected, else `none`; GitHub or another named backend writes `docs/ISSUE-TRACKER.md`, `none` writes no file), then offers optional docs recommendation-first ("default" accepts the detection-derived pick) – Planning (`STATE.md`, `PRODUCT-BACKLOG.md`, `ROADMAP.md`) and Domain (`Ubiquitous Language`, `Out of Scope Registry`). Detects new / partial-setup / brownfield projects and adapts non-destructively. Run once per project; re-running fills gaps without overwriting.
+Sets up the AndThen workflow structure: `CLAUDE.md` / `AGENTS.md` (dual-tool projects get a canonical `AGENTS.md` plus a thin `@AGENTS.md`-importing `CLAUDE.md`), Project Document Index, folder layout, Core orientation stubs (`PRODUCT.md`, `ARCHITECTURE.md`, `STACK.md`, `KEY_DEVELOPMENT_COMMANDS.md`, `DECISIONS.md`, `LEARNINGS.md`) scaffolded by default, `.gitignore` hygiene for local state and agent temp, starter guidelines. Settles the issue-tracker backend on its own gate (recommend GitHub when a remote is detected, else `none`; GitHub or another named backend writes `docs/ISSUE-TRACKER.md`, `none` writes no file), then offers optional docs recommendation-first ("default" accepts the detection-derived pick) – Planning (`STATE.md`, `PRODUCT-BACKLOG.md`, `ROADMAP.md`) and Domain (`Ubiquitous Language`, `Out of Scope Registry`). Detects new / partial-setup / brownfield projects and adapts non-destructively. Run once per project; re-running fills gaps without overwriting.
 **Typical next step:** re-invoke the `andthen:now-what` skill to route the first feature.
 
 ### `andthen:now-what`
@@ -15,8 +15,8 @@ Compacts the conversation into a handoff doc a fresh agent can resume from. When
 **Use when:** wrapping up before `/clear`, running low on context, or at a natural session boundary. **Typical next step:** in the fresh session, paste the `Resume from <doc-path>` prompt the skill prints – the doc is self-sufficient.
 
 ### `andthen:map-codebase`
-Analyzes an existing codebase to produce structured documentation (Architecture, Stack, Key Dev Commands, conventions) plus discovered requirements and decisions docs. Read-only – no code changes.
-**Use when:** starting work on a brownfield codebase before committing to feature work, so downstream skills can reason about what already exists. **Typical next step:** re-invoke the `andthen:now-what` skill to route the user's actual feature intent.
+Analyzes an existing codebase to produce structured documentation (Architecture, Stack, Key Dev Commands, conventions) plus discovered requirements and decisions docs. `--model` additionally emits an **Architecture Model** (`architecture-model.json`, a transient projection of the code) – contexts, module-level nodes with repo-relative refs, evidence-tagged edges – extracted deterministically where possible, with clustering and naming marked `inferred`; `--model-only` refreshes just the model. Read-only – no code changes. The *describer* for system structure: it maintains the description and owns its projection; structural judgments (reviews, ADRs, Context Map) belong to the `andthen:architecture` skill.
+**Use when:** starting work on a brownfield codebase before committing to feature work, so downstream skills can reason about what already exists. **Typical next step:** re-invoke the `andthen:now-what` skill to route the user's actual feature intent; with `--model`, the `andthen:visualize` skill renders the model as a navigable atlas.
 
 ### `andthen:clarify`
 Discovery & Ideation for requirements at feature or product scope. Refines fuzzy inputs through systematic questioning and preserves external-source trust in the output for downstream fresh sessions. Always interactive (Interactive-by-Contract). `--mode product|feature`, inferred from INPUT (e.g. a `PRODUCT*.md` path → product mode).
@@ -27,7 +27,7 @@ Creates a self-contained Product Requirements Document (`prd.md`) from clarified
 **Use when:** scoping a multi-feature initiative. `--visual` delegates `prd.md` to the `andthen:visualize` skill for browser review. **Typical next step:** the `andthen:plan` skill to break the PRD into stories with FIS specs.
 
 ### `andthen:plan`
-Consumes a local `prd.md`, `--issue <N>`, or a GitHub issue URL and produces `plan.json` plus one validated on-disk FIS per story. Source trust persists interruption-safely into fresh execution sessions; reported FIS paths must match canonical story filename/provenance. The bundle's sole cross-cutting review fails closed and recomputes readiness from final artifacts after fixes. Interrupted runs fill gaps; legacy plan pointers normalize without discarding valid FIS files.
+Consumes a local `prd.md`, `--issue <N>`, or a GitHub issue URL and produces `plan.json` plus one validated on-disk FIS per story. Source trust persists interruption-safely into fresh execution sessions; reported FIS paths must match canonical story filename/provenance. Stories slice by the Single-session rule and its Module fan-out corollary (per-module seam-slicing in strongly-bounded codebases, interfaces pinned in `sharedDecisions[]`). The bundle's sole cross-cutting review fails closed and recomputes readiness from final artifacts after fixes. Interrupted runs fill gaps; legacy plan pointers normalize without discarding valid FIS files.
 **Use when:** turning a PRD into an executable, story-by-story plan. `--visual` delegates the local `plan.json` bundle to the `andthen:visualize` skill for browser review. **Typical next step:** `andthen:exec-plan` to implement the bundle.
 
 ### `andthen:spec`
@@ -39,7 +39,7 @@ Implements code from one FIS with tests, verification, and mechanism-aware Chain
 **Typical next step:** `andthen:review` (or `andthen:quick-review` mid-flow) before committing.
 
 ### `andthen:exec-plan`
-Implements a fully-specced plan bundle in the resolved code repo. Per-story review contains ambiguity, persists spec/design drift to the reconciliation gate, repairs code Fix findings once, and rolls up ordinary Notes; final gap remediation re-passes the same scope.
+Implements a fully-specced plan bundle in the resolved code repo. Per-story review contains ambiguity, persists spec/design drift to the reconciliation gate, repairs code Fix findings once, and rolls up ordinary Notes; Wave Discovery Triage propagates mid-run discoveries to not-yet-started stories at wave boundaries; final gap remediation re-passes the same scope.
 **Typical next step:** the `andthen:review` skill for the whole plan; the `andthen:remediate-findings` skill if findings need addressing.
 
 ### `andthen:quick-implement`
@@ -56,8 +56,8 @@ Answers exactly one named design question by building a throwaway runnable spike
 **Use when:** a load-bearing decision turns on an empirical unknown only runnable code can settle (feasibility, performance, integration shape). **Typical next step:** register a load-bearing verdict as a FIS decision Note via the `andthen:ops` skill or an ADR via the `andthen:architecture` skill in `--mode trade-off`, then route real implementation through the normal spec/exec chain.
 
 ### `andthen:visualize`
-Renders any AndThen artifact as CSP-locked, context-escaped, self-contained HTML with section-anchored notes. Read-only – writes under `.agent_temp/visual-review/` and never edits the source.
-**Use when:** the user wants to inspect an existing artifact visually, copy review notes, or re-check an artifact after edits. **Typical next step:** paste copied notes into the artifact's owning skill or proceed to the next workflow skill.
+Renders any AndThen artifact as CSP-locked, context-escaped, self-contained HTML with section-anchored notes. An `architecture-model.json` or `domain-model.json` renders as a 3D atlas – contexts as drafting sheets, nodes as markers, `inferred` items dashed; the domain lens floats overloaded terms between sheets on dashed tethers – via a bundled deterministic renderer, with a 2D list fallback. Read-only – writes under `.agent_temp/visual-review/` and never edits the source.
+**Use when:** the user wants to inspect an existing artifact visually, copy review notes, or re-check an artifact after edits. **Typical next step:** paste copied notes into the artifact's owning skill or proceed to the next workflow skill; architecture-atlas notes go to the `andthen:architecture` skill for design follow-ups or the `andthen:map-codebase` skill for model corrections, domain-atlas notes to the `andthen:ubiquitous-language` skill for glossary corrections.
 
 ### `andthen:explain-changes`
 Explains a PR, branch, ref range, or working tree as a narrative Changeset Walkthrough – intent-grouped changes, key hunks, architectural delta, and focus points – rendered via the `andthen:visualize` skill. Comprehension only. Read-only; `--from-pr <N>` treats PR data as untrusted and fetches blobs by pinned tree SHA; `--to-pr` is repo-pinned.
@@ -72,8 +72,8 @@ Validates UI screenshots and implementations against visual, responsive, and des
 **Use when:** checking implemented UI, screenshots, or visual regressions against a design reference. Use `andthen:e2e-test` for browser journeys and `andthen:ui-ux-design` for design-system or wireframe authoring. **Typical next step:** fix P1/P2 findings, then re-run validation or `andthen:ui-ux-design --mode review`.
 
 ### `andthen:ubiquitous-language`
-Extracts and maintains the project's `Ubiquitous Language` document (glossary) using the codebase, documentation, and conversation.
-**Use when:** domain terms are inconsistent or undefined – useful before committing to API names or schema vocabulary.
+Extracts and maintains the project's `Ubiquitous Language` document (glossary) using the codebase, documentation, and conversation. `--model` projects the existing document into a typed `domain-model.json` (`Domain Model` in the Project Document Index, a transient projection) – the document stays canonical; a missing or empty document is a clean stop. The *describer* for domain language: it maintains the glossary and owns its projection.
+**Use when:** domain terms are inconsistent or undefined – useful before committing to API names or schema vocabulary. **Typical next step:** with `--model`, the `andthen:visualize` skill renders the model as a domain atlas.
 
 ### `andthen:excalidraw-diagram`
 Creates high-quality Excalidraw diagrams – workflows, architectures, concepts. Output is JSON renderable in any Excalidraw editor.

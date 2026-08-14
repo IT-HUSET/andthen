@@ -29,3 +29,4 @@
 
 - **Parallel-authority enumerations drift** – installer asset arrays, the ARCHITECTURE shared-assets table, REQUIREMENTS-SPEC bullets, plugin/README, and the skill-reference catalog desync repeatedly; audit all five on any change to one.
 - **Spec-pipeline cost is remediation-shaped, not review-shaped** – 2026-08 benchmark: fix rounds 41% vs authoring 14% of cost; fixer dispatches outcost small fixes. Mitigated 0.38.1 (see CHANGELOG).
+- **Dogfood instance ≠ contract** – AndThen's own UL doc omits the UL-08 `Bounded Context` column; a spec calibrated on the local instance missed conforming inputs. Check source-structure assumptions against the owning skill's template, not the repo's copy.

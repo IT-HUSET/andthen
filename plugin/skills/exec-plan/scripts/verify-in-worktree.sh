@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # verify-in-worktree.sh – Hard-guard: assert the current process is operating
 # inside the expected story-* worktree, not the main checkout.
-# Used by: exec-plan team-mode implementer prompt (first action of every turn)
-#          and the orchestrator's pre-merge per-wave audit.
+# Used by: exec-plan worktree workers (first action after cd, in either
+#          execution mode), including retried workers reusing a worktree,
+#          and the orchestrator whenever it enters a worktree itself
+#          (pre-merge green gate, take-over repair).
 #
-# Harness isolation under `team_name` is unreliable, so this script is the
-# only thing that distinguishes "agent is correctly isolated" from "agent is
-# silently editing the main checkout". Failures here are STOP-the-line in the
-# calling context.
+# Harness isolation is not trusted (unreliable under `team_name`), so this
+# script is the only thing that distinguishes "agent is correctly isolated"
+# from "agent is silently editing the main checkout". Failures here are
+# STOP-the-line in the calling context.
 
 set -euo pipefail
 

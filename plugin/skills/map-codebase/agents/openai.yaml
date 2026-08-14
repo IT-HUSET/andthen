@@ -1,6 +1,6 @@
 interface:
   display_name: "AndThen - Map Codebase"
-  short_description: "Map a codebase and discover implicit requirements"
+  short_description: "Map a codebase, discover implicit requirements, and optionally emit a typed architecture model (--model; --model-only refreshes just the model)"
   default_prompt: "Analyze the codebase to produce structured documentation and discover implicit requirements for planning. "
 
 policy:

@@ -1,5 +1,5 @@
 ---
-description: Execute a fully-specced implementation plan bundle (every story already has a FIS) – fixed per-story pipeline plus a final gap review. Supports Agent Teams (`--team`). Trigger on 'execute this plan', 'run the plan', 'run as team'.
+description: Execute a fully-specced implementation plan bundle (every story already has a FIS) – fixed per-story pipeline plus a final gap review. Supports Agent Teams (`--team`) and per-story worktree isolation (`--worktree`). Trigger on 'execute this plan', 'run the plan', 'run as team'.
 argument-hint: "[--team] [--worktree] [--from-issue <number>] [--to-pr <number>] [--auto] <path-to-plan-directory> [path-to-code-repo]"
 ---
 
@@ -13,7 +13,7 @@ PLAN_PATH: resolved in Step 1, used unchanged in Steps 3, 4, 5. Local-directory 
 
 ### Optional Flags
 - `--team` → USE_TEAM: force Agent Teams mode; error if unavailable
-- `--worktree` → USE_WORKTREE: enable isolated git worktrees for parallel execution (team mode only; default: `false`)
+- `--worktree` → USE_WORKTREE: per-story git-worktree isolation with squash-merge back to `{BASE_BRANCH}` (default: `false`; composes with either execution mode; mutually exclusive with `--from-issue`). Lifecycle owned by `references/worktree-mode.md`, loaded in Step 2.
 - `--from-issue <number>` → ISSUE_INPUT: use a plan issue as the plan source (`gh issue view <N>` on the GitHub default); tracker resolution (per `github-publish.md` → **Tracker resolution**), shape detection, JIT FIS generation, deferred shared writes, and closure comments are owned by `references/from-issue-mode.md` (loaded in Step 1). **Mutually exclusive with `--team`** (parallel JIT FIS generation not supported) – reject with `BLOCKED: --from-issue is mutually exclusive with --team` in `AUTO_MODE`; warn and stop otherwise.
 - `--to-pr <number>` → PUBLISH_PR: after Step 5 Final Verification, post the rolled-up summary + gap verdict through Pattern B's verified `CODE_REPO`. Composes with `--from-issue`. See Step 5b.
 - `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
@@ -41,7 +41,7 @@ Orchestrator-side rules extending the universal Stop-the-Line gate.
 
 - **Authoritative writes (review before Done)** – every story worker runs `exec-spec --defer-shared-writes`, so it writes the FIS but not `plan.json` / State. Only after quick-review clears accepted Fix findings does the orchestrator verify the canonical FIS pointer, write `done`, and update State. This is the primary shared-write path; a crash or review failure cannot leave an unreviewed story durable as Done.
 
-- **Worktree placement** – under `--worktree`, the same deferred writes land after merge; elsewhere they land after per-story review. The executor's local completion note is never replayed. Mechanics: Step 3c and `references/team-mode-orchestration.md`.
+- **Worktree placement** – under `--worktree`, the same deferred writes land after merge; elsewhere they land after per-story review. The executor's local completion note is never replayed. Mechanics: Step 3c and `references/worktree-mode.md`.
 
 - **Multi-repo FIS attribution** – when local `PLAN_DIR` and `CODE_DIR` have different git roots, require a clean plan repo (or exact file-hash baseline), then serialize stories. Between stories, allow only the current FIS/ledger, `plan.json`, and State to change; commit those exact successful paths in the plan repo. Preserve a failed story's plan delta and stop – continuing would destroy attribution.
 
@@ -68,13 +68,13 @@ Orchestrator-side rules extending the universal Stop-the-Line gate.
 
 ### Step 2: Determine Execution Mode
 
-**Pre-validate**: `--worktree` requires `--team` (worktree isolation is team-only). `USE_WORKTREE=true` + `USE_TEAM=false`: default mode asks whether to add `--team` or drop `--worktree`; `AUTO_MODE` emits `BLOCKED: --worktree requires --team`.
-
 Check Agent Teams availability by verifying team creation tools (e.g. `TeamCreate`).
 
 - **`--team` + available** → Team mode (Step 3T).
 - **`--team` + unavailable** → stop. Default mode informs that `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is required. `AUTO_MODE`: `BLOCKED: Agent Teams unavailable (requires CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)`.
 - **No `--team`** → Sub-agent mode (Step 3). Mention `--team` is available unless `AUTO_MODE=true`.
+
+When `USE_WORKTREE=true` (either mode), load `references/worktree-mode.md` and verify its Clean Baseline before Step 3 / 3T.
 
 **Gate**: execution mode determined
 
@@ -93,6 +93,8 @@ Re-read `plan.json` (local-directory mode) or the materialized plan (`--from-iss
 #### 3b. Execute Story Pipelines
 
 > **JIT FIS layer** _(only when `--from-issue` is set)_: load `references/from-issue-mode.md` for per-story FIS materialization (story-body extraction, isolated staging invocation, `andthen:spec` failure policy, and provenance-field injection), then fall through to the per-story pipeline below using the captured FIS path.
+
+> **Worktree layer** _(only when `USE_WORKTREE=true`)_: per `references/worktree-mode.md` – pre-create the wave's worktrees before spawning (Stop-the-Line on failure), substitute `CODE DIRECTORY: {WORKTREE_PATH_ABS}` as each worker's implementation root (single-repo: translate `{FIS_PATH}` into the worktree), and append that reference's **Worker Isolation Block** to each Worker Prompt.
 
 **Per-story pipeline** (one FIS per story): `exec-spec` implements, then `quick-review` returns orthogonal `Class` and `Routing` fields. Reconciliation classes enter the persistence gate in Step 3c. Only `code-defect` follows routing: Fix → remediate/re-review once and contain if persistent; Note → surface and proceed. Under `--from-issue`, the orchestrator updates the local plan post-merge and Step 5c handles issue-side closure (no local `State` target).
 
@@ -129,13 +131,13 @@ Run immediately after each story – not as a batch. Worker self-reports do not 
 
 **Worker `BLOCKED:` triage** – repair/redelegate once per story only when the named missing input can be supplied without a decision (a flag, resolvable path, or completed-story artifact); prepend `Repair applied:`. The cap applies only here – objective green gates still iterate. Outcome-changing pivots and dirty-worktree attribution conflicts contain immediately.
 
-**Review-Class Persistence Gate**: before status, merge, or another story, persist every accepted reconciliation-class finding against the canonical FIS per `reconciliation-ledger.md`, using one collision-resistant story-review `SOURCE_RUN`. Add absent/terminal entries (terminal requires refuting evidence), bump prior-run OPEN drift, and only link same-run OPEN, `ambiguous-intent`, or `RECONCILE REQUIRED`. Re-read; persistence failure stops. Ledger-linked drift proceeds as Note; ambiguity contains. Reviewers never write ledgers.
+**Review-Class Persistence Gate**: before status, merge, or another story, persist every accepted reconciliation-class finding against the canonical FIS per `reconciliation-ledger.md`, using one collision-resistant story-review `SOURCE_RUN`. Under `USE_WORKTREE=true` this gate runs post-merge with the other deferred writes (`worktree-mode.md` → Merge Flow step 3) – still before any status write, and the FIS-sibling ledger then has one writer at a time. Add absent/terminal entries (terminal requires refuting evidence), bump prior-run OPEN drift, and only link same-run OPEN, `ambiguous-intent`, or `RECONCILE REQUIRED`. Re-read; persistence failure stops. Ledger-linked drift proceeds as Note; ambiguity contains. Reviewers never write ledgers.
 
 `AUTO_MODE`: a story non-green after bounded repair, `BLOCKED:` past triage, or failing its scenarios/criteria becomes a contained story failure:
 - Apply Status-Write Contract containment, recording id/FIS/evidence and any `## Failed Story Report`; emit `BLOCKED:` if isolation cannot be proven.
 - Do not invoke `quick-review`, mark `Done`, or rerun in a dirty worktree.
 
-Pass → apply the **Primary Shared Writes**, then run the **Writes-Landed Checklist**.
+Pass → apply the **Primary Shared Writes**, then run the **Writes-Landed Checklist**. Under `USE_WORKTREE=true`, the per-story **Merge Flow** (`worktree-mode.md`) runs first – the Primary Shared Writes and checklist land post-merge per that reference.
 
 **Primary Shared Writes** (after quick-review): verify/write `{FIS_POINTER}` through `andthen:ops update-plan-fis` per `data-contract.md`, then write `done` (verified by the checklist below). In local mode, apply exec-spec's deferred State updates through `andthen:ops`; `--from-issue` skips State. Trust paths/IDs from plan state, not audit prose. Failure contains the story at its prior status.
 
@@ -155,6 +157,18 @@ Pass → append story id, FIS path, verification summary, and any **surfaced not
 
 **Gate**: every schedulable story in the phase is verified green or recorded failed/skipped; successful stories have FIS writes confirmed and (local-directory mode) `plan.json` / State writes confirmed or repaired.
 
+#### 3d. Wave Discovery Triage
+
+After each wave (a phase's last included – later phases' stories are still unstarted), sweep the completed stories' material already in hand – surfaced notes, new ledger entries, reported Discovered Requirements and Implementation Observations – for impact on not-yet-started stories, so they don't execute against assumptions the wave just invalidated. Route each hit:
+
+- **Scope-preserving constraint** (scope and contract unchanged): append to the impacted story's FIS via `andthen:ops update-fis <path> discovered-requirements` (body under `#### DISCOVERED REQUIREMENTS`) before its worker starts. A `--from-issue` story without a materialized FIS takes it through its JIT FIS input.
+- **Contract impact** (scope, approach, or interface invalidated): a human decision. Default mode surfaces it and asks; `AUTO_MODE` transitions the story to `blocked` via `andthen:ops update-plan` with the discovery as evidence; dependents skip per normal scheduling.
+- **No impact on remaining stories**: the Step 6 rollup and Post-Completion Learnings already carry it.
+
+Under `USE_WORKTREE=true`, triage appends are subject to `worktree-mode.md` → **Merge Ordering**.
+
+**Gate**: wave discoveries triaged; propagated constraints landed before their stories schedule.
+
 **Gate**: all phases complete, or remaining work is blocked only by recorded failed/skipped stories.
 
 
@@ -164,9 +178,9 @@ Pass → append story id, FIS path, verification summary, and any **surfaced not
 
 Load `references/team-mode-orchestration.md` for full orchestration (team setup, implementer/reviewer prompts, task management, merge wave, status updates gate, monitoring, Final Worktree Teardown).
 
-Per phase: update project state (Step 3a), then create and manage the Agent Team pipeline per `team-mode-orchestration.md`. The bundle is already specced – no per-phase spec generation.
+Per phase: update project state (Step 3a), then create and manage the Agent Team pipeline per `team-mode-orchestration.md`. The bundle is already specced – no per-phase spec generation. Run Step 3d Wave Discovery Triage at each wave boundary.
 
-**Pre-create-and-verify isolation** _(when `USE_WORKTREE=true`)_: worktree lifecycle runs through bash scripts and the `andthen:merge-resolve` skill, never `EnterWorktree` / `ExitWorktree` / `Agent({isolation:"worktree"})` – harness isolation is unreliable under `team_name`. The script-by-script flow (`create-worktree.sh` → `verify-in-worktree.sh` HARD GATE → the `andthen:merge-resolve` skill with guards G1/G2/G3 → `teardown-worktrees.sh`) is owned by the reference loaded above.
+Worktree isolation (`USE_WORKTREE=true`) follows `references/worktree-mode.md` (loaded in Step 2); `team-mode-orchestration.md` owns only the team-side wiring (pre-create timing, task reuse, reviewer snapshots).
 
 **Gate**: all phases complete, or remaining work is blocked only by recorded failed/skipped stories.
 
@@ -242,7 +256,7 @@ If any story failed/skipped:
 
 Containment, Stop-the-Line, dependent-skipping, final-review remediation, and aggregate reporting are specified inline at the **Status-Write Contract** and Steps 3c / 4 / 6. One cross-cutting invariant not stated at a gate:
 
-- **Always run Final Worktree Teardown before exiting** (see `references/team-mode-orchestration.md`), including failure exits – unmerged worktrees are preserved and listed in the failure summary.
+- **Under `--worktree`, always run Final Worktree Teardown before exiting** (see `references/worktree-mode.md`), including failure exits – unmerged worktrees are preserved and listed in the failure summary.
 
 ## COMPLETION
 

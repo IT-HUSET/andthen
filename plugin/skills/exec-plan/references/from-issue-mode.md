@@ -7,7 +7,7 @@ The flag swaps the plan source from a local `PLAN_DIR/plan.json` to a GitHub iss
 Companion references:
 - [`plan-issue-shape.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-issue-shape.md) – body shape parsed here.
 - [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md) – plan schema.
-- [`team-mode-orchestration.md`](team-mode-orchestration.md) – `--team` / `--worktree`.
+- [`team-mode-orchestration.md`](team-mode-orchestration.md) – `--team`; [`worktree-mode.md`](worktree-mode.md) – `--worktree`.
 
 
 ## Step 1: Flag-combination guard
@@ -15,7 +15,7 @@ Companion references:
 Apply both guards before any other Step 1 work.
 
 - `--from-issue` + `--team` → stop. `Error: --from-issue is mutually exclusive with --team (parallel JIT FIS generation not supported under this flag).` `AUTO_MODE`: `BLOCKED: --from-issue is mutually exclusive with --team`.
-- `--from-issue` + `--worktree` → stop. `Error: --from-issue is mutually exclusive with --worktree (worktree isolation requires --team, which is itself rejected with --from-issue).` `AUTO_MODE`: `BLOCKED: --from-issue is mutually exclusive with --worktree`.
+- `--from-issue` + `--worktree` → stop. `Error: --from-issue is mutually exclusive with --worktree (issue-derived FIS files live under untracked .agent_temp and cannot translate into story worktrees).` `AUTO_MODE`: `BLOCKED: --from-issue is mutually exclusive with --worktree`.
 
 
 ## Step 1: Plan-source resolution (`--from-issue` branch)

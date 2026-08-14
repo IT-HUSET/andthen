@@ -1,5 +1,5 @@
 ---
-description: Internal squash-merge of one story worktree branch into the integration branch, guarded, committing with the load-bearing `Squashed-story:` trailer. Invoked per story by the `andthen:exec-plan` skill in team-mode Merge Wave; not user-invocable.
+description: Internal squash-merge of one story worktree branch into the integration branch, guarded, committing with the load-bearing `Squashed-story:` trailer. Invoked per story by the `andthen:exec-plan` skill's worktree merge flow; not user-invocable.
 context: fork
 user-invocable: false
 argument-hint: "<story-id> <base-branch> <worktree-path> <summary-file> [--guard-path PATH]..."
@@ -9,7 +9,7 @@ argument-hint: "<story-id> <base-branch> <worktree-path> <summary-file> [--guard
 
 Squash-merges one story worktree branch into the integration branch in the current main checkout. Resolves semantic conflicts inline if the mechanical squash leaves markers, then commits with the load-bearing `Squashed-story:` trailer that `teardown-worktrees.sh` keys off. All-or-nothing: either every guard passes, every marker resolves, verification passes, and one squash commit lands – or nothing changes on `BASE_BRANCH` and the worktree is preserved for inspection.
 
-Sole caller: the `andthen:exec-plan` skill (team-mode Merge Wave, worktree mode), one invocation per story branch.
+Sole caller: the `andthen:exec-plan` skill (worktree mode, either execution mode), one invocation per story branch.
 
 ## Output Contract
 

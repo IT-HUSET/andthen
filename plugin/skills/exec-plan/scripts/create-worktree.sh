@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# create-worktree.sh – Create an isolated story-* worktree for team-mode exec-plan.
-# Used by: exec-plan (team mode, Step 3T pre-spawn)
+# create-worktree.sh – Create an isolated story-* worktree for exec-plan worktree mode.
+# Used by: exec-plan (worktree mode, pre-spawn in either execution mode)
 #
-# Bash-driven worktree creation is the contract: harness isolation under
-# `team_name` is unreliable, so pre-creating the worktree and forcing the
-# teammate into it via prompt prelude + absolute paths is the only way to
-# guarantee isolation.
+# Bash-driven worktree creation is the contract: harness isolation is
+# host-specific (and unreliable under `team_name`), so pre-creating the
+# worktree and forcing the worker into it via prompt prelude + absolute
+# paths is the only way to guarantee isolation.
 
 set -euo pipefail
 
@@ -13,7 +13,7 @@ usage() {
   cat <<'EOF'
 Usage: create-worktree.sh STORY_ID BASE_BRANCH CODE_DIR [--help]
 
-Creates an isolated git worktree for one story in team-mode exec-plan.
+Creates an isolated git worktree for one story in exec-plan worktree mode.
 
 Arguments:
   STORY_ID     bare plan story id, e.g. S03 (no story- prefix)

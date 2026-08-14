@@ -9,13 +9,12 @@
 <!-- SETUP (delete after init). CRITICAL-RULES must load every session. Pick strongest fit:
      1. User-level (best, both tools): copy CRITICAL-RULES-AND-GUARDRAILS.md into
         ~/.claude/CLAUDE.md AND ~/.codex/AGENTS.md. Auto-loaded, no per-project setup.
-     2. @-import (Claude Code only): replace path below with
+     2. @-import (Claude Code only): add a line here:
         @docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md. Codex treats @ as literal – use option 1 if both.
-     3. Path reference (any tool, weakest): keep line below; agents read on load.
+     3. Path reference (any tool, weakest): add a line here:
+        _The rules in_ docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md _must always be followed._
      Claude Code strips HTML comments at load; Codex may include the bytes – for Codex-heavy
      workflows delete this block after setup. -->
-
-_The Critical, Non-Negotiable and Foundational Rules, Guardrails and Principles in_ docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md _must always be followed._
 
 
 ---
@@ -35,9 +34,11 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
 
 ## Project Document Index
 
-<!-- These paths tell AndThen (https://github.com/IT-HUSET/andthen) workflow commands (clarify, spec, plan, trade-off, etc.)
+<!-- These paths tell AndThen (https://github.com/IT-HUSET/andthen) skills and commands (clarify, spec, plan, trade-off, etc.)
      where your project keeps its documents. Adjust to match your project structure.
-     Remove rows you don't use. Paths are relative to repository root. -->
+     Remove rows you don't use. Paths are relative to repository root.
+     Persistence rule: markdown documents under docs/ are persistent sources of truth (commit them);
+     the typed model rows and .agent_temp/ are transient, regenerable workspace (gitignored). -->
 
 | Document Type        | Location                            | Notes                                   |
 |----------------------|-------------------------------------|-----------------------------------------|
@@ -51,6 +52,8 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
 | ADRs                 | `docs/adrs/`                        | Architecture Decision Records           |
 | Research             | `docs/research/`                    | Trade-off analysis output               |
 | Architecture         | `docs/ARCHITECTURE.md`              | System architecture overview            |
+| Architecture Model   | `.agent_temp/models/architecture-model.json` | Transient projection of the codebase (map-codebase `--model`; rendered as an atlas by visualize) – the code is the record |
+| Domain Model         | `.agent_temp/models/domain-model.json` | Transient projection of the Ubiquitous Language document (ubiquitous-language `--model`; rendered as an atlas by visualize) – the document is the record |
 | Context Map          | `docs/CONTEXT-MAP.md`               | Bounded contexts + integration patterns (registered by strategic-design) |
 | Stack                | `docs/STACK.md`                     | Technology stack documentation          |
 | Ubiquitous Language  | `docs/UBIQUITOUS_LANGUAGE.md`       | Domain glossary – canonical terms, definitions, synonyms to avoid |
@@ -78,7 +81,11 @@ _**TODO**: Add a brief Project Overview here. Reference `docs/PRODUCT.md`, `docs
      created by init on confirm or when the first rejected concept graduates into it. Starter
      templates for these documents are in the AndThen repo at
      plugin/references/project-state-templates.md. You can also generate
-     Architecture, Conventions, and Stack docs automatically using the andthen:map-codebase skill. -->
+     Architecture, Conventions, and Stack docs automatically using the andthen:map-codebase skill –
+     its --model flag additionally writes the Architecture Model; the andthen:ubiquitous-language
+     skill's --model flag writes the Domain Model from the glossary. The two model rows are transient
+     projections regenerated on demand – point one at a committed path only to pin reviewed
+     snapshots deliberately (a pinned model should carry meta.revision). -->
 
 
 ---

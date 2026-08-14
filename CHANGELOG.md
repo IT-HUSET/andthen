@@ -6,6 +6,29 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.39.0] – 2026-08-14
+
+### Added
+- **Architecture Model – a typed model of the codebase as it stands.** `architecture-model.json` (canonical schema in `references/architecture-model.md`) captures contexts, module-level nodes each anchored to a repo-relative `ref`, and evidence-tagged edges, so every drawn dependency is refutable against the code. `scripts/validate-architecture-model.sh` gates the invariants (exit `0` valid / `1` violations / `2` bad usage).
+- **`map-codebase --model` emits the model.** Nodes and edges come from dependency tooling, import scans, and change coupling; agent judgment is confined to clustering, naming, summaries, and tours, and marked `inferred`. Target altitude is 10–60 module-level nodes – file-level granularity re-clusters instead of shipping.
+- **`visualize` renders it as an atlas.** A new `architecture-model` artifact type renders through a bundled deterministic Node renderer into a self-contained 3D view – contexts as drafting sheets, nodes as markers, `inferred` items dashed – with a 2D list fallback, the standard notes loop (anchored to nodes and contexts), and the same CSP-locked no-network output as every other render. Notes route back to the `andthen:architecture` skill for design follow-ups or the `andthen:map-codebase` skill for corrections.
+- **Atlas navigation.** Zoom anchors on the pointer, shift/middle/two-finger drag pans (bounds-clamped), double-click on empty space recenters.
+- **Domain Model – the glossary as a typed atlas artifact.** `ubiquitous-language --model` projects the canonical Ubiquitous Language document into `domain-model.json` (`Domain Model` in the Project Document Index) – a sibling kind sharing the architecture-model invariant core, gated identically by validator and renderer.
+- **Typed models are transient projections.** Markdown documents and the code are the persistent sources of truth; both atlas models default to `.agent_temp/models/` and regenerate on demand – a projection disagreeing with its source is stale, never authoritative. A `Context Map`, when present, owns bounded-context identity across both kinds. Point a model's Project Document Index row at a committed path only to pin reviewed snapshots.
+- **`map-codebase --model-only` refreshes the projection cheaply.** Runs only the codebase survey and model emission – no documentation outputs – so regenerating an atlas on demand stays lightweight.
+- **Domain lens in the atlas.** `visualize` renders `domain-model.json` with overloaded terms floating between their contexts' sheets on dashed tethers (verbatim doc labels, italic), strikethrough avoid-term chips, and DDD-category lens chips; notes route to the `andthen:ubiquitous-language` skill. Architecture-atlas rendering is unchanged.
+
+### Changed
+- **Module-aware story slicing.** The `plan` skill gains the **Module fan-out rule** (Single-session corollary): where module/package/service boundaries are strong, stories confine to one module; genuinely cross-module features seam-split into per-module stories, interfaces in `sharedDecisions[]`. Boundary discovery consumes the Architecture Model when present.
+- **Wave Discovery Triage in `exec-plan`.** Mid-run discoveries propagate at wave boundaries instead of only the end-of-run rollup: constraints append to not-yet-started stories' FIS via `ops`; contract-invalidating discoveries surface for decision (`--auto` blocks the story).
+- **Dual-tool projects get one canonical instruction file.** `init` now generates `AGENTS.md` as the full root instruction file and `CLAUDE.md` as a thin `@AGENTS.md` import (Claude-specific additions below the import) instead of two byte-equivalent copies – Claude Code's official interop pattern. Partial setup offers conversion of existing duplicated pairs and counterpart creation follows the same shape.
+- **Foundational Rules wiring is opt-in.** The shipped CLAUDE/AGENTS template's Foundational Rules section now carries commented setup options only – no active reference line. User-level copy into `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md` remains the recommended wiring; `init` still installs `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md`.
+
+### Fixed
+- **`exec-plan --worktree` no longer requires `--team`.** Per-story worktree isolation (create → verify → squash-merge → teardown) now runs in the default sub-agent mode too; the lifecycle moved to the mode-agnostic `worktree-mode.md` reference, with `team-mode-orchestration.md` keeping only the team-side wiring.
+
+---
+
 ## [0.38.1] – 2026-08-12
 
 ### Changed
