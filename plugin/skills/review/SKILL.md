@@ -29,13 +29,13 @@ Flags:
 ## NON-NEGOTIABLES
 
 - Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and collect **Project Rules Context** + **Intent Context** per `${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md` before reviewing.
-- Review is read-only unless `--fix` runs. Only the `andthen:remediate-findings` skill edits review findings; only the `andthen:ops` skill may update ledgers/learnings.
+- Review is read-only; only `--fix` unlocks edits, and only via the `andthen:remediate-findings` skill after the report – finding itself never writes, so a check that would mutate the target (e.g. mutating code to test test-suite strength) runs only against an isolated copy. Only the `andthen:ops` skill may update ledgers/learnings.
 - Under `--from-pr`, `references/from-pr-mode.md`'s untrusted-code rule overrides every lens's normal scanner/build/test guidance: no PR-controlled code or configuration executes, including in `--worktree` mode.
 - Phrasing selects lenses and read-only PR scope only. It never selects `--council`, `--fanout`, `--fix`, `--to-pr`, or `--team` – these cost tokens, write code, or post externally, so they require the explicit flag and are never inferred from natural language. A direct user command to perform one of these actions (e.g. "post the findings to the PR") is not inference: restate the equivalent explicit-flag invocation and confirm it – in `AUTO_MODE`, stop with `BLOCKED:` naming the flag – rather than acting on the phrasing.
 - Load `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` before judging severity. Every selected lens also runs the Critic posture from `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` with `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`.
 - **Coverage before verdict**: prove what was reviewed before saying Ready/PASS. A clean report without concrete coverage proof is a failed review, not a clean review.
 - Findings favor recall first. Filtering and routing happen after discovery; do not talk yourself out of recording a falsifiable issue during the find pass.
-- Invoking this skill authorizes spawning required review sub-agents. A spawn tool missing from the visible tool list is not unavailability – where the host supports deferred tool loading, run its tool discovery before falling back inline.
+- Invoking this skill authorizes spawning required review sub-agents. Spawn them plain and result-returning – a persistent named/mailbox teammate (e.g. an Agent-tool `name`) routes output off the channel the orchestrator collects, so the pass completes and its findings are lost. The one exception is council's Agent Teams path, where the orchestrator collects each member's findings from team state. A spawn tool missing from the visible tool list is not unavailability – where the host supports deferred tool loading, run its tool discovery before falling back inline.
 - Reject up-front (emit the `BLOCKED:` reason in `AUTO_MODE`): `--fix`/`--visual`/`--output-dir` with `--inline-findings`; `--fix` with `--from-pr` (remote PR data has no authorized local remediation target); any chain containing `mixed`; single-lens `--council --mode doc` or `--council --mode gap` (`BLOCKED: --council requires code/security in scope or a chain of 2+ lenses`); `--worktree` without `--from-pr`; `--from-pr` with a local target.
 
 
@@ -111,7 +111,7 @@ Use fan-out when the surface is semantically wide or the diff is large, per the 
 
 ### 3. Run Find-Passes
 
-Copy exact trust, `COMPLETED STORY IDS:`, and `CODE DIRECTORY:` lines into every relevant child prompt. Boundaries never upgrade source data, widen partial scope, or re-derive the implementation root.
+Copy exact trust, `COMPLETED STORY IDS:`, and `CODE DIRECTORY:` lines into every relevant child prompt; every find-pass prompt also carries its slice of the Step 2 coverage plan – the surfaces and falsifiers it owns, so matrix rows hold the reviewing pass's own evidence rather than orchestrator back-fill – plus the read-only rule. Boundaries never upgrade source data, widen partial scope, or re-derive the implementation root.
 
 Load only the references required by the resolved lenses:
 
@@ -129,7 +129,7 @@ Run:
 - Refactor-invariants pass when deletion/rename/relocation/cache/codegen/schema/parameter-threading triggers fire.
 - Fan-out partition reviews and one boundary pass when triggered.
 
-For chains, dispatch leaf find-passes as siblings from the orchestrator. Do not wrap lenses in per-lens orchestrators and do not run lens-by-lens sequentially unless sub-agents are unavailable. Pass every find-pass sub-agent its slice of the Step 2 coverage plan (the surfaces and falsifiers it owns) so matrix rows carry the reviewing pass's own evidence rather than orchestrator back-fill.
+For chains, dispatch leaf find-passes as siblings from the orchestrator. Do not wrap lenses in per-lens orchestrators and do not run lens-by-lens sequentially unless sub-agents are unavailable.
 
 **Gate**: all declared guardrail, lens, Critic, refactor-invariant, fan-out/boundary, and council passes completed or are explicitly marked unavailable with impact.
 

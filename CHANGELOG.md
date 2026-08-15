@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.39.1] – 2026-08-15
+
+### Fixed
+- **Review find-passes must return their findings – and stay read-only.** Find-passes now spawn as plain result-returning sub-agents: host teammate/naming options route a pass's output off the channel the orchestrator collects, so completed reports vanish silently (observed in the field). Council's Agent Teams path is the sole exception and must collect each member's findings from team state. Every finding-producing child prompt also carries the skill's read-only rule, so improvised destructive verification (e.g. mutating code to test test-suite strength) runs only against an isolated copy.
+
+---
+
 ## [0.39.0] – 2026-08-14
 
 ### Added

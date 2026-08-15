@@ -24,7 +24,6 @@ Gotchas · Structured Finding Contract · 1. Determine Execution Mode · 2. Sele
 - Skipping Devil's Advocate under context pressure removes the findings filter.
 - Clean results still need proof of work. No surviving findings is acceptable only when `Coverage Attacked` names the assumptions, failure paths, and high-risk surfaces actually challenged.
 - Devil's Advocate and Synthesis Challenger are filters, not finders – neither invents unrelated findings (full Synthesis boundary in Phase 3).
-- Forcing `--team` when Agent Teams are unavailable – fall back to sub-agents unless `--team` was explicit.
 
 
 ## Structured Finding Contract
@@ -83,7 +82,7 @@ Read the relevant lens rubric before reviewing:
 - security council: references/lens-security.md
 - Critic Reviewer: ${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md plus ${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md and ${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md
 
-Apply your persona and the Critic posture inside your focus area, covering the assigned coverage-plan surfaces. Return findings using the Structured Finding Contract from council-mode.md. If clean, return the concrete assumptions, flows, failure paths, and surfaces you attacked.
+Apply your persona and the Critic posture inside your focus area, covering the assigned coverage-plan surfaces. Review is read-only: never modify the review target; a check that would mutate it (e.g. mutating code to test test-suite strength) runs only against an isolated copy. Return findings using the Structured Finding Contract from council-mode.md. If clean, return the concrete assumptions, flows, failure paths, and surfaces you attacked.
 ```
 
 
@@ -94,7 +93,7 @@ Use Agent Teams so reviewers can share task state and debate in real time.
 1. Create the team, e.g. `review-council`.
 2. Create tasks for specialist review, findings filter, and synthesis.
 3. Spawn each reviewer into the team. Prefer the installed custom agent mapped in `reviewer-roster.md`; still supply the shared Reviewer Task Prompt with framing line `Review Council for: {SCOPE}` / `Role: {reviewer name and focus areas from reviewer-roster.md}`. Custom agent instructions are persona defaults, not a replacement for lens calibration.
-4. Track assignments and completion.
+4. Track assignments and collect every member's findings from team state – a teammate's output never returns as a spawn result, so an uncollected member is an incomplete pass, not a clean one.
 5. Use inter-agent messaging for the filter debate.
 6. Shut down team members and delete the team when finished.
 
@@ -164,7 +163,7 @@ Attack lens-boundary surface only:
 - Verdict-vs-finding mismatch within or across lenses.
 - Intent gaps visible only when code is read against doc, or doc against code.
 
-Do **not** re-litigate within-lens Critic findings – assume the per-lens Critic pass attacked within-lens scope already. Return findings using the Structured Finding Contract; tag `scope_relation: primary` and `source_lens: cross-lens`. If clean, return the concrete lens-boundary surfaces you attacked.
+Do **not** re-litigate within-lens Critic findings – assume the per-lens Critic pass attacked within-lens scope already. Review is read-only: never modify the review target. Return findings using the Structured Finding Contract; tag `scope_relation: primary` and `source_lens: cross-lens`. If clean, return the concrete lens-boundary surfaces you attacked.
 ```
 
 **Gate:** cross-lens findings (or clean-coverage statement) collected.
