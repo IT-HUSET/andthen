@@ -5,6 +5,7 @@ Canonical starter templates for the supplementary project documents referenced i
 The `>` notes address the consuming skill and do not ship. Everything inside a fenced block is emitted verbatim into the created file – **including the HTML comments**, which are deliberate embedded guidance for whoever later maintains that document in the target repo, with or without AndThen installed. The comments are contract, not noise: do not strip them when scaffolding, and do not prune them from this reference.
 
 ## Contents
+- Regeneration contract – merge rules shared by the derived documents (ARCHITECTURE, STACK, KEY_DEVELOPMENT_COMMANDS)
 - STATE.md – shared, committed cross-session state snapshot
 - STATE.local.md – per-developer, **gitignored** session-local state (never committed)
 - PRODUCT-BACKLOG.md – requirements registry with REQ-IDs
@@ -20,6 +21,14 @@ The `>` notes address the consuming skill and do not ship. Everything inside a f
 - ISSUE-TRACKER.md – agent issue-tracker backend + label role mapping
 - CONTEXT-MAP.md – bounded contexts and integration patterns
 - OUT-OF-SCOPE.md – cross-feature registry of rejected concepts
+
+---
+
+## Regeneration contract
+
+> Binds every writer of a _derived_ document – ARCHITECTURE.md, STACK.md, KEY_DEVELOPMENT_COMMANDS.md – whose content a fresh analysis of the codebase re-derives. Cite it by name from the write site and keep only skill-specific gates inline.
+>
+> An existing document at the target path is **merged, never overwritten**. Regenerate the sections its template note marks _derived_ from the current analysis; preserve the sections marked _judgment_ – rationale is the one thing code cannot re-derive – appending genuinely new items marked `(new)`. A row whose subject can no longer be located is flagged in place, never deleted: it may have moved rather than gone. Template headings not locatable at all – the document was hand-written to a different structure – means no merge is attempted: leave the file untouched, write the analysis beside it as `<NAME>.discovered.md` under a `> Status: Discovered – requires validation by team` header, and name the pair for reconciliation. An absent target is written fresh from the template.
 
 ---
 
@@ -266,6 +275,8 @@ _No tech debt recorded yet._
 ## ARCHITECTURE.md
 
 > System architecture overview – enough for an agent to understand component boundaries and data flow.
+>
+> **Regeneration contract** applies. _Derived_: `Key Components`, `Integration Points`. _Judgment_: `System Overview`, `Data Flow`, `Key Constraints`.
 
 ```markdown
 # Architecture
@@ -343,6 +354,8 @@ _No tech debt recorded yet._
 ## STACK.md
 
 > Technology stack documentation with versions.
+>
+> **Regeneration contract** applies. _Derived_: every section. No judgment sections – a stack entry the code no longer supports is flagged, not kept.
 
 ```markdown
 # Technology Stack
@@ -378,6 +391,8 @@ _No tech debt recorded yet._
 ## KEY_DEVELOPMENT_COMMANDS.md
 
 > Key commands for development, running, testing, deployment, and code quality. For monorepos, organize commands per sub-project.
+>
+> **Regeneration contract** applies. _Derived_: every command table. Hand-added commands with no discoverable source (undocumented scripts, team habits) are judgment – flag them, never drop them.
 
 ```markdown
 # Key Development Commands

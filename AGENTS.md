@@ -198,8 +198,13 @@ bash scripts/install-skills.sh
 # Preview Claude Code user-tier packaging only when that path is touched:
 bash scripts/install-skills.sh --claude-user --dry-run
 
-# Validate a plan.json against the schema:
+# Validate a plan.json against plan-schema.md (also checks FIS pointers
+# and their provenance):
 bash scripts/validate-plan-json.sh <path-to-plan.json>
+
+# Validate an emitted atlas model, either kind, against architecture-model.md –
+# its check set must stay identical to render-atlas.mjs's own pre-render checks:
+bash scripts/validate-architecture-model.sh <path-to-model.json>
 ```
 
 Version bumps must update all four locations together (per the Maintenance Contracts above): `CHANGELOG.md`, `.claude-plugin/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`.

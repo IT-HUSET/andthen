@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.39.2] – 2026-08-17
+
+### Fixed
+- **`map-codebase` merges into existing docs instead of overwriting them.** Re-runs against an existing `Stack`, `Architecture`, or `Key Dev Commands` document regenerate the derived tables (key components, integration points, stack inventories, commands) and preserve the judgment sections (system overview, data flow, key constraints), appending new items marked `(new)`; rows whose component is no longer found are flagged, not dropped. A document written to a different structure is left untouched, with the analysis written beside it as `<NAME>.discovered.md`.
+
+---
+
 ## [0.39.1] – 2026-08-15
 
 ### Fixed
@@ -16,11 +23,11 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ## [0.39.0] – 2026-08-14
 
 ### Added
-- **Architecture Model – a typed model of the codebase as it stands.** `architecture-model.json` (canonical schema in `references/architecture-model.md`) captures contexts, module-level nodes each anchored to a repo-relative `ref`, and evidence-tagged edges, so every drawn dependency is refutable against the code. `scripts/validate-architecture-model.sh` gates the invariants (exit `0` valid / `1` violations / `2` bad usage).
+- **Architecture Model – a typed model of the codebase as it stands.** `architecture-model.json` (canonical schema in `references/architecture-model.md`) captures contexts, module-level nodes each anchored to a repo-relative `ref`, and evidence-tagged edges, so every drawn dependency is refutable against the code. Producers validate the invariants before writing and the atlas renderer re-checks them and refuses an invalid model; `scripts/validate-architecture-model.sh` is the AndThen-repo dev check for the same set, not a shipped gate (exit `0` valid / `1` violations / `2` bad usage).
 - **`map-codebase --model` emits the model.** Nodes and edges come from dependency tooling, import scans, and change coupling; agent judgment is confined to clustering, naming, summaries, and tours, and marked `inferred`. Target altitude is 10–60 module-level nodes – file-level granularity re-clusters instead of shipping.
 - **`visualize` renders it as an atlas.** A new `architecture-model` artifact type renders through a bundled deterministic Node renderer into a self-contained 3D view – contexts as drafting sheets, nodes as markers, `inferred` items dashed – with a 2D list fallback, the standard notes loop (anchored to nodes and contexts), and the same CSP-locked no-network output as every other render. Notes route back to the `andthen:architecture` skill for design follow-ups or the `andthen:map-codebase` skill for corrections.
 - **Atlas navigation.** Zoom anchors on the pointer, shift/middle/two-finger drag pans (bounds-clamped), double-click on empty space recenters.
-- **Domain Model – the glossary as a typed atlas artifact.** `ubiquitous-language --model` projects the canonical Ubiquitous Language document into `domain-model.json` (`Domain Model` in the Project Document Index) – a sibling kind sharing the architecture-model invariant core, gated identically by validator and renderer.
+- **Domain Model – the glossary as a typed atlas artifact.** `ubiquitous-language --model` projects the canonical Ubiquitous Language document into `domain-model.json` (`Domain Model` in the Project Document Index) – a sibling kind sharing the architecture-model invariant core, checked identically by producer and renderer.
 - **Typed models are transient projections.** Markdown documents and the code are the persistent sources of truth; both atlas models default to `.agent_temp/models/` and regenerate on demand – a projection disagreeing with its source is stale, never authoritative. A `Context Map`, when present, owns bounded-context identity across both kinds. Point a model's Project Document Index row at a committed path only to pin reviewed snapshots.
 - **`map-codebase --model-only` refreshes the projection cheaply.** Runs only the codebase survey and model emission – no documentation outputs – so regenerating an atlas on demand stays lightweight.
 - **Domain lens in the atlas.** `visualize` renders `domain-model.json` with overloaded terms floating between their contexts' sheets on dashed tethers (verbatim doc labels, italic), strikethrough avoid-term chips, and DDD-category lens chips; notes route to the `andthen:ubiquitous-language` skill. Architecture-atlas rendering is unchanged.

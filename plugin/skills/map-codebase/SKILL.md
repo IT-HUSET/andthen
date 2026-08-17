@@ -22,6 +22,7 @@ MODEL_ONLY: true when `--model-only` is passed (implies MODEL) – emit only the
 - **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
 - **Read-only source analysis** – no source-code changes or commits; documentation outputs and agent-instruction Conventions updates are the only expected writes
 - **Structured output** – All documents follow templates from `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`
+- **Regeneration contract** – The `Stack`, `Architecture`, and `Key Dev Commands` documents are derived documents: an existing one is merged, never overwritten, per the **Regeneration contract** in `project-state-templates.md` (derived sections regenerate, judgment sections are preserved). Name any `<NAME>.discovered.md` pair it produces in the completion summary
 - **Discovery, not invention** – Document what exists, don't prescribe what should exist
 - **Model-only fast path** (`MODEL_ONLY`) – run only the codebase survey (step 1) and the Architecture Model emission from step 2b; skip every documentation output and the discovery steps. Existing `Architecture` and `Context Map` documents inform clustering. This is the normal way to refresh the transient projection before rendering an atlas.
 
@@ -44,6 +45,8 @@ MODEL_ONLY: true when `--model-only` is passed (implies MODEL) – emit only the
 ### 2. Parallel Analysis
 
 Spawn parallel sub-agents and describe each task shape to the nearest **Sub-Agent Model Policy** (absent a policy: inherit). Stack/command inventory is small retrieval when tightly scoped. Architecture, boundary analysis, conventions synthesis, and implicit-requirements/decision discovery are high-judgment work – never downshift them as scanning.
+
+A sub-agent briefed to write a derived document carries the **Regeneration contract** in its brief – an analyst who never sees it overwrites the file it was meant to merge into.
 
 **Monorepo note** (apply to all sub-agents when `IS_MONOREPO = true`): organize findings with clear sub-project boundaries. Document shared aspects once; only call out per-sub-project specifics where they differ.
 
@@ -113,7 +116,7 @@ Also emit `OUTPUT_DIR/decisions-discovered.md` using the `DECISIONS.md` template
 
 ### 4. Output Summary
 
-1. Write all documents to `OUTPUT_DIR/`
+1. Write all documents to `OUTPUT_DIR/`, honoring the **Regeneration contract**
 2. Print summary listing all generated files with brief descriptions
 3. If `IS_MONOREPO = true`: generate lightweight sub-project agent instruction file(s) that match the root file choice (`CLAUDE.md`, `AGENTS.md`, or both) for each sub-project that doesn't already have them (under ~40 lines: name/description, key development commands inline table, sub-project-specific notes)
 4. Suggest next steps: review discovered requirements and decisions with team (validate `decisions-discovered.md` and promote to `DECISIONS.md` when confirmed), invoke the `andthen:plan` skill on `docs/requirements-discovered.md`; when the Architecture Model was emitted, suggest rendering it with the `andthen:visualize` skill
