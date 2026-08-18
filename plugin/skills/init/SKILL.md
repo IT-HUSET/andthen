@@ -57,7 +57,7 @@ docs/
 
 Gitignore hygiene: append entries for the `State (local)` path (default `docs/STATE.local.md`) and the agent workspace (`.agent_temp/`) to `.gitignore` idempotently (only if absent); create `.gitignore` if missing.
 
-Copy `CRITICAL-RULES-AND-GUARDRAILS.md` from `templates/guidelines/` to `docs/guidelines/` if missing as part of baseline setup – the template's Foundational Rules section documents wiring options (commented) that point at it. Never overwrite existing guideline files; preserve project-specific files.
+Copy `CRITICAL-RULES-AND-GUARDRAILS.md` from `templates/guidelines/` to `docs/guidelines/` if missing as part of baseline setup – the template's Foundational Rules section documents wiring options (commented) that point at it; the user-level wiring itself is offered in Step 3. Never overwrite existing guideline files; preserve project-specific files.
 
 Scaffold the **Core orientation stubs by default** – the documents every project benefits from agents being able to find: `Product` (docs/PRODUCT.md), `Architecture` (docs/ARCHITECTURE.md), `Stack` (docs/STACK.md), `Key Dev Commands` (docs/KEY_DEVELOPMENT_COMMANDS.md), `Decisions` (docs/DECISIONS.md), `Learnings` (docs/LEARNINGS.md). Create these from the templates in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md` without prompting; pre-fill what's auto-detectable (e.g., the `Stack` document from package config). The `andthen:architecture` skill in `--mode trade-off` auto-registers accepted ADRs into the `Decisions` stub. The user can fill these in later, or generate richer content via skills like `andthen:map-codebase` (Architecture/Stack) or `andthen:prd` (Product).
 
@@ -81,7 +81,7 @@ For each confirmed document type, generate the file from templates in `${CLAUDE_
 
 For each confirmed sub-project agent instruction file, generate a lightweight file (under ~40 lines) containing: sub-project name and description, key development commands (inline table), and any conventions that differ from root. Mirror the root file choice (`CLAUDE.md`, `AGENTS.md`, or both – both uses the same thin-import pattern; `@` paths resolve relative to the importing file, so the sub-project `CLAUDE.md` imports its sibling `AGENTS.md`). Also update the root `Key Dev Commands` document (see **Project Document Index**) if created to include per-sub-project sections.
 
-**Gate**: Agent instruction file(s), required starter guidelines, and selected documents generated
+**Gate**: Agent instruction file(s), required starter guidelines, and selected documents generated – then Step 3.
 
 
 ### 2b. Partial Setup (CLAUDE.md and/or AGENTS.md exists)
@@ -100,6 +100,7 @@ Current setup analysis:
 ✓ Project-Specific Guidelines and Rules section configured
 ✗ CRITICAL-RULES-AND-GUARDRAILS.md is missing from docs/guidelines/
 ✗ Core orientation stubs missing: PRODUCT.md, ARCHITECTURE.md, DECISIONS.md, LEARNINGS.md
+✗ User-level always-on rules not wired for ~/.claude (see Step 3)
 
 Would you also like to:
 1. Add missing Document Index rows
@@ -123,8 +124,9 @@ Wait for user response, then execute confirmed actions:
 - **Missing guidelines**: Copy `CRITICAL-RULES-AND-GUARDRAILS.md` from `templates/guidelines/` if missing; never overwrite existing files
 - **Missing sections**: Add to the root agent instruction file(s) at the appropriate location (in the thin-import layout, sections belong in `AGENTS.md`, never the thin `CLAUDE.md`). If this adds the template's Foundational Rules section, also copy `CRITICAL-RULES-AND-GUARDRAILS.md` if missing so the section's setup options resolve.
 - **map-codebase**: Invoke the `andthen:map-codebase` skill; skip creating the `Architecture` and `Stack` documents from templates since map-codebase produces them from actual analysis
+- **User-level wiring**: Step 3 – this is how an already-initialized project picks up the always-on tiers later.
 
-**Gate**: All selected gaps filled
+**Gate**: All selected gaps filled – then Step 3.
 
 
 ### 2c. Brownfield Setup (existing codebase, no workflow structure)
@@ -145,9 +147,29 @@ Wait for response. If yes: invoke the `andthen:map-codebase` skill, then proceed
 **Gate**: Brownfield analysis complete (or skipped), proceed to project setup
 
 
-### 3. Final Summary
+### 3. Wire the Always-On Tiers (user level, once per machine)
 
-Print a summary listing **only what this run actually created**. Group by Core orientation stubs (always scaffolded by default in 2a/2b), starter guidelines, and any optional documents the user confirmed. Omit groups that were already in place. Example:
+Project files cannot make the foundational rules load in every session – that takes user-level wiring, done once per machine, not per project. Detect first; never re-ask what is already wired.
+
+Hosts: Claude Code at `$CLAUDE_CONFIG_DIR` (default `~/.claude/`) and Codex at `~/.codex/`; consider only directories that exist. Per host, the user-level instruction file is `CLAUDE.md` / `AGENTS.md` in that directory:
+- **Rules tier** is wired when that file contains the `# Critical Rules and Guardrails` heading and no `## Working Style` section – that section marks a pre-split copy still carrying the conversation rules, which counts as *stale*, not wired.
+- **Conversation tier** is wired when that file contains the `# Response Style` heading (an earlier **rules-only** wiring), or `settings.json` sets `outputStyle` to this plugin's style, or `config.toml` sets `developer_instructions`. An `outputStyle` naming another style is the user's choice – never change it; report it and offer only **rules-only** for the conversation rules.
+
+Everything wired, or no host directory → skip silently. Otherwise name only the missing pieces – for a stale copy: "replace the pre-split Critical Rules section (its heading through the next top-level heading or end of file) with the current guideline" – and **STOP and WAIT**:
+
+_"Wire AndThen's always-on rules at user level (once per machine)? **both** (recommended) – engineering and artifact rules into the user-level `CLAUDE.md` / `AGENTS.md`, conversation style into the system prompt (Claude Code output style / Codex `developer_instructions`); **rules-only** – everything, conversation rules included, into the instruction files, no output style; **skip**."_
+
+Execute on confirmation only, per host:
+- **Rules tier**: append `templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` verbatim to the instruction file (create it if missing); a stale copy is replaced within the boundary named above. For **rules-only**, also append the body of `templates/output-styles/concise-critical.md` (below its frontmatter) – the full rule set then lives in one tier and nothing is lost.
+- **Conversation tier**, Claude Code: the style name follows the install. With the AndThen Claude Code plugin installed (listed in `<config dir>/plugins/installed_plugins.json`, or its cache directory under `<config dir>/plugins/cache/`) the plugin registers it as `<plugin-name>:concise-critical` – `andthen` followed by `:concise-critical` for the stock plugin; otherwise copy the style file to `<config dir>/output-styles/` and use `concise-critical`. Merge `"outputStyle": "<name>"` into `<config dir>/settings.json` (create if missing; preserve every other key). A project-level `outputStyle` (`.claude/settings*.json` in the project) shadows the user-level one – say so when present. Codex: add `developer_instructions = """<style body>"""` to the *top-level* section of `config.toml` (create if missing) – above the first `[table]` header, since keys after one belong to that table; mention `model_verbosity = "low"` as an optional length knob rather than setting it.
+- A settings or config file that does not parse is never rewritten – stop and report it. Wiring takes effect in the next session; say so.
+
+**Gate**: User-level wiring applied, declined, or already in place.
+
+
+### 4. Final Summary
+
+Print a summary listing **only what this run actually created**. Group by Core orientation stubs (always scaffolded by default in 2a/2b), starter guidelines, any optional documents the user confirmed, and user-level wiring. Omit groups that were already in place. Example:
 
 ```
 Project initialized:
@@ -163,6 +185,10 @@ Created:
   docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md
   [+ any optional documents the user selected, e.g. docs/STATE.md, docs/ROADMAP.md, …]
 
+User-level (once per machine, active from the next session):
+  ~/.claude/CLAUDE.md                         – Critical Rules appended
+  ~/.claude/settings.json                     – outputStyle set to the plugin's concise-critical style
+
 Next steps:
   1. Review and customize CLAUDE.md / AGENTS.md (especially Project Overview)
   2. Not sure where to start? Use the andthen:now-what skill
@@ -175,4 +201,4 @@ Next steps:
 
 ## OUTPUT
 
-All files are written to the project root. Print relative paths only.
+Project files are written to the project root and printed as relative paths; user-level wiring (Step 3) is printed with `~`.

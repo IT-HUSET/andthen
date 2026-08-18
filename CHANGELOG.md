@@ -6,6 +6,17 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.40.0] – 2026-08-18
+
+### Added
+- **`concise-critical` output style – conversation-style rules at the system-prompt tier.** The plugin registers `skills/init/templates/output-styles/concise-critical.md` (critical stance, extreme concision, state-each-fact-once, plain language, conclusion last, reference codes for 3+ items) as an output style; opt in with `"outputStyle": "andthen:concise-critical"` – never forced. Codex users paste the body into `developer_instructions`.
+- **`init` wires the always-on tiers at user level.** New final step, once per machine: appends CRITICAL-RULES to `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md` and sets the conversation style (`outputStyle` / Codex `developer_instructions`) on confirm – or, with **rules-only**, folds the conversation rules into the instruction files instead. Detects what is already wired, never overwrites; re-run `init` on any project to wire later. The plugin README carries a paste-prompt for wiring without init.
+
+### Changed
+- **CRITICAL-RULES-AND-GUARDRAILS.md drops the conversation-style rules** (critical stance, concision) now carried by the output style, so no rule lives in two tiers; everything sub-agents must also see – commit, attribution, date, and artifact rules – stays. The template's setup comment documents both tiers. Shell-alias system-prompt injection dropped from the wiring options.
+
+---
+
 ## [0.39.2] – 2026-08-17
 
 ### Fixed

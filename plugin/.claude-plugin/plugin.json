@@ -1,9 +1,10 @@
 {
   "name": "andthen",
-  "version": "0.39.2",
+  "version": "0.40.0",
   "description": "AndThen workflow system: structured agentic development from requirements to shipped code",
   "author": {
     "name": "Tobias Löfstrand"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "outputStyles": "./skills/init/templates/output-styles/"
 }

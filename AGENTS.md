@@ -26,6 +26,7 @@ For the deeper architectural picture (skill anatomy, shared-asset propagation, r
 - `plugin/skills/<name>/agents/openai.yaml` – Codex/OpenAI metadata for a skill.
 - `plugin/references/` – shared canonical reference files consumed by multiple skills.
 - `plugin/agents/*.md` – Claude Code plugin-tier agents: `documentation-lookup`, `research`, plus review persona agents.
+- `plugin/skills/init/templates/output-styles/concise-critical.md` – conversation-style rules for the system-prompt tier (registered as a Claude Code output style via `outputStyles` in `plugin/.claude-plugin/plugin.json`; pasted into Codex `developer_instructions`; wired by `init`); the CRITICAL-RULES guideline keeps every rule sub-agents must also see (engineering, git/commit, artifact conventions).
 - `plugin/.codex-plugin/plugin.json` – Codex plugin manifest for the same `plugin/` directory (dual-manifest layout).
 - `.agents/plugins/marketplace.json` – Codex plugin marketplace, serving `./plugin`.
 - `scripts/install-skills.sh` – install-time portability rewrites and shared reference inlining (loose-skill channel).

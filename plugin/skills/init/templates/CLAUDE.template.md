@@ -6,13 +6,20 @@
 
 ## Foundational Rules, Guardrails and Principles
 
-<!-- SETUP (delete after init). CRITICAL-RULES must load every session. Pick strongest fit:
-     1. User-level (best, both tools): copy CRITICAL-RULES-AND-GUARDRAILS.md into
-        ~/.claude/CLAUDE.md AND ~/.codex/AGENTS.md. Auto-loaded, no per-project setup.
-     2. @-import (Claude Code only): add a line here:
-        @docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md. Codex treats @ as literal – use option 1 if both.
-     3. Path reference (any tool, weakest): add a line here:
-        _The rules in_ docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md _must always be followed._
+<!-- SETUP (delete after init). Two always-on tiers, wired once per machine at user level – the
+     andthen:init skill offers this (Step 3); re-run it any time to wire later. Manual equivalents:
+     A. Engineering/artifact rules – CRITICAL-RULES-AND-GUARDRAILS.md must load every session:
+        1. User-level (best, both tools): copy it into ~/.claude/CLAUDE.md AND ~/.codex/AGENTS.md.
+        2. @-import (Claude Code only): add a line here:
+           @docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md. Codex treats @ as literal – use 1 if both.
+        3. Path reference (any tool, weakest): add a line here:
+           _The rules in_ docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md _must always be followed._
+     B. Conversation style (concision, critical stance, reference codes) belongs in the system
+        prompt, not here: Claude Code – set "outputStyle" in ~/.claude/settings.json to the plugin's
+        concise-critical style (plugin-namespaced when the plugin is installed; else copy the style
+        file to ~/.claude/output-styles/); Codex – the style body as developer_instructions in
+        ~/.codex/config.toml. Declining B? Append the style body to the files in A instead. See the
+        plugin README, "Foundational Rules and Conversation Style".
      Claude Code strips HTML comments at load; Codex may include the bytes – for Codex-heavy
      workflows delete this block after setup. -->
 

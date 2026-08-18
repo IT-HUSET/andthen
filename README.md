@@ -326,7 +326,7 @@ Everything else – architecture, UI/UX design, triage, visual validation, artif
 
 ### Guidelines (`docs/guidelines/`)
 
-One starter guideline ships with AndThen: `CRITICAL-RULES-AND-GUARDRAILS.md` – always-on safety rules and behavioral guardrails for AI agents. The canonical file lives in `plugin/skills/init/templates/guidelines/`; `docs/guidelines/` is a symlink to that directory so there's one source of truth. All other guidelines are project-authored: add your own conventions and counter-intuitive rules, referenced from your `CLAUDE.md` / `AGENTS.md` – frontier models don't need generic best-practice guides.
+One starter guideline ships with AndThen: `CRITICAL-RULES-AND-GUARDRAILS.md` – always-on engineering rules and guardrails for AI agents (scope, verification, git/commit/attribution, sub-agent routing). The canonical file lives in `plugin/skills/init/templates/guidelines/`; `docs/guidelines/` is a symlink to that directory so there's one source of truth. Its conversation-style companion – concision, critical stance, reference codes – ships as the `andthen:concise-critical` output style (`plugin/skills/init/templates/output-styles/`) for the system-prompt tier; `init` offers to wire both at user level, and the plugin README has the manual and Codex wiring. All other guidelines are project-authored: add your own conventions and counter-intuitive rules, referenced from your `CLAUDE.md` / `AGENTS.md` – frontier models don't need generic best-practice guides.
 
 ### Starter templates
 
@@ -336,6 +336,7 @@ Canonical user-facing starter templates (owned by the `init` skill).
 |----------|---------|
 | `plugin/skills/init/templates/CLAUDE.template.md` | Starter for project `CLAUDE.md` / `AGENTS.md` |
 | `plugin/skills/init/templates/guidelines/` | Foundational rules guideline copied by `init` |
+| `plugin/skills/init/templates/output-styles/` | `concise-critical` conversation-style output style (registered via the plugin manifest; wired by `init`) |
 | `plugin/references/project-state-templates.md` | Starter templates for STATE.md, ROADMAP.md, etc. |
 
 Other reference docs: [`docs/MODEL-EFFORT-SELECTION-GUIDE.md`](docs/MODEL-EFFORT-SELECTION-GUIDE.md) (model and thinking-effort selection).
