@@ -6,6 +6,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.40.1] – 2026-08-19
+
+### Changed
+- **`concise-critical` output style names the AI tells it forbids** – opening/closing filler, unnamed authority, filler vocabulary, trailing "-ing" justifications, forced triads, stacked hedges – and asks for the mechanism or number instead of the adjective; a sentence that would hold for any project is cut. Reference codes now carry their kind word where used (heading or "**R1 (risk)**"), never a bare letter, and only the six standard kinds get letters – other lists number under their heading. Same rules reach Codex through `developer_instructions` – re-paste the body.
+- **CRITICAL-RULES-AND-GUARDRAILS.md assumes a shared worktree** – stage by path, never whole-tree `reset`/`restore`/`stash`/`clean` or `.git/*.lock` deletion without sanction; another agent may be mid-edit.
+- **CRITICAL-RULES-AND-GUARDRAILS.md tightens deliverable prose** – specs/PRDs/docs state mechanisms and numbers, not qualities (a sentence that would hold in any project is cut); dashes used sparingly (en dashes still, but prefer a period or comma).
+
+---
+
 ## [0.40.0] – 2026-08-18
 
 ### Added

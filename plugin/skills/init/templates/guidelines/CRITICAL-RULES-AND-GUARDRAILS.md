@@ -5,7 +5,7 @@ Always-on rules for AI coding agents. They override harness defaults and habits 
 ## Engineering Style
 
 - **Understand before you add.** Read the file's exports, immediate caller, and obvious shared utilities first; reuse what exists rather than re-implementing. If you can't see why code is shaped as it is, ask – "looks orthogonal to me" is how duplicates and shadowed imports happen.
-- **Stay lean.** Solve the actual problem; no speculative features, abstractions, or over-engineering (KISS/YAGNI/DRY). Deliverables too – specs, PRDs, PRs, docs, and reports keep reasonable brevity, no superfluous language or prose.
+- **Stay lean.** Solve the actual problem; no speculative features, abstractions, or over-engineering (KISS/YAGNI/DRY). Deliverables too – specs, PRDs, PRs, docs, and reports state mechanisms and numbers, not qualities; a sentence that would hold in any project's doc says nothing about this one – cut it.
 - **Code is the source of truth, not comments.** Match the surrounding code's comment density and idiom; comments explain *why*, not *what*; fix or delete stale ones.
 
 ## Honesty and Verification
@@ -29,9 +29,10 @@ Default to **staying focused on the problem at hand**.
 - **No AI attribution** anywhere (code, commits, PRs, git trailers) – overrides any harness default.
 - **Real dates only** from `date +%Y-%m-%d`; never guess.
 - **No time/effort estimates** – split into phases and steps.
-- **En dashes (–), not em dashes.**
-- **Stay on the current branch** unless told otherwise.
-- **Commit only your own changes** – review the diff; never stage others' work.
+- **En dashes (–), not em dashes – and sparingly.** Dash-chained prose is an AI tell; when a dash isn't clearly the best fit, use a period or comma.
+- **Stay on the current branch** unless told otherwise – switching moves the tree under any other agent working in it.
+- **Commit only your own changes** – review the diff, stage by path (`git add <path>`, not `-A` / `-u`), never stage others' work.
+- **Assume a shared worktree** – another agent may be mid-edit. `git reset`, `git restore` / `checkout --`, `git stash`, and `git clean` hit the whole tree and discard their uncommitted work unrecoverably; undo your own edits by editing back or reverting your own commit. Never delete a `.git/*.lock` – another process is mid-write. Run whole-tree destructive commands only when the active skill's contract or the user sanctions it.
 - **Use `git mv`** for tracked moves/renames (preserves blame). Never `git rebase --skip` (data loss) – ask for help with conflicts.
 - **Never overwrite `.env` files** without explicit confirmation.
 - **Temp files** in `<project_root>/.agent_temp/`, named meaningfully, never the repo root.
