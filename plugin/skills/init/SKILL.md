@@ -100,7 +100,7 @@ Current setup analysis:
 ✓ Project-Specific Guidelines and Rules section configured
 ✗ CRITICAL-RULES-AND-GUARDRAILS.md is missing from docs/guidelines/
 ✗ Core orientation stubs missing: PRODUCT.md, ARCHITECTURE.md, DECISIONS.md, LEARNINGS.md
-✗ User-level always-on rules not wired for ~/.claude (see Step 3)
+✗ User-level always-loaded rules not wired for ~/.claude (see Step 3)
 
 Would you also like to:
 1. Add missing Document Index rows
@@ -124,7 +124,7 @@ Wait for user response, then execute confirmed actions:
 - **Missing guidelines**: Copy `CRITICAL-RULES-AND-GUARDRAILS.md` from `templates/guidelines/` if missing; never overwrite existing files
 - **Missing sections**: Add to the root agent instruction file(s) at the appropriate location (in the thin-import layout, sections belong in `AGENTS.md`, never the thin `CLAUDE.md`). If this adds the template's Foundational Rules section, also copy `CRITICAL-RULES-AND-GUARDRAILS.md` if missing so the section's setup options resolve.
 - **map-codebase**: Invoke the `andthen:map-codebase` skill; skip creating the `Architecture` and `Stack` documents from templates since map-codebase produces them from actual analysis
-- **User-level wiring**: Step 3 – this is how an already-initialized project picks up the always-on tiers later.
+- **User-level wiring**: Step 3 – this is how an already-initialized project picks up the always-loaded tiers later.
 
 **Gate**: All selected gaps filled – then Step 3.
 
@@ -147,7 +147,7 @@ Wait for response. If yes: invoke the `andthen:map-codebase` skill, then proceed
 **Gate**: Brownfield analysis complete (or skipped), proceed to project setup
 
 
-### 3. Wire the Always-On Tiers (user level, once per machine)
+### 3. Wire the Always-Loaded Tiers (user level, once per machine)
 
 Project files cannot make the foundational rules load in every session – that takes user-level wiring, done once per machine, not per project. Detect first; never re-ask what is already wired.
 
@@ -157,7 +157,7 @@ Hosts: Claude Code at `$CLAUDE_CONFIG_DIR` (default `~/.claude/`) and Codex at `
 
 Everything wired, or no host directory → skip silently. Otherwise name only the missing pieces – for a stale copy: "replace the pre-split Critical Rules section (its heading through the next top-level heading or end of file) with the current guideline" – and **STOP and WAIT**:
 
-_"Wire AndThen's always-on rules at user level (once per machine)? **both** (recommended) – engineering and artifact rules into the user-level `CLAUDE.md` / `AGENTS.md`, conversation style into the system prompt (Claude Code output style / Codex `developer_instructions`); **rules-only** – everything, conversation rules included, into the instruction files, no output style; **skip**."_
+_"Wire AndThen's always-loaded rules at user level (once per machine)? **both** (recommended) – engineering and artifact rules into the user-level `CLAUDE.md` / `AGENTS.md`, conversation style into the system prompt (Claude Code output style / Codex `developer_instructions`); **rules-only** – everything, conversation rules included, into the instruction files, no output style; **skip**."_
 
 Execute on confirmation only, per host:
 - **Rules tier**: append `templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` verbatim to the instruction file (create it if missing); a stale copy is replaced within the boundary named above. For **rules-only**, also append the body of `templates/output-styles/concise-critical.md` (below its frontmatter) – the full rule set then lives in one tier and nothing is lost.

@@ -1,6 +1,6 @@
 # Critical Rules and Guardrails
 
-Always-on rules for AI coding agents. They override harness defaults and habits where they conflict.
+These rules override harness defaults and habits where they conflict.
 
 ## Engineering Style
 
@@ -37,7 +37,7 @@ Default to **staying focused on the problem at hand**.
 - **Never overwrite `.env` files** without explicit confirmation.
 - **Temp files** in `<project_root>/.agent_temp/`, named meaningfully, never the repo root.
 - **Harness auto-memory is personal, not project storage** – user preferences and machine-local facts only; project-durable knowledge (traps, decisions, conventions) goes to committed docs (Learnings/Decisions/guidelines), visible to every agent and teammate.
-- **Delegate to sub-agents** for retrieval, review, research, and deep exploration; route each per the **Sub-Agent Model Policy** below. Include the model name in each sub-agent's name so the tier in use is visible.
+- **Delegate to sub-agents** for retrieval, review, research, and deep exploration; route each per the **Sub-Agent Model Policy** below. Name each one with plain task words plus the model name – the agent list must read at a glance, never as codes ("S38r").
 
 ## Sub-Agent Model Policy
 

@@ -6,6 +6,17 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.40.2] – 2026-08-20
+
+### Changed
+- **"Always-on" rules/tiers renamed "always-loaded"** across docs, templates, and the `init` skill – the rules are loaded into every prompt, not running; "always-on" stays only for the review Critic sub-lens, which does run in every review.
+- **CRITICAL-RULES preamble trimmed to the precedence sentence** – agent-read files don't describe themselves.
+
+### Fixed
+- **Sub-agent names stay readable.** The concision rules were leaking into identifiers ("S38r", "TDguards"): the `concise-critical` style now scopes compression to prose (names you assign stay descriptive words), and the CRITICAL-RULES delegate rule requires plain task words plus the model name in every sub-agent name. Codex: re-paste `developer_instructions`.
+
+---
+
 ## [0.40.1] – 2026-08-19
 
 ### Changed

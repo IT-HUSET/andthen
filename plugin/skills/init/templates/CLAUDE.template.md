@@ -6,7 +6,7 @@
 
 ## Foundational Rules, Guardrails and Principles
 
-<!-- SETUP (delete after init). Two always-on tiers, wired once per machine at user level – the
+<!-- SETUP (delete after init). Two always-loaded tiers, wired once per machine at user level – the
      andthen:init skill offers this (Step 3); re-run it any time to wire later. Manual equivalents:
      A. Engineering/artifact rules – CRITICAL-RULES-AND-GUARDRAILS.md must load every session:
         1. User-level (best, both tools): copy it into ~/.claude/CLAUDE.md AND ~/.codex/AGENTS.md.
