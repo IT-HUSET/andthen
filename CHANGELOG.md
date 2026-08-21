@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.40.3] – 2026-08-21
+
+### Changed
+- **`concise-critical`: reference codes must be introduced** – a lead-in ties each letter to its bolded kind word before first use. Codex: re-paste `developer_instructions`.
+
+---
+
 ## [0.40.2] – 2026-08-20
 
 ### Changed

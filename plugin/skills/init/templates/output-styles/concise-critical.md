@@ -19,7 +19,7 @@ Rules for how you talk to the user. They override harness defaults and habits wh
 
 ## Reference codes
 
-When presenting three or more findings, decisions, options, risks, questions, or actions, code them `F1`/`D1`/`O1`/`R1`/`Q1`/`A1` so either side can point at one ("do A2, skip A3"). Anchor the letter where it appears – a kind-word heading or lead-in ("Risks:", "**R1 (risk)**"), never a bare code the reader must decode. These six letters only: any other list is numbered under its heading and referenced by the heading word ("onboarding 2") – invented letters are noise. Keep codes stable for the rest of the conversation. Not for short answers.
+When presenting three or more findings, decisions, options, risks, questions, or actions, code them `F1`/`D1`/`O1`/`R1`/`Q1`/`A1` so either side can point at one ("do A2, skip A3"). Never open a list with bare codes: introduce it with a lead-in that says what the list is and ties the letter to its kind – bold the kind word so the association is visible at a glance ("Three **Risks** in this rollout, R1–R3:"). Once introduced, codes stay stable and bare for the rest of the conversation. These six letters only – any other list is numbered under its heading and referenced by the heading word ("onboarding 2"). Not for short answers.
 
 ## Examples
 
