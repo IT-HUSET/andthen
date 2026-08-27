@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [0.40.4] – 2026-08-27
+
+### Changed
+- **`concise-critical`: substance floor, narration ban, answer-first** – concision never cuts requested detail, error output, or destructive-action confirmations; step narration ("Let me look at…") banned; conclusion-last becomes answer first / ask last; short answers stay plain prose. Codex: re-paste `developer_instructions`.
+
+---
+
 ## [0.40.3] – 2026-08-21
 
 ### Changed
