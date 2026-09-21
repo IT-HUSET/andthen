@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "2",
+  "prd": "prd.md",
+  "overview": {
+    "summary": "Session cookies are hardened and the audit trail records every sign-in."
+  },
+  "sharedDecisions": [],
+  "bindingConstraints": [
+    {
+      "featureId": "FR-2",
+      "anchor": "prd.md#non-functional-requirements"
+    }
+  ],
+  "stories": [
+    {
+      "id": "S01",
+      "name": "Harden the session cookie",
+      "dependsOn": [],
+      "status": "done",
+      "fis": "s01-harden-the-session-cookie.md",
+      "completedTaskIds": [
+        "TI01",
+        "TI02"
+      ],
+      "owner": null,
+      "scope": "Cookie flags on the sign-in response.",
+      "sourceRefs": [
+        "prd.md#security"
+      ],
+      "provenance": null,
+      "assetRefs": [],
+      "sequencing": null
+    },
+    {
+      "id": "S02",
+      "name": "Record sign-ins in the audit trail",
+      "dependsOn": [
+        "S01"
+      ],
+      "status": "spec-ready",
+      "fis": "s02-record-sign-ins-in-the-audit-trail.md",
+      "completedTaskIds": [],
+      "owner": null,
+      "scope": "One audit row per successful sign-in.",
+      "sourceRefs": [
+        "prd.md#observability"
+      ],
+      "provenance": null,
+      "assetRefs": [],
+      "sequencing": null
+    }
+  ]
+}

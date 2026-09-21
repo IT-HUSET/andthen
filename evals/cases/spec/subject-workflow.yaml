@@ -1,0 +1,33 @@
+name: andthen-spec-subject
+description: Produce one standalone FIS from the committed spec-case request.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: spec
+    name: Author standalone FIS
+    skill: andthen:spec
+    prompt:
+      - >-
+        --auto feature-request.md
+
+        Save the spec under docs/specs/label-slug/, as s01-slugify-label.md
+        with its one-story plan.json beside it.
+      - >-
+        Preserve the fresh-context self-review evidence produced by the spec workflow
+        in review-evidence.json with exactly three fields: freshContext (boolean),
+        verdict (the run's own closure word, as a string), and remediated (boolean).
+    outputs:
+      fis:
+        format: text
+      review_evidence:
+        format: json
+        schema:
+          type: object
+          additionalProperties: false
+          required: [freshContext, verdict, remediated]
+          properties:
+            freshContext: {type: boolean}
+            verdict: {type: string}
+            remediated: {type: boolean}

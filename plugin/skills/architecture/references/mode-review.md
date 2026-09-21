@@ -1,48 +1,14 @@
 # Architecture – Review Mode
 
-Full architecture health assessment using quantitative metrics, connascence taxonomy, and established package principles.
+Full architecture health assessment, graded against the calibration.
 
-**Supporting references** (load as needed): `connascence.md`, `package-principles.md`, `anti-patterns.md`, `ousterhout-modules.md` (for Component/Code-level module and API review), `review-output.md`.
-
-## Step 1 – Discover Structure
-
-Map the package/module structure. For monorepos or workspaces, identify all packages and their declared dependencies.
-
-## Step 2 – Compute Dependency Graph & Metrics
-
-Use language-appropriate tools to extract:
-- **Dependency graph** (directed edges between packages/modules)
-- **Per-package metrics**: Ca (afferent), Ce (efferent), I (instability), A (abstractness), D (distance from main sequence)
-- **Graph-level metrics**: CCD, ACD, NCCD (if tooling supports)
-
-Refer to `package-principles.md` for metric definitions and thresholds.
-
-## Step 3 – Structural Checks
-
-Check each principle systematically, applying the thresholds in `package-principles.md`:
-1. **ADP** – dependency cycles (always a finding).
-2. **SDP** – for each dependency edge A -> B, check `I(A) >= I(B)`; flag violations.
-3. **SAP** – stable packages must be abstract; flag stable-but-concrete.
-4. **Zone analysis** – classify packages far from the main sequence as Zone of Pain vs Zone of Uselessness.
-5. **God modules** – flag high efferent coupling or outsized LOC relative to siblings.
-
-## Step 4 – Connascence Analysis
-
-For the highest-coupling boundaries (top 3-5 by Ce or most frequently crossing), classify the connascence type at each boundary. Refer to `connascence.md` for the taxonomy and severity scoring formula.
-
-Flag any dynamic connascence (CoE, CoTm, CoV, CoI) crossing a package boundary – these are always HIGH or CRITICAL severity.
-
-## Step 5 – Anti-Pattern Scan
-
-Check for patterns in `anti-patterns.md`: entity trap, distributed monolith, god module, leaky abstractions, speculative generality, shallow module, pass-through method/layer, temporal decomposition.
-
-## Step 6 – API Obviousness Check _(Component / Code level, opt-in)_
-
-**Run only when** the scope explicitly targets in-process module or public API design (e.g. a single module, a library package, or an API review). **Skip** for full-project reviews, container-level scope, or service-decomposition scope – Ousterhout's lens does not apply there, and Step 5 already covers shallow-module, pass-through, and temporal-decomposition anti-patterns at the package level.
-
-For each public API surface in scope:
-- **Obviousness test** – Can a caller use this module correctly without reading its implementation? If no, the interface leaks. Per Ousterhout (APoSD Ch. 18). Tag findings at C4 **Component** or **Code** level. See `ousterhout-modules.md` for supplementary deep-module heuristics.
+1. **Discover structure** – the package or module graph; in a monorepo or workspace, every package and its declared dependencies.
+2. **Compute the dependency graph and metrics** with the language's tooling (SKILL Phase 1): per-package Ca, Ce, I, A, D, and CCD / ACD / NCCD where the tooling supports them.
+3. **Structural checks** – assert the calibration's principles (ADP, SDP, SAP) and zones over the graph, and flag God Modules by efferent coupling or LOC outsized against siblings.
+4. **Connascence** – for the highest-coupling boundaries (top 3–5 by Ce or most frequently crossed), classify the connascence at each and score it with the calibration's formula.
+5. **Anti-pattern scan** – entity trap, distributed monolith, god module, leaky abstraction, speculative generality, premature decomposition, convenience coupling, shallow module, pass-through method or layer, temporal decomposition; each has a misfire boundary in the calibration's traps, checked before the finding is recorded.
+6. **API obviousness** _(opt-in, Component / Code level)_ – Ousterhout's lens as the calibration scopes it, only when the scope targets in-process module or public-API design; step 5 already covers its package-level anti-patterns.
 
 ## Report Contents
 
-Assemble the report per `review-output.md` (Executive Summary, How to Read, Metrics Dashboard per-package table, Findings by severity, condensed dependency-graph DAG, proposed fitness functions).
+`review-output.md`'s Report Structure, all seven sections in its order; Decomposition Recommendations appears only when findings drive one.

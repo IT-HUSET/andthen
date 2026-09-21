@@ -1,0 +1,9 @@
+{
+  "allowedPaths": [
+    "docs/TECH-DEBT-BACKLOG.md",
+    "retry-code-review-claude-2026-09-12.md",
+    "docs/LEARNINGS.md",
+    ".agent_temp/**"
+  ],
+  "oracle": "oracle.py"
+}

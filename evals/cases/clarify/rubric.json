@@ -1,0 +1,7 @@
+{
+  "criteria": [
+    {"id": "CLARIFY_QUESTION_RELEVANCE", "intent": "Questions target unresolved decisions in the brief."},
+    {"id": "CLARIFY_DECISION_FIDELITY", "intent": "The PRD preserves the replies, the material alternatives they rejected, and the boundaries and unresolved items, without invention."},
+    {"id": "CLARIFY_PRD_SHAPE", "intent": "The artifact is a PRD in the template shape: problem framed before solution, summary and detail agreeing, and its own `> **Source**:` line."}
+  ]
+}

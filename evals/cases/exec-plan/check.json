@@ -1,0 +1,18 @@
+{
+  "allowedPaths": [
+    "src/reporter/pipeline.py",
+    "tests/**",
+    "docs/specs/row-count/**",
+    "docs/LEARNINGS.md",
+    "docs/TECH-DEBT-BACKLOG.md",
+    ".agent_temp/**"
+  ],
+  "commands": [
+    "python3 -m unittest tests.test_pipeline",
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/row-count/plan.json"
+  ],
+  "oracle": "oracle.py",
+  "forbiddenArtifacts": [
+    "**/*-review-*.md"
+  ]
+}

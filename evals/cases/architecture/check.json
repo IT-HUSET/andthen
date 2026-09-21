@@ -1,0 +1,11 @@
+{
+  "requiredArtifacts": [
+    "docs/architecture-report.md",
+    "docs/adrs/adr-002-*.md"
+  ],
+  "allowedPaths": ["docs/**", ".agent_temp/**"],
+  "requiredText": {
+    "docs/DECISIONS.md": ["ADR-002"]
+  },
+  "oracle": "oracle.py"
+}

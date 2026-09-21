@@ -1,0 +1,34 @@
+name: andthen-clarify-subject
+description: Clarify one committed feature brief through scripted replies.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: clarify
+    name: Clarify the feature brief
+    skill: andthen:clarify
+    prompt:
+      - "prompt.md"
+      - >-
+        Answer every question you just asked from the committed replies in
+        scripted-replies.json; a question no reply addresses stays open - record
+        it as unresolved rather than deciding it or asking again - then write
+        docs/specs/report-totals/prd.md.
+    outputs:
+      prd:
+        format: text
+      turn_evidence:
+        format: json
+        schema:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [role, sessionId]
+            properties:
+              role: {type: string}
+              sessionId: {type: string}
+              artifactExists: {type: boolean}
+              questions: {type: array, items: {type: string}}
+              replies: {type: integer}

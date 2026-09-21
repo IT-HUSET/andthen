@@ -1,0 +1,1 @@
+Clarify `source.md` with the staged `andthen:clarify` skill. Ask about every unresolved scope, alternative, boundary, and open item before writing anything. Record the outcome as a PRD at `docs/specs/report-totals/prd.md`, write no other document under `docs/`, and return that workspace-relative path.

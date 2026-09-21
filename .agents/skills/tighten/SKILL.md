@@ -1,1 +1,0 @@
-../../../.claude/skills/tighten/SKILL.md

@@ -1,0 +1,6 @@
+{
+  "criteria": [
+    {"id": "plan-scope", "intent": "Stories collectively cover the frozen request without speculative product scope."},
+    {"id": "plan-execution", "intent": "Each story is implementation-sized and carries runnable proof."}
+  ]
+}

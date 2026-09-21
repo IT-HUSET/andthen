@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "2",
+  "prd": "docs/specs/csv-export/prd.md",
+  "overview": {
+    "summary": "Export a ledger as a CSV report."
+  },
+  "sharedDecisions": [],
+  "bindingConstraints": [],
+  "stories": [
+    {
+      "id": "S01",
+      "name": "Export CSV",
+      "dependsOn": [],
+      "status": "done",
+      "fis": "s01-export-csv.md",
+      "completedTaskIds": [
+        "TI01",
+        "TI02"
+      ],
+      "verified": {
+        "at": "2026-04-16T10:24Z",
+        "summary": "Ran 15 tests in 0.004s OK"
+      },
+      "owner": null,
+      "scope": "Render records as CSV and write the report file.",
+      "sourceRefs": [
+        "docs/specs/csv-export/prd.md#functional-requirements"
+      ],
+      "provenance": "docs/specs/csv-export/plan.json",
+      "assetRefs": [],
+      "sequencing": null
+    }
+  ]
+}

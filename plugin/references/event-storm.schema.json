@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "andthen:event-storm.schema.json",
+  "title": "AndThen event-storm board",
+  "description": "Machine form of board-models.md beside it, for the event-storm kind. Carries every invariant JSON Schema can state; id uniqueness, reference resolution, order uniqueness per lane, and the level and kind rules are stated by that reference and are the producer's to check.",
+  "type": "object",
+  "required": ["schemaVersion", "kind", "meta", "stickies"],
+  "properties": {
+    "schemaVersion": { "const": "1" },
+    "kind": { "const": "event-storm" },
+    "meta": {
+      "type": "object",
+      "required": ["project", "generatedBy", "date", "revision", "level", "scope", "source"],
+      "properties": {
+        "project": { "type": "string", "minLength": 1 },
+        "generatedBy": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "revision": { "type": "string", "minLength": 1 },
+        "level": { "enum": ["big-picture", "process-modeling", "design-level"] },
+        "scope": { "type": "string", "minLength": 1, "pattern": "^[^\\n]+$" },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The PRD or intent path the session was driven from, or 'brownfield'."
+        }
+      }
+    },
+    "lanes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "order"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1 },
+          "order": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "stickies": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "label", "order"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "kind": { "enum": ["event", "command", "actor", "policy", "read-model", "aggregate",
+                             "external-system", "hotspot"] },
+          "label": { "type": "string", "minLength": 1 },
+          "note": { "type": "string" },
+          "lane": { "$ref": "#/$defs/id" },
+          "order": { "type": "integer", "minimum": 0 },
+          "pivotal": { "type": "boolean" },
+          "attachedTo": { "$ref": "#/$defs/id" },
+          "cluster": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "flows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "kind"],
+        "properties": {
+          "from": { "$ref": "#/$defs/id" },
+          "to": { "$ref": "#/$defs/id" },
+          "kind": { "enum": ["triggers", "emits", "handles", "reads"] }
+        }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "label", "rationale", "members"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "kind": { "enum": ["subdomain", "workflow-boundary", "aggregate"] },
+          "label": { "type": "string", "minLength": 1 },
+          "rationale": { "type": "string", "minLength": 1 },
+          "members": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+          "invariants": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 }
+  }
+}

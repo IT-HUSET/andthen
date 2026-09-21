@@ -1,0 +1,8 @@
+{
+  "criteria": [
+    {
+      "id": "NOW_WHAT_ROUTES_UNINITIALIZED",
+      "intent": "the recommendation names the init skill as the first step because the project is not set up - init is not entered, nothing is written, and no spec, plan, or brownfield mapping is proposed instead"
+    }
+  ]
+}

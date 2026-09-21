@@ -1,32 +1,72 @@
 # Project Learnings
 
-<!-- Traps only, one bullet each: `- **{title}** – …` under 200 chars, trap + pointer; postmortem
-     depth lives in the spec archive or an ADR. Bar: "Would a competent developer with code and
-     git access still get bitten?" Skills read this index whole – keep it lean. Maintain via the
-     `andthen:ops` skill (`update-learnings` forms), which owns the 150-line ceiling and
-     `learnings/` shard graduation. Delete entries once encoded as checks or stale. -->
+<!-- Traps only, one bullet each: `- **{title}** – …`, trap + pointer; postmortem depth lives in
+     the spec archive or an ADR. An entry is admitted only if a frontier model does not already
+     know it, the code and git history do not already carry it, and it outlives the current
+     initiative. Read the document and append the bullet yourself, under the fitting topic: no
+     reworded duplicate of an entry already here, and keep the document short – trim stale
+     entries when you append. Delete entries once encoded as checks or stale. A topic that
+     outgrows this index moves to `learnings/<topic-slug>.md` and leaves one pointer line here;
+     open a shard only when the task names its topic. -->
 
 ## Agent Workflows
 
-- **Audit/review fan-out subagents may edit source despite read-only prompts** – expect post-run changes only in `.agent_temp/`; save recovery diffs and confirm provenance (user WIP) before restoring.
+- **Read-only fan-out subagents still edit source** – expect post-run changes only under `.agent_temp/`; save a recovery diff and confirm provenance (user WIP) before restoring.
 - **`isolation: "worktree"` is silently ignored for Claude Code team agents; manual `git worktree` + `cd` moves only Bash** – other tools resolve the session CWD; use `EnterWorktree`.
+- **Claude Code's subagent worktree isolation branches from the default branch, not HEAD, and returns no path or branch** (docs, 2026-09-16) – and its guard denies `git reset --hard` inside the worktree (live eval, 2026-09-17), so exec-plan never uses it and creates every story worktree itself from `BASE_BRANCH`.
+- **Claude Code's worktree isolation refuses file-tool edits outside the worktree but lets a shell command write there** (verified 2026-09-16, live eval) – so a story's writes stay in its worktree and the run session writes `plan.json` in the main checkout after the merge.
+- **A `git rm` enters the shared index and rides out on the next agent's commit** – in a shared worktree one session's staged deletion is already in the index when another commits, landing it in the wrong change; commit with a pathspec (`git commit -- <paths>`), which ignores the rest of the index.
+- **A temporary-index commit leaves the real index on the old blobs** – after `GIT_INDEX_FILE=<tmp> git commit`, the real index still holds the pre-commit version of every path just committed, so it reads as a staged reversal and another session's plain `git commit` undoes part of the change (seen twice, 2026-09-18, once with the paths staged by someone else at an older state). Refresh only those paths, index-only: `git reset -q HEAD -- <paths>`.
+- **Per-story review depth compounds** – a four-line story drew four reviewer agents and most of an 18-minute run, all re-derived by the plan-level review; one fresh reviewer subagent invoking the `andthen:review` skill with `--quick` is the whole per-story review, and depth lives in that separate review.
+- **An effort pin lives only in an installed agent definition** – an `Effort:` line in a spawn prompt does nothing on Claude Code and the Agent tool has no effort parameter; a role spawned as `subagent_type` with a role-first `name:` keeps its definition's pin (verified on 2.1.260). Read the tier back from `~/.claude/projects/<project>/<session>/subagents/*.meta.json` (`agentType` equals the role) and the `effort` field on the transcript's assistant turns before claiming it.
+- **A slow eval cell is fan-out before it is wording** – `review` had regressed to seven subagents per run (per-lens critics, a guardrails pass, the filter); restoring `main`'s shape took the cell from 2363 s to 548 s. Count spawned subagents against `main` before trimming prose.
+- **A Skill call tests the installed plugin, never the working tree** – to test edited skill text, copy `plugin/` to a scratch `SKILLROOT`, give a subagent the skill by absolute path, and run it in a detached throwaway worktree of the target project with git history forbidden. Replicate: three authoring runs of one story under identical text ranged 14–36 words per task outcome line (2026-09-19), wider than any rule-text effect measured, so an n=1 pair proves nothing.
+- **A "blind" subagent still sees the installed skill listing** – a no-tools worker probed cold on *Prove-It Pattern* cited the `andthen:testing` description as its origin (2026-09-18), so a term the plugin's own descriptions name cannot be knowledge-probed in-harness; *Resolution Ladder*, named in no description, drew a clean "no".
+- **A shared reference can name another file's sections as its own rubric** – `self-review.md:36` has the fresh reviewer apply `fis-authoring-guidelines.md`'s § Self-Check, § Plan-Spec Alignment Check and § Reverse Coverage Check by name, and nothing on the authoring side says so, so a cut that removes one of those headings silently breaks the instruction that justified the cut. Grep for the heading before deleting a section from a shared reference.
 
 ## Cross-Agent Packaging
 
 - **Never add `name: andthen-<x>` skill frontmatter** – Codex plugins register `<plugin>:<frontmatter-name>`, so it stutters as `andthen:andthen-x`.
 - **Codex `$` sigil parsing rejects dots in loose-skill names** – hyphen prefixes only; a dot prefix once silently disabled explicit skill injection for every installed skill.
 - **No generated/duplicated artifact trees in the repo** – both hosts read the single `plugin/` source verbatim via thin manifests; a full dist/ build pipeline was tried and rejected.
+- **Only `plugin/` ships** – nothing under `scripts/`, `tests/`, `docs/`, or `evals/` reaches an install, so shipped content that names them dangles for every user.
+- **A dev plugin under another name mis-routes cross-skill calls** – the plugin name is the `andthen:` namespace, so a renamed copy's skills invoke the installed release's skills; dogfood the tree under the real name with the release disabled (`python3 scripts/andthen-plugins.py --path .`).
+
+## Eval harness (DartClaw)
+
+- **A `format: path` output resolves from uncommitted worktree changes** – an executor commits its story before returning, so the resolver finds nothing left; execution workflows return completion as `format: text`.
+- **The stall watchdog (5 min, cancel) kills a headless turn waiting on a subagent** – set `governance.turn_limits.stall_action: warn`. DartClaw before `71b1e3fa` (feat/0.25.2) also restarted the process at turn end and killed background children (`review`: four passes "stopped, not completed"); a per-site `run_in_background: false` rule worked around it and was retired once the harness held the turn – a host's spawn default is host syntax, not a skill contract.
+- **The structured-output extraction turn allows two turns and no tools** – a schema field the model must compute (git tree hashes, changed paths) fails the step; ask only for what the run already said.
+- **DartClaw 0.25.1 spawned every workflow step with `--setting-sources project`** – user-scope plugin enablement in a redirected config dir was invisible and the subject reported the skill missing; 0.25.2 inherits user settings again (proven 2026-09-07), which is what lets a Claude eval cell read the operator's own user-scope install; the harness needs `dartclaw-workflow` (DartClaw 0.26.1 or later).
+- **`Permission mode forced to default – CLAUDE_CODE_SUBPROCESS_ENV_SCRUB is set` in a cell's stderr is benign** (2026-09-21) – DartClaw sets that variable on every Claude spawn; a cell logging it ran to completion. Read the workflow's `errorMessage` in `stdout.jsonl` for the real cause.
+- **A Claude eval cell needs no environment redirection, a Codex cell does** – DartClaw passes the parent environment to the Claude child untouched and inherits user settings by default, so a Claude cell just runs in the operator's own environment and measures the plugin he has installed (a stale install is a stale cell); Codex's `CODEX_HOME` is pinned to `<data_dir>/credentials/codex` under subscription auth whatever the environment holds, so the candidate must be registered there. Either way `login_store_guard` refuses the operator's real login directories, so subscription credentials are copied into `<data_dir>/credentials`.
+- **A DartClaw bash step's `{{var}}` substitution must be an unquoted argument** – quoting it fails at run time with "command substitution failed" while `dartclaw-workflow validate` passes it.
 
 ## Error Patterns
 <!-- Log recurring errors. Deterministic errors (bad schema, wrong type) → conclude immediately.
      Infrastructure errors (timeout, rate limit) → log, no conclusion until pattern emerges.
-     Conclusions are promoted into the relevant topic section (or its shard). -->
+     Conclusions are promoted into the relevant topic section. -->
 
 | Error | Type | Conclusion |
 |-------|------|------------|
 
 ## Process & Tooling
 
-- **Parallel-authority enumerations drift** – installer asset arrays, the ARCHITECTURE shared-assets table, REQUIREMENTS-SPEC bullets, plugin/README, and the skill-reference catalog desync repeatedly; audit all five on any change to one.
-- **Spec-pipeline cost is remediation-shaped, not review-shaped** – 2026-08 benchmark: fix rounds 41% vs authoring 14% of cost; fixer dispatches outcost small fixes. Mitigated 0.38.1 (see CHANGELOG).
-- **Dogfood instance ≠ contract** – AndThen's own UL doc omits the UL-08 `Bounded Context` column; a spec calibrated on the local instance missed conforming inputs. Check source-structure assumptions against the owning skill's template, not the repo's copy.
+- **`perl -0pi` interpolates `$(` and `$var` inside the replacement** – a rewritten shell line loses every variable silently and still parses; use a literal replacement (Python, `sed`) and grep the added lines for `$` before trusting the diff.
+- **A substring test over `--help` text passes a retired verb** – `stale` is a substring of a surviving verb's help prose, so the cookbook audit let a document naming the retired verb through; test against the parser's choice list, not the rendered help.
+- **A derived budget target predates the feature its row now carries** – `review (single lens)` was measured against a target derived before the quick path joined the skill, so the row reads over budget for content the audit verdicts KEEP; re-derive the target with the contract change, or record the gap as a decision.
+- **Parallel-authority enumerations drift** – installer asset arrays, ARCHITECTURE's shared-assets table, and plugin/README desync; audit all three on any change.
+- **Spec-pipeline cost is remediation-shaped, not review-shaped** – 2026-08: fix rounds 41%, authoring 14%; mitigated 0.38.1. Uncorroborated, unremeasured – the benchmark that produced these numbers was retired 2026-09-12.
+- **Dogfood instance ≠ contract** – our own UL doc omits UL-08's `Bounded Context` column, so a spec calibrated on it missed conforming inputs. Check against the owning skill's template.
+- **Dedup into a shared canonical can raise per-run cost** – moving a stanza into a reference loaded by more skills than the stanza had makes every path pay it; check load count before extracting.
+- **Codex left `${CLAUDE_PLUGIN_ROOT}` literal in skill text** – its compatibility shim was an environment variable for hook commands only, and `${CLAUDE_SKILL_DIR}` never existed there, so the model rebuilt each canonical path by searching the plugin cache (`rg --files`/`find`) once per invocation, visible in every Codex eval rollout under `.agent_temp/evals/*/codex/`. Cure: skill-root-relative paths (`../../references/<name>.md`, `<skill-dir>/scripts/<name>`) – both hosts announce the skill root, so nothing needs substituting.
+- **A bare backticked `<name>.md` is a mention the model will still follow if the file exists** – the installer counts only paths as loads, but a reader opens what its step needs and can resolve, so a bare name of a reference the body never loads is an unpriced load (one such cross-mention cost +380 on `spec`). Mention only a file the same body loads by path; `--validate-only` fails on a bare canonical name with no load.
+- **A compression pass drops a binding before it drops meaning** – the sentence tying a name to what fills it (a variable to its source, a flag to its consumer) reads as filler beside the rule it serves; inventory the target's bindings before the first edit and revert byte-exact on a lost one.
+- **A mode table's Read column is an unconditional load** – every invocation of that mode pays for the file however rarely its content applies; state the condition at a load site in the body, or split what only some runs need into its own reference.
+- **A reshaped list directly above another list at the same indent merges with it** – the two render as one and items regroup under the wrong lead; read the rendered markdown after any prose-to-list reshape, or separate them with a paragraph.
+- **A cut's keeper only counts on the target's own loaded path** – three `security-review` cuts were justified by text that loads inside the `andthen:review` run it dispatches, which the target itself never reads; ask per cut whether the keeper is on this file's load path.
+- **A bare `bash` in `subprocess.run` is the WSL stub on Windows** – CreateProcess searches System32 before PATH, so the suite gets `C:\Windows\System32\bash.exe` (exit 1, no output) instead of Git Bash; resolve it with `shutil.which("bash")`, and normalise a Windows-style `$0` before `dirname` in scripts a native process launches.
+- **Windows checkouts were CRLF until `.gitattributes` pinned LF** – `core.autocrlf=true` on runners and user machines; user artifacts still arrive with any EOL, so code that hashes bytes or `$`-anchors a raw `newline=""` read normalises `\r\n` first, and tests pass `encoding=` on every read – the default is cp1252 there.
+- **A skill rename sweep is caught only where a name is a `/andthen:` sigil** – the ADR-015/016 renames left the retired names in the unreleased CHANGELOG section's own bullets, the migration guide's retired-directory count, two install-metadata descriptions, and the merged skill's frontmatter (no `Trigger on` clause at all) while every gate stayed green; `audit-cookbook.py` scans five docs for sigils and nothing scans backticked names or descriptions. After a rename, `rg` the bare name across the repo and diff each skill's `Trigger on` clause against its predecessors; a `--validate-only` check that every description carries one would retire this bullet.
+- **A skill fix proven on one host proves nothing for the other** – the pre-hardening `visual-validation` returned FAIL on andthen-studio's S06 pair in every Claude control (blind, builder-framed, 27,345px composite), so Claude could not show whether the edits mattered; on Codex the same skill under builder framing ("48/48 layout checks passed") returned PASS, blind it returned FAIL, and the edited skill under the same framing returned FAIL twice (2026-09-19, `codex exec` over a snapshot of the old skill). Reproduce a reported failure on the host that reported it before writing the fix, and keep an unedited snapshot as the control.
+- **The repo hook refuses inline interpreters and recursive force deletes** – `python3 -c`, `sh -c`, `eval`, pipe-to-shell, and `rm -rf` (`hooks/configs/blocked-commands.json`); write a script file in the scratchpad and run it, and delete a tree with `find <dir> \( -type f -o -type l \) -print0 | xargs -0 rm` then `find <dir> -depth -type d -exec rmdir {} +` (`-type f` alone misses symlinks). The Bash tool caps one call at 10 min: launch a long run from a script with `nohup` and gate on real exit codes, not a `&&` chain over `grep`.

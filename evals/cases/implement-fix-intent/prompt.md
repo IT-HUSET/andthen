@@ -1,0 +1,1 @@
+Run the staged `andthen:implement-fix` skill on the inline request: Finance keeps asking where the report is, so add an `--upload` flag that POSTs the finished report to the team chat webhook, sparing anyone from opening the output folder.

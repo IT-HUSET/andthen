@@ -1,187 +1,74 @@
 # Lens: Gap Analysis
 
-Rubric for comparing a current implementation against its requirements baseline (spec, PRD, plan, issue, FIS, or other source of truth) and producing remediation-focused output with a PASS/FAIL verdict. Load this reference when running the `andthen:review` skill with `--mode gap`.
+Rubric for comparing an implementation against its requirements baseline (FIS, PRD, plan, issue, or other source of truth) and producing remediation-focused output with a PASS/FAIL verdict.
 
-Default target is the implementation, not the requirements doc – but not absolutely. When coherent, tested code contradicts the FIS Intent, Expected Outcomes, or an ADR-backed decision, do not assume which party is wrong: classify the finding (`code-defect | design-changed | spec-stale | ambiguous-intent`, defined in §4 Spec/design drift) rather than reflexively routing to code remediation.
-
-## Contents
-- Scope · §0 Resolve Review Target · §1 Compile Requirements · §2 Inspect Implementation
-- §3 Coverage Matrix · §4 Gap Finding Pass · §5 Critic Sub-Lens
-- FIS Upstream-Context Handling · §6 Findings Filter · Calibration · Large-Diff Fan-Out
-- §7 Dimensional Scoring & Verdict · Report Sections · Report Output Conventions
+The implementation is the default target, not absolutely: when coherent, tested code contradicts the FIS Intent, Expected Outcomes, or an ADR-backed decision, which party is wrong is the finding's question – classify it (`code-defect | design-changed | spec-stale | ambiguous-intent`, per Spec/design drift below) rather than reflexively routing it to code remediation.
 
 
-## Scope
+## Baseline Inputs
 
-Two inputs must be explicit before the lens can run:
-1. **Requirements baseline** – docs, issues, comments, or source-of-truth files that define expected behavior
-2. **Implementation target** – repo(s), package(s), directories, or changed files that contain the implementation
+Two inputs are explicit before the lens runs: the **requirements baseline** and the **implementation target**; a baseline with nothing implemented against it routes as Step 1 says. When the caller gives a directory or a plan file, discover the full baseline rather than treating the one input as the only source:
 
-Default to **workspace-wide resolution** when requirements and implementation may live in different repos.
+- **Directory path** – search it and its parent for `plan.json` (canonical; `plan-schema.md`), `prd.md`, and co-located FIS files (`s01-*.md`, …); the Project Document Index may point further.
+- **Plan file** – `schemaVersion` `"2"` before shape, else `BLOCKED: unsupported plan.json schemaVersion` and regeneration through the `andthen:plan` skill. The baseline is what the plan's `prd` names (a repo path, not necessarily a sibling) or, with `prd` null, the sources its `stories[].sourceRefs` cite – repo paths, or a tracker item URL resolved through the `Issue Tracker` document (**Project Document Index**); when neither yields a readable source, `BLOCKED: plan names no readable requirements baseline` rather than reviewing the FIS files against themselves. Then each non-null `stories[].fis` and the FIS files present on disk.
+- **Any other input** (file, issue, URL) – as-is.
 
-
-## 0. Resolve Review Target
-
-### Requirements Discovery
-
-When the caller provides a directory path or a plan file, discover the full requirements baseline rather than treating the single input as the only source.
-
-**Directory path** – search the directory (and its parent, for cases where a subdirectory like `fis/` is given) for:
-- `plan.json` – the typed implementation plan (canonical; see [`plan-schema.md`](${CLAUDE_PLUGIN_ROOT}/references/plan-schema.md))
-- `prd.md` – the product requirements document
-- FIS/spec files (`s01-*.md`, `s02-*.md`, etc.) co-located with the plan
-- Also check the Project Document Index in the project's root agent instruction file (`CLAUDE.md` / `AGENTS.md`) for additional pointers
-
-**Plan file** – read the plan and extract related requirements:
-- Look for a sibling `prd.md` in the same directory. Under `COMPLETED STORY IDS:`, include only the PRD anchors named by the selected stories' `sourceRefs`; the rest of the PRD is context, not reviewed scope.
-- Read `stories[]` from `plan.json`; collect each story's `fis` value (skip entries where `fis` is `null`). When the caller supplies `COMPLETED STORY IDS:`, select exactly those stories after validating every ID; do not include other plan stories or their PRD requirements in the review baseline.
-- Read all referenced FIS files that exist on disk
-
-**Any other input** (specific file, issue, URL) – use as-is without further discovery.
-
-### State
-
-- **Requirements baselines**: all discovered files, issues, PRDs, plans, or URLs that define expected behavior
-- **Implementation target**: repo(s), package(s), directories, or changed files that contain the implementation
-- **Mapping rationale**: why those paths are the right implementation target
-
-If no implementation target exists yet, stop and report that gap analysis cannot run.
-
-**Gate**: Requirements sources and implementation target are explicit
+**FIS baseline** – its three proof surfaces in the distinct roles `fis-contract.md` defines: Acceptance Scenarios as behavioral requirements, Structural Criteria as non-behavioral properties proved by task Verify lines, Work Areas as forward-coverage anchors. "Acceptance criteria" here means the Acceptance Scenarios when the baseline is a FIS; the generic reading holds for PRDs, issues, and ad-hoc requirements. Upstream context for a FIS resolves per `fis-contract.md` § Consuming Upstream Context.
 
 
-## 1. Compile Requirements
+## Coverage Matrix
 
-Gather the requirements baseline from docs, issues, comments, and caller context. Build a concise view of expected behavior, acceptance criteria, constraints, and non-functional requirements. Verify external technical claims against authoritative docs when needed.
+The lens succeeds by proving coverage, not by summarizing requirements: in the spine's matrix, one row per primary Acceptance Scenario, Structural Criterion, Work Area, and Expected Outcome beside the changed proof and user-facing/data surfaces. Re-attack Acceptance Scenarios against their `[OC<NN>]` outcomes and Intent; a claimed test or register proof that lacks the relevant falsifier is itself a gap, and external task progress proves effort, not conformance.
 
-### FIS baseline (when a FIS is in scope)
-
-When the requirements baseline includes a FIS, compile the three proof surfaces by their distinct roles:
-
-- **Acceptance Scenarios** as behavioral requirements – each canonical checkbox is one requirement. Its contract is the title + any GWT; inspect Proof separately as executable evidence and never use it to supply missing acceptance semantics. Canonical shape: [`fis-authoring-guidelines.md`](${CLAUDE_PLUGIN_ROOT}/references/fis-authoring-guidelines.md#acceptance-scenarios-and-proof-of-work).
-- **Structural Criteria** as non-behavioral proof requirements – each checkbox names a verifiable structural property that must hold (e.g. "existing tests pass", "API contract unchanged"). These are proved by task Verify lines, not scenarios.
-- **Work Areas** as forward-coverage anchors – each bullet names a component, file, or surface that must be covered by at least one task or scenario. A Work Area with no implementing task, scenario, or implementation evidence is a gap (see Forward-coverage gaps in Step 4).
-
-Where the lens elsewhere refers to "acceptance criteria" generically, those are the Acceptance Scenarios above when the baseline is a FIS. Generic language continues to apply for non-FIS baselines (PRDs, issues, ad-hoc requirements).
+Verification evidence strengthens the matrix – build/package checks, tests, lint/types, the substance and wiring scans in `verification-evidence.md`, refactor-invariants when triggered, security tooling when applicable – run or reused; a failed or skipped load-bearing check is a finding.
 
 
-## 2. Inspect Current Implementation
+## Gap Failure Modes
 
-Map the current implementation state:
-- Identify relevant changed files and implementation inventory
-- Understand codebase structure, affected components, and existing patterns
-- Stop if there is still nothing implemented to compare
-
-
-## 3. Coverage Matrix
-
-The gap lens succeeds by proving coverage, not by summarizing requirements. Build a compact matrix before judging readiness:
-
-| surface | evidence read | positive proof | falsifier attempted | result |
-|---|---|---|---|---|
-
-Rows must cover every primary Acceptance Scenario, Structural Criterion, Work Area, Expected Outcome, changed proof artifact, and changed user-facing/data surface. `not reviewed` on a primary row is a finding unless Intent Context explicitly makes it a Non-Goal or defers it.
-
-Use the matrix to force negative review. For each row, ask what bad state could still pass: malformed input, omitted locale sibling, extra/duplicate item, stale copy, wrong timezone, wrong fallback, unreferenced component, failing dependency, or edge case the requirement implies. A claimed test or register proof that lacks the relevant falsifier is itself a gap. A checked (`[x]`) Acceptance Scenario is re-attacked against its `[OC<NN>]` outcome and the Intent sentence, not trusted on checkbox state – an implementation that satisfies the literal scenario while defeating its outcome is a finding regardless of the check.
-
-Run or reuse verification evidence that strengthens the matrix: build/package checks, tests, lint/types, stub scan, wiring check, `verification-patterns.md`, refactor-invariants when triggered, and security tooling when applicable. Fold failed or skipped load-bearing checks into findings.
-
-
-## 4. Gap Finding Pass
-
-Compare the matrix to the implementation and record gaps by failure mode:
+Record gaps by failure mode:
 
 - **Functionality** – required behavior missing, incomplete, or wrong; edge/failure path not handled.
 - **Forward coverage** – a FIS Work Area has no task, scenario proof, implementation evidence, or matrix row.
 - **Integration/wiring** – component exists but is not connected end-to-end, or data contracts disagree.
-- **Requirement mismatch** – implementation/test/docs prove a different behavior than Intent, Expected Outcomes, or acceptance text.
-- **Spec/design drift** – coherent implementation contradicts FIS/ADR intent; classify `design-changed`, `spec-stale`, or `ambiguous-intent` rather than forcing code remediation.
+- **Requirement mismatch** – implementation, test, or docs prove a different behavior than Intent, Expected Outcomes, or acceptance text.
+- **Spec/design drift** – coherent implementation contradicts FIS/ADR intent; classify `design-changed`, `spec-stale`, or `ambiguous-intent` rather than forcing code remediation. A `design-changed` finding with no ADR recording it gets a companion reconciliation finding for the `andthen:architecture` skill in `--mode trade-off`.
 - **Consistency/domain language** – changed artifacts drift from project patterns, architecture, terminology, locale pairs, or user-facing copy requirements.
 - **Verification depth** – tests/checks pass but do not fail for the bad state the requirement exists to prevent.
-- **Holistic outcome & observability** – zoom out: does the implementation achieve the user-facing outcome end-to-end, not just the technical checklist? Are failures observable (logs, metrics, user-facing feedback) or do they fail silently? Would a reasonable user or operator be surprised by how it behaves?
+
+**Critic angles for this lens** – attack the matrix rows as concrete requirement paths walked end-to-end, not a second checklist.
 
 
-## 5. Critic Sub-Lens (Always On)
+## Findings Filter Values
 
-Use `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md`, `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md`, and `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` for the posture of this walkthrough. The rubric below is the canonical gap-review Critic work.
-
-Dispatch per `${CLAUDE_PLUGIN_ROOT}/references/lens-adversarial.md` § Sub-agent dispatch (prefer the `review-critic` agent with a read-first task prompt for the three calibration files; else a generic fresh-context sub-agent; inline fallback requires a `Critic Coverage` note).
-
-Use the Critic to attack the matrix, not to add a second checklist. Walk concrete requirement paths end-to-end, including branches, pre/postconditions, invariants, idempotency, retries, malformed/empty/boundary data, partial failures, hidden coupling, and guessed behavior. Every surviving concern becomes a normal gap finding with the threatened requirement/invariant, trigger path, evidence, impact, class, and routing. When a `design-changed` finding fires and no ADR records it, add the companion reconciliation finding for the `andthen:architecture` skill in `--mode trade-off`.
+Role `Findings Filter reviewing gap analysis findings`; questions: is this a real gap, is the severity justified, could an existing mitigation cover it, would a senior engineer flag it?
 
 
-## FIS Upstream-Context Handling
+## Dimensional Scoring
 
-When a FIS is in scope, apply [`fis-context-handling.md`](fis-context-handling.md) (Required/Deeper Context rules, legacy-FIS fallback).
+Thresholds and the canonical `## Verdict` block are `review-verdict.md` § Gap mode. Score each dimension:
 
-
-## 6. Findings Filter
-
-> **Findings Filter**: see [`lens-findings-filter.md`](lens-findings-filter.md).
-
-Lens-specific placeholder values:
-- **Role**: `Findings Filter reviewing gap analysis findings`
-- **Skill calibration**: `code-review-calibration.md`
-- **Context block**: `Review target context: {implementation target paths from Step 0}`
-- **Questions**: Is this a real gap? Is severity justified? Could there be an existing mitigation? Would a senior engineer flag this?
-- **Findings payload**: `{all findings from the coverage matrix, gap finding pass, and Critic sub-lens}`
-
-Apply verdicts before scoring.
-
-
-## Calibration
-
-Calibrate severity with `${CLAUDE_PLUGIN_ROOT}/references/review-calibration.md` (universal) and `code-review-calibration.md` (code-specific). Load `${CLAUDE_PLUGIN_ROOT}/references/critic-calibration.md` while running the always-on Critic sub-lens; use the code-specific calibration to assign final severity after findings are collected. Use the unified severity scale defined in `review-verdict.md`: CRITICAL / HIGH / MEDIUM / LOW.
-
-
-## Large-Diff Fan-Out
-
-When the review surface is semantically wide or the diff is large per [`large-diff-fanout.md`](large-diff-fanout.md) § Trigger, partition the diff into 2–5 vertical (feature/concern) slices – never horizontal layers – dispatch one lens sub-agent per partition, then run a boundary pass attacking cross-partition surface. For FIS-driven implementations the FIS Implementation Task IDs (`TI<NN>`) are the canonical slice signal; for plan rollouts use Story IDs. Composes with `--council` and chain dispatch – see [`large-diff-fanout.md`](large-diff-fanout.md) for the partition strategy (and why horizontal slicing hides cross-layer invariants), partition × specialist accounting, and the concurrency model.
-
-
-## 7. Dimensional Scoring & Verdict
-
-| Dimension | Question | Threshold | Scoring Guide |
-|-----------|----------|-----------|---------------|
-| **Functionality** | Does it work correctly for specified requirements? | >= 7 | 10: all requirements met, edge cases handled. 7: core happy path works, minor gaps. 4: major functionality broken. 1: does not function. |
-| **Completeness** | Are there stubs, TODOs, placeholders, or missing features? | >= 9 | 10: no stubs/TODOs, all features present. 9: trivial TODOs only. 7: non-critical features stubbed. 4: significant features missing. 1: mostly stubs. |
-| **Wiring** | Is everything connected end-to-end? | >= 8 | 10: all components wired, verified via build/tests. 8: all critical paths wired, minor integration gaps. 5: some components exist but are not connected. 2: significant unwired code. |
-
-**Verdict rules**
-- If any dimension is below threshold: **FAIL**
-- If all dimensions meet threshold: **PASS**
-- No conditional verdicts
-
-Reproduce the canonical `## Verdict` summary block from [`review-verdict.md`](review-verdict.md) (§ Gap mode) verbatim in the Executive Summary. It is a byte-level compatibility contract parsed by the `andthen:exec-plan` skill / `andthen:remediate-findings` skill – do not re-label, re-phrase, or re-order its columns.
+| Dimension | Scoring Guide |
+|-----------|---------------|
+| **Functionality** | 10: all requirements met, edge cases handled. 7: core happy path works, minor gaps. 1: does not function. |
+| **Completeness** | 10: no stubs/TODOs, all features present. 9: trivial TODOs only. 1: mostly stubs. |
+| **Wiring** | 10: all components wired, verified via build/tests. 8: all critical paths wired, minor integration gaps. 2: significant unwired code. |
 
 
 ## Report Sections
 
 ```markdown
 ## Executive Summary
-overview, verdict table, high-level findings, Findings Filter stats
+verdict block, overview, high-level findings, Findings Filter stats
 
 ## Coverage Matrix
-surface/evidence/proof/falsifier/result rows
 
 ## Gap Analysis Results
+findings per the Structured Finding Contract, grouped by failure mode
 
 ## Critic Coverage
-(assumptions, requirements paths, unhappy paths, hidden coupling, and incomplete wiring attacked. Required when Critic ran inline.)
 
 ## Remediation Plan
-Critical / High / Medium / Low, dependencies, sequencing, acceptance criteria
-
-## Appendix
-(when needed)
+by severity, with dependencies, sequencing, acceptance criteria
 ```
 
-If notable recurring traps emerge, append via the `andthen:ops` skill (`update-learnings add` form).
-
-
-## Report Output Conventions
-
-Filename and directory resolve per [`review-report-location.md`](${CLAUDE_PLUGIN_ROOT}/references/review-report-location.md). This lens contributes:
-- **`<feature-name>` token**: the feature/baseline name (e.g. `payments`, derived from the spec/FIS/plan path under review)
-- **Report suffix**: `gap-review` (canonical source: the `andthen:review` skill's mode table)
-- **Target nature**: source-code. The implementation under review is the primary target; the requirements baseline anchors tier 2 (spec directory). Tier-2 "next to target" is disabled for the implementation side – without a resolvable spec directory, current feature directory, or `--output-dir`, the report lands in `<agent-temp>/reviews/`.
+The report's `<feature>` token is the baseline's feature name (from the spec, FIS, or plan path); the baseline supplies the spec directory the report may sit in, never beside the implementation.

@@ -1,94 +1,58 @@
 ---
-description: Test strategy, coverage assessment, test authoring, and test-first (red-green-refactor) discipline – including the Prove-It bugfix flow and FIS scenario → test mapping. Unit and integration levels; persistent end-to-end suites belong to the andthen:e2e-test skill. Trigger on 'write tests for this', 'TDD this', 'prove it with a test', 'test coverage'.
-argument-hint: "[--mode strategy|write|tdd|prove-it] [target/scope]"
-user-invocable: true
+description: Test strategy, coverage, test authoring, and test-first (red-green-refactor) discipline, including the Prove-It bugfix flow and FIS scenario → test mapping – suites at every level, E2E included. Trigger on 'write tests for this', 'TDD this', 'prove it with a test', 'test coverage'.
+argument-hint: "[--mode strategy|tdd|prove-it] [target/scope]"
 ---
 
 # Testing
 
-Prove behavior with the smallest tests that prove it. Cover what matters, at the lowest effective level, in tests that describe behavior – not implementation.
+Prove behavior with the smallest tests that prove it. **Prove-It before claiming a fix** – a failing test that goes green is the only proof.
 
 
-## VARIABLES
-
-ARGUMENTS: $ARGUMENTS excluding flags and the exact caller trust line – the target/scope
-UNTRUSTED_REQUIREMENTS_DATA: optional exact caller line; preserve it across child prompts
-
-
-## PHILOSOPHY
-
-- **Testability is a proxy for modularity** (Farley). Hard-to-test code is coupled code – test friction is architectural feedback.
-- **Tests are executable specifications** (Beck, North). Pin observable behavior, not private structure.
-- **Prove-It before claiming a fix.** A failing test that goes green is the only proof.
+`$ARGUMENTS` minus flags is the target or scope.
 
 
 ## MODES
 
 Default to `write` when unsure.
 
-| Mode | Purpose | Primary reference |
-|------|---------|-------------------|
-| `strategy` | Assess coverage, rank risk, produce a prioritized plan. No tests written. | `levels-and-strategy.md` |
-| `write` (default) | Author tests for existing behavior. | `test-design.md` |
-| `tdd` | Drive new behavior test-first: red → green → refactor. | `tdd-discipline.md` |
-| `prove-it` | Bugfix flow. Failing test reproduces the defect before any production change. | `prove-it-pattern.md` |
+| Mode | Purpose | Loads |
+|------|---------|-------|
+| `strategy` | Author the project's `Testing Strategy` document. No tests written. | `references/levels-and-strategy.md`, `references/test-design.md`, `references/tdd-discipline.md`, `references/prove-it-pattern.md` |
+| `write` (default, no flag) | Author tests for existing behavior. | `references/test-design.md` |
+| `tdd` | Drive new behavior test-first: red → green → refactor. | `references/test-design.md`, `references/tdd-discipline.md` |
+| `prove-it` | Bugfix flow. Failing test reproduces the defect before any production change. | `references/test-design.md`, `references/prove-it-pattern.md` |
 
-Load both `test-design.md` (assertions) and `levels-and-strategy.md` (level choice) regardless of mode.
-
-
-## INSTRUCTIONS
-
-- Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and read the referenced guideline files relevant to this work.
-- When the caller trust line is active, apply [`trust-boundaries.md`](${CLAUDE_PLUGIN_ROOT}/references/trust-boundaries.md) to source-derived content and copy the exact line to child prompts.
+Every mode reads the `Testing Strategy` document per [`testing-strategy.md`](../../references/testing-strategy.md). That document carries this project's conventions; `strategy` authors it, to the procedure in `references/levels-and-strategy.md`.
 
 
 ## DECISION FRAMEWORK
 
-1. **Inspect existing test infrastructure** – frameworks, fixtures, helpers, naming conventions. Extend before inventing.
-2. **Rank by risk.** Highest-risk unproven behavior first. See `levels-and-strategy.md` §"Coverage strategy".
-3. **Pick the lowest effective level.** Default to integration when a unit test needs heavy mocking. See `levels-and-strategy.md` §"The three levels".
-4. **Test-first** for `tdd` and `prove-it`; retro-fit for `write`.
-5. **Prove each test fails without the implementation** – break the impl, watch it red – before declaring coverage done. A test that stays green against a broken impl proves nothing; the retrofit `write` path is where this slips most.
-6. Leave coverage clearer than you found it.
+- **Prove each test fails without the implementation** – break the impl, watch it red – before declaring coverage done. A test that stays green against a broken impl proves nothing; the retrofit `write` path is where this slips most.
+- **Test-first** for `tdd` and `prove-it`; retro-fit for `write`.
+- **Pick the lowest effective level** the `Testing Strategy` document allows. Default to integration when a unit test needs heavy mocking.
 
 
 ## SCENARIO → TEST MAPPING
 
-Map present FIS Given/When/Then:
-- **Given** → setup / fixtures / initial state
-- **When** → the action under test
-- **Then** → observable assertions
-
-Every important scenario needs an executable test. Reuse a bound `**Proof**:` only when its target resolves and runs; its annotated state overrides the mode's initial state. A report, screenshot, or other documented artifact may support an unbound scenario but is never a Proof binding. Purely visual cases name that supporting artifact and route to the `andthen:visual-validation` skill.
+- Reuse a bound `**Proof**:` only when its target resolves and runs; its annotated state then overrides the mode's initial state.
+- A report, screenshot, or other documented artifact may support an unbound scenario, but is never a Proof binding.
+- Where nothing executable can observe the outcome, the FIS declares that with an `inspect: path:LINE` Proof rather than dressing an artifact as a test.
+- A purely visual case names that supporting artifact and routes to the `andthen:visual-validation` skill.
 
 
 ## FRAMEWORK SELECTION
 
-Reuse the project's framework; any new tool must run in CI without extra ceremony. Before introducing one, check the `Key Dev Commands` document (see **Project Document Index**), `CLAUDE.md` / `AGENTS.md`, and local docs.
+Reuse the project's framework; any new tool must run in CI without extra ceremony. Before introducing one, read the `Key Dev Commands` document per [`verification-evidence.md`](../../references/verification-evidence.md) – it names what the project already runs, and its run-one-test row is the invocation a scenario `Proof` binds to.
 
 
 ## CALLER INTEGRATION
 
-Callers (the `andthen:exec-spec`, `andthen:triage`, and `andthen:e2e-test` skills) invoke this skill with `<target/scope>`. Runs in the caller's context by default – continuity matters for `tdd` and `prove-it`. For fresh-context isolation, the caller wraps the invocation in a sub-agent.
+Runs in the caller's context by default – continuity matters for `tdd` and `prove-it`; for fresh-context isolation the caller wraps the invocation in a subagent.
 
-Output is advisory for `strategy`; the tests themselves are the artifact for `write` / `tdd` / `prove-it`.
+The `Testing Strategy` document is the artifact for `strategy`; the tests themselves are the artifact for `write` / `tdd` / `prove-it`.
 
 
 ## OUTPUT FORMAT
 
-### Summary
-Behavior covered or planned, level chosen, rationale.
+Behavior covered, the level chosen and why, key tests added or updated, the red failure or green-parity evidence quoted for `tdd` / `prove-it`, the document path and sections written for `strategy`, pass/fail counts where available, and remaining critical gaps.
 
-### Implementation (if tests were written)
-Key tests added/updated; notable fixtures or patterns. For `tdd` / `prove-it`, quote red failure or green-parity baseline evidence.
-
-### Coverage & Quality
-What is now proven; notable edge/error cases; pass/fail counts when available.
-
-### Recommendations
-Remaining critical gaps; next-best additions; coupling signals surfaced by test friction.
-
-
-## REFERENCES
-
-Skill-local references per mode are named in the MODES table. See also `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md` – testability-as-modularity anchor.

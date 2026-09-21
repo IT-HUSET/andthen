@@ -1,0 +1,17 @@
+{
+  "allowedPaths": [
+    ".agent_temp/**"
+  ],
+  "commands": [
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/retry-policy/plan.json"
+  ],
+  "requiredText": {
+    "docs/specs/retry-policy/plan.json": [
+      "in-progress",
+      "TI01"
+    ],
+    "docs/specs/retry-policy/s01-retry-policy.md": [
+      "MISSING REQUIREMENT"
+    ]
+  }
+}

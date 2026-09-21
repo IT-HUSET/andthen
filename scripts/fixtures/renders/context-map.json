@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1",
+  "kind": "context-map",
+  "meta": {
+    "project": "Session Hardening",
+    "generatedBy": "andthen:architecture",
+    "date": "2026-08-28",
+    "revision": "4f2c9e1",
+    "status": "registered"
+  },
+  "contexts": [
+    { "id": "auth", "name": "Auth", "purpose": "Sign-in, session issue, and cookie policy.",
+      "subdomainType": "core", "codeLocation": "src/auth/", "team": "platform" },
+    { "id": "audit", "name": "Audit", "purpose": "Append-only record of authentication events.",
+      "subdomainType": "supporting", "codeLocation": "src/audit/" },
+    { "id": "identity-provider", "name": "Identity Provider",
+      "purpose": "Third-party credential verification.", "subdomainType": "generic" }
+  ],
+  "relationships": [
+    { "from": "auth", "to": "audit", "pattern": "published-language", "direction": "upstream-downstream",
+      "channel": "authentication events", "rationale": "Audit consumes the event contract Auth publishes." },
+    { "from": "identity-provider", "to": "auth", "pattern": "anticorruption-layer",
+      "direction": "upstream-downstream",
+      "rationale": "The provider's model is external and cannot be negotiated." },
+    { "from": "auth", "to": "identity-provider", "pattern": "separate-ways", "direction": "symmetric",
+      "channel": "session lifetime", "rationale": "Session expiry is decided locally, never by the provider." }
+  ]
+}

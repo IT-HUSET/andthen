@@ -1,16 +1,17 @@
 # AndThen Plugin
 
-Lightweight spec-driven development for AI coding agents.
+Lightweight spec-driven development for AI coding agents. This is the reference for the 21 skills – flags, modes, edge-case behavior. The task-oriented companion is [`COOKBOOK.md`](../COOKBOOK.md).
 
-See the [full documentation](../README.md) for workflow overview, usage examples, and setup.
+See the [full documentation](../README.md) for the workflow overview and setup.
 
 ## Installation
 
-```bash
-# Add marketplace
-/plugin marketplace add IT-HUSET/andthen
+<!-- pre-release: delete this warning when 1.0 is public -->
+> [!WARNING]
+> 1.0 is not on the public marketplace yet – the `IT-HUSET/andthen` commands below install 0.40.x. Use the [1.0 preview install](../README.md#10-release-candidate-from-the-develop-branch).
 
-# Install plugin
+```bash
+/plugin marketplace add IT-HUSET/andthen
 /plugin install andthen
 ```
 
@@ -19,7 +20,7 @@ See the [full documentation](../README.md) for workflow overview, usage examples
 /plugin install andthen --scope project   # current project only (default: user scope)
 ```
 
-**Enable auto-update** (recommended): Run `/plugin`, go to the **Marketplaces** tab, select the `andthen` marketplace, and choose **Enable auto-update**.
+**Enable auto-update**: run `/plugin`, go to the **Marketplaces** tab, select the `andthen` marketplace, and choose **Enable auto-update**.
 
 **Local install** (repo cloned):
 ```bash
@@ -32,40 +33,42 @@ codex plugin marketplace add IT-HUSET/andthen
 codex plugin add andthen@andthen
 ```
 
-For loose-skill installs on Codex CLI and other agents, see [Other agents](../README.md#other-agents-codex-cli-aider-cursor) in the full documentation.
+For loose-skill installs on other agents, see [Other agents](../README.md#other-agents-aider-cursor-gemini-cli-opencode) in the full documentation. Python 3 is the one runtime requirement (the `tracker` script).
 
 ## Setup
 
 Skills reference your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents; when both tools are used, `AGENTS.md` is the canonical file and `CLAUDE.md` is a thin `@AGENTS.md` import with any Claude-specific additions below it) for two things:
 
-- **Project Document Index** – tells skills where to write output (specs, plans, etc.)
-- **Project-Specific Guidelines and Rules** – project-specific guidelines and workflow notes (the universal Foundational Rules are wired per the setup options in the template's Foundational Rules section)
+- **Project Document Index** – tells skills where to read and write (specs, plans, project docs). Each entry names a document and its location on one line and its read/update trigger on the next. Documents are read whole, so they stay short and stale entries are trimmed on append.
+- **Project-Specific Guidelines and Rules** – project-specific guidelines and workflow notes (critical rules are adopted through init as described below).
 
-See [`plugin/skills/init/templates/CLAUDE.template.md`](skills/init/templates/CLAUDE.template.md) for a starter template.
+See [`skills/init/templates/CLAUDE.template.md`](skills/init/templates/CLAUDE.template.md) for the starter template.
 
 ### How AndThen describes a project
 
-Markdown documents are the **persistent sources of truth**; typed models are **transient projections** rendered as atlases:
+Markdown documents are the **sources of truth**; typed models are **committed projections** of them, written against the schema shipped beside each model's reference:
 
-| Aspect | Source of truth | Transient projection |
+| Aspect | Source of truth | Committed projection |
 |---|---|---|
-| Product intent | `PRODUCT.md` | – |
-| Domain language | `UBIQUITOUS_LANGUAGE.md` (glossary); `CONTEXT-MAP.md` owns bounded-context identity and relationships when present | `domain-model.json` via `ubiquitous-language --model` |
-| System structure | the code itself (`ARCHITECTURE.md` is prose orientation) | `architecture-model.json` via `map-codebase --model` |
+| Product intent | `PRODUCT.md` (including its Proportionality facts) | – |
+| Domain language | `UBIQUITOUS_LANGUAGE.md` (glossary and nothing else); `CONTEXT-MAP.md` owns bounded-context identity when present | `domain-model.json` via `describe --mode domain --model` |
+| System structure | the code itself (`ARCHITECTURE.md` is prose orientation) | `architecture-model.json` via `describe --mode codebase --model` |
 
-Projections default to `.agent_temp/models/` and are regenerated on demand – a projection that disagrees with its source is stale, never authoritative. Point a model's Project Document Index row at a committed path only to pin reviewed snapshots deliberately.
-
-**Division of responsibility**: *describers* maintain the descriptions and own their projections – `map-codebase` for system structure, `ubiquitous-language` for domain language; the *decider* – `architecture` – produces judgments (reviews, ADRs, the Context Map); the *renderer* – `visualize` – draws any of it. Atlas notes always route back to the describer that owns the projection's source.
+Projections live under the `Models` Index location (default `docs/models/`), carry the source revision they describe in `meta.revision` – its last commit, suffixed `-dirty` when the working tree differs – and are regenerated at deliberate points – a projection that disagrees with its source is stale, never authoritative. The plugin owns all of these: `describe` writes the glossary and both models, `architecture --mode strategic-design` writes the Context Map, and `clarify` adds settled terms to the glossary when the Project Document Index configures one.
 
 ### Foundational Rules and Conversation Style
 
-Two always-loaded tiers, wired once per machine at user level – no per-project setup. **The `andthen:init` skill offers the wiring** (Step 3, after project setup), detects what is already in place, and re-run on any initialized project wires it later. Without init, paste this to your agent:
+**Project rules are the recommended scope.** The `andthen:init` skill offers the [critical-rules starter](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) directly in the root instruction file: `AGENTS.md` for Codex/generic agents, `CLAUDE.md` for Claude Code alone, or shared `AGENTS.md` with a thin `CLAUDE.md` import for both. The adopted rules travel with the checkout into CI and containers; no home-directory copy, runtime plugin path, or hook is needed.
 
-> _Wire AndThen's always-loaded rules at user level. Rules: append `CRITICAL-RULES-AND-GUARDRAILS.md` (in the AndThen init skill bundle under `templates/guidelines/`) to `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` if its heading isn't there yet; replace a copy that still has a "Working Style" section. Conversation style from `templates/output-styles/concise-critical.md`: Claude Code with the AndThen plugin installed → `"outputStyle": "andthen:concise-critical"` in `~/.claude/settings.json`; without the plugin → copy the file to `~/.claude/output-styles/` and use `"concise-critical"`; Codex → the file's body as `developer_instructions` in the top-level section of `~/.codex/config.toml`. If I say rules-only, append the style body to the instruction files instead. Never overwrite an existing `outputStyle` or `developer_instructions`._
+Teams own their adopted policy. Init preserves customizations and existing referenced rules; upgrades do not synchronize them back to the starter. **Skip** records `<!-- AndThen critical rules: skipped -->` in the owning instruction file, so later init runs respect the choice. An active rules block takes precedence over the marker, which declines adoption rather than disabling existing project or global policy. To adopt later, ask init to remove the marker and add the rules. Existing separate or global copies are reconciled only with the user's agreement.
 
-**Engineering and artifact rules** – [`skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md`](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) (scope discipline, verification, git/ops rules, commit and attribution rules, dates, sub-agent model policy). Everything an agent *does or writes into the repo* lives here, because sub-agents – story workers, `ops` commits, spec writers – load CLAUDE.md/AGENTS.md but not output styles. The `andthen:init` skill also installs it to `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md`; the template's Foundational Rules section documents the manual options as comments (no active reference line ships): user-level copy into `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` (preferred), or `@`-import via `@docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` (Claude Code only – Codex treats `@` as literal text).
+Init rewrites only the block between the `# Critical Rules and Guardrails` heading and the next top-level heading, so surrounding content and customizations survive; it never creates a second copy of the guideline. Personal installation remains available on request at user level, with the same comparison against the shipped starter and the same replacement protection. Neither rule adoption nor skipping configures conversation style.
 
-**Conversation style** – [`skills/init/templates/output-styles/concise-critical.md`](skills/init/templates/output-styles/concise-critical.md) (terse conversation, critical stance, state-each-fact-once, reference codes, conclusion last). Only the top-level agent talks to you, and the harness's own system prompt sets competing tone and verbosity defaults there – so these rules go in the system prompt, where they survive compaction and Claude Code re-emphasizes them. Keeping a rule in both tiers dilutes it, so the guideline above deliberately omits them.
+Without init, ask your agent:
+
+> Adopt AndThen's critical-rules starter in this project's root instruction file. Use AGENTS.md with CLAUDE.md importing it when both hosts are used. Preserve existing policy and customizations, reconcile any duplicate copies with me, and leave personal configuration alone.
+
+**Conversation style** – [`skills/init/templates/output-styles/concise-critical.md`](skills/init/templates/output-styles/concise-critical.md) (brief plain-language answers a cold reader can act on, critical stance, state-each-fact-once, reference codes, conclusion last). Only the top-level agent talks to you, and the harness's own system prompt sets competing tone and verbosity defaults there – so these rules go in the system prompt, where they survive compaction and Claude Code re-emphasizes them. Keeping a rule in both tiers dilutes it, so the guideline above deliberately omits them.
 - Claude Code: the plugin registers the style (`outputStyles` in the plugin manifest); opt in with `"outputStyle": "andthen:concise-critical"` in `~/.claude/settings.json`, then start a new session (confirm the plugin-namespaced name is listed by your Claude Code version; if not, use the copy below). `keep-coding-instructions: true` keeps Claude Code's built-in engineering instructions alongside. User-tier and loose installs: copy the file to `~/.claude/output-styles/` and use `"outputStyle": "concise-critical"`. A project-level `outputStyle` (`.claude/settings*.json`) shadows the user-level one.
 - Codex: the style body (everything below the frontmatter) goes into `~/.codex/config.toml`, top-level section:
   ```toml
@@ -76,28 +79,17 @@ Two always-loaded tiers, wired once per machine at user level – no per-project
   """
   ```
   Do not use `model_instructions_file` for this – it replaces Codex's base instructions wholesale.
-- Don't want an output style / `developer_instructions`? Append the style body to your user-level `CLAUDE.md`/`AGENTS.md` instead (init's **rules-only** choice does exactly this) – the full rule set in one tier, nothing lost.
-
-### Agent Teams (Optional, Claude Code only)
-
-`exec-plan --team` and `review --council --team` use [Agent Teams](https://code.claude.com/docs/en/agent-teams) for enhanced parallel multi-agent coordination with real-time inter-agent communication. `review --council` auto-detects Agent Teams when available even without `--team`; `exec-plan` uses Agent Teams only when `--team` is set. Without Agent Teams, both use sub-agents with sequential fallback and work across all agents. To enable Agent Teams:
-
-```json
-// ~/.claude/settings.json
-{
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  }
-}
-```
+- Don't want an output style / `developer_instructions`? Append the style body to your user-level `CLAUDE.md`/`AGENTS.md` instead on explicit request.
 
 ## Workflows
 
-Every skill works standalone – no pipeline required. Use them individually for everyday tasks, or compose them into structured workflows for larger efforts. See the [full documentation](../README.md#the-workflows) for detailed workflow diagrams and artifact flow.
+**User input**: `clarify`'s interview rounds, `architecture`'s trade-off gates, and `backlog-triage`'s per-item ratification use the host's structured question tool when available, permitted, and suited to the question, respecting its mode restrictions, schema, and limits; otherwise they ask in chat. Asynchronous questions still require your response before dependent decisions; preselected answers are not confirmation.
 
-**Session management**: The context-intensive skills – `exec-spec`, `plan` (full FIS generation), `exec-plan`, `review --council` – perform best when started in a **clean session**. Pipeline predecessor skills (`clarify`, `prd`, `spec`) will suggest when to start fresh. Standalone skills like `triage`, `quick-review`, and `simplify-code` are lightweight and run well mid-conversation.
+Every skill works standalone – no pipeline required. See the [full documentation](../README.md#the-workflow) for the workflow, the design stage, and the two loops, and the cookbook for the runnable sequences: [a feature with a PRD](../COOKBOOK.md#a-feature-with-a-prd), [a single feature, no PRD](../COOKBOOK.md#a-single-feature-no-prd), [a small change](../COOKBOOK.md#a-small-change), [team story work](../COOKBOOK.md#team-story-work), [unattended execution](../COOKBOOK.md#unattended-execution), [resuming interrupted work](../COOKBOOK.md#resuming-interrupted-work).
 
-**Headless orchestration**: The core pipeline skills (`prd`, `plan`, `spec`, `preflight`, `exec-spec`, `exec-plan`, `review`, `quick-review`, `remediate-findings`), standalone execution skills (`quick-implement`, `simplify-code`, `triage`, `issue-triage`), the deprecated `refactor` passthrough, the first-stop router (`now-what`), and design/review helpers (`architecture`, `ui-ux-design`) accept `--auto`. In automation mode they do not ask follow-up questions or emit arrow-prompts, make conservative assumptions, record assumptions/deferred decisions in artifacts or summaries, propagate `--auto` to nested `andthen:*` skill calls that accept it (`ops` is exempt – it is deterministic), and stop with `BLOCKED:` only as a last resort. A spec conflict or ambiguity is an investigation before it is a stop: the executors climb a five-rung **Resolution Ladder** – re-read in context, widen the evidence, delegate the question, work around and record it, block – so an unattended run does not abort on something the repo already answers. In one repo, `exec-plan --auto` preserves partial work, skips dependents, continues independent stories, and exits with an aggregate failure report; multi-repo failures stop to preserve FIS attribution.
+**Session management**: the context-intensive skills – `exec-spec`, `plan`, `exec-plan` – perform best in a **clean session**. The authoring skills (`clarify`, `plan`, `spec`) close on one paste-ready next command for exactly that reason, and `handoff` compacts a session that has to end mid-work. The conversation-boundary map in [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md#conversation-boundaries) lists every hand-off and whether it stays in the conversation.
+
+**Headless orchestration**: `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `implement-fix`, `triage`, `architecture`, and `ui-ux-design` accept `--auto`. In automation mode they do not ask follow-up questions, make conservative assumptions, record assumptions and deferred decisions in artifacts or summaries, propagate `--auto` to nested skill calls that accept it, and stop with `BLOCKED:` only as a last resort. A spec conflict or ambiguity is an investigation before it is a stop: the executors climb a five-rung **Resolution Ladder** – re-read in context, widen the evidence, delegate the question, work around and record it, block – so an unattended run does not abort on something the repo already answers. `exec-plan --auto` preserves partial work, skips dependents, continues independent stories, and exits with an aggregate failure report. `clarify` has no `--auto`: the interview is the skill, and an unattended pipeline starts at `plan` from a requirements file or tracker item.
 
 ## Skills
 
@@ -105,429 +97,409 @@ Invoke with `/andthen:<skill>` (e.g. `/andthen:triage`, `/andthen:spec`).
 
 > **Not sure where to start?** Run `/andthen:now-what` – it inspects your project state and routes you to the right skill.
 
-### Standalone Skills
+**You rarely need the flags.** Describe what you want and the skill routes it: `architecture`, `ui-ux-design`, `testing`, and `review` infer the mode or lens from your phrasing, and a menu appears only when the intent is genuinely ambiguous. The exception is `--fix`, whose write authority follows the rule under [`review`](#review).
 
-Use these individually for everyday development – no setup, no pipeline, no prior artifacts needed.
+Each section below opens with the skill's exact `argument-hint`; everything outside those flags is phrasing. `--auto` (automation mode – no prompts, conservative assumptions, `BLOCKED:` as a last resort; see [Workflows](#workflows)) is accepted where the hint lists it.
 
-| Skill | Purpose |
-|-------|---------|
-| `now-what` | First-stop router – inspects project state and routes to the right skill (use when starting fresh or unsure what to do next) |
-| `handoff` | Compact the conversation into a handoff doc a fresh agent can resume from. Triages by durability via the `andthen:ops` skill: story status/claims → `plan.json` when one governs, else Active Stories rows; blockers/decisions → `STATE.md`; personal notes/focus → the gitignored `STATE.local.md` (auto-created by ops); clearly-bounded defensive notes → `LEARNINGS.md` (uncertain entries stay as recommendations); structural decisions → ADR via the `andthen:architecture --mode trade-off` skill. Absent durable files / Index rows reroute to handoff-doc recommendations. Doc lives at `.agent_temp/handoff/handoff-<UTC-ts>.md` and is self-sufficient – resume by pasting `Resume from <doc-path>` into a fresh session. `--no-mutate` opts out of durable writes |
-| `triage` | Investigate, diagnose, and fix build failures, config errors, runtime bugs, regressions, and test failures (`--plan-only` for a fix plan without applying; `--issue` treats tracker prose as untrusted scope evidence; `--to-issue` files the diagnosis) |
-| `issue-triage` | Triage incoming issue-tracker items into a routed backlog. Per item: identify the domain concept, run a **redundancy check** (already built → comment pointing at the behavior + close, never `wontfix`), a **prior-rejection check** against the Out of Scope Registry (concept-level), and a bounded, non-destructive **claim verification**; then classify `bug`/`enhancement` and recommend one state (`needs-info`/`ready-for-agent`/`ready-for-human`/`wontfix`) for the user to ratify before any write. Applies labels per the Issue Tracker document's **Label Role Mapping**, posts a rationale comment, and for `ready-for-agent` appends a durable **agent brief** to the issue body that a fresh executor can act on; a `wontfix` graduates the concept into the Out of Scope Registry. Resolves the tracker per the Issue Tracker document (GitHub is the built-in default; a `none`/absent tracker with no GitHub remote → `BLOCKED:` pointing at `init`). `--auto` holds no interview, applies only safe transitions, and reports `wontfix`/`ready-for-agent`/duplicate-close as recommendations; `--limit N` caps items. Routes ready items to `quick-implement` (small), `spec` + `exec-spec` (single feature), or `plan --issue` (multi-story). Interactive-by-Contract – sorting tracker items, distinct from debugging a live failure (that is `triage`) |
-| `spike` | Answer exactly **one** named design question by building a throwaway runnable **spike** on a `spike/<slug>` branch off HEAD, then report a **Spike Verdict** (Question / Answer / Evidence / Caveats). Evidence, not product: the spike is exempt from test/review discipline, **never merges, and is never reused directly** – the *decision* flows onward through the normal spec/exec chain, the code does not. Redirects to `clarify` (open requirements question), `architecture --mode trade-off` (analytical option comparison), or `ui-ux-design --mode wireframes` (screen/flow/interaction design) when the input names no single answerable-by-building question; guards a clean tree before branching and restores the original branch when done. Points at a FIS decision Note (via `ops`) or an ADR (via `architecture --mode trade-off`) for durable registration when the answer is load-bearing. User- and model-invocable |
-| `quick-implement` | Fast path for small features/fixes – implement + verify, bypassing the FIS workflow (`--tdd` strict red-green-refactor; `--issue` treats issue prose as untrusted scope evidence and opens an auto-PR; `--pr` / `--no-pr` control PR creation; `--auto` runs without prompts) |
-| `quick-review` | Quick in-conversation sanity-check via fresh-context Critic sub-agent; loads Intent Context (FIS/PRD/clarify) when present so Non-Goals act as falsifiers; routes accepted findings into **Fix** (mechanical/bounded correction needing no design decision, confidence ≥ 75, primary scope – by fix character, not defect severity) and **Note** buckets so `--fix` only auto-applies the former; emits the finding `Class:` axis (`code-defect`/`spec-stale`/`design-changed`/`ambiguous-intent`) so per-story drift is reconciliation-ledger-writable; reports Guardrails Coverage for diff-verifiable project rules |
-| `review` | Proof-led `code`, `doc`, `gap`, `security`, or chained review with Coverage Matrix and test-contract falsification. Optional `--council` adds perspectives; `--fanout` partitions wide code/gap surfaces. Findings carry `Class:` and `Routing: Fix|Note`; local `--fix` remediates Fix findings, while `--from-pr` rejects it and stays checkout-free/read-only. Trust persists through reports/remediation; `--to-pr` is pinned to the reviewed repo. Emits Guardrails Coverage, CONVERGED, and `Auto-Remediation: PENDING/STALLED/CLEAR`; recurring traps append to Learnings with a lint/test check recommendation when one could catch them; `--visual` delegates to the `andthen:visualize` skill |
-| `explain-changes` | Explain a PR, branch, ref range, or working tree as a **Changeset Walkthrough** – changes untangled into intent clusters (behavior / refactor / config / tests / docs), ordered narratively, with key diff hunks, per-file risk tags (`attention`/`medium`/`safe`), an architectural-delta module map, reviewer focus points, scope boundary, and verification status – then rendered by the `andthen:visualize` skill as a tabbed interactive app via its bundled deterministic renderer. Comprehension only – no findings or verdict. Read-only: `--from-pr <N>` keeps PR data untrusted, fetches blobs by pinned tree SHA, and never checks out; repo-pinned `--to-pr [<N>]` posts the walkthrough (splitting at 65,536 chars). `--auto` supported. Artifact: `.agent_temp/walkthrough/<slug>-walkthrough-<date>.md` |
-| `simplify-code` | Behavior-preserving code simplification and cleanup across four lenses – reuse, quality, efficiency, necessity (YAGNI: speculative generality, defensive bloat, no-protection tests; removals that would change observable behavior are proposed, applied only on approval and never under `--auto`); loads Intent Context when present and drops cleanups that contradict Non-Goals, implement deferred outcomes, or restructure code the FIS explicitly chose a shape for (Boy Scout cleanup is intent-bounded, not just behavior-preserving) |
-| `refactor` | Deprecated – redirects to `simplify-code` with args forwarded verbatim; `--auto` suppresses only the deprecation notice |
-| `architecture` | Architecture design, review, decomposition, trade-off analysis, ADRs, fitness functions, strategic design, and event storming (seven modes). `trade-off` updates accepted ADRs and may route empirical unknowns to the `andthen:spike` skill; `strategic-design` registers accepted context maps. `--visual` delegates structured reports to the `andthen:visualize` skill; pure `advise` is text-only. `--to-pr` is pinned to the target repository |
-| `ui-ux-design` | UI/UX work – research, design systems, wireframes, and design review (modes: `research`, `design-system`, `wireframes`, `review`) |
-| `map-codebase` | Codebase analysis – auto-generates architecture, stack, Key Dev Commands docs, conventions, and discovered requirements/decisions (called by `init` or standalone). `--model` additionally emits a typed **Architecture Model** (a transient projection of the code, default `.agent_temp/models/architecture-model.json`): contexts, module-level nodes with repo-relative refs, and evidence-tagged edges, deterministic-first (dependency tooling / import scans / change coupling) with agent judgment confined to clustering, naming, and tours – rendered as the 3D atlas by the `andthen:visualize` skill; `--model-only` refreshes just the model with no documentation outputs. Re-runs merge into existing `Stack` / `Architecture` / `Key Dev Commands` documents rather than overwriting them – derived tables regenerate, judgment sections (system overview, data flow, key constraints) are preserved with additions marked `(new)`, and a row whose component is no longer found is flagged rather than dropped; a document written to a different structure is left untouched, with the analysis placed beside it as `<NAME>.discovered.md` |
-| `testing` | Test strategy, coverage assessment, executable Proof mapping, authoring, and TDD / red-green-refactor discipline (modes: `strategy`, `write`, `tdd`, `prove-it`; Prove-It for bugfixes). Unit + integration; defers persistent E2E suites to `e2e-test` |
-| `ubiquitous-language` | Extract and maintain the domain glossary from codebase and docs (`--update` merges new terms with the existing glossary; when a `Context Map` document exists, clusters group by its bounded contexts and the `Bounded Context` column draws from it, keeping glossary and map aligned). `--model` projects the existing document into a typed **Domain Model** (a transient projection, default `.agent_temp/models/domain-model.json`; sibling kind of the architecture model): contexts from the doc's clusters, one doc-anchored node per term, overloaded terms carrying per-context meanings – the document stays canonical, and a missing or empty document is a clean stop, never a fabricated model – rendered as the 3D atlas by the `andthen:visualize` skill |
-| `excalidraw-diagram` | Generate high-quality Excalidraw diagrams from a topic, file, URL, or concept reference – outputs portable `.excalidraw` JSON + a rendered PNG |
-| `visual-validation` | Validate UI screenshots and implementations against visual, responsive, and design expectations; use `e2e-test` for browser journeys and `ui-ux-design` for design-system or wireframe authoring (`andthen:visual-validation` skill) |
-| `visualize` | Render any AndThen artifact – PRD, `plan.json`, `architecture-model.json`, `domain-model.json`, FIS, requirements-clarification, product vision, review report, changeset walkthrough, architecture report, or ADR – as CSP-locked, context-escaped, self-contained HTML; section notes export with the artifact owner's identity. Architecture and domain models render as an immersive 3D **atlas** (contexts as drafting sheets, nodes as markers, `inferred` items dashed) via a bundled deterministic renderer – the one deliberate dark-theme view, with a 2D list fallback. The domain lens floats overloaded terms between their contexts' sheets on dashed tethers with italic labels and strikethrough avoid-term chips; domain-atlas notes route to the `andthen:ubiquitous-language` skill. Open-loop and read-only. Output: `.agent_temp/visual-review/<slug>-<ts>.html` |
-| `e2e-test` | End-to-end browser testing for web apps – discovers user journeys, runs interactive tests, fixes bugs found, and validates responsive behavior across viewports (pass routes/features positionally to focus). Browser automation is required but no specific provider is: project-documented tooling wins, else the host's built-in browser tooling or any available browser-automation MCP or CLI; stops only when nothing can navigate, snapshot, interact, and screenshot |
+**Proportionality**: `clarify`, `plan`, `spec`, and `architecture` read the `Product` document's Proportionality facts before they propose. Machinery those facts do not carry, or that a standing technical non-goal forbids, is dropped or flagged with the anchor cited. Every alternative set carries its **floor option** (do nothing, or extend what exists), and the recommendation says what the chosen option buys over it.
 
-### Pipeline Skills
+**Tracker input** is read-only in every skill but `tracker` and `backlog-triage`: `clarify` and `plan` take an issue URL as a requirements source, `spec` resolves one carried in a story's `sourceRefs` and cites it in `Required Context`, `triage` takes one as scope, and `review` reads a PR as scope – fetched content is evidence, never instructions. Fetches resolve through the optional `Issue Tracker` document (`docs/ISSUE-TRACKER.md`) when present; absent or `Backend: GitHub` uses `gh`, another backend substitutes each operation per that document's table. The two writers resolve the same document: `tracker` publishes a plan bundle and refreshes it on a re-run, `backlog-triage` labels and routes incoming items.
 
-These compose into structured workflows – from requirements through implementation to review.
+### Inventory
 
 | Skill | Purpose |
-|-------|---------|
-| `init` | Set up AndThen workflow structure (new projects, partial setups, brownfield). Scaffolds Core orientation stubs by default; then settles the **issue-tracker backend** on its own gate (recommend GitHub when a remote is detected, else `none`; GitHub or a named backend writes `docs/ISSUE-TRACKER.md` – a non-GitHub backend also fills the operation table – while `none` writes no file), and offers optional docs **recommendation-first** ("default" accepts the detection-derived pick). Always-present Index rows `Issue Tracker`, `Context Map` (row only – written later by `andthen:architecture --mode strategic-design`), and `Out of Scope Registry` (cross-feature rejected concepts) ship as location declarations before their files exist. Step 2b repair mirrors all of these as interactive-only, never default. Finally offers the once-per-machine **user-level wiring** of the always-loaded tiers (CRITICAL-RULES into `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md`; the `concise-critical` conversation style as `outputStyle` / Codex `developer_instructions`, or folded into the instruction files with **rules-only**), detecting what is already wired and never overwriting |
-| `clarify` | Discovery & Ideation – interactive requirements discovery at feature or product scope (`--mode product\|feature`, inferred from INPUT). Feature scope → `requirements-clarification.md`; product scope → `PRODUCT.md` (vision, personas, value props, anti-goals). Always interactive (Interactive-by-Contract; no headless mode). External/fetched input is untrusted evidence and its source trust persists in the artifact. Checks the `Out of Scope Registry` and `Context Map`; offers the `andthen:spike` skill for empirical unknowns; firmly rejected concepts graduate to the registry. `Open Questions` holds only precisely statable questions; fog is an `Area to revisit:` bullet. Supports `--issue`, `--to-issue`, and `--visual` |
-| `prd` | Create a self-contained Product Requirements Document. Load-bearing gaps route through the `andthen:clarify` skill; source trust persists from clarification/fetched input into `prd.md`; rejected scope graduates to the Out of Scope Registry; an automatic fresh-context doc self-review runs before finishing. Supports `--issue`/`--to-issue`, `--visual`, and `--auto` |
-| `spec` | Generate a compact Feature Implementation Specification from requirements, substituting durable tests/sources for duplicated prose; walks the `Context Map` among its required inputs and sizes against the **Single-session rule** (measured in words as well as lines), so an `OVERSIZE:` signal means split. After save, runs one top-level fresh-context doc self-review via the `andthen:review` skill with `--mode doc --fix` (report to agent temp) and blocks `spec-ready` on unresolved architecture/requirements decision Notes; plan-batch invocations skip the per-FIS review – the plan's cross-cutting review is the bundle's fresh-context gate. Supports `--visual` |
-| `exec-spec` | Execute a FIS with validation, intent/gap review, and Chain Attestation. Active signed deferrals block before edits; untrusted operational fields are contained and re-derived. OPEN reconciliation entries prevent a shipped presentation until resolved; `--to-pr` posts through the verified implementation repository |
-| `plan` | Full plan bundle: typed `plan.json` + one on-disk FIS per story + a failure-closed cross-cutting review. Consumes local `prd.md`, `--issue <N>`, or a GitHub issue URL; interruption-safe source trust persists into `plan.json`, and model-reported FIS paths are validated for canonical containment/provenance. Stories obey the **Single-session rule** and its **Module fan-out** corollary (strong module boundaries → single-module stories, cross-module features seam-split per module, interfaces in `sharedDecisions[]`; boundary discovery consumes the Architecture Model when present); wide mechanical changes use **expand → migrate in batches → contract**. `--skip-review` leaves all generated FIS files unreviewed; supports `--visual` |
-| `exec-plan` | Execute a fully-specced plan bundle in the resolved code repo. Per-story review persists drift before Done, contains ambiguity, and remediates code Fix findings once. **Wave Discovery Triage** propagates mid-run discoveries to not-yet-started stories at wave boundaries (constraints append to their FIS via ops; contract impacts surface for decision, `--auto` blocks the story). Multi-repo FIS writes serialize for attribution; final gap remediation must re-pass. `--from-issue` materializes a tracker plan; `--team` enables Agent Teams; `--worktree` isolates each story in its own git worktree (either mode; not with `--from-issue`) |
-| `preflight` | Drive valid FIS decision holds to **zero open blocking decisions** without clearing other holds. Only resolved holds become schedulable after final doc/Proof revalidation; signed deferrals remain execution holds. Durable Source Trust follows composed skills; writes use `ops`. Emits `Preflight: READY \| DEFERRED \| BLOCKED`; `--auto` never invents answers |
-| `remediate-findings` | Implement validated findings with re-validation while preserving Source Trust; untrusted reports can mutate only inside a caller-authorized code root. Honors `Routing: Fix\|Note` and Intent, surfaces contradictions, and routes FIS pointer defects to re-spec Notes. An empty auto-applicable set returns `NO-OP: no-auto-applicable-findings`; Phase 5 reconciles ledger entries and keeps PRD-targeted changes recommend-only. Recurring traps may be encoded as run-verified lint rules/tests inside the authorized root, superseding (and deleting) their Learnings entries |
-| `ops` | Deterministic state management, plan/FIS mutations, Tech Debt and Learnings appends, git conventions, and progress tracking. `update-state` routes by field: `note`/`focus` → the gitignored `STATE.local.md` (auto-created), everything else (`phase`/`status`/`active-story`/`blocker`/`decision`) → shared `STATE.md`. `update-plan-owner` sets story ownership; `update-plan` and `update-plan-fis` accept repeated pairs, with literal `null` clearing a FIS pointer. `read-state` derives Active Stories from governing plans. `update-fis design-change` owns ADR-backed amendments; `decision-note resolved` atomically applies exact affected-surface pairs plus its provenance Note, while `deferred` appends only with sign-off. `update-decisions still-current` records non-ADR choices; `update-ledger` owns reconciliation-ledger mutation. `update-learnings` writes to a Learnings index capped at 150 lines, routing sharded topics to – and graduating overflow topics into – `learnings/<topic-slug>.md` files beside it; `remove` deletes check-superseded or stale entries |
+|---|---|
+| [`init`](#init) | Set up the workflow structure – Project Document Index, Core orientation docs, role agents, project rules |
+| [`now-what`](#now-what) | First-stop router – inspects project state and routes to the right skill |
+| [`clarify`](#clarify) | The requirements skill – Discovery & Ideation at feature or product scope, landing in `prd.md` |
+| [`plan`](#plan) | Plan bundle from a PRD, a requirements file, or a tracker item – `plan.json` plus one FIS per story, cross-cutting review, preflight |
+| [`spec`](#spec) | The FIS for one feature or one plan story, with self-review and a closure verdict |
+| [`exec-spec`](#exec-spec) | Implement one FIS where the skill is invoked – its own proofs, one fresh quick reviewer, completion on what it ran |
+| [`exec-plan`](#exec-plan) | Run a plan bundle – one fresh `exec-spec` subagent per story, in parallel worktrees under `--worktree`, the full tier, then the plan-level review to a fresh session |
+| [`review`](#review) | Proof-led `code` / `gap` / `security` / `outcome` review and PR review; a story's own review is one `--quick` pass |
+| [`implement-fix`](#implement-fix) | A small feature or fix from a request, or a report's Fix-routed findings, as minimal verified changes – no FIS |
+| [`triage`](#triage) | Investigate, diagnose, and fix build failures, config errors, runtime bugs, and test failures |
+| [`testing`](#testing) | Test strategy, test authoring, TDD, and the Prove-It bugfix flow |
+| [`handoff`](#handoff) | Compact the conversation into a document a fresh session resumes from |
+| [`architecture`](#architecture) | Trade-off analysis settling an ADR, design advice, and the deep analysis modes; no code changes |
+| [`describe`](#describe) | Map an existing codebase into docs, or extract its Ubiquitous Language; `--model` emits the typed atlas model |
+| [`ui-ux-design`](#ui-ux-design) | UX research, design systems, and wireframes, singly or chained |
+| [`visual-validation`](#visual-validation) | Validate screenshots and built UI against wireframes, design specs, and baselines |
+| [`tracker`](#tracker) | Project a plan bundle into the issue tracker – one parent issue, one child per story, refreshed on a re-run |
+| [`spike`](#spike) | Answer one design question by building a throwaway runnable spike, then report a verdict – evidence, not product |
+| [`simplify-code`](#simplify-code) | Behavior-preserving simplification – clarity, reuse, leanness, less over-engineering |
+| [`skill-review`](#skill-review) | Review one skill bundle or prompt-like file against skill craft; `--fix` tightens it with zero contract loss |
+| [`backlog-triage`](#backlog-triage) | Label, categorize, and route untriaged tracker items toward implementation or a human decision |
 
-> `review --council` auto-detects Agent Teams and uses them when available; `--team` forces the mode. `exec-plan` is `--team`-gated – it uses Agent Teams only when `--team` is passed, otherwise sub-agents.
+## Skill Reference
 
-## Agents
+### `init`
 
-AndThen ships a small agent set:
+`[project name]`
 
-- The plugin-tier `documentation-lookup` agent handles documentation retrieval.
-- The plugin-tier `research` agent handles web and project research, multi-source verification, and trade-off option investigation (used by `architecture --mode trade-off` and `prd`).
-- Review persona agents support `review --council` and Critic review: `review-critic`, `review-devils-advocate`, `review-synthesis-challenger`, `review-correctness`, `review-security`, `review-architecture`, `review-testing`, `review-project-standards`, `review-product-requirements`, and `review-agent-workflow`.
+Sets up the workflow structure for new projects, partial setups, and brownfield codebases. Scaffolds the Core orientation stubs by default – `Product` (its three Proportionality questions asked and answered, `unknown` allowed, never a TODO stub), `Architecture`, `Key Dev Commands` (declaring the `fast` and `full` verification tiers plus a run-one-test row), `Testing Strategy`, `Decisions`, `Learnings` – and offers the optional documents recommendation-first. The `Models` Index entry is always written and the `Context Map` entry on confirmation, both before their files exist, because they are location declarations their writers fill in later; the `Issue Tracker` entry ships the same way, with the `tracker` skill scaffolding the file on first publish. A codebase of 20+ files is offered `describe --mode codebase`; a detected test suite is offered `testing --mode strategy`, a detected served UI `visual-validation --mode setup` – `init` authors neither document itself.
 
-Agent names are tier-specific: Claude Code plugin sources use unprefixed `documentation-lookup` and `review-*` names inside `plugin/agents/`; Codex and Claude user-tier installs generate/copy prefixed names such as `andthen-documentation-lookup`, `andthen-review-critic`, or `<custom-prefix>review-critic`. Reinstalls overwrite matching generated files but do not delete stale prefixed agent files.
+Every indexed document is read whole, so it stays short. One that outgrows that becomes an index over **shards** – topic files beside it, as `Decisions` is over `adrs/` and `Learnings` over `learnings/<topic>.md` – with one pointer line per shard, opened only when a task names its topic; a convention, with no ceiling or verb behind it.
 
-Architecture, UI/UX design, build/test diagnosis, visual validation, and visual artifact review are **skills** – use `/andthen:architecture`, `/andthen:ui-ux-design`, `/andthen:triage`, `/andthen:visual-validation`, and `/andthen:visualize` where relevant. Research outside documentation lookup remains inline sub-agent guidance embedded in the skill prompts that need it.
+The documentation lookup policy uses available search and fetch tools, preferring official sources matched to library versions and reporting version gaps.
 
-Visual review has one renderer owner: `andthen:visualize <artifact-path>`. Producer `--visual` flags remain convenience handoffs: after `clarify`, `prd`, `spec`, `plan`, `review`, or supported `architecture` outputs pass their normal gates, they invoke the visualizer on the produced artifact.
+Gitignore hygiene adds `.agent_temp/` without asking, and review reports get an ignore-or-commit offer, recommending ignore – a report is a working file of one review run, read by whoever ran it and the fix that follows, while a committed one puts what was reviewed and at which revision in the team's history. Choosing ignore appends `*-andthen-*-review-*.md`, the exact pattern `review`'s filenames make possible.
 
-## Usage Examples
-
-**You rarely need the flags.** Most examples below can be expressed in plain language – describe what you want and the skill routes it (mode-driven skills like `architecture`, `ui-ux-design`, and `review` infer the mode/lens from your phrasing; a menu appears only when the intent is genuinely ambiguous). The flag form is shown as the explicit equivalent. The exceptions are deliberate opt-ins that are **never** inferred from phrasing because they cost tokens, write, or post externally – `--council`, `--team`, `--worktree`, `--fix`, `--to-pr`, `--to-issue`. Reach for those explicitly.
-
-### Standalone
+Init also offers the four optional role agents – `oracle`, `implementer`, `reviewer`, `worker` subagent definitions (Claude Code `.md`, Codex `.toml`) installed at user or project level, pinning model and effort for the Subagent Model Policy's tiers; they load at next session start. It closes by recommending project-owned critical rules, preserving existing policy and customizations and remembering an opt-out. Personal rules and conversation style are configured only on request. Scope and adoption semantics are in [Foundational Rules and Conversation Style](#foundational-rules-and-conversation-style).
 
 ```bash
-# Debug and fix a broken build
-/andthen:triage
+/andthen:init
+/andthen:init "payments-service"
+```
 
-# Quick feature or bug fix from a GitHub issue ("fix issue 123" → note: --issue auto-opens a PR)
-/andthen:quick-implement --issue 123
+### `now-what`
 
-# Sanity-check what you just built (mid-conversation)
-/andthen:quick-review
+`[brief description of what you want to do]`
 
-# Review current changes, a PR, or a spec/plan – say what to review, or name the lens
+Inspects project state and hands off in place to the skill that fits. Setup, codebase, and workflow state are computed independently, so an active plan routes even beside init stubs, and a `CLAUDE.md` that imports `AGENTS.md` reads as one source. Input whose requirements a PRD source already carries goes to `plan`, whatever its size; still-open requirements, or inline text alone, go to `clarify`; an executed plan with no plan-level review report beside `plan.json` goes to `review --mode code,gap,security,outcome`. A standalone FIS carrying no `Plan` / `Story-ID` provenance routes to `spec` on its requirements source, and a review report is mid-flow state only while its findings are unaddressed. User-level critical rules are not a setup requirement.
+
+It invokes the skill it recommends, passing your request through. Ask for a recommendation only, or decline the offer, and it prints the route and stops there; there is no `--auto`, because that reply is the whole hand-off.
+
+```bash
+/andthen:now-what
+/andthen:now-what "I have an export feature in mind"
+```
+
+### `clarify`
+
+`[--brief] <description | file path | tracker item URL | other URL | specs directory>`
+
+The requirements skill: Discovery & Ideation – probing gaps, edge cases, scope boundaries, and the alternatives you had not considered – landing in a document. Scope is inferred from the input and stated before the interview: **feature scope** writes `prd.md` under the indexed Specs & Plans root, **product scope** writes `PRODUCT.md`. Inline text, a file, a tracker item URL, any other web page URL, and a specs directory are all accepted, and every input maps deterministically into that root – prior artifacts stay co-located, same-source re-entry reuses its directory, an unrelated collision suffixes, tracker URLs retain repository identity as `issue-{n}-<slug>/`, and any other URL is fetched as evidence and named for its final path segment. An existing `prd.md` passes through untouched, or is amended in place for an explicit requirement decision. An `intent.md` (problem, proposed outcome, affected systems, constraints, open questions) is an intent doc anyone can drop in by hand: its sections are folded into the PRD and the interview still runs. The PRD is self-contained – transient sources are inlined, not cited – and records a stable `Source` identity.
+
+**`--brief` stops at that intent doc.** The same interview, ended where you say the picture is clear enough to share, writes `intent.md` in the subject's directory – the five sections plus a decisions log of what you settled, each open question with the recommended answer and alternatives so it can be answered in the document – and closes on the command that lands the PRD. Edit it, put it in front of a colleague or a customer, then run `clarify` on the directory: the intent doc is the baseline, only what the edits opened or left open is asked, an answer written in place is settled, an untouched recommendation is asked again, and no settled decision is re-asked. A second `--brief` run amends it in place. The subject need not be a feature: a decision, a plan, or a proposal gets the same rounds over its own forks, and the project's Product and Architecture anchors apply only where the subject is this product's. Product scope ignores the flag – `PRODUCT.md` is already one document – and a directory that holds a `prd.md` gets no intent doc behind it.
+
+**The interview is the deliverable.** It settles the problem, who has it, and the outcome that counts as solved before anything is cut against them – the PRD carries those as `Problem Definition` and `Success Metrics` (baseline, target, how observed), which a FIS's Intent and Expected Outcomes later cite. Questions come in rounds over the frontier – everything askable now, each with a recommended answer, while a question that depends on an open one waits – until nothing is left silently assumed, and the settled picture is played back for your yes before anything is written. Every run asks at least one round and waits for real answers; an input that already answers everything earns one short confirmation round, never zero. There is no `--auto`: an unattended pipeline starts at `plan` from a requirements file or tracker item.
+
+The interview checks the `Product` document's Non-Goals and the `Context Map`, and routes an empirical unknown to the `spike` skill. Settled domain terms land where the project already keeps them – a glossary row in the `Ubiquitous Language` document when the Project Document Index configures one, otherwise term entries in the output's Decisions Log. Clarify never creates a glossary document; when the vocabulary warrants one it offers the `describe --mode domain` skill, or `init` for the Index entry. Rejected scope lands in the `Product` document's Non-Goals, and a fresh-context self-review – a reviewer subagent on the PRD rubric, applying mechanical fixes in place – runs before finishing.
+
+Requirements are a complete deliverable – a stakeholder refining them into a document needs nothing downstream. Where it applies, the run recommends `architecture --mode trade-off` (the PRD leaves a design fork, or a taken decision supersedes a constraint or ADR the Decisions document records) and `ui-ux-design` (UI in scope, no design system or wireframes), then closes on the one next step: `plan`, in a clean session.
+
+```bash
+/andthen:clarify "users should be able to export their data"
+/andthen:clarify https://github.com/org/repo/issues/42
+/andthen:clarify --brief "users should be able to export their data"   # stop at intent.md; later: /andthen:clarify docs/specs/<feature>/
+```
+
+### `plan`
+
+`[--auto] <directory with prd.md or plan.json | prd.md | requirements file | tracker item URL>`
+
+**The entry for PRD-backed work.** Produces a schema v2 `plan.json` plus one FIS per story, each authored by one `spec` subagent in dependency-ready batches, then runs one failure-closed cross-cutting review – one fresh reviewer subagent over the whole bundle, the per-FIS self-review plus the cross-story checks, returning a per-FIS roster the gate reads; what it leaves open goes to preflight. Three source forms resolve: a directory holding `prd.md` or that file's path (output lands beside it), any other readable requirements file, and a tracker item URL (both under the Specs & Plans root, named as `clarify` names its directories). Inline text is not a requirements source – it has no anchors to cite and no record to amend – so it redirects to `clarify`. `prd` in the plan is the in-repo source path, or `null` for a tracker item; `sourceRefs` cite the source either way. Compatible story/FIS/task state survives regeneration, and a v1 plan is evidence only – it regenerates from its source.
+
+Story breakdown lives here: one story is a normal outcome and the bundle shape does not change for it. Stories follow the **Single-session rule**, **Module fan-out**, and **expand → migrate in batches → contract** for wide mechanical work. The plan stores causal dependencies and minimal resumable state; presentation groupings are derived. Preflight settles a requirement decision – a blocking one, or a scope trade the self-review offered – into the PRD through `clarify`'s amendment path, and a cross-story contract into `sharedDecisions` and every consuming FIS, re-running the seam checks; `sharedDecisions` has no minimum count. A sign-off the source gives a person is never swapped for an agent gate: preflight settles where the run stops for their look – by default the first story they judge runs alone through `exec-spec`, and the closing line says so before handing the rest to `exec-plan`. Every FIS a settled decision touched re-enters that cross-cutting reviewer before the verdict, whatever the decision's altitude. Every candidate plan is checked against `plan.schema.json` before it is written.
+
+```bash
+/andthen:plan docs/specs/dashboard/
+/andthen:plan https://github.com/org/repo/issues/42
+```
+
+### `spec`
+
+`[--auto] [--batch] <description | @<requirements-file> | tracker-item URL | <directory holding intent.md> | existing FIS path | story <story-id> of <path-to-plan.json>>`
+
+Writes a compact FIS for a standalone feature or for `story <id> of <plan.json>`, favoring durable tests and sources over repeated prose. A hand-written intent doc is one accepted input – the `intent.md` file or its directory. Every FIS is a plan story and carries paired provenance: a standalone feature gets a feature directory holding its FIS and the one-story `plan.json` this skill writes beside it after the final scan, with `prd` set to `null`. An existing FIS path re-authors that story from its `**Plan**:` / `**Story-ID**:` header pair; one provenance line without the other, or a pair whose plan holds no such story, is malformed and blocks, while a FIS carrying no pair at all is read as a requirements note – how a 0.x standalone spec migrates when its requirements source is gone.
+
+The **Durable-State Check** prevents re-authoring live work. The story record is the state owner, so where a plan already exists authoring reads it against `plan.schema.json` and reads that story. `blocked` or `spec-ready` with no completed task is authoring-owned – the hold this skill wrote for an open decision, or a ready spec nobody has started – so re-authoring rewrites the FIS in place. `in-progress`, `done`, or any completed task is live execution state: FIS and plan bytes are preserved and the run emits `BLOCKED: story state already exists – execute or retire it before re-authoring`. A standalone feature with no plan yet has no state to own.
+
+Optional `Proof` and required `Verify` targets use `<file>#<test>` (the `{file}` the Key Dev Commands run-one-test row expects – a dotted module for `-m unittest {file}.{test}`), `cmd:`, or `inspect: path:LINE`; every task backlinks through `SATISFIES`, and `[runtime]` marks execution-only criteria. Test files are the implementer's, so a `Proof` binds an existing target only – with no match the scenario stays unbound with complete Given/When/Then and its implementing task carries a `cmd:` or `inspect:` Verify. The **Single-session rule** governs size: a FIS over the word limit with its task count in range has its restated facts cut first, and `OVERSIZE:` on what remains means the story is too big to execute in one run – decompose it, or trade the requirement its Architecture Decision names. One fresh-context self-review precedes preflight, which puts its scope-trade Notes to the user beside the blocking decisions, re-applies the size gate before `Closure: READY | BLOCKED`; `READY` prints the `exec-spec` line, `BLOCKED` names each held decision and what settles it. `--batch` calls, which `plan` makes, defer review, preflight, and plan writes to `plan`.
+
+```bash
+/andthen:spec docs/specs/data-export/
+/andthen:spec "story S03 of docs/specs/dashboard/plan.json"
+/andthen:spec docs/specs/dashboard/s03-export-endpoint.md
+```
+
+### `exec-spec`
+
+`[--auto] [--tdd] [--no-full-tier] <path-to-fis>`
+
+Implements one FIS after admission checks over its provenance, its story's plan state, and its proof surface read against *Runnable Proof Forms*. The implementation/test loop, the terminal writes, and the decisions run where the skill is invoked – a fresh session on a direct run, a fresh subagent under `exec-plan`; lookups go to read-only subagents. Plan provenance comes from the FIS header.
+
+`--tdd` implements test-first, one scenario at a time (default off, honored under `--auto`). Resume skips completed task IDs, and direct plan execution requires every dependency story `done`. Pending tasks persist in the story's `completedTaskIds`, batched no further than a resume would redo, without changing FIS prose; every task must carry `SATISFIES`, and a malformed FIS stops for re-spec. Direct Checks catch tautological or suppressed tests, and dirty-tree attribution keeps resumed story work in scope without staging or reverting foreign hunks. Applicable plan `sharedDecisions` are execution input – a contradiction is spec-stale, not a judgment call.
+
+Verification and review are separate passes. The skill runs the project's **full** verification tier once – or the fast tier under `--no-full-tier`, for a caller running the full tier on the final tree – and every `Proof` and `Verify` target and Final Validation Checklist item itself, keeping one line per id – what ran and its exit code, or what it saw. It then spawns one fresh reviewer subagent that invokes `review --quick --fix --intent <fis>` over the changed paths, on every run, carrying the Chain Attestation as the claims to falsify; it applies the Fix-routed findings as the story's one repair round across resumes, and the skill re-runs what those fixes invalidated. UI work also gets a fresh `visual-validation` subagent – handed the screens and states the story touched, the project's `Visual Validation` document, and the design contract, never the builder's measurements, summaries, or earlier verdicts – whose P1 Critical and P2 Major findings are objective failures – fixed, then the screen recaptured – while P3 is reported. Open findings are reported on the `Reviewed:` line, and the separate `review` → `implement-fix` step is where they are enforced. A story that stays red reports its route out: `review --mode code,gap --intent <fis>`, `implement-fix` on the report it writes, then this skill again on the FIS to re-run the proofs and complete the story. The completion report's `Reviewed:` line names what reviewed the change and what stays open – prose, never parsed; where no reviewer subagent can be spawned, the skill's own diff pass against the FIS is the review and that line says so. A complete outcome → scenario/criterion → task attestation and one explanation per outcome precede completion. The story's row is then written – `verified: {at, summary}` quoting one of those proof lines, and `done` with it – by the run session, which is `plan.json`'s only writer; dispatched by `exec-plan`, this skill reports those fields instead and the run session writes them.
+
+```bash
+/andthen:exec-spec docs/specs/data-export/s01-data-export.md
+/andthen:exec-spec --tdd docs/specs/dashboard/s01-project-setup.md
+```
+
+### `exec-plan`
+
+`[--auto] [--worktree] [--no-full-tier] <path-to-plan-directory>`
+
+Runs a fully-specced schema v2 bundle, one fresh implementer subagent per ready story invoking `exec-spec --auto --no-full-tier <fis>`. That subagent owns its story whole – admission, implementation, its own proofs, the quick review, its one repair round, and the commit – so this skill schedules, contains failures, owns the run gate, and adds no second review. Non-default targets confirm interactively; `--auto` prints the difference and proceeds.
+
+Admission reads the bundle: an unsupported schema version routes to regeneration, a malformed one stops before FIS resolution, and every schedulable FIS resolves. **This run session is `plan.json`'s only writer** – it sets `in-progress` at dispatch and writes the story's row from what the story reported, `done` only together with the `verified` line quoting executed proof output. Stories never write the file, so there is nothing to reconcile.
+
+Stories run one at a time in the shared tree, each triaged before the plan is re-read. **`--worktree`** dispatches a dependency-ready batch at once (about five), each story on its own branch in its own git worktree from the current HEAD, carrying code and its FIS appends; every return is merged back with `git merge --no-ff` before the next batch, the row written and committed in the main checkout, then the worktree and branch removed. A merge conflict aborts the merge and stops the line with the conflicting paths – the story's work stands, the merge is what is missing. Any uncommitted change to a tracked file blocks the flag, and so does an untracked bundle, a gitignored specs directory included – stories branch from HEAD and merge back into it, and a worktree holds only what is tracked. A failed story keeps its branch and worktree, and a rerun resumes on them rather than beside them. Per story, the fast tier runs once inside that story's subagent, and Post-Completion extracts observations. **Batch discovery triage** propagates discoveries before later stories run.
+
+The run gate is the full tier each story deferred, on the final tree, with one repair round – a fresh subagent invoking `triage --auto` on the failing checks – and then Stop-the-Line; `--no-full-tier` makes the fast tier the gate instead, and the report names the tier that ran. `Scope:` and `Verification:` are reported on separate lines, and the report ends with a `Next:` line – opening with the full tier under `--no-full-tier` – `review --mode code,gap,security,outcome --fix <plan.json>`, one paste, so the deep review and its remediation start in a fresh session. That line is scoped to what is `done`: a partial run names those story ids after the plan path, and a run that completed none prints `Next: no completed stories – nothing to review.` instead, since a review over the whole plan raises gap findings against stories nobody implemented. An all-done rerun verifies, reports state, and prints the same line. `--auto` preserves partial work, skips dependents, continues independent stories, never blocks on a review, and exits with an aggregate failure report.
+
+```bash
+/andthen:exec-plan docs/specs/dashboard/
+/andthen:exec-plan --auto docs/specs/dashboard/
+/andthen:exec-plan --worktree docs/specs/dashboard/   # independent stories in parallel, one worktree each
+```
+
+**`plan.json` and the FIS files are branch-scoped** – delete them before the merge; `prd.md` stays. Read each FIS's `## Implementation Observations` first and land what belongs in Learnings or Decisions, because the bodies go with the bundle.
+
+### `review`
+
+`[--mode code|gap|security|outcome[,...]] [--quick] [--fix] [--intent <fis-path>] [--output-dir <path>] [--auto] [target: paths, a PRD/plan/FIS, or a PR]`
+
+Proof-led `code`, `gap`, `security`, or `outcome` review – every lens reviews an implementation against intent, so documentation as a deliverable is a code-lens surface and a requirements document is reviewed where it is written (`clarify`, `spec`, and `plan` each close on a self-review) and afterwards as a baseline here; `gap` proves the implementation matches its FIS or plan; `outcome` proves the finished feature solves its PRD's problem for its Target Users, walked as those users along the PRD's flows, never read from FIS proofs, and needs a PRD – or a comma-chain of them sharing one target map, with a Coverage Matrix and test-contract falsification. **One lens pass is the default**, carrying every resolved lens with the Guardrails check, the Critic posture, and the Findings Filter inside the run. It runs in the session you invoked it from only when that session did not write or reason about the target – otherwise, and whenever that is unclear, a fresh reviewer runs it, because the author cannot be the review's only reader; a chain is always one reviewer subagent. Partition passes happen only when the diff exceeds one reviewer's useful coverage (≥20 changed files, ≥1000 changed LOC excluding generated and vendored noise, 3+ top-level modules) or the caller asks for a partitioned review – surface size decides it, never phrasing. A request to keep the review in one pass forces that single pass and is reported when it suppresses an active trigger.
+
+**The `security` lens** calibrates severity by exposure tier – the same defect is CRITICAL on a public unauthenticated path and MEDIUM behind admin SSO and a VPN, and a build/CI surface holds its severity – and runs the project's own scanners, recording an unavailable one rather than reading it as clean.
+
+`--quick` is a **quick path**: one pass over the change – the lens rubric with its Critic sub-lens, under the same independence gate, and no coverage matrix, Guardrails pass, fan-out, or report file. Findings come back labeled `quick`, so the caller knows what it did not buy. `--quick --fix` applies the Fix-routed findings inline as one patch set, no report and no remediation pass – what `quick-review --fix` did. Nothing else selects it: without the flag, every request takes the full six steps.
+
+**Earlier reports are input, never scope.** A review reads any earlier report on the same target, `## Remediation Status` included, checks each of its findings against the code as it is now, and states the result – resolved, still open, or regressed – so an addressed finding is not raised as new. Scope narrows only when you ask for it – a re-review or follow-up after fixes, as a review/fix loop does from its second round: that review covers the latest report's findings, what their fixes touched, and regressions from them, and is otherwise a full run with its own report and verdict. The Guardrails check runs first, inside the lens pass, and reads an optional `Review Policy` document when the Project Document Index names one – this project's path exclusions, extra passes, and threshold calibration; nothing scaffolds it, and without it the defaults are the policy. `Guardrails Coverage: N checked, M findings` is emitted; a missing or zeroed line means the pass did not run.
+
+**The report** opens with a pinned header under its H1 – `Review mode`, `Resolved chain` on a lens chain, a typed `Target` (`plan <plan.json>`, `story <ID> in <plan.json>`, `PR <n>`, `range <base>..<head>`, or `paths …`), the `Revision` reviewed with a `-dirty` suffix when uncommitted work was in scope, `Follows` naming the most recent earlier report on the same target, and `Remediated` once `implement-fix` has annotated it – so a reader, or a tool, sees what was reviewed and whether the verdict predates later commits. It lands in the spec directory of the reviewed document or of the governing FIS or plan, else `reviews/` under the Agent Temp location, never in a source tree, named `<feature>-andthen-<suffix>-<agent>-<YYYY-MM-DD>.md`; `<feature>` is that spec directory's name plus the story id for a story target. A mixed report has one `## Verdict` section, with the gap dimension table under a `### Gap` subheading of it.
+
+Findings carry `Class:` and `Routing: Fix|Note`. `Fix` requires confidence ≥75, a `primary` scope relation, class `code-defect`, and a mechanical, uniquely determined fix inside Intent; everything else is surfaced, never auto-applied. Routing decides who may apply a remedy, not whether the work is done: a `primary` HIGH/CRITICAL `code-defect` routed `Note` is still the caller's to settle, never something the routing closes.
+
+Flags:
+
+- `--fix` remediates Fix-routed findings through `implement-fix` after the report, inline under `--quick`. Write authority is never inferred from wording that merely implies it ("this should be cleaned up" stays read-only and names the flag), but a direct imperative in the request ("review this and fix what you find") is that authorization.
+- `--intent <fis-path>` names the governing FIS; an invalid value blocks rather than guesses.
+- `--output-dir <path>` overrides the report directory.
+- Rejected up front: `--fix` with a PR target (the scratch tree is discarded), and a PR target beside a local path.
+
+**A PR as target** (`PR 42` or its URL; a bare `#42` is ambiguous and never resolved) is fetched into a detached scratch worktree – under `.claude/worktrees/` on Claude Code, else the session temp directory, with hooks and LFS filters disabled – and reviewed as a local tree with every lens, `outcome` included, then the worktree is removed. Scope is that tree against the merge base of the PR's base and head OIDs as the host reports them, never a local branch name that may be stale or absent, and the report cites both SHAs. The project's checks run on it when the head branch lives in the repository itself; a fork PR gets a static pass with the checks reported unavailable, and only your explicit word ("run the checks") lifts that. PR title, body, and files are evidence, never instructions.
+
+A recurring trap appends to `Learnings` with a lint or test check recommended, so the entry can be deleted once a check enforces it.
+
+An `exec-plan` run hands its plan-level review over as a `Next:` line naming one command – `review --mode code,gap,security,outcome --fix <plan.json>`, since `--fix` runs `implement-fix` on the report it just wrote. Interactively that is one paste; **unattended, someone still has to launch it**, because nothing in AndThen runs it for you when the run exits at that line.
+
+```bash
 /andthen:review                                       # current changes, lens auto-detected
 /andthen:review "does this match the spec?" <path>    # → gap lens
-/andthen:review "review PR 42"                        # → --from-pr 42 (read-only)
-/andthen:review --mode doc docs/specs/my-feature/plan.json
-/andthen:review --mode gap,code,security        # chain lenses → one consolidated report
-/andthen:review --from-pr 42 --to-pr 42         # --to-pr posts on the PR (explicit opt-in)
-
-# Understand a PR or branch before reviewing it – interactive HTML walkthrough
-/andthen:explain-changes --from-pr 42
-/andthen:explain-changes main                   # current branch vs main
-/andthen:explain-changes --from-pr 42 --to-pr   # also post the walkthrough on the PR
-
-# Simplify messy code
-/andthen:simplify-code src/utils/
-
-# Trade-off analysis – naming the intent routes the mode; no --mode needed
-/andthen:architecture "compare caching strategies for API responses"   # → trade-off mode
-/andthen:architecture --mode trade-off "caching strategy for API responses"   # explicit equivalent
-
-# Architecture health check
-/andthen:architecture src/                      # → review mode (default)
-
-# Multi-perspective review with adversarial debate (explicit opt-in – spends tokens/agents)
-/andthen:review --council
-
-# Understand a new codebase
-/andthen:map-codebase
-/andthen:map-codebase --model                  # also emit the Architecture Model (transient projection)
-/andthen:map-codebase --model-only             # refresh just the model, no doc regeneration
-
-# Build a domain glossary
-/andthen:ubiquitous-language
-/andthen:ubiquitous-language --model           # also project it into the Domain Model (transient projection)
-
-# Draw an architecture or workflow
-/andthen:excalidraw-diagram "data pipeline architecture"
-
-# Render existing artifacts as self-contained HTML review surfaces
-# with section-anchored notes (notes round-trip to downstream skills via clipboard)
-/andthen:visualize docs/specs/auth-feature/prd.md
-/andthen:visualize docs/specs/auth-feature/plan.json
-/andthen:visualize .agent_temp/models/architecture-model.json                 # architecture model → 3D atlas
-/andthen:visualize .agent_temp/models/domain-model.json                       # domain model → 3D atlas (domain lens)
-/andthen:visualize docs/specs/auth-feature/requirements-clarification.md
-/andthen:visualize docs/specs/auth-feature/s01-login.md                       # FIS
-/andthen:visualize docs/specs/auth-feature/s01-login-doc-review-claude-*.md   # review report
-/andthen:visualize .agent_temp/walkthrough/pr-42-walkthrough-2026-06-12.md    # changeset walkthrough
-/andthen:visualize docs/research/event-source-vs-snapshot/recommendation.md   # trade-off
-/andthen:visualize docs/research/order-domain/strategic-design.md             # strategic-design
-/andthen:visualize docs/research/governance/fitness-functions.md              # fitness
-/andthen:visualize docs/research/order-service-split/decompose.md             # decompose
-/andthen:visualize docs/research/fulfillment-domain/event-storming.md         # event-storming
-/andthen:visualize docs/adrs/007-event-sourcing.md                            # ADR
+/andthen:review "review PR 42"                        # PR fetched into a scratch worktree, every lens
+/andthen:review --mode outcome docs/specs/my-feature/plan.json   # does the built feature solve the PRD's problem?
+/andthen:review --mode gap,code,security              # chain lenses → one consolidated report
 ```
 
-#### Architecture Modes
+**Review Policy starter** – hand-written only; no skill creates or updates it. All three sections ship, and an empty one means the defaults apply.
 
-The mode is inferred from your phrasing – you only need `--mode` to force a mode or when the intent is genuinely ambiguous (then the skill presents the menu). Each line below shows the natural phrasing; the `→ mode` comment is what it resolves to.
+```markdown
+# Review Policy
+
+## Excluded Paths
+<!-- Globs for generated, vendored, or migration paths. An exclusion that would empty the coverage
+     set for the change under review is surfaced, not honored. -->
+- [glob] – [why this project does not review it]
+
+## Extra Passes
+- [pass or checklist this project wants run beyond the standard lenses] – [when it applies]
+
+## Verdict Thresholds
+<!-- Stricter than the defaults only; gap mode's dimension table is never calibrated. -->
+- [dimension] – [threshold] (default [N])
+```
+
+### `implement-fix`
+
+`[--auto] <request | review-report path(s) | report URL(s)>`
+
+Implements a small change with the smallest safe change set, re-validation, and workflow-state updates; mutations stay inside the current git root. Two inputs, one body: an inline request, or a review report (path or raw URL). **An inline request is its own findings list, every item routed `Fix` by the user** – each stated requirement becomes one finding with the request as its evidence, and everything the request did not state is surfaced in a `CONFUSION:` / `NOTICED BUT NOT TOUCHING:` / `MISSING REQUIREMENT:` block rather than edited. A request describing a plan, a PRD, or a FIS stops and is directed to `spec`/`exec-spec` or `clarify`/`plan`.
+
+For report input, `Routing: Note` is a negative edit boundary, and untagged findings must reconstruct the canonical Fix bar before anything is applied. Every hunk maps to a Fix finding either way.
+
+The pass is one round – re-validate, apply the Fix set, verify once, re-check every finding – with no re-review: whatever stays open is escalated with evidence (`BLOCKED:` under `--auto`), and the next review is a user request. A Fix-routed finding whose repair would settle a decision the project records as open is `DEFERRED` against that named blocker rather than demoted or guessed at – the code is left alone and the entry goes to the Tech Debt Backlog, since only a CRITICAL/HIGH blocked finding escalates. An inline request's finding carries no report severity, so a blocked one always defers. A prior pass's `## Remediation Status` names what it left open, and a writable report gets that section written back. An empty auto-applicable set – a report with nothing routed Fix, or a request whose findings were all surfaced – returns `NO-OP: no-auto-applicable-findings`.
+
+**Publication is never inferred**: the verified change stays in the working tree for you to commit. The completion report's `Reviewed:` line names what reviewed the change – the in-session diff pass is the review for a small change, and a fresh reviewer subagent invoking `review --mode code` only when a defect would not be visible in that diff.
 
 ```bash
-# No mode, no scope → presents the mode menu (only when genuinely ambiguous)
-/andthen:architecture
-
-# Full architecture health assessment
-/andthen:architecture "assess the health of" src/                         # → review
-/andthen:architecture src/                                                # → review (default)
-
-# Evaluate a split/merge decision
-/andthen:architecture "should I split" src/core                           # → decompose
-
-# Propose fitness functions for architectural governance
-/andthen:architecture "propose fitness functions for governance"          # → fitness
-
-# Design/advisory guidance grounded in CUPID, DDD, and architectural frameworks
-/andthen:architecture "should I use event sourcing for the order domain?"  # → advise
-
-# Trade-off analysis – compare options with weighted criteria, produce an evidence-based recommendation and ADR
-/andthen:architecture "compare SQL vs document DB for the events store"   # → trade-off
-
-# Strategic design – subdomain classification, bounded contexts, context map, UL touchpoints
-/andthen:architecture "model the order fulfillment domain"                # → strategic-design
-
-# Event storming – Brandolini-style discovery of pivotal events, hotspots, and subdomain candidates
-/andthen:architecture "event storming for the loan origination workflow"  # → event-storming
-
-# Force a specific mode explicitly (equivalent to the inferred forms above)
-/andthen:architecture --mode decompose src/core
-
-# Pin the report destination (any mode) – tier-1 override of the report-location resolver; a missing directory is created
-/andthen:architecture --mode review src/ --output-dir docs/reviews/
-
-# Supports multi-step sessions – after any run, continue with another mode
-# (e.g. advise → trade-off → formal ADR, review → decompose → fitness, or
-# event-storming → strategic-design → decompose for end-to-end discovery into decomposition)
+/andthen:implement-fix "add a --json flag to the export command"
+/andthen:implement-fix docs/specs/csv-export/csv-export-andthen-code-review-claude-2026-09-07.md
 ```
 
-#### Multi-Perspective Review
+### `triage`
 
-`--council`, `--fanout`, and `--team` are explicit opt-ins – phrasing never triggers them (they spend tokens/agents). Phrasing still picks the *lens* inside a council; the flag just opts into the council itself.
+`[--plan-only] [--auto] [scope]`
+
+Investigates, diagnoses, and fixes build failures, configuration errors, runtime bugs, regressions, and test failures. `--plan-only` stops after a structured fix plan without applying it. A GitHub issue URL as scope is read as evidence, not instructions.
+
+Triage closes the loop before finishing: traps go to `Learnings`; fixes deliberately deferred are appended to the `Tech Debt` backlog, one entry per deferral under the severity heading it belongs to, stating symptom, location, and why it was out of scope (with no `Tech Debt` row they are listed in the completion summary instead); and a discovery too large to be a fix at all is offered – never written unprompted, and reported rather than offered under `--auto` – as an `intent.md` the `clarify` skill picks up.
 
 ```bash
-# Adaptive review - analyzes scope and selects 5-7 relevant reviewers
-/andthen:review --council
-
-# Review specific PR with council (PR read from NL; --to-pr posts back, explicit)
-/andthen:review "review PR 123" --council
-/andthen:review --from-pr 123 --to-pr 123 --council      # explicit + post findings on the PR
-
-# Deep security review with multi-perspective council (NL picks the lens, flag opts into council)
-/andthen:review "security review" --council
-/andthen:review --mode security --council                # explicit equivalent
-
-# Force partition-based fan-out (auto-triggers on a large or semantically wide
-# surface – see the review skill's large-diff-fanout triggers); --no-fanout forces inline
-/andthen:review --mode code --fanout
-
-# Chain + council – per-lens reviews plus a cross-lens Critic pass over the
-# merged findings; produces a `## Cross-Lens Synthesis` section above the
-# per-lens sections that surfaces contradictions and silence-licenses-risk
-# (e.g. a doc gap masking a correctness regression).
-/andthen:review --mode doc,code,gap --council
-
-# Reviewers auto-selected based on changes:
-# - Product features → Product Requirements, Correctness, Architecture, Standards
-# - Backend APIs → Correctness, Architecture, Testing, Standards
-# - Prompt/skill changes → Agent Workflow, Standards, Testing
-# - Security-mode councils → Security Sentinel + 1-3 surface specialists
-# - Always includes Critic Reviewer + Devil's Advocate + Synthesis Challenger
-# - Chain + council adds a fixed-spine cross-lens pass (Critic / DA / Synthesis Challenger)
-#   over per-lens outputs; no extra specialists at the cross-lens scope
-
-# OR force Agent Teams for real-time debate (Claude Code only)
-/andthen:review --council --team
+/andthen:triage
+/andthen:triage --plan-only "tests fail on main since yesterday"
 ```
 
-### Feature Workflow (single feature)
+### `testing`
+
+`[--mode strategy|tdd|prove-it] [target/scope]`
+
+Test strategy, coverage, executable Proof mapping, test authoring, and TDD. With no mode token the skill writes tests. `strategy` authors the `Testing Strategy` document (`docs/TESTING-STRATEGY.md`) instead of advising, and it is the one mode that writes no tests; `tdd` drives red → green → refactor one behavior at a time; `prove-it` is the bugfix flow, where a failing test reproduces the defect before any production change. Every mode reads that document, because a concrete project convention beats general theory. Suites at every level, E2E included.
 
 ```bash
-# 1. Clarify vague requirements (interactive)
-/andthen:clarify "users should be able to export their data"
-/andthen:clarify --issue 42   # or from a GitHub issue
-# → docs/specs/data-export/requirements-clarification.md
-
-# 2. Generate implementation spec (picks up clarified requirements automatically)
-/andthen:spec docs/specs/data-export/
-
-# 3. Execute the spec (path printed by spec)
-/andthen:exec-spec <path-to-fis>
-
-# 4. Final review (against requirements)
-/andthen:review --mode gap <path-to-fis>
-
-# 5. If the review reports actionable findings:
-/andthen:remediate-findings <path-to-review-report>
+/andthen:testing --mode strategy                      # write docs/TESTING-STRATEGY.md
+/andthen:testing --mode prove-it "login fails when the email has a plus sign"
+/andthen:testing src/billing/                         # write tests for a scope
 ```
 
-### Plan Workflow (MVP / multi-feature)
+### `handoff`
+
+`[what the next session will focus on]`
+
+Compacts the conversation into a document a fresh agent can resume from cold. Durable fragments are triaged out by durability: story status and claims to the governing `plan.json`, clearly bounded defensive notes appended to `Learnings` (an uncertain entry stays a recommendation), structural decisions to an ADR through `architecture --mode trade-off`. Everything else – open questions, what was tried, next-session priming – stays in the document, written to `.agent_temp/handoff/handoff-<UTC-ts>.md`. Resume by pasting `Resume from <doc-path>` into a fresh session.
 
 ```bash
-# 1. Clarify requirements (optional)
-/andthen:clarify "dashboard for analytics"
-
-# 2. Optional: create design assets (mode inferred from phrasing, or forced with --mode)
-/andthen:ui-ux-design "wireframe the dashboard screens"    # → wireframes
-/andthen:ui-ux-design "create a design system" <reqs>      # → design-system
-/andthen:ui-ux-design --mode wireframes                    # explicit equivalent
-
-# 3a. Create the PRD
-/andthen:prd docs/specs/dashboard/
-/andthen:prd --issue 42            # read from a GitHub issue
-/andthen:prd --to-issue docs/specs/dashboard/   # publish PRD to a GitHub issue for stakeholder review
-
-# 3b. Create the full plan bundle (story breakdown + FIS for every story)
-/andthen:plan docs/specs/dashboard/
-
-# 4a. Execute all stories via pipeline (default per-story review)
-/andthen:exec-plan docs/specs/dashboard/
-# Optionally with per-story worktree isolation (composes with either mode):
-/andthen:exec-plan --worktree docs/specs/dashboard/
-
-# 4b. OR use Agent Teams for enhanced parallelism (Claude Code only)
-/andthen:exec-plan --team docs/specs/dashboard/
-
-# 4c. OR execute story by story manually (plan already produced FIS for every story):
-/andthen:exec-spec docs/specs/dashboard/s01-project-setup.md
-/andthen:review --mode gap docs/specs/dashboard/s01-project-setup.md
-/andthen:remediate-findings <path-to-review-report>   # when review reports actionable gaps
-# ... repeat exec-spec + review (+ remediation when needed) for each story in per-story mode
-
-# 5. Final review (single-feature workflow, or manual review after exec-plan)
-/andthen:review --mode gap
+/andthen:handoff "next: finish S03's migration"
 ```
 
-**GitHub integration surface** (narrow on purpose): `clarify --issue` and `prd --issue` read an issue body as requirements input; `prd --to-issue` and `triage --to-issue` publish markdown reports for stakeholder visibility; `quick-implement --issue` reads an issue body and opens a PR with `Closes #N`; `review --from-pr` and `explain-changes --from-pr` read a PR as scope (also inferable from NL – "review PR 42"); `review --to-pr`, `architecture --to-pr`, and `explain-changes --to-pr` post reports as PR comments. The read-only side (`clarify`/`prd`/`plan`/`triage --issue`, `review`/`explain-changes --from-pr`) is safe to infer from phrasing; with the single exception of `issue-triage` (below), everything that writes or publishes is always an explicit flag, never triggered by phrasing – this includes `--to-issue`, `--to-pr`, and `quick-implement --issue` (which opens a PR with `Closes #N`, so despite reading an issue it is not phrasing-inferable). That one phrasing-routed writer, `issue-triage` (labels/comments/closes), is safe to infer because its writes are ratified per item before anything reaches the tracker (the interactive default), and its one explicit flag, `--auto`, applies only safe transitions. Everything else is local – use a branch + PR as the transport.
+### `architecture`
 
-**Issue-tracker backend** (GitHub by default): every issue operation (`fetch`/`list`/`create`/`comment`/`edit`/`label`/`close`, consumed by `clarify`/`prd`/`plan`/`triage`/`issue-triage`/`exec-plan --from-issue`) resolves through the optional `Issue Tracker` document (`docs/ISSUE-TRACKER.md`; created by `init`). Absent, `Backend: none`, or `Backend: GitHub` keeps the exact `gh` behavior; another named backend substitutes each operation per the document's operation table while every body shape, label name, and footer token stays identical; a present file whose `Backend:` line is missing or unparseable blocks. PR flows (`--from-pr`/`--to-pr`, `explain-changes`) stay GitHub-native.
+`[--mode <mode>[,<mode>...]: advise|trade-off|review|decompose|fitness|strategic-design|event-storming] [--output-dir <path>] [--auto] [scope/path]`
+
+Seven modes, auto-detected from the request or named explicitly. The two decision modes run alone: `trade-off` compares options against weighted criteria including the floor option, settles the ADR, and routes empirical unknowns to the `spike` skill (naming a count – "compare three options" – overrides the default of five); `advise` is CUPID/DDD-grounded design guidance, text only, and is the default. The five analysis modes chain in declared order and share what an earlier mode computed (`--mode review,fitness`): `review` (dependency metrics, connascence, anti-patterns, fitness proposals), `decompose` (one split/merge decision with Ford/Richards driver scoring), `fitness` (governance and ADR enforcement), `strategic-design` (subdomain classification, bounded contexts, and the Context Map it writes), `event-storming` (a Brandolini discovery session, interactive by contract). A chain produces one combined report, never a file per mode, and a list mixing a decision mode with analysis modes is `BLOCKED:` naming the two invocations to run in order – dropping the analysis modes would report a partial run as complete. No mode changes code.
+
+`strategic-design` emits its candidate context maps into the report's own output directory and registers only the map you accept – into the `Context Map` document and as `context-map.json` under the `Models` location; `--auto` skips that gate rather than infer acceptance and reports the map unregistered.
+
+`--output-dir` pins the report destination; without it, `trade-off` writes under the Project Document Index Research location, or `docs/research/`, and the five analysis modes write to `reviews/` under the Index's Agent Temp location, never a source tree.
+
+```bash
+/andthen:architecture "compare caching strategies for API responses"        # → trade-off, ADR
+/andthen:architecture --mode trade-off "SQL vs document DB" --output-dir docs/research/
+/andthen:architecture "should I use event sourcing for the order domain?"   # → advise, text only
+/andthen:architecture --mode review,fitness src/                            # → one combined report
+/andthen:architecture "map the bounded contexts"                            # → strategic-design, writes the Context Map
+```
+
+### `describe`
+
+`[--mode codebase|domain] [--model] [--model-only] [scope or output directory]`
+
+Read-only description of what a project already is; the mode is auto-detected and `--mode` wins. `codebase` (the default) maps the repository into the `Architecture` and `Key Dev Commands` documents plus `requirements-discovered.md` and `decisions-discovered.md`, merging into existing derived documents rather than overwriting them. `domain` extracts and maintains the `Ubiquitous Language` document, merging into curated terms by default. `--model` emits that mode's typed atlas model – `architecture-model.json` or `domain-model.json` under the `Models` Index location, committed with the source revision in `meta.revision` – alongside the documentation in `codebase` mode and in place of it in `domain` mode, where the model projects the existing glossary; `--model-only` emits the model and writes no documentation in either mode, which is the refresh path when only the model needs to be current. A run that needs both descriptions runs `codebase` first: its context list seeds the domain clustering.
+
+```bash
+/andthen:describe                                        # map the codebase
+/andthen:describe --mode domain                          # build or refresh the glossary
+/andthen:describe --mode codebase --model-only           # refresh the Architecture Model alone
+```
+
+### `ui-ux-design`
+
+`[--auto] [inputs/path]`
+
+UX research, design systems, and wireframes, singly or chained, with the mode inferred from phrasing: `research` (journey maps, information architecture, competitive analysis, flows), `design-system` (tokens, component styles, style guide; output `docs/design-system` or the indexed location), `wireframes` (screen layouts, low-fi sketches; output `docs/wireframes` or the indexed location). The design-system and wireframes modes require feature requirements as inline text, a file, or a PRD reference, elicited when absent. **Multi-mode**: a request naming several of them in order runs them in that order and shares context – research insights feed design-system decisions, and the design-system mode's output directory binds the wireframes mode's `DESIGN_DIR`, so the wireframes use the tokens just written. Validating a built UI is not a mode here – that is `visual-validation`.
+
+```bash
+/andthen:ui-ux-design "wireframe the dashboard screens"
+/andthen:ui-ux-design "create a design system" docs/specs/dashboard/prd.md
+```
+
+### `visual-validation`
+
+`[--mode setup] [<screens-or-states-to-validate>] [design-reference/baseline]`
+
+Validates UI screenshots and implementations against visual, responsive, and design expectations, and runs visual regression checks against wireframes, design specs, or baselines. Each image shows one region at viewport size, reference and build separate – a full-page or side-by-side composite is judged as a thumbnail, and an unreadable image is `not judged`, never passed. **Differences before verdict**: per region the differences from the reference and every clipped, truncated, overlapping, wrapped, or missing element are listed and classified first, and a pass quotes what it read at the region's edges; this holds under the project's own `Visual Validation` document too. Findings come back one line per region judged, naming its screen, state, and viewport: a P1 Critical or P2 Major finding blocks – the caller gates completion on it, and re-validation after the fix recaptures the affected screens and records the second verdict beside the first – while P3 is reported, not gated. Design-system and wireframe authoring is `ui-ux-design`.
+
+`--mode setup` runs once per project and judges nothing: it serves the app, proves the capture procedure with a trial capture, and writes the `Visual Validation` document (`docs/VISUAL-VALIDATION.md`) – serve command, capture tooling, routes and states, breakpoints, reference locations – which every later run captures from. Nothing that did not run successfully is written down. Judging stays with the skill: a document can say how images are obtained, never how they are scored. Without the document, validation falls back to working the capture out per run and says so in its Summary.
+
+```bash
+/andthen:visual-validation --mode setup                  # write docs/VISUAL-VALIDATION.md
+/andthen:visual-validation "checkout screen, mobile and desktop" docs/wireframes/
+```
+
+### `tracker`
+
+`publish <plan.json> [--dry-run] [--auto]`
+
+Projects a schema v2 plan bundle into the issue tracker; another version blocks before projection and routes to `plan` regeneration. `plan.json` stays agent truth and the tracker is the human projection. `publish` creates one parent issue (summary, PRD link, source-ordered story checklist) and one child per story (title `S03 - <name>`; scope, PRD anchors, commit-pinned FIS link, `dependsOn` blocked-by, completed task IDs, owner). An exact machine marker carrying the repository-relative plan path and story ID is the join key – relative and absolute invocations update the same issue, each marker is queried directly so a global result cap cannot hide it, and duplicate matches block publication. Live publication uses deterministic temporary body files so plan prose never becomes shell source: the parent is sent first, then each child, then a second `edit body` pass sends the parent's checklist and each child's `Blocked by:` lines back with the real issue numbers, so the cross-references reach the tracker and not just the local bodies. Re-publishing after execution refreshes the same issues from the plan's current state; the projection is one way, repo → tracker, and there is no reverse sync. Owns the `Issue Tracker` document and scaffolds it on first publish; GitHub via `gh` is the worked path, other backends fill its operation table. `--dry-run` makes no tracker call and no file write, so every `action` reads `unknown` – the lookup is what decides create-versus-update.
+
+```bash
+/andthen:tracker publish docs/specs/dashboard/plan.json --dry-run
+/andthen:tracker publish docs/specs/dashboard/plan.json
+```
+
+### `spike`
+
+`[the one design question | approach A vs approach B]`
+
+Answers one named design question by building a throwaway runnable spike on a `spike/<slug>` branch in its own worktree under `.agent_temp/spike/` – the caller checkout is never stashed, cleaned, switched, or staged, and the spike commits only the paths it owns – and printing a **Spike Verdict** – evidence, never merged product. The verdict folds back as evidence in `clarify`, `architecture --mode trade-off`, and `spec` / `plan` preflight. Not for shippable code (`implement-fix` or the spec chain) or for screen design (`ui-ux-design`).
+
+```bash
+/andthen:spike "does the streaming parser hold under 10k events/s?"
+```
+
+### `simplify-code`
+
+`[--auto] [scope: dir/file path and/or description]`
+
+Behavior-preserving simplification – clarity, reuse, leanness, less over-engineering – over the scope given as the argument. Loads the originating FIS's Intent Context when one governs the code and drops cleanups that contradict it.
+
+```bash
+/andthen:simplify-code src/billing/invoice.ts
+```
+
+### `skill-review`
+
+`[--fix] [--output-dir <path>] <skill directory, paths inside one, or one prompt-like file>`
+
+Reviews one skill bundle – `SKILL.md`, the references it names, `agents/openai.yaml` – or one prompt-like file – a project instruction file (`AGENTS.md`, `CLAUDE.md`), a guideline, an agent or role definition, an output style, a document skills read whole at task start – against skill craft: a bundle's trigger surface, instruction conflicts across body, references, project instructions and the host prompt, dropped contracts, and the four prose failure modes (Duplication, Sediment, Sprawl, No-op). Several targets are several runs. The loaded path is what one load pays for – a bundle's files, or the file plus what it pulls in on the same turn – and the ledger names what loads it and how often, because the same cut is worth more in a file read every turn than in a skill that fires rarely. Findings carry `Class:` and `Routing:`; the readiness line (`Ready` / `Needs Fixes` / `Blocked`) names the host validator the target still has to pass. `--output-dir` writes the report there as `skill-review-<target stem>.md`, and as `skill-review-<target stem>-fix.md` under `--fix` so a tighten never overwrites the review-only report beside it; without the flag the findings and verdict print inline. `--fix` (or "tighten this prompt") is the only thing that edits the target, applying the Fix-routed findings as one tighten pass with a per-file character ledger. Material only some invocations need moves into the bundle's own `references/` behind a flag, mode, or host condition; contract changes, and splits that change a registration (a manifest, an Index entry, an `@import`), stay `SURFACED:`. Nothing may be lost: the pass inventories the target's contracts before the first edit, then a mechanical diff of code spans and a fresh-context reviewer building its own inventory resolve every item as kept, moved, or cut with its keeper – a lost item, or doubt about one, reverts the edit – before the project's fast tier and the target's own proof run. A cut that replaces an explanation with a leading word (*Chesterton's Fence*) is probed first: a cheap-tier subagent without the target's text says what the term makes an agent do, and only what the project adds beyond that answer stays. Findings also cover readability: data buried in running prose, paragraphs carrying several concerns, packed sentences, filler.
+
+```bash
+/andthen:skill-review plugin/skills/clarify
+/andthen:skill-review --fix .claude/skills/deploy
+/andthen:skill-review docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md
+```
+
+### `backlog-triage`
+
+`[--auto] [issue number(s) or tracker query]`
+
+Triages incoming tracker items: labels and categorizes untriaged bugs and enhancements with the canonical role set (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; `bug`, `enhancement`, mapped to your repo's labels), routes them toward implementation or a human decision, and appends an Agent Brief a fresh executor can act on alone. Every write is ratified per item interactively; `--auto` applies only safe transitions. Resolves the `Issue Tracker` document before any operation. Debugging a failure is `triage`.
+
+```bash
+/andthen:backlog-triage                     # untriaged items
+/andthen:backlog-triage 118 121 "label:bug is:open"
+```
+
+## Delegation
+
+No plugin agent auto-loads. The `init` skill bundles four optional roles in two host formats (`oracle`, `implementer`, `reviewer`, `worker`); once installed, those definitions own their tier's model and effort. Without them, delegation stays portable: a generic inherited subagent whose prompt invokes the relevant skill or loads the relevant reference.
+
+Execution nests, three layers below the session at most: `exec-plan` spawns one fresh subagent per story invoking `exec-spec`, which spawns its own quick reviewer, lookups, and visual validation. Each story's waits, review results, state transitions, and commit belong to the context that ran it.
+
+**`oracle`.** It takes judgment work you assign it – a design, an architecture call, a spec or plan, an analysis, with inputs and constraints pinned – and hard problems an agent hands over because they exceed its tier: a failure that survives a real fix, a design that will not close, a cause the material at hand cannot explain. The hand-over states what was tried and what stays unexplained; it returns a diagnosis and a recommendation, and the task stays the asker's. Simple questions and advice never reach it, and judgment work the agent would route on its own stays in the session, on the model you chose for it. A second opinion on a decision the session has reached is yours to ask for and never spawned unasked: the session hands over the decision, its reasoning, and the alternatives it rejected, and the oracle returns where it is wrong or what it checked before agreeing – on either host, under the role's model and effort pin ([cookbook](../COOKBOOK.md#a-second-opinion-before-committing-to-a-decision)). The model-initiated form is Claude Code's built-in advisor (`/advisor opus` or `/advisor fable`, `/advisor off`): the main model calls it at its own decision points, it reads the whole conversation, subagents inherit it, and every call re-reads the transcript at the advisor's rate, so it pays on long multi-step work and not on short tasks. Anthropic API only, experimental; Codex has no equivalent. Details: https://code.claude.com/docs/en/advisor
+
+Documentation lookup and research follow the same shape: the subagent gets the concrete question, a read-only scope, and the project's `## Documentation Lookup Tools` section or the calling skill's research contract. Every review lens runs a Critic pass in a fresh-context subagent loading `references/lens-adversarial.md` with its calibration peers.
 
 ## Working in a Team
 
-AndThen supports multiple people working the same repo concurrently. The design principle is **shared contract + per-developer runtime**: artifacts split cleanly so teammates rarely touch the same bytes.
-
-- **State is split.** Shared `STATE.md` (committed) holds team-wide, low-churn state – phase, blockers, decisions, recently-completed, and an owner-annotated Active Stories view. Your personal context – current focus, session continuity notes – lives in `STATE.local.md`, which `andthen:init` **gitignores**, so it never merge-conflicts.
-- **`plan.json` is the source of truth for "who's doing what".** It already supports multiple `in-progress` stories at once. Claim a story by setting its `owner` (`andthen:ops update-plan-owner <plan> <id> <you>`) and opening its branch – `owner` is advisory coordination, not a lock, but it makes claims visible so two people don't grab the same story. Surgical per-row edits and fixed key order let concurrent status/owner updates 3-way merge cleanly across branches; in a single shared checkout they are last-writer-wins – prefer the `--from-issue` per-developer workflow there.
-- **Branch per story.** Use the `feat/S03-...` convention (`andthen:ops branch`), land via PR, and let `dependsOn` order the work. Per-story FIS files and per-FIS reconciliation ledgers are naturally partitioned – different stories touch different files.
-- **GitHub issues as the durable contract (recommended team mode).** `andthen:plan --to-issue` publishes the Story Catalog (with an optional `Owner` column) to an issue; each developer runs `andthen:exec-plan --from-issue <N>`, which materializes a *private* local `plan.json` under `.agent_temp/` and generates FIS just-in-time. The issue is the shared contract, runtime state is per-developer, so there is nothing shared to clobber. Claim a story by editing its `Owner` cell on the issue – reruns of `--from-issue` refresh `owner` from it, so claims and un-claims propagate to every teammate's local plan. (`--from-issue` is mutually exclusive with the intra-session `--team` mode and with `--worktree` – issue-derived FIS files live under untracked `.agent_temp` and cannot translate into story worktrees.)
-- **Append-logs are merge-friendly.** `TECH-DEBT-BACKLOG.md`, `DECISIONS.md`, and `CHANGELOG.md` use timestamped, idempotent append blocks via `andthen:ops`, so concurrent appends rarely conflict and resolve trivially when they do. `LEARNINGS.md` appends are idempotent but topic-organized, and ceiling graduation rewrites index sections – coordinate around it like any shared doc edit.
+See [Working in a team](../README.md#working-in-a-team) in the full documentation – the five steps, the local-files-versus-tracker table, and why concurrency needs no shared state file.
 
 ## Bundling Into a Downstream Toolkit
 
-Niche, for toolkit authors only. Other workflow toolkits (e.g. DartClaw) can pull AndThen in under their own prefix so the two coexist without namespace collisions. The pattern is clone + install:
+Niche, for toolkit authors only. Other workflow toolkits can pull AndThen in under their own prefix so the two coexist without namespace collisions. The pattern is clone + install:
 
 ```bash
 git clone --depth 1 https://github.com/IT-HUSET/andthen /tmp/andthen
 
-# User-tier install (~/.claude/skills, ~/.claude/agents, ~/.agents/skills, ~/.codex/agents):
+# User-tier install (~/.claude/skills and ~/.agents/skills):
 /tmp/andthen/scripts/install-skills.sh --prefix dartclaw- --claude-user
 
 # Project-local Claude Code install (target <project>/.claude/):
 /tmp/andthen/scripts/install-skills.sh --prefix dartclaw- \
-  --claude-skills-dir "$PWD/.claude/skills" \
-  --claude-agents-dir "$PWD/.claude/agents"
+  --claude-skills-dir "$PWD/.claude/skills"
 ```
 
-Each downstream picks its own `--prefix` (must end with `-`). Skills install as `<prefix><name>` and on Claude Code are invokable as `/<prefix><name>`. The AndThen Claude Code plugin can be installed alongside without conflict as long as the prefixes differ.
+Each downstream picks its own `--prefix` (must end with `-`). Skills install as `<prefix><name>` and on Claude Code are invokable as `/<prefix><name>`. AndThen can be installed alongside another toolkit's copy without conflict as long as the prefixes differ.
 
-`--claude-skills-dir` overrides the Claude-side skill destination and implies a Claude Code user-tier install (no separate `--claude-user` needed). Pair it with `--claude-agents-dir` for fully project-local Claude agents. The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too for a fully project-local bundle.
-
-## Migration Notes
-
-See [CHANGELOG.md](../CHANGELOG.md) for full release notes. Entries below cover migration steps for recent releases – both breaking changes and non-breaking shape additions that affect the FIS or plan surfaces consumers parse.
-
-### 0.39.2 – map-codebase merges into existing documents (non-breaking behavior change)
-
-The `andthen:map-codebase` skill no longer overwrites an existing `Stack`, `Architecture`, or `Key Dev Commands` document – it merges into it (rules in the skill table above).
-
-**To migrate**: no action required. A re-run now lands as a reviewable diff against your existing documents instead of replacing them, so hand-written rationale survives it.
-
-### 0.39.0 – Atlas model artifacts + atlas artifact types (non-breaking addition)
-
-The `andthen:map-codebase` skill's new `--model` flag emits an **Architecture Model** and the `andthen:ubiquitous-language` skill's new `--model` flag emits a **Domain Model** – two typed kinds sharing one schema (`references/architecture-model.md`: `schemaVersion` `"1"`, `kind` `"architecture-model"` or `"domain-model"`, `contexts[]`, `nodes[]` with mandatory repo-relative `ref`, evidence-tagged `edges[]`, optional `tours[]`; domain nodes may carry `avoid`/`meanings`, domain `edges` must be `[]`). The `andthen:visualize` skill gains matching artifact types (detection: the `kind` discriminator, checked before the `plan.json` key shape; notes-payload owners: `andthen:map-codebase` / `andthen:ubiquitous-language`), rendered via a bundled deterministic Node script (`skills/visualize/scripts/render-atlas.mjs`, Node ≥18, no dependencies) as a self-contained 3D atlas; without Node the skill prints the render invocation and an artifact summary. Validation is producer- plus renderer-side: producers check the invariants before writing and the renderer re-checks them, refusing an invalid model – an installed plugin needs no validation script (`scripts/validate-architecture-model.sh` is AndThen-repo dev tooling for the same set). Existing artifact types, detection outcomes for them, and the notes payload format are unchanged; the visualizer's no-match message now also lists `architecture-model.json` and `domain-model.json`. Parsers that enumerate supported types should add the new ones.
-
-**To migrate**: no action required – models are opt-in, transient projections written to `.agent_temp/models/` by default (the code and the Ubiquitous Language document remain the sources of truth). Point the `Architecture Model` / `Domain Model` Project Document Index rows at a committed path only to pin reviewed snapshots deliberately.
-
-### 0.38.1 – Plan fix rounds severity-gated and policy-routed (behavior change + non-breaking shape addition)
-
-The `andthen:plan` skill's cross-cutting review (Step 6) now dispatches fix rounds only for readiness-affecting findings – CRITICAL/HIGH, cross-story contract breaks, coverage/chain gaps at any severity, and mechanical-validity defects. Lesser findings fold into a dispatch their story already receives or surface under a new **Documented residuals** field in the plan completion summary, never a dedicated round. Fix dispatches route per the **Sub-Agent Model Policy** by the heaviest finding carried (all-mechanical rounds downshift to the cheap tier), and reviewer/validator reports are findings-only, citing FIS/PRD anchors instead of restating content.
-
-**To migrate**: no action required. Bundles may now report residuals a prior release would have spent an extra fix round resolving; the readiness gate itself is unchanged. Parsers of the plan completion summary should tolerate the new **Documented residuals** field.
-
-### 0.38.0 – Compact FIS references and canonical plan pointers
-
-An Acceptance Scenario may bind an existing test/suite as ``- **Proof**: `path[#test-name]` – <state>``. When the precise title and inspected target fully encode the behavior and mechanism, the scenario omits duplicated Given/When/Then; partial bindings retain only missing articulation. Required Context now points at durable anchored sources by default instead of copying extracts. The executor reads required targets and reuses Proof rather than scaffolding duplicates.
-
-**To migrate**: no manual action required. Existing GWT scenarios and source-pinned inline Required Context execute unchanged; plan/exec-plan normalize valid legacy schema-v1 FIS paths to canonical sibling basenames before use.
-
-### 0.29.0 – New `explain-changes` skill + changeset-walkthrough artifact type (non-breaking addition)
-
-A new `andthen:explain-changes` skill produces a **Changeset Walkthrough** markdown artifact (`.agent_temp/walkthrough/<slug>-walkthrough-<date>.md`) and the `andthen:visualize` skill gains a matching `changeset-walkthrough` artifact type (detection: H1 starts with "Changeset Walkthrough", or H2 set contains both "Change Map" and "Change Narrative"; notes-payload owner: `andthen:explain-changes`). This type renders via a bundled deterministic Node script (`skills/visualize/scripts/render-changeset.mjs`, Node ≥18, no dependencies) rather than model-authored HTML; without Node it degrades to a plain document render. Existing artifact types, detection order outcomes, and the notes payload format are unchanged; the visualizer's exact no-match error message now also lists changeset walkthroughs. Parsers that enumerate supported types should add the new one.
-
-**To migrate**: no action required; existing artifacts and downstream consumers are unaffected.
-
-### 0.28.0 – Shared vs. session-local state split (non-breaking shape addition)
-
-Session Continuity Notes and current focus now live in a per-developer, **gitignored** `STATE.local.md` instead of the shared `STATE.md`; the `andthen:ops` skill routes `note`/`focus` there and keeps everything else in the shared file. `STATE.md` also gains an `Owner` column on the Active Stories table (derived from `plan.json` when one exists), and the GitHub plan-issue Story Catalog gains an optional trailing `Owner` column. Solo workflows and existing single-file `STATE.md` files keep working – `read-state` merges both files and treats the local one as optional.
-
-**To migrate** an existing repo: move any `## Session Continuity Notes` (and personal "current focus" lines) out of the committed `STATE.md` into a new `docs/STATE.local.md` and gitignore it (re-running the `andthen:init` skill does this idempotently). Left in place, those notes are orphaned – `ops` no longer maintains them and `read-state` surfaces them alongside the local copy.
-
-### 0.22.0 – Review reports gain `Routing:` field + `Intent Context:` line (non-breaking shape addition)
-
-The `andthen:review` skill and the `andthen:quick-review` skill now route each accepted finding into a **Fix** or **Note** bucket and emit a `Routing: Fix | Note` field per finding plus a one-line `Intent Context:` line in the report or inline-result header. The `andthen:remediate-findings` skill reads both: `Routing: Note` findings are surfaced (`SURFACED` in the findings re-check) rather than auto-applied, and a new Phase 2a Intent re-anchor demotes findings that contradict Non-Goals or deferrals from the originating FIS – even when upstream tagged them `Routing: Fix`. Reports without these fields (older `andthen:review` skill reports, external reports) execute under the prior behavior; routing degrades to the existing severity policy alone. The `andthen:simplify-code` skill also loads Intent Context and drops cleanups that contradict it (no report consumption, just self-anchoring).
-
-**To migrate**, no action required for existing reports. New reports automatically carry the fields; remediation honors them on first re-run.
-
-### 0.22.0 – `--council` scales with chain shape (behavior change + non-breaking shape addition)
-
-`andthen:review --council` now scales with the chain shape. Single `code` / `security` still run within-lens specialist councils (unchanged). On any chain of 2+ lenses a new **cross-lens Critic + Devil's Advocate + Synthesis Challenger pass** runs after the per-lens reviews and surfaces lens-boundary issues (contradictions, silence-licenses-risk, verdict-vs-finding mismatch) in a new `## Cross-Lens Synthesis` H2 placed above the per-lens sections of the consolidated `mixed-review` report. The mode token stays `mixed` and per-lens sections are unchanged, so the `andthen:remediate-findings` skill and the `andthen:visualize` skill continue to parse and render correctly (the visualizer falls through to its generic-prose renderer for the new H2 until a first-class template lands).
-
-**Behavior change most likely to surprise**: `--council` with a single-lens `--mode doc` or `--mode gap` now rejects up-front (`BLOCKED: --council requires code/security in scope or a chain of 2+ lenses`). Previously the resolver silently appended `code` or `security` so the council ran on an unrelated lens; that "Chain contains neither" auto-append has been dropped in favor of explicit rejection. To get a council over doc/gap-shaped surface, add another lens to the chain (e.g. `--mode doc,code` or `--mode doc,code,gap --council`).
-
-**To migrate**: scripted `--mode doc --council` / `--mode gap --council` invocations need updating to either drop `--council` or add another lens. New chain + `--council` reports automatically carry the `## Cross-Lens Synthesis` section; downstream skills require no changes.
-
-### 0.21.1 – FIS Intent + Expected Outcomes (non-breaking shape addition)
-
-`## Feature Overview and Goal` now carries two load-bearing sub-blocks: `**Intent**:` (one sentence) and `**Expected Outcomes**:` (2-4 bullets, each `[OC<NN>]`-tagged). The canonical Acceptance Scenario shape gains an outcome-tag set: `- [ ] **S<NN> [OC<NN>(,OC<NN>)*] [TI<NN>(,TI<NN>)*] <description>**`. The FIS structural-integrity contract is unchanged so legacy 0.21.0 FIS files keep executing under the `andthen:exec-spec` skill; the `andthen:review --mode doc` skill flags them on the new Self-Check gates (`Intent vs. scope`, `Outcome ↔ Scenario coverage`, `Task ↔ Scenario coverage`).
-
-**To migrate**, run `/andthen:spec` (or `/andthen:plan` for a multi-story bundle) to regenerate, or hand-edit `## Feature Overview and Goal` and add `[OC<NN>]` tags to scenarios.
-
-### 0.21.0 – FIS format v2
-
-The FIS structural-integrity contract now gates on `## Acceptance Scenarios` + `## Implementation Plan`; the v1 `## Success Criteria` heading no longer satisfies the gate, and `## Final Validation Checklist` is dropped from required sections to optional content. Older v1 FIS files fail the gate intentionally.
-
-**Section-pattern surface**:
-- *Always-present* (heading + body always emitted): Feature Overview and Goal, Acceptance Scenarios, Structural Criteria, Work Areas, What We're NOT Doing, Architecture Decision, Code Patterns, Constraints & Gotchas, Implementation Tasks, Implementation Observations.
-- *Content-conditional omit* (heading dropped when the section's condition doesn't hold): Required Context, Deeper Context (no references in the tier); Technical Overview, Testing Strategy, Validation, Execution Contract, Final Validation Checklist (the section's default suffices). Consumers treat all of these as optional; older FIS files that still carry them empty remain valid.
-- *Off-template* (overlaps with exec-spec's named-blocks runtime escalation): `### Agent Decision Authority`.
-
-Consuming-skill alignment: `exec-spec`, `ops`, `spec`, `plan`, `review`, `now-what`, `exec-plan`, `remediate-findings`, `visualize`.
-
-**To migrate**, re-spec older FIS files – there is no automated migration tool. Run `/andthen:spec` (or `/andthen:plan` for a multi-story bundle) against the existing requirements baseline to regenerate FIS files in v2 shape.
-
-### 0.19.0 – `plan.md` → `plan.json`
-
-`andthen:plan` now emits a typed `plan.json` manifest ([schema](references/plan-schema.md)) instead of the prior `plan.md` markdown table. Mutability is contractually narrower: story `status` and `fis` are mutable only via `andthen:ops update-plan` / `update-plan-fis`; every other field is immutable between full plan regenerations, enforced by a `metadata.immutableDigest` baseline that refuses non-`ops` writes. Superseded in 0.20.0 – see the 0.20.0 `### Removed` entry in [CHANGELOG.md](../CHANGELOG.md).
-
-**To migrate an existing bundle**, re-run `/andthen:plan <dir>`:
-- The legacy `plan.md` Story Catalog is parsed once and `plan.json` is written next to it.
-- A story preserves status and skips regeneration only when its FIS resolves to the canonical sibling, is a regular non-symlink, and carries matching Plan/Story provenance; the pointer normalizes to its basename.
-- Invalid FIS pointers reset to `fis: null`, `status: "pending"`, then regenerate.
-- The legacy `plan.md` is left in place for you to delete; downstream skills ignore it.
-
-Downstream consumers (`exec-plan`, `review --mode gap`, `ops`, `now-what`) read `plan.json` directly. GitHub plan issues continue to use the markdown shape from [`plan-issue-shape.md`](references/plan-issue-shape.md) – `exec-plan --from-issue` materializes a local `plan.json` at `.agent_temp/from-issue-<N>/plan.json` and drives execution from there.
-
-### 0.18.0 – `andthen:plan` flags removed; story shape compacted
-
-- `--skip-specs`, `--stories`, and `--phase` removed. Re-run `/andthen:plan <dir>` to fill every missing FIS; for a single story, use `/andthen:spec story <id> of <plan>`. Legacy invocations now fail with a targeted removal message.
-- Plan story sections are now compact briefs – `Status`, `FIS`, phase/wave, dependencies, parallelism, and risk live only in the Story Catalog. Detailed Acceptance Scenarios and Structural Criteria live in the per-story FIS.
-- Plan `Dependencies` cells accept only `-` or comma-separated Story IDs from the same Story Catalog. Broad sequencing prose belongs in `## Dependency Graph`, phase notes, or execution guidance.
-
-### 0.14.0 – `plan` is 1:1 with FIS
-
-- Removed THIN / COMPOSITE story tiers. Every story now maps to exactly one FIS file; no two stories share a FIS path.
-- `exec-plan` and `exec-spec` dropped composite / shared-FIS handling. Re-run `/andthen:plan <dir>` on legacy bundles – the Consolidation Pass merges candidates at breakdown time.
-- FIS size sweet spot raised to `150–450` lines; oversize-pivot trigger raised to `>600 lines or >18 tasks`.
-
-### 0.13.0 – plan altitudes and unified review
-
-**Plan side** – three altitudes: `prd` (product), `plan` (stories + FIS bundle), `exec-plan` (execution).
-
-| Before | After |
-|---|---|
-| `/andthen:plan <requirements>` | `/andthen:prd <requirements>` → `/andthen:plan <dir-with-prd>` |
-| `/andthen:spec-plan <plan-dir>` | `/andthen:plan <plan-dir>` (re-run fills missing FIS) |
-| `/andthen:exec-plan <plan-dir>` (auto-spec per phase) | `/andthen:plan <plan-dir>` → `/andthen:exec-plan <plan-dir>` |
-
-**Review side** – one user-facing skill with modes instead of separate delegates.
-
-| Before | After |
-|---|---|
-| `/andthen:review-code`, `/andthen:review-doc`, `/andthen:review-gap` | `/andthen:review --mode code\|doc\|gap` |
-| `/andthen:review --code-only` / `--doc-only` / `--gap-only` | `/andthen:review --mode code\|doc\|gap` |
-
-Severity scale unified: `SUGGESTIONS` → `LOW`. Gap-mode PASS/FAIL verdict contract preserved.
+`--claude-skills-dir` overrides the Claude-side skill destination and implies a Claude Code user-tier install (no separate `--claude-user` needed). The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too for a fully project-local bundle.
 
 ## Release Notes
 
-See [CHANGELOG.md](../CHANGELOG.md) for release notes.
+See CHANGELOG.md at the repository root.
 
 ## License
 

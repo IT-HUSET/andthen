@@ -1,31 +1,41 @@
 name: Validate Plugin Content
 
-# The install-time validators (strict ${CLAUDE_PLUGIN_ROOT}/${CLAUDE_SKILL_DIR}
-# syntax, sigil-free skill references, canonical asset existence and closure)
+# The install-time validators (retired path tokens, SKILL.md path shape,
+# sigil-free skill references, canonical asset existence and closure)
 # otherwise run only when someone executes install-skills.sh locally. The
 # Claude Code marketplace ships plugin/ directly, so this gate keeps every
 # distribution channel behind the same pre-copy checks.
 #
-# The version gate keeps the dual-plugin manifests honest: the same plugin/
-# directory ships to Claude Code and Codex under separate manifests, and
-# skew between them is a real observed failure mode.
+# The version gate keeps the manifests honest: plugin/ ships to Claude Code and
+# Codex under separate manifests, and skew between any of the four version
+# locations is a real observed failure mode.
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "plugin/**"
       - "scripts/**"
+      - "evals/**"
+      - "tests/**"
       - ".claude-plugin/**"
       - ".agents/**"
       - "CHANGELOG.md"
+      - "README.md"
+      - "COOKBOOK.md"
+      - "MIGRATING-FROM-0.x.md"
   pull_request:
     paths:
       - "plugin/**"
       - "scripts/**"
+      - "evals/**"
+      - "tests/**"
       - ".claude-plugin/**"
       - ".agents/**"
       - "CHANGELOG.md"
+      - "README.md"
+      - "COOKBOOK.md"
+      - "MIGRATING-FROM-0.x.md"
 
 jobs:
   validate:
@@ -36,15 +46,72 @@ jobs:
         run: bash scripts/install-skills.sh --validate-only
       - name: Check version consistency across manifests and CHANGELOG
         run: |
-          v_market=$(jq -r '.plugins[0].version' .claude-plugin/marketplace.json)
-          v_claude=$(jq -r '.version' plugin/.claude-plugin/plugin.json)
-          v_codex=$(jq -r '.version' plugin/.codex-plugin/plugin.json)
-          v_changelog=$(grep -m1 -oE '\[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | tr -d '[]')
-          echo "marketplace=$v_market claude=$v_claude codex=$v_codex changelog=$v_changelog"
-          if [ "$v_market" != "$v_claude" ] || [ "$v_claude" != "$v_codex" ] || [ "$v_codex" != "$v_changelog" ]; then
-            echo "::error::version skew across CHANGELOG.md, .claude-plugin/marketplace.json, plugin/.claude-plugin/plugin.json, plugin/.codex-plugin/plugin.json"
+          v_changelog=$(grep -m1 -oE '\[[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?\]' CHANGELOG.md | tr -d '[]')
+          versions=$(
+            jq -r '.plugins[0].version' .claude-plugin/marketplace.json
+            jq -r '.version' plugin/.claude-plugin/plugin.json
+            jq -r '.version' plugin/.codex-plugin/plugin.json
+          )
+          echo "changelog=$v_changelog four locations:"; echo "$versions"
+          skew=$(printf '%s\n%s\n' "$versions" "$v_changelog" | sort -u | wc -l)
+          if [ "$skew" -ne 1 ]; then
+            echo "::error::version skew across CHANGELOG.md, .claude-plugin/marketplace.json (andthen), plugin/.claude-plugin/plugin.json, plugin/.codex-plugin/plugin.json"
             exit 1
           fi
-      - name: Check Codex marketplace manifest parses and points at ./plugin
+      - name: Cookbook and README invocations resolve to the shipped surface
+        # V1-PLAN §3.9: the docs are where a user learns what to type, so a
+        # renamed skill or a cut flag is a broken instruction the moment it ships.
+        run: python3 scripts/audit-cookbook.py
+      - name: Check Codex marketplace manifest parses and serves the plugin dir
         run: |
+          test "$(jq -r '.plugins | length' .agents/plugins/marketplace.json)" = "1"
           test "$(jq -r '.plugins[0].source.path' .agents/plugins/marketplace.json)" = "./plugin"
+
+  # The shipped scripts are the first code in the core pipeline, so the runtime
+  # contract (V1-PLAN 3.3) is proved rather than assumed: one Python 3 stdlib
+  # entry point that behaves identically on all three platforms. The
+  # windows-latest job runs it from Git Bash and PowerShell because those are the
+  # two shells a native-Windows host actually hands the agent - a suite that only
+  # ever ran under bash would not notice a PowerShell argument-quoting or path
+  # break - and the ubuntu-latest and macos-latest jobs run the same suite.
+  scripts:
+    name: scripts (${{ matrix.os }}, py${{ matrix.python }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, python: "3.12"}
+          - {os: ubuntu-latest, python: "3.x"}
+          - {os: macos-latest, python: "3.x"}
+          - {os: windows-latest, python: "3.x"}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      # Every suite under tests/: the shipped tracker script and the repo
+      # tooling (installer, cookbook audit, surface budget). The installer
+      # suites shell out to bash, so the whole step runs under it.
+      - name: tests/ suites
+        shell: bash
+        run: python -m unittest discover -s tests
+      # The evals harness is repo tooling, not shipped plugin content, and its
+      # run directories are POSIX-shaped: Windows is out of scope for it.
+      - name: evals check-evaluator and case-validation suite
+        if: runner.os != 'Windows'
+        run: python evals/test_checks.py
+      # The validators walk the shipped tree and match paths and text, which is
+      # exactly where line endings and case-insensitive filesystems diverge, so
+      # they run on the three OSes rather than on Linux alone.
+      - name: Install-time content validations
+        shell: bash
+        run: bash scripts/install-skills.sh --validate-only
+      - name: tracker.py entry point from Git Bash
+        if: runner.os == 'Windows'
+        shell: bash
+        run: python plugin/skills/tracker/scripts/tracker.py publish scripts/fixtures/renders/plan.json --dry-run
+      - name: tracker.py entry point from PowerShell
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: python plugin/skills/tracker/scripts/tracker.py publish scripts/fixtures/renders/plan.json --dry-run

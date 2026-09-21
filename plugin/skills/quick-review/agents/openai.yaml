@@ -1,7 +1,0 @@
-interface:
-  display_name: "AndThen - Quick Review"
-  short_description: "Quick sanity-check of recent changes"
-  default_prompt: "Review recent changes in this conversation for errors, inconsistencies, and missed edge cases: "
-
-policy:
-  allow_implicit_invocation: true

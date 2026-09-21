@@ -1,8 +1,6 @@
 # Architecture – Decompose Mode
 
-Evaluate a specific split or merge decision using Ford/Richards driver scoring and connascence analysis.
-
-**Supporting references**: `decomposition.md`, `connascence.md`, `package-principles.md`, `anti-patterns.md`, `ddd.md` (load when the boundary in question is a bounded context, or when the integration relationship between two existing contexts needs a context-mapping pattern choice).
+Evaluate a specific split or merge decision using Ford/Richards driver scoring and connascence analysis. There is no correct granularity – the recommendation is the least worst combination of trade-offs, argued from evidence.
 
 ## Step 1 – Map the Boundary
 
@@ -10,35 +8,38 @@ Identify what is being split or merged. Map all coupling points crossing the pro
 
 ## Step 2 – Score Drivers
 
-Score all 6 disintegration drivers and 4 integration drivers from Ford/Richards. For each driver, provide evidence and a score: Strong / Moderate / Weak / N/A.
+Score Ford/Richards' six disintegration drivers – service scope and function, code volatility, scalability and throughput, fault tolerance, security, extensibility – and the four integration drivers – database transactions, workflow and choreography, shared code, data relationships. Each gets **Strong / Moderate / Weak / N/A** with evidence, never an unsupported score.
+
+Qualifiers that decide whether a driver counts:
+- Service scope and function is **never sufficient alone** – it needs a second driver.
+- Code volatility is scored from commit history per subdirectory, not from impressions.
+- Scalability is scored from measured load; a subsystem needing ~10x the resources of its neighbours is the signal.
+- Fault tolerance may be satisfied by container-level isolation without any logical split.
+- Extensibility counts only with *actual* extension consumers, not hypothetical ones.
+- Shared code scores as an integration driver only when it is genuinely reusable infrastructure rather than a missing service.
 
 ## Step 3 – Connascence at Boundary
 
-Classify the connascence type of each cross-boundary coupling point. Compute severity scores.
+Classify the connascence type of each cross-boundary coupling point and compute severity scores.
 
-## Step 4 – Consumer Analysis _(if applicable)_
+## Step 4 – Consumer Analysis _(libraries and SDKs)_
 
-If the split targets a library/SDK, define 3-5 consumer profiles and calculate forced dependency waste per profile.
+Define 3-5 concrete consumer profiles – real use cases with code – and trace each profile's dependency tree to compute **forced LOC waste** (imported but unused) and the true shared kernel across profiles. Report per profile as `Profile | Use case | LOC needed | LOC forced | Waste %`, graded on the calibration's consumer-waste thresholds – past the split threshold the median consumer carries more dead weight than useful code.
 
 ## Step 5 – Evaluation Matrix
 
-Apply the 4-criteria check: (a) zero external deps, (b) independent consumer use case, (c) acyclic DAG post-split, (d) low breaking-change cost. All of a+b+c must pass to recommend a split – a split that fails any of these (carries external deps, has no independent consumer, or reintroduces a cycle) recreates the coupling it claims to remove, so it is a distributed monolith in disguise rather than a clean boundary. (d) low breaking-change cost is not gating: it is a strength signal that raises confidence, while a high breaking-change cost downgrades confidence or pushes toward **Defer**, never toward **Keep**.
+Apply the 4-criteria check: (a) zero external deps – can the package stay pure language; (b) independent consumer use – would an external developer import it alone, with a concrete example; (c) acyclic dependency graph post-split; (d) low breaking-change cost – mechanical migration under ~5 files. A **package or library extraction** needs all of a+b+c – a split that fails any of them recreates the coupling it claims to remove. A **service split** is gated by Step 2's driver scores plus (c): a cycle across a service boundary is a distributed monolith in disguise. (d) is not gating: it is a strength signal that raises confidence, while a high breaking-change cost downgrades confidence or pushes toward **Defer**, never toward **Keep**.
 
-## Step 6 – Anti-Pattern Check
+## Step 6 – Recommendation
 
-Verify the split won't create an entity trap or distributed monolith. Check if the split is premature (domain not yet understood).
+Produce one of **Split** / **Merge** / **Keep** / **Defer** with a confidence level (High/Medium/Low).
 
-## Step 7 – Recommendation
+Split signals: the module description needs "and"; subsets with different change frequencies; consumers using disjoint subsets; consumer waste or barrel size past the calibration's thresholds; instability says stable while the contents are volatile. Merge signals: two packages that always change together; packages in a cycle; one reachable only transitively through the other; very high Ca on a tiny package (over-extracted).
 
-Produce one of: **Split** / **Merge** / **Keep** / **Defer** with confidence level (High/Medium/Low) and specific conditions for revisiting deferred decisions (decomposition triggers).
+Once a split is decided, name the migration path: component-based decomposition where a modular structure already exists (verify quantum independence and SDP-correct direction in the new graph), tactical forking for a big ball of mud, and Strangler Fig or Branch by Abstraction over big-bang extraction whenever the old path must keep serving traffic.
+
+A **Defer** verdict is only complete with its decomposition triggers – the conditions that reopen it: a third consumer with different needs, an external contributor maintaining a subsystem, a barrel or a profile's consumer waste past the calibration's split threshold, a subsystem reused outside the original project, or a pre-1.0 review.
 
 ## Report Contents
 
-Decompose-mode report must include:
-1. Executive Summary
-2. How to Read This Report (compact legend for decomposition drivers, connascence terms, and any abbreviations used)
-3. Boundary map with coupling points
-4. Driver scores (disintegration + integration)
-5. Connascence analysis at boundary
-6. Consumer waste analysis (if applicable)
-7. Recommendation with confidence level and decomposition triggers
+Decompose-mode report opens with an Executive Summary and How to Read This Report (compact legend for decomposition drivers, connascence terms, and any abbreviations used), then carries the Step 1–6 artifacts in order.

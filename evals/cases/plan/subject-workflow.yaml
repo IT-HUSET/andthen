@@ -1,0 +1,20 @@
+name: andthen-plan-subject
+description: Produce one plan bundle from the committed plan-case PRD.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: plan
+    name: Author plan bundle
+    skill: andthen:plan
+    prompt:
+      - >-
+        docs/specs/amount-filter
+
+        Keep every story independently executable, and leave
+        docs/specs/amount-filter/prd.md unchanged.
+      - "Return the workspace-relative plan.json path."
+    outputs:
+      plan:
+        format: text

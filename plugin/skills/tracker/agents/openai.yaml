@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Tracker"
+  short_description: "Project a plan bundle into the issue tracker – parent and per-story issues, refreshed on re-run"
+  default_prompt: "Project the plan into the issue tracker – create or update the parent issue and one child issue per story. Verb and plan path: "
+
+policy:
+  allow_implicit_invocation: true

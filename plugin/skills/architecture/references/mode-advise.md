@@ -1,111 +1,19 @@
 # Architecture – Advise Mode
 
-Guidance for architectural questions, greenfield systems, service boundaries, bounded contexts, and pattern selection. Two sub-modes: **Design** (new architectures, significant decisions) and **Advisory** (questions, refactors, mentoring).
+Guidance for architectural questions, greenfield systems, service boundaries, bounded contexts, and pattern selection. Two sub-modes: **Design** (new architectures, significant decisions – options with their trade-offs, an ADR when the decision is significant, implementation milestones and validation) and **Advisory** (questions, refactors, mentoring – concrete examples grounded in the codebase and its constraints, implications and not only conclusions). A question that needs weighted comparison, a full context map, or a discovery session moves into the mode that owns it (`trade-off`, `strategic-design`, `event-storming`) rather than answering shallower; glossary operationalization is the `andthen:describe` skill in `--mode domain`.
 
-**Supporting references** (load on demand based on the question): `anti-patterns.md`, `package-principles.md`, `connascence.md`, `fitness-functions.md`, `decomposition.md`, `${CLAUDE_PLUGIN_ROOT}/references/farley-framework.md`, `ousterhout-modules.md` (for in-process module, class, and API design questions), `ddd.md` (for bounded contexts, aggregates, domain events, Event Storming, and Hexagonal/CQRS/Event Sourcing in a DDD setting).
+## Every Recommendation
 
-## Contents
+Names the framework or principle driving it ("Per SDP (Martin) …", "Ford/Richards' disintegration driver #3 …"), the trade-off (what is gained, what is lost), and the counter-argument or the condition under which the principle bends. Farley's complexity tools – modularity, cohesion, separation of concerns, information hiding, coupling – are the vocabulary for naming what a design costs.
 
-Decision-Making Process · Operating Sub-Modes · Every Recommendation Must · CUPID Assessment Lens · Domain-Driven Design · Ousterhout Module-Design Lens · Codebase Analysis Approach · ADR Template · Report Contents
+## Lenses
 
-## Decision-Making Process
-
-1. **Project context**: read `CLAUDE.md` / `AGENTS.md`, project docs, and existing ADRs for constraints, standards, and established patterns.
-2. **Business context**: understand functional and non-functional requirements, team capability, organizational constraints, and the current system landscape.
-3. **Options**: present 2-3 viable approaches for this project.
-4. **Trade-offs**: compare complexity, maintainability, performance, cost, technical debt, and team fit.
-5. **Recommendation**: give a clear decision, rationale, implementation guidance, and risk mitigation.
-6. **Compliance**: ensure the recommendation aligns with project-specific architectural rules.
-7. **Validation**: define measurable success criteria, operational signals, and monitoring expectations.
-
-## Operating Sub-Modes
-
-### Design (greenfield or significant decisions)
-
-- run explicit trade-off analysis
-- generate multiple viable options
-- create an ADR for significant decisions
-- design with DDD and appropriate modern architecture patterns
-- outline implementation milestones and validation
-
-For structured option comparison with weighted criteria, chain into the `trade-off` mode (`--mode advise,trade-off`).
-
-### Advisory (questions, refactors, mentoring)
-
-- answer with concrete examples grounded in the codebase and constraints
-- explain implications, not just conclusions
-- guide refactoring and decomposition
-- keep guidance pragmatic and project-aware
-
-## Every Recommendation Must
-
-1. Name the framework or principle driving it (e.g. "Per SDP (Martin)..." or "Ford/Richards' disintegration driver #3...")
-2. Explain the trade-off (what you gain, what you lose)
-3. Cite counter-arguments or when the principle should bend
-
-## CUPID Assessment Lens
-
-Use CUPID (https://cupid.dev/) as an assessment lens, not a pass/fail checklist.
-
-| Property | Question | Focus |
-|----------|----------|-------|
-| **C**omposable | Can parts be combined cleanly? | Coupling, contracts, extensibility |
-| **U**nix Philosophy | Does each component do one thing well? | Scope, focused services, granularity |
-| **P**redictable | Is behavior consistent and unsurprising? | Failure modes, consistency, data flow |
-| **I**diomatic | Does it follow established patterns? | Convention, team fit, cognitive load |
-| **D**omain-based | Does structure reflect business domains? | Boundaries, language, business alignment |
-
-When doing a CUPID assessment, rate each property 1-5 with concrete observations (the table's Focus column names each property's dimensions). Use CUPID to compare options, identify weak properties, give the team shared vocabulary, and target refactoring.
-
-## Domain-Driven Design
-
-Use DDD to sharpen boundaries and create shared language between business and engineering. **Strategic** design picks bounded contexts and their relationships; **tactical** design shapes the model inside one.
-
-**Quick reference:**
-
-| Building block | Purpose |
-|---|---|
-| **Entity** | Identity persists over time; mutable |
-| **Value Object** | Defined by attributes; immutable; prefer when lifecycle doesn't matter |
-| **Aggregate** | Consistency boundary; one transaction = one aggregate |
-| **Domain Event** | Past-tense fact published inside the bounded context |
-| **Domain Service** | Stateless business logic with no natural entity home; contains branching business rules |
-| **Application Service** | Orchestrates a use case (load aggregate → invoke domain op → persist); no branching business rules |
-| **Repository** | Collection-like interface over aggregate roots only |
-
-**Assessment questions** – Strategic: are bounded contexts clearly defined, appropriately sized, and owned by at most one team? Does the context map reflect real relationships? Is investment proportionate across core / supporting / generic? Tactical: do aggregates enforce true invariants (not navigational convenience)? Are domain events distinguished from integration events? Is business logic kept in domain objects rather than drifting into application services? Is the ubiquitous language visible in code?
-
-**For full depth – four aggregate design rules, domain vs. integration events, the 9-pattern context-mapping catalog with selection guidance, Event Storming, Bounded Context Canvas, Hexagonal as the bounded-context skeleton, CQRS/Event Sourcing decision criteria, domain vs. application service distinction, module layout, and DDD anti-patterns – load `ddd.md`.** Cross-link to the `andthen:ubiquitous-language` skill for glossary operationalization and `andthen:clarify` for Event Storming.
-
-## Ousterhout Module-Design Lens
-
-For **in-process** module, class, or public-API design (not service boundaries), load `ousterhout-modules.md` and apply it alongside CUPID and DDD. It covers deep-vs-shallow modules, information leakage, pass-through layers, pull-complexity-down, define-errors-out, and design-it-twice, plus how the lens reconciles with CUPID Unix Philosophy and the Speculative Generality boundary, and its altitude and limits. This lens is **complementary** to CUPID and DDD, not a replacement: apply it to within-service design, not to service decomposition.
-
-## Codebase Analysis Approach
-
-When analyzing a codebase as part of advisory work:
-
-- use `tree -d` and `git ls-files | head -250` for a fast structural overview
-- identify likely bounded contexts by business capability, not only folder names
-- check dependency direction for clean-architecture or layering violations
-- inspect layer leaks such as business logic in controllers or infrastructure concerns in the domain
-- map integration points: what talks to what, over which protocols, and with what coupling
-- spot anti-patterns and name them explicitly
-
-## ADR Template
-
-See `adr-template.md` for the canonical ADR template.
+- **CUPID** (Dan North) is an assessment lens, not a pass/fail checklist: rate each property 1–5 with concrete observations, then use the scores to compare options, find weak properties, give the team shared vocabulary, and target refactoring.
+- **DDD** sharpens boundaries and the shared language – strategic (contexts clearly defined, sized, and owned by at most one team; a context map that reflects real relationships; investment proportionate across core / supporting / generic) and tactical (aggregates enforcing true invariants rather than navigational convenience, domain events distinct from integration events, business logic in the domain rather than application services, the ubiquitous language visible in code). The sizing, the nine context-mapping patterns, the CQRS and event-sourcing criteria, and the DDD traps behind these are in `architecture-calibration.md`.
+- **Ousterhout's module-design lens** applies to in-process module, class, and public-API questions as the calibration scopes it – complementary to CUPID and DDD, never a replacement. Two of its principles inform recommendations rather than test them: pull complexity downward (simpler *for us* is no win if it multiplies cognitive load across N callers) and general-purpose interfaces (somewhat more general than one caller, never all conceivable callers).
 
 ## Report Contents
 
-### Design sub-mode output
+**Design sub-mode**: the architectural challenge in its project context, 2-3 viable approaches assessed with the lenses, their trade-off analysis, then the recommendation with an implementation roadmap and an ADR when appropriate.
 
-1. **Project Context Assessment**: relevant project rules, domain constraints, team factors, and current system landscape.
-2. **Problem Analysis**: the architectural challenge plus key functional and non-functional requirements.
-3. **Solution Options**: 2-3 viable approaches assessed with relevant lenses such as CUPID, DDD, cost, and operational complexity.
-4. **Trade-off Analysis**: risks, complexity, maintainability, performance, technical debt, and mitigation.
-5. **Recommendation & Implementation**: recommendation, implementation roadmap, success criteria, monitoring approach, and ADR when appropriate.
-
-### Advisory sub-mode output
-
-Structured answer with framework attribution, trade-offs, and counter-arguments. Expand acronyms and briefly explain named frameworks if they are not standard for the expected audience. Use direct next steps, concrete examples, and ASCII diagrams when helpful.
+**Advisory sub-mode**: structured answer with framework attribution, trade-offs, counter-arguments, and direct next steps.

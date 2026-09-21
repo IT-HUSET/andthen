@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Describe"
+  short_description: "Map a codebase or maintain its Ubiquitous Language; --model emits the atlas model"
+  default_prompt: "Describe what this project already is – --mode codebase maps it into documentation, --mode domain maintains its Ubiquitous Language; --model emits that mode's typed atlas model, alongside the documentation in codebase mode and in place of it in domain mode; --model-only refreshes the model alone. Scope: "
+
+policy:
+  allow_implicit_invocation: true

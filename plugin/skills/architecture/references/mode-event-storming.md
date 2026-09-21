@@ -1,40 +1,37 @@
 # Architecture – Event Storming Mode
 
-Run a Brandolini-style event-storming session as a discovery technique – surface domain events end-to-end, expose hotspots and pivotal events, and harvest candidates downstream modes can formalize. The mode produces a textual board (with optional diagram hand-off), not a synchronous workshop.
+Run a Brandolini-style event-storming session as a discovery technique – surface domain events end-to-end, expose hotspots and pivotal events, and harvest candidates downstream modes can formalize. The mode produces a textual report and the typed board it describes (`board-models.md`, kind `event-storm`), not a synchronous workshop.
 
-**Supporting references**: `ddd.md` (section 4.1 – sticky-note vocabulary cross-reference; section 4.3 – context-map artifact when a Big Picture session ends with subdomain candidates).
+This file owns the sticky-note vocabulary and the three levels; `--mode strategic-design` owns the context map a Big Picture session's subdomain candidates feed.
 
 ## Interactive-by-Contract
 
-Event storming is a *discovery* skill – it treats the user as the domain expert. Step 1 (scope + level) and Step 2 (event harvest) ask focused questions when vocabulary or causality is unclear; the headless-execution rule does not apply. Use an interactive user input tool when available (e.g. `AskUserQuestion` in Claude Code, numbered markdown questions otherwise). `--auto` bypasses these gates – infer from `INPUT` and the project's ubiquitous-language docs conservatively, and record assumptions as purple hotspots.
+Event storming treats the user as the domain expert. Step 1 (scope + level) and Step 2 (event harvest) are the gates: ask focused questions when vocabulary or causality is unclear. `--auto` bypasses them – infer from `INPUT` and the project's ubiquitous-language docs conservatively, and record assumptions as purple hotspots.
 
 ## Sticky-Note Vocabulary
 
 Brandolini's color palette – keep colors stable across the report so readers can visually parse the board.
 
-| Color | Element | Form |
-|---|---|---|
-| **orange** | Domain event | Past-tense fact (`OrderPlaced`, `PaymentDeclined`) |
-| **blue** | Command | Imperative intent triggering an event (`PlaceOrder`) |
-| **yellow** | Actor | Person or system issuing a command (`Customer`, `Fulfillment Service`) |
-| **lilac** | Policy | Reactive rule – "whenever X, do Y" |
-| **green** | Read model | Information an actor reads to decide a command |
-| **purple** | Hotspot | Unresolved question, conflict, or risk |
+| Color | Element |
+|---|---|
+| **orange** | Domain event (past tense) |
+| **blue** | Command |
+| **yellow** | Actor |
+| **lilac** | Policy |
+| **green** | Read model |
+| **pale yellow** | Aggregate _(Design Level)_ |
+| **pink** | External system |
+| **purple** | Hotspot |
 
-Pink/red is canonical for external systems on Big Picture boards (Brandolini); use when external integrations are load-bearing for the timeline. Skip on Process Modeling and Design Level – those levels surface external systems via actors and policies instead.
+External systems earn a sticky when the integration is itself a step on the timeline (Brandolini's Big Picture convention); at Process Modeling and Design Level an actor or policy usually carries the integration, so a pink sticky there is rare, never wrong.
 
 ## Brandolini's Three Levels
 
 Pick the level that matches the user's framing – do not force all three. Big Picture is the default when no scope is given.
 
-### Big Picture
-Map the domain end-to-end. Surface orange events in chronological order; cluster around pivotal events (events that change the conversation – `OrderShipped`, `LoanApproved`); flag language conflicts and unresolved causality as purple hotspots. Output: an event timeline plus subdomain candidates derived from pivotal-event clusters.
-
-### Process Modeling
-Zoom into one workflow. Reconstruct command → aggregate → event → policy chains; attach yellow actors to commands and green read models to decisions. Output: per-process command/actor/event/policy maps with purple hotspots flagged on contested transitions.
-
-### Design Level
-Detail aggregates and transactional boundaries inside a single process. Output: aggregate candidates with their invariants and per-aggregate command/event lists – feeds directly into the `andthen:architecture` skill in `--mode decompose`.
+- **Big Picture** – the domain end-to-end, events in chronological order, clustered around pivotal events (events that change the conversation – `OrderShipped`, `LoanApproved`).
+- **Process Modeling** – one workflow: command → aggregate → event → policy chains.
+- **Design Level** – aggregates and transactional boundaries inside a single process.
 
 ## Steps
 
@@ -42,9 +39,9 @@ Detail aggregates and transactional boundaries inside a single process. Output: 
 Confirm the topic (e.g. "order fulfillment", "loan origination") and the level – Big Picture, Process Modeling, or Design Level. If the user supplied no level, default to Big Picture and surface the choice in the Executive Summary.
 
 ### Step 2 – Harvest Events
-Walk the domain chronologically. List orange events in past tense, one per line. Ask the user for missing events when the timeline has unexplained gaps; record unanswered questions as purple hotspots rather than guessing.
+Walk the domain chronologically, listing orange events in past tense, one per line; an unexplained gap in the timeline is a question to the user, and an unanswered one a purple hotspot, never a guess.
 
-### Step 3 – Reverse the Narrative
+### Step 3 – Reverse the Narrative _(Process Modeling and Design Level only)_
 For each event, name the command that caused it (blue) and the actor that issued the command (yellow). When a command has no clear actor, that is a hotspot – flag it.
 
 ### Step 4 – Policies and Read Models _(Process Modeling and Design Level only)_
@@ -59,29 +56,25 @@ Produce the level-appropriate output:
 - **Process Modeling** → workflow boundaries with the commands/events/policies they own.
 - **Design Level** → aggregate candidates with the invariants that would force their state into one transaction.
 
-### Step 7 – Hand-off
-Recommend the next mode explicitly:
-- Big Picture subdomain candidates → invoke the `andthen:architecture` skill in `--mode strategic-design` to formalize subdomain classification, bounded-context sizing, and a context map.
-- Design-Level aggregate candidates → invoke the `andthen:architecture` skill in `--mode decompose` to score the boundary with Ford/Richards drivers.
-- Vocabulary conflicts surfaced as hotspots → invoke the `andthen:ubiquitous-language` skill to lift terms into a per-context glossary.
-- Visual board (timeline, command/actor map) → invoke the `andthen:excalidraw-diagram` skill; the textual board is the source of truth, the diagram is for human review.
+### Step 7 – Emit the Board
+Project the session into the `event-storm` model from `board-models.md`: every sticky with its `kind`, verbatim `label`, and timeline `order`; lanes where the timeline splits by process or actor; flows for the command → aggregate → event → policy chains at Process Modeling and Design Level; the Step 6 candidates with their `members`, aggregates carrying their invariants; unanswered questions as hotspots `attachedTo` the sticky they question. `meta.level`, `scope`, and `source` match the report. Check the candidate against `event-storm.schema.json` and `board-models.md` and write it only when it holds, to `event-storms/<slug>.json` under the `Models` location (see **Project Document Index**; default `docs/models/`), `<slug>` the kebab of the report's scope. A failing board is not written – print the violations and fix the board, never the level. Rewriting the file after each round is welcome: a watching viewer then shows the board live.
 
 ## Greenfield vs. Brownfield
 
-Greenfield and brownfield converge on the same outputs (event timeline, hotspots, level-appropriate candidates); they differ only in input source.
-
-- **Greenfield** – drive the session from a clarification artifact (`requirements-clarification.md`) or the user's narrative description of the workflow. Keep the timeline shallow and surface hotspots aggressively; the goal is to find the questions, not to ship an exhaustive board.
-- **Brownfield** – drive the session from observed behaviour: existing endpoints, message contracts, persisted entities, and the `andthen:map-codebase` skill's outputs when available. Pivotal events often surface as cross-context API calls or transactional boundaries that look arbitrary in code but are load-bearing in the domain.
+- **Greenfield** – drive the session from a PRD, a hand-written `intent.md`, or the user's narrative description of the workflow. Keep the timeline shallow and surface hotspots aggressively; the goal is to find the questions, not to ship an exhaustive board.
+- **Brownfield** – drive the session from observed behaviour: existing endpoints, message contracts, persisted entities, and the `andthen:describe` skill's `--mode codebase` outputs when available. Pivotal events often surface as cross-context API calls or transactional boundaries that look arbitrary in code but are load-bearing in the domain.
 
 ## Report Contents
 
 Event-storming-mode report must include:
 
-1. **Executive Summary** – level run (Big Picture / Process Modeling / Design Level), scope, and the one or two findings that change the conversation
-2. **How to Read This Report** – sticky-note color legend (orange / blue / yellow / lilac / green / purple), level explanation, pivotal-event marker convention
-3. **Event Timeline** – orange events in chronological order; pivotal events marked
-4. **Commands and Actors** – blue commands paired with yellow actors; unattributed commands flagged
-5. **Policies and Read Models** – lilac policies and green read models (Process Modeling and Design Level only; omit for Big Picture)
-6. **Hotspots** – purple unresolved questions, conflicts, and risks
+1. **Executive Summary** – level run, scope, and the one or two findings that change the conversation
+2. **How to Read This Report** – sticky-note color legend, level explanation, pivotal-event marker convention
+3. **Event Timeline** – chronological, pivotal events marked
+4. **Commands and Actors** _(Process Modeling and Design Level only)_ – unattributed commands flagged
+5. **Policies and Read Models** _(Process Modeling and Design Level only)_
+6. **Hotspots** – unresolved questions, conflicts, and risks
 7. **Subdomain Candidates** _(Big Picture)_, **Workflow Boundaries** _(Process Modeling)_, **or** **Aggregate Candidates** _(Design Level)_ – one section per output, anchored on pivotal events with rationale and invariants
-8. **Recommended Next Steps** – explicit hand-off with a one-line trigger condition for each: architecture modes (`strategic-design`, `decompose`) and delegation skills (the `andthen:ubiquitous-language` skill for vocabulary conflicts, the `andthen:excalidraw-diagram` skill for board diagrams)
+8. **Recommended Next Steps** – a one-line trigger condition each: Big Picture subdomain candidates → this skill in `--mode strategic-design`; Design-Level aggregate candidates → `--mode decompose`; vocabulary conflicts surfaced as hotspots → the `andthen:describe` skill in `--mode domain`
+
+The board file's path is printed with the report's; the eight sections are unchanged by the board.

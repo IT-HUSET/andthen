@@ -1,0 +1,14 @@
+name: andthen-exec-plan-worktree-subject
+description: Execute a committed two-story plan with --worktree.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: exec-plan
+    name: Execute the plan in parallel worktrees
+    skill: andthen:exec-plan
+    prompt: "prompt.md"
+    outputs:
+      completion:
+        format: text

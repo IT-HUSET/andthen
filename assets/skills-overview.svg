@@ -1,0 +1,401 @@
+<svg viewBox="0 0 1160 876" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ttl" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<title id="ttl">AndThen skills and workflow – the one workflow, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>
+<style>
+.bg{fill:#FBF8F3}
+.t1{fill:#1A140E}.t2{fill:#5E564C}.t3{fill:#8A8075}
+.kick{fill:#2C5738}
+.band-flow{fill:#F2F6F3;stroke:#B9D0BD;stroke-width:1.5}
+.band-art{fill:#FFFFFF;stroke:#D4C9B3;stroke-width:1.5;stroke-dasharray:6,5}
+.band-core{fill:#FFFFFF;stroke:#B9D0BD;stroke-width:1.5}
+.band-roles{fill:#F5F0E7;stroke:#D4C9B3;stroke-width:1.5}
+.step{fill:#21452C}.step-t{fill:#FBF8F3}.step-s{fill:#B9D0BD}
+.exec{fill:#11251A}.exec-t{fill:#FBF8F3}.exec-s{fill:#8DB294}
+.tail{fill:#3E6E48}.tail-t{fill:#FBF8F3}.tail-s{fill:#DFEAE1}
+.pre{fill:#FFFFFF;stroke:#8DB294;stroke-width:1.5;stroke-dasharray:5,4}.pre-t{fill:#21452C}.pre-s{fill:#5E564C}
+.core{fill:#FBF8F3;stroke:#8DB294;stroke-width:1.5}.core-t{fill:#21452C}
+.role{fill:#E9E1D2}.role-t{fill:#1A140E}.role-s{fill:#5E564C}
+.pill{fill:none;stroke:#5E564C;stroke-width:1.5}.pill-t{fill:#5E564C}
+.card{fill:#FBF8F3;stroke:#D4C9B3;stroke-width:1.5}.card-t{fill:#1A140E}.card-s{fill:#5E564C}.fold{fill:#E9E1D2}
+.arrow{stroke:#5E564C;stroke-width:1.8;fill:none}.ah{fill:#5E564C}
+.link{stroke:#8A8075;stroke-width:1.3}.dot{fill:#8A8075}
+.panel{fill:#11251A}.dk{fill:#E29A63}.db{fill:#FBF8F3}.dh{fill:#8DB294}
+.hot{cursor:pointer}.hot:focus{outline:none}
+.hot:hover>rect,.hot:focus>rect{stroke:#C46326;stroke-width:2.5;stroke-dasharray:none}
+.d{display:none;pointer-events:none}.hot:hover .d,.hot:focus .d{display:block}
+:root:has(.hot:hover) .hot:focus:not(:hover) .d{display:none}
+@media (prefers-color-scheme:dark){
+.bg{fill:#0F1A13}
+.t1{fill:#FBF8F3}.t2{fill:#C9C0B2}.t3{fill:#8A8075}
+.kick{fill:#8DB294}
+.band-flow{fill:#172A1D;stroke:#2C5738}
+.band-art{fill:#131C16;stroke:#3D362E}
+.band-core{fill:#142218;stroke:#2C5738}
+.band-roles{fill:#1C1A15;stroke:#3D362E}
+.step{fill:#3E6E48}.step-s{fill:#DFEAE1}
+.exec{fill:#2C5738}.exec-s{fill:#B9D0BD}
+.tail{fill:#5F8E69}
+.pre{fill:#142218;stroke:#5F8E69}.pre-t{fill:#DFEAE1}.pre-s{fill:#C9C0B2}
+.core{fill:#1B2A1F;stroke:#3E6E48}.core-t{fill:#DFEAE1}
+.role{fill:#3D362E}.role-t{fill:#F5F0E7}.role-s{fill:#C9C0B2}
+.pill{stroke:#C9C0B2}.pill-t{fill:#C9C0B2}
+.card{fill:#1A211C;stroke:#3D362E}.card-t{fill:#FBF8F3}.card-s{fill:#C9C0B2}.fold{fill:#3D362E}
+.arrow{stroke:#C9C0B2}.ah{fill:#C9C0B2}
+.panel{fill:#21452C}
+.hot:hover>rect,.hot:focus>rect{stroke:#E29A63}
+}
+</style>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+<rect width="1160" height="876" class="bg"/>
+<text x="24" y="40" class="t1" font-size="26" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="700">AndThen skills and workflow</text>
+<text x="24" y="62" class="t2" font-size="13" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Spec-driven development for AI coding agents – one workflow, the artifacts it exchanges, standalone skills on call</text>
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">SKILL DETAILS</text>
+<text x="46" y="818" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Hover a skill, artifact, or role to read what it does; click to keep it in view.</text>
+<text x="46" y="838" class="dh" font-size="12.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Inside the README this image is static – click it to open the interactive version.</text>
+<rect x="24" y="84" width="1112" height="218" rx="14" class="band-flow"/>
+<text x="46" y="110" class="kick" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">THE WORKFLOW</text>
+<text x="46" y="134" class="t1" font-size="16" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="600">Idea to merged, one chain</text>
+<text x="46" y="153" class="t2" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Every step reads what the step before it wrote, and each authoring step closes on the next command – printed, never worked out.</text>
+<text x="46" y="168" class="t2" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The design stage between clarify and plan is optional: clarify recommends a trade-off for a fork the PRD leaves open, and UI design where a screen has none.</text>
+<g class="hot" tabindex="0" data-hotspot="clarify">
+<rect x="46" y="184" width="110" height="44" rx="7" class="pre"/>
+<text x="101" y="203" class="pre-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">clarify</text>
+<text x="101" y="218" class="pre-s" font-size="10.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">unless a PRD exists</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · clarify</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The requirements skill: Discovery &amp; Ideation over an idea, a file or a tracker item – gaps, edge cases, scope boundaries, alternatives.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Writes prd.md, or PRODUCT.md at product scope, after at least one round of answered questions; --auto synthesises and records the assumptions.</text>
+</g>
+</g>
+<line x1="162" y1="206" x2="174" y2="206" class="arrow" marker-end="url(#ah)"/>
+<g class="hot" tabindex="0" data-hotspot="architecture">
+<rect x="180" y="184" width="136" height="19" rx="5" class="pre"/>
+<text x="248" y="197" class="pre-t" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">architecture</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · architecture</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">--mode trade-off settles an ADR from weighted options; advise gives design guidance grounded in CUPID / DDD.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">review, decompose, fitness, strategic-design and event-storming run the deep analysis, singly or chained. No code changes.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="ui-ux-design">
+<rect x="180" y="209" width="136" height="19" rx="5" class="pre"/>
+<text x="248" y="222" class="pre-t" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">ui-ux-design</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · ui-ux-design</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">UX research, design systems, and wireframes – singly or chained. Validating the built UI is visual-validation.</text>
+</g>
+</g>
+<line x1="322" y1="206" x2="334" y2="206" class="arrow" marker-end="url(#ah)"/>
+<g class="hot" tabindex="0" data-hotspot="plan">
+<rect x="340" y="184" width="126" height="44" rx="9" class="step"/>
+<text x="403" y="204" class="step-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">plan</text>
+<text x="403" y="219" class="step-s" font-size="10.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">prd.md · file · issue</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · plan</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">The entry for PRD-backed work: plan.json plus a FIS per story, from a prd.md, a requirements file, or a tracker item.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">One cross-cutting review over the bundle, one preflight, then Closure: READY and the exec-plan line. One story is a normal outcome.</text>
+</g>
+</g>
+<line x1="472" y1="206" x2="484" y2="206" class="arrow" marker-end="url(#ah)"/>
+<g class="hot" tabindex="0" data-hotspot="exec-plan">
+<rect x="490" y="184" width="140" height="44" rx="9" class="exec"/>
+<text x="560" y="204" class="exec-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">exec-plan</text>
+<text x="560" y="219" class="exec-s" font-size="10.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">one exec-spec per story</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · exec-plan</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Run a plan bundle: admit every schedulable FIS, one fresh exec-spec subagent per ready story, then the full tier on the final tree.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Ends on a Next: line – one paste, the plan-level review with --fix – for a fresh session. exec-spec is yours to run per story by hand too.</text>
+</g>
+</g>
+<line x1="636" y1="206" x2="648" y2="206" class="arrow" marker-end="url(#ah)"/>
+<g class="hot" tabindex="0" data-hotspot="review">
+<rect x="654" y="184" width="234" height="44" rx="9" class="tail"/>
+<text x="771" y="204" class="tail-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">review</text>
+<text x="771" y="219" class="tail-s" font-size="10.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">--mode code,gap,security,outcome --fix</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · review</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Proof-led code / gap / security / outcome review and PR review; a story's own review is one --quick pass. Proves coverage</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">before the verdict and routes findings into Fix / Note; --fix hands the Fix set to implement-fix. Runs on any diff.</text>
+</g>
+</g>
+<line x1="894" y1="206" x2="906" y2="206" class="arrow" marker-end="url(#ah)"/>
+<g class="hot" tabindex="0" data-hotspot="implement-fix">
+<rect x="912" y="184" width="126" height="44" rx="9" class="tail"/>
+<text x="975" y="210" class="tail-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">implement-fix</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · implement-fix</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Apply a report's Fix-routed findings – what review --fix runs on its own report – or a sentence-sized request of your</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">own, as minimal changes across code, specs, plans, and docs, then re-verify once and annotate. No re-review.</text>
+</g>
+</g>
+<line x1="1044" y1="206" x2="1056" y2="206" class="arrow" marker-end="url(#ah)"/>
+<rect x="1062" y="191" width="56" height="30" rx="15" class="pill"/>
+<text x="1090" y="210" class="pill-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">PR</text>
+<text x="790" y="245" class="t3" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.08em">QUICK TRACK · one story, no PRD</text>
+<g class="hot" tabindex="0" data-hotspot="spec">
+<rect x="790" y="254" width="92" height="34" rx="7" class="step"/>
+<text x="836" y="275" class="step-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">spec</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · spec</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">One FIS from a description, a file or an issue URL, with its one-story plan.json beside it – prd: null, the request is the record.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Also authors one story of a plan under plan --batch. Self-review, preflight, then Closure: READY and the exec-spec line.</text>
+</g>
+</g>
+<line x1="888" y1="271" x2="900" y2="271" class="arrow" marker-end="url(#ah)"/>
+<g class="hot" tabindex="0" data-hotspot="exec-spec">
+<rect x="906" y="254" width="116" height="34" rx="7" class="exec"/>
+<text x="964" y="275" class="exec-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">exec-spec</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · exec-spec</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Implement one FIS where it is invoked: the tasks, the story's proofs and the full tier, one fresh reviewer subagent, then the fixes.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Completes by recording the verified line it saw executed. The same per-story unit exec-plan spawns – run it yourself to watch a single story.</text>
+</g>
+</g>
+<line x1="1028" y1="271" x2="1040" y2="271" class="arrow" marker-end="url(#ah)"/>
+<rect x="1046" y="261" width="56" height="20" rx="15" class="pill"/>
+<text x="1074" y="275" class="pill-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">PR</text>
+<rect x="24" y="318" width="1112" height="112" rx="14" class="band-art"/>
+<text x="46" y="344" class="kick" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">ARTIFACTS</text>
+<text x="46" y="368" class="t1" font-size="16" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="600">The hand-offs</text>
+<text x="46" y="387" class="t2" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Branch-scoped until</text>
+<text x="46" y="402" class="t2" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">the merge</text>
+<g class="hot" tabindex="0" data-hotspot="intent">
+<rect x="224" y="338" width="196" height="74" rx="8" class="card"/>
+<path d="M402,338 L420,356 L402,356 z" class="fold"/>
+<text x="238" y="362" class="card-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700">a short source</text>
+<text x="238" y="382" class="card-s" font-size="11" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">from anywhere, or clarify --brief:</text>
+<text x="238" y="397" class="card-s" font-size="11" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">a note, an issue, intent.md</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">artifact · a short source · optional</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Written by hand – a pasted note, a tracker issue, a sentence, the five-section intent.md – or by clarify --brief; read by clarify,</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">now-what and architecture. The next clarify run folds its substance into prd.md – nothing cites it by path afterwards.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="prd">
+<rect x="455" y="338" width="196" height="74" rx="8" class="card"/>
+<path d="M633,338 L651,356 L633,356 z" class="fold"/>
+<text x="469" y="362" class="card-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700">prd.md</text>
+<text x="469" y="382" class="card-s" font-size="11" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">what and why, agreed;</text>
+<text x="469" y="397" class="card-s" font-size="11" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">the surviving product record</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">artifact · prd.md · durable</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Written by clarify; read by plan and review --mode gap. The governing artifact, and the one that outlives the branch:</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">plan.json and the FIS files are branch-scoped – delete them before the merge; prd.md stays.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="planjson">
+<rect x="687" y="338" width="196" height="74" rx="8" class="card"/>
+<path d="M865,338 L883,356 L865,356 z" class="fold"/>
+<text x="701" y="362" class="card-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700">plan.json</text>
+<text x="701" y="382" class="card-s" font-size="11" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">story inventory, dependencies,</text>
+<text x="701" y="397" class="card-s" font-size="11" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">status, one FIS pointer per story</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">artifact · plan.json · branch-scoped</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Written by plan, or by spec for the one-story plan, and by the run session alone at runtime; read by exec-plan, exec-spec, review, now-what and tracker.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">a story reaches done only together with the verified line quoting what ran. Its prd field is the in-repo source, or null for a tracker item.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="fis">
+<rect x="918" y="338" width="196" height="74" rx="8" class="card"/>
+<path d="M1096,338 L1114,356 L1096,356 z" class="fold"/>
+<text x="932" y="362" class="card-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700">FIS</text>
+<text x="932" y="382" class="card-s" font-size="11" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">intent, scenarios with Proof</text>
+<text x="932" y="397" class="card-s" font-size="11" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">bindings, scope boundaries, tasks</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">artifact · Feature Implementation Specification · branch-scoped</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">One per story, authored by spec – standalone on the quick track, one subagent per story under plan; read by exec-spec and review.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">scenarios with runnable Proof bindings, what we are not doing, and tasks naming what they SATISFY and how to Verify.</text>
+</g>
+</g>
+<line x1="91" y1="230" x2="322" y2="336" class="link" stroke-dasharray="4,4"/>
+<circle cx="91" cy="230" r="3.5" class="dot"/><circle cx="322" cy="336" r="3.5" class="dot"/>
+<line x1="111" y1="230" x2="553" y2="336" class="link" stroke-dasharray="4,4"/>
+<circle cx="111" cy="230" r="3.5" class="dot"/><circle cx="553" cy="336" r="3.5" class="dot"/>
+<line x1="391" y1="230" x2="785" y2="336" class="link" stroke-dasharray="4,4"/>
+<circle cx="391" cy="230" r="3.5" class="dot"/><circle cx="785" cy="336" r="3.5" class="dot"/>
+<line x1="415" y1="230" x2="1016" y2="336" class="link" stroke-dasharray="4,4"/>
+<circle cx="415" cy="230" r="3.5" class="dot"/><circle cx="1016" cy="336" r="3.5" class="dot"/>
+<line x1="836" y1="290" x2="1016" y2="336" class="link" stroke-dasharray="4,4"/>
+<circle cx="836" cy="290" r="3.5" class="dot"/><circle cx="1016" cy="336" r="3.5" class="dot"/>
+<rect x="24" y="446" width="1112" height="220" rx="14" class="band-core"/>
+<text x="46" y="472" class="kick" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">STANDALONE</text>
+<text x="46" y="496" class="t1" font-size="16" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="600">andthen – call any time</text>
+<text x="46" y="515" class="t2" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">No pipeline or setup required; 21 skills in all</text>
+<g class="hot" tabindex="0" data-hotspot="now-what">
+<rect x="46" y="534" width="144" height="38" rx="7" class="core"/>
+<text x="118" y="557" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">now-what</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · now-what</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">First-stop router – inspects project state (init'd? greenfield? brownfield? mid-flow?) and routes to the right skill.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="init">
+<rect x="200" y="534" width="144" height="38" rx="7" class="core"/>
+<text x="272" y="557" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">init</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · init</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Set up the workflow structure: CLAUDE.md / AGENTS.md, the Project Document Index, the orientation docs,</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">the foundational rules guideline, and the four opt-in roles below.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="handoff">
+<rect x="354" y="534" width="144" height="38" rx="7" class="core"/>
+<text x="426" y="557" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">handoff</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · handoff</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Compact the conversation into a document a fresh session resumes from; durable fragments go to the plan and the Learnings document.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="triage">
+<rect x="508" y="534" width="144" height="38" rx="7" class="core"/>
+<text x="580" y="557" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">triage</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · triage</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Investigate, diagnose, and fix build failures, config errors, runtime bugs, regressions, test failures.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">A reproducible bug gets a failing test before the fix. No spec, no plan state.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="testing">
+<rect x="662" y="534" width="144" height="38" rx="7" class="core"/>
+<text x="734" y="557" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">testing</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · testing</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Test strategy (writes the Testing Strategy document), test authoring, TDD, and the Prove-It bugfix flow.</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Suites at every level, E2E included.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="visual-validation">
+<rect x="816" y="534" width="144" height="38" rx="7" class="core"/>
+<text x="888" y="557" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">visual-validation</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · visual-validation</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="describe">
+<rect x="970" y="534" width="144" height="38" rx="7" class="core"/>
+<text x="1042" y="557" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">describe</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · describe</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Describe what a project already is: --mode codebase maps it into docs, --mode domain extracts the Ubiquitous</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Language; --model emits the typed architecture or domain model.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="tracker">
+<rect x="46" y="582" width="144" height="38" rx="7" class="core"/>
+<text x="118" y="605" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">tracker</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · tracker</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Project a plan bundle into the issue tracker: publish creates the parent and one child issue per story,</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">and a re-run refreshes them from the plan's current state.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="backlog-triage">
+<rect x="200" y="582" width="144" height="38" rx="7" class="core"/>
+<text x="272" y="605" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">backlog-triage</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · backlog-triage</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Label, categorize, and route untriaged tracker items toward implementation or a human decision. Debugging a failure is the triage skill.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="spike">
+<rect x="354" y="582" width="144" height="38" rx="7" class="core"/>
+<text x="426" y="605" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">spike</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · spike</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Answer one named design question by building a throwaway runnable spike, then report a verdict – evidence, not product.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="simplify-code">
+<rect x="508" y="582" width="144" height="38" rx="7" class="core"/>
+<text x="580" y="605" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">simplify-code</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · simplify-code</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Behavior-preserving simplification: less complexity, less over-engineering, exact behavior kept.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="skill-review">
+<rect x="662" y="582" width="144" height="38" rx="7" class="core"/>
+<text x="734" y="605" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">skill-review</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · skill-review</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Review one skill bundle or prompt-like file against skill craft – trigger surface, conflicts, contracts, prose failure modes;</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">--fix tightens it with zero contract loss.</text>
+</g>
+</g>
+<text x="46" y="636" class="t3" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">+ the 9 workflow skills above</text>
+<rect x="24" y="682" width="1112" height="64" rx="14" class="band-roles"/>
+<text x="46" y="708" class="kick" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">ROLES</text>
+<text x="46" y="732" class="t1" font-size="16" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="600"></text>
+<text x="46" y="751" class="t2" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"></text>
+<text x="46" y="730" class="t2" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Opt-in subagent tiers installed by init; each pins its model and effort.</text>
+<g class="hot" tabindex="0" data-hotspot="role-oracle">
+<rect x="484" y="694" width="150" height="40" rx="20" class="role"/>
+<text x="559" y="711" class="role-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">oracle</text>
+<text x="559" y="726" class="role-s" font-size="10.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">top model · xhigh</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · oracle · top model · xhigh</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Judgment work the user assigns it, and hard problems an agent hands over because they exceed its tier: a failure that</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">survives a real fix, a design that will not close, a cause the material at hand cannot explain.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="role-implementer">
+<rect x="644" y="694" width="150" height="40" rx="20" class="role"/>
+<text x="719" y="711" class="role-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">implementer</text>
+<text x="719" y="726" class="role-s" font-size="10.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">top model · high</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · implementer · top model · high</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">One fully-specified unit of work: executing a story or spec, research that weighs or synthesises sources,</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">authoring a FIS for a pinned plan story.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="role-reviewer">
+<rect x="804" y="694" width="150" height="40" rx="20" class="role"/>
+<text x="879" y="711" class="role-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">reviewer</text>
+<text x="879" y="726" class="role-s" font-size="10.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">top model · medium</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · reviewer · top model · medium</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">One review pass over a pinned target – a diff, a document, a design, a claim. Effort sits below</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">implementation on purpose: more review effort breeds scope creep, not findings.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="role-worker">
+<rect x="964" y="694" width="150" height="40" rx="20" class="role"/>
+<text x="1039" y="711" class="role-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">worker</text>
+<text x="1039" y="726" class="role-s" font-size="10.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">cheap model · medium</text>
+<g class="d">
+<rect x="24" y="768" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="794" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · worker · cheap model · medium</text>
+<text x="46" y="816" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">One small, well-specified, verifiable subtask: retrieval, scans, mechanical edits, fact lookups against a pinned</text>
+<text x="46" y="834" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">question. Answers found, never made.</text>
+</g>
+</g>
+</svg>

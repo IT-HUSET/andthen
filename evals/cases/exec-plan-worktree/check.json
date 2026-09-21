@@ -1,0 +1,25 @@
+{
+  "allowedPaths": [
+    "src/reporter/pipeline.py",
+    "src/reporter/text_tools.py",
+    "tests/**",
+    "docs/specs/run-summary/**",
+    "docs/LEARNINGS.md",
+    "docs/TECH-DEBT-BACKLOG.md",
+    ".agent_temp/**"
+  ],
+  "commands": [
+    "python3 -m unittest discover -s tests -t .",
+    "python3 -c \"import pathlib, tempfile; from src.reporter.pipeline import run; d = pathlib.Path(tempfile.mkdtemp()); s = d / 'March Ledger.csv'; s.write_text('1,north,40\\n2,south,2\\n'); run(s, d / 'out', 'report.csv'); assert (d / 'out' / 'rows.txt').read_text().strip() == '2'\"",
+    "python3 -c \"from src.reporter.text_tools import normalize_label as n; assert n('  \\\"North Region.\\\" ') == 'north region', n('  \\\"North Region.\\\" ')\"",
+    "test \"$(git worktree list --porcelain | grep -c '^worktree ')\" -eq 1",
+    "test -z \"$(git branch --list 'story/*' 'worktree-*')\"",
+    "test \"$(git rev-list --merges --count HEAD)\" -ge 1",
+    "test \"$(git log --format=%B | grep -c '^Story-ID: S0[12]$')\" -ge 2",
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/run-summary/plan.json"
+  ],
+  "oracle": "oracle.py",
+  "forbiddenArtifacts": [
+    "**/*-review-*.md"
+  ]
+}

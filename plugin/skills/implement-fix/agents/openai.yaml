@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Implement Fix"
+  short_description: "Implement a small fix or a review report's findings, then update plan/FIS status"
+  default_prompt: "Implement this small change or review report's findings with minimal verified changes, re-validate, and update workflow status. Request or review report: "
+
+policy:
+  allow_implicit_invocation: true

@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Spec"
-  short_description: "Generate a new spec or FIS file before implementation; runs fresh-context doc self-review and blocks `spec-ready` on unresolved decision Notes"
-  default_prompt: "Generate a complete Feature Implementation Specification – analyze the codebase first, write the FIS using the template, then run fresh-context doc self-review. Pass `--visual` to hand the produced FIS to the `andthen:visualize` skill after self-review. Feature: "
+  short_description: "Author the FIS for one feature (quick track) or one plan story, with fresh-context self-review"
+  default_prompt: "Author the Feature Implementation Specification for this feature or plan story, then run fresh-context self-review. Feature: "
 
 policy:
   allow_implicit_invocation: true

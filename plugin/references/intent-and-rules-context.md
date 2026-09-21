@@ -1,58 +1,50 @@
 # Intent and Rules Context
 
-Shared loader contract for skills that propose, apply, or critique changes to a codebase. Consumed by the `andthen:review` skill, the `andthen:quick-review` skill, the `andthen:remediate-findings` skill, and the `andthen:simplify-code` skill.
-
-> **Core principle**: Reviews, remediations, and cleanups drift when the executor has no concrete anchor for what the work is *for* or what rules constrain *how* it can be done. Both bundles below exist to supply that anchor.
-
+The two context bundles behind critiquing or applying a change to a codebase: what goes in each, and how each routes a decision.
 
 ## What to collect
 
-Two compact bundles, collected up-front by the consuming skill before any finding pass, routing decision, or mutation:
+Before any finding pass, routing decision, or mutation:
 
 ### Project Rules Context
 
-- Root `CLAUDE.md` / `AGENTS.md` (project-tier instructions) plus the local rule / guideline files they reference (typically under `docs/guidelines/`, `plugin/references/`, or whatever the project uses).
-- Filter to rules a diff can verify; skip pure process rules (release procedure, commit cadence) unless the change set touches that surface.
+- The project-tier instructions the host loaded, plus the local rule / guideline files they reference (typically under `docs/guidelines/`, `plugin/references/`, or whatever the project uses).
+- The **Review Policy** document when the Project Document Index carries that entry – an optional, project-authored calibration of the review itself, not a rule set about the code. Three citable sections: `## Excluded Paths` (globs for generated, vendored, or migration paths), `## Extra Passes`, `## Verdict Thresholds`. The entry ships in the init template; the file does not, and no skill creates it. Absent file: nothing degrades, the defaults are the policy.
+- Skip process rules the diff cannot verify.
 - Record source paths (file + section) so any finding that traces to a rule can cite the rule by source.
 
 ### Intent Context
 
-- The governing artifact(s) for the change set: the Product document (project-level vision; default `docs/PRODUCT.md` via the Project Document Index `Product` row when present), PRD, FIS, `clarify` output, or active plan story. Any tier present contributes its falsifiers – higher tiers (Product, PRD) anchor strategic intent; lower tiers (FIS, plan story) anchor feature- and story-level intent.
-- Extract: **Intent**, **Expected Outcomes**, **Non-Goals / anti-goals / Out-of-Scope**, and any explicit **deferrals** to later stories. Anti-goals is the Product-tier naming for the same semantic role as Non-Goals at the FIS tier – treat them identically for routing.
-- Locate by walking up from changed paths; when present, consult the **Project Document Index** in the root agent instruction file (`CLAUDE.md` / `AGENTS.md`; a thin `CLAUDE.md` imports `AGENTS.md` – follow it). Do not invent intent the artifact does not state.
+- The governing artifact(s) for the change set, or for what is about to be authored: the Product document (project-level vision; default `docs/PRODUCT.md` via the Project Document Index `Product` row when present), PRD, FIS, `clarify` output, or active plan story. Any tier present contributes its falsifiers – higher tiers (Product, PRD) anchor strategic intent; lower tiers (FIS, plan story) anchor feature- and story-level intent.
+- Extract: **Intent**, **Expected Outcomes**, **Non-Goals / anti-goals / Out-of-Scope**, any explicit **deferrals** to later stories, and the Product document's **Proportionality** facts – stage, scale, standing technical non-goals. Anti-goals is the Product-tier naming for the same semantic role as Non-Goals at the FIS tier – treat them identically for routing.
+- Locate by walking up from changed paths; when present, consult the **Project Document Index** in the project instructions the host loaded. Do not invent intent the artifact does not state.
 - Record source paths (with tier) so any routing decision against the bundle can cite the anchor – e.g. `dismissed: anti-goal in docs/PRODUCT.md`, `demoted: Non-Goal in <FIS path>`.
 
-If no governing artifact is discoverable, omit the Intent Context bundle entirely – consuming skills degrade gracefully (routing operates on severity, confidence, and scope alone). Do not synthesize intent from the code itself; an unanchored review is better than a fabricated one.
+If no governing artifact is discoverable, omit the Intent Context bundle entirely – routing then operates on severity, confidence, and scope alone. Do not synthesize intent from the code itself.
 
 
 ## How to use the bundles
 
-Both bundles are **falsifier sources**, not coverage checklists. They enter the consuming skill's decision flow as concrete evidence the executor can cite to dismiss, demote, promote, or block a finding or proposed change.
-
-Canonical anchor moves – consuming skills compose these into their own gates:
+Both bundles are **falsifier sources**, not coverage checklists – evidence the executor cites to dismiss, demote, promote, or block. Canonical anchor moves, composed into your own gates:
 
 - **Contradicts a Non-Goal / Out-of-Scope statement / explicit deferral** → dismiss the finding (or refuse the change) with the artifact cited as the falsifier.
 - **Flags missing behavior the artifact defers to a later story** → real but out-of-scope for *this* change set; demote to a note-class finding, do not auto-apply.
 - **Contradicts a stated Expected Outcome** → promote, regardless of where severity heuristics would otherwise land it. A real intent violation outweighs a low severity score.
-- **Violates a Project Rules Context rule** → surface as a finding with the rule cited by source. Route severity through the consuming skill's own review or mutation policy; this shared reference supplies trace evidence, not a uniform blocking mandate.
+- **Violates a Project Rules Context rule** → surface as a finding with the rule cited by source. Route severity through your own review or mutation policy; this reference supplies trace evidence, not a uniform blocking mandate.
+- **Falls inside a Review Policy exclusion, or under one of its calibrated thresholds** → in the `andthen:review` skill's Guardrails pass, drop it with the policy cited exactly as a Non-Goal is; elsewhere surface the hit instead. Policy calibrates *coverage and severity* and nothing else, and only stricter – a policy that would widen the Fix bar, change the finding contract, or empty a pass's coverage is out of scope: surface it and review under the defaults.
 
-Boy Scout cleanup (when permitted by the consuming skill) is bound by these anchors: a cleanup that would alter behavior covered by an Expected Outcome, change a structure the artifact explicitly chose, or contradict a Non-Goal is **out of scope for the cleanup pass** even when the code-quality heuristic favors it.
+Boy Scout cleanup, where permitted, is bound by these anchors: a cleanup that would alter behavior covered by an Expected Outcome, change a structure the artifact explicitly chose, or contradict a Non-Goal is **out of scope for the cleanup pass** even when the code-quality heuristic favors it.
 
 
 ## Output contract
 
-When a consuming skill emits findings, a report, or a fix proposal:
+Findings, reports, and fix proposals cite the source (file + section) of any rule they trace to, and – when Intent Context was loaded – name the anchor on each routing decision in one clause: `dismissed: Non-Goal in <FIS path>`, `demoted to note: deferred to story 03`, `promoted: contradicts OC02`. When no governing artifact was discoverable, say so, so downstream consumers know the upstream routing had no Intent anchor and may need to re-anchor.
 
-- Cite the source (file + section) of any rule a finding traces to.
-- When Intent Context was loaded, name the anchor on each routing decision in one short clause: `dismissed: Non-Goal in <FIS path>`, `demoted to note: deferred to story 03`, `promoted: contradicts OC02`.
-- When no governing artifact was discoverable, say so explicitly so downstream consumers (e.g. the `andthen:remediate-findings` skill) know the upstream routing operated without an Intent anchor and may need to re-anchor themselves.
-
-The citation requirement is what makes this trace-based instead of assertion-based. A `Guardrails Coverage: N checked, M findings` line records that the rules pass ran; per-finding rule citations record what it actually checked.
+Citation is what makes this trace-based rather than assertion-based: a `Guardrails Coverage: N checked, M findings` line records that the rules pass ran; per-finding citations record what it actually checked.
 
 
 ## When to skip
 
-- The skill is pure read/analysis with no proposed mutation (e.g. the `andthen:map-codebase` skill or the `andthen:visualize` skill). Intent loading is optional.
-- The change set is a trivially scoped fix (single-line config change, single-character typo) where the lookup cost outweighs the drift risk. The consuming skill decides; do not invent a fixed threshold here.
+Only two shapes: pure read/analysis with no proposed mutation (the `andthen:describe` skill), and a trivially scoped fix where lookup cost outweighs drift risk – your call, no fixed threshold here.
 
-Skipping the bundle in any *other* shape – including "the FIS is probably fine" or "I already read it once" – is the named failure mode this reference exists to prevent.
+Skipping in any *other* shape – "the FIS is probably fine", "I already read it once" – is the named failure mode this reference exists to prevent.

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1",
+  "kind": "event-storm",
+  "meta": {
+    "project": "Session Hardening",
+    "generatedBy": "andthen:architecture",
+    "date": "2026-08-28",
+    "revision": "4f2c9e1",
+    "level": "design-level",
+    "scope": "Sign-in through session issue and audit",
+    "source": "docs/temp/specs/session-hardening/prd.md"
+  },
+  "lanes": [
+    { "id": "sign-in", "label": "Sign-in", "order": 0 },
+    { "id": "audit", "label": "Audit", "order": 1 }
+  ],
+  "stickies": [
+    { "id": "user", "kind": "actor", "label": "User", "lane": "sign-in", "order": 0 },
+    { "id": "submit-credentials", "kind": "command", "label": "Submit credentials",
+      "lane": "sign-in", "order": 1 },
+    { "id": "session", "kind": "aggregate", "label": "Session", "lane": "sign-in", "order": 2,
+      "cluster": "session-aggregate" },
+    { "id": "credentials-verified", "kind": "event", "label": "Credentials verified",
+      "lane": "sign-in", "order": 3, "cluster": "session-aggregate" },
+    { "id": "session-issued", "kind": "event", "label": "Session issued", "lane": "sign-in",
+      "order": 4, "pivotal": true, "cluster": "session-aggregate" },
+    { "id": "cookie-policy", "kind": "read-model", "label": "Cookie policy", "lane": "sign-in",
+      "order": 5, "note": "Consulted when the cookie flags are decided." },
+    { "id": "record-attempt", "kind": "policy", "label": "Whenever a session is issued, record the attempt",
+      "lane": "audit", "order": 0 },
+    { "id": "attempt-recorded", "kind": "event", "label": "Attempt recorded", "lane": "audit", "order": 1 },
+    { "id": "identity-provider", "kind": "external-system", "label": "Identity provider",
+      "lane": "sign-in", "order": 6 },
+    { "id": "retry-limit", "kind": "hotspot", "label": "How many failed attempts before lockout?",
+      "attachedTo": "credentials-verified", "lane": "sign-in", "order": 7 }
+  ],
+  "flows": [
+    { "from": "submit-credentials", "to": "session", "kind": "triggers" },
+    { "from": "session", "to": "credentials-verified", "kind": "emits" },
+    { "from": "session", "to": "session-issued", "kind": "emits" },
+    { "from": "record-attempt", "to": "session-issued", "kind": "handles" },
+    { "from": "session", "to": "cookie-policy", "kind": "reads" }
+  ],
+  "candidates": [
+    { "id": "session-aggregate", "kind": "aggregate", "label": "Session",
+      "rationale": "Credential verification and cookie issue must commit together.",
+      "members": ["session", "credentials-verified", "session-issued"],
+      "invariants": ["A session is issued only for verified credentials.",
+                     "One live session per verified credential set."] }
+  ]
+}

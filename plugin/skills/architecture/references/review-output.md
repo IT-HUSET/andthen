@@ -1,120 +1,23 @@
 # Architecture Review Output Format & Severity
 
-## Contents
-- Finding Structure
-- Severity Classification
-- Report Structure (Executive Summary, How to Read, Metrics Dashboard, Findings, Dependency Graph, Decomposition Recommendations, Proposed Fitness Functions)
-- Actionability Requirements
+The finding and report contract for `review`; `decompose` and `fitness` use its Finding Structure under their own Report Contents.
 
 ## Finding Structure
 
-Every finding must follow this format:
+Findings use the Structured Finding Contract in `review-calibration.md`, each headed `### ARCH-{NNN}: {Title}`, read for architecture: `severity` also takes `INFO` (a metric marginally outside its range); `location` names the package or module and its C4 level (Context | Container | Component | Code); `evidence` is quantified – package names, metric values, file paths, import chains ("Ce=12", never "high coupling") – with detection labelled separately from interpretation; `suggested_fix` cites the principle driving it ("Per SAP (Martin) …", never "add interfaces"). Three fields are added:
 
-```
-### ARCH-{NNN}: {Title}
+- `dimension`: modularity | coupling | cohesion | testability | deployability | security | governance
+- `connascence` (when applicable): {type} – Strength: {N}, Degree: {N}, Locality: {N} -> Severity: {score}
+- `fitness_function`: the automated check that prevents recurrence, with its governance level – 1 every commit, 2 every PR, 3 nightly, 4 continual in production. A qualitative finding with no automatable check takes a **manual review checkpoint** instead, phrased as the exact question to answer on re-review.
 
-**Severity**: CRITICAL | HIGH | MEDIUM | LOW | INFO
-**Dimension**: modularity | coupling | cohesion | testability | deployability | security | governance
-**C4 Level**: Context | Container | Component | Code
-**Category**: Cycle | Coupling | Decomposition | Convention | Principle Violation
-
-**Evidence**: {specific packages, files, metric values, import chains}
-
-**Connascence** (if applicable): {type} – Strength: {N}, Degree: {N}, Locality: {N} -> Severity: {score}
-
-**Impact**: {which quality attribute is affected and how}
-
-**Recommendation**: {specific, actionable fix with rationale}
-
-**Fitness Function**: {proposed automated check to prevent recurrence}
-
-**Fix Prompt**: {copy-pasteable instruction for remediation}
-```
-
----
-
-## Severity Classification
-
-| Severity | Meaning | CI Behavior | Examples |
-|----------|---------|-------------|---------|
-| **CRITICAL** | Blocks deployment independence or crosses security boundary | Break build | Dynamic connascence (CoI/CoV) across service boundary; circular dep in critical path |
-| **HIGH** | Principle violation with measurable impact | Fail pipeline | SDP violation; cycle > 3 nodes; Zone of Pain with D > 0.7 |
-| **MEDIUM** | Architectural drift or suboptimal structure | Warn | Zone of Pain with D 0.3-0.7; instability creep; god module emerging |
-| **LOW** | Convention violation or minor structural issue | Info | Naming inconsistencies; orphan modules; mild abstraction deficit |
-| **INFO** | Metrics outside recommended range by small margin | Log only | D slightly above 0.3; Ce approaching threshold |
-
----
+`Class:` and `Routing:` do not apply – these modes analyse and never remediate. Severity follows the calibration's contrastive pairs; the fitness function enforcing a finding breaks the build for CRITICAL, fails the pipeline for HIGH, warns for MEDIUM, and logs LOW and INFO.
 
 ## Report Structure
 
-### 1. Executive Summary
-3-5 sentences. Include:
-- Overall health characterization (one sentence)
-- Count of findings by severity
-- Most critical issue (one sentence)
-- Most impactful recommendation (one sentence)
-
-Example:
-> This codebase has a healthy layered structure with clear package boundaries, but the core utility package sits deep in the Zone of Pain (D=0.95). Found 2 CRITICAL, 3 HIGH, 5 MEDIUM findings. The most urgent issue is a 4-node dependency cycle between config, channel, task, and events packages. Extracting interfaces from the core package would resolve 4 of the 10 findings.
-
-### 2. How to Read This Report
-
-Add a compact reader legend before the detailed analysis. Keep it short and explain only terms actually used in the report.
-
-Recommended contents:
-- **Metric legend**: `Ca` = inbound dependents, `Ce` = outbound dependencies, `I` = instability (`0` stable, `1` volatile), `A` = abstractness, `D` = distance from the ideal "main sequence" (`0` best, `>0.3` worth attention). If graph-level metrics appear, define `CCD` (cumulative component dependency), `ACD` (average component dependency), and `NCCD` (normalized cumulative component dependency).
-- **Finding-field legend**: if findings use `C4 Level`, explain the scale in one line: `Context` = system landscape, `Container` = deployable/runtime building blocks, `Component` = internal module/service slice, `Code` = file/class/function level.
-- **Principle legend**: expand any package principles you use such as `ADP` (Acyclic Dependencies Principle), `SDP` (Stable Dependencies Principle), and `SAP` (Stable Abstractions Principle).
-- **Zone legend**: explain labels like `Zone of Pain` and `Zone of Uselessness` in one line each when they appear.
-- **Connascence legend**: if findings use `Co*` shorthand, explain the static progression `CoN`/`CoT`/`CoM`/`CoP`/`CoA` and the stronger dynamic forms `CoE`/`CoTm`/`CoV`/`CoI`; dynamic cross-boundary connascence is materially riskier.
-
-Prefer one short paragraph plus a compact table or 4-6 bullets. Do not turn this into a tutorial.
-
-### 3. Metrics Dashboard
-
-Per-package table:
-
-| Package | Ca | Ce | I | A | D | Zone | Notes |
-|---------|----|----|---|---|---|------|-------|
-| core | 14 | 2 | 0.13 | 0.02 | 0.85 | Pain | Concrete hotspot |
-| models | 8 | 0 | 0.00 | 0.90 | 0.10 | OK | Pure abstractions |
-| server | 0 | 12 | 1.00 | 0.05 | 0.05 | OK | Application leaf |
-| storage | 3 | 4 | 0.57 | 0.30 | 0.13 | OK | Near main sequence |
-
-Include graph-level metrics if available: CCD, ACD, NCCD.
-
-### 4. Findings
-Sorted by severity (CRITICAL first), then by dimension. Use the finding structure above for each.
-
-### 5. Dependency Graph
-Text description of the condensed DAG (SCCs collapsed). Note:
-- Direction of all edges
-- Which packages are leaves (I ~ 1)
-- Which packages are foundations (I ~ 0)
-- Any cycles (highlight in findings)
-
-### 6. Decomposition Recommendations
-If applicable – modules that should be split or merged, based on findings. Reference the specific findings that drive each recommendation.
-
-### 7. Proposed Fitness Functions
-The primary actionable output. For each:
-- Name
-- What it checks
-- Threshold
-- Governance stack level (1-4)
-- Implementation (language-specific tooling)
-- Which findings it addresses
-
----
-
-## Actionability Requirements
-
-These rules prevent vague, noisy output that erodes trust:
-
-1. **Every finding needs specific evidence**: package names, metric values, file paths, import chains. Never "this module seems too large."
-2. **Quantify impact**: "Ce=12" not "high coupling." "D=0.95" not "far from main sequence."
-3. **Include the Fix Prompt field**: A copy-pasteable instruction that could be given to an agent or developer to remediate the finding.
-4. **Separate detection from explanation**: Detection is metric-based and objective. Explanation is contextual and qualitative. Label which is which.
-5. **Avoid false positives**: If a metric is borderline, report as INFO with context, not as HIGH. Noisy reviews get ignored.
-6. **Framework attribution**: Every recommendation cites the principle driving it. "Per SAP (Martin)..." not just "you should add interfaces."
-7. **Optimize for an informed non-specialist reader**: define jargon in the report legend or on first use. Do not assume the reader already knows connascence, C4 shorthand, or package/graph metric abbreviations.
+1. **Executive Summary** – overall health in one sentence, counts by severity, the most critical issue, the most impactful recommendation.
+2. **How to Read This Report** – a compact legend for an informed non-specialist, expanding only the shorthand this report actually uses: package and graph metrics, C4 levels, package principles, zone labels, connascence forms; every abbreviation is defined here or on first use.
+3. **Metrics Dashboard** – per-package table `Package | Ca | Ce | I | A | D | Zone | Notes`, plus CCD / ACD / NCCD when the tooling produced them.
+4. **Findings** – the structure above, sorted by severity (CRITICAL first), then by dimension.
+5. **Dependency Graph** – the condensed DAG (SCCs collapsed) in text: edge direction, which packages are leaves (I ≈ 1), which are foundations (I ≈ 0), and any cycles, each also a finding.
+6. **Decomposition Recommendations** – only when findings drive one; each names the findings behind it.
+7. **Proposed Fitness Functions** – the primary actionable output. Per function: name, what it checks, threshold, governance level, language-specific implementation, and the findings it addresses. On an existing codebase carrying many violations, propose a **frozen-rules** baseline – snapshot the count, fail only on new violations, ratchet down, then switch to zero tolerance – rather than a zero-tolerance rule nobody can adopt.

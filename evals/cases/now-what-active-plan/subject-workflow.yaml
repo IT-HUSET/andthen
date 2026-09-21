@@ -1,0 +1,16 @@
+name: andthen-now-what-active-plan-subject
+description: Route an initialized project with an active plan past its doc stubs.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: route
+    name: Route mid-flow
+    skill: andthen:now-what
+    prompt:
+      - >-
+        recommendation only: what is the next step for this project?
+    outputs:
+      route:
+        format: text

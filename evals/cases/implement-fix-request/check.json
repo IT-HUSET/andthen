@@ -1,0 +1,18 @@
+{
+  "allowedPaths": [
+    "src/**",
+    "tests/**",
+    "docs/LEARNINGS.md",
+    "docs/TECH-DEBT-BACKLOG.md",
+    ".agent_temp/**"
+  ],
+  "commands": [
+    "python3 -m unittest discover -s tests -t .",
+    "test $(git rev-list --count HEAD) -eq 1"
+  ],
+  "requiredText": {
+    "src/reporter/text_tools.py": [
+      "def shout"
+    ]
+  }
+}

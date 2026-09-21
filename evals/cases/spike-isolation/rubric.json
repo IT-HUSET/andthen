@@ -1,0 +1,8 @@
+{
+  "criteria": [
+    {
+      "id": "SPIKE_ANSWERS_WITH_NUMBERS",
+      "intent": "the Spike Verdict answers the one question with measured numbers from code that ran, names the spike/<slug> branch and the command to reproduce it, and states what the spike did not cover"
+    }
+  ]
+}

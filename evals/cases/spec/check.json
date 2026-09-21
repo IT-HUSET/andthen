@@ -1,0 +1,22 @@
+{
+  "requiredArtifacts": [
+    "docs/specs/label-slug/s01-slugify-label.md",
+    "docs/specs/label-slug/plan.json",
+    "**/review-evidence.json"
+  ],
+  "forbiddenArtifacts": [
+    "docs/specs/label-slug/prd.md",
+    "**/intent.md"
+  ],
+  "allowedPaths": [
+    "docs/specs/label-slug/**",
+    "**/review-evidence.json",
+    "docs/LEARNINGS.md",
+    "docs/TECH-DEBT-BACKLOG.md",
+    ".agent_temp/**"
+  ],
+  "commands": [
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/label-slug/plan.json"
+  ],
+  "oracle": "oracle.py"
+}

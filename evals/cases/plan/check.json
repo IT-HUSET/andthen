@@ -1,0 +1,11 @@
+{
+  "requiredArtifacts": ["docs/specs/amount-filter/plan.json"],
+  "forbiddenArtifacts": ["docs/specs/amount-filter/prd.generated.md"],
+  "allowedPaths": ["docs/specs/amount-filter/**", "docs/LEARNINGS.md",
+                   "docs/TECH-DEBT-BACKLOG.md", ".agent_temp/**"],
+  "commands": [
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/amount-filter/plan.json",
+    "git diff HEAD --exit-code --name-only -- docs/specs/amount-filter/prd.md 1>&2"
+  ],
+  "oracle": "oracle.py"
+}

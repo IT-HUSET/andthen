@@ -1,0 +1,16 @@
+name: andthen-implement-fix-request-subject
+description: Implement a small inline request with verification and no publication.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: implement-fix
+    name: Implement shout
+    skill: andthen:implement-fix
+    prompt:
+      - >-
+        add shout(text) to src/reporter/text_tools.py, returning the text uppercased with one trailing exclamation mark, with a unit test
+    outputs:
+      summary:
+        format: text

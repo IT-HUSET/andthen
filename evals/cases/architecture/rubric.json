@@ -1,0 +1,5 @@
+{"criteria": [
+  {"id": "ARCH_CRITERIA_REASONING", "intent": "The comparison applies the frozen weighted criteria with evidence."},
+  {"id": "ARCH_TRADEOFF_PRESERVATION", "intent": "Material strengths and weaknesses of rejected alternatives remain visible."},
+  {"id": "ARCH_PROPORTIONAL_RECOMMENDATION", "intent": "The recommendation justifies what it buys over the floor option."}
+]}

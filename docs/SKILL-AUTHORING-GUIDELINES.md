@@ -1,623 +1,142 @@
 # Skill-Authoring Guidelines
 
-Generic guidelines for authoring Claude Code / Claude Agent skills (SKILL.md bundles). Supplements – does not restate – the general prompt-engineering rules in `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md`. Read those first; this doc covers what's specific to *skills* as a packaging and discovery format.
+How to write a `SKILL.md` bundle that a current frontier model runs well at the smallest context cost. Anthropic's Agent Skills best-practices page and the Agent Skills specification own the general doctrine; this document carries the numbers, what the current model generation changes, and this repository's own craft and constraints. Read `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md` first – it says what belongs in any prompt and what no longer does.
 
-**Audience**: anyone authoring or reviewing a `SKILL.md` bundle, including AI agents editing skill content.
+**Audience**: anyone, human or agent, authoring or reviewing a skill bundle.
 
----
+## What a skill is
 
-## What a Skill Is
+A folder – `SKILL.md` plus optional references and scripts – that an agent discovers by name and description and loads on demand. It is an onboarding guide for a capable new hire, not a manual: it carries what the model cannot know (this project's contracts, the counter-intuitive rules, the named failure modes) and nothing the model already does unprompted.
 
-A skill is an **organized folder** – a `SKILL.md` plus optional reference files and scripts – that an agent discovers by name and description, loads on demand, and uses to perform a specific task well. The mental model: *an onboarding guide for a new hire*. The skill captures procedural knowledge so the model behaves competently without holding that knowledge in the base context.
+It loads in three levels – progressive disclosure – and each level is paid differently:
 
-What discriminates a good skill from a bad one:
+| Level | Loads | Cost |
+|---|---|---|
+| Metadata (`name`, `description`) | Every turn, every installed skill | ~100 tokens per skill, always |
+| Body | On trigger, then stays in context | Under 500 lines / 5k tokens |
+| References and scripts | On explicit read or run | Zero until used |
 
-- **Concise**. Once loaded, every token competes with conversation history and other context.
-- **Right degree of freedom**. Instruction specificity matches task fragility.
-- **Progressively disclosed**. Information loads in stages; only the right level for the current task occupies context.
-- **Reliably triggered**. The description discriminates clearly between "fire" and "don't fire".
-- **Evaluation-driven**. Written to pass tested failure modes, not imagined ones.
+The limits, from the specification and the hosts:
 
----
+| Item | Limit | Source |
+|---|---|---|
+| `name` | 1–64 chars, lowercase, hyphens, matches the directory | Agent Skills spec |
+| `description` | 1–1,024 chars; Claude Code allows 1,536 with `when_to_use` | spec; Claude Code |
+| All descriptions together | 2% of the context window, or 8,000 chars when unknown | Codex |
+| `SKILL.md` body | Under 500 lines, under 5k tokens | spec |
+| References | One level deep from `SKILL.md` | spec; the installer enforces it |
+| Reference table of contents | Files over 100 lines | Anthropic |
+| Instruction files | `AGENTS.md` chain 32 KiB on Codex; `CLAUDE.md` under 200 lines | Codex; Claude Code |
 
-## Progressive Disclosure: the Bundle Architecture
-
-A skill loads in three levels. Treat this as a **file-layout discipline**, not just a prompting technique.
-
-| Level | What loads | When | Budget |
-|-------|------------|------|--------|
-| 1. Metadata | `name` + `description` (frontmatter only) | Always, at session start | ~100 tokens per skill |
-| 2. Body | `SKILL.md` body | When the skill is triggered | Target <500 lines / ~5k tokens |
-| 3. Resources | Reference files, scripts | On demand, via explicit read / execute | Effectively unbounded |
-
-`SKILL.md` is an **overview that points to deeper material** – like a table of contents in an onboarding guide. It carries the quick-start and common-path content *inline* and defers advanced, conditional, and reference detail to bundled files. The framing is *navigational*, not a license to strip the body to bare links – up to ~500 lines is well within budget.
-
-### Bundle layout rules
-
-- Keep references **one level deep** from `SKILL.md`. Do not chain `SKILL.md → A.md → B.md`; the model may use `head -100` to preview intermediates and miss downstream content.
-- Name files descriptively (`form-validation-rules.md`, not `doc2.md`).
-- Use forward slashes in paths, on every platform.
-
-### Add a table of contents to long reference files
-
-For any reference file over **~200 lines**, place a short table of contents at the top. The model often previews large files with partial reads; without a TOC it sees only the first slice and can't tell what else is in the file. Below the threshold a TOC is optional – a file that fits a single read needs no map, and forcing one adds a drift surface.
-
-```markdown
-# API Reference
-
-## Contents
-- Authentication and setup
-- Core methods (create, read, update, delete)
-- Advanced features (batch operations, webhooks)
-- Error handling patterns
-- Code examples
-
-## Authentication and setup
-…
-
-## Core methods
-…
-```
-
-Keep the TOC compact – one line per section, no nested sub-bullets unless a section is genuinely deep. It is a *map*, not an outline.
-
-Update the TOC in the same edit that adds, renames, or removes a section. A stale TOC omitting a section – especially one another file deep-links to – is worse than none, and survives review because the body still reads fine on its own.
-
-### Three disclosure patterns
-
-**Pattern 1 – High-level guide with references.** `SKILL.md` carries the quick start and points to reference files for advanced topics:
-
-```markdown
-## Quick start
-[concise minimum content]
-
-## Advanced features
-**Form filling**: See [FORMS.md](FORMS.md)
-**API reference**: See [REFERENCE.md](REFERENCE.md)
-**Examples**: See [EXAMPLES.md](EXAMPLES.md)
-```
-
-**Pattern 2 – Domain-specific organization.** When content splits cleanly by domain, organize references by domain so the model loads only what the current task needs:
-
-```
-bigquery-skill/
-├── SKILL.md
-└── reference/
-    ├── finance.md
-    ├── sales.md
-    ├── product.md
-    └── marketing.md
-```
-
-`SKILL.md` lists each domain with a one-line summary and a link. A query about revenue loads `finance.md` only.
-
-**Pattern 3 – Conditional details.** Show the basic content inline; link to advanced content for cases the user might or might not hit:
-
-```markdown
-## Editing documents
-For simple edits, modify the XML directly.
-
-**For tracked changes**: See [REDLINING.md](REDLINING.md)
-**For OOXML details**: See [OOXML.md](OOXML.md)
-```
-
----
+Codex shortens descriptions and then drops skills when the shared budget overflows; this repository's 27 shipped descriptions total about 7,300 chars, under the 8,000 fallback only while every one stays lean. Description length is a packaging budget every skill shares.
 
 ## Frontmatter
 
-| Field | Required | Purpose |
-|-------|----------|---------|
-| `name` | yes | Skill identity and display label. ≤64 chars, lowercase letters/digits/hyphens only. No reserved words ("anthropic", "claude"). The `/command` name comes from the skill's *directory*, not this field (except a plugin-root `SKILL.md`). |
-| `description` | yes | The discovery trigger. 1–1024 chars. See *Description Engineering* below. |
-| `when_to_use` | no | Extra trigger context, appended to `description` in the skill listing (combined cap 1,536 chars in Claude Code, configurable). |
-| `argument-hint` | no | Shown in autocomplete (e.g. `[issue-number]`). |
-| `allowed-tools` | no | **Pre-approves** tool calls while the skill is active. Does not restrict – session permissions still apply for unlisted tools. |
-| `disable-model-invocation` | no | `true` removes the skill from automatic discovery; only the user can invoke. Use for side-effectful workflows (deploy, send-message, commit) where you don't want the model deciding timing. |
-| `user-invocable` | no | `false` hides the skill from the `/` menu but leaves it in the model's background knowledge. |
-| `context: fork` | no | Runs the skill in an isolated subagent context; the skill body becomes the subagent's prompt – no access to outer conversation. Pair with `agent` to pick the subagent type (`Explore`, `Plan`, custom; default `general-purpose`). Only useful when the skill contains an actionable task, not bare guidelines. |
-| `model`, `effort` | no | Do not use in AndThen `plugin/skills/*/SKILL.md` unless requirements and runtime support are added; current model/effort steering lives in agent metadata and sub-agent instructions. |
-| `paths` | no | Glob patterns gating auto-activation to matching files. |
-| `hooks`, `shell` | no | Lifecycle hooks; default shell for embedded `!` blocks. |
+Claude Code reads `name`, `description`, `when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `allowed-tools`, `disallowed-tools`, `model`, `effort`, `context`, `agent`, `background`, `hooks`, `paths`, `shell`, `metadata`, `license`, `compatibility`. Only `name`, `description`, `license`, `metadata`, `compatibility`, and `allowed-tools` are in the specification; the rest are host extensions, and Codex reads its own `agents/openai.yaml` beside the skill.
 
-### Naming conventions
+- The `/command` name comes from the directory, not `name`.
+- `model` and `effort` stay out of shipped AndThen skills: the role definitions and the session are the only steering surface (`docs/MODEL-EFFORT-SELECTION-GUIDE.md`).
+- `context: fork` runs the body as a fresh subagent's prompt with no access to the conversation; use it only for a skill that is an actionable task, and pair it with `agent` to pick the subagent type.
+- `disable-model-invocation: true` for side-effectful workflows (deploy, publish, commit) where the model must not choose the timing; `user-invocable: false` hides a model-only skill from the menu.
+- `allowed-tools` pre-approves; it does not sandbox. List what the skill needs so review is legible.
 
-Prefer **gerund form** (verb + `-ing`) – it clearly describes the activity: `processing-pdfs`, `analyzing-spreadsheets`, `testing-code`. Acceptable alternatives: noun phrases (`pdf-processing`), action-oriented (`process-pdfs`).
+## Description engineering: the trigger surface
 
-Avoid: `helper`, `utils`, `tools`, `documents`, `data`, `files`, reserved words.
+It is the only text the model sees before the skill fires, it loads every turn, and Codex trims it first. Write it as one discriminating sentence pair:
 
----
+- Third person, present tense: what the skill does, then when to use it, in the words users actually say.
+- The load-bearing trigger first: earlier text wins under primacy bias and survives budget trimming.
+- One boundary clause when an adjacent skill is easily confused ("not for executing an existing spec – that is `exec-spec`").
+- No manual, no option menu, no procedure.
+- Calibrated urgency is allowed here, because skills under-trigger, and nowhere else in the bundle.
 
-## Description Engineering: the Trigger Surface
+Failure modes: too vague (never selected); too broad (fires on unrelated work – tighten the boundary or set `disable-model-invocation`); a term the description uses and the body never explains; a description that grows one phrase per missed trigger – enumerated queries generalize worse than a named category of intent.
 
-The `description` is the **only signal** the model uses to decide whether to activate a skill from a list that may number in the hundreds. It is loaded into every system prompt; nothing else from the skill is visible until it fires. Treat description authoring as a discrete craft.
+## The body
 
-**Rules:**
+Written for the model that executes it, read once when the skill fires, and laid out for the person who maintains it. Prompts and skills written for prior models are too prescriptive for the current generation and reduce output quality (Anthropic's migration guide; OpenAI's Astra guidance): state the goal, the constraints, the verification, and the named failure modes, and let the model plan.
 
-1. **Always third person.** *"Processes Excel files and generates reports"*, not *"I help with Excel"* or *"You can use this to…"*. Mixed point-of-view degrades discovery.
-2. **Encode *what* and *when*.** Capability alone is insufficient; include the trigger conditions.
-   - Good: *"Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, or document extraction."*
-   - Bad: *"Helps with documents."*
-3. **Include user vocabulary.** Add the phrases users actually say – synonyms, casual terms, error messages.
-4. **Add a negative constraint when scope is easily confused with a sibling skill.** *"Do not use when the user wants to execute an existing spec – use `exec-spec` for that."* Negative constraints prevent the most common mis-fire.
-5. **Put the load-bearing trigger first.** Descriptions can be budget-trimmed in long skill listings; the first sentence must do the work.
-6. **Do not write a manual.** The description is a trigger, not documentation.
+- **Intent over procedure.** Match specificity to fragility. An open field takes a direction and heuristics; a narrow bridge with cliffs – migrations in sequence, destructive commands, auth flows – takes the exact command. Numbered steps only where one sequence is safe.
+- **Why beside the rule.** A rule with its reason generalizes to cases the author never listed; a bare rule is followed rigidly or rationalized past. The reason is what earns the tokens.
+- **Leading words** (a project convention, unmeasured)**.** Name a load-bearing rule with a term that carries pretraining weight (*Chesterton's Fence*, *Stop-the-Line*, *tracer bullet*) and reuse the term verbatim in description, body, and references. The term replaces its explanation: keep only what the project adds to the common meaning, and settle what that meaning is by asking the cheapest model cold, never from your own recall. A coined term recruits no priors and costs its definition every time.
+- **Gates over steps.** A phase ends on a falsifiable condition ("every modified model accounted for"), not an action ("produce a change list"). A gate has two dials: clarity, so done is distinguishable from not-done, and demand, so satisfying it forces the invisible work. Visible later phases pull the model toward being done – *premature completion*; sharpen the current gate first, and hide later phases behind a fresh subagent only when rushing is observed in runs.
+- **Dispatch sites.** A delegating step writes the dispatch, never the work: which skill the subagent invokes, fresh context or in-session and why, the values it cannot derive, the return shape the caller parses. Values pass as that skill's arguments. The skill body loaded there is the **Single Authority**; a hand-rolled prompt is a second copy that drifts.
+- **Structured blocks.** Uncertainty and out-of-scope observations surface in named blocks with one grammar, so orchestrators parse them and the model cannot rationalize past them: `CONFUSION:`, `BLOCKED:`, `NOTICED BUT NOT TOUCHING:`, `MISSING REQUIREMENT:`, each `<what> – <what would resolve it>`.
+- **The host already speaks.** Before a skill states an autonomy, scope, progress, or formatting rule, read the host's system prompt – the general guidelines say why – and keep instruction precedence (the user's instructions over a skill's) in `AGENTS.md` once, never per skill.
+- **Headless by default.** Execution skills run to completion on explicit assumptions, conservative defaults, and recorded open questions; a stop is a `BLOCKED:` block naming what unblocks it. Discovery and design skills are interactive by contract – the interview is the deliverable – and say so; suggested or preselected answers are never confirmation.
+- **The argument line.** The body opens with one sentence placing the single `$ARGUMENTS` substitution point and stating only what `argument-hint` cannot – a default, a validity rule, a resolution order. No usage block and no variables block re-deriving the hint.
+- **Data in lists**, on the general guidelines' terms. In a skill the data is a verb's output tokens and what each one triggers, a route chosen by flag or host, a dispatch's return shape.
+- **Tables hold short cells.** A cell is a phrase; a sentence or an instruction becomes a list (`tests/test_table_legibility.py` fails any cell over 200 chars).
 
-**Common failure modes:** too vague (never selected); too broad (fires on unrelated tasks – tighten with a negative constraint, or set `disable-model-invocation: true`); terminology drift between description and body (the model triggers on a term the body never explains).
+## Pruning
 
----
+Length itself buys no compliance; what it costs, and what conflict costs, is in the general guidelines. Prune in this order:
 
-## Writing the Body
+1. **Conflict audit.** Read the body, its references, `AGENTS.md`, and the host prompt together and resolve every pair that pulls in different directions. This comes first because no cut repairs a conflict.
+2. **The distillation test, per consuming path.** Delete the block: does a competent frontier model now do something different, and worse, on this path? Only three answers keep text: a counter-pretraining calibration (the untutored default is wrong), a named agent failure mode (a behaviour models actually exhibit), or a contract another skill or a parser reads. A block that is contract on one path and inert on another fails the test on the second path; the cure is a split by consumer, not a rewrite.
+3. **The four failure modes**, by name. *Duplication* – one meaning stated twice, already drifting; one canonical statement. *Sediment* – layers left by add-only edits; rework the section whole. *Sprawl* – material only some paths need, inline; move it to a reference loaded behind a condition the model decides without judgment (a flag, a mode, a host). *No-op* – what the model does unprompted ("be thorough") and filler; delete, and settle disputes by running the skill.
+4. **Count live instructions on the loaded path.** Compliance degrades from roughly 150–200 simultaneous instructions across system prompt, instruction files, skill, and references, and earlier instructions win.
+5. **Prove nothing was lost.** Before the first edit, list the contracts on the loaded path: tokens, flags, arguments, dispatches, gates, named failure modes, literal commands, paths, numbers, and each rule with its reason. After the last, each one is kept, moved, or cut with its keeper named.
+   - A moved item sits in a reference whose load site comes before the first step that needs it, under a condition shown true on every invocation that reached it. A gate or fail-fast check stays in the body, because position is part of its contract.
+   - Diff the code spans of the before and after text with a command; reading misses omissions.
+   - A fresh-context reviewer builds its own list from the before text and resolves it against the after text.
+   - Re-run the skill's test or eval case.
+   - Doubt reverts the edit: a regression costs more than the characters saved.
 
-The body is read once, when the skill fires. Optimize for the model that will execute it, not the human who reads it on GitHub.
+Contract markers that protect a span: an imperative lead verb, enumerated inputs, outputs, or modes, a counter-prior phrase ("preserving exact behaviour"), a verification commitment, a fail-fast gate at the top of the body – position is part of that contract. Always-safe cuts – the general guidelines' anti-patterns – usage blocks restating slash syntax (`argument-hint` owns it), description restatement, generic virtues, migration phrasing ("now", "no longer"), retired-model workarounds, examples of judgment the model owns. Examples survive only where they pin an output shape, on the general guidelines' terms.
 
-### Intent over procedure
+When unsure whether the model already knows a span, propose the cut, unless a contract marker is present: redundant context cost 14–22% more reasoning tokens and lowered task success in the measured cases, and step 5 catches a wrong cut on a contract. Off that list nothing does, so name where the behaviour still comes from. A cut removes meaning the model does not need, never markup: collapsing a list into a paragraph or chaining sentences with dashes lowers the character count and keeps every instruction, harder to find. The size of a lean skill is whatever survives this pass; a remainder still too large for one trigger means moving content out of per-run context – a deeper tier, a split by consumer – not trimming harder. The shipped surface as a whole carries one aggregate word budget (ADR-018): a budget on an authored artifact, like the description budget above, not the output shaping the prompt guidelines reject. A change that grows past it cuts elsewhere or raises the number in the same commit, where the raise is one reviewed line.
 
-State the **goal, the success criteria, and the failure modes**. Let the model fill in routine engineering decisions. Be specific about counter-intuitive behavior, cross-skill contracts, named failure modes, and gates. Be general about standard engineering practices. If a frontier model would naturally do something competently, don't instruct it.
+## Scripts and references
 
-### Why before what
+Script source never enters context; only its output does. Deterministic work goes to a script, with explicit error handling and specific messages, and the body says whether to run it or read it. References are rubrics – a lens, a calibration, a schema, a contract – never a procedure handed to a subagent as "read this and perform it"; one file per domain so a task loads only its own; a table of contents above 100 lines; MCP tools named `Server:tool`.
 
-A rule without a *why* is followed rigidly; a rule with a *why* is followed intelligently and generalizes to edge cases the author didn't enumerate. The tokens spent on rationale are not waste – they prevent the model from rationalizing past the rule when conditions shift.
+**Loading a reference.** A reference loads where its path appears in `SKILL.md` – `references/<name>.md` for the skill's own file, `../../references/<name>.md` for a canonical, both relative to the skill root the host announces – as a link URL or a code span; the sentence around the path says what the file carries and when to read it, an unconditioned path meaning read it on reaching the line. A mode table's cells carry the paths. A bare `<name>.md` or a declared alias (*The Authoring Guidelines*) is a mention and loads nothing, so it may name only a file the same body already loads by path, or another skill's file as a fact – a model opens what a step needs and it can resolve, so a bare name of an unloaded file that exists under `references/` is a load waiting to happen, and `install-skills.sh --validate-only` fails on it. Every file but `SKILL.md` mentions and never links or paths, code fences included: chained loads get partial reads (`head`), which is why references stay one level deep.
 
-### Degrees of freedom
+## Prove it
 
-Match instruction specificity to **task fragility**. The same skill can use different freedom levels in different sections.
+- **Evaluation-driven authoring**, on the general guidelines' terms: baseline the model unaided, write the minimum text that fixes the observed failures, keep the cases, re-run after every cut, and test each tier the skill will meet.
+- **This repository's gates**: the fast tier in `AGENTS.md` § Testing, the install validate-only check, the eval cases under `evals/cases/`.
 
-| Level | When to use | Form |
-|-------|-------------|------|
-| **High freedom** | Multiple valid approaches; decisions depend on context | Text-based instructions, heuristics |
-| **Medium freedom** | A preferred pattern exists; some variation acceptable | Pseudocode, parameterized templates, scripts with options |
-| **Low freedom** | Fragile or error-prone operations; consistency critical | Specific scripts, few or no parameters, exact commands |
+## Repository constraints
 
-**Analogy.** Treat the model as a robot navigating a path:
-- *Narrow bridge with cliffs on both sides* → only one safe way forward; specific guardrails and exact instructions (low freedom). Example: database migrations that must run in exact sequence.
-- *Open field with no hazards* → many paths lead to success; general direction is enough (high freedom). Example: code reviews where context determines the best approach.
+`AGENTS.md` states them once – § Skill And Agent Model (no invocation sigils, `andthen:<name>` with the type noun adjacent, the wording audit) and § Maintenance Contracts (the README and CHANGELOG obligations, no tests under `plugin/`). A skill change that touches a shared canonical also updates the installer's asset arrays and the Architecture table.
 
-The wrong freedom level either over-constrains (model can't adapt when the situation deviates) or under-constrains (model freelances on a fragile step).
+## Checklist
 
-### Named principles and leading words
+1. Description: third person, what + when in the user's words, trigger first, boundary named, within the shared budget.
+2. `argument-hint` matches every input the body accepts.
+3. Body under 500 lines; references one level deep, rubric-shaped, table of contents above 100 lines.
+4. No instruction conflicts across body, references, `AGENTS.md`, and the host prompt.
+5. Every rule carries its reason; no pressure language, no hedges on real requirements.
+6. No thinking, planning, or "be thorough" scaffolds; no numeric output caps or update cadences.
+7. Steps only where one sequence is safe; every phase ends on a gate.
+8. Dispatch sites name the skill and its arguments and say "subagent".
+9. Examples only pin an output shape, labelled illustrative.
+10. No retired-model workarounds, migration phrasing, history narrative, or dated guidance.
+11. One term per concept; leading words reused verbatim, never re-explained.
+12. Plain sentences, one concern per paragraph, data in lists, no filler.
+13. Deterministic work in scripts, run-or-read stated, MCP names qualified.
+14. Proof exists: an eval case or test, and a removal re-run for each cut.
+15. After a pruning pass, every contract of the old text is kept, moved, or cut with its keeper.
 
-Give load-bearing rules a name. *Stop-the-Line*, *Chesterton's Fence*, *Surgical Scope*, *Anti-Rationalization* – a named principle is a conceptual anchor the model can recall, apply, and explain. An unnamed rule is just another bullet competing for attention.
-
-A good name works as a **leading word**: a compact concept the model thinks *with* while running the skill. Prefer an existing term that carries pretraining weight (*tracer bullet*, *fog of war*, *seam*) over a coined one – an invented term recruits no priors, so you pay in definition tokens what a real word gives free. Reuse the word verbatim wherever it applies (description, body, references) instead of restating its definition; consistent repetition of the *token* accumulates meaning, while paraphrase reads as a different concept. A leading word that also appears in users' actual prompts doubles as a discovery trigger.
-
-### Gates over steps
-
-For workflow skills, name what must be **true to advance** at each phase, not just what to do. A gate ("PRD read once and held in working notes") is a falsifiable condition; a step ("read the PRD") is satisfiable by appearance.
-
-A gate has two independent dials. **Clarity**: can the model tell done from not-done – the defense against declaring victory early. **Demand**: how much work satisfying it requires – the way to induce thorough invisible work (reading, exploring, digging instead of asking) without scripting it as steps. "Every modified model accounted for" forces a sweep that "produce a change list" never will.
-
-**Premature completion** is the failure mode gates exist against: visible downstream steps pull the model toward *being done* rather than *finishing properly*, and the more future it can see, the stronger the pull. Fix in order: sharpen the current gate's clarity first – cheap and local. Only when rushing is still *observed* in runs, hide the later phases behind a real context boundary (a fresh sub-agent dispatch; an inline skill call clears nothing).
-
-### Structured output blocks
-
-When the skill needs to surface uncertainty, blocked work, or out-of-scope observations, use **named blocks** with a consistent grammar:
-
-```
-CONFUSION: <what is ambiguous> – <which decision is needed>
-BLOCKED: <external blocker> – <minimum info to unblock>
-NOTICED BUT NOT TOUCHING: <pre-existing issue> – <suggested follow-up>
-MISSING REQUIREMENT: <undefined behavior> – <which behavior to choose>
-```
-
-Named blocks let downstream skills and orchestrators parse responses deterministically, and discourage silent rationalization past uncertainty.
-
-### Pruning: four named failure modes
-
-Prose debt in a skill takes four distinct shapes. Hunt each by name – they have different cures, and a pass that only checks "is it too long?" misses three of them.
-
-- **Duplication** – the same meaning stated in more than one place. *Repetition is dilution*: restatements compete for attention and weaken every copy. When a rule feels weak, the fix is not saying it again but naming the failure mode it prevents and its consequence. Cure: one canonical statement, pointers elsewhere.
-- **Sediment** – stale layers left by add-only edits, because adding feels safe and removing feels risky. The default fate of any skill nobody actively prunes; the cure is reworking sections whole ("rework, don't accrete").
-- **Sprawl** – sheer length independent of staleness: reference material sitting inline that only some paths need. Cure: push it down the disclosure ladder into a bundled reference file.
-- **No-op** – an instruction the model already follows unprompted ("be thorough"): pure context cost, zero behavior change. Whether a line is a no-op is model-relative, and is settled by running the skill and observing – not by debate.
-
-**Pruning calibration – directives masquerade as description.** Contract markers: imperative lead verb, enumerated inputs/outputs/modes/phases, counter-prior phrases ("while preserving exact behavior"), verification commitments. An opening carrying any of these is an operational contract, not restatement – cutting it changes behavior. A prominent fail-fast gate atop the body is not duplication of the same rule in INSTRUCTIONS – position is part of the contract (early exit vs. procedural enforcement). Craft content passes the same test: pattern catalogs, comparison tables, and concrete dimension values teach judgment – push down the disclosure ladder if needed, never flatten into summary bullets. When unsure, keep: an unneeded sentence costs tokens, a cut contract costs behavior. Always-safe cuts: USAGE blocks restating slash syntax (`argument-hint` owns it) and frontmatter-description restatement ("This skill helps you…").
-
----
-
-## Workflows and Feedback Loops
-
-### Use workflow checklists for complex multi-step tasks
-
-For workflows with several sequential steps, provide a checklist the model can **copy into its response and tick off** as it progresses. This prevents skipped steps and creates a visible trace of progress.
-
-```markdown
-## Form-filling workflow
-
-Copy this checklist and check off items as you complete them:
-
-- [ ] Step 1: Analyze the form (run analyze_form.py)
-- [ ] Step 2: Create field mapping (edit fields.json)
-- [ ] Step 3: Validate mapping (run validate_fields.py)
-- [ ] Step 4: Fill the form (run fill_form.py)
-- [ ] Step 5: Verify output (run verify_output.py)
-
-**Step 1: Analyze the form**
-Run: `python scripts/analyze_form.py input.pdf`
-[…]
-```
-
-Works equally for **non-code workflows** (research synthesis, document review) – the value is structural, not language-specific.
-
-### Implement feedback loops on quality-critical steps
-
-The pattern: **run validator → fix errors → repeat → only proceed when clean**. Drastically improves output quality on tasks where the first draft is unreliable.
-
-```markdown
-## Document editing process
-
-1. Make your edits to `word/document.xml`
-2. **Validate immediately**: `python scripts/validate.py unpacked_dir/`
-3. If validation fails:
-   - Review the error message
-   - Fix the XML
-   - Run validation again
-4. **Only proceed when validation passes**
-5. Rebuild and test the output document
-```
-
-Feedback loops don't require code. The "validator" can be a `STYLE_GUIDE.md` checklist that the model reads and compares its draft against.
-
----
-
-## Output Patterns
-
-Three named patterns for shaping skill output. Pick the one whose strictness level matches what you need.
-
-### Template pattern
-
-Provide an output template. Choose strict or flexible:
-
-**Strict** – use when downstream parsing or consistency matters:
-
-```markdown
-## Report structure
-
-ALWAYS use this exact template:
-
-# [Analysis Title]
-## Executive summary
-[One-paragraph overview]
-## Key findings
-- Finding 1 with supporting data
-…
-```
-
-**Flexible** – same shape, introduced with *"Here is a sensible default format; adapt sections to the analysis type"*. Use when adaptation is genuinely useful.
-
-### Examples pattern
-
-When output quality depends on style or formatting nuance, provide **input/output pairs**. The model picks up style from examples more reliably than from descriptions.
-
-```markdown
-## Commit message format
-
-**Example 1**
-Input: Added user authentication with JWT tokens
-Output:
-```
-feat(auth): implement JWT-based authentication
-
-Add login endpoint and token validation middleware
-```
-
-**Example 2**
-Input: Fixed bug where dates displayed incorrectly in reports
-Output:
-```
-fix(reports): correct date formatting in timezone conversion
-
-Use UTC timestamps consistently across report generation
-```
-```
-
-### Conditional workflow pattern
-
-Guide the model through decision points by naming the branches:
-
-```markdown
-## Document modification workflow
-
-1. Determine the modification type:
-   - **Creating new content?** → Follow "Creation workflow" below
-   - **Editing existing content?** → Follow "Editing workflow" below
-
-## Creation workflow
-- Use docx-js library, build from scratch, export to .docx
-
-## Editing workflow
-- Unpack the document, modify XML directly, validate after each change, repack
-```
-
-If branches become long, move each into its own reference file and have `SKILL.md` route to the right one.
-
----
-
-## Scripts and Executable Content
-
-Skills that bundle scripts have additional discipline. Script source code does **not** enter context when executed – only stdout does. A 200-line script costs ~0 tokens at runtime; a 200-line procedural explanation costs ~2k. Prefer scripts for anything deterministic.
-
-### Solve, don't punt
-
-Scripts should **handle error conditions explicitly**, not bubble unstructured failures to the model:
-
-```python
-def process_file(path):
-    try:
-        with open(path) as f:
-            return f.read()
-    except FileNotFoundError:
-        print(f"File {path} not found, creating default")
-        with open(path, "w") as f:
-            f.write("")
-        return ""
-    except PermissionError:
-        print(f"Cannot access {path}, using default")
-        return ""
-```
-
-Validation scripts should produce **verbose, specific** error messages: *"Field 'signature_date' not found. Available fields: customer_name, order_total, signature_date_signed"* – not just *"validation failed"*. Specific messages give the model enough information to fix issues without re-reading the source.
-
-### No voodoo constants
-
-Every magic number should justify itself. If you don't know the right value, the model won't either:
-
-```python
-# HTTP requests typically complete within 30 seconds
-# Longer timeout accounts for slow connections
-REQUEST_TIMEOUT = 30
-
-# Three retries balances reliability vs speed
-# Most intermittent failures resolve by the second retry
-MAX_RETRIES = 3
-```
-
-Not `TIMEOUT = 47` with no explanation.
-
-### Prefer utility scripts over generated code
-
-When the same operation appears repeatedly, ship a script: more reliable than freshly generated code (no syntax drift, no missing edge cases), zero context cost, no generation step, consistent across uses.
-
-**Make execution intent explicit.** State whether the model should *execute* the script or *read* it as reference:
-
-- *"Run `analyze_form.py` to extract fields"* → execute
-- *"See `analyze_form.py` for the field-extraction algorithm"* → read
-
-Most utility scripts should be executed, not read.
-
-### Verifiable intermediate outputs (plan-validate-execute)
-
-For batch operations, destructive changes, or high-stakes workflows, insert a **plan step that produces a structured intermediate artifact**, validate it, then execute:
-
-```
-analyze → create plan file (e.g. changes.json) → validate plan → execute → verify
-```
-
-Benefits: errors caught before changes are applied; machine-verifiable; the plan is reversible without touching originals; debugging is precise because the plan is concrete.
-
-When to use: batch updates, destructive operations, complex validation rules, anything where rollback is painful.
-
-### Visual analysis
-
-When inputs can be rendered as images, have the model **see** them rather than reason about their structure abstractly. Particularly useful for forms, layouts, and any visual structure:
-
-```markdown
-## Form layout analysis
-
-1. Convert PDF to images:
-   `python scripts/pdf_to_images.py form.pdf`
-2. Analyze each page image to identify field locations and types visually
-```
-
-### MCP tool references
-
-Always use **fully qualified** MCP tool names – without the server prefix, the model may fail to locate the tool when multiple servers are connected:
-
-```
-Use the BigQuery:bigquery_schema tool to retrieve table schemas.
-Use the GitHub:create_issue tool to create issues.
-```
-
-Format: `ServerName:tool_name`.
-
-### Package dependencies
-
-Declare dependencies explicitly in `SKILL.md`; do not assume packages are installed:
-
-- **Bad:** *"Use the pdf library to process the file."*
-- **Good:** *"Install required package: `pip install pypdf`. Then…"*
-
-Be aware of execution-environment constraints: some platforms allow package installation at runtime, others do not. State the assumption your skill makes.
-
----
-
-## Execution Skills Run Headless; Discovery Skills Interact
-
-**Execution skills** (skills whose deliverable is implementation, verification, or deterministic operations – the `exec-*`, `quick-implement`, `ops`, `simplify-code`, `refactor`, `remediate-findings` family, plus the artifact-producers like `prd`/`plan`/`spec`) **run to completion** without waiting for a user turn. For these skills, prefer:
-
-- **Explicit assumptions** recorded in the artifact.
-- **Conservative defaults** when input is ambiguous.
-- **Documented open questions** at the end of the run.
-
-Over:
-
-- "STOP and WAIT for user input" patterns.
-- Mid-run confirmation prompts.
-- Asking the user to choose between options the skill could pick reasonably.
-
-When such a skill *does* need to gate on user input, name the gate (`BLOCKED:` block) and the exact information that would unblock it.
-
-**Discovery and design skills** (clarification, product/feature discovery, trade-off analysis, architectural advise, event-storming, strategic design, init) are **interactive by nature**: the user back-and-forth IS the deliverable, not an obstacle to it. These skills declare a named *Interactive-by-Contract* principle, gate the relevant steps explicitly, and use a question tool (`AskUserQuestion` when available, numbered markdown fallback otherwise) – the headless-execution rule above does not apply to them.
-
----
-
-## Tool Allowlisting and Security
-
-`allowed-tools` is a **pre-approval** mechanism, not a sandbox. It lowers friction for the user; it does not constrain what the skill can attempt.
-
-Treat installed skills like installed software:
-
-- Source matters. A skill can direct the model to invoke tools or execute code in ways that don't match its stated purpose.
-- Be especially careful with skills that fetch external URLs at runtime; fetched content can contain prompt-injection payloads.
-- Do not embed credentials, API keys, or environment-specific paths in shipped skill content.
-
-When authoring, restrict `allowed-tools` to what the skill actually needs – this is for the user's benefit, not for security, but it makes review legible.
-
----
-
-## Token Economy
-
-Assume the model is already capable. Each line of context must earn its place. Quick test for any paragraph: *Does the model already know this? Does this paragraph justify its token cost?*
-
-Compare:
-
-**Concise (~50 tokens):**
-````markdown
-## Extract PDF text
-
-Use pdfplumber for text extraction:
-
-```python
-import pdfplumber
-with pdfplumber.open("file.pdf") as pdf:
-    text = pdf.pages[0].extract_text()
-```
-````
-
-**Verbose (~150 tokens):**
-```markdown
-## Extract PDF text
-
-PDF (Portable Document Format) files are a common file format that contains
-text, images, and other content. To extract text from a PDF, you'll need to
-use a library. There are many libraries available… [~100 tokens of baseline
-knowledge the model already has]
-```
-
-Token-saving moves:
-
-- **Tables over prose** for dense reference material.
-- **Decision trees over prose** for branching workflows.
-- **Defer to references** for content only relevant on some paths.
-- **Defer to scripts** for deterministic operations.
-- **Cut content that restates model defaults.**
-
----
-
-## Anti-Patterns
-
-The body sections above already frame their own anti-patterns as named positive rules. The three below have no positive counterpart in the body and warrant their own callout.
-
-- **Too many options.** Listing four libraries that can each solve the task and asking the model to pick. Choose a default, add an escape hatch (*"For scanned PDFs requiring OCR, use pdf2image with pytesseract instead"*).
-- **Time-sensitive instructions.** *"If before August 2025, use the old API."* Replace with a current path and an "old patterns" reference block that quarantines deprecated guidance from the main flow.
-- **Maintenance narrative.** Version numbers (*"pre-0.13.0"*) and historical framing (*"no longer does X"*, *"previously…"*) address maintainers, not the executing agent – that story belongs in the CHANGELOG. Rewrite guards as present-tense directives, version-cutoff mappings as timeless facts. Audit: `rg '\b(pre-|post-|since )?\d+\.\d+\.\d+|no longer|previously|formerly|now-removed' plugin/`, filtering current-tense uses.
-- **Inconsistent terminology.** Mixing *endpoint* / *URL* / *route* / *path*, or *field* / *box* / *element*, in the same skill. Pick one term per concept and use it throughout – the model treats lexical drift as semantic drift.
-
----
-
-## Iterating: Evaluation-Driven Authoring
-
-### Build evaluations first
-
-Write the evaluation **before** writing extensive documentation. This grounds the skill in real failures rather than imagined ones.
-
-1. Run the model on representative tasks *without* the skill. Note specific failures.
-2. Build **at least three** evaluation scenarios covering those failures.
-3. Establish a baseline (how often does the model succeed unaided).
-4. Write the **minimum** skill content needed to pass the evaluations.
-5. Iterate: run evals, compare to baseline, refine.
-
-A useful evaluation structure:
-
-```json
-{
-  "skills": ["pdf-processing"],
-  "query": "Extract all text from this PDF file and save it to output.txt",
-  "files": ["test-files/document.pdf"],
-  "expected_behavior": [
-    "Reads the PDF using a suitable library or tool",
-    "Extracts text from all pages without skipping any",
-    "Saves the result to output.txt in a clear, readable format"
-  ]
-}
-```
-
-### The two-instance method (author / executor)
-
-Use one model instance to **author** the skill (the *author*) and a *fresh* instance with the skill loaded to **execute** representative tasks (the *executor*). The author understands intent; the executor reveals gaps through actual behavior. Observe the executor and bring specific observations back to the author:
-
-- **Unexpected exploration order** → the skill's structure isn't intuitive.
-- **Missed references** → links need to be more explicit or prominent.
-- **Overreliance on one section** → that content should be in `SKILL.md` body.
-- **Files never accessed** → either unnecessary or poorly signaled.
-- **Trigger doesn't fire when it should** → description needs more user vocabulary.
-
-### Test across model tiers
-
-Run skills against Haiku, Sonnet, and Opus where available. Different questions per tier:
-
-- **Haiku** – does the skill provide *enough* guidance?
-- **Sonnet** – is the skill clear and efficient?
-- **Opus** – does the skill avoid *over*-explaining?
-
-The tier mismatch tells you where the skill is leaning on raw model capability rather than its own structure.
-
-### Gather real-usage feedback
-
-Where the skill has other users (or agents), observe real usage – activation timing, unclear instructions, gaps. It reveals blind spots authoring-time review never surfaces.
-
----
-
-## Checklist for an Effective Skill
-
-Before publishing, verify:
-
-**Core quality**
-- [ ] Description is specific, third-person, and includes both *what* and *when*
-- [ ] Name uses gerund form (or other consistent convention) and avoids vague words
-- [ ] `SKILL.md` body is under 500 lines
-- [ ] References are one level deep
-- [ ] Long reference files (>200 lines) have a table of contents
-- [ ] Consistent terminology throughout
-- [ ] No time-sensitive information (or quarantined in an "old patterns" block)
-- [ ] Workflows have clear steps and gates
-- [ ] Progressive disclosure used appropriately
-
-**Code and scripts** (if applicable)
-- [ ] Scripts handle errors explicitly, don't punt to the model
-- [ ] All constants are justified (no voodoo numbers)
-- [ ] Required packages listed and verified available in the runtime
-- [ ] All paths use forward slashes
-- [ ] Validation steps included for critical operations
-- [ ] Feedback loops on quality-critical tasks
-- [ ] Execute-vs-read intent stated for each script
-- [ ] MCP tools referenced with fully qualified `Server:tool` names
-
-**Testing**
-- [ ] At least three evaluation scenarios exist
-- [ ] Tested with each model tier you plan to use
-- [ ] Tested with realistic usage scenarios, not just synthetic prompts
-- [ ] Real-usage feedback incorporated (where applicable)
-
----
-
-## Layering: Where This Doc Fits
+## Layering
 
 | Topic | Where it lives |
-|-------|----------------|
-| Generic prompting craft (altitude, examples, structure) | `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md` |
-| Claude-specific prompting (XML, thinking blocks, etc.) | `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES-CLAUDE.md` |
-| GPT-specific prompting | `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES-GPT.md` |
-| Skill packaging, discovery, frontmatter, bundle architecture, output patterns | *this document* |
+|---|---|
+| What belongs in any prompt, what no longer does | `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md` |
+| Current Claude generation | `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES-CLAUDE.md` |
+| Current GPT generation and Codex limits | `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES-GPT.md` |
+| Skill packaging, discovery, pruning, this repo's craft | this document |
 | Non-negotiable engineering rules | `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` |
 
-When skill craft and general prompt craft both apply, skill craft wins for skill files.
-
----
+Skill craft wins over general prompt craft for skill files.
 
 ## References
 
-- Anthropic: Agent Skills best practices – https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-- Anthropic: Agent Skills overview – https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
-- Claude Code skills documentation – https://code.claude.com/docs/en/skills
-- Anthropic engineering blog: *Equipping agents for the real world with Agent Skills* – https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
-- Anthropic public skills repository – https://github.com/anthropics/skills
+- Agent Skills best practices – https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+- Agent Skills specification – https://agentskills.io/specification
+- Claude Code skills – https://code.claude.com/docs/en/skills
+- Codex skills and AGENTS.md – https://developers.openai.com/codex/skills, https://developers.openai.com/codex/guides/agents-md
+- Instruction count: IFScale, arXiv:2507.11538 (2025); conflict: Instruction Stacking Collapse, arXiv:2608.02639 (2026); file size and position: Instruction Adherence in Coding Agent Configuration Files, arXiv:2605.10039 (2026); context-file content: ETH SRI, Evaluating AGENTS.md (2026)
+- Examples: Revisiting Chain-of-Thought Prompting, arXiv:2506.14641; The Few-shot Dilemma, arXiv:2509.13196

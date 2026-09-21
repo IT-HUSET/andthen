@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "2",
+  "prd": null,
+  "overview": {
+    "summary": "Settle the backoff policy a held-open report write is retried on."
+  },
+  "stories": [
+    {
+      "id": "S01",
+      "name": "Retry Policy",
+      "dependsOn": [],
+      "status": "in-progress",
+      "fis": "s01-retry-policy.md",
+      "completedTaskIds": ["TI01"],
+      "owner": null,
+      "scope": "Settle the backoff policy a held-open report write is retried on.",
+      "sourceRefs": [],
+      "provenance": null,
+      "assetRefs": [],
+      "sequencing": null
+    }
+  ]
+}

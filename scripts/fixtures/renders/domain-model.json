@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1",
+  "kind": "domain-model",
+  "meta": {
+    "project": "Session Hardening",
+    "generatedBy": "andthen:describe",
+    "date": "2026-08-28",
+    "revision": "4f2c9e1"
+  },
+  "contexts": [
+    { "id": "auth", "name": "Auth", "kind": "bounded-context",
+      "summary": "Terms used where credentials become sessions.", "evidence": "declared" },
+    { "id": "audit", "name": "Audit", "kind": "bounded-context",
+      "summary": "Terms used where events are recorded.", "evidence": "declared" }
+  ],
+  "nodes": [
+    { "id": "session", "name": "Session", "contextId": "auth", "kind": "entity",
+      "ref": "docs/UBIQUITOUS_LANGUAGE.md#session",
+      "summary": "A signed-in identity bound to one hardened cookie.",
+      "avoid": ["login", "token"] },
+    { "id": "sign-in", "name": "Sign-in", "contextId": "auth", "kind": "action",
+      "ref": "docs/UBIQUITOUS_LANGUAGE.md#sign-in",
+      "summary": "The act of exchanging credentials for a session." },
+    { "id": "event", "name": "Event", "contextId": "audit", "kind": "state",
+      "ref": "docs/UBIQUITOUS_LANGUAGE.md#event",
+      "summary": "One recorded authentication outcome.",
+      "meanings": [
+        { "contextId": "auth", "label": "Auth", "meaning": "A sign-in attempt, successful or not." },
+        { "contextId": "audit", "label": "Audit", "meaning": "An immutable row in the trail." }
+      ] }
+  ],
+  "edges": []
+}

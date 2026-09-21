@@ -1,0 +1,2 @@
+Execute the reviewed plan at docs/specs/row-count/plan.json through the staged candidate's exec-plan and exec-spec skills. Complete the story only through its proof-bound completion verb, run the full project tier, and never infer success from narrative output. Return the workspace-relative path of the plan whose story the run completed.
+ Finish at the aggregate report and its `Next:` line and stop there - leave the plan and the story FIS in place and run no plan-level review, because the executed plan state is the evidence this run is read for.

@@ -1,0 +1,6 @@
+[
+  {"topic": "scope", "reply": "Per-label totals only."},
+  {"topic": "alternative", "reply": "Choose totals appended to the same report after retaining a second file as the rejected alternative."},
+  {"topic": "boundary", "reply": "A per-period breakdown is out of scope."},
+  {"topic": "unresolved", "reply": "Leave the default question unresolved."}
+]

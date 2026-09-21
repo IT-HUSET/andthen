@@ -1,67 +1,38 @@
 # Architecture – Strategic-Design Mode
 
-Discover or audit the strategic shape of a domain – classify subdomains by investment posture, propose bounded contexts and their sizing, draw the integration relationships between contexts, and surface the ubiquitous-language touchpoints. Outputs a textual report; delegations: see Step 7.
-
-**Supporting references**: `ddd.md` (sections 1.1–1.4 – subdomain types, bounded contexts, the 9-pattern context-mapping catalog, team-topology alignment; section 4.2 – Bounded Context Canvas; section 5 – UL operationalization), `decomposition.md` (load when bounded-context sizing is contested – applies the cognitive-load heuristic, "team owns at most 2–3 low-complexity contexts").
-
-## Contents
-- Subdomains – Quick Reference
-- Context-Mapping Pattern Catalog
-- Bounded Context Canvas
-- Team-Topology Alignment
-- Steps
-- Greenfield vs. Brownfield Cheat Sheet
-- Report Contents
-
-## Subdomains – Quick Reference
-
-Full depth: `ddd.md` §1.1. Classify each subdomain into exactly one type, with a one-line rationale tying it to business differentiation and model complexity.
-
-| Type | Investment | Pattern hint |
-|---|---|---|
-| **core** | Maximal – best engineers, full tactical DDD, richest model | Rich aggregates + domain events |
-| **supporting** | Fit-for-purpose – pragmatic patterns, simpler model | Active Record, transaction script, thin domain model |
-| **generic** | Minimal – prefer off-the-shelf; integrate, don't build | Don't model; wrap with ACL if the vendor model is hostile |
-
-When the differentiation/complexity call is contested, plot subdomains on the Core Domain Chart (DDD Crew, Tune) and note the trade-off rather than forcing a verdict.
-
-## Context-Mapping Pattern Catalog
-
-Nine patterns – eight Evans canonical plus Big Ball of Mud (DDD Crew, as a quarantine strategy). Full table with coupling level, team relationship, and "choose when" guidance lives in `ddd.md` §1.3. **Contract:** every pair of contexts in the report's Context Map names the pattern explicitly. Move up the catalog when teams are aligned and models are stable; down when teams are distant, models are incompatible, or the upstream cannot be negotiated with.
+Discover or audit the strategic shape of a domain – classify subdomains by investment posture, propose bounded contexts and their sizing, draw the integration relationships between contexts, and surface the ubiquitous-language touchpoints. Outputs a textual report and the typed map(s) it describes (`board-models.md`, kind `context-map`); delegations: see Step 7.
 
 ## Bounded Context Canvas
 
-For any single context that needs deeper scrutiny, fill the Bounded Context Canvas (DDD Crew, Tune) – field list in `ddd.md` §4.2. Use as a per-context appendix when the report's main Bounded Contexts table cannot carry enough detail; skip when the high-level table suffices.
-
-## Team-Topology Alignment
-
-Context-mapping patterns map onto Team Topologies interaction modes – full table in `ddd.md` §1.4. When team boundaries cut across context boundaries (Conway's Law violated), the distributed monolith is the predictable result – surface as a finding.
+For any single context that needs deeper scrutiny, fill the Bounded Context Canvas (DDD Crew, Tune): name and purpose, strategic classification, domain roles, inbound and outbound messages, upstream and downstream dependencies with their integration patterns, and a ubiquitous-language excerpt. Use as a per-context appendix when the report's main Bounded Contexts table cannot carry enough detail.
 
 ## Steps
 
 ### Step 1 – Scope and Inputs
 Confirm the scope (whole project, one product line, or a named slice) and the input source. Two paths:
 
-- **Greenfield** – drive from `requirements-clarification.md`, a PRD, or the user's narrative description. Treat the user as the domain expert; ask focused questions when subdomain boundaries or vocabulary are ambiguous.
-- **Brownfield** – drive from observed structure: the `andthen:map-codebase` skill's outputs (Architecture, Stack), existing module boundaries, persisted entities, and cross-module API calls, plus the registered `Context Map` document when one exists (see **Project Document Index**) – read it first; Step 6 reports drift against it.
+- **Greenfield** – drive from a PRD, a hand-written `intent.md`, or the user's narrative description. Treat the user as the domain expert; ask focused questions when subdomain boundaries or vocabulary are ambiguous.
+- **Brownfield** – drive from observed structure: the `andthen:describe` skill's `--mode codebase` output (the `Architecture` document) when present, existing module boundaries, persisted entities, and cross-module API calls, plus the registered `Context Map` document when one exists (see **Project Document Index**) – read it first; Step 6 reports drift against it.
 
 Default the path from artifact presence; surface the choice in the Executive Summary.
 
 ### Step 2 – Subdomain Classification
-For each capability the scope covers, name the subdomain, classify it (core / supporting / generic), and attach a one-line rationale referencing business differentiation and model complexity. When the call is genuinely contested (e.g. a capability that is core today but generic in 18 months), record both sides as a hotspot in the Recommendations section rather than forcing a single verdict.
+For each capability the scope covers, name the subdomain, classify it as exactly one of core (maximal investment, full tactical DDD) / supporting (fit-for-purpose) / generic (off-the-shelf behind an anticorruption layer), and attach a one-line rationale referencing business differentiation and model complexity. When the call is genuinely contested (a capability core today but generic in 18 months), plot it on the Core Domain Chart (DDD Crew, Tune) and record both sides as a hotspot in the Recommendations section rather than forcing a verdict.
 
 ### Step 3 – Bounded Context Discovery and Sizing
-Propose bounded contexts. For each context: name, purpose (one sentence), the subdomains it owns, the owning team (or "to be determined"), and the sizing rationale. Apply the sizing heuristics from `ddd.md` §1.2 (load `decomposition.md` Sizing Heuristics when sizing is contested).
+Propose bounded contexts. For each context: name, purpose (one sentence), the subdomains it owns, the owning team (or "to be determined"), and the sizing rationale. Apply the calibration's bounded-context and sizing heuristics; when sizing is contested, its cognitive-load ceiling settles it. A team boundary cutting across a context boundary is a finding (calibration: distributed monolith).
 
 For brownfield: name observed contexts (modules, services, packages) and note the gap to the target context list – what is currently merged but should split, what is currently scattered but should consolidate.
 
 ### Step 4 – Context Map
-Build the context map as a table: every ordered pair of contexts that exchange data, the named pattern from the 9-pattern catalog, and a one-line rationale ("upstream is external SaaS; we cannot negotiate the model" → Conformist; "upstream model is hostile + legacy" → ACL). When the same pair has multiple integration channels with different patterns, list them as separate rows.
+Build the context map as a table: every ordered pair of contexts that exchange data, the named pattern from the calibration's nine, and a one-line rationale ("upstream is external SaaS; we cannot negotiate the model" → Conformist; "upstream model is hostile + legacy" → ACL). When the same pair has multiple integration channels with different patterns, list them as separate rows.
 
 For brownfield, produce two maps: **Current** (what exists in code today) and **Target** (what it should look like). The delta drives the Drift Findings section.
 
+Emit each map as a `context-map` model from `board-models.md` into the report's own output directory – `context-map-current.json` and `context-map-target.json` on brownfield, `context-map-target.json` on greenfield – with `meta.status` set accordingly; only the map Step 8 registers is written under the `Models` location. Every context carries its `subdomainType` from Step 2 and every table row is a relationship with its pattern, direction, and rationale. Check each candidate against `context-map.schema.json` and `board-models.md` and write only what holds; a failing map is not written – print the violations and fix the map.
+
 ### Step 5 – Ubiquitous-Language Touchpoints
-For each context, name the 3–8 vocabulary items whose meaning is contested or load-bearing – terms that mean different things across contexts, terms that have drifted between business and engineering use, and terms with no agreed-on definition yet. The list is a hand-off note, not a glossary; the actual extraction and curation is delegated. Recommend invoking the `andthen:ubiquitous-language` skill against the context list this mode produced, and pass the touchpoint names through as the seed list.
+For each context, name the 3–8 vocabulary items whose meaning is contested or load-bearing – terms that mean different things across contexts, terms that have drifted between business and engineering use, and terms with no agreed-on definition yet. The list is a hand-off note, not a glossary; the actual extraction and curation is delegated. Recommend invoking the `andthen:describe` skill in `--mode domain` against the context list this mode produced, passing the touchpoint names through as the seed list.
 
 ### Step 6 – Drift Findings _(brownfield only)_
 For each delta across three inputs – the code-observed Current map, the registered `Context Map` document (when one exists), and the proposed Target map – name the gap, the likely root cause (vocabulary collision, Conway's-Law mismatch, premature decomposition, accidental coupling, or drift from the registered map), and the smallest move that would close it. Skip the section entirely on greenfield runs.
@@ -69,34 +40,21 @@ For each delta across three inputs – the code-observed Current map, the regist
 ### Step 7 – Recommendations
 Synthesize: which subdomains warrant immediate investment (core), which integration patterns need to change (and toward what), which contexts are sized wrong, and which UL touchpoints are blocking communication. Each recommendation names a framework or principle (Evans, Khononov, Tune, the 9-pattern catalog) and a concrete next step – typically a hand-off to another mode or skill. Hand-off catalog:
 
-- Bounded-context boundary contested → invoke the `andthen:architecture` skill in `--mode decompose`.
-- Strategic decisions need fitness-function enforcement → invoke the `andthen:architecture` skill in `--mode fitness`.
-- Per-context UL extraction → invoke the `andthen:ubiquitous-language` skill.
+- Bounded-context boundary contested → re-invoke this skill in `--mode decompose`.
+- Strategic decisions need fitness-function enforcement → re-invoke this skill in `--mode fitness`.
+- Per-context UL extraction → invoke the `andthen:describe` skill in `--mode domain`.
 - Accepted context map → register it into the `Context Map` document (Step 8) so later runs and other skills read one durable source.
-- Subdomain-tree, context-map, or team-topology diagram → invoke the `andthen:excalidraw-diagram` skill (the textual report is the source of truth; the diagram is for human review).
-- Visual review of the textual report itself – section-anchored notes that round-trip via clipboard back into a follow-up architecture run – invoke the `andthen:visualize` skill on the report path, or use `andthen:architecture --visual` while producing the report.
-- Big-picture event-storming as upstream input when the domain is unfamiliar – invoke the `andthen:architecture` skill in `--mode event-storming` first, then chain back into `--mode strategic-design`.
+- Big-picture event-storming as upstream input when the domain is unfamiliar – run `--mode event-storming` first, then chain back into `--mode strategic-design`.
 
 ### Step 8 – Register the Context Map _(gated on user acceptance)_
 
-Distil the accepted map into the `Context Map` document – the durable record later runs and other skills read first. Registration graduates the **accepted Target** map (or **Current**, when a brownfield audit confirms it is the intended shape) into the document; the report's Current/Target tables stay as authored. Gate on explicit user acceptance – the map has organizational implications the user owns; do not register a map the user has not accepted.
+Distil the accepted map into the `Context Map` document – the durable record later runs and other skills read first. Registration graduates the **accepted Target** map (or **Current**, when a brownfield audit confirms it is the intended shape) into the document; the report's Current/Target tables stay as authored. Gate on explicit user acceptance – the map has organizational implications the user owns; do not register a map the user has not accepted. `--auto` skips this step rather than inferring the acceptance: nothing is registered, and the completion summary carries `context map not registered – needs acceptance`.
 
 - Resolve the `Context Map` location from the **Project Document Index** (default: `docs/CONTEXT-MAP.md`).
-- If the file does not exist, create it from the `CONTEXT-MAP.md` template in `${CLAUDE_PLUGIN_ROOT}/references/project-state-templates.md`.
-- Write the **Bounded Contexts** rows and the **Integration Patterns** rows from the accepted map, plus the per-context **Ubiquitous Language** pointers into the UL document's clusters. When the UL document does not exist yet, record the Step 5 touchpoint terms in that column instead and note that the `andthen:ubiquitous-language` skill has not run yet, so the row is not left pointing at a missing target.
+- If the file does not exist, have it seeded from the `CONTEXT-MAP.md` template by the document-creation subagent (SKILL **Post-Completion**).
+- Write the **Bounded Contexts** rows and the **Integration Patterns** rows from the accepted map.
 - **Idempotent per context and per ordered pair**: when a row for the same context or the same pair already exists, update its fields in place rather than appending a duplicate. Never delete – the record is cumulative and its lineage is load-bearing.
-- Append a dated `Changelog` line naming what changed.
-
-## Greenfield vs. Brownfield Cheat Sheet
-
-| Aspect | Greenfield | Brownfield |
-|---|---|---|
-| Input source | clarification artifact / PRD / user narrative | the `andthen:map-codebase` skill's outputs + code |
-| Subdomain table | Forward-only | Today + target |
-| Context map | Target only | Current + Target + drift list |
-| UL touchpoints | Candidate terms to confirm | Observed conflicts in code/docs |
-| Hotspots | Open requirements-side questions | Conway's-Law mismatches, vocabulary collisions |
-| Hand-off emphasis | UL extraction, fitness functions | UL extraction, decomposition, refactor |
+- Write the accepted map as `context-map.json` with `meta.status` `registered` under the `Models` location (see **Project Document Index**; default `docs/models/`), beside the Markdown document and under Step 4's validation gate.
 
 ## Report Contents
 
@@ -104,10 +62,6 @@ Strategic-design-mode report must include:
 
 1. **Executive Summary** – scope, path (greenfield / brownfield), one-paragraph synthesis of the strategic shape and the one or two findings that change the conversation
 2. **How to Read This Report** – legend for subdomain types (core / supporting / generic), 9-pattern catalog short-names, and any "current/target" notation used in brownfield runs
-3. **Subdomains** – table of subdomain name, type, rationale, and key invariants
-4. **Bounded Contexts** – per-context entry: purpose, subdomains owned, sizing rationale, owning team
-5. **Context Map** – table of context pairs with the named integration pattern and rationale; brownfield runs include both Current and Target tables
-6. **Ubiquitous Language Touchpoints** – per-context list of contested or load-bearing terms; closes with the hand-off pointer to the `andthen:ubiquitous-language` skill
-7. **Drift Findings** – brownfield only; gaps across the Current, registered `Context Map`, and Target maps with root cause and smallest closing move
-8. **Recommendations** – synthesized next steps with framework attribution and explicit hand-offs to other modes / skills
-9. **Context Map Registration** – once the user accepts the map, where it was registered (`Context Map` document path) and the `Changelog` line added; omitted when the user declines
+3. The Step 2–7 artifacts in order – Drift Findings brownfield only – and **Context Map Registration**, where the map was registered (`Context Map` document path and the `context-map.json` path), omitted when the user declines.
+
+The emitted map files' paths are printed with the report's.

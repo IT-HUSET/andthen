@@ -1,0 +1,23 @@
+{
+  "requiredArtifacts": [
+    "docs/specs/retry-policy/s01-retry-policy.md",
+    "docs/specs/retry-policy/plan.json"
+  ],
+  "forbiddenArtifacts": [
+    "docs/specs/retry-policy/*-2.md",
+    "docs/specs/retry-policy-2/**",
+    "docs/specs/retry-policy/prd.md"
+  ],
+  "allowedPaths": [
+    "docs/specs/retry-policy/s01-retry-policy.md",
+    "docs/specs/retry-policy/plan.json",
+    "docs/specs/retry-policy/plan.json.lock",
+    "docs/LEARNINGS.md",
+    "docs/TECH-DEBT-BACKLOG.md",
+    ".agent_temp/**"
+  ],
+  "commands": [
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/retry-policy/plan.json"
+  ],
+  "oracle": "oracle.py"
+}

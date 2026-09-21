@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""State reconciliation for the plan case, run with cwd = the workspace.
+
+Case data, not harness: `check.json`'s `validate_plan.py` call proves the
+manifest against its schema, but nothing a check.json key sees proves the
+bundle is *executable* - that every story reached spec-ready, that its FIS
+pointer resolves on the filesystem, and that each FIS names the story it was
+written for. Provenance is a claim across two files, which is what `oracle` is
+for.
+
+Whether each FIS carries runnable proof is the rubric's call (`plan-execution`):
+under ADR-013 nothing projects a FIS into JSON, and a grammar violation is a
+finding, not a parse error.
+
+Python 3 standard library only, 3.9-compatible.
+"""
+
+import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import story_state  # noqa: E402
+
+PLAN = Path("docs/specs/amount-filter/plan.json")
+
+PROVENANCE = re.compile(r"^\*\*(Plan|Story-ID)\*\*:[ \t]*(\S.*?)[ \t]*$", re.M)
+
+
+def provenance_problems(row):
+    """The header pair is what an implementer dispatched with only the FIS path
+    reads to find its plan and row; a FIS that names another story would complete
+    the wrong one."""
+    identifier, pointer = row.get("id"), row.get("fis")
+    if not isinstance(pointer, str) or not pointer:
+        return ["%s: story %s has no fis pointer" % (PLAN, identifier)]
+    fis = PLAN.parent / pointer
+    if not fis.is_file():
+        return ["%s: story %s names %s, which does not resolve beside the plan"
+                % (PLAN, identifier, pointer)]
+    found = dict((m.group(1), m.group(2))
+                 for m in PROVENANCE.finditer(fis.read_text(encoding="utf-8")))
+    problems = []
+    if found.get("Story-ID") != identifier:
+        problems.append("%s: Story-ID is %r, expected %r"
+                        % (fis, found.get("Story-ID"), identifier))
+    if Path(found.get("Plan", "")).name != PLAN.name:
+        problems.append("%s: Plan is %r, expected the plan beside it"
+                        % (fis, found.get("Plan")))
+    return problems
+
+
+def main():
+    rows, problems = story_state.stories(PLAN)
+    for row in rows:
+        problems.extend(story_state.diverges(PLAN, row, status="spec-ready"))
+        problems.extend(provenance_problems(row))
+    for problem in problems:
+        sys.stderr.write(problem + "\n")
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

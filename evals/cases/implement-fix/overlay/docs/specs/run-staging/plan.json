@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "2",
+  "prd": null,
+  "overview": {
+    "summary": "Stage a run: the seed, then the label derived from it."
+  },
+  "sharedDecisions": [],
+  "bindingConstraints": [],
+  "stories": [
+    {
+      "id": "S01",
+      "name": "Build Seed",
+      "dependsOn": [],
+      "status": "done",
+      "fis": "s01-build-seed.md",
+      "completedTaskIds": [
+        "TI01"
+      ],
+      "verified": {
+        "at": "2026-09-05T09:12Z",
+        "summary": "fast tier exit 0; S01 Proof tests.test_pipeline.PipelineTests.test_seed_is_the_ledger_name exit 0"
+      },
+      "owner": null,
+      "scope": "Produce the seed artifact.",
+      "sourceRefs": [],
+      "provenance": "docs/specs/run-staging/plan.json",
+      "assetRefs": [],
+      "sequencing": null
+    },
+    {
+      "id": "S02",
+      "name": "Build Label",
+      "dependsOn": [
+        "S01"
+      ],
+      "status": "done",
+      "fis": "s02-build-label.md",
+      "completedTaskIds": [
+        "TI01"
+      ],
+      "verified": {
+        "at": "2026-09-05T09:31Z",
+        "summary": "fast tier exit 0; S02 Proof tests.test_pipeline.PipelineTests.test_label_normalizes_the_seed exit 0"
+      },
+      "owner": null,
+      "scope": "Derive the label from the seed.",
+      "sourceRefs": [],
+      "provenance": "docs/specs/run-staging/plan.json",
+      "assetRefs": [],
+      "sequencing": "After S01 writes seed.txt."
+    }
+  ]
+}

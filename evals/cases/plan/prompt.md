@@ -1,0 +1,1 @@
+Create a plan bundle from the PRD in `docs/specs/amount-filter` with the staged `andthen:plan` skill, so the bundle lands beside it as `docs/specs/amount-filter/plan.json`. Keep every story independently executable, leave `docs/specs/amount-filter/prd.md` unchanged, and return the workspace-relative `plan.json` path.

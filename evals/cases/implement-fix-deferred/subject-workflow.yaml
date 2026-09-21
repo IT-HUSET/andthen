@@ -1,0 +1,33 @@
+name: andthen-implement-fix-deferred-subject
+description: Act on one Fix-routed finding whose repair waits on an open project decision.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: implement-fix
+    name: Act on the review finding
+    skill: andthen:implement-fix
+    prompt:
+      - >-
+        --auto retry-code-review-claude-2026-09-12.md
+    outputs:
+      outcome:
+        format: json
+        schema:
+          type: object
+          additionalProperties: false
+          required: [findingStatus, blocker, techDebt, annotation, sourceFilesChanged]
+          properties:
+            findingStatus: {type: string}
+            blocker: {type: string}
+            techDebt:
+              type: object
+              additionalProperties: false
+              required: [entries, path, severity]
+              properties:
+                entries: {type: integer}
+                path: {type: string}
+                severity: {type: string}
+            annotation: {type: string}
+            sourceFilesChanged: {type: array, items: {type: string}}

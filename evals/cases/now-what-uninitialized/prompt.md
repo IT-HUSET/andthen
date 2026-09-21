@@ -1,0 +1,1 @@
+Invoke the staged `andthen:now-what` skill on this uninitialized repository, asking for a recommendation only: the user wants a `--json` flag on the export command. Routing must end in one actionable recommendation, not an interactive setup.

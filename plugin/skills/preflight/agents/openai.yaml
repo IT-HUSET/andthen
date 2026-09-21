@@ -1,7 +1,0 @@
-interface:
-  display_name: "AndThen - Preflight (Converge Blocking Decisions)"
-  short_description: "Drive a FIS or plan bundle to zero open blocking decisions before unattended exec; emits a machine-stable READY/DEFERRED/BLOCKED verdict"
-  default_prompt: "Drive the target FIS or plan bundle to zero open blocking decisions before unattended execution. Preserve signed deferrals as execution holds; resolve interactively by altitude; persist through the `andthen:ops` skill; re-detect after handoffs and reconciliation. Under --auto, never prompt or invent. Emit one bare `Preflight:` verdict token: READY, DEFERRED, or BLOCKED. Target: "
-
-policy:
-  allow_implicit_invocation: true

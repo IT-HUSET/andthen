@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(python3 /Users/tobias/Repos/Libs/andthen/hooks/scripts/block-dangerous-commands.py)",
-      "Bash(echo \"exit=$?\")"
-    ]
-  }
-}

@@ -1,0 +1,9 @@
+{
+  "requiredArtifacts": ["docs/specs/report-totals/prd.md"],
+  "forbiddenArtifacts": ["**/intent.md", "docs/specs/report-totals/plan.json"],
+  "allowedPaths": ["docs/specs/report-totals/prd.md", ".agent_temp/**"],
+  "requiredText": {
+    "docs/specs/report-totals/prd.md": ["> **Source**:"]
+  },
+  "oracle": "oracle.py"
+}

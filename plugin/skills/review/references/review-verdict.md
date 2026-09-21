@@ -1,11 +1,9 @@
 # Review Verdict Model
 
-Unified severity scale and per-mode verdict/readiness definitions used across all modes of the `andthen:review` skill (including `--council`) and the peer `andthen:architecture` skill.
+Unified severity scale and per-mode verdict/readiness definitions for every lens of the `andthen:review` skill.
 
 
 ## Severity Scale
-
-Four levels, normalised across all modes:
 
 | Severity | Meaning |
 |----------|---------|
@@ -19,19 +17,13 @@ Four levels, normalised across all modes:
 
 ### Gap mode (`--mode gap`)
 
-**PASS/FAIL verdict is a byte-level compatibility contract.** Downstream skills (`andthen:exec-plan`, `andthen:remediate-findings`) parse this table directly – keep the dimensions, thresholds, and canonical summary block stable.
-
 | Dimension | Question | Threshold |
 |-----------|----------|-----------|
 | Functionality | Does it work correctly for specified requirements? | >= 7 |
 | Completeness | Are there stubs, TODOs, placeholders, or missing features? | >= 9 |
 | Wiring | Is everything connected end-to-end? | >= 8 |
 
-- If any dimension is below threshold → **FAIL**
-- If all dimensions meet threshold → **PASS**
-- No conditional verdicts
-
-Canonical summary block (reproduce verbatim in the report's Executive Summary):
+Any dimension below threshold is **FAIL**; all at threshold is **PASS**; no conditional verdicts. In a single-lens gap report the `## Verdict` section is this block – the shape is matched on, so the dimensions, thresholds, and wording stay stable:
 
 ```markdown
 ## Verdict
@@ -45,14 +37,9 @@ Canonical summary block (reproduce verbatim in the report's Executive Summary):
 **Overall: PASS / FAIL**
 ```
 
-#### CONVERGED signal (additive – not part of the Verdict block)
-
-`CONVERGED` is a stopping criterion emitted **alongside** the canonical `## Verdict` block, never inside it – the block above is a byte-level parser contract and must stay unchanged. A pass is **CONVERGED** when it produced **no new `code-defect` at severity ≥ MEDIUM**, where OPEN-reconciliation-ledger-matched findings are *not* "new". It gives reviews a reachable stopping point (no new code-defects) instead of chasing zero findings; `spec-stale`/`design-changed`/`ambiguous-intent` findings, being reconciliation-class, never block convergence. Emit it and any ledger annotations as separate lines the verdict parser ignores.
-
-
 ### Code mode (`--mode code`)
 
-Severity counts + a readiness label:
+Severity counts plus a readiness label:
 
 | Readiness | When |
 |-----------|------|
@@ -60,67 +47,14 @@ Severity counts + a readiness label:
 | **Needs Fixes** | Any HIGH finding, or three or more MEDIUM findings that collectively require rework. |
 | **Blocked** | Any CRITICAL finding, or a failing check in verification evidence that is load-bearing for the change (not a pre-existing unrelated failure). |
 
-Readiness is a summary – callers still read the severity counts and individual findings.
-
-
 ### Security mode (`--mode security`)
 
-Reuses the code-mode readiness scale (`Ready` / `Needs Fixes` / `Blocked`) so the unified ladder in mixed mode (below) covers it without a separate vocabulary:
+The code-mode scale, so the mixed-mode ladder below covers it without a second vocabulary: LOW/MEDIUM items are hardening and defense-in-depth opportunities, a failing load-bearing security scanner is `Blocked`. Severity is calibrated by exposure tier, so the same defect at different exposure levels can land at different readiness verdicts.
 
-| Readiness | When |
-|-----------|------|
-| **Ready** | No CRITICAL or HIGH findings; LOW/MEDIUM items are hardening / defense-in-depth opportunities. |
-| **Needs Fixes** | Any HIGH finding (real exploitation path with weak preconditions), or three or more MEDIUM findings that collectively require rework. |
-| **Blocked** | Any CRITICAL finding (actively exploitable on an exposed surface, secret committed, auth bypass), or a failing security scanner check that is load-bearing for the change. |
+### Outcome mode (`--mode outcome`)
 
-Severity is calibrated by exposure tier (per `security-review-calibration.md`), so the same defect at different exposure levels can land at different readiness verdicts – that is the lens working as designed, not an inconsistency.
+The code-mode scale, severity anchored by the lens's own § Severity. Readiness counts the PRD-side findings that route `Note` too – a need the feature does not meet is not closed by being unfixable in code.
 
+### Mixed mode (a resolved multi-lens set)
 
-### Doc mode (`--mode doc`)
-
-Readiness label:
-
-| Readiness | When |
-|-----------|------|
-| **Ready** | No CRITICAL or HIGH findings; no blocking ambiguity. |
-| **Needs Minor Updates** | Localised clarity/completeness gaps (typically LOW/MEDIUM) that do not change the document's shape. |
-| **Needs Significant Rework** | HIGH findings or structural gaps that would cause an implementer to build the wrong thing. |
-| **Not Ready** | CRITICAL findings, or the document is too ambiguous to hand to an implementer. |
-
-
-### Mixed mode (`--mode mixed`)
-
-Runs the resolved lens chain (subset of {doc, code, security, gap}). Report:
-- Per-sub-mode verdicts using each sub-mode's own readiness label (doc: 4-level scale; code/security: 3-level scale; gap: PASS/FAIL)
-- **Overall readiness** = **worst** across all lenses: `Not Ready` / `Blocked` / `FAIL` > `Needs Significant Rework` > `Needs Fixes` > `Needs Minor Updates` > `Ready` / `PASS`
-
-> This ladder intentionally merges three readiness vocabularies (doc: `Ready` / `Needs Minor Updates` / `Needs Significant Rework` / `Not Ready`; code & security: `Ready` / `Needs Fixes` / `Blocked`; gap: `PASS` / `FAIL`) into a single precedence order. When comparing across vocabularies, doc `Needs Significant Rework` ranks worse than code `Needs Fixes` because HIGH-severity structural gaps in a document tend to produce more downstream rework than the localised fixes tracked by code `Needs Fixes`. Gap `FAIL` and code/security `Blocked` are equivalent at the top of the ladder – both mean "do not ship."
-
-Keep findings from each sub-pass in distinct subsections. Merge overlapping findings and use the strongest framing as canonical. Security findings often overlap with code-quality findings (e.g. SQLi is both a correctness bug and an injection vuln); when the same defect surfaces in both lenses, keep it in the security section with a back-reference from the code section.
-
-
-## Loop Convergence Signals
-
-A converging review→remediate loop (review → `remediate-findings --auto` → re-review, exit when no gating findings remain) must drive its continue/stop/escalate decision off a measure its own body can move. The PASS/FAIL verdict and readiness ladder above are the **human-readability** signal, not the loop measure: a finding can be gating (keeps the verdict failing) yet `Routing: Note` (the body cannot apply it), so a loop keyed on the verdict alone churns identical iterations with no decreasing measure. **`Auto-Remediation` is the canonical loop input** – it derives from fix-character (the `Routing:` field), the same axis the remediate body acts on, so it reaches `CLEAR` exactly when the body has nothing left to apply.
-
-**Gating verdict** (what keeps a convergence loop alive): gap `FAIL`; code/security `Needs Fixes` or `Blocked`; doc `Needs Significant Rework` or `Not Ready`; mixed overall readiness at `Needs Fixes` or worse on the precedence ladder. `Ready`, doc `Needs Minor Updates`, and gap `PASS` are **non-gating**.
-
-**`Auto-Remediation`** (value space: `PENDING` | `STALLED` | `CLEAR`) – the loop measure, emitted as an additive line beside the byte-level `## Verdict` block:
-- **PENDING** – `Fix`-routed findings remain; the body can make progress (apply, re-review).
-- **STALLED** – gating verdict **and** zero `Fix`-routed findings; no automated progress is possible.
-- **CLEAR** – no `Fix`-routed findings remain and the verdict is non-gating; loop done.
-
-**`NO-OP: no-auto-applicable-findings`** – the `andthen:remediate-findings` terminal signal when a valid report has findings but the fixable set is empty (every valid finding is `Routing: Note` / Phase 2a `SURFACED`). Distinct from `BLOCKED:` (invalid/unsafe input or a required decision).
-
-**`Preflight`** (value space: `READY | DEFERRED | BLOCKED`) – the convergence verdict emitted once by the `andthen:preflight` skill when it drives a FIS or plan bundle to zero open blocking decisions before an unattended exec run. Not part of the review→remediate loop above – a sibling convergence signal that follows the same machine-stable grammar so an orchestrator can branch on it line-anchored: a bare line at line start carrying one resolved token, matched by `^Preflight: (READY|DEFERRED|BLOCKED)$` (never the menu form). `READY` = executable; `DEFERRED` = signed execution holds remain; `BLOCKED` = an unresolved decision or other non-clear bundle story remains.
-
-**Signal grammar (machine-stable).** Both signals are emitted for a consuming engine to branch on without a markdown parser: each is a bare line at line start (no indent, list/blockquote marker, or code fence) carrying one resolved token (`Auto-Remediation: STALLED`, never the menu), emitted once in its source surface (`Auto-Remediation` beside the `## Verdict` block, `NO-OP` in remediation output). A consumer matches it line-anchored, not by structural position: `^Auto-Remediation: (PENDING|STALLED|CLEAR)$`, `^NO-OP: no-auto-applicable-findings$`.
-
-**Consumer contract.** A consuming loop continues on `PENDING`, stops successfully on `CLEAR`, and on `STALLED` (or a `NO-OP` from remediate) escalates **once** to a human decision (fix / reroute / accept-with-notes) instead of re-reviewing. AndThen emits the signals; it does not encode loop control – the iteration cap and no-progress branch live in the **consuming** workflow engine. `Auto-Remediation` answers "can automation still make progress"; the orthogonal `CONVERGED` (above) answers "did this pass find new defects".
-
-**Consumer anti-pattern – never key the loop on a severity count.** Severity drives the *human* verdict; fix-character drives the *loop*. A severity-derived measure (e.g. "MEDIUM-or-higher gates") disagrees with routing – a Note-routed MEDIUM needing a human decision stays gating-by-severity forever – so it never converges. Branch on `Auto-Remediation` (the `Fix`-routed set it is computed from).
-
-
-## Publishing
-
-Reports that publish to GitHub as typed artifacts must include the verdict/readiness in the report body so consumers (`andthen:remediate-findings`) can parse it without opening companion files. For gap mode specifically, the canonical PASS/FAIL verdict block above is the authoritative machine-readable surface – other prose summaries are supplementary.
+Per-lens verdicts in each lens's own label (code/security/outcome the three-level scale; gap PASS/FAIL), and **overall readiness** the **worst** across lenses: `Blocked` / `FAIL` > `Needs Fixes` > `Ready` / `PASS`. They share the report's one `## Verdict` section, the gap block demoted to a `### Gap` subheading of it with its dimensions, thresholds, and overall line otherwise unchanged: a second `## Verdict` heading breaks the shape a reader and an agent both match the verdict on. Each lens's findings stay in their own subsection; a defect surfacing in two lenses (SQLi is both a correctness bug and an injection vulnerability) merges under the strongest framing – the security section, with a back-reference from the code section.

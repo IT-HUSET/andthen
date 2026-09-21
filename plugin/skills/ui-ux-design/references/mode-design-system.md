@@ -2,18 +2,17 @@
 
 Transform feature requirements into a focused design system with essential visual language, design tokens, component styles, and documentation.
 
-**Inputs/destinations**: `REQUIREMENTS`, `CONCEPT_DIR`, `OUTPUT_DIR` are declared in SKILL.md `## VARIABLES > ### Mode Inputs` (each marked required, optional, or a default destination).
+## Inputs
+
+Bound from `ARGUMENTS`: `REQUIREMENTS` (required – inline description, file path, or PRD reference), `CONCEPT_DIR` (optional – concept design, mockups, or an existing design system), `OUTPUT_DIR` (`docs/design-system`, or the **Project Document Index** design-system location).
 
 ## Principles
 
-- **Design system only** – no wireframes or page layouts (use the `wireframes` mode for that)
 - **Start minimal** – essential tokens/components only; avoid premature complexity
-- **Use CSS custom properties** – everything should be themeable; no hardcoded values in component styles
 
 ## Phase 1: Input Analysis
 
-1. **Validate inputs**: verify `REQUIREMENTS` is provided – stop with a missing-input error if not. If `CONCEPT_DIR` is provided, verify it exists and catalog its contents (mockups, brand guidelines, existing design system).
-2. **Extract requirements**: identify all UI components needed, key user actions and visual hierarchy, content types, brand/mood requirements, platform targets, and accessibility requirements.
+`REQUIREMENTS` absent stops with a missing-input error; when `CONCEPT_DIR` is provided, verify it exists and catalog its contents (mockups, brand guidelines, existing design system). Extract from `REQUIREMENTS` the components needed, the visual hierarchy, and the brand, platform, and accessibility requirements.
 
 **Gate**: Requirements understood, design inputs cataloged
 
@@ -21,7 +20,7 @@ Transform feature requirements into a focused design system with essential visua
 
 Skip if `CONCEPT_DIR` contains sufficient design direction.
 
-Using parallel sub-agents: research appropriate design patterns and UI conventions, accessibility-first patterns, similar products for inspiration (3-5), suitable foundation design systems or component libraries, and domain-specific best practices.
+Using parallel subagents: research appropriate design patterns and UI conventions, accessibility-first patterns, similar products for inspiration (3-5), suitable foundation design systems or component libraries, and domain-specific best practices.
 
 Save research to `<project_root>/.agent_temp/research/design/` only if substantial.
 
@@ -39,7 +38,7 @@ Create essential design tokens. Tokens have two homes that must stay in sync: th
 - Effects: `--shadow-{level}` (3 levels), `--radius[-{variant}]`, `--transition`
 
 **Principles:**
-- System fonts by default – but choose typography with character when the brief or brand warrants it, not safe/generic
+- System fonts by default – but choose typography with character when the brief or brand warrants it
 - Define semantic colors (success, error, warning) only if needed
 - 3 shadow levels and 3 border radius variants are sufficient for most projects
 
@@ -49,7 +48,7 @@ Create essential design tokens. Tokens have two homes that must stay in sync: th
 
 From Phase 1 requirements, list only the components actually needed. Typical set: buttons (primary, secondary, states), form elements (input, select, textarea, checkbox, radio), cards/containers, navigation patterns, typography classes.
 
-For each component: base styles using design tokens, variant styles, state styles (hover, focus, active, disabled), and responsive adjustments. Components should be minimal and composable.
+Each component's base and variant styles reference design tokens, never hardcoded values; components stay minimal and composable.
 
 **Gate**: Essential components styled
 
@@ -70,12 +69,6 @@ Markdown body – the canonical sections, in this order, including only those th
 
 **Gate**: Documentation complete
 
-## Phase 6: Validation
-
-Verify against the Quality Checklist below; fix any failures.
-
-**Gate**: Validation complete
-
 ## Output Layout
 
 ```
@@ -85,17 +78,3 @@ OUTPUT_DIR/
 ├── components.css      # Component styles
 └── showcase.html       # Interactive component library
 ```
-
-## Quality Checklist
-
-- [ ] Tokens are consistent and minimal
-- [ ] `DESIGN.md` front matter is valid (parseable YAML) and its tokens match `tokens.css`
-- [ ] `DESIGN.md` body covers the applicable canonical sections with rationale, not just values
-- [ ] Components use tokens (no hardcoded values)
-- [ ] All required components from requirements are covered
-- [ ] No unnecessary components or over-engineering
-- [ ] Showcase demonstrates all variants and states
-- [ ] Documentation is complete but concise
-- [ ] Accessibility considerations addressed
-
-Goal is a pragmatic, implementable design system – not perfection. Focus on what developers need to build the product.

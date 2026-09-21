@@ -1,43 +1,28 @@
 ---
-description: Simplify and refine code for clarity, reuse, quality, efficiency, and leanness (YAGNI) – reduce complexity and over-engineering while preserving exact behavior. Trigger on 'simplify this code', 'clean this up', 'refactor this', 'remove over-engineering'.
-argument-hint: "[--auto] [--path <dir/file>] [scope/description]"
+description: Simplify code for clarity, reuse, and leanness (YAGNI) – reduce complexity and over-engineering while preserving exact behavior. Trigger on 'simplify this code', 'clean this up', 'refactor this', 'remove over-engineering'.
+argument-hint: "[--auto] [scope: dir/file path and/or description]"
 ---
 
 # Simplify Code
 
-Make scoped code easier to read, reuse, test, and change.
-
-
-## VARIABLES
-
-ARGUMENTS: $ARGUMENTS with flags and their values removed – the scope/description
-PATH_SCOPE: value supplied to `--path`, when present
-
-### Optional Flags
-- `--auto` → AUTO_MODE: automation-safe execution with no conversational prompts
-- `--path <dir/file>` → PATH_SCOPE: authoritative directory or file scope
+`$ARGUMENTS` minus flags is the scope – a directory or file path, a description, or both; `PATH_SCOPE` is the path it names, when it names one. `--auto` is `AUTO_MODE`: automation-safe execution with no conversational prompts.
 
 
 ## INSTRUCTIONS
 
-- Apply project rules (`CLAUDE.md` / `AGENTS.md` – read only if not already in context) and read the referenced guideline files relevant to this work.
-- **Intent + Rules Context** – per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md) (collected in Phase 1.3). Behavior-preserving is not intent-preserving: the Phase 2 Intent anchor drops cleanups that contradict the Intent (surfaced in the completion summary, not applied).
+- **Intent + Rules Context** – per [`intent-and-rules-context.md`](../../references/intent-and-rules-context.md) (collected in Phase 1.3). Behavior-preserving is not intent-preserving: the Phase 2 Intent anchor drops cleanups that contradict the Intent (surfaced in the completion summary, not applied).
 - **Preserve exact behavior** – change only *how* the code works, never *what* it does, unless explicitly requested
 - Ground style judgments in the codebase's existing conventions and the project guidelines – not in generic taste
-- **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md). Simplify-code-specific `BLOCKED:` triggers: red baseline (tests/build/lint failing before any simplify edit), no defensible scope derivable from arguments, current-branch diff, or conversation context, ambiguity between two or more incompatible simplification directions with no conservative default.
-- **Anti-rationalization** – simplify-code's job is Boy Scout cleanup *within the user's requested scope* (per CRITICAL RULES); widening to other modules or files mid-flow is the failure mode. Reject these common rationalizations:
-  - "I'll clean this adjacent module too while I'm here" – that widens scope; leave it for a separate simplify pass.
-  - "This behavior change is obviously safe" – "obviously safe" is not explicit approval; behavior changes ride only the Phase 2 Necessity `behavior-affecting` path.
-  - "Tests can come later" – a green baseline before and after is the simplification safety net.
-
-### Simplification Philosophy
-
-Favor **readable, explicit code** over compact or clever solutions, and **lean code** over defensive bulk – every abstraction, guard, and test must be paid for by a present requirement, not a hypothetical one (YAGNI). Reduce complexity, improve naming, remove dead code, and eliminate duplication where it genuinely helps. Preserve helpful abstractions; over-simplification that makes code harder to debug is not an improvement.
+- **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](../../references/automation-mode.md). Simplify-code-specific `BLOCKED:` triggers:
+  - red baseline – tests, build, or lint failing before any simplify edit;
+  - no defensible scope derivable from arguments, current-branch diff, or conversation context;
+  - ambiguity between two or more incompatible simplification directions with no conservative default.
+- **Scope stays the user's** – this is Boy Scout cleanup inside the requested scope; widening to an adjacent module mid-flow is the named failure mode, and that module is a separate run.
+- **Lean code** over defensive bulk – every abstraction, guard, and test must be paid for by a present requirement, not a hypothetical one (YAGNI).
 
 
 ## GOTCHAS
-- **Boy Scout cleanup that crosses Intent boundaries** – see the Phase 2 Intent anchor.
-- **Picking up `SURFACED` findings from a prior run of the `andthen:remediate-findings` skill** – those are findings an upstream gate explicitly declined to auto-apply. Cleaning them up here re-introduces the drift the routing gate prevented.
+- **Picking up `SURFACED` findings from a prior run of the `andthen:implement-fix` skill** – those are findings an upstream gate explicitly declined to auto-apply. Cleaning them up here re-introduces the drift the routing gate prevented.
 
 
 ## WORKFLOW
@@ -46,18 +31,25 @@ Favor **readable, explicit code** over compact or clever solutions, and **lean c
 
 #### 1.1. Determine Scope
 
-Resolve scope in precedence order: `PATH_SCOPE` > described files (analyze the codebase to identify matches) > current branch diff against its base/upstream (fall back to `git diff HEAD`) > files named or edited earlier in this conversation. Treat the resolved scope as authoritative – never widen it.
+Resolve scope in precedence order:
 
-In `AUTO_MODE`, the diff/conversation fallback is defensible only when it yields a non-empty, cohesive set; otherwise stop with `BLOCKED: no defensible scope (no --path, no description, branch-diff/conversation fallback yielded {nothing | shallow-clone error | a wide cross-module set})` rather than simplifying against noise.
+1. `PATH_SCOPE`.
+2. Described files – analyze the codebase to identify matches.
+3. The current branch diff against its base/upstream (fall back to `git diff HEAD`).
+4. Files named or edited earlier in this conversation.
+
+Treat the resolved scope as authoritative – never widen it.
+
+In `AUTO_MODE`, the diff/conversation fallback is defensible only when it yields a non-empty, cohesive set; otherwise stop with `BLOCKED: no defensible scope (no path, no description, branch-diff/conversation fallback yielded {nothing | shallow-clone error | a wide cross-module set})` rather than simplifying against noise.
 
 #### 1.2. Establish Baseline
-- Use the commands from the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`) for all baseline and Phase 4 verification calls. Fall back to discovery (package.json scripts, Makefile targets, language conventions) only when the document is missing.
+- Resolve the project's check commands per [`verification-evidence.md`](../../references/verification-evidence.md); they serve both this baseline and Phase 4.
 - Establish a green baseline (tests + lint/type checks pass); record current state for regression comparison.
 - In `AUTO_MODE`, a red baseline triggers `BLOCKED:` (per INSTRUCTIONS) rather than Stop-the-Line iteration – simplify-code never tries to fix the baseline itself
 
 #### 1.3. Collect Intent + Rules Context
 
-Collect the **Project Rules Context** and **Intent Context** bundles per [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md). Walk up from the resolved scope's paths to find the governing FIS, PRD, `clarify` artifact, or active plan story; consult the **Project Document Index** in `CLAUDE.md` when present. Extract Intent, Expected Outcomes, Non-Goals, and any explicit deferrals.
+Collect the **Project Rules Context** and **Intent Context** bundles per [`intent-and-rules-context.md`](../../references/intent-and-rules-context.md). Walk up from the resolved scope's paths to find the governing FIS, PRD, `clarify` artifact, or active plan story; consult the **Project Document Index** when present. Extract Intent, Expected Outcomes, Non-Goals, and any explicit deferrals.
 
 When no governing artifact is discoverable, record `Intent Context: none discoverable` in the completion summary – Phase 2 falls back to code-quality heuristics alone. Do not synthesize intent from the code itself.
 
@@ -66,78 +58,51 @@ When no governing artifact is discoverable, record `Intent Context: none discove
 
 ### Phase 2: Analysis
 
-Analyze the scoped code through four lenses:
+**Reuse** – existing utilities, helpers, and project primitives that replace new or hand-rolled code, and divergence from the codebase's dominant pattern for the same job (error shape, data access, naming).
 
-**Reuse**
-- Existing utilities, helpers, components, or project patterns that replace newly written code
-- New functions or inline logic duplicating existing behavior
-- Hand-rolled string/path/env/type-guard code where the project already has a better primitive
-- Divergence from the codebase's dominant pattern for the same job (error-handling shape, data access, naming)
+**Quality** – naming, redundant state, parameter sprawl, leaky abstractions, stringly-typed code where a domain type exists, nested conditionals a guard clause or lookup table would flatten, comments restating the code. Dead code and unused exports count only when the project's analyzer or a structural search proves them unused – a text grep does not.
 
-**Quality**
-- Redundant state, parameter sprawl, copy-paste with slight variation, leaky abstractions
-- Stringly typed code where constants, enums, unions, or domain types already exist
-- Nested conditionals that would read better as guard clauses, lookup tables, or flatter branches
-- Unnecessary comments explaining what the code does instead of why it exists
-- Dead code, unused imports, unused exports; prefer configured analyzers or structural search over plain text grep when proving usage
-
-**Efficiency**
-- Redundant computation, repeated file reads, duplicate network/API calls, N+1 patterns
-- Missed concurrency for independent operations
-- New blocking work in startup, request, render, or polling hot paths
-- Recurring no-op state/store updates that notify downstream consumers without a real change
-- Pre-checking resource existence before operating where direct operation plus error handling is safer
-- Unbounded data structures, missing cleanup, event/listener leaks, or overly broad reads/loads
+**Efficiency** – redundant computation and repeated I/O, N+1s, missed concurrency, new blocking work in a startup, request, render, or polling path. The ones the model under-weights: recurring no-op state updates that still notify consumers, existence pre-checks where operate-and-handle-the-error is safer, unbounded structures, uncleaned listeners, and overly broad reads or loads.
 
 **Necessity (YAGNI)**
 - Generality with no current requirement: one-use abstractions, pass-through layers, unused parameters/configuration.
 - Guards for states already excluded by types, caller contracts, or upstream validation.
 - Tests that duplicate the same intent/boundary/failure sensitivity or assert implementation rather than behavior.
 
-Remove only complexity proved inert across its real boundary. One caller or overlapping coverage is not proof; check callers, tests, and history (Chesterton's Fence). Observable or exported removals are `behavior-affecting`: propose them, require explicit approval, and defer them in `AUTO_MODE`.
+Remove only complexity proved inert across its real boundary. One caller or overlapping coverage is not proof; check callers, tests, and history (Chesterton's Fence).
 
-Cross-check against the `Architecture` document (see **Project Document Index**) if it exists – simplification should respect documented component boundaries and not silently change architectural shape. A cleanup that crosses boundaries belongs in the `andthen:architecture` skill with `--mode advise` first, not bundled into this run.
+Observable or exported removals are `behavior-affecting`: propose them, require explicit approval, and defer them in `AUTO_MODE`.
 
-**Intent anchor.** When Intent Context was collected in Phase 1.3, consult it for each proposed cleanup. Apply the canonical anchor moves from [`intent-and-rules-context.md`](${CLAUDE_PLUGIN_ROOT}/references/intent-and-rules-context.md):
+Cross-check against the `Architecture` document (see **Project Document Index**) if it exists – simplification should respect documented component boundaries and not silently change architectural shape. A cleanup that crosses boundaries belongs in the `andthen:architecture` skill first, not bundled into this run.
 
-- **Cleanup contradicts a Non-Goal** (e.g. "no external dependencies", "no shared helpers across feature boundaries", "no caching layer in v1") → drop the cleanup; record it in the completion summary as `dropped: contradicts Non-Goal in <FIS path>`.
-- **Cleanup implements behavior the artifact defers to a later story** (folds duplicate computation into a memo when the FIS deferred caching, extracts a façade the FIS deferred to a refactoring story) → drop; record `dropped: implements deferred outcome in <FIS path>`.
-- **Cleanup restructures code the FIS explicitly chose a shape for** (a flat function chosen for hot-path performance, an inlined branch chosen for readability over abstraction) → drop; record `dropped: contradicts Expected Outcome / Structural Criterion in <FIS path>`.
+**Intent anchor.** When Intent Context was collected in Phase 1.3, drop any cleanup its anchor moves reject – one contradicting a Non-Goal, implementing an outcome the artifact defers to a later story, or restructuring code the artifact chose a shape for – and record each in the completion summary as `dropped: <anchor> in <FIS path>`.
 
-Produce a prioritized list of improvements. Ask user for confirmation before proceeding if changes are substantial. In `AUTO_MODE`, do not pause for confirmation – proceed with the conservative, lowest-risk subset (drop genuinely risky or scope-widening items and any cleanup the Intent anchor flagged) and record the deferred items in the completion summary.
+Produce a prioritized list of improvements, then proceed with the conservative, lowest-risk subset – drop genuinely risky or scope-widening items and any cleanup the Intent anchor flagged, and record the deferred items in the completion summary.
 
 
 ### Phase 3: Simplification
 
 Execute improvements from the prioritized list:
 - Apply removals before refinements – code another finding deletes isn't worth polishing
-- Work file-by-file or by logical unit
-- For large or separable scopes, use parallel sub-agents by lens or path; pass each the resolved scope or full diff
-- Verify each change preserves existing behavior; for approved `behavior-affecting` removals, verify tests and callers reflect the removal instead
-- Keep individual changes small and verifiable – don't batch unrelated improvements
+- For large or separable scopes, use parallel subagents by lens or path
+- For approved `behavior-affecting` removals, verify tests and callers reflect the removal
 
 
 ### Phase 4: Verification
 
-Use the relevant `Key Dev Commands` resolved in Phase 1.2.
+With the relevant `Key Dev Commands` resolved in Phase 1.2:
 
-1. **Linting/types**: Run full-project typecheck and lint when configured; these catch the common simplification regressions.
-2. **Tests**: Run tests scoped to changed paths when the runner supports it. Broaden to related suites or the full suite when the changed code is shared, hot-path, or structurally significant. If the runner has no scoping mechanism, run the full suite.
-3. **Code review**: For substantial changes, invoke the `andthen:review` skill with `--mode code` or the `andthen:quick-review` skill to catch regressions from fresh context.
-
-**If failures:** fix issues and re-verify before completing.
+1. **Linting/types**: Run full-project typecheck and lint when configured.
+2. **Tests**: Run tests scoped to changed paths when the runner supports it; broaden to the full suite when the changed code is shared or hot-path.
+3. **Code review**: For substantial changes, invoke the `andthen:review` skill with `--mode code` to catch regressions from fresh context.
 
 **Gate**: All tests pass, no regressions, no new lint/type errors.
 
-Include verification evidence in completion summary (as applicable):
-- **Tests**: pass/fail counts (e.g., "42/42 pass")
-- **Linting/types**: error and warning counts
-- **Build**: exit code or success/failure status
-- **Unavailable checks**: state explicitly when no tests, lint, or typecheck are configured
+Include the applicable verification evidence fields from [`verification-evidence.md`](../../references/verification-evidence.md) in the completion summary, and state explicitly when no tests, lint, or typecheck are configured.
 
-In `AUTO_MODE`, suppress conversational sections per [`automation-mode.md`](${CLAUDE_PLUGIN_ROOT}/references/automation-mode.md) and emit a deterministic block the orchestrator can parse:
-- `STATUS:` `OK` | `BLOCKED:` (use the `BLOCKED:` line shape from the canonical when not OK)
-- `FILES_CHANGED:` newline-separated paths (relative to repo root); empty if no edits landed
-- `VERIFY:` one line per check, format `<check>: <result>` (e.g. `tests: 42/42 pass`, `lint: 0 errors / 0 warnings`, `build: ok`)
-- `DEFERRED:` newline-separated items dropped from Phase 2's prioritized list under `AUTO_MODE` conservatism (Phase 2 clauses, including unapproved `behavior-affecting` findings); empty if none
-- Print only this block plus the artifact paths above; skip "Next Steps" / "FOLLOW-UP" prose
+In `AUTO_MODE`, emit the deterministic completion summary per [`automation-mode.md`](../../references/automation-mode.md):
+
+- changed paths relative to the repo root;
+- one line per verification check with its result;
+- the items Phase 2 conservatism dropped, including unapproved `behavior-affecting` findings;
+- `BLOCKED:` in place of the summary when the run could not complete.

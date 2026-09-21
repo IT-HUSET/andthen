@@ -1,0 +1,8 @@
+{
+  "forbiddenArtifacts": [
+    "**/*-code-review-*.md"
+  ],
+  "allowedPaths": [
+    ".agent_temp/**"
+  ]
+}

@@ -1,0 +1,16 @@
+name: andthen-spike-isolation-subject
+description: Answer one design question in an isolated spike beside dirty caller work.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: spike
+    name: Run the spike
+    skill: andthen:spike
+    prompt:
+      - >-
+        Pre-named by an orchestrator, no confirmation needed: is the standard library's csv writer faster than the hand-rolled join in export_csv for 50,000 rows? Answer by building and measuring.
+    outputs:
+      verdict:
+        format: text

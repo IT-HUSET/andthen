@@ -38,8 +38,12 @@ Thumbs.db
 # Claude Code local settings
 .claude/settings.local.json
 **/.claude/settings.local.json
+CLAUDE.local.md
 .claude/worktrees/
 
 # Agent temp files
 .agent_temp/
 docs/temp
+
+# Eval run evidence – local, never committed
+evals/reports/

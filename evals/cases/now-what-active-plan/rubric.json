@@ -1,0 +1,8 @@
+{
+  "criteria": [
+    {
+      "id": "NOW_WHAT_ROUTES_ACTIVE_PLAN",
+      "intent": "the recommendation is to continue the active plan - exec-plan on docs/specs/csv-export, or exec-spec on its spec-ready story - and proposes no init, no setup repair, and no brownfield mapping"
+    }
+  ]
+}

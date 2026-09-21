@@ -1,6 +1,6 @@
 {
   "name": "andthen",
-  "version": "0.40.4",
+  "version": "1.0.0-rc.2",
   "description": "AndThen workflow system: structured agentic development from requirements to shipped code",
   "author": {
     "name": "Tobias Löfstrand"
@@ -21,6 +21,6 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "AndThen",
-    "shortDescription": "Structured workflows for agentic development: clarify → spec → plan → execute → review."
+    "shortDescription": "Structured workflows for agentic development: clarify → plan → exec-plan → review → implement-fix → PR."
   }
 }

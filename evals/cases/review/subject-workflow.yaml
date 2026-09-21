@@ -1,0 +1,35 @@
+name: andthen-review-subject
+description: Review the exporter package, the spec that claims to be implemented, and the PRD it came from – code, gap, then outcome lens.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: review
+    name: Run the code, gap, and outcome review
+    skill: andthen:review
+    prompt: "prompt.md"
+    outputs:
+      review_result:
+        format: json
+        schema:
+          type: object
+          additionalProperties: false
+          required: [findings, resolvedChain, reportPath, verdict]
+          properties:
+            findings:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required: [id, lens, title, location, severity, routing]
+                properties:
+                  id: {type: string}
+                  lens: {type: string}
+                  title: {type: string}
+                  location: {type: string}
+                  severity: {type: string}
+                  routing: {type: string}
+            resolvedChain: {type: string}
+            reportPath: {type: string}
+            verdict: {type: string}

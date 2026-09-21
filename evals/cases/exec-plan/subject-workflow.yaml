@@ -1,0 +1,14 @@
+name: andthen-exec-plan-subject
+description: Execute one committed one-story plan.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: exec-plan
+    name: Execute the plan
+    skill: andthen:exec-plan
+    prompt: "prompt.md"
+    outputs:
+      completion:
+        format: text

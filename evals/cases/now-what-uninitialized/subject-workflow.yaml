@@ -1,0 +1,17 @@
+name: andthen-now-what-uninitialized-subject
+description: Route on an uninitialized repository.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: route
+    name: Route an uninitialized repository
+    skill: andthen:now-what
+    prompt:
+      - >-
+        recommendation only: I want to add a --json flag to the export
+        command. What is the first step here?
+    outputs:
+      route:
+        format: text

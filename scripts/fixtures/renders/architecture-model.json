@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1",
+  "kind": "architecture-model",
+  "meta": {
+    "project": "Session Hardening",
+    "generatedBy": "andthen:describe",
+    "date": "2026-08-28",
+    "revision": "4f2c9e1",
+    "summary": "Sign-in path and the audit trail behind it."
+  },
+  "contexts": [
+    { "id": "auth", "name": "Auth", "kind": "bounded-context",
+      "summary": "Sign-in, session issue, and cookie policy.", "evidence": "declared" },
+    { "id": "audit", "name": "Audit", "kind": "subsystem",
+      "summary": "Append-only record of authentication events.", "evidence": "inferred" }
+  ],
+  "nodes": [
+    { "id": "session-store", "name": "Session Store", "contextId": "auth", "kind": "store",
+      "ref": "src/auth/session/", "summary": "Issues and revokes session cookies.",
+      "metrics": { "files": 6, "loc": 820, "fanIn": 3, "fanOut": 2 } },
+    { "id": "sign-in", "name": "Sign-in Handler", "contextId": "auth", "kind": "entrypoint",
+      "ref": "src/auth/routes/sign-in.ts", "summary": "Validates credentials and starts a session." },
+    { "id": "audit-log", "name": "Audit Log", "contextId": "audit", "kind": "module",
+      "ref": "src/audit/log/", "summary": "Writes one immutable row per authentication event." }
+  ],
+  "edges": [
+    { "from": "sign-in", "to": "session-store", "kind": "calls", "label": "issue", "evidence": "imports" },
+    { "from": "sign-in", "to": "audit-log", "kind": "writes", "label": "sign-in event", "weight": 2, "evidence": "imports" }
+  ],
+  "tours": [
+    { "id": "sign-in-path", "title": "What happens at sign-in",
+      "steps": [
+        { "nodeId": "sign-in", "note": "Credentials arrive here." },
+        { "nodeId": "session-store", "note": "A hardened cookie is issued." },
+        { "nodeId": "audit-log", "note": "The attempt is recorded before the response returns." }
+      ] }
+  ]
+}

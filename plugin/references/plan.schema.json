@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "andthen:plan.schema.json",
+  "title": "AndThen plan.json",
+  "description": "Machine form of plan-schema.md. Carries every invariant JSON Schema can state; cross-field and filesystem facts - a FIS pointer resolving, a dependency edge - are the reading agent's, and surface when the file is opened.",
+  "type": "object",
+  "required": ["schemaVersion", "prd", "overview", "stories"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "description": "Bumps only on a breaking delta. Consumers reject unknown versions with BLOCKED: unsupported plan.json schemaVersion.",
+      "const": "2"
+    },
+    "prd": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$)).+$",
+      "description": "Repo-root-relative POSIX path of the prd.md or requirements file the plan came from, without dot or dot-dot components, or null for a standalone one-story plan that has no PRD, or when the source was a tracker item."
+    },
+    "overview": {
+      "type": "object",
+      "required": ["summary"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?![\\s\\S]*\\n\\s*\\n)[\\s\\S]+$"
+        }
+      }
+    },
+    "sharedDecisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "description", "stories"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "stories": { "type": "array", "items": { "$ref": "#/$defs/storyId" } }
+        }
+      }
+    },
+    "bindingConstraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["featureId", "anchor"],
+        "additionalProperties": false,
+        "properties": {
+          "featureId": { "type": "string", "minLength": 1 },
+          "anchor": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "stories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "dependsOn", "status", "fis", "completedTaskIds",
+                     "scope"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/storyId" },
+          "name": { "type": "string", "minLength": 1 },
+          "dependsOn": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/storyId" }
+          },
+          "status": {
+            "enum": ["pending", "spec-ready", "in-progress", "done", "skipped", "blocked"]
+          },
+          "fis": {
+            "type": ["string", "null"],
+            "pattern": "^s[0-9]{2}-[a-z0-9]+(-[a-z0-9]+)*\\.md$",
+            "description": "Canonical basename beside plan.json, or null before generation."
+          },
+          "completedTaskIds": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/taskId" }
+          },
+          "verified": {
+            "type": "object",
+            "required": ["at", "summary"],
+            "additionalProperties": false,
+            "description": "Written with status done: when the story was verified, and a summary on the shape plan-schema.md states.",
+            "properties": {
+              "at": { "type": "string", "minLength": 1 },
+              "summary": { "type": "string", "minLength": 1 }
+            }
+          },
+          "owner": { "type": ["string", "null"], "pattern": "^[^|\\n]+$" },
+          "scope": { "type": "string", "minLength": 1 },
+          "sourceRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "provenance": { "type": ["string", "null"] },
+          "assetRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "sequencing": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "storyId": { "type": "string", "pattern": "^S[0-9]{2}$" },
+    "taskId": { "type": "string", "pattern": "^TI[0-9]{2}$" }
+  }
+}

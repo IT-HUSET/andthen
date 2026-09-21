@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "andthen:context-map.schema.json",
+  "title": "AndThen context map",
+  "description": "Machine form of board-models.md beside it, for the context-map kind. Carries every invariant JSON Schema can state; id uniqueness, endpoint resolution, self-relationships, and the symmetric-pattern direction rule are stated by that reference and are the producer's to check.",
+  "type": "object",
+  "required": ["schemaVersion", "kind", "meta", "contexts", "relationships"],
+  "properties": {
+    "schemaVersion": { "const": "1" },
+    "kind": { "const": "context-map" },
+    "meta": {
+      "type": "object",
+      "required": ["project", "generatedBy", "date", "revision", "status"],
+      "properties": {
+        "project": { "type": "string", "minLength": 1 },
+        "generatedBy": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "revision": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": ["current", "target", "registered"],
+          "description": "current and target are a run's report-side maps; registered is the accepted map the Context Map document records."
+        }
+      }
+    },
+    "contexts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "purpose", "subdomainType"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 },
+          "subdomainType": { "enum": ["core", "supporting", "generic"] },
+          "codeLocation": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!/)(?!~)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$)).+$",
+            "description": "Repo-relative POSIX path without dot or dot-dot components."
+          },
+          "team": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "pattern", "direction", "rationale"],
+        "properties": {
+          "from": { "$ref": "#/$defs/id" },
+          "to": { "$ref": "#/$defs/id" },
+          "pattern": { "enum": ["partnership", "shared-kernel", "customer-supplier", "conformist",
+                                "anticorruption-layer", "open-host-service", "published-language",
+                                "separate-ways", "big-ball-of-mud"] },
+          "direction": {
+            "enum": ["upstream-downstream", "symmetric"],
+            "description": "upstream-downstream reads from (upstream) to (downstream)."
+          },
+          "channel": { "type": "string", "minLength": 1 },
+          "rationale": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 }
+  }
+}

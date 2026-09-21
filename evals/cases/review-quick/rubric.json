@@ -1,0 +1,5 @@
+{"criteria": [
+  {"id": "CODE_UNHANDLED_REJECTION_PATH", "intent": "A finding names the ValueError that records.parse_row raises for a malformed amount cell escaping cli.main, which maps only FileNotFoundError to exit code 2, and cites the project's own no-traceback / exit-2 constraint."},
+  {"id": "CODE_LAYERING_INVERSION", "intent": "A finding names src/reporter/records.py importing DELIMITER from src/reporter/export.py, cites ADR-001 or the Key Constraints layering rule that forbids a leaf importing a leaf, and routes it Fix."},
+  {"id": "CODE_NO_INVENTED_BLOCKER", "intent": "No Fix-routed finding contradicts what the project's own documents already settle: the fixed retry pause the docs/DECISIONS.md Pending row parks, standard-library-only, no CSV quoting, no configuration file are acknowledged or routed Note rather than raised as fresh defects. A Fix-routed finding on a divergence the code, its specs or its tests actually carry is expected however many there are - the count is not itself a defect."}
+]}

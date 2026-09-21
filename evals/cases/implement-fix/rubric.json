@@ -1,0 +1,16 @@
+{
+  "criteria": [
+    {
+      "id": "REMEDIATE_REVALIDATES_BEFORE_EDITING",
+      "intent": "F1 is re-validated against the current src/reporter/pipeline.py before any edit, and the only implementation change is the bounded fix it names - build_label derives label.txt from the seed.txt on disk"
+    },
+    {
+      "id": "REMEDIATE_VERIFIES_ONCE_WITHOUT_RE_REVIEW",
+      "intent": "the fix is followed by targeted verification over the touched file and the findings re-check, with no re-review of its own"
+    },
+    {
+      "id": "REMEDIATE_REPORT_ACCOUNTABILITY",
+      "intent": "the completion output agrees with the workspace: F1 RESOLVED with evidence, the report annotated, both stories still done, and no success claimed beyond what was verified"
+    }
+  ]
+}

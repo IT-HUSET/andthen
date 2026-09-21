@@ -1,0 +1,7 @@
+{
+  "criteria": [
+    {"id": "SPEC_INTENT_FIDELITY", "intent": "The FIS preserves every material normalization decision without invented commitments."},
+    {"id": "SPEC_EXECUTABILITY", "intent": "An unattended implementer has ordered tasks, complete trace, and runnable verification for the requested behavior."},
+    {"id": "SPEC_BOUNDARY_DISCIPLINE", "intent": "The FIS makes the named non-goals explicit and remains proportional to the standalone function."}
+  ]
+}

@@ -1,0 +1,1 @@
+Invoke the staged `andthen:now-what` skill, asking for a recommendation only: what is the next step for this project? The repository is set up, carries an unfilled Architecture stub, and has a plan whose remaining story is spec-ready.

@@ -1,0 +1,7 @@
+{
+  "criteria": [
+    {"id": "EXEC_PLAN_INTENT_FIDELITY", "intent": "the story's own outcome is what shipped - a completed run writes the count of exported records to rows.txt under the output directory it was given, beside the report - and it reached that through its own exec-spec subagent without bypassing proof or the quick review the completion report's Reviewed: line accounts for"},
+    {"id": "EXEC_PLAN_HANDS_OFF_THE_REVIEW", "intent": "the run reviews nothing itself: the aggregate report ends with a Next: line naming one invocation, the plan-level code, gap, security, and outcome review over the plan with --fix"},
+    {"id": "EXEC_PLAN_REPORT_ACCOUNTABILITY", "intent": "the aggregate narrative, the diff, the executed proof lines it quotes, and the story's verified record support the same completion claim, with no unevidenced success and no failure left unreported"}
+  ]
+}

@@ -1,0 +1,18 @@
+name: andthen-implement-fix-subject
+description: Remediate one Fix-routed finding from a failed plan-level gap review.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: implement-fix
+    name: Remediate the gap review's finding
+    skill: andthen:implement-fix
+    prompt:
+      - >-
+        --auto plan-gap-review-claude-2026-09-05.md
+
+        Every story is already done; the review's F1 is routed Fix and nothing was repaired. Re-validate it, apply the smallest fix, verify, and annotate the report. Leave the plan and every story FIS in place.
+    outputs:
+      report:
+        format: text

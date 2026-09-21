@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "2",
+  "prd": null,
+  "overview": {
+    "summary": "Two independent run facts: the exported record count, and a label unaffected by ledger-name punctuation."
+  },
+  "sharedDecisions": [],
+  "bindingConstraints": [],
+  "stories": [
+    {
+      "id": "S01",
+      "name": "Record Row Count",
+      "dependsOn": [],
+      "status": "spec-ready",
+      "fis": "s01-record-row-count.md",
+      "completedTaskIds": [],
+      "owner": null,
+      "scope": "Write the exported record count beside the report.",
+      "sourceRefs": [],
+      "provenance": "docs/specs/run-summary/plan.json",
+      "assetRefs": [],
+      "sequencing": null
+    },
+    {
+      "id": "S02",
+      "name": "Strip Label Punctuation",
+      "dependsOn": [],
+      "status": "spec-ready",
+      "fis": "s02-strip-label-punctuation.md",
+      "completedTaskIds": [],
+      "owner": null,
+      "scope": "Drop leading and trailing punctuation from a run label.",
+      "sourceRefs": [],
+      "provenance": "docs/specs/run-summary/plan.json",
+      "assetRefs": [],
+      "sequencing": null
+    }
+  ]
+}

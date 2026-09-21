@@ -1,0 +1,5 @@
+# LF in every working tree, Windows included (core.autocrlf=true there, and a
+# marketplace install is a clone): the atlas renderer hashes template bytes into
+# its CSP, and bash runs the installer and the scan wrapper.
+* text=auto eol=lf
+*.png binary

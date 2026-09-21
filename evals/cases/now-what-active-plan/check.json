@@ -1,0 +1,6 @@
+{
+  "allowedPaths": [],
+  "commands": [
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/csv-export/plan.json"
+  ]
+}

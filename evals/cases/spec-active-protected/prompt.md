@@ -1,0 +1,1 @@
+Invoke the staged `andthen:spec` skill with `--auto` on `docs/specs/retry-policy/s01-retry-policy.md` to re-author it with a settled decision. The story is already in progress with a completed task, so authoring must refuse and change nothing.

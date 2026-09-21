@@ -1,113 +1,32 @@
 # Test Design – Behavior Over Implementation
 
-Sources: Steve Freeman & Nat Pryce (*Growing Object-Oriented Software, Guided by Tests*, 2009), Kent C. Dodds (*Testing Trophy*), Dave Farley (diagnosability, friction-as-feedback), Kent Beck (*Test Desiderata*, 2019).
-
-Home mode: `write`. Also load for `tdd` (naming, assertions) and `strategy` (auditing suites before trusting their verdicts).
-
-## Contents
-- The one rule
-- Six signals of a behavior-first test
-- Six signals of an implementation-coupled test
-- Diagnosability
-- Arrange / Act / Assert – with a warning
-- Mock minimization
-- Tests as executable documentation
-- Beck's Test Desiderata – audit rubric
-- Domain-specific patterns
+Canon: GOOS (Freeman & Pryce), Dodds' Testing Trophy, Farley's diagnosability and friction-as-feedback, Beck's Test Desiderata, assumed known.
 
 ## The one rule
 
-**Test behavior, not implementation.**
+**Test behavior, not implementation.** A behavior-first test and an implementation-coupled test look identical while green – the difference shows up on refactor. Dodds: *"The more your tests resemble the way your software is used, the more confidence they can give you."*
 
-A good test asserts what the code *should do* from a caller's perspective. A bad test asserts *how it does it*. They look identical when passing – the difference shows up on refactor.
+Implementation-coupled signals, any one of which is a rewrite: assertions on internal call counts (unless the repetition *is* the behavior, e.g. retries); a red bar after a rename, reorder, or extract-method; assertions on output formatting nothing downstream consumes; assertions added because the test was red, not because the behavior is defined.
 
-Dodds: *"The more your tests resemble the way your software is used, the more confidence they can give you."*
+## Level signal in the Arrange block
 
+When Arrange outgrows Act + Assert combined, one of these is true: wrong level – promote to integration; too many responsibilities in the unit – split it; setup belongs in a named fixture (`a_customer_with_overdue_invoices`, not `setup_db_with_data_3`).
 
-## Six signals of a behavior-first test
+## Mocks
 
-1. **Assertions reference observable outputs** – return values, rendered UI, emitted events, HTTP responses, persisted records. Not private fields, call order, or internal method invocations.
-2. **Survives a behavior-preserving refactor.** If renaming a private method breaks the test, the test is reading implementation.
-3. **Fails in one obvious way.** One clear failure beats three tangentially related reds.
-4. **Name reads as a spec sentence.** `rejects_withdrawal_when_balance_insufficient`, not `test_withdraw_3`.
-5. **Minimal setup.** Large Arrange blocks are a coupling signal.
-6. **No mocks of your own domain.** Mock the filesystem, network, clock. Don't mock domain objects to test domain objects.
-
-
-## Six signals of an implementation-coupled test
-
-1. Names like `test_method_X_calls_helper_Y`.
-2. Assertions on internal call counts (unless the repetition *is* the behavior – e.g. retries).
-3. Rewrites required after a rename, reorder, or extract-method.
-4. Assertions on output formatting nothing downstream consumes (e.g. log whitespace).
-5. Reaches private APIs via reflection, `@ts-ignore`, friend-class tricks.
-6. Assertions added because the test was red, not because the behavior is defined.
-
+Each mock declares "this collaborator's behavior is not part of what I'm proving". Mock at system edges only – filesystem, network, clock, randomness; your own repositories and services take a real implementation with a fixture or an in-memory fake. Elaborate stubbing encodes the call graph: replace with a fake or promote to integration. **Never mock the unit under test** – needing to means the unit was mis-identified.
 
 ## Diagnosability
 
-Farley: *the cost of a test is paid when it fails, not when it's written.* `expected true, got false` is worthless at 3am.
+The cost of a test is paid when it fails. Name = spec sentence (`rejects_withdrawal_when_balance_insufficient`); one assertion per behavior; a custom message on any non-obvious expected value; group by scenario (`describe("when account has overdue invoices")`), not by method.
 
-At write time:
+## Audit vocabulary
 
-1. **Name = spec sentence.** Reader knows the bug domain before reading code.
-2. **One assertion per behavior.** A test with six asserts hides five failures behind the first.
-3. **Custom messages for non-obvious values.** `expect(hash).toBe(expectedHash, "SHA-256 of known fixture")` beats a bare hex literal.
-
-
-## Arrange / Act / Assert – with a warning
-
-Most tests should follow AAA. **The Arrange block is where tests leak implementation.**
-
-If Arrange is larger than Act + Assert combined, one of these is true:
-- Wrong level – promote to integration.
-- Too many responsibilities in the unit – split it.
-- Setup should live in a named fixture – `a_customer_with_overdue_invoices`, not `setup_db_with_data_3`.
-
-
-## Mock minimization
-
-Farley: mocks are a design tool, not a test tool. Each mock declares "this collaborator's behavior is not part of what I'm proving." If the mock's own behavior needs a spec, you're testing the mock.
-
-- **Mock at system edges.** Filesystem, network, clock, randomness – yes. Your own repositories and services – usually no; use a real implementation with a test fixture.
-- **Elaborate stubbing encodes the call graph.** Replace with an in-memory fake or promote to integration.
-- **Never mock the unit under test.** If you need to, you've mis-identified the unit.
-
-
-## Tests as executable documentation
-
-- Write tests that read like prose – skimmers (new hires, reviewers) parse sentences faster than code.
-- `// why` comments on non-obvious assertions: *"`Date.now()` not mocked; fixture uses a real TTL."* Three seconds to write, saves the next reader five minutes.
-- Group by scenario (`describe("when account has overdue invoices")`), not by method (`describe("Account.charge()")`). Scenarios match how users think.
-
-
-## Beck's Test Desiderata – audit rubric
-
-Twelve properties. No test scores perfectly on all of them – they trade – but the list gives the vocabulary for *why* a test feels wrong.
-
-| Desideratum | Meaning | Common violation |
-|---|---|---|
-| **Isolated** | Order-independent; tests don't affect each other. | Shared mutable fixtures; tests that only pass in sequence. |
-| **Composable** | Small tests combine without rewriting. | Setup too scenario-specific to reuse. |
-| **Fast** | Sub-second ideal, reasonable minimum. | Real network calls in unit tests; DB bootstrap per test. |
-| **Inspiring** | Passing earns genuine confidence. | Tests that pass without asserting anything load-bearing. |
-| **Writable** | Cheap to add. | Ceremony per new case. |
-| **Readable** | New reader learns the code from the test. | Cryptic names, magic numbers, assertion-less blocks. |
-| **Behavioral** | Tests behavior changes, not implementation changes. | Mocks the unit's own methods; asserts call counts on helpers. |
-| **Structure-insensitive** | Survives behavior-preserving refactors. | Breaks on rename; asserts on private call order. |
-| **Automated** | Runs without human intervention. | "If you see X, click Y" in the description. |
-| **Specific** | Failure tells you what broke. | 15 assertions across 4 behaviors in one test. |
-| **Deterministic** | Same code, same result, every run. | Sleeps, real clocks, unseeded RNG, set-iteration order. |
-| **Predictive** | Pass = system works (for what's covered). | Mock-heavy suites that pass while prod is broken. |
-
-Use in `strategy` mode to audit existing suites; in `write` mode as a pre-commit self-check.
-
-Trade-offs are real – Fast vs Predictive, Specific vs Composable. The craft is knowing which your context tolerates.
-
+Beck's Test Desiderata (2019) name the twelve properties a test trades between – Isolated, Composable, Fast, Inspiring, Writable, Readable, Behavioral, Structure-insensitive, Automated, Specific, Deterministic, Predictive. Use the names to say *why* an existing test feels wrong before rewriting it; the trades are real and the project's Testing Strategy says which it tolerates.
 
 ## Domain-specific patterns
 
-- **Property-based testing** (hypothesis, fast-check, proptest) – for pure-ish functions with too-large input spaces. Specify invariants; the framework finds counter-examples. Good for parsers, serialization, ordering, idempotency.
-- **Golden / snapshot tests** – for rendered output (HTML, diagrams, formatted strings). Dangerous as defaults; bugs sail through reviewer-rubber-stamped snapshot updates. Require explicit updates, not `--update-all`.
-- **Contract tests** – at service boundaries. Both sides assert against a shared contract, not each other's mocks. Avoids mock-drift in microservice suites.
-- **Type-level tests** (TypeScript, `expectTypeOf` / `tsd`) – for libraries where the type *is* the contract. Failure is a type error, not a runtime assertion.
+- **Property-based testing** (hypothesis, fast-check, proptest) – pure-ish functions with too-large input spaces: parsers, serialization, ordering, idempotency.
+- **Golden / snapshot tests** – rendered output. Dangerous as defaults: bugs sail through rubber-stamped snapshot updates, so require explicit per-file updates, never `--update-all`.
+- **Contract tests** – at service boundaries, both sides asserting against a shared contract rather than each other's mocks.
+- **Type-level tests** (`expectTypeOf`, `tsd`) – libraries where the type *is* the contract.

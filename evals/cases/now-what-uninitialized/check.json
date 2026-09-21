@@ -1,0 +1,8 @@
+{
+  "allowedPaths": [],
+  "forbiddenArtifacts": [
+    "CLAUDE.md",
+    "AGENTS.md",
+    "docs/**"
+  ]
+}

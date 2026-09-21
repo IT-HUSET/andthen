@@ -1,6 +1,6 @@
 # ADR Template
 
-Canonical Architecture Decision Record template for the `andthen:architecture` skill. Used by `trade-off` mode (Step 6 produces an ADR by default) and `advise` mode (Design sub-mode produces one for significant decisions).
+Canonical Architecture Decision Record template.
 
 ```markdown
 # ADR-{N}: {Short Title}
@@ -19,6 +19,7 @@ What becomes easier or harder?
 
 ## Alternatives Considered
 1. **{Alt}** – rejected: {reason}
+2. **Floor option – {do nothing | extend {what exists}}** – rejected: {what the Decision buys over it}. _(Required: the smallest option satisfying the criteria is always in the set.)_
 
 ## Implementation Notes
 Concrete next steps, owners, rollout sequence, or migration plan.

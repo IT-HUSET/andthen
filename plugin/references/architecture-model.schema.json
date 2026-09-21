@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "andthen:architecture-model.schema.json",
+  "title": "AndThen atlas model (architecture-model, domain-model)",
+  "description": "Machine form of architecture-model.md beside it, for both atlas kinds. Carries every invariant JSON Schema can state; id uniqueness, reference resolution, the ref rule, and the meanings contextId rules are stated by that reference and are the producer's to check.",
+  "type": "object",
+  "required": ["schemaVersion", "kind", "meta", "contexts", "nodes", "edges"],
+  "properties": {
+    "schemaVersion": {
+      "description": "Consumers reject unknown versions rather than best-effort rendering.",
+      "const": "1"
+    },
+    "kind": {
+      "description": "The discriminator consumers key on before inspecting anything else.",
+      "enum": ["architecture-model", "domain-model"]
+    },
+    "meta": {
+      "type": "object",
+      "required": ["project", "generatedBy", "date", "revision"],
+      "properties": {
+        "project": { "type": "string", "minLength": 1 },
+        "generatedBy": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Git short SHA of the source's last commit, suffixed -dirty when the working tree differs - what a reader diffs the source against."
+        },
+        "summary": { "type": "string" }
+      }
+    },
+    "contexts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "kind", "summary", "evidence"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["bounded-context", "layer", "subsystem", "external"] },
+          "summary": { "type": "string", "minLength": 1 },
+          "evidence": { "enum": ["declared", "inferred"] }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "contextId", "kind", "ref"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string", "minLength": 1 },
+          "contextId": { "$ref": "#/$defs/id" },
+          "kind": { "type": "string" },
+          "ref": { "type": "string", "minLength": 1 },
+          "summary": { "type": "string" },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "files": { "$ref": "#/$defs/count" },
+              "loc": { "$ref": "#/$defs/count" },
+              "churn": { "$ref": "#/$defs/count" },
+              "fanIn": { "$ref": "#/$defs/count" },
+              "fanOut": { "$ref": "#/$defs/count" }
+            }
+          },
+          "avoid": {
+            "description": "domain-model only. Omit the key when there are none, never [].",
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "meanings": {
+            "description": "domain-model only: per-context meanings of an overloaded term.",
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "required": ["contextId", "label", "meaning"],
+              "properties": {
+                "contextId": { "$ref": "#/$defs/id" },
+                "label": { "type": "string", "minLength": 1 },
+                "meaning": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "kind", "evidence"],
+        "properties": {
+          "from": { "$ref": "#/$defs/id" },
+          "to": { "$ref": "#/$defs/id" },
+          "kind": { "enum": ["depends", "calls", "publishes", "consumes", "reads", "writes"] },
+          "label": { "type": "string" },
+          "weight": { "type": "integer", "minimum": 1 },
+          "evidence": { "enum": ["imports", "declared", "git-coupling", "inferred"] }
+        }
+      }
+    },
+    "tours": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "steps"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "title": { "type": "string", "minLength": 1 },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["note"],
+              "properties": {
+                "note": { "type": "string", "minLength": 1 },
+                "nodeId": { "type": ["string", "null"] },
+                "contextId": { "type": ["string", "null"] }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "if": { "properties": { "kind": { "const": "domain-model" } } },
+  "then": {
+    "properties": {
+      "nodes": { "items": { "properties": { "kind": { "enum": ["entity", "action", "state", "policy"] } } } },
+      "edges": { "maxItems": 0, "description": "v1 defines no domain edge kinds." }
+    }
+  },
+  "else": {
+    "properties": {
+      "nodes": { "items": { "properties": { "kind": {
+        "enum": ["module", "package", "service", "component", "store", "entrypoint", "external"] } } } }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "count": { "type": "integer", "minimum": 0 }
+  }
+}
