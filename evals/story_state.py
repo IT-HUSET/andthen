@@ -1,15 +1,30 @@
 """One plan-story reader for the case oracles that reconcile plan state.
 
 Case data, not harness: it carries no case's expectations, only the shape every
-`plan.json` story record has, so a case whose oracle only reconciles story state
-needs no reader of its own. A case's `oracle.py` imports it by a path it computes
-from `__file__`, because the evaluator runs an oracle by absolute path with the
-workspace as the working directory.
+`plan.json` story record has and the FIS surfaces a story's spec no longer
+carries, so a case whose oracle only reconciles story state needs no reader of
+its own. A case's `oracle.py` imports it by a path it computes from `__file__`,
+because the evaluator runs an oracle by absolute path with the workspace as the
+working directory.
 
 Python 3 standard library only, 3.9-compatible.
 """
 
 import json
+import re
+
+# FIS sections authoring no longer writes, by title at any heading level: each is
+# a regression to a template the executor and reviewer no longer read. `Code
+# Patterns` is matched anywhere in a title because it shipped under two names.
+RETIRED_HEADING = re.compile(
+    r"^#{1,6}[ \t]+(?:(?:Deeper Context|Technical Overview|Testing Strategy"
+    r"|Validation|Execution Contract)[ \t]*$|.*\bCode Patterns\b)", re.I | re.M)
+# The Preflight verdict, bare or bold: Preflight ends on the next command now.
+CLOSURE_LINE = re.compile(r"^[ \t>*_-]*Closure\b[*_ \t]*:.*$", re.M)
+# A retired authoring marker: the shipped FIS carries
+# the answer or an ASSUMPTION:, never the open question itself.
+MARKER_LINE = re.compile(
+    r"^[ \t>*_-]*(?:CONFUSION|MISSING REQUIREMENT)[*_ \t]*:.*$", re.M)
 
 
 def stories(path):
@@ -57,3 +72,19 @@ def diverges(path, row, verified=False, **wanted):
                        for field in ("at", "summary")
                        if not (isinstance(record.get(field), str)
                                and record[field].strip())]
+
+
+def retired(path):
+    """Every retired surface a written FIS carries: a section heading authoring
+    no longer writes, a `Closure:` verdict line, or an open `CONFUSION:`/`MISSING
+    REQUIREMENT:` marker the shipped FIS should have resolved into an answer or
+    an `ASSUMPTION:`. A FIS an older run wrote is read as-is, but one this run
+    wrote is the run's own regression."""
+    text = path.read_text(encoding="utf-8")
+    problems = ["%s: carries the retired heading %r" % (path, m.group(0).strip())
+                for m in RETIRED_HEADING.finditer(text)]
+    problems.extend("%s: carries a Closure verdict line %r" % (path, m.group(0).strip())
+                    for m in CLOSURE_LINE.finditer(text))
+    problems.extend("%s: carries the open marker %r" % (path, m.group(0).strip())
+                    for m in MARKER_LINE.finditer(text))
+    return problems

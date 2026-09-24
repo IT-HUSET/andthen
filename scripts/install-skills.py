@@ -96,30 +96,29 @@ HOME = os.path.expanduser("~")
 # `.json` schema is a canonical of its own: it ships beside the reference and is
 # read with it, so it travels into every consuming bundle the same way.
 # Each must exist at plugin/references/<asset> and be listed by every consuming skill.
-_canonical_assets="architecture-model.md architecture-model.schema.json automation-mode.md board-models.md closure.md context-map.schema.json design-tree.md event-storm.schema.json execution-discipline.md fis-authoring-guidelines.md fis-contract.md fis-mutability.md intent-and-rules-context.md lens-adversarial.md plan-schema.md plan.schema.json project-document-templates.md review-calibration.md self-review.md testing-strategy.md verification-evidence.md"
+_canonical_assets="architecture-model.md architecture-model.schema.json automation-mode.md board-models.md context-map.schema.json design-tree.md event-storm.schema.json execution-discipline.md fis-authoring-guidelines.md fis-contract.md fis-mutability.md intent-and-rules-context.md lens-adversarial.md plan-schema.md plan.schema.json preflight.md project-document-templates.md review-calibration.md self-review.md testing-strategy.md verification-evidence.md"
 
 # Per-skill declarations: `_skill_assets_<skill with - as _>` names the canonical
 # assets that skill consumes. Only skills that reference ../../references/<asset>
 # are listed, and the declaration must equal what the skill's own files reference
 # - _check_skill_asset_closure proves both directions before any copy.
 # plan orchestrates FIS authoring but never edits FIS prose, so fis-mutability is spec's and exec-spec's.
-_skill_assets_plan="automation-mode.md closure.md fis-authoring-guidelines.md fis-contract.md plan-schema.md plan.schema.json self-review.md"
-_skill_assets_spec="automation-mode.md closure.md fis-authoring-guidelines.md fis-contract.md plan-schema.md plan.schema.json self-review.md"
+_skill_assets_plan="automation-mode.md fis-authoring-guidelines.md fis-contract.md plan-schema.md plan.schema.json preflight.md project-document-templates.md self-review.md"
+_skill_assets_spec="automation-mode.md fis-authoring-guidelines.md fis-contract.md plan-schema.md plan.schema.json preflight.md project-document-templates.md self-review.md"
 _skill_assets_exec_spec="automation-mode.md execution-discipline.md fis-contract.md fis-mutability.md plan-schema.md verification-evidence.md"
 _skill_assets_exec_plan="automation-mode.md execution-discipline.md plan-schema.md verification-evidence.md"
-_skill_assets_review="fis-contract.md fis-mutability.md intent-and-rules-context.md lens-adversarial.md plan-schema.md review-calibration.md verification-evidence.md"
-_skill_assets_architecture="board-models.md context-map.schema.json design-tree.md event-storm.schema.json project-document-templates.md review-calibration.md"
-_skill_assets_clarify="design-tree.md self-review.md"
-_skill_assets_testing="testing-strategy.md verification-evidence.md"
-_skill_assets_triage="automation-mode.md verification-evidence.md"
+_skill_assets_review="automation-mode.md fis-contract.md fis-mutability.md intent-and-rules-context.md lens-adversarial.md plan-schema.md review-calibration.md verification-evidence.md"
+_skill_assets_architecture="automation-mode.md board-models.md context-map.schema.json design-tree.md event-storm.schema.json project-document-templates.md review-calibration.md"
+_skill_assets_clarify="design-tree.md project-document-templates.md self-review.md"
+_skill_assets_testing="automation-mode.md testing-strategy.md verification-evidence.md"
+_skill_assets_triage="automation-mode.md project-document-templates.md verification-evidence.md"
 _skill_assets_init="project-document-templates.md"
 # describe merges what map-codebase and ubiquitous-language each consumed.
 _skill_assets_describe="architecture-model.md architecture-model.schema.json project-document-templates.md"
 _skill_assets_implement_fix="automation-mode.md fis-mutability.md intent-and-rules-context.md review-calibration.md verification-evidence.md"
 _skill_assets_ui_ux_design="automation-mode.md"
-_skill_assets_backlog_triage="automation-mode.md"
+_skill_assets_backlog_triage="automation-mode.md project-document-templates.md"
 _skill_assets_simplify_code="automation-mode.md intent-and-rules-context.md verification-evidence.md"
-# tracker owns the ISSUE-TRACKER.md template it scaffolds from.
 _skill_assets_tracker="automation-mode.md project-document-templates.md"
 # skill-review is self-contained: the finding contract, the Critic posture, and the
 # rules-context bundle come from canonicals, never from the review skill's own files.

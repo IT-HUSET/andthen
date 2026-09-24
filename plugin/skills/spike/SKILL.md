@@ -37,7 +37,7 @@ Restate the one design question and the outcome that would answer it (a number, 
 The spike lives on a throwaway branch in its own worktree off the current HEAD.
 
 1. Derive a kebab-case `<slug>` from the question. If `spike/<slug>` already exists, suffix a short disambiguator (`-2`, `-3`, …) and record it in the Verdict's Evidence.
-2. Create it: `git worktree add <caller-root>/.agent_temp/spike/<slug> -b spike/<slug>` (an untracked directory the caller's own `.agent_temp/` ignore already covers). Any failure stops with `BLOCKED: could not create a spike worktree – <verbatim git error>` before a byte is written.
+2. Create it: `git worktree add <caller-root>/.agent_temp/spike/<slug> -b spike/<slug>` (an untracked directory the caller's own `.agent_temp/` ignore already covers). Any failure stops the run with the verbatim git error before a byte is written.
 3. Bind every tool to that root: use the host's worktree mechanism when it has one (Claude Code's `EnterWorktree`; a shell `cd` moves only shell commands, so without such a mechanism write through absolute paths under the spike root). Confirm with `git rev-parse --show-toplevel` from inside that every write lands there.
 
 **Gate**: `spike/<slug>` checked out in its own worktree; every file-writing tool resolves paths under it; the caller checkout untouched.

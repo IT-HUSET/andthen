@@ -11,7 +11,7 @@ Then `gh pr view <n> --repo <PR_REPO> --json title,body,baseRefOid,headRefOid,is
 
 The implementation scope is that tree against `git merge-base <baseRefOid> <headRefOid>` – the base resolves from the OID the host reports, never a local branch name, which is stale or absent as often as not – and the report cites both SHAs. Project Rules Context stays the launch checkout's: a PR does not rewrite the rules it is judged by. Remove the worktree (`git worktree remove --force`) on completion.
 
-Surface `gh` and `git` failures verbatim (`BLOCKED: gh authentication required` / `BLOCKED: PR <n> not found` in `AUTO_MODE`).
+A `gh` or `git` failure stops the review, surfaced verbatim.
 
 
 ## Execute

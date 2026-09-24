@@ -26,7 +26,7 @@ Tidy *the code this cycle wrote* and the tests that drove it. Anything outside t
 
 - **Living Test List** – Canon TDD adds items to the list as they are discovered. When execution discovers a *requirement* rather than a test case, it goes through the `andthen:exec-spec` skill's Discovered Requirements channel before the test or code depending on it.
 - **Make it work, make it right, make it fast** – work = Green, right = Refactor-on-green; fast only when measurement shows it matters.
-- **Anti-Cheat Invariant** – tests guard against agent-introduced regressions only while they keep telling the truth; Beck names the failure "the genie cheating" by disabling or deleting tests. Never delete a test, disable it (`.skip`, `xit`, `@Disabled`, equivalents), or pass by weakening assertions. A wrong test is rewritten; a test whose subject was intentionally removed is replaced with a test for the new behavior.
+- **Anti-Cheat Invariant** – tests guard against agent-introduced regressions only while they keep telling the truth; Beck names the failure "the genie cheating" by disabling or deleting tests. Never delete a test, disable it (`.skip`, `xit`, `@Disabled`, equivalents), or pass by weakening assertions. A flaky test is reported, never skipped on the agent's own call; quarantine happens only on a person's decision, per the `Testing Strategy` document. A wrong test is rewritten; a test whose subject was intentionally removed is replaced with a test for the new behavior.
 
 ## When not to TDD
 

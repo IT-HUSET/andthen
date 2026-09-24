@@ -1,6 +1,6 @@
 # Architecture – Decompose Mode
 
-Evaluate a specific split or merge decision using Ford/Richards driver scoring and connascence analysis. There is no correct granularity – the recommendation is the least worst combination of trade-offs, argued from evidence.
+There is no correct granularity – the recommendation is the least worst combination of trade-offs, argued from evidence.
 
 ## Step 1 – Map the Boundary
 
@@ -36,7 +36,7 @@ Produce one of **Split** / **Merge** / **Keep** / **Defer** with a confidence le
 
 Split signals: the module description needs "and"; subsets with different change frequencies; consumers using disjoint subsets; consumer waste or barrel size past the calibration's thresholds; instability says stable while the contents are volatile. Merge signals: two packages that always change together; packages in a cycle; one reachable only transitively through the other; very high Ca on a tiny package (over-extracted).
 
-Once a split is decided, name the migration path: component-based decomposition where a modular structure already exists (verify quantum independence and SDP-correct direction in the new graph), tactical forking for a big ball of mud, and Strangler Fig or Branch by Abstraction over big-bang extraction whenever the old path must keep serving traffic.
+Once a split is decided, name the migration path: component-based decomposition where a modular structure already exists (verify quantum independence and SDP-correct direction in the new graph), tactical forking for a big ball of mud (each service starts as a full copy and deletes what it does not use), and Strangler Fig or Branch by Abstraction over big-bang extraction whenever the old path must keep serving traffic.
 
 A **Defer** verdict is only complete with its decomposition triggers – the conditions that reopen it: a third consumer with different needs, an external contributor maintaining a subsystem, a barrel or a profile's consumer waste past the calibration's split threshold, a subsystem reused outside the original project, or a pre-1.0 review.
 

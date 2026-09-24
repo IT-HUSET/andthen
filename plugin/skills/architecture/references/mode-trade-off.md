@@ -1,6 +1,6 @@
 # Architecture – Trade-off Mode
 
-Research technical options, compare them against weighted criteria, and deliver an evidence-based recommendation the user can act on, formalized as an ADR by default – a decision made defensible rather than opinion-based. Name only the criteria that move the recommendation and say which are decisive and which tie-breakers.
+Research technical options, compare them against weighted criteria, and deliver an evidence-based recommendation the user can act on, formalized as an ADR by default.
 
 ## Interactive-by-Contract
 
@@ -22,7 +22,7 @@ For a multi-dimensional decision decompose per `design-tree.md`: the independent
 
 ### 1c. Weighted Criteria _(gate)_
 
-Choose only the criteria that matter for this decision – developer experience and maintainability, performance and scalability, security and reliability, operations complexity, cost and time-to-market, team fit and long-term viability are the usual candidates. Present the proposed weighting table (criterion, suggested weight, one-line rationale) and the candidate-options list for confirm-or-adjust before Step 3 begins.
+Choose only the criteria that matter for this decision. Present the proposed weighting table (criterion, suggested weight, one-line rationale) and the candidate-options list for confirm-or-adjust before Step 3 begins.
 
 ## Step 2 – Design It Twice _(optional)_
 
@@ -40,13 +40,13 @@ A compact comparison: strengths, weaknesses, and best-fit scenario per option, w
 
 ## Step 5 – Recommendation _(gate – opens only after the Findings Filter, SKILL Phase 3)_
 
-Write the recommendation: the chosen option and what it buys over the floor option, evidence-based rationale, implementation path, risks and mitigations, confidence level, and the alternatives worth reconsidering if conditions change. Present it and ask, with ADR creation the default because the ADR is the purpose of a trade-off run: **proceed with the ADR** (Step 6), **refine first** (adjust criteria, weights, or options and re-run), **deeper analysis** of one option, or **no ADR** (the report stands as advisory). The ADR has organizational implications the user owns – wait for the answer.
+Write the recommendation: the chosen option and what it buys over the floor option, evidence-based rationale naming which criteria were decisive and which only broke ties, implementation path, risks and mitigations, confidence level, and the alternatives worth reconsidering if conditions change. Present it and ask, with ADR creation the default because the ADR is the purpose of a trade-off run: **proceed with the ADR** (Step 6), **refine first** (adjust criteria, weights, or options and re-run), **deeper analysis** of one option, or **no ADR** (the report stands as advisory). The ADR has organizational implications the user owns – wait for the answer.
 
 ## Step 6 – Documentation
 
 Store `design-tree.md` (multi-dimensional decisions), `research.md`, `tradeoff-matrix.md`, and `recommendation.md` under `OUTPUT_DIR/[topic-slug]/`.
 
-When the user chose the ADR ("refine first" and "deeper analysis" loop back before this step; "no ADR" skips the rest): write it to the `ADRs` location from the **Project Document Index**, else `docs/adrs/`, following the existing numbering or starting at `ADR-001`, with a copy at `OUTPUT_DIR/[topic-slug]/adr.md`. Populate the template from the trade-off artifacts – *Status* `Proposed` until the user accepts it; *Context* from Step 1's decision context and weighted criteria; *Decision* the chosen option and its headline rationale; *Consequences* from the matrix for the chosen option; *Alternatives Considered* the scored non-chosen options with a one-line rejection each; *Implementation Notes* Step 5's path, risks, and mitigations; *Project Compliance* alignment with the project's architectural guideline files and `Architecture` document, `N/A` when it has none; *References* the report files.
+When the user chose the ADR ("refine first" and "deeper analysis" loop back before this step; "no ADR" skips the rest): write it to the `ADRs` location from the **Project Document Index**, else `docs/adrs/`, following the existing numbering or starting at `ADR-001`, with a copy at `OUTPUT_DIR/[topic-slug]/adr.md`. Populate the template from the trade-off artifacts – *Status* `Proposed` until the user accepts it; *Context* from Step 1's decision context and weighted criteria; *Decision* the chosen option and its headline rationale; *Consequences* from the matrix for the chosen option; *Alternatives Considered* each scored option with a one-line rejection, the floor row reading `chosen` when it won; *Implementation Notes* Step 5's path, risks, and mitigations; *Project Compliance* alignment with the project's architectural guideline files and `Architecture` document, `N/A` when it has none; *References* the report files.
 
 Register it in the `Decisions` document (**Project Document Index**, default `docs/DECISIONS.md`), seeded from the `DECISIONS.md` template by the document-creation subagent (SKILL **Post-Completion**) when missing: append a **Current ADRs** row – `ID` linked to the ADR file, `Title`, `Status: Proposed`, `Scope` (one phrase) – idempotent on ID, updating an existing row in place. When the ADR supersedes a prior decision, move the prior row to **Superseded** with `Prior Decision` (linked) / `Superseded By` (linked to the new ADR) / `Notes` (one-line reason), never deleting – the lineage is load-bearing.
 

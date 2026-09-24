@@ -2,6 +2,7 @@
   "criteria": [
     {"id": "SPEC_INTENT_FIDELITY", "intent": "The FIS preserves every material normalization decision without invented commitments."},
     {"id": "SPEC_EXECUTABILITY", "intent": "An unattended implementer has ordered tasks, complete trace, and runnable verification for the requested behavior."},
-    {"id": "SPEC_BOUNDARY_DISCIPLINE", "intent": "The FIS makes the named non-goals explicit and remains proportional to the standalone function."}
+    {"id": "SPEC_BOUNDARY_DISCIPLINE", "intent": "The FIS makes the named non-goals explicit and remains proportional to the standalone function."},
+    {"id": "SPEC_HANDOFF", "intent": "The --auto run asks nothing and its skill reply ends on exactly one next command – the andthen:exec-spec skill on the FIS – with no `Closure:` or other verdict line and no defer, skip, or later option; any item left open is an `ASSUMPTION: <reading> – <what would change it>` line in the FIS where it bites, never a CONFUSION or MISSING REQUIREMENT marker nor a pending or blocked story. An Assumed: list before the command, and the later turn that writes review-evidence.json, are expected, not defects."}
   ]
 }

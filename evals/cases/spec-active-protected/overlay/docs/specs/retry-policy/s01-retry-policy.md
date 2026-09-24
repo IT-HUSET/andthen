@@ -41,6 +41,7 @@
 
 - **TI01 Pause between attempts on the settled policy**
   - `retry(fn)` in `src/reporter/retry.py` sleeps between attempts per the backoff policy.
+  - ASSUMPTION: the fixed 1 s pause and the five-retry maximum that ship today stay, and TI02 gives up on that maximum – a settled Retry backoff decision (`docs/DECISIONS.md#pending`) would change both.
   - **Verify**: `tests.test_retry#RetryTests.test_retries_a_transient_failure_until_it_succeeds` – the pause sequence is proved
   - **SATISFIES**: S01, SC01
 - **TI02 Give up after the settled maximum**
@@ -55,5 +56,3 @@
 ## Implementation Observations
 
 _No observations recorded yet._
-
-MISSING REQUIREMENT: the backoff policy is undecided – the fixed 1 s pause that ships today, or a pause that grows from a base up to a cap. The sleep in TI01 and the retry count in TI02 both depend on it.

@@ -1,6 +1,6 @@
 # ADR-016: One no-spec change skill
 
-**Status:** Accepted
+**Status:** Accepted – its `NO-OP` and `MISSING REQUIREMENT:` retired on 2026-09-24 by the **Still Current** decision "A decision never stops a run" in [Decisions](../DECISIONS.md#still-current).
 
 **Recorded:** 2026-09-14
 

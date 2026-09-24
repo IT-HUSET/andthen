@@ -1,6 +1,6 @@
 # Refactor Invariants
 
-Cross-file invariant pass for the `code` and `gap` lenses, loaded when the diff shape fires a trigger below. An invariant no single hunk hosts is what hunk-by-hunk review misses. Findings use the Structured Finding Contract and merge into the primary lens's severity sections, never segregated.
+Cross-file invariant pass for the `code` and `gap` lenses, loaded when the diff shape fires a trigger below. An invariant no single hunk hosts is what hunk-by-hunk review misses. Findings use the Structured Finding Contract and merge into the primary lens's findings, never segregated.
 
 
 ## Trigger Conditions (any one)

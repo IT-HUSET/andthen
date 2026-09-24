@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""End-state reconciliation for the blocked-spec re-entry case, run with cwd = the workspace.
+"""End-state reconciliation for the spec re-entry case, run with cwd = the workspace.
 
-Case data, not harness. Re-entry is two halves of one end state and neither alone
-is it: the FIS carries the settled policy with its open-decision marker gone, and
-the story record beside it has moved off blocked. A standalone FIS is a one-story
-plan (ADR-013), so that record is the state the next skill reads - a FIS that
-argues the decision while its story still says blocked would resume as blocked
-forever.
+Case data, not harness. The starting state is one an `--auto` run leaves: the
+FIS was authored with the backoff as an `ASSUMPTION:` where it bites, and an
+older release left its story the legacy `blocked`, which reads as `spec-ready`.
+Re-entry is two halves of one end state and neither alone is it: the FIS carries
+the settled policy with the backoff assumption gone, and the story record beside
+it is `spec-ready` with no completed task - the state the next skill reads.
 
 The prose is read by meaning, never by wording. `200 ms` and `0.2 s` are one base,
 `doubling` and `exponential` one growth, and a literal needle for either fails a
@@ -29,8 +29,11 @@ FIS_NAME = "s01-retry-policy.md"
 FIS = SPEC_DIR / FIS_NAME
 PLAN = SPEC_DIR / "plan.json"
 
-# The open-decision marker the re-entry closes, in the FIS grammar's own words.
-MARKER = "missing requirement"
+# The open decision the re-entry closes: the backoff assumption the FIS was
+# authored with. The decision settles the pause, so any assumption still made
+# about it is the open item surviving, whatever it assumes. A shipped FIS never
+# carries the open-decision marker either.
+BACKOFF_ASSUMPTION = re.compile(r"ASSUMPTION:.*\b(?i:pause|backoff)")
 
 # One term of the settled policy each, matched in every faithful wording: the unit,
 # the word for the growth and the spelling of the count are the author's to choose,
@@ -56,10 +59,10 @@ def fis_problems():
     text = FIS.read_text(encoding="utf-8")
     problems = ["%s: does not state %s" % (FIS, term)
                 for term, pattern in SETTLED if not pattern.search(text)]
-    if MARKER in text.lower():
-        problems.append("%s: still carries the %s marker, so the decision is "
-                        "not integrated" % (FIS, MARKER.upper()))
-    return problems
+    if BACKOFF_ASSUMPTION.search(text):
+        problems.append("%s: still carries an ASSUMPTION about the backoff, so "
+                        "the decision is not integrated" % FIS)
+    return problems + story_state.retired(FIS)
 
 
 def main():

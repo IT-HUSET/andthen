@@ -9,11 +9,14 @@
 
 ## Executive Summary
 
-**Overall readiness: FAIL** on the gap lens; code **Needs Fixes**, security **Ready**. Follow-up review over the two finding families the 2026-09-15 report left open, the artifacts their repairs touched, and the seat-count invariant neither pass covered. Both are still open: the seat-count write outside the acceptance transaction (Finding 1) and the S03 expiry scenario with no proof (Finding 2).
+**Overall readiness: FAIL** - code Needs Fixes, gap FAIL, security Ready.
+
+Follow-up review over the two finding families the 2026-09-15 report left open, the artifacts their repairs touched, and the seat-count invariant neither pass covered. Both are still open: the seat-count write outside the acceptance transaction (Finding 1) and the S03 expiry scenario with no proof (Finding 2).
 
 Intent Context: `docs/specs/workspace-invitations/plan.json`. Drift Notes: S02 records the rate limit deferred to a later story.
 
 Guardrails Coverage: 7 checked, 1 finding
+Filter summary: 2 validated, 0 downgraded, 1 withdrawn
 
 ## Coverage Matrix
 
@@ -31,7 +34,6 @@ Guardrails Coverage: 7 checked, 1 finding
 #### Finding 1 - MEDIUM - Seat count is written outside the acceptance transaction
 
 - **Reviewer**: correctness
-- **Severity**: MEDIUM
 - **Confidence**: 100
 - **Location**: `src/invitations/accept.ts:74`
 - **Scope relation**: primary
@@ -49,11 +51,10 @@ Guardrails Coverage: 7 checked, 1 finding
 #### Finding 2 - HIGH - S03 ships without the expiry scenario it declares
 
 - **Reviewer**: conformance
-- **Severity**: HIGH
 - **Confidence**: 100
 - **Location**: `docs/specs/workspace-invitations/s03-expire-invitations.md`
 - **Scope relation**: primary
-- **Finding**: Scenario S03-2 (an expired invitation cannot be accepted) names a proof that no test file defines.
+- **Finding**: Verification depth – scenario S03-2 (an expired invitation cannot be accepted) names a proof that no test file defines.
 - **Threatened assumption or invariant**: every Acceptance Scenario has a proof that runs.
 - **Evidence**: the named proof id is absent from the suite; the story is recorded `done`.
 - **Impact**: An expired invitation is accepted, and nothing in the suite says so.
@@ -66,9 +67,30 @@ Guardrails Coverage: 7 checked, 1 finding
 
 No findings. Token mint, verify, and revoke were attacked with tampered, absent, and replayed tokens; the trust boundary between invitation acceptance and workspace membership holds.
 
+## Compliance
+
+- Guidelines adherence: the repair follows the project's one-transaction-per-handler rule except at `accept.ts:74`, Finding 1.
+- Architecture patterns: invitation acceptance stays inside the workspace module; no new cross-module call.
+- Security awareness: no secrets, raw queries, or unvalidated input on the changed paths.
+
+## Trust-Boundary Map
+
+- invitation token (URL) → signature and expiry check in `token.ts` → membership insert
+- accepting user's session → workspace-scoped authz check → seat count update
+
+## Critic Coverage
+
+Code: double acceptance, a crash between the two writes, a revoked invitation replayed. Gap: every S01–S03 scenario walked to its named proof. Security: tampered, absent, and replayed tokens against mint, verify, and revoke.
+
+## Verification Evidence
+
+- `npm test` – 212 passed, 0 failed
+- `npm run lint` – clean
+- `npm audit --omit=dev` – 0 vulnerabilities
+
 ## Verdict
 
-Per lens: code **Needs Fixes**, security **Ready**, gap below. **Overall readiness: FAIL** - the worst across lenses.
+**Overall readiness: FAIL** - code Needs Fixes, gap FAIL, security Ready.
 
 ### Gap
 
@@ -80,7 +102,12 @@ Per lens: code **Needs Fixes**, security **Ready**, gap below. **Overall readine
 
 **Overall: FAIL**
 
+## Next Steps
+
+1. Move the seat increment into the acceptance transaction (Finding 1); no dependency.
+2. Write the S03-2 expiry proof (Finding 2), then re-run S03's verification; done when the proof is red against the current code and green after the fix.
+
 ## Remediation Status
 
-- **Seat count is written outside the acceptance transaction** - RESOLVED - both rows now commit in the handler's transaction; `tests/invitations/test_accept.py::test_rollback_on_seat_write_failure` is green.
-- **S03 ships without the expiry scenario it declares** - DEFERRED - `decision needed`: whether an expired invitation is rejected or silently renewed is open in the PRD. Entered in the Tech Debt Backlog under High.
+- **Finding 1 - Seat count is written outside the acceptance transaction** - RESOLVED - both rows now commit in the handler's transaction; `tests/invitations/test_accept.py::test_rollback_on_seat_write_failure` is green.
+- **Finding 2 - S03 ships without the expiry scenario it declares** - DEFERRED - `decision needed`: whether an expired invitation is rejected or silently renewed is open in the PRD. Entered in the Tech Debt Backlog under High.

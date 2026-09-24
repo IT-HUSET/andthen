@@ -11,7 +11,7 @@
       "TI01"
     ],
     "docs/specs/retry-policy/s01-retry-policy.md": [
-      "MISSING REQUIREMENT"
+      "ASSUMPTION: the fixed 1 s pause"
     ]
   }
 }

@@ -1,8 +1,6 @@
 # Architecture – Event Storming Mode
 
-Run a Brandolini-style event-storming session as a discovery technique – surface domain events end-to-end, expose hotspots and pivotal events, and harvest candidates downstream modes can formalize. The mode produces a textual report and the typed board it describes (`board-models.md`, kind `event-storm`), not a synchronous workshop.
-
-This file owns the sticky-note vocabulary and the three levels; `--mode strategic-design` owns the context map a Big Picture session's subdomain candidates feed.
+Run a Brandolini event-storming session as a discovery technique. The mode produces a textual report and the typed board it describes (`board-models.md`, kind `event-storm`), not a synchronous workshop.
 
 ## Interactive-by-Contract
 
@@ -27,16 +25,16 @@ External systems earn a sticky when the integration is itself a step on the time
 
 ## Brandolini's Three Levels
 
-Pick the level that matches the user's framing – do not force all three. Big Picture is the default when no scope is given.
+Pick the level that matches the user's framing; do not force all three.
 
-- **Big Picture** – the domain end-to-end, events in chronological order, clustered around pivotal events (events that change the conversation – `OrderShipped`, `LoanApproved`).
+- **Big Picture** – the domain end-to-end, events in chronological order, clustered around pivotal events.
 - **Process Modeling** – one workflow: command → aggregate → event → policy chains.
 - **Design Level** – aggregates and transactional boundaries inside a single process.
 
 ## Steps
 
 ### Step 1 – Scope and Level
-Confirm the topic (e.g. "order fulfillment", "loan origination") and the level – Big Picture, Process Modeling, or Design Level. If the user supplied no level, default to Big Picture and surface the choice in the Executive Summary.
+Confirm the topic and the level – Big Picture, Process Modeling, or Design Level. If the user supplied no level, default to Big Picture and surface the choice in the Executive Summary.
 
 ### Step 2 – Harvest Events
 Walk the domain chronologically, listing orange events in past tense, one per line; an unexplained gap in the timeline is a question to the user, and an unanswered one a purple hotspot, never a guess.
@@ -45,10 +43,10 @@ Walk the domain chronologically, listing orange events in past tense, one per li
 For each event, name the command that caused it (blue) and the actor that issued the command (yellow). When a command has no clear actor, that is a hotspot – flag it.
 
 ### Step 4 – Policies and Read Models _(Process Modeling and Design Level only)_
-For each pivotal event, name the policy that reacts to it (lilac) and the read model the deciding actor consults (green). Skip when the level is Big Picture.
+For each pivotal event, name the policy that reacts to it (lilac) and the read model the deciding actor consults (green).
 
 ### Step 5 – Hotspots and Pivotal Events
-Promote contested transitions, vocabulary conflicts ("two actors mean different things by `Order`"), and unanswered causality questions to purple hotspots. Identify pivotal events – the events that mark a change in pace, ownership, or invariants – they are the candidate boundaries between subdomains and aggregates.
+Promote contested transitions, vocabulary conflicts ("two actors mean different things by `Order`"), and unanswered causality questions to purple hotspots. Identify pivotal events – the events that mark a change in pace, ownership, or invariants, such as `OrderShipped` or `LoanApproved`. They are the candidate boundaries between subdomains and aggregates.
 
 ### Step 6 – Candidates
 Produce the level-appropriate output:

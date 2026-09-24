@@ -1,40 +1,28 @@
 # Automation Mode
 
-Shared automation rules for AndThen skills.
-
 
 ## Headless-First
 
-A skill that loads this reference runs to completion without pausing for routine clarification, even without `--auto`: record the most conservative assumption in the skill's primary artifact (FIS / PRD / plan / completion report), surface unresolved questions explicitly, and stop only on the **true contract failures** the `BLOCKED:` Triggers below name.
+A skill that names this file as its automation rules follows headless-first: it answers routine questions itself instead of stopping to ask, even without `--auto`. Where its contract says it asks, it asks.
 
-A skill whose own rules invert headless-first – a discovery skill that is interactive by contract – states that itself and takes precedence over this default.
+A run still stops on an unusable call – one it cannot continue because required input is missing or invalid, credentials or tooling are missing, the working tree has changes the run does not own, or an external or irreversible action has no consent in `INPUT`. If the user can fix it in the conversation, ask and continue; otherwise say what is needed and stop.
+
+
+## Recording an assumption
+
+When a run takes a recommendation instead of an answer – under headless-first or `--auto`, in a subagent that cannot ask, or for a question nobody answered – it records the recommendation in the artifact where the decision applies, such as the FIS, PRD, plan, or completion report:
+
+`ASSUMPTION: <what was assumed> – <what would change it>`
+
+Both halves are required: the second names the fact that would make the assumption wrong, so whoever meets it – executor, reviewer, user – knows to revisit it.
 
 
 ## Strict Mode (`--auto`)
 
-`AUTO_MODE=true` adds what an unattended run needs: never ask the user what to do next, not even a "Which approach?" pause, and close on a **deterministic completion summary** the orchestrator can parse – artifact paths, status, blockers. Never silently degrade.
+`AUTO_MODE=true` is an unattended run:
 
-### `BLOCKED:` Triggers (generic)
-
-Each skill defines its own specific list; these baselines apply everywhere:
-
-- Missing or unreadable required input.
-- Incompatible upstream artifacts.
-- Unsafe external actions (writes outside the project, irreversible operations without explicit consent in `INPUT`).
-- Ambiguity or artifact conflict still unresolved after the Resolution Ladder – re-read, widen, delegate, work around – so no defensible output is producible. The ladder does not reach a skill whose deliverable *is* the unresolved set: enumerating an open decision is its output, not a block to climb past.
-- Real external blockers: missing credentials/infra, merge conflicts requiring human policy, a decision the user owns, or repeated triage failure on one issue.
-
-The `BLOCKED:` line lists the **minimum** missing inputs / decisions so the orchestrator can repair and resume. Name the ladder rungs already tried in the accompanying report, not on the sentinel line, which the parser reads one issue at a time.
-
-
-## `--auto` Propagation
-
-When `AUTO_MODE=true`, propagate `--auto` to **every nested AndThen skill invocation that accepts it**.
-
-
-## Suppressed Output in Strict Mode
-
-When `AUTO_MODE=true`, suppress conversational follow-up sections so output stays parseable:
-
-- Skip "FOLLOW-UP ACTIONS" / "Next Steps" suggestions.
-- Print only the artifact paths, the completion summary, and a hand-off line the skill's own contract requires (the `andthen:exec-plan` skill's `Next:` line) – the orchestrator acts on it, so it is output, not a suggestion.
+- Never ask, and never silently degrade.
+- **`--auto` propagation** – pass `--auto` to every nested AndThen skill invocation that accepts it.
+- Take every open decision on its recommendation, recorded per **Recording an assumption**.
+- Close on a deterministic completion summary (artifact paths, status) plus any hand-off line the skill's contract requires – the `andthen:exec-plan` skill's `Next (fresh session):` line is output the orchestrator acts on. The summary carries no "FOLLOW-UP ACTIONS" or "Next Steps" section; a section a written artifact's template requires stays.
+- A run that stops ends on a failure with its evidence, or on `BLOCKED: <what is needed>` for an unusable call – a human must supply something and a plain retry will not help – never both. An action lacking consent stops alone; the rest of the run proceeds where it is independent.

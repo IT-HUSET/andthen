@@ -50,6 +50,10 @@ def arrow(x1, y1, x2, y2):
     out.append(f'<line x1="{x1:.0f}" y1="{y1:.0f}" x2="{x2:.0f}" y2="{y2:.0f}" class="arrow" marker-end="url(#ah)"/>')
 
 
+def seg(x1, y1, x2, y2):
+    out.append(f'<line x1="{x1:.0f}" y1="{y1:.0f}" x2="{x2:.0f}" y2="{y2:.0f}" class="arrow"/>')
+
+
 def link(x1, y1, x2, y2):
     out.append(f'<line x1="{x1:.0f}" y1="{y1:.0f}" x2="{x2:.0f}" y2="{y2:.0f}" class="link" stroke-dasharray="4,4"/>')
     out.append(f'<circle cx="{x1:.0f}" cy="{y1:.0f}" r="3.5" class="dot"/><circle cx="{x2:.0f}" cy="{y2:.0f}" r="3.5" class="dot"/>')
@@ -170,61 +174,68 @@ text(BX + 22, PANEL_Y + 70, "Inside the README this image is static – click it
 y = 84
 band(BX, y, BW, 218, "band-flow", "THE WORKFLOW", "Idea to merged, one chain",
      ["Every step reads what the step before it wrote, and each authoring step closes on the next command – printed, never worked out.",
-      "The design stage between clarify and plan is optional: clarify recommends a trade-off for a fork the PRD leaves open, and UI design where a screen has none."])
-f = Flow(LX, y + 100)
-FLOW_Y = f.y
-CLARIFY_X = f.box(110, key="clarify", label="clarify", cls="pre", size=12, rx=7, sub="unless a PRD exists",
+      "clarify and the design stage are optional: a trade-off comes first when a fork binds beyond the work, UI design where a screen has none."])
+TOP_Y = y + 100
+BOT_Y = TOP_Y + BH + 14
+MID_Y = (TOP_Y + BOT_Y + BH) / 2      # the shared steps sit between the two lanes
+f = Flow(LX, MID_Y - BH / 2)
+CLARIFY_X = f.box(100, key="clarify", label="clarify", cls="pre", size=12, rx=7, sub="when unsure",
                   kicker="andthen · clarify",
                   body=["The requirements skill: Discovery & Ideation over an idea, a file or a tracker item – gaps, edge cases, scope boundaries, alternatives.",
-                        "Writes prd.md, or PRODUCT.md at product scope, after at least one round of answered questions; --auto synthesises and records the assumptions."])
+                        "Writes prd.md, or PRODUCT.md at product scope, after at least one round of answered questions, then closes on spec or plan."])
 f.arrow()
-DESIGN_X = f.stack(136, [
+f.stack(128, [
     dict(key="architecture", label="architecture", kicker="andthen · architecture",
          body=["--mode trade-off settles an ADR from weighted options; advise gives design guidance grounded in CUPID / DDD.",
                "review, decompose, fitness, strategic-design and event-storming run the deep analysis, singly or chained. No code changes."]),
     dict(key="ui-ux-design", label="ui-ux-design", kicker="andthen · ui-ux-design",
          body=["UX research, design systems, and wireframes – singly or chained. Validating the built UI is visual-validation."]),
 ])
-f.arrow()
-PLAN_X = f.box(126, key="plan", label="plan", cls="step", sub="prd.md · file · issue",
+# fork – one story on top, the common path; several below; both rejoin at review
+FORK = 30
+bx = f.x + 14
+seg(f.x + 6, MID_Y, bx, MID_Y)
+seg(bx, TOP_Y + BH / 2, bx, BOT_Y + BH / 2)
+for ly in (TOP_Y, BOT_Y):
+    arrow(bx, ly + BH / 2, f.x + FORK, ly + BH / 2)
+s, p = Flow(f.x + FORK + 6, TOP_Y), Flow(f.x + FORK + 6, BOT_Y)
+s.box(126, key="spec", label="spec", cls="step", sub="one story",
+      kicker="andthen · spec",
+      body=["One FIS from a PRD, a description, a file or an issue URL, with its one-story plan.json beside it – prd the PRD's path, or null.",
+            "Also authors one story of a plan under plan --batch. Self-review, preflight questions, then the exec-spec line."])
+s.arrow()
+s.box(140, key="exec-spec", label="exec-spec", cls="exec", sub="its quick review included",
+      kicker="andthen · exec-spec",
+      body=["Implement one FIS where it is invoked: the tasks, the story's proofs and the full tier, one fresh reviewer subagent, then the fixes.",
+            "Completes by recording the verified line it saw executed, then prints the review line. The same per-story unit exec-plan spawns."])
+PLAN_X = p.box(126, key="plan", label="plan", cls="step", sub="several stories",
                kicker="andthen · plan",
-               body=["The entry for PRD-backed work: plan.json plus a FIS per story, from a prd.md, a requirements file, or a tracker item.",
-                     "One cross-cutting review over the bundle, one preflight, then Closure: READY and the exec-plan line. One story is a normal outcome."])
-f.arrow()
-f.box(140, key="exec-plan", label="exec-plan", cls="exec", sub="one exec-spec per story",
+               body=["Work of several stories: plan.json plus a FIS per story, from a prd.md, a requirements file, or a tracker item.",
+                     "One cross-cutting review over the bundle, one preflight round of questions, then the exec-plan line. One story is a normal outcome."])
+p.arrow()
+p.box(140, key="exec-plan", label="exec-plan", cls="exec", sub="one exec-spec per story",
       kicker="andthen · exec-plan",
       body=["Run a plan bundle: admit every schedulable FIS, one fresh exec-spec subagent per ready story, then the full tier on the final tree.",
             "Ends on a Next: line – one paste, the plan-level review with --fix – for a fresh session. exec-spec is yours to run per story by hand too."])
-f.arrow()
+assert s.x == p.x, (s.x, p.x)
+mx = s.x + 14
+for ly in (TOP_Y, BOT_Y):
+    seg(s.x + 6, ly + BH / 2, mx, ly + BH / 2)
+seg(mx, TOP_Y + BH / 2, mx, BOT_Y + BH / 2)
+arrow(mx, MID_Y, s.x + FORK, MID_Y)
+f.x = s.x + FORK + 6
 f.box(234, key="review", label="review", cls="tail", sub="--mode code,gap,security,outcome --fix",
       kicker="andthen · review",
-      body=["Proof-led code / gap / security / outcome review and PR review; a story's own review is one --quick pass. Proves coverage",
-            "before the verdict and routes findings into Fix / Note; --fix hands the Fix set to implement-fix. Runs on any diff."])
+      body=["Proof-led code / gap / security / outcome review over the plan – outcome when it names a PRD – and PR review; a story's own review is one",
+            "--quick pass. Proves coverage before the verdict and routes findings into Fix / Note; --fix hands the Fix set to implement-fix. Runs on any diff."])
 f.arrow()
-f.box(126, key="implement-fix", label="implement-fix", cls="tail", size=12,
+f.box(120, key="implement-fix", label="implement-fix", cls="tail", size=12,
       kicker="andthen · implement-fix",
       body=["Apply a report's Fix-routed findings – what review --fix runs on its own report – or a sentence-sized request of your",
             "own, as minimal changes across code, specs, plans, and docs, then re-verify once and annotate. No re-review."])
 f.arrow()
 f.pr()
 assert f.x <= BR - 14, f.x
-
-# the quick track – same band, clear of the artifact links below the main row
-QT_X, QT_Y = 790, 254
-text(QT_X, QT_Y - 9, "QUICK TRACK · one story, no PRD", "t3", 10, family=MONO, spacing="0.08em")
-q = Flow(QT_X, QT_Y, h=34)
-SPEC_X = q.box(92, key="spec", label="spec", cls="step", size=12, rx=7,
-               kicker="andthen · spec",
-               body=["One FIS from a description, a file or an issue URL, with its one-story plan.json beside it – prd: null, the request is the record.",
-                     "Also authors one story of a plan under plan --batch. Self-review, preflight, then Closure: READY and the exec-spec line."])
-q.arrow()
-q.box(116, key="exec-spec", label="exec-spec", cls="exec", size=12, rx=7,
-      kicker="andthen · exec-spec",
-      body=["Implement one FIS where it is invoked: the tasks, the story's proofs and the full tier, one fresh reviewer subagent, then the fixes.",
-            "Completes by recording the verified line it saw executed. The same per-story unit exec-plan spawns – run it yourself to watch a single story."])
-q.arrow()
-q.pr()
-assert q.x <= BR - 14, q.x
 
 # ------------------------------------------------ artifacts
 y = 318
@@ -235,19 +246,19 @@ CW, CH = 196, 74
 CG = (BR - 22 - CX0 - 4 * CW) / 3
 cards = [("intent", "a short source", ["from anywhere, or clarify --brief:", "a note, an issue, intent.md"],
           "artifact · a short source · optional",
-          ["Written by hand – a pasted note, a tracker issue, a sentence, the five-section intent.md – or by clarify --brief; read by clarify,",
-           "now-what and architecture. The next clarify run folds its substance into prd.md – nothing cites it by path afterwards."]),
+          ["Written by hand – a pasted note, a tracker issue, a sentence, the five-section intent.md – or by clarify --brief; read by clarify or spec,",
+           "now-what and architecture. clarify folds it into prd.md, spec into the FIS."]),
          ("prd", "prd.md", ["what and why, agreed;", "the surviving product record"],
           "artifact · prd.md · durable",
-          ["Written by clarify; read by plan and review --mode gap. The governing artifact, and the one that outlives the branch:",
+          ["Written by clarify; read by spec or plan and review --mode gap,outcome. The governing artifact, and the one that outlives the branch:",
            "plan.json and the FIS files are branch-scoped – delete them before the merge; prd.md stays."]),
          ("planjson", "plan.json", ["story inventory, dependencies,", "status, one FIS pointer per story"],
           "artifact · plan.json · branch-scoped",
           ["Written by plan, or by spec for the one-story plan, and by the run session alone at runtime; read by exec-plan, exec-spec, review, now-what and tracker.",
-           "a story reaches done only together with the verified line quoting what ran. Its prd field is the in-repo source, or null for a tracker item."]),
+           "a story reaches done only together with the verified line quoting what ran. Its prd field is the PRD or requirements file, else null."]),
          ("fis", "FIS", ["intent, scenarios with Proof", "bindings, scope boundaries, tasks"],
           "artifact · Feature Implementation Specification · branch-scoped",
-          ["One per story, authored by spec – standalone on the quick track, one subagent per story under plan; read by exec-spec and review.",
+          ["One per story, authored by spec – standalone for one story, one subagent per story under plan; read by exec-spec and review.",
            "scenarios with runnable Proof bindings, what we are not doing, and tasks naming what they SATISFY and how to Verify."])]
 card = {}
 for i, (key, title, desc, kick, body) in enumerate(cards):
@@ -265,11 +276,11 @@ for i, (key, title, desc, kick, body) in enumerate(cards):
 assert CG >= 20, CG
 
 # artifact links, once the box geometry is known
-link(CLARIFY_X - 10, FLOW_Y + BH + 2, card["intent"][0], card["intent"][1] - 2)
-link(CLARIFY_X + 10, FLOW_Y + BH + 2, card["prd"][0], card["prd"][1] - 2)
-link(PLAN_X - 12, FLOW_Y + BH + 2, card["planjson"][0], card["planjson"][1] - 2)
-link(PLAN_X + 12, FLOW_Y + BH + 2, card["fis"][0], card["fis"][1] - 2)
-link(SPEC_X, QT_Y + 36, card["fis"][0], card["fis"][1] - 2)
+# spec sits above plan and writes the same two, so plan's links stand for both lanes
+link(CLARIFY_X - 10, MID_Y + BH / 2 + 2, card["intent"][0], card["intent"][1] - 2)
+link(CLARIFY_X + 10, MID_Y + BH / 2 + 2, card["prd"][0], card["prd"][1] - 2)
+link(PLAN_X - 12, BOT_Y + BH + 2, card["planjson"][0], card["planjson"][1] - 2)
+link(PLAN_X + 12, BOT_Y + BH + 2, card["fis"][0], card["fis"][1] - 2)
 
 # ------------------------------------------------ standalone skills
 y = 446

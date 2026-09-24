@@ -8,7 +8,7 @@
 
 > "I have a feature idea" → *and then?* → **clarify** → *and then?* → **plan** → *and then?* → **exec-plan** → *and then?* → **review** → **ship it.**
 >
-> Requirements already written – an issue, a PM doc? Skip **clarify** and start at **plan**.
+> Requirements already clear – in your head, an issue, a PM doc? Skip **clarify**. One story? **spec** → **exec-spec** in place of plan and exec-plan.
 
 Most AI coding goes straight from idea to code. That works for small fixes, but complex features drift, miss requirements, and produce code that is hard to verify. Spec-driven development adds one step: *write a spec first, then implement against it*. The spec is the contract – what to build, how to prove it, and when it is done. AndThen enforces that contract mechanically:
 
@@ -57,23 +57,30 @@ Where to go next: what to type for your situation is the [Cookbook](COOKBOOK.md)
   <br><sub>Click the figure for the interactive version: hover a skill, artifact, or role to read what it does, click to keep it in view.</sub>
 </p>
 
-AndThen has one workflow, whether the work is one story or fifteen – the quick track below is the same chain with `spec` in place of `plan`. Every step reads what the step before it wrote, and every authoring step ends on the paste-ready next command, so what comes next is printed, never worked out.
+AndThen has one workflow. Three questions pick your way through it, and every step ends on the paste-ready next command, so what comes next is printed, never worked out.
+
+1. **Do you know what to build?** If not, `clarify` interviews you and writes `prd.md`. If you do – in your head, an issue, a document – skip it.
+2. **Is a design choice still open that binds beyond this work or is costly to reverse?** `architecture --mode trade-off` settles it as an ADR first.
+3. **One story or several?** One: `spec` → `exec-spec`. Several: `plan` → `exec-plan`, which runs `exec-spec` once per story.
+
+Then the full `review --fix` over the plan, and the PR, either way – on top of the quick review every `exec-spec` runs on its own story.
 
 ```
-clarify → plan → exec-plan → review --fix → PR
+[clarify] → [architecture] → spec → exec-spec  ─┬→ review --fix → PR
+                           → plan → exec-plan  ─┘
 ```
 
 | Step | Skill | Reads | Writes |
 |---|---|---|---|
 | Setup, once per project | `init` | the repository | the Project Document Index in `CLAUDE.md` / `AGENTS.md`, and the Core orientation docs every later skill reads |
-| 0. Requirements | `clarify` | your idea, or a source from anywhere – a pasted note, a tracker issue, an `intent.md` hand-written or from `clarify --brief` | `prd.md` – what to build and why |
-| 1. Break down and spec | `plan` | a `prd.md` (or its directory), a requirements file, or a tracker issue | `plan.json` – the stories, their dependencies and status – plus one FIS per story |
-| 2. Build | `exec-plan` | `plan.json` and every FIS | the code, one commit per story, each story `done` in `plan.json` |
-| 3. Review | `review --mode code,gap,security,outcome` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json` |
-| 4. Fix findings | `implement-fix` – or `--fix` on step 3, which runs it in the same pass | the review report | the fixes, and a `## Remediation Status` section in the report |
-| 5. Merge | – | each FIS's `## Implementation Observations` | `plan.json` and the FIS files are branch-scoped: delete them before the merge; `prd.md` stays |
+| Requirements, optional | `clarify` | your idea, or a source from anywhere – a pasted note, a tracker issue, an `intent.md` hand-written or from `clarify --brief` | `prd.md` – what to build and why |
+| Design, optional | `architecture`, `ui-ux-design` | the PRD or the request | an ADR; a design system or wireframes |
+| Spec | `spec` (one story) or `plan` (several) | a `prd.md` (or its directory), a requirements file, a tracker issue – or, for `spec`, just a description | `plan.json` – the stories, their dependencies and status – plus one FIS per story |
+| Build | `exec-spec` or `exec-plan` | `plan.json` and the FIS | the code, one commit per story, each story `done` in `plan.json` |
+| Review and fix | `review --mode code,gap,security,outcome --fix` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json`, and the fixes |
+| Merge | – | each FIS's `## Implementation Observations` | `plan.json` and the FIS files are branch-scoped: delete them before the merge; `prd.md` stays |
 
-Step 0 is where the PRD comes from; skip it only when the requirements already exist as an issue or a document `plan` can take. `plan` always has a requirements source and decides the size itself: one story is a normal outcome, and the bundle shape does not change for it. The hand-offs are printed: `clarify` ends on the `plan` command, `plan` on `Closure: READY` and the `exec-plan` command, and `exec-plan` on a `Next:` line carrying steps 3–4 as one command for a fresh session. To drive the build by hand, run `exec-spec` per story – it is the same per-story unit `exec-plan` runs, see [Working in a team](#working-in-a-team); the tail is the same either way.
+`plan` decides the final story count, and `spec` flags a story too big for one run and routes it to `plan`, so a wrong guess at question 3 costs little. `review --fix` is one review and one fix round, each fix re-checked; when that round fixed a Critical or High finding or left one open, the run prints a follow-up review as its `Next (fresh session):` line.
 
 Two core skills change code without a spec: `triage` diagnoses and fixes a broken build, test, or runtime bug, and `implement-fix` makes a sentence-sized change with verification – the same skill that applies a review report's findings. `triage` never touches `plan.json`.
 
@@ -83,26 +90,26 @@ Two core skills change code without a spec: `triage` diagnoses and fixes a broke
 
 The workflow runs on its own between these four:
 
-- **After `clarify`** – read `prd.md` before you run `plan`: it is what every story is cut from, and the one artifact that survives the merge.
-- **After `plan`** – read `plan.json` and the FIS files. `Closure:` is the decision point: preflight settles each open decision with you or defers it, and a story still holding one is `blocked`, not `spec-ready`.
-- **After `exec-plan`** – read the review report. `implement-fix` applies only the Fix-routed findings; Note findings are decisions left to you.
+- **After `clarify`** – read `prd.md`: it is what every story is cut from, and the one artifact that survives the merge.
+- **After `spec` or `plan`** – read the FIS files. The run asked you what the requirements left open and wrote each answer in; what you decided and what it assumed is listed above the next command.
+- **After the review** – read the report. `implement-fix` applies only the Fix-routed findings; Note findings are decisions left to you.
 - **Before the merge** – graduate each FIS's `## Implementation Observations` into Learnings and Decisions, because the bodies go with the bundle.
 
-### One story – the quick track
+### The design stage and ADRs
 
-One story and no PRD: `spec <idea | issue-url>` writes the FIS and its one-story `plan.json` (`prd` is `null`) straight from the request, then `exec-spec <fis>` builds it and you open the PR. Same bundle shape as a plan's, so `exec-spec` and `review` behave identically. Take `plan` instead when the work is several stories, or when you want `prd.md` as the record that survives the merge; take `clarify` when the idea has too many unknowns to spec.
+Two skills settle what the requirements left open, neither changing code: `architecture` (`--mode trade-off` compares options and records an ADR; `review`, `decompose`, `fitness`, `strategic-design`, and `event-storming` run deeper analysis) and `ui-ux-design` (research, design systems, wireframes). An ADR comes in at three points, on one test – the choice binds beyond this work or is costly to reverse:
 
-### The design stage
-
-Between step 0 and step 1, two skills settle what the requirements left open, neither of them changing code: `architecture` (`--mode trade-off` compares competing options and settles an ADR; `--mode review`, `decompose`, `fitness`, `strategic-design`, and `event-storming` run the deep analysis and chain) and `ui-ux-design` (research, design systems, wireframes – validating a built UI is `visual-validation` instead). `clarify` recommends the first when the PRD leaves a design fork and the second when UI is in scope with no design system or wireframes; both are deliberate invocations.
+- **Before the spec** – `clarify` makes the trade-off its closing command when the PRD leaves such a fork open.
+- **While specifying** – a fork only the spec surfaces is a Preflight question; you answer it into the FIS, and the ADR is recommended as its record.
+- **While building** – a real pivot in `exec-spec` records one before the FIS changes.
 
 ### The artifacts – where each comes from, who reads it, how long it lives
 
 | Artifact | Written by | Read by | Lifecycle |
 |---|---|---|---|
-| any short source – the intent doc `intent.md` is one shape | anyone, by hand: a pasted note, an issue, a sentence, or the five-section `intent.md`; `clarify --brief` writes that file | `clarify`, and `now-what`, `architecture` when it is a file on disk | superseded – the next `clarify` run folds its substance into `prd.md`, and nothing cites it by path afterwards |
+| any short source – the intent doc `intent.md` is one shape | anyone, by hand: a pasted note, an issue, a sentence, or the five-section `intent.md`; `clarify --brief` writes that file | `clarify` or `spec`, and `now-what`, `architecture` when it is a file on disk | superseded – `clarify` folds it into `prd.md`, `spec` into the FIS |
 | `PRODUCT.md` | `init`, or `clarify` at product scope | every proposal skill, as the proportionality anchor | durable, project-lifetime |
-| `prd.md` | `clarify` | `plan`, `review --mode gap` | survives the merge – the product record |
+| `prd.md` | `clarify` | `spec` or `plan`, which record it in `plan.json`; `review --mode gap,outcome` | survives the merge – the product record |
 | `plan.json` | `plan`, or `spec` for the one-story plan; runtime state by the run session alone | `exec-plan`, `exec-spec`, `review`, `now-what`, `tracker` | branch-scoped – deleted before the merge |
 | FIS (one per story) | `spec`, standalone or through `plan` | `exec-spec` and `review` | branch-scoped – deleted before the merge |
 | Review report | `review` | `implement-fix` | a working file of one review run – ignored or committed, the project's choice at `init` |
@@ -110,21 +117,21 @@ Between step 0 and step 1, two skills settle what the requirements left open, ne
 
 ### The two loops
 
-- **Outer loop, once per initiative** – `clarify → plan`: what and why, then sliced into stories with a FIS each.
-- **Inner loop, once per story** – `spec → exec-spec → PR` on the quick track, `exec-spec → PR` under a plan: build one story and prove it, review included. `exec-plan` runs this loop for you, one story at a time in the shared tree, or independent stories in parallel under `--worktree`, one worktree each – a shared tree shares one test run.
+- **Outer loop, once per initiative** – `clarify`, then `spec` or `plan`: what and why, then a FIS per story.
+- **Inner loop, once per story** – `exec-spec → PR`: build one story and prove it, review included. `exec-plan` runs this loop for you, one story at a time in the shared tree, or independent stories in parallel under `--worktree`, one worktree each – a shared tree shares one test run.
 
 This is a scope-and-cadence split, not the DevEx sense of inner loop (edit-build-test) versus outer loop (CI/CD). AndThen's third motion is the **knowledge cycle**, which is not a loop at all: FIS `Implementation Observations` graduate into `LEARNINGS.md` and `DECISIONS.md` at close-out, recurring review traps become lint rules or tests, and settled trade-offs become ADRs – so what one story learned, the next one starts from.
 
 ### Headless / automation mode
 
-The pipeline and the standalone execution/review skills accept `--auto` for external orchestrators (CI, agent runners): no follow-up questions, conservative assumptions written into artifacts, and a hard `BLOCKED:` stop on contract failures or unsafe actions. See [plugin/README.md](plugin/README.md#workflows) for the contract.
+The pipeline and the standalone execution/review skills accept `--auto` for external orchestrators (CI, agent runners): no follow-up questions, open decisions written into artifacts as assumptions, and a stop only on an unusable call. See [plugin/README.md](plugin/README.md#workflows) for the contract.
 
 ### Terms
 
-- **Story** – one bounded, verifiable unit of work that fits one fresh-context run, 1:1 with a FIS. `OVERSIZE:` means split it, not push on.
+- **Story** – one bounded, verifiable unit of work that fits one fresh-context run, 1:1 with a FIS. `OVERSIZE:` means it does not fit one run – split it (recommended) or proceed knowingly.
 - **Plan bundle** – the feature directory holding `plan.json`, its FIS files, and `prd.md` when a PRD was the source.
 - **FIS** – Feature Implementation Specification, one per story: intent and expected outcomes, acceptance scenarios with runnable `Proof` bindings, structural criteria, scope boundaries, the technical approach, and a task breakdown where each task names what it `SATISFIES` and how to `Verify` it.
-- **Preflight / `Closure:`** – the closing round of `plan` and `spec` that settles every blocking open decision with you or defers it, ending on `Closure: READY` (with the next command) or `Closure: BLOCKED` (with the decisions still holding it).
+- **Preflight** – the closing round of `plan` and `spec`: every question the run could not answer itself, asked in one sitting with a recommendation preselected, expecting an answer, and answered into the FIS, then the next command. Under `--auto`, or as a safety net for a question genuinely left unanswered, the recommendation is recorded as an assumption for the executor.
 - **fast / full tier** – the two verification tiers your project declares in its `Key Dev Commands` document. `exec-spec` runs the full tier, or the fast tier under `--no-full-tier` when `exec-plan` runs the full tier on the final tree.
 
 
@@ -135,7 +142,7 @@ The pipeline and the standalone execution/review skills accept `--auto` for exte
 <!-- pre-release: delete this section when 1.0 is public -->
 ### 1.0 release candidate from the develop branch
 
-Until 1.0 ships on `main`, install from `IT-HUSET/andthen@develop` – it follows the release candidates, and auto-update works; `IT-HUSET/andthen@v1.0.0-rc.2` pins one instead. Both the 0.x and the 1.0 marketplace are named `andthen`, so remove the old one first; on Claude Code, removing a marketplace also uninstalls the plugin that came from it.
+Until 1.0 ships on `main`, install from `IT-HUSET/andthen@develop` – it follows the release candidates, and auto-update works; `IT-HUSET/andthen@v1.0.0-rc.3` pins one instead. Both the 0.x and the 1.0 marketplace are named `andthen`, so remove the old one first; on Claude Code, removing a marketplace also uninstalls the plugin that came from it.
 
 ```bash
 # Claude Code
@@ -150,7 +157,7 @@ codex plugin marketplace add IT-HUSET/andthen@develop
 codex plugin add andthen@andthen
 ```
 
-From a checkout of the branch, `python3 scripts/andthen-plugins.py --path .` does the same on both hosts in one step – it removes what is installed, installs the plugin, and verifies the version that landed. The release-line switcher below reaches this branch as its `rc` channel.
+From a checkout of the branch, `python3 scripts/andthen-plugins.py --path .` does the same on both hosts in one step – it removes what is installed, installs the plugin, and verifies the version that landed. To go back to 0.x, run the same commands with `IT-HUSET/andthen` (the `main` branch) in place of `IT-HUSET/andthen@develop`.
 
 ### The plugin install, host by host
 
@@ -174,18 +181,6 @@ The installer exports the plugin's skills under `andthen-`-prefixed names to you
 
 A custom `--prefix` rewrites installed references and invocation names automatically – that is also how another toolkit [bundles AndThen in](plugin/README.md#bundling-into-a-downstream-toolkit) under its own namespace. Reinstalls replace owned matching skill bundles, removing stale files inside them, but do not infer or delete retired `<prefix>*` directories.
 
-<!-- pre-release: at release `stable` is 1.0 – rename this heading (MIGRATING-FROM-0.x.md step 1 links its anchor), replace the `rc` channel with a 0.x pin in the script and below, and tag v0.40.4 on origin first so a ref leads back to 0.x -->
-### Switching release lines (1.0 RC ↔ 0.x)
-
-`scripts/andthen-plugins.py` (Python 3, no dependencies, macOS/Linux/Windows) drops the current installs, re-points the marketplace at the release line you name, installs again, and verifies the version landed in each host's cache. Both hosts install a plugin as a copy, so uninstall+install is what actually replaces it – `plugin update` compares version strings and will leave a stale copy in place.
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/IT-HUSET/andthen/main/scripts/andthen-plugins.py | python3 - rc      # 1.0 release candidate
-curl -fsSL https://raw.githubusercontent.com/IT-HUSET/andthen/main/scripts/andthen-plugins.py | python3 - stable  # 0.x (main)
-```
-
-On PowerShell, `irm <same-url> | python - rc`. Prefer to read before running? Save the file, inspect it, then `python3 andthen-plugins.py rc`. From a checkout, the same script takes `--path .` to reinstall from your working tree (the development refresh, which also diffs the installed copy against the source), `--ref <branch|tag>` for any other ref, and `--dry-run`, `--claude-only`, `--codex-only`. `rc` pins an immutable tag, so Claude Code's plugin auto-update keeps re-fetching that exact release candidate and you move to the next one by re-running the script; `stable` follows `main`.
-
 
 ## Setup
 
@@ -202,20 +197,30 @@ The single entry point for new projects, partial setups, and existing codebases.
 
 ## Your first feature
 
-Run `/andthen:init` once per project – it writes the Project Document Index every later skill reads. Then, from an idea to a merged PR:
+Run `/andthen:init` once per project – it writes the Project Document Index every later skill reads.
+
+**Clarify first, or not.** If you cannot list three concrete acceptance criteria, you have an idea, not requirements: start with `clarify`, which asks in rounds (scope, flows, edge cases, success criteria) until the requirements are settled and writes `prd.md` – a small feature takes one round. Requirements already stated – inline, an issue, a document – skip it.
+
+**One story** – from the request straight to a merged PR:
+
+```bash
+/andthen:spec "users can export their data"                    # writes docs/specs/data-export/s01-data-export.md + a one-story plan.json
+/andthen:exec-spec docs/specs/data-export/s01-data-export.md   # fresh session: builds it, its quick review included
+/andthen:review --mode code,gap,security --fix docs/specs/data-export/plan.json   # fresh session: the Next line exec-spec prints; outcome joins with a PRD
+```
+
+After `clarify`, give `spec` the PRD's directory instead (`/andthen:spec docs/specs/data-export/`). The one-story `plan.json` holds the story's status and is what the review reads.
+
+**Several stories** – `plan` and `exec-plan` take the place of `spec` and `exec-spec`. `plan` needs a written source, never inline text, so this path usually starts with `clarify`:
 
 ```bash
 /andthen:clarify "users should be able to export their data"   # interviews you, writes docs/specs/data-export/prd.md
 /andthen:plan docs/specs/data-export/                          # fresh session: plan.json + one FIS per story
-/andthen:exec-plan docs/specs/data-export/                     # fresh session, once plan printed Closure: READY
-/andthen:review --mode code,gap,security,outcome --fix docs/specs/data-export/plan.json   # the Next: line exec-plan prints
+/andthen:exec-plan docs/specs/data-export/                     # fresh session: the command plan printed
+/andthen:review --mode code,gap,security,outcome --fix docs/specs/data-export/plan.json   # fresh session: the Next line exec-plan prints
 ```
 
-The first command is a conversation: `clarify` asks in rounds (scope, flows, edge cases, success criteria) until the requirements are settled, and a small feature takes one round. The rest runs on its own between [the four checkpoints](#your-four-checkpoints).
-
-One story and no PRD? `/andthen:spec "users can export their data"` writes `docs/specs/data-export/s01-data-export.md` and its one-story plan, then `/andthen:exec-spec docs/specs/data-export/s01-data-export.md` builds it. A change you can state in one sentence needs neither: `/andthen:implement-fix "return 404 instead of 500 for an unknown export job id"`.
-
-**When to clarify.** `plan` always needs a requirements source, and that is the whole rule: an issue or a document that already states the requirements goes straight to `plan` – or to `spec` when it is one story and you want no PRD. If you cannot list three concrete acceptance criteria, you have an idea, not requirements, and `clarify` is what turns it into the `prd.md` `plan` then reads.
+A **fresh session** is a new conversation (`/clear` in Claude Code): each step reads what it needs from the files the step before wrote, so it starts on a clean context instead of the previous step's conversation. Past `clarify`'s interview, either path runs on its own between [the four checkpoints](#your-four-checkpoints). A change you can state in one sentence needs neither path: `/andthen:implement-fix "return 404 instead of 500 for an unknown export job id"`.
 
 The cookbook walks one initiative end to end, with the artifacts and the completion report each step produces: [the worked example](COOKBOOK.md#the-worked-example-workspace-invitations). Unsure which path is yours? [Choosing a path](COOKBOOK.md#choosing-a-path).
 
@@ -227,21 +232,21 @@ The pipeline does not change per tracker; the tracker is a projection of the pla
 1. **A request arrives** as a tracker item – one line or a long brief.
 2. **Outer loop, once per epic** – `clarify <item-url>` → `prd.md` (with a `> **Source**:` provenance line) → `plan` → `plan.json` + a FIS per story → **PR to the milestone branch**. An item that already states its requirements goes straight to `plan <item-url>`. The team reviews the PRD and the plan there.
 3. **Publish the breakdown** – `tracker publish plan.json` creates one parent issue and one child issue per story (scope, PRD anchors, a commit-pinned FIS link, blocked-by links, completed task IDs, owner). A canonical repository-relative marker makes re-runs update instead of duplicating and blocks ambiguous duplicate matches.
-4. **Inner loop, once per story** – pick the story's issue → claim it (the story's `owner`) and branch (`{type}/{story-id}-{slug}`) → `exec-spec`, review included → PR with `Closes #N`. Merge closes the issue natively; no skill involved.
+4. **Inner loop, once per story** – pick the story's issue → claim it (the story's `owner`) and branch (`{type}/{story-id}-{slug}`) → `exec-spec`, its quick review included → PR with `Closes #N`. Merge closes the issue natively; no skill involved.
 5. **State** – `plan.json` is agent truth while the plan governs, written by the run session alone; the tracker is the human projection (re-run `tracker publish` to refresh it; the projection is one way, repo → tracker). `prd.md` outlives the bundle; the issues and the PRs are the per-story record.
 
 A single story is the same flow with a different argument:
 
 | Step | Local files | Tracker |
 |---|---|---|
-| Request | any short source – inline, a file, or the `intent.md` `clarify --brief` wrote | issue URL / key |
-| Spec | `spec <source>` → the FIS plus its one-story plan on the feature branch | `spec <issue-url>` → same bundle; `sourceRefs` cite the URL |
-| Build + prove | `exec-spec`, review included → PR | same; PR body `Closes #42` |
+| Request | any short source – inline, a file, an `intent.md`, or a `clarify` PRD | issue URL / key |
+| Spec | `spec <source>` → the FIS plus its one-story plan on the feature branch | `spec <issue-url>` → same bundle; the plan records the URL as its source |
+| Build + prove | `exec-spec` → `review --fix` → PR | same; PR body `Closes #42` |
 | Status | branch + PR | native: branch name / PR link moves the issue, merge closes it |
-| Record after merge | the PR and commits (the FIS head rides the squash-merge message) | the issue and the PR |
+| Record after merge | the PR and commits – the squash-merge message carries the FIS's intent and expected outcomes | the issue and the PR |
 | Close-out | the bundle is deleted before the merge | same |
 
-The requirements record differs: a PRD source leaves `prd.md` behind; the quick track and an issue-sourced bundle leave the request itself – `prd` is `null` in the plan, and `sourceRefs` cite the source. Concurrency needs no shared state file: `plan.json` is the one state owner, and per-story FIS prose is frozen and naturally partitioned.
+The requirements record differs: a PRD leaves `prd.md` behind; any other source leaves only the request itself. Concurrency needs no shared state file: `plan.json` is the one state owner, and per-story FIS prose is frozen and naturally partitioned.
 
 
 ## Skills
@@ -253,8 +258,8 @@ Flags, modes, and edge cases: [the skill reference](plugin/README.md#skills).
 | `init` | Set up the workflow structure – `CLAUDE.md` / `AGENTS.md`, the Project Document Index, the Core orientation docs, the foundational rules guideline |
 | `now-what` | First-stop router – inspects project state and routes to the right skill |
 | `clarify` | The requirements skill – Discovery & Ideation at feature or product scope, landing in `prd.md` (or `PRODUCT.md`) after fresh-context self-review; a hand-written `intent.md` is one input it folds in, and `--brief` stops at that same `intent.md` instead – a feature before its PRD, or any decision or proposal to sharpen and share |
-| `plan` | Validated plan bundle from a PRD, a requirements file, or a tracker item: `plan.json` + a FIS per story, cross-cutting review, one preflight |
-| `spec` | The FIS for one feature or one plan story, with the durable-state check, self-review, and preflight |
+| `plan` | Work of several stories, from a PRD, a requirements file, or a tracker item: `plan.json` + a FIS per story, cross-cutting review, one preflight |
+| `spec` | The FIS for one story – from a PRD, a description, or an issue – or one plan story, with the durable-state check, self-review, and preflight |
 | `exec-spec` | Implement one FIS where invoked: its own proofs → one quick reviewer subagent → full verification → the story's `done` record |
 | `exec-plan` | Run a plan bundle: one fresh `exec-spec` subagent per story, then the full tier, then hand the plan-level code/gap/security review to a fresh session |
 | `review` | Proof-led `code` / `gap` / `security` / `outcome` review and PR review; a story's own review is one `--quick` pass |

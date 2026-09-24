@@ -17,19 +17,19 @@ Default to `write` when unsure.
 
 | Mode | Purpose | Loads |
 |------|---------|-------|
-| `strategy` | Author the project's `Testing Strategy` document. No tests written. | `references/levels-and-strategy.md`, `references/test-design.md`, `references/tdd-discipline.md`, `references/prove-it-pattern.md` |
+| `strategy` | Author the project's `Testing Strategy` document, asking the user the choices the code cannot answer. No tests written. | `references/levels-and-strategy.md`, `references/test-design.md`, `references/tdd-discipline.md`, `references/prove-it-pattern.md` |
 | `write` (default, no flag) | Author tests for existing behavior. | `references/test-design.md` |
 | `tdd` | Drive new behavior test-first: red → green → refactor. | `references/test-design.md`, `references/tdd-discipline.md` |
 | `prove-it` | Bugfix flow. Failing test reproduces the defect before any production change. | `references/test-design.md`, `references/prove-it-pattern.md` |
 
-Every mode reads the `Testing Strategy` document per [`testing-strategy.md`](../../references/testing-strategy.md). That document carries this project's conventions; `strategy` authors it, to the procedure in `references/levels-and-strategy.md`.
+Every mode reads the `Testing Strategy` document per [`testing-strategy.md`](../../references/testing-strategy.md). That document carries this project's conventions; `strategy` authors it, to the procedure in `references/levels-and-strategy.md`, and records an unanswered question per [`automation-mode.md`](../../references/automation-mode.md) § Recording an assumption.
 
 
 ## DECISION FRAMEWORK
 
 - **Prove each test fails without the implementation** – break the impl, watch it red – before declaring coverage done. A test that stays green against a broken impl proves nothing; the retrofit `write` path is where this slips most.
 - **Test-first** for `tdd` and `prove-it`; retro-fit for `write`.
-- **Pick the lowest effective level** the `Testing Strategy` document allows. Default to integration when a unit test needs heavy mocking.
+- **Pick the lowest effective level** the `Testing Strategy` document allows.
 
 
 ## SCENARIO → TEST MAPPING

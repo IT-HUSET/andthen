@@ -28,7 +28,7 @@ def load_plan(path):
         plan = json.load(handle)
     version = plan.get("schemaVersion") if isinstance(plan, dict) else None
     if version != PLAN_SCHEMA_VERSION:
-        sys.exit(f"BLOCKED: unsupported plan.json schemaVersion {version!r}; "
+        sys.exit(f"unsupported plan.json schemaVersion {version!r}; "
                  f"re-run the {SKILL_NS}plan skill to regenerate")
     return plan
 
@@ -53,13 +53,13 @@ def canonical_plan_path(path, repo_root=None):
                 text=True,
             )
         except (OSError, subprocess.CalledProcessError):
-            sys.exit(f"BLOCKED: plan is not inside a Git repository: {plan}")
+            sys.exit(f"plan is not inside a Git repository: {plan}")
         repo_root = result.stdout.strip()
     root = pathlib.Path(repo_root).resolve()
     try:
         return plan.relative_to(root).as_posix()
     except ValueError:
-        sys.exit(f"BLOCKED: plan is outside repository root {root}: {plan}")
+        sys.exit(f"plan is outside repository root {root}: {plan}")
 
 
 def machine_marker(plan_path, story_id=None):
@@ -73,7 +73,7 @@ def resolve(existing, marker):
                if marker in (issue.get("body") or "").splitlines()]
     if len(matches) > 1:
         numbers = ", ".join(f"#{issue.get('number')}" for issue in matches)
-        sys.exit(f"BLOCKED: multiple tracker issues match {marker}: {numbers}")
+        sys.exit(f"multiple tracker issues match {marker}: {numbers}")
     if matches:
         return {"action": "update", "number": matches[0].get("number")}
     return {"action": "create", "number": None}

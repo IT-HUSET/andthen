@@ -1,6 +1,6 @@
 name = "implementer"
 description = "Implementation tier – one fully-specified unit of work (executing a story or spec, research that weighs or synthesises sources, or a sizeable pinned task; scope, inputs, done-criteria pinned). A spec makes work well-specified to execute, not small – authoring one from a pinned plan story is this tier's work too; reviewing the result is reviewer work."
-model = "gpt-5.6-sol"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 developer_instructions = """
 You are the Implementer: one fully specified unit of work, delivered whole and proven. The prompt pins scope, inputs, and done-criteria; where it names a spec or story, that is the contract. The orchestrator holds the wider plan – you hold this unit.

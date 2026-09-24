@@ -19,7 +19,7 @@ Prompts are the mechanism. Skills read intent from your words, and a flag appear
 
 **Situation.** You have work and do not know which skill starts it.
 
-State the problem, the team, and the context in one sentence. Size picks the path, team picks the artifact lifecycle, context picks whether discovery is needed at all.
+State the problem, the team, and the context in one sentence. How settled the requirements are picks whether `clarify` runs, size picks `spec` or `plan`, team picks the artifact lifecycle.
 
 ```
 /andthen:now-what "flaky CSV export in an old Django app, solo, no tests around it"
@@ -32,39 +32,41 @@ State the problem, the team, and the context in one sentence. Size picks the pat
 | You have | Recipe |
 |---|---|
 | one sentence, no design question behind it | [a small change](#a-small-change) |
-| one capability with real edges, and you can list three acceptance criteria | [a single feature, no PRD](#a-single-feature-no-prd) |
-| several capabilities that ship together, or requirements you want kept on record | [a feature with a PRD](#a-feature-with-a-prd) |
-| an idea you cannot state three acceptance criteria for | the same recipe, starting at `clarify` |
+| one capability with real edges | [one story](#one-story) |
+| several capabilities that ship together | [several stories](#several-stories) |
+| an idea you cannot state three acceptance criteria for | either recipe, starting at `clarify` |
+| a design choice that binds beyond the work or is costly to reverse | [a trade-off](#an-architecture-question-or-a-trade-off), then either recipe |
 | a failing build, a failing test, a bug | [a bug or a broken build](#a-bug-or-a-broken-build) |
 | a codebase AndThen has never seen | [an existing codebase](#an-existing-codebase) |
 
-### A feature with a PRD
+### Several stories
 
-**Situation.** Work with real edges – one capability, or several that ship together – and you want the PRD as the record. How many stories it becomes is `plan`'s call.
+**Situation.** Several capabilities that ship together. How many stories they become is `plan`'s call.
 
 ```
 /andthen:clarify "workspace invitations by email"          # writes the PRD; skip when the requirements already exist
 /andthen:plan docs/specs/workspace-invitations/             # fresh session
-/andthen:exec-plan docs/specs/workspace-invitations/        # fresh session, once plan printed Closure: READY
-/andthen:review --mode code,gap,security,outcome --fix docs/specs/workspace-invitations/plan.json   # the Next: line exec-plan prints
+/andthen:exec-plan docs/specs/workspace-invitations/        # fresh session: the command plan printed
+/andthen:review --mode code,gap,security,outcome --fix docs/specs/workspace-invitations/plan.json   # fresh session: the Next line exec-plan prints
 ```
 
-**Expect.** `clarify` interviews at least once, writes `docs/specs/<feature>/prd.md`, and closes on the `plan` command. `plan` writes `plan.json` plus one `s{NN}-<story-slug>.md` per story, reviews the bundle, settles open decisions with you, and prints `Closure: READY` or `Closure: BLOCKED`; one story is a normal outcome. `exec-plan` runs one fresh `exec-spec` subagent per ready story, runs the full tier on the final tree, and ends on the `Next:` line above, whose `--fix` remediates the report it just wrote.
+**Expect.** `clarify` interviews at least once, writes `docs/specs/<feature>/prd.md`, and closes on the `plan` command – or on `architecture --mode trade-off` first when the PRD leaves a design fork open. `plan` writes `plan.json` plus one `s{NN}-<story-slug>.md` per story, asks what the source leaves open, reviews the bundle, asks you what is still open – each question with a recommendation – and prints the `exec-plan` command; one story is a normal outcome. `exec-plan` runs one fresh `exec-spec` subagent per ready story, runs the full tier on the final tree, and ends on the `Next:` line above, whose `--fix` remediates the report it just wrote.
 
-**Elsewhere.** `Closure: BLOCKED` names the held decision and the story it holds `blocked`; settle it (a design fork goes to `architecture --mode trade-off` first) and re-author with `/andthen:spec "story S02 of docs/specs/workspace-invitations/plan.json"`. To drive stories by hand, run `exec-spec` per story – [the worked example](#the-worked-example-workspace-invitations) does. A story that fails its run reports the route out: `review --mode code,gap --intent <fis>`, then `implement-fix` on that report, then `exec-spec` on the FIS again to re-run the proofs and complete the story. Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-plan).
+**Elsewhere.** A question left unanswered – the session ended before it – falls back to its recommendation as an `ASSUMPTION:` line in the FIS; to overturn one before execution, re-run `/andthen:spec "story S02 of docs/specs/workspace-invitations/plan.json"` with your answer. To drive stories by hand, run `exec-spec` per story – [the worked example](#the-worked-example-workspace-invitations) does. A story that fails its run reports the route out: `review --mode code,gap --intent <fis>`, then `implement-fix` on that report, then `exec-spec` on the FIS again to re-run the proofs and complete the story. Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-plan).
 
-### A single feature, no PRD
+### One story
 
-**Situation.** One feature with real complexity, solo or on a branch of your own: the quick track. The request is the requirements record, so you can already list three acceptance criteria for it.
+**Situation.** One feature with real complexity. With three acceptance criteria in hand, start at `spec`; without them, `clarify` first, and `spec` takes its PRD.
 
 ```
-/andthen:spec "users can export their workspace as a zip"   # or a requirements file, or an issue URL
-/andthen:exec-spec docs/specs/workspace-export/s01-workspace-export.md
+/andthen:spec "users can export their workspace as a zip"   # or a PRD directory, a requirements file, an issue URL
+/andthen:exec-spec docs/specs/workspace-export/s01-workspace-export.md   # fresh session
+/andthen:review --mode code,gap,security --fix docs/specs/workspace-export/plan.json   # fresh session: the Next line exec-spec prints
 ```
 
-**Expect.** `spec` writes `docs/specs/<feature>/s01-<feature>.md` with a one-story `plan.json` beside it (`prd: null`), self-reviews it, asks you per blocking decision, and prints `Closure: READY` with the `exec-spec` line or `Closure: BLOCKED` with the held decisions. `exec-spec` implements the story where you invoke it: every proof and the full tier, one fresh quick reviewer, the story's `done` record with its verified line, the story commit.
+**Expect.** `spec` writes `docs/specs/<feature>/s01-<feature>.md` with a one-story `plan.json` beside it (`prd` the PRD's path, or `null` without one), self-reviews it, asks you what is still open – each question with a recommendation – and prints the `exec-spec` line. `exec-spec` implements the story where you invoke it: every proof and the full tier, one fresh quick reviewer, the story's `done` record with its verified line, the story commit, then the review line above – `outcome` joins the lenses when there is a PRD.
 
-**Elsewhere.** `OVERSIZE:` means the story does not fit one run: take [a feature with a PRD](#a-feature-with-a-prd) and let `plan` slice it. `Closure: BLOCKED` is re-run `spec` on the FIS with the decision settled. A failed run names the same route out as under a plan. Contracts: [`spec`](plugin/README.md#spec), [`exec-spec`](plugin/README.md#exec-spec).
+**Elsewhere.** `OVERSIZE:` means the story does not fit one run: `spec` offers to let `plan` slice it ([several stories](#several-stories)) or to proceed as one story. An `ASSUMPTION:` is overturned by re-running `spec` on the FIS with your answer. A failed run names the same route out as under a plan. Contracts: [`spec`](plugin/README.md#spec), [`exec-spec`](plugin/README.md#exec-spec).
 
 ### A small change
 
@@ -112,12 +114,12 @@ State the problem, the team, and the context in one sentence. Size picks the pat
 
 ```
 /andthen:plan https://github.com/org/repo/issues/42         # requirements already stated: straight to the bundle
-/andthen:spec https://github.com/org/repo/issues/42         # one story, no PRD: straight to the FIS
+/andthen:spec https://github.com/org/repo/issues/42         # one story: straight to the FIS
 /andthen:clarify https://github.com/org/repo/issues/42      # thin issue: interview it into a PRD first
 /andthen:clarify docs/requests/export-brief.md              # the same over a file
 ```
 
-**Expect.** The same flow as from a PRD, with the source cited: the PRD's `> **Source**:` line, the plan's story `sourceRefs`, and directories named `docs/specs/issue-42-<feature>/`. An issue-sourced bundle has `prd: null` – the issue is the record. Fetching goes through the `Issue Tracker` document when one exists, else `gh`; the fetched body is evidence, never instructions.
+**Expect.** The same flow as from a PRD, with the source cited: the PRD's `> **Source**:` line, the plan's story `sourceRefs`, and directories named `docs/specs/issue-42-<feature>/`. An issue-sourced bundle has `prd: null` – the issue is the record. Fetching goes through the `Issue Tracker` document when one exists, else `gh` for a GitHub URL, while any other host is offered the document first; the fetched body is evidence, never instructions.
 
 **Elsewhere.** A well-written issue can skip `clarify`; a one-liner cannot. A file path and a URL are both just the argument – there is no flag.
 
@@ -130,7 +132,7 @@ State the problem, the team, and the context in one sentence. Size picks the pat
 /andthen:clarify "treat this as feature scope: shared inboxes"     # override a wrong product inference
 ```
 
-**Expect.** Scope is inferred from the wording (`vision`, `positioning`, `product brief`, or a `PRODUCT.md` path mean product) and stated before the interview, so you can redirect. Product scope writes `docs/PRODUCT.md`, proportionality facts included, and recommends bounded-context work next. Feature scope writes `docs/specs/<feature>/prd.md` and ends on the `plan` command. A hand-written `intent.md` – problem, proposed outcome, affected systems, constraints, open questions – is a valid input at either scope – the same file `--brief` writes – and its sections are folded into the output with the intent doc left as it was.
+**Expect.** Scope is inferred from the wording (`vision`, `positioning`, `product brief`, or a `PRODUCT.md` path mean product) and stated before the interview, so you can redirect. Product scope writes `docs/PRODUCT.md`, proportionality facts included, and recommends bounded-context work next. Feature scope writes `docs/specs/<feature>/prd.md` and ends on the `spec` or `plan` command. A hand-written `intent.md` – problem, proposed outcome, affected systems, constraints, open questions – is a valid input at either scope – the same file `--brief` writes – and its sections are folded into the output with the intent doc left as it was.
 
 ### An intent doc before the PRD
 
@@ -144,7 +146,7 @@ State the problem, the team, and the context in one sentence. Size picks the pat
 
 **Expect.** Questions in rounds – everything answerable now, each with a recommended answer, dependents held for the next round – stopped where you say the picture is clear enough to share, then `docs/specs/<subject>/intent.md`: problem, proposed outcome, affected systems, constraints, open questions each with a recommended answer and alternatives, and a decisions log of what you settled. Edit it freely – answer an open question in place, or leave it and it is asked again. The second run takes it as the baseline – every section is folded into the PRD, only what the edits opened or left open is asked, and no settled decision is re-asked. A second `--brief` run amends the intent doc instead. A subject that is not this product's feature is not anchored to `PRODUCT.md` or the architecture.
 
-**Elsewhere.** An intent doc is feature scope only; at product scope `PRODUCT.md` is already the one document. A directory that already holds a `prd.md` gets no intent doc behind it – the PRD is the record.
+**Elsewhere.** An intent doc is feature scope only; at product scope `PRODUCT.md` is already the one document. A directory that already holds a `prd.md` gets no intent doc behind it – the PRD is the record. One story the intent doc already settles needs no PRD: `spec` takes the directory.
 
 
 ## The design stage
@@ -158,7 +160,7 @@ State the problem, the team, and the context in one sentence. Size picks the pat
 /andthen:architecture --mode trade-off "compare three options for the export job queue: Postgres SKIP LOCKED, Redis streams, SQS"
 ```
 
-**Expect.** The first is `advise`, the default mode: CUPID/DDD-grounded guidance sized against your `Product` document's proportionality facts, as prose, with "formalize an ADR" offered when it settles a real decision. The second is `trade-off`, interactive by contract: it confirms the decision space and criteria, then writes `docs/research/<topic-slug>/` (design tree, research, trade-off matrix, recommendation), an ADR under `docs/adrs/` when you accept it, and a row in `docs/DECISIONS.md`. "Compare three options" sets the count (the default is five), and every set includes the floor option. No mode changes code.
+**Expect.** The first is `advise`, the default mode: guidance grounded in CUPID, DDD, and Ousterhout's deep modules, sized against your `Product` document's proportionality facts, as prose, with "formalize an ADR" offered when it settles a real decision. The second is `trade-off`, interactive by contract: it confirms the decision space and criteria, then writes `docs/research/<topic-slug>/` (design tree, research, trade-off matrix, recommendation), an ADR under `docs/adrs/` when you accept it, and a row in `docs/DECISIONS.md`. "Compare three options" sets the count (the default is five), and every set includes the floor option. No mode changes code.
 
 **Elsewhere.** A question only measurement settles ("is A faster than B under our load?") is the `spike` skill, which builds a throwaway on `spike/<slug>` and reports a verdict; under `--auto` the trade-off records the unknown as an open evidence gap instead. "Review this architecture", "should I split this package", bounded contexts, event storming: the same skill in `--mode review`, `decompose`, `strategic-design`, or `event-storming` ([`architecture`](plugin/README.md#architecture)).
 
@@ -173,7 +175,7 @@ State the problem, the team, and the context in one sentence. Size picks the pat
 /andthen:ui-ux-design "research, then a design system, then wireframes for the onboarding flow in docs/specs/onboarding/prd.md"
 ```
 
-**Expect.** The mode follows the phrasing. `research` returns in the conversation, no file: the job-to-be-done, two to five journeys, an IA sketch, constraints, and the open questions – `clarify` input. `design-system` writes `docs/design-system/DESIGN.md` (token front matter plus rationale), `tokens.css`, and `showcase.html`; push back on a bland result, deliberate visual direction is the mode's stated bar. `wireframes` writes grayscale HTML with full page coverage under `docs/wireframes/`, an `index.html` hub and a `page-inventory.md`, validated through `visual-validation`. Naming modes in order, as in the last prompt, runs them in that order sharing context; there is no chain flag. Downstream, `spec` cites the wireframes and `exec-spec` builds to them; a FIS for UI work with no wireframe surfaces `MISSING REQUIREMENT:` and points back here.
+**Expect.** The mode follows the phrasing. `research` returns in the conversation, no file: the job-to-be-done, two to five journeys, an IA sketch, constraints, and the open questions – `clarify` input. `design-system` writes `docs/design-system/DESIGN.md` (token front matter plus rationale), `tokens.css`, and `showcase.html`; push back on a bland result, deliberate visual direction is the mode's stated bar. `wireframes` writes grayscale HTML with full page coverage under `docs/wireframes/`, an `index.html` hub and a `page-inventory.md`, validated through `visual-validation`. Naming modes in order, as in the last prompt, runs them in that order sharing context; there is no chain flag. Downstream, `spec` cites the wireframes and `exec-spec` builds to them; a FIS for UI work with no wireframe points back here.
 
 **Elsewhere.** Validating a built screen is `visual-validation`, not a design mode. Questions about requirements rather than interaction are `clarify` territory.
 
@@ -197,12 +199,12 @@ State the problem, the team, and the context in one sentence. Size picks the pat
 **Situation.** CI or an agent runner drives the pipeline; nobody will answer a question.
 
 ```
-/andthen:plan --auto docs/requests/workspace-invitations.md                # from the requirements file; an unsettled decision → Closure: BLOCKED, story blocked
-/andthen:exec-plan --auto docs/specs/workspace-invitations/                # runs every spec-ready story, skips blocked ones
+/andthen:plan --auto docs/requests/workspace-invitations.md                # from the requirements file; open questions → ASSUMPTION: lines
+/andthen:exec-plan --auto docs/specs/workspace-invitations/                # runs every spec-ready story
 /andthen:review --auto --fix --mode code,gap,security,outcome docs/specs/workspace-invitations/plan.json   # the Next: line exec-plan printed
 ```
 
-**Expect.** `--auto` is the one flag every pipeline skill after requirements shares: no prompts, conservative assumptions written into the artifact, and a hard stop on a bare `BLOCKED: <minimum missing input or decision>` line an orchestrator can parse. The interview is what it cannot buy: `clarify` has no `--auto`, so the pipeline starts at `plan` from a requirements file or tracker item, and `plan --auto` neither interviews nor invents, so an unsettled decision leaves its story `blocked`. `exec-plan --auto` keeps a failed story at its prior status, skips its dependents, finishes the rest, and ends with the aggregate report or `BLOCKED: exec-plan completed with failed stories`. It never reviews the plan itself: the `Next:` line is the review, and something has to launch it.
+**Expect.** `--auto` is the one flag every pipeline skill after requirements shares: no prompts, and a stop only on an unusable call, ending on `BLOCKED: <what is needed>`. The interview is what it cannot buy: `clarify` has no `--auto`, so the pipeline starts at `plan` from a requirements file or tracker item, and `plan --auto` writes each open question's recommendation into the FIS as an `ASSUMPTION:`, leaving what that cannot settle to the executor. `exec-plan --auto` keeps a failed story at its prior status, skips its dependents, finishes the rest, and ends with the aggregate report. It never reviews the plan itself: the `Next:` line is the review, and something has to launch it. `review --auto --fix` ends in `implement-fix --auto`, which decides what an interactive run would hand back to you: every `Note` and `NOTICED BUT NOT TOUCHING` item is applied, deferred to the Tech Debt Backlog with the recommended remedy, or closed with a reason – nothing waits for a reader who is not there.
 
 **Chaining the stages.** An authoring skill ends by printing one next-step line and stopping, because the next stage wants a clean context. Put the chain where the trigger and the authorization already live – a CI job keyed to the merge:
 
@@ -210,13 +212,13 @@ State the problem, the team, and the context in one sentence. Size picks the pat
 # on a merge that touched prd.md – plan the bundle in a fresh headless session
 claude -p "/andthen:plan --auto docs/specs/workspace-invitations/"
 
-# only if that run printed `Closure: READY`, execute it – again fresh
+# if that run succeeded, execute it – again fresh
 claude -p "/andthen:exec-plan --auto docs/specs/workspace-invitations/"
 ```
 
-Each `-p` call is its own session, so the fresh-context property holds by construction. `Closure: READY` is the only verdict that authorizes execution. Codex CLI is the same shape through `codex exec`.
+Each `-p` call is its own session, so the fresh-context property holds by construction. Codex CLI is the same shape through `codex exec`.
 
-**Elsewhere.** `Closure: BLOCKED` from `plan --auto` is the signal to run `plan` interactively once. A `BLOCKED:` from `exec-plan` names the story; the plan's own rows show where the bundle stands. Contract: [Headless orchestration](plugin/README.md#workflows).
+**Elsewhere.** The `ASSUMPTION:` lines `plan --auto` wrote are what to read before trusting the bundle; overturn one with `spec` on that story's FIS and your answer. The `exec-plan` report names each failed story; the plan's own rows show where the bundle stands. Contract: [Headless orchestration](plugin/README.md#workflows).
 
 
 ## Reviewing
@@ -256,7 +258,7 @@ Each `-p` call is its own session, so the fresh-context property holds by constr
 /andthen:review --mode outcome docs/specs/workspace-invitations/plan.json                  # the built feature against prd.md
 ```
 
-**Expect.** `gap` is conformance: every Acceptance Scenario, Structural Criterion, and stated deferral against the implementation, a falsifier attempted per row, a `PASS`/`FAIL` verdict over a scored dimension table. `outcome` never reads the FIS proofs: it walks the product as the PRD's Target Users along its flows – a browser journey by hand or through `visual-validation` when the surface is a UI, the CLI or API by hand otherwise – with each user's unhappy path as the falsifier. It needs a PRD (`BLOCKED: outcome has no PRD baseline` without one). An implementation short of the PRD is a `code-defect`; a PRD the build has overtaken routes to `clarify`, never to code. Reports land in the spec directory of the plan or FIS the run resolved, named `<feature>-andthen-gap-review-<agent>-<date>.md` or `…-andthen-outcome-review-…`, and open with a header naming the lens, the typed target, and the revision reviewed.
+**Expect.** `gap` is conformance: every Acceptance Scenario, Structural Criterion, and stated deferral against the implementation, a falsifier attempted per row, a `PASS`/`FAIL` verdict over a scored dimension table. `outcome` never reads the FIS proofs: it walks the product as the PRD's Target Users along its flows – a browser journey by hand or through `visual-validation` when the surface is a UI, the CLI or API by hand otherwise – with each user's unhappy path as the falsifier. It needs a PRD. An implementation short of the PRD is a `code-defect`; a PRD the build has overtaken routes to `clarify`, never to code. Reports land in the spec directory of the plan or FIS the run resolved, named `<feature>-andthen-gap-review-<agent>-<date>.md` or `…-andthen-outcome-review-…`, and open with a header naming the lens, the typed target, and the revision reviewed.
 
 **Elsewhere.** Both lenses run in the plan-level chain `exec-plan` hands over, so after a full plan run this is its `Next:` line, not a separate call. A PR target works too – it is reviewed as a local tree. Contract: [`review`](plugin/README.md#review).
 
@@ -270,7 +272,7 @@ Each `-p` call is its own session, so the fresh-context property holds by constr
 /andthen:implement-fix docs/specs/workspace-invitations/workspace-invitations-andthen-mixed-review-claude-2026-09-15.md
 ```
 
-**Expect.** `--fix` hands the report to `implement-fix` once it is written: one round – re-validate, apply the `Routing: Fix` findings, verify once, re-check every finding. `Note` findings are never edited, whatever their severity; they come back to you, with the `## Remediation Status` the pass writes into the report, and a Fix whose repair would settle a decision the project leaves open is `DEFERRED` to the Tech Debt Backlog against that blocker. A report with nothing Fix-routed returns `NO-OP: no-auto-applicable-findings`. The change stays in the working tree; nothing is committed.
+**Expect.** `--fix` hands the report to `implement-fix` once it is written: one round – re-validate, apply the `Routing: Fix` findings, verify once, re-check every finding. `Note` findings are never edited on the reviewer's tag, whatever their severity; they come back to you – under `--auto`, with the disposition the pass gave each – with the `## Remediation Status` the pass writes into the report, and a Fix whose repair would settle a decision the project leaves open is `DEFERRED` to the Tech Debt Backlog against that blocker. A report with nothing Fix-routed returns a summary that nothing was fixed. When the round fixed a CRITICAL or HIGH finding or left a Fix finding open, the run ends on a `Next (fresh session):` line for a follow-up review of that report; otherwise one round is the whole job. The change stays in the working tree; nothing is committed.
 
 **Elsewhere.** "This should be cleaned up" is not authorization: the review stays read-only and names `--fix`. `--fix` on a PR target is rejected – the scratch tree is discarded, so there is nothing to remediate. More than one round is [the loop below](#review-and-fix-until-clean-from-a-coordinating-session). Contract: [`implement-fix`](plugin/README.md#implement-fix).
 
@@ -288,13 +290,13 @@ Each review subagent invokes the andthen:review skill on that plan with
 a follow-up on the previous report, by its path. Each fix subagent invokes the
 andthen:implement-fix skill with "--auto" on the report that review wrote.
 
-Stop when a review's overall readiness is Ready/PASS or nothing is Fix-routed. Also
+Stop when a review's overall readiness is Ready/PASS or a fix round fixes nothing. Also
 stop, and report, when a finding survives a fix round unchanged or a fix needs a
 decision. Finish with the final verdict, the report paths, and the remaining Note and
 DEFERRED findings.
 ```
 
-**Expect.** One full review, then follow-up reviews over the previous report's findings, what their fixes touched, and regressions from them – each a full `review` run on the same lenses with its own report and verdict, its `Follows` header naming the report before it. The narrowing is yours: it happens because the prompt asks for a follow-up, and a review that is not asked stays full, reading earlier reports only to say which of their findings are resolved, still open, or regressed. The loop ends on the verdict, never on a severity count – a `Note` finding is never edited and a `DEFERRED` one waits in the Tech Debt Backlog, so "until no MEDIUM remains" cannot terminate while either is MEDIUM. Both come back to you with the last report; a blocked CRITICAL or HIGH fix escalates instead, which is the "needs a decision" stop.
+**Expect.** One full review, then follow-up reviews over the previous report's findings, what their fixes touched, and regressions from them – each a full `review` run on the same lenses with its own report and verdict, its `Follows` header naming the report before it. The narrowing is yours: it happens because the prompt asks for a follow-up, and a review that is not asked stays full, reading earlier reports only to say which of their findings are resolved, still open, or regressed. The loop ends on the verdict, never on a severity count – under `--auto` the fix round dispositions each `Note` itself, and one it closes with a reason or `DEFERRED` to the Tech Debt Backlog keeps its MEDIUM in the report, so "until no MEDIUM remains" cannot terminate. Both come back to you with the last report; a blocked CRITICAL or HIGH fix escalates instead, which is the "needs a decision" stop.
 
 **Elsewhere.** One round is `review --fix` above. A full sweep after the loop is the same `review` command with no follow-up asked. Contract: [`review`](plugin/README.md#review).
 
@@ -434,7 +436,7 @@ Story breakdown, `plan.json`, three FIS files authored in parallel by `spec --au
 }
 ```
 
-The `sharedDecisions` entry is the expiry question: preflight asked it once, you answered *7 days*, and the answer landed at the altitude that owns it – cross-story, so the plan. Each FIS carries its own runnable proof surface, for example `s01-send-an-invitation.md`:
+The PRD's open expiry question was asked before slicing, since two stories are cut from it: you answered *7 days*, the answer went into the PRD's `Constraints & Assumptions` through `clarify`'s amendment, and the `sharedDecisions` entry pins the contract both stories build on – into the plan, and each FIS. Each FIS carries its own runnable proof surface, for example `s01-send-an-invitation.md`:
 
 ```markdown
 # FIS: Send an invitation
@@ -479,10 +481,9 @@ The `sharedDecisions` entry is the expiry question: preflight asked it once, you
   - **SATISFIES**: SC01
 ```
 
-Preflight ran its tail on every story – settle, re-canonicalize, size gate, proof-design audit – and printed:
+Authoring left nothing open, so preflight had nothing to ask, and `plan` printed:
 
 ```
-Closure: READY
 Run the andthen:exec-plan skill on docs/specs/workspace-invitations/.
 ```
 
@@ -587,7 +588,7 @@ Between stories, state is one ask away:
 
 ### Turn 7 – plan-level review and merge *(on `1.2`, after S03 merged)*
 
-Each story was reviewed against its own change set; the plan as a whole has not been, and `now-what` says so – every story `done`, no `*-mixed-review-*.md` beside `plan.json`. One deep pass, remediating whatever it routes `Fix`:
+Each story was reviewed against its own change set; the plan as a whole has not been, and `now-what` says so – every story `done`, no `*-mixed-review-*.md` beside `plan.json`. One deep pass, remediating whatever it routes `Fix` – and it reads S01's open Note on `Mailer.send` from the FIS observations, so that comes back routed instead of forgotten:
 
 ```
 /andthen:review --mode code,gap,security,outcome --fix docs/specs/workspace-invitations/plan.json

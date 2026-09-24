@@ -25,7 +25,6 @@
 | Expected Outcome | FIS-internal, behavioral, user-/business-observable success condition under `## Feature Overview and Goal`, tagged `[OC<NN>]`. | PRD outcome, success criterion, structural criterion |
 | Outcome tag | `[OC<NN>]` token on an Acceptance Scenario, anchoring it to the Expected Outcome(s) it exemplifies. | scenario tag, OC reference |
 | Required Context | Optional FIS section for load-bearing upstream sources. | background, references |
-| Deeper Context | Optional FIS section containing supplementary `path#anchor` pointers to read on demand. | required reading, extra context |
 | Plan Bundle | Co-located planning directory containing `plan.json`, generated FIS files, `prd.md` when the source was one, and optional supporting assets. | implementation plan, plan folder |
 | plan.json | Local typed runtime plan written by the `andthen:plan` skill and read by execution, review, and routing skills; runtime state is written by the run session alone. | plan.md, markdown plan, plan table, ledger |
 | Story | Vertical, bounded, verifiable unit in `plan.json` that maps 1:1 to a FIS. | task, ticket, work item |
@@ -41,7 +40,7 @@
 | Tracker resolution | Resolving the `Issue Tracker` document before any issue operation, stated in full by the `andthen:backlog-triage` skill. | backend switch |
 | Proportionality | The `PRODUCT.md` section stating the facts a proposal is sized against: stage, scale, and standing technical non-goals. | lean mode, complexity score, simplicity principles |
 | Floor option | The smallest option that still satisfies the stated criteria – do nothing, or extend what exists – carried by every alternative set. | do-nothing baseline, minimal alternative, null option |
-| Preflight | Closing step of the `andthen:spec` and `andthen:plan` skills: interview per blocking Note, re-canonicalize, size gate, `Closure: READY|BLOCKED`; exec-side pre-run checks are admission. | decision closure, convergence gate |
+| Preflight | Closing step of the `andthen:spec` and `andthen:plan` skills: each open item asked in one sitting with a recommendation and answered into the FIS; exec-side pre-run checks are admission. | decision closure, convergence gate, closure verdict |
 | Non-Goals | The `PRODUCT.md` section of product-level scope boundaries, firmly rejected concepts included as dated bullets – checked at the concept level before one is re-proposed. | Out of Scope Registry, rejection log |
 | Context Map | The `docs/CONTEXT-MAP.md` document of bounded contexts and their integration patterns, registered by the `andthen:architecture` skill in `--mode strategic-design`. | context diagram |
 | Atlas model | Either typed model the `andthen:describe` skill emits under `--model` – Architecture Model or Domain Model – committed under the `Models` location. | atlas view, 3D view |
@@ -86,9 +85,8 @@
 |------|------------|-------|
 | Interactive-by-Contract | Rule that every `andthen:clarify` run includes user-answered discovery questions and a confirmed shared understanding before producing its artifact; there is no unattended form. | optional interactivity, headless clarify |
 | Recommend, don't decide | Clarification posture: offer a defensible recommended answer while requiring the user to ratify or redirect it. | assume the recommendation |
-| Named Output Blocks | Shared execution protocol for `CONFUSION:`, `MISSING REQUIREMENT:`, and `NOTICED BUT NOT TOUCHING:`. | ad hoc status notes |
-| ASSUMPTION: | Automation-mode record of the safest defensible interpretation chosen when interactive clarification is unavailable. | silent default |
-| Next-step decision | The one recommendation an authoring skill closes on, derived from its closure outcome state. | follow-up menu, next steps list |
+| ASSUMPTION: | Record of the safest defensible reading where nobody decided – in a FIS, a Preflight item left unanswered or settled under `--auto`. | silent default |
+| Next-step decision | The one command an authoring skill closes on, once every open item is closed. | follow-up menu, next steps list |
 | Proof-of-Work | FIS rule that each Acceptance Scenario has an articulated contract and a concrete proof path, and each Structural Criterion is proved by a task Verify line. | proof note |
 | Prove-It Pattern | Test-first bugfix flow where a failing test proves the defect before the fix makes it pass. | regression test after fix |
 | Anti-Cheat Invariant | TDD rule that a proof test cannot be deleted, disabled, or weakened to make the build green. | weaken the test |
@@ -111,10 +109,9 @@
 | agent | User environment | An AI coding agent such as Claude Code, Codex, Aider, or Cursor | AndThen delegation | A generic subagent spawned by a skill |
 | Intent | FIS field | The one-sentence `Intent` under `## Feature Overview and Goal` – why this feature exists | Artifact | `intent.md`, the Intent Document that precedes the PRD |
 | Intent | Review/remediation loader | `Intent Context` – the governing-artifact bundle collected as falsifiers per `intent-and-rules-context.md` | Artifact | `intent.md` is at most one member of that bundle, never the bundle itself |
-| context | Prompt/runtime | Model context or fresh-session context | FIS | Required Context and Deeper Context sections carrying upstream intent |
+| context | Prompt/runtime | Model context or fresh-session context | FIS | The Required Context section carrying upstream intent |
 | context | Domain design | Bounded Context in DDD | Project discovery | Project context loaded from root agent instructions |
 | state | Workflow artifact | Runtime fields in the schema v2 `plan.json` governing the story – a standalone feature has a one-story plan of its own | Plan status | `stories[].status` values inside `plan.json` |
 | owner | Plan coordination | `stories[].owner` in `plan.json` – who is executing a story; advisory, not a lock | Code ownership | Reserve `owner` for story claiming, not file/CODEOWNERS semantics |
 | issue | GitHub integration | A GitHub issue read as a requirements or scope source | Review | A finding; prefer Finding |
-| Testing Strategy | Project Document Index | `docs/TESTING-STRATEGY.md` – how the project tests, durable across stories | FIS | The story-scoped `### Testing Strategy` section – how *this story* is proved |
 | asset | Install system | Shared Plugin Asset under `plugin/references/` | Plan schema | `assetRefs` pointing to upstream assets |

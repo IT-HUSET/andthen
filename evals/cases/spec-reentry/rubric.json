@@ -1,0 +1,12 @@
+{
+  "criteria": [
+    {
+      "id": "SPEC_REENTRY_DECISION_CANONICAL",
+      "intent": "the settled backoff policy is integrated once into the FIS prose that owns it - task or scenario text - with no patch transcript, decision-history section, leftover backoff `ASSUMPTION:`, or open-decision marker"
+    },
+    {
+      "id": "SPEC_REENTRY_HANDOFF",
+      "intent": "the reply ends on one next command – the andthen:exec-spec skill on the FIS – with no verdict line and no question left for the user, and the story record in the plan beside the FIS is spec-ready with no completed tasks; a Decided: list or explanation before the command is expected, not a defect"
+    }
+  ]
+}

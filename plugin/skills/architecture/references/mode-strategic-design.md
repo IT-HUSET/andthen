@@ -1,6 +1,6 @@
 # Architecture – Strategic-Design Mode
 
-Discover or audit the strategic shape of a domain – classify subdomains by investment posture, propose bounded contexts and their sizing, draw the integration relationships between contexts, and surface the ubiquitous-language touchpoints. Outputs a textual report and the typed map(s) it describes (`board-models.md`, kind `context-map`); delegations: see Step 7.
+Discover or audit the strategic shape of a domain. Outputs a textual report and the typed map(s) it describes (`board-models.md`, kind `context-map`).
 
 ## Bounded Context Canvas
 
@@ -32,23 +32,23 @@ For brownfield, produce two maps: **Current** (what exists in code today) and **
 Emit each map as a `context-map` model from `board-models.md` into the report's own output directory – `context-map-current.json` and `context-map-target.json` on brownfield, `context-map-target.json` on greenfield – with `meta.status` set accordingly; only the map Step 8 registers is written under the `Models` location. Every context carries its `subdomainType` from Step 2 and every table row is a relationship with its pattern, direction, and rationale. Check each candidate against `context-map.schema.json` and `board-models.md` and write only what holds; a failing map is not written – print the violations and fix the map.
 
 ### Step 5 – Ubiquitous-Language Touchpoints
-For each context, name the 3–8 vocabulary items whose meaning is contested or load-bearing – terms that mean different things across contexts, terms that have drifted between business and engineering use, and terms with no agreed-on definition yet. The list is a hand-off note, not a glossary; the actual extraction and curation is delegated. Recommend invoking the `andthen:describe` skill in `--mode domain` against the context list this mode produced, passing the touchpoint names through as the seed list.
+For each context, name the 3–8 vocabulary items whose meaning is contested or load-bearing – terms that mean different things across contexts, terms that have drifted between business and engineering use, and terms with no agreed-on definition yet. The list is a hand-off note for Step 7, not a glossary.
 
 ### Step 6 – Drift Findings _(brownfield only)_
-For each delta across three inputs – the code-observed Current map, the registered `Context Map` document (when one exists), and the proposed Target map – name the gap, the likely root cause (vocabulary collision, Conway's-Law mismatch, premature decomposition, accidental coupling, or drift from the registered map), and the smallest move that would close it. Skip the section entirely on greenfield runs.
+For each delta across three inputs – the code-observed Current map, the registered `Context Map` document (when one exists), and the proposed Target map – name the gap, the likely root cause (vocabulary collision, Conway's-Law mismatch, premature decomposition, accidental coupling, or drift from the registered map), and the smallest move that would close it.
 
 ### Step 7 – Recommendations
 Synthesize: which subdomains warrant immediate investment (core), which integration patterns need to change (and toward what), which contexts are sized wrong, and which UL touchpoints are blocking communication. Each recommendation names a framework or principle (Evans, Khononov, Tune, the 9-pattern catalog) and a concrete next step – typically a hand-off to another mode or skill. Hand-off catalog:
 
 - Bounded-context boundary contested → re-invoke this skill in `--mode decompose`.
 - Strategic decisions need fitness-function enforcement → re-invoke this skill in `--mode fitness`.
-- Per-context UL extraction → invoke the `andthen:describe` skill in `--mode domain`.
-- Accepted context map → register it into the `Context Map` document (Step 8) so later runs and other skills read one durable source.
+- Per-context UL extraction → invoke the `andthen:describe` skill in `--mode domain` against this mode's context list, with Step 5's touchpoint names as its seed list.
+- Accepted context map → register it into the `Context Map` document (Step 8).
 - Big-picture event-storming as upstream input when the domain is unfamiliar – run `--mode event-storming` first, then chain back into `--mode strategic-design`.
 
 ### Step 8 – Register the Context Map _(gated on user acceptance)_
 
-Distil the accepted map into the `Context Map` document – the durable record later runs and other skills read first. Registration graduates the **accepted Target** map (or **Current**, when a brownfield audit confirms it is the intended shape) into the document; the report's Current/Target tables stay as authored. Gate on explicit user acceptance – the map has organizational implications the user owns; do not register a map the user has not accepted. `--auto` skips this step rather than inferring the acceptance: nothing is registered, and the completion summary carries `context map not registered – needs acceptance`.
+Distil the accepted map into the `Context Map` document – the durable record later runs and other skills read first. Registration graduates the **accepted Target** map (or **Current**, when a brownfield audit confirms it is the intended shape) into the document; the report's Current/Target tables stay as authored. Gate on explicit user acceptance – the map has organizational implications the user owns. `--auto` skips this step rather than inferring the acceptance: nothing is registered, and the completion summary carries `context map not registered – needs acceptance`.
 
 - Resolve the `Context Map` location from the **Project Document Index** (default: `docs/CONTEXT-MAP.md`).
 - If the file does not exist, have it seeded from the `CONTEXT-MAP.md` template by the document-creation subagent (SKILL **Post-Completion**).

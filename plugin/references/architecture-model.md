@@ -110,6 +110,8 @@ Same shape for both kinds (`bounded-context` fits the domain doc's clusters).
 | `avoid` | array of strings | no | `domain-model` only: the term's avoid-synonyms from the doc's Avoid column. When present, a non-empty array of non-empty strings – omit the key when there are none, never `[]`. |
 | `meanings` | array of objects | no | `domain-model` only: per-context meanings of an overloaded term. Omit unless the term is overloaded. |
 
+Four architecture kinds are what downstream tooling draws the system's runtime shape from, so they carry fixed meanings: a `service` runs or deploys as its own process; an `entrypoint` is where a process starts (a `main`, a CLI, a route table); a `store` is a datastore the code reads or writes at runtime; an `external` is a system outside the repository the code talks to at runtime, its `ref` the code or config that integrates it. A third-party library is not a node – importing one is not a runtime relationship.
+
 `metrics` cover the module the node represents (typically the `ref` directory), not just the file `ref` may point at. Legal on both kinds; the domain emitter omits them.
 
 `meanings`, when present: at least 2 entries; each carries `contextId` (resolving to a `contexts[].id`, all distinct across the array), `label` (the source doc's context text, verbatim), and `meaning` – both non-empty strings. A node with `meanings` renders floating between its meaning contexts rather than on any single sheet.

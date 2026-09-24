@@ -47,7 +47,7 @@ First matching row wins:
 
 #### Branch A – Setup not done
 
-> AndThen has one workflow – **clarify → plan → exec-plan → review --fix → PR** (skip `clarify` when the PRD already exists as an issue or a document), where `exec-plan` runs one `exec-spec` per story – plus a quick track (**spec → exec-spec**) for a single feature and optional design tools (architecture, UI/UX, glossary). Setup comes first.
+> AndThen has one workflow and two questions. Unsure what to build? **clarify** writes the PRD first. One story → **spec → exec-spec**; several → **plan → exec-plan**, which runs one `exec-spec` per story. Either way **review --fix → PR**. An open design choice that binds beyond the work goes to **architecture** first; UI/UX and glossary tools are optional. Setup comes first.
 
 Offer the `andthen:init` skill, passing `REQUEST` through as project name when relevant. When `init` returns, tell the user to invoke the `andthen:now-what` skill again.
 
@@ -63,7 +63,7 @@ Offer the `andthen:describe` skill in `--mode codebase`. On accept hand off; on 
 
 **Step 2 – Classify the request shape silently** and commit. Match the framing against the skills' frontmatter `description` fields: those are the routing canon, and a cue list here would drift from what the host matches on. Three things they do not settle:
 
-**Scope and completeness.** Route on what the input settles: one capability whose acceptance a reader could list → the `andthen:spec` skill, the quick track straight to `exec-spec`; a complete initiative whose requirements a PRD source already carries – a `prd.md`, a requirements file, or a tracker item – → the `andthen:plan` skill, which decomposes it into stories; requirements still open (vague outcome, unnamed users, unsettled scope) → the `andthen:clarify` skill. Whole-product framing ("what should this product be", "positioning") goes there too – `clarify` infers product scope from it.
+**Scope and completeness.** Two questions, in order. Requirements still open (vague outcome, unnamed users, unsettled scope) → the `andthen:clarify` skill, and whole-product framing ("what should this product be", "positioning") too – `clarify` infers product scope from it. Settled – inline, a `prd.md`, a requirements file, or a tracker item – routes on size: one capability whose acceptance a single story holds → the `andthen:spec` skill; several → the `andthen:plan` skill, which decomposes them into stories.
 
 **Mode**, when the route depends on it: "should we split this", "decompose", "boundaries" → the `andthen:architecture` skill in `--mode decompose`. Otherwise pass the user's wording through and let the skill infer: "how do I organize" / "what's the right pattern for" → the `andthen:architecture` skill; screens, user flows, style guide, colors, typography, or design tokens → the `andthen:ui-ux-design` skill.
 
@@ -88,10 +88,9 @@ Mid-flow, do not onboard: route in 1–3 lines, no recap.
 **Match rule**: first match wins, top-down.
 
 - **`intent.md` present, no sibling `prd.md`** (an intent doc, hand-written or from `clarify --brief`) – the `andthen:clarify` skill, which folds it into the PRD; the interview has not run yet.
-- **`prd.md` exists, no `plan.json`** – the `andthen:plan` skill.
+- **`prd.md` exists, no `plan.json`** – the `andthen:spec` skill when one story carries it, else the `andthen:plan` skill; an open design fork in it goes to the `andthen:architecture` skill with `--mode trade-off` first.
 - **`plan.json` schemaVersion ≠ `"2"`** – the `andthen:plan` skill; skip story shape.
 - **v2 `plan.json`, FIS files missing** – the `andthen:plan` skill to resume.
-- **v2 `plan.json`, every schedulable story `blocked` with its FIS present** – the `andthen:spec` skill on the held FIS path, or the `andthen:plan` skill when several are held; `exec-plan` skips blocked stories, so nothing else settles the hold.
 - **All FIS exist, implementation incomplete** – the `andthen:exec-plan` skill (multi) or `andthen:exec-spec` skill (single). Steer to an unclaimed dependency-ready story; the run session claims it in the story's `owner`.
 - **Every plan story `done`/`skipped`, no `*-mixed-review-*.md` beside `plan.json`** – the `andthen:review` skill with `--mode code,gap,security,outcome --fix <plan.json>`; the bundle goes with the merge.
 - **Implementation done, no review on this branch** – the `andthen:review` skill.

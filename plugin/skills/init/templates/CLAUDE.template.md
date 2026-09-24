@@ -26,7 +26,7 @@ _**TODO**: paths are relative to the repository root – adjust them to this pro
   PRDs, `plan.json`, and FIS files &dagger;. Read the governing FIS before implementing; it is the artifact execution updates.
   An oversized FIS is a story too big: decompose it (`OVERSIZE:`), never trim it.
 - **Issue Tracker** – `docs/ISSUE-TRACKER.md`
-  Backend and label role mapping (optional; scaffolded by the andthen:tracker skill). Read before any issue fetch, triage, or label write – it names the backend and its commands.
+  Backend and label role mapping (optional; for issues outside GitHub, written at setup or offered by the first skill that needs it). Read before any issue fetch, triage, or label write – it names the backend and its commands.
 - **Decisions** – `docs/DECISIONS.md`
   ADR index and Still Current notes; points into `docs/adrs/`. Read before proposing or changing a design or architecture choice; settled decisions are not relitigated without new evidence.
 - **ADRs** – `docs/adrs/`

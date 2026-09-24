@@ -10,7 +10,7 @@ A serve command or capture step that was not run successfully in this session do
 
 Start from what the project already states, so setup records rather than invents: the `Key Dev Commands` document's run and test rows, the browser or screenshot tooling the environment provides, the `Wireframes` and `Design System` locations, and any `Visual Validation Workflow` section in the root agent instruction file – its content belongs in this document. Remove the section only after the user confirms the document carries it: it is hand-written project policy in a file this skill does not own.
 
-An app that cannot be served at all is `BLOCKED: <what failed> – <what would resolve it>`; write no document from a procedure nothing ran.
+An app that cannot be served at all stops setup: write no document from a procedure nothing ran.
 
 ## What the document carries
 

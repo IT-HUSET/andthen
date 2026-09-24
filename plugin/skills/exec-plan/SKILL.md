@@ -12,9 +12,9 @@ argument-hint: "[--auto] [--worktree] [--no-full-tier] <path-to-plan-directory>"
 **You are the orchestrator**: you schedule stories and own the run's verification gate, while the `andthen:exec-spec` skill – one fresh subagent per ready story – owns everything inside one. Every dispatch below is a fresh subagent: the installed role agent (`implementer`) when available, else a generic inherited subagent; never pin model or effort in a prompt. The plan-level review is not yours: after N stories' reports this is the run's most loaded context, so the run ends by printing its invocation as `Next:`.
 
 ### Rules
-- **Plan is source of truth, and you are its only writer** – `plan.json` per [`plan-schema.md`](../../references/plan-schema.md), which defines the ready set and the status transitions; you edit the rows with your own file tools and the stories you dispatch only read them. Run rounds serially and never persist a derived scheduling label. `blocked` is a hold – preflight's or a human's – and never scheduled.
-- **Execution discipline** – Stop-the-Line on red gates, Resolution Ladder before blocking, per [`execution-discipline.md`](../../references/execution-discipline.md).
-- **Automation rules** – see [`automation-mode.md`](../../references/automation-mode.md). `BLOCKED:` triggers: invalid inputs, unrepairable red gates, missing execution tools, unsafe external actions. `--auto` never blocks on a review.
+- **Plan is source of truth, and you are its only writer** – `plan.json` per [`plan-schema.md`](../../references/plan-schema.md), which defines the ready set and the status transitions; you edit the rows with your own file tools and the stories you dispatch only read them. Run rounds serially and never persist a derived scheduling label.
+- **Execution discipline** – Stop-the-Line on red gates, Resolution Ladder before stopping, per [`execution-discipline.md`](../../references/execution-discipline.md).
+- **Automation rules** – see [`automation-mode.md`](../../references/automation-mode.md).
 
 ## WORKFLOW
 
@@ -26,13 +26,12 @@ argument-hint: "[--auto] [--worktree] [--no-full-tier] <path-to-plan-directory>"
      - No tracked file carries uncommitted changes – stories branch from HEAD and merge back into it, so dirt neither reaches them nor survives the merge.
      - The bundle is itself tracked (`git ls-files --error-unmatch {PLAN_DIR}/plan.json`) – an untracked bundle has no copy in a worktree to write at all.
 
-     Either is Stop-the-Line (`BLOCKED:` in `AUTO_MODE`) – never stash or commit what the run does not own.
-2. Read `PLAN_DIR/plan.json`, stopping when absent – the `andthen:plan` skill owns producing it – and set `PLAN_PATH` absolute. `BLOCKED:` on anything in it contradicting `plan-schema.md`, carrying the evidence; never schedule a catalog you could not read.
-3. **Resolve FIS files**: `spec-ready` and `in-progress` stories need a canonical pointer resolving to a file, `pending` is rejected, and `blocked` stories are not gated – the `andthen:plan` skill's preflight put them there. Failure: `Plan bundle has non-ready or missing FIS – run the andthen:plan skill on {PLAN_DIR} to repair it (plan is resumable).` Each story's proof surface is audited at its own dispatch, in the `andthen:exec-spec` skill's admission.
+     Either stops the run – never stash or commit what the run does not own.
+2. Read `PLAN_DIR/plan.json`, stopping when absent – the `andthen:plan` skill owns producing it – or on anything in it contradicting `plan-schema.md`, with the evidence; never schedule a catalog you could not read. Set `PLAN_PATH` absolute.
+3. **Resolve FIS files**: `spec-ready` and `in-progress` stories need a canonical pointer resolving to a file, and `pending` is rejected. Failure: `Plan bundle has non-ready or missing FIS – run the andthen:plan skill on {PLAN_DIR} to repair it (plan is resumable).`
 4. Initialize the run ledger (`completed`, `failed`, `skipped`, `blocked_by`): it feeds the aggregate report, while `plan.json` records the `done` transitions. Story state decides what the ledger takes:
    - `done` – no longer a candidate, but still in Step 3's scope, so an all-done rerun still verifies the tree.
-   - `blocked` – logs `WARNING: story {id} is blocked – skipping` and enters `skipped`.
-   - a skipped, blocked, or failed dependency – records each dependent as skipped with `blocked_by`.
+   - a skipped or failed dependency – records each dependent as skipped with `blocked_by`.
 
 **Gate**: `plan.json` parsed and valid; every schedulable story's FIS pointer resolves to a file; the dependency graph is ready
 
@@ -49,7 +48,7 @@ For each ready story, claim the row – `in-progress` and your `owner` – then 
 
 Then write that story's row from the fields its result carries, copied unchanged, releasing `owner` with the terminal status, and commit the bundle write.
 
-**Story-scoped containment** – a failed story is not `done` and does not unblock dependents. Its progress stays resumable, dependents never attempted are `skipped`, and `AUTO_MODE` continues independent stories only where the failed changes are provably isolated – always so under `--worktree`, where they never left the story's worktree – emitting `BLOCKED:` otherwise. Never start a second writer over its unfinished edits.
+**Story-scoped containment** – a failed story is not `done` and does not unblock dependents. Its progress stays resumable, dependents never attempted are `skipped`, and `AUTO_MODE` continues independent stories only where the failed changes are provably isolated – always so under `--worktree`, where they never left the story's worktree – stopping otherwise. Never start a second writer over its unfinished edits.
 
 Append a success – id, FIS path, verification summary, open findings, Drift Notes – to `completed`; record a failure's id, FIS, evidence, and Failed Story Report.
 
@@ -57,15 +56,15 @@ Append a success – id, FIS path, verification summary, open findings, Drift No
 
 #### Batch discovery triage
 
-After each batch, route discoveries affecting unstarted stories: append a scope-preserving constraint under that FIS's `## Discovered Requirements` before its dispatch, while a contract change needs a human decision – or the story's row set to `blocked` in `AUTO_MODE`, dependents skipped.
+After each batch, route discoveries affecting an unstarted story into its FIS before dispatch: a scope-preserving constraint under `## Discovered Requirements`, a contract change as a decision – asked, or under `AUTO_MODE` its recommendation recorded per `automation-mode.md` § Recording an assumption.
 
 ### Step 3: Final Verification
 
-Run whenever at least one story is `done` – each got only the fast tier, so a partial run's retained code is otherwise unverified: build, lint/types, cross-story integration, and the full tier each story deferred, or the fast tier under `--no-full-tier`, on the final tree. Report the evidence fields from [`verification-evidence.md`](../../references/verification-evidence.md) plus the integration result on two lines: `Scope: complete` or `Scope: incomplete – {failed/skipped ids}`, and `Verification: passed`, `failed – {evidence}`, or `blocked – {reason}` when a failed story's leftovers make the checks impossible – named, never an implied pass.
+Run whenever at least one story is `done` – each got only the fast tier, so a partial run's retained code is otherwise unverified: build, lint/types, cross-story integration, and the full tier each story deferred, or the fast tier under `--no-full-tier`, on the final tree. Report the evidence fields from [`verification-evidence.md`](../../references/verification-evidence.md) plus the integration result on two lines: `Scope: complete` or `Scope: incomplete – {failed/skipped ids}`, and `Verification: passed`, `failed – {evidence}`, or `not run – {reason}` when a failed story's leftovers make the checks impossible – named, never an implied pass.
 
-A red gate gets one repair round, the run's only one: spawn a fresh implementer subagent that invokes the `andthen:triage` skill with `--auto` and a scope naming the failing checks – the commands and what they returned – and the affected FIS paths. The assigned checks bound the work, so no original task is replayed and no `completedTaskIds` entry is added. Require changed paths and check evidence, then re-run what the repair invalidated. Still red, changes outside the repository, or malformed output is Stop-the-Line (`BLOCKED:` in `AUTO_MODE`) with the open checks and affected stories. Completed stories stay `done`: a red run gate blocks the run's success claim, not evidence already executed. Commit a repair with `git add -- {paths}` then `git commit -- {paths}`, whose pathspec ignores another session's staged work, under the owning story's trailers; report any other change as pending the user's commit, by path.
+A red gate is iterated to green, each repair round a fresh implementer subagent that invokes the `andthen:triage` skill with `--auto` and a scope naming the failing checks – the commands and what they returned – and the affected FIS paths. The assigned checks bound the work, so no original task is replayed and no `completedTaskIds` entry is added. Require changed paths and check evidence, then re-run what the repair invalidated. A round that turns nothing green, changes outside the repository, or malformed output fails the run with the open checks and affected stories. Completed stories stay `done`: a red run gate blocks the run's success claim, not evidence already executed. Commit a repair with `git add -- {paths}` then `git commit -- {paths}`, whose pathspec ignores another session's staged work, under the owning story's trailers; report any other change as pending the user's commit, by path.
 
-**Gate**: build, the run tier's tests, linting/types, and integration pass on the final tree, or the repair round made them pass
+**Gate**: build, the run tier's tests, linting/types, and integration pass on the final tree
 
 ### Step 4: Aggregate Completion Report
 
@@ -73,12 +72,12 @@ Always write a deterministic summary: completed stories with `Reviewed:` lines v
 
 **Notes rollup**: each completed story's open findings and Drift Notes, with recommend-only reconciliation for every stale upstream target they name; read the FIS observations, `none` when absent.
 
-End with exactly one `Next:` line carrying the one invocation this run does not perform, written in the host's own slash-command syntax so it pastes as-is: the `andthen:review` skill with `--mode code,gap,security,outcome --fix {PLAN_PATH}` (`--fix` runs `implement-fix` on the report), `--auto` appended in `AUTO_MODE`; under `--no-full-tier` the line opens with running the full tier first.
+End with exactly one `Next (fresh session):` line carrying the one invocation this run does not perform, written in the host's own slash-command syntax so it pastes as-is into a new conversation: the `andthen:review` skill with `--mode code,gap,security,outcome --fix {PLAN_PATH}` (`--fix` runs `implement-fix` on the report), `--auto` appended in `AUTO_MODE`; under `--no-full-tier` the line opens with running the full tier first.
 
 Scope it to the `done` stories: where any story failed or was skipped, the line names those `done` ids after `{PLAN_PATH}`; where none is `done`, it is replaced by `Next: no completed stories – nothing to review.` A review over the whole plan raises gap findings against stories nobody implemented.
 
 Nothing closes the bundle: `plan.json` and the FIS files go with the merge.
 
-If any story failed or was skipped, add `Completed`, `Failed`, `Skipped`, and `Blocked by` sections – story ids, FIS paths, failure evidence, report paths, preserved worktrees – and emit `BLOCKED: exec-plan completed with failed stories` in `AUTO_MODE`.
+If any story failed or was skipped, add `Completed`, `Failed`, `Skipped`, and `Blocked by` sections – story ids, FIS paths, failure evidence, report paths, preserved worktrees.
 
-**Gate**: the aggregate report exists with its `Next:` line scoped to what is `done`, or the no-completed-stories line in its place; unresolved failures visible to the next run.
+**Gate**: the aggregate report exists with its `Next (fresh session):` line scoped to what is `done`, or the no-completed-stories line in its place; unresolved failures visible to the next run.

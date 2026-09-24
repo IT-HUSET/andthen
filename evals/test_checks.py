@@ -65,10 +65,28 @@ CHECK = {
     "oracle": "oracle.py",
 }
 
-# The open-decision marker the re-entry case's FIS ships with, and the same settled
-# policy in the two wordings a correct FIS may reach for - the unit and the word for
-# the growth are the author's choice, the values are the decision.
-REENTRY_MARKER = "MISSING REQUIREMENT"
+# Every FIS surface authoring retired, each with what the oracle names it by, and
+# the current headings that share a word with one and must still pass.
+RETIRED_FIS = tuple((line, "retired heading") for line in (
+    "## Deeper Context\n", "## Technical Overview\n",
+    "## Code Patterns & External References\n", "### Code Patterns\n",
+    "### Testing Strategy\n", "### Validation\n", "### Execution Contract\n")) + (
+    ("Closure: READY\n", "Closure verdict line"),
+    ("**Closure**: BLOCKED – backoff undecided\n", "Closure verdict line"))
+CURRENT_FIS = ("## Scope & Boundaries\n\n### Work Areas\n\n## Implementation Plan\n\n"
+               "### Implementation Tasks\n\n## Final Validation Checklist\n\n")
+
+# A retired authoring marker a shipped FIS never carries, and the resolved form -
+# an ASSUMPTION: line - that must still pass.
+OPEN_MARKER_FIS = ("- CONFUSION: which encoding does the caller expect?\n",
+                    "MISSING REQUIREMENT: no encoding is specified\n")
+RESOLVED_ASSUMPTION = "- ASSUMPTION: reads utf-8 - binary input would need a flag\n"
+
+# The open item the re-entry case's FIS ships with - the backoff an `--auto` run
+# assumed - and the same settled policy in the two wordings a correct FIS may reach
+# for: the unit and the word for the growth are the author's choice, the values are
+# the decision.
+REENTRY_MARKER = "ASSUMPTION"
 REENTRY_WORDINGS = (
     "- **TI01** `retry` sleeps 200 ms before the first retry and doubles the pause "
     "before each one after, at most 3 retries, no jitter.\n",
@@ -416,95 +434,99 @@ class ValidationTest(unittest.TestCase):
         plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
 
     def reentry_fis(self, workspace, body):
-        """The FIS a re-entry leaves: the staged one up to its open-decision
-        marker, with the settled policy integrated into the prose in its place.
-        Rebuilt from the overlay every time, so each wording starts from the same
-        blocked FIS rather than from the last one written."""
-        staged = (cases.CASES_DIR / "spec-blocked-reentry" / "overlay" / "docs"
+        """The FIS a re-entry leaves: the staged one with the settled policy
+        integrated into the prose in place of its backoff assumption. Rebuilt from
+        the overlay every time, so each wording starts from the same staged FIS
+        rather than from the last one written."""
+        staged = (cases.CASES_DIR / "spec-reentry" / "overlay" / "docs"
                   / "specs" / "retry-policy" / "s01-retry-policy.md")
-        text = staged.read_text(encoding="utf-8")
+        lines = staged.read_text(encoding="utf-8").splitlines(True)
         path = workspace / "docs" / "specs" / "retry-policy" / "s01-retry-policy.md"
-        stage.write(path, text[:text.index(REENTRY_MARKER)] + body)
+        stage.write(path, "".join(body if REENTRY_MARKER + ":" in line else line
+                                  for line in lines))
         return path
 
-    def test_spec_blocked_reentry_oracle_reads_the_policy_by_meaning_not_by_wording(self):
-        """Re-entry is the settled policy carried in the FIS and the hold released
-        in the story record beside it, and this oracle reads both - the record
-        because it is the state the next skill reads, and a FIS that argues the
-        decision while its story still says blocked would resume as blocked forever.
+    def test_spec_reentry_oracle_reads_the_policy_by_meaning_not_by_wording(self):
+        """Re-entry is the settled policy carried in the FIS and the staged legacy
+        `blocked` story rewritten `spec-ready` in the record beside it, and this
+        oracle reads both - the record because it is the state the next skill reads.
 
         The policy is read by meaning: a FIS that wrote `0.2 s` and `2 ** attempt`
         settled exactly what one that wrote `200 ms` and `doubling` did, and a
         literal needle for either spends a live run failing the other. What it must
-        still catch is a term dropped, the marker left in place, and a story that
-        never left blocked."""
-        workspace = self.stage_case("spec-blocked-reentry")
+        still catch is a term dropped, the backoff still assumed beside the decision,
+        a retired marker written back, and a story left `blocked`."""
+        workspace = self.stage_case("spec-reentry")
         plan_path = workspace / "docs" / "specs" / "retry-policy" / "plan.json"
 
-        done = self.run_oracle("spec-blocked-reentry", workspace)
+        done = self.run_oracle("spec-reentry", workspace)
         self.assertEqual(1, done.returncode)
         for missing in ("200 ms base", "doubling growth", "3-retry maximum",
-                        REENTRY_MARKER, "expected 'spec-ready'"):
+                        REENTRY_MARKER, "status is 'blocked'"):
             self.assertIn(missing, done.stderr)
 
-        self.edit_story(plan_path, status="spec-ready", completedTaskIds=[])
+        self.edit_story(plan_path, "S01", status="spec-ready")
         for body in REENTRY_WORDINGS:
             self.reentry_fis(workspace, body)
-            done = self.run_oracle("spec-blocked-reentry", workspace)
+            done = self.run_oracle("spec-reentry", workspace)
             self.assertEqual(0, done.returncode, done.stderr)
 
         fis = self.reentry_fis(workspace, REENTRY_WORDINGS[0].replace("3 retries", "retries"))
-        done = self.run_oracle("spec-blocked-reentry", workspace)
+        done = self.run_oracle("spec-reentry", workspace)
         self.assertEqual(1, done.returncode)
         self.assertIn("3-retry maximum", done.stderr)
 
-        stage.write(fis, REENTRY_WORDINGS[0] + "\n" + REENTRY_MARKER + ": undecided\n")
-        done = self.run_oracle("spec-blocked-reentry", workspace)
-        self.assertEqual(1, done.returncode)
-        self.assertIn(REENTRY_MARKER, done.stderr)
+        for regressed, named in (
+                ("  - ASSUMPTION: keep the fixed pause – the decision would change it\n",
+                 REENTRY_MARKER),
+                ("MISSING REQUIREMENT: the backoff policy is undecided\n",
+                 "MISSING REQUIREMENT"),
+                ("Closure: READY\n", "Closure verdict line")):
+            stage.write(fis, REENTRY_WORDINGS[0] + regressed)
+            done = self.run_oracle("spec-reentry", workspace)
+            self.assertEqual(1, done.returncode, regressed)
+            self.assertIn(named, done.stderr)
 
         self.reentry_fis(workspace, REENTRY_WORDINGS[0])
-        self.edit_story(plan_path, status="blocked")
-        done = self.run_oracle("spec-blocked-reentry", workspace)
+        self.edit_story(plan_path, "S01", status="blocked")
+        done = self.run_oracle("spec-reentry", workspace)
         self.assertEqual(1, done.returncode)
         self.assertIn("status is 'blocked'", done.stderr)
 
-    def spec_end_state(self, workspace, verdict, remediated=True, **story):
+    def spec_end_state(self, workspace, fresh=True, body=CURRENT_FIS, **story):
         """The state a clean `andthen:spec` run leaves: the FIS, the one-story
         plan beside it (ADR-013), and the self-review's evidence."""
         spec = workspace / "docs" / "specs" / "label-slug"
         stage.write(spec / "s01-slugify-label.md",
                     "# Slugify Label\n\n**Plan**: docs/specs/label-slug/plan.json\n"
-                    "**Story-ID**: S01\n")
+                    "**Story-ID**: S01\n\n" + body)
         stage.write(spec / "plan.json", json.dumps({"schemaVersion": "2", "stories": [dict(
             {"id": "S01", "status": "spec-ready", "completedTaskIds": [],
              "fis": "s01-slugify-label.md"}, **story)]}, indent=2) + "\n")
         stage.write(workspace / "review-evidence.json", json.dumps(
-            {"freshContext": True, "verdict": verdict, "remediated": remediated}) + "\n")
+            {"freshContext": fresh, "remediated": False}) + "\n")
 
-    def test_spec_oracle_accepts_any_remediated_verdict_and_still_reads_the_end_state(self):
-        """Step 7's single review runs before Step 9 writes the plan, and never
-        re-reviews, so the recorded grade is a snapshot of an unfinished FIS:
-        remediated, any grade passes. What the contract does bind is the end
-        state, which the oracle reads directly - and an unremediated grade below
-        Ready is still a miss."""
+    def test_spec_oracle_reads_the_end_state_and_the_fresh_review(self):
+        """The run ends on its next command, not a grade, so the oracle binds what
+        the next skill reads - the FIS and its spec-ready story - plus evidence
+        that a fresh-context reviewer, not the author, read the FIS."""
         workspace = self.stage_case("spec")
         done = self.run_oracle("spec", workspace)
         self.assertEqual(1, done.returncode)
         self.assertIn("s01-slugify-label.md", done.stderr)
 
-        self.spec_end_state(workspace, "Needs Significant Rework")
+        self.spec_end_state(workspace)
         done = self.run_oracle("spec", workspace)
         self.assertEqual(0, done.returncode, done.stderr)
 
-        # Same grade, nothing remediated: the grade is then the end state.
-        self.spec_end_state(workspace, "Needs Significant Rework", remediated=False)
+        # The author reviewing its own output is no review.
+        self.spec_end_state(workspace, fresh=False)
         done = self.run_oracle("spec", workspace)
         self.assertEqual(1, done.returncode)
-        self.assertIn("verdict is 'Needs Significant Rework'", done.stderr)
+        self.assertIn("freshContext is False", done.stderr)
 
-        # A remediated grade never excuses the state the next skill reads.
-        self.spec_end_state(workspace, "Ready", status="blocked")
+        # Nothing writes the retired `blocked` status; a spec that does fails.
+        self.spec_end_state(workspace, status="blocked")
         done = self.run_oracle("spec", workspace)
         self.assertEqual(1, done.returncode)
         self.assertIn("expected 'spec-ready'", done.stderr)
@@ -513,6 +535,68 @@ class ValidationTest(unittest.TestCase):
         done = self.run_oracle("spec", workspace)
         self.assertEqual(1, done.returncode)
         self.assertIn("plan.json", done.stderr)
+
+    def test_spec_oracle_fails_a_fis_carrying_a_retired_surface(self):
+        """Nothing a check.json key or the size ceiling sees fails a spec that
+        regressed to the retired template or closed on a verdict: the FIS still
+        validates, stays small, and hands off. Each retired surface fails alone,
+        and the current headings that share a word with one - `Final Validation
+        Checklist` - pass, or the check fails every correct FIS."""
+        workspace = self.stage_case("spec")
+        self.spec_end_state(workspace)
+        done = self.run_oracle("spec", workspace)
+        self.assertEqual(0, done.returncode, done.stderr)
+
+        for line, named in RETIRED_FIS:
+            self.spec_end_state(workspace, body=CURRENT_FIS + line)
+            done = self.run_oracle("spec", workspace)
+            self.assertEqual(1, done.returncode, line)
+            self.assertIn(named, done.stderr)
+
+    def test_spec_oracle_fails_a_fis_carrying_an_open_marker(self):
+        """The shipped FIS carries the answer or an ASSUMPTION: where it bites,
+        never the open question itself: a
+        resolved ASSUMPTION: line passes, but a CONFUSION: or MISSING
+        REQUIREMENT: marker left in place fails."""
+        workspace = self.stage_case("spec")
+        self.spec_end_state(workspace, body=CURRENT_FIS + RESOLVED_ASSUMPTION)
+        done = self.run_oracle("spec", workspace)
+        self.assertEqual(0, done.returncode, done.stderr)
+
+        for line in OPEN_MARKER_FIS:
+            self.spec_end_state(workspace, body=CURRENT_FIS + line)
+            done = self.run_oracle("spec", workspace)
+            self.assertEqual(1, done.returncode, line)
+            self.assertIn("open marker", done.stderr)
+
+    def test_plan_oracle_reads_every_fis_the_bundle_wrote(self):
+        """The plan case writes a FIS per story, and a regression can land in any
+        one of them: the oracle reads each FIS the plan points at, so a retired
+        surface in the last story fails the bundle as surely as one in the first."""
+        workspace = self.stage_case("plan")
+        spec = workspace / "docs" / "specs" / "amount-filter"
+        stories = ("S01", "s01-parse-amount.md"), ("S02", "s02-filter-by-amount.md")
+
+        def bundle(last_body):
+            stage.write(spec / "plan.json", json.dumps({"schemaVersion": "2", "stories": [
+                {"id": sid, "status": "spec-ready", "completedTaskIds": [], "fis": name}
+                for sid, name in stories]}, indent=2) + "\n")
+            for index, (sid, name) in enumerate(stories):
+                stage.write(spec / name,
+                            "# Story\n\n**Plan**: docs/specs/amount-filter/plan.json\n"
+                            "**Story-ID**: %s\n\n%s" % (
+                                sid, last_body if index == len(stories) - 1 else CURRENT_FIS))
+
+        bundle(CURRENT_FIS)
+        done = self.run_oracle("plan", workspace)
+        self.assertEqual(0, done.returncode, done.stderr)
+
+        for line, named in RETIRED_FIS:
+            bundle(CURRENT_FIS + line)
+            done = self.run_oracle("plan", workspace)
+            self.assertEqual(1, done.returncode, line)
+            self.assertIn(named, done.stderr)
+            self.assertIn(stories[-1][1], done.stderr)
 
     def test_implement_fix_oracle_accepts_an_annotated_fix_and_rejects_the_rest(self):
         """A remediated report is judged by the code and the annotation together:
@@ -533,8 +617,9 @@ class ValidationTest(unittest.TestCase):
         # variant F1 describes, so restoring it is exactly the bounded repair.
         shutil.copy2(str(stage.SUBJECT / "src" / "reporter" / "pipeline.py"),
                      str(workspace / "src" / "reporter" / "pipeline.py"))
-        status = ("\n## Remediation Status\n\n- F1: RESOLVED - build_label reads seed.txt "
-                  "and normalizes it; tests.test_pipeline green.\n")
+        status = ("\n## Remediation Status\n\n- **Finding 1 - build_label reads a module-level "
+                  "copy of the seed** - RESOLVED - build_label reads seed.txt and normalizes "
+                  "it; tests.test_pipeline green.\n")
         report.write_text(original + status, encoding="utf-8")
         done = self.run_oracle("implement-fix", workspace)
         self.assertEqual(1, done.returncode)
@@ -558,11 +643,17 @@ class ValidationTest(unittest.TestCase):
         self.assertEqual(1, done.returncode)
         self.assertIn("2 '## Remediation Status' section(s)", done.stderr)
 
-        report.write_text(original + "\n## Remediation Status\n\n- F1: UNRESOLVED - out of time.\n",
+        report.write_text(original + status.replace("- RESOLVED -", "- UNRESOLVED -"),
                           encoding="utf-8")
         done = self.run_oracle("implement-fix", workspace)
         self.assertEqual(1, done.returncode)
-        self.assertIn("does not state F1 RESOLVED", done.stderr)
+        self.assertIn("does not state Finding 1 RESOLVED", done.stderr)
+
+        # The pre-template `F1:` key is not the contract's, so a bullet keyed that way is unread.
+        report.write_text(original + status.replace("**Finding 1 - ", "F1: **"), encoding="utf-8")
+        done = self.run_oracle("implement-fix", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("does not state Finding 1 RESOLVED", done.stderr)
 
     def test_exec_plan_worktree_oracle_needs_both_stories_done_on_executed_proof(self):
         """Two stories ran in parallel worktrees; the checks read the merged tree and
@@ -584,8 +675,12 @@ class ValidationTest(unittest.TestCase):
         self.assertEqual(0, done.returncode, done.stderr)
 
         self.edit_story(plan, "S02", status="in-progress", completedTaskIds=[])
+        doc = json.loads(plan.read_text(encoding="utf-8"))
+        next(s for s in doc["stories"] if s["id"] == "S02").pop("verified")
+        plan.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
         done = self.run_oracle("exec-plan-worktree", workspace)
         self.assertEqual(1, done.returncode)
+        self.assertIn("story S02 has no verified record", done.stderr)
         self.assertNotIn("S01", done.stderr)
         self.assertIn("story S02 status is 'in-progress', expected 'done'", done.stderr)
 
@@ -791,6 +886,30 @@ class ValidatePlanScriptTest(unittest.TestCase):
             done = self.run_validator(colliding)
         self.assertEqual(1, done.returncode)
         self.assertIn("duplicate story id(s) ['S01']", done.stderr)
+
+    def test_a_done_story_without_verified_or_fis_is_rejected(self):
+        """A `done` story is the record that a run finished and what it finished
+        against; the schema's `if/then` ties both to `status: done`, so dropping
+        `verified` or nulling `fis` must fail loudly rather than validate as a
+        plan a run can trust."""
+        doc = json.loads((cases.REPO_ROOT / self.FIXTURE).read_text(encoding="utf-8"))
+        no_verified = dict(doc, stories=[dict(doc["stories"][0]), *doc["stories"][1:]])
+        del no_verified["stories"][0]["verified"]
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = pathlib.Path(tmp) / "plan.json"
+            missing.write_text(json.dumps(no_verified), encoding="utf-8")
+            done = self.run_validator(missing)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("missing required field 'verified'", done.stderr)
+
+        null_fis = dict(doc, stories=[dict(doc["stories"][0]), *doc["stories"][1:]])
+        null_fis["stories"][0]["fis"] = None
+        with tempfile.TemporaryDirectory() as tmp:
+            nulled = pathlib.Path(tmp) / "plan.json"
+            nulled.write_text(json.dumps(null_fis), encoding="utf-8")
+            done = self.run_validator(nulled)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("plan.stories[0].fis", done.stderr)
 
 
 class RunnerTest(unittest.TestCase):
@@ -1166,7 +1285,7 @@ class RunnerTest(unittest.TestCase):
 
     def test_a_failing_check_still_gets_a_verdict_and_still_fails_the_cell(self):
         """The cheapest layer must not veto the most valuable one: three live
-        `spec-blocked-reentry` runs failed one wording check with the skill
+        `spec-reentry` runs failed one wording check with the skill
         correct, and with no criteria beside it "the case is miscalibrated" and
         "the skill regressed" read identically. Criteria are not an appeal
         either - the cell passes only when checks and criteria both do - and the

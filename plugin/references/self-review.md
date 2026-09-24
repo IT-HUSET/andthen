@@ -1,6 +1,6 @@
 # Self-Review
 
-The rubric for the fresh reader an authoring skill spawns over the document it just wrote – never the author. One pass, applied in place: this is the only independent reader the document gets before the next skill builds on it, so a gap that survives here is built.
+The rubric for the fresh reader an authoring skill spawns over the document it just wrote – never the author. One pass, applied in place: the only independent reader before the next skill builds on the document, so a gap that survives here is built.
 
 ## The contract
 
@@ -33,11 +33,9 @@ A PRD has no design, so there are no scope trades to offer – pricing a require
 
 ## FIS
 
-Apply the guidelines' *Self-Check*, *Plan-Spec Alignment Check*, and *Reverse Coverage Check* – the question is whether an unattended executor could run this spec and be stopped where it goes wrong: behavior it would have to infer, a term used two ways, a design choice stated as fact. Read every `Proof` and `Verify` against *Runnable Proof Forms*, and confirm the `Required Context` anchors resolve per *Consuming Upstream Context*.
+Apply the guidelines' *Self-Check*, *Plan-Spec Alignment Check*, and *Reverse Coverage Check*, and confirm the `Required Context` anchors resolve per *Consuming Upstream Context*. The question is where an unattended executor running this spec would go wrong: behavior it would have to infer, a term used two ways, a design choice stated as fact – with no Architecture or Decisions baseline behind it, an architectural prescription needs code-pattern evidence or reads as an assumption.
 
-Challenge the FIS's architecture claims. If no Architecture/ADR/Decisions baseline exists, an architectural prescription needs code-pattern evidence or must be framed as an assumption or execution-time discovery, not settled design.
-
-**Scope trades.** The Architecture Decision's `**Why this over the floor**:` line says which requirement clause is buying the design. For each component the floor would not carry, return one Note naming that clause, the floor, the narrower reading that would drop it, and what the Target User loses against the Desired Outcome. Check the `Decisions` document and the Non-Goals first – a trade already settled is closed by citation. Each is an offer to the requirement's owner, never a fix. The shape is the whole value:
+**Scope trades.** The Architecture Decision's `**Why this over the floor**:` line says which requirement clause is buying the design. For each component the floor would not carry, return one Note naming that clause, the floor, the narrower reading that would drop it, and what the Target User loses against the Desired Outcome; a trade the `Decisions` document or a Non-Goal already settles is closed by citation. The shape is the whole value:
 
 - **Is a scope trade**: *FR-3 "exports run against remote hosts" buys the SSH transport, host registry, and retry layer – five of the story's eight tasks. Read as same-network hosts, the existing file copy covers it; lost: off-site exports, which the Desired Outcome does not name.*
 - **Is not**: *the design could be simpler.* It gives the owner nothing to decide.

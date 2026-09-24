@@ -1,6 +1,6 @@
 # Architecture – Fitness Mode
 
-Propose fitness functions – any mechanism giving an objective integrity assessment of an architectural characteristic – for governance and ADR enforcement.
+Propose fitness functions for governance and ADR enforcement.
 
 ## Step 1 – Analyze Current Architecture
 

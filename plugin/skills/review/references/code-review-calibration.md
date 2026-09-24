@@ -30,6 +30,16 @@ Why: silent failure in a critical business path – the feature appears to work 
 
 Why: should be removed, but logging to server stdout is not a security vulnerability (unlike the client-side console). Medium – code quality, not a data breach.
 
+**IS High:**
+> The search results component fetches every matching record – no `LIMIT`, no cursor, no pagination UI. It works on the 50-row demo fixture, and the `Product` document's Scale fact states 2M+ records. – `components/SearchResults.tsx:23`, `api/search.ts:15`
+
+Why: an anchored cardinality the code cannot survive – a functional gap that surfaces only in production.
+
+**is NOT High (common over-escalation):**
+> The `UserProfile` component re-renders on every keystroke in the search bar. No memoization.
+
+Why: no profiling and no performance requirement, so the cost is unmeasured. Low – speculative optimization, not a functional gap.
+
 
 ### Completeness and wiring
 

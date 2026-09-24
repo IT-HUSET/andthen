@@ -10,7 +10,7 @@ Feature scope (default) – a single capability, user-story cluster, or epic –
 - `INPUT` – `$ARGUMENTS` minus flags, the required requirements source.
 - `MODE` – `feature` (default) or `product`, resolved in Step 1.
 - `BRIEF_MODE` – set by `--brief`.
-- `OUTPUT_DIR` – at feature scope, resolved by Step 1's dispatch under the **Specs & Plans** root (**Project Document Index**, its `<version-or-feature>` placeholder removed; default `docs/specs/`), exactly as that dispatch resolves it, or the `clarify → plan` chain breaks. Product scope resolves it per `references/product-mode.md`.
+- `OUTPUT_DIR` – at feature scope, resolved by Step 1's dispatch under the **Specs & Plans** root (**Project Document Index**, its `<version-or-feature>` placeholder removed; default `docs/specs/`), exactly as that dispatch resolves it, or the `clarify → spec | plan` chain breaks. Product scope resolves it per `references/product-mode.md`.
 
 The steps below are every run's. Under `BRIEF_MODE`, read `references/brief-mode.md` and `references/intent-template.md` first; as soon as Step 1 resolves `MODE=product`, read `references/product-mode.md` and `references/product-template.md`.
 
@@ -58,7 +58,7 @@ The test is **load-bearing-ness**, not topic: *would the answer change user-visi
    - **Directory or file holding an `intent.md`** (`references/intent-template.md`) – a baseline stating what its author knew, not a finished artifact: Step 3 folds its sections into the PRD and the interview still runs. Any short requirements source folds the same way: that shape, or a pasted note, issue text, or message arriving through the branches below. `OUTPUT_DIR`: that directory.
    - **Other directory** – `OUTPUT_DIR`: that directory.
    - **Other file path** – `OUTPUT_DIR`: root + lowercase kebab-case stem.
-   - **Tracker item URL** – resolves through the `Issue Tracker` document (**Project Document Index**): absent, `Backend: none`, or GitHub → `gh issue view <url>`; another backend → its `fetch issue` operation with the repository-bound identity; a missing or unparseable `Backend:` line stops the run, naming the `Backend:` line to set in that document. Store the number. `OUTPUT_DIR`: root + `issue-{number}-<slug>/`, with the issue reference in the PRD header; re-entry to an existing one takes the amendment branch above.
+   - **Tracker item URL** – resolves through the `Issue Tracker` document (**Project Document Index**); with no backend set, a GitHub URL goes to `gh issue view` and any other is set up first from the ISSUE-TRACKER.md template in [`project-document-templates.md`](../../references/project-document-templates.md), a stop under `AUTO_MODE`. Store the number. `OUTPUT_DIR`: root + `issue-{number}-<slug>/`, with the issue reference in the PRD header; re-entry to an existing one takes the amendment branch above.
    - **Other URL** – `OUTPUT_DIR`: root + normalized final path segment without extension.
    - **Inline description** – `OUTPUT_DIR`: root + first six alphanumeric words, lowercase and hyphenated.
 
@@ -100,7 +100,7 @@ Structure every finding into `OUTPUT_DIR/prd.md` from [`prd-template.md`](refere
 
 Populate `> **Source**:` with `SOURCE_ID`; preserve it on amendment. Amending a baseline preserves unchanged sections verbatim and adds template sections only where the delta requires them.
 
-**Open Questions pass the sharpness test.** Precision, not answerability: phrase it as a question only where a later amendment, the `andthen:plan` skill, or the `andthen:architecture` skill can close it as written. Otherwise emit exactly `Area to revisit: <area> – <what would sharpen it>`. The lead is machine-readable – questions await answers, areas await sharper questions.
+**Open Questions pass the sharpness test.** Precision, not answerability: phrase it as a question only where a later amendment, the `andthen:spec` or `andthen:plan` skill, or the `andthen:architecture` skill can close it as written. Otherwise emit exactly `Area to revisit: <area> – <what would sharpen it>`. The lead is machine-readable – questions await answers, areas await sharper questions.
 
 **Gate**: document saved at the resolved path, and that path printed **relative to the project root** – never absolute
 
@@ -123,7 +123,7 @@ On a baseline, validate the *merged* document rather than the delta alone – de
 
 Spawn a fresh reviewer subagent – the installed `reviewer` role agent when available, else a generic inherited subagent – whose prompt names [the self-review rubric](../../references/self-review.md) § PRD **by absolute path**, the saved `prd.md`, and the `Product` document as its intent anchor. It applies the rubric's Fix-bar edits to the PRD itself and returns `Applied:`, `Notes:`, and `Attacked:`; run it in-context where nested subagents aren't available. One pass – nothing re-reviews the edits.
 
-Reflect on the returned Notes. A `blocks: requirements` Note reopens Step 2 here, where the interview still is; `blocks: no` becomes a recorded assumption, and any other value travels with the requirement – the `andthen:plan` skill's preflight settles it on the bundle it produces.
+Reflect on the returned Notes. A `blocks: requirements` Note reopens Step 2 here, where the interview still is; `blocks: no` becomes a recorded assumption, and any other value travels with the requirement – the Preflight of the `andthen:spec` or `andthen:plan` skill that takes this PRD settles it.
 
 **Gate**: PRD reflects the applied fixes; residual Notes surfaced
 
@@ -139,9 +139,7 @@ A deferral is not one: it stays in `Scope > Out of Scope` with the release that 
 
 ## FOLLOW-UP ACTIONS
 
-State what the requirements now enable, in this order and only where it applies:
+Recommend the `andthen:ui-ux-design` skill when UI is in scope and the project has no design system or wireframes covering it. Then close on exactly one next command, never a menu; `spec` and `plan` run in a fresh session, since the PRD carries the interview forward:
 
-- the `andthen:architecture` skill with `--mode trade-off` – when the PRD leaves a design fork (an architecture-level decision still open in its `Decisions Log`, `Constraints & Assumptions`, or `Open Questions`), or when a `Decisions Log` row supersedes a constraint or ADR the `Decisions` document records: downstream skills read that document as settled, so the reversal needs an ADR, not a PRD row;
-- the `andthen:ui-ux-design` skill – when UI is in scope and the project has no design system or wireframes covering it.
-
-Then close on exactly `Run the andthen:plan skill on <prd-dir>.`
+- **An open design fork first** – an architecture-level decision still open in the PRD's `Decisions Log`, `Constraints & Assumptions`, or `Open Questions` that binds beyond this work or is costly to reverse, or a `Decisions Log` row superseding a constraint or ADR the `Decisions` document records (downstream skills read that document as settled, so a reversal needs an ADR, not a PRD row): `Run the andthen:architecture skill with --mode trade-off on <the fork>, then, in a fresh session, the andthen:<spec|plan> skill on <prd-dir>.`
+- **Otherwise by size** – the story count is not this skill's call, only whether one story plausibly carries the PRD: `In a fresh session, run the andthen:spec skill on <prd-dir>.` for one capability whose acceptance a single story holds, else `In a fresh session, run the andthen:plan skill on <prd-dir>.` A wrong guess costs little – `spec` flags an oversized story and routes it to `plan`.

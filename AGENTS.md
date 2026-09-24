@@ -29,6 +29,7 @@ For the deeper architectural picture (skill anatomy, shared-asset propagation, r
 - `.agents/plugins/marketplace.json` – Codex plugin marketplace, serving `./plugin`.
 - `scripts/install-skills.py` – install-time portability rewrites and shared reference inlining (loose-skill channel), with `scripts/install-skills.sh` a shim that execs it.
 - `scripts/fixtures/renders/` – artifact fixture corpus: one minimal, real-shaped artifact per type its `README.md` table names, plus the visual-review-notes sample; read by `tests/test_fixtures.py`, `tests/test_tracker.py`, and `tests/test_audit_cookbook.py`.
+- `evals/README.md` – how the live eval harness works: cells, tiers, workspaces.
 - `evals/subject/` – the vendored subject application every case starts from, unchanged or under its own `overlay/`: a standard-library report exporter as `init` leaves a project, documents included, carrying seven deliberate flaws as data.
 - `evals/subject-defects.md` – what those seven flaws are, where they sit, and which case reads each one; beside the app and never inside it, because a subject that can read the answer key can satisfy it.
 - `tests/` – every `unittest` suite, one file per script it proves (`tests/test_tracker.py` for `plugin/skills/tracker/scripts/tracker.py`). Nothing under `plugin/` is a test: both hosts install the plugin directory wholesale, so a test placed there ships.

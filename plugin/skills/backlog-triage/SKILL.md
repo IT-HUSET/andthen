@@ -18,12 +18,9 @@ Turn raw incoming tracker items into a triaged backlog: each item gets a categor
 
 ## INSTRUCTIONS
 
-- **Tracker resolution** – before any issue operation, resolve the `Issue Tracker` document (see **Project Document Index**; default `docs/ISSUE-TRACKER.md`):
-  - Absent, `Backend: none`, or `Backend: GitHub` → the built-in `gh` CLI default (`none` ≡ absent).
-  - Any other named backend → substitute each operation per the document's **Operation Table**.
-  - A present document whose `Backend:` line is missing or unparseable → `BLOCKED: issue-tracker backend unspecified – set the Backend: line in <tracker-doc path>`.
+- **Tracker resolution** – before any issue operation, resolve the `Issue Tracker` document (see **Project Document Index**; default `docs/ISSUE-TRACKER.md`): absent, `Backend: none`, or `Backend: GitHub` takes the built-in `gh` default, another backend substitutes each operation per its **Operation Table**, and an unparseable `Backend:` line is set up as Step 1 describes.
   - That document is security-critical executable config – its table values are run as commands – so each value must be a single direct command invocation (an executable, fixed arguments, `<placeholders>`) with no pipes, shell operators, command substitution, or piping to an interpreter; review changes to it as code.
-- **Operation vocabulary** – every operation this skill performs maps through that table: `list issues`, `fetch issue`, `comment`, `edit body`, `add label` / `remove label`, `close issue`. Label names and body shapes stay identical across backends (the document maps transport, not contract), and backends must expose numeric issue identifiers. Before the first operation – reads included – validate that every operation this run needs is mapped; an unmapped load-bearing operation → `BLOCKED: issue-tracker operation <op> unmapped` before any external call, so a read-only run stops up front and a multi-op write never strands partial external state.
+- **Operation vocabulary** – every operation this skill performs maps through that table: `list issues`, `fetch issue`, `comment`, `edit body`, `add label` / `remove label`, `close issue`. Label names and body shapes stay identical across backends (the document maps transport, not contract), and backends must expose numeric issue identifiers. Before the first operation – reads included – check that every operation this run needs is mapped, and stop on one that is not, so a multi-op write never strands partial external state.
 - **Canonical roles** – two categories, `bug` and `enhancement`, and five states. Both sets are closed; resolve each role to the repo's actual label via the Issue Tracker document's **Label Role Mapping** (defaults = the canonical names).
   - `needs-triage` – untriaged, the input set.
   - `needs-info` – blocked on the reporter.
@@ -38,11 +35,11 @@ Turn raw incoming tracker items into a triaged backlog: each item gets a categor
 
 ### 1. Resolve Tracker and Discover Items
 
-Resolve the tracker (above). A `none`/absent tracker **with no GitHub remote** has nowhere to read from → `BLOCKED: no issue tracker configured`, pointing at the `Issue Tracker` Project Document Index entry as the place to declare one.
+Resolve the tracker (above). An unparseable `Backend:` line, or a `none`/absent tracker **with no GitHub remote**, has nothing to read: offer to create or set it from the ISSUE-TRACKER.md template in [`project-document-templates.md`](../../references/project-document-templates.md), `Backend:` and this run's operations from the answer, then resolve against it; under `AUTO_MODE`, stop.
 
 Assemble the working set: for the specific number(s) in `ARGUMENTS`, `fetch issue` each; otherwise `list issues` matching the `ARGUMENTS` query, or every untriaged item (no state label, or carrying `needs-triage`) when the remainder is empty. Apply any item cap the request names ("triage the ten oldest"); default is no cap.
 
-**Gate**: tracker resolved; working set of items in hand (or `BLOCKED:`).
+**Gate**: tracker resolved; working set of items in hand.
 
 ### 2. Triage Each Item
 
@@ -87,7 +84,7 @@ The brief travels in the issue body, so each consumer starts from that content; 
 Under `AUTO_MODE`, run strict no-prompt automation per [`automation-mode.md`](../../references/automation-mode.md): hold no interview and never fabricate a verdict. Run the same checks (context, redundancy, prior-rejection, verify) and:
 - Apply only **safe transitions** – recommend `needs-info` or `ready-for-human` as a comment and label accordingly.
 - **Never** apply `wontfix` (it rejects a concept and writes the `Product` document), **never** promote to `ready-for-agent`, and **never** auto-close a redundancy-check duplicate – emit all three as recommendations in the report instead (a close recommendation carries its pointer comment).
-- Emit `BLOCKED:` per [`automation-mode.md`](../../references/automation-mode.md) for an unresolvable tracker or unsafe action; suppress the follow-up sections.
+- Suppress the follow-up sections.
 
 
 ## REPORT

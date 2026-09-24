@@ -1,0 +1,20 @@
+name: andthen-spec-reentry-subject
+description: Re-author a spec-ready story's FIS with the decision its assumption stood in for.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: spec
+    name: Re-author the FIS
+    skill: andthen:spec
+    prompt:
+      - >-
+        docs/specs/retry-policy/s01-retry-policy.md
+        
+        Settled decision for the open backoff policy: exponential backoff starting at 200 ms and doubling each attempt, at most 3 retries, no jitter. Integrate it into the FIS prose that owns it, finish Preflight, and update the story record in the plan beside it.
+      - >-
+        Nothing else is open. Proceed with the decision exactly as given and finish.
+    outputs:
+      fis:
+        format: text

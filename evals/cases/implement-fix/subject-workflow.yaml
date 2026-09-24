@@ -12,7 +12,7 @@ steps:
       - >-
         --auto plan-gap-review-claude-2026-09-05.md
 
-        Every story is already done; the review's F1 is routed Fix and nothing was repaired. Re-validate it, apply the smallest fix, verify, and annotate the report. Leave the plan and every story FIS in place.
+        Every story is already done; the review's Finding 1 is routed Fix and nothing was repaired. Re-validate it, apply the smallest fix, verify, and annotate the report. Leave the plan and every story FIS in place.
     outputs:
       report:
         format: text

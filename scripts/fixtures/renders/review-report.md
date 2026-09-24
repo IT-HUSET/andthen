@@ -6,11 +6,14 @@
 
 ## Executive Summary
 
-**Readiness: Needs Fixes.** The cookie helper is correct; the audit write is on the latency path with no bound on the retry queue.
+**Readiness: Needs Fixes** - 1 HIGH, 1 LOW, no CRITICAL.
 
-Intent Context: `scripts/fixtures/renders/s01-harden-the-session-cookie.md`. No Drift Notes recorded.
+The cookie helper is correct; the audit write is on the latency path with no bound on the retry queue.
+
+Intent Context: `scripts/fixtures/renders/s01-harden-the-session-cookie.md`. Drift Notes: none recorded.
 
 Guardrails Coverage: 4 checked, 0 findings
+Filter summary: 1 validated, 1 downgraded, 0 withdrawn
 
 ## Coverage Matrix
 
@@ -25,7 +28,6 @@ Guardrails Coverage: 4 checked, 0 findings
 ### Finding 1 - HIGH - Unbounded audit retry queue
 
 - **Reviewer**: correctness
-- **Severity**: HIGH
 - **Confidence**: 100
 - **Location**: `src/audit/log/write.ts:22`
 - **Scope relation**: primary
@@ -41,7 +43,6 @@ Guardrails Coverage: 4 checked, 0 findings
 ### Finding 2 - LOW - Cookie helper lacks a unit test for `Path`
 
 - **Reviewer**: testing
-- **Severity**: LOW
 - **Confidence**: 75
 - **Location**: `src/auth/session/cookie.ts:1`
 - **Scope relation**: primary
@@ -54,10 +55,26 @@ Guardrails Coverage: 4 checked, 0 findings
 - `Class:` code-defect
 - `Routing:` Note - which assertion to extend is a choice, not a uniquely determined fix.
 
+## Compliance
+
+- Guidelines adherence: the cookie helper follows the project's one-helper-per-header rule.
+- Architecture patterns: the audit writer is called from the sign-in path, which the Architecture document keeps free of blocking I/O – Finding 1.
+- Security awareness: no secrets, raw queries, or unvalidated input on the changed paths.
+
+## Critic Coverage
+
+The sign-in error path, a store that stays down for the whole retry window, and a subpath-scoped cookie against the flag assertions.
+
+## Verification Evidence
+
+- `npm test` – 148 passed, 0 failed
+- `npm run lint` – clean
+
 ## Verdict
 
 **Readiness: Needs Fixes** - 1 HIGH, 1 LOW, no CRITICAL.
 
-## Recommendations
+## Next Steps
 
-- Fix the queue bound before merge; the missing assertion can ride the follow-up story.
+1. Bound the audit retry queue before merge (Finding 1).
+2. The missing `Path` assertion (Finding 2) can ride the follow-up story.

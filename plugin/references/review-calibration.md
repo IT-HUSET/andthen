@@ -25,7 +25,7 @@ Proportionality is never permission to go easy on a defect. **Analysis Paralysis
 
 ## Structured Finding Contract
 
-The single definition of the review-family finding shape, across every lens. Field names and value spaces are load-bearing: a filter pass compares findings by them and a remediation agent reads the report by them, so never rename a field or widen a value space. No program parses a finding – the reader is always an agent – which is why the discipline is the field set, not a grammar. The `andthen:architecture` skill's findings use this contract as its `review-output` reference extends it – `INFO` added to `severity`, three architecture fields added, `Class:` and `Routing:` not applicable.
+The single definition of the review-family finding shape, across every lens. Field names and value spaces are load-bearing: a filter pass compares findings by them, a remediation agent reads the report by them, and downstream tooling parses a written report by them, so never rename a field or widen a value space. The `andthen:architecture` skill's findings use this contract as its `review-output` reference extends it – `INFO` added to `severity`, three architecture fields added, `Class:` and `Routing:` not applicable.
 
 Every finding carries:
 
@@ -43,7 +43,7 @@ Every finding carries:
 
 A finding that does not name the behavior, its location, the cause, the impact, and how to verify is not actionable.
 
-Reports render the same fields as prose labels (`Threatened assumption or invariant`, `Scope relation`); snake_case and prose label name one field, not two.
+Reports render the same fields as prose labels (`Threatened assumption or invariant`, `Scope relation`), or in the finding's heading where a report template puts one there (`severity`); snake_case and prose label name one field, not two.
 
 Findings that survive the Findings Filter (below) additionally carry:
 
@@ -52,7 +52,7 @@ Findings that survive the Findings Filter (below) additionally carry:
   - `spec-stale`: requirements trail the implementation or decision now in force.
   - `design-changed`: a coherent design pivot that needs explicit reconciliation.
   - `ambiguous-intent`: a missing decision prevents knowing whether code or spec is wrong. Reserve it – an unattended executor stops on this class, so it must mark a decision the artifact genuinely lacks, not one the Intent or Expected Outcomes resolve.
-- `Routing:` – `Fix` or `Note`, with a one-line rationale. `Fix` only when confidence ≥75, scope relation is `primary`, class is `code-defect`, the fix is mechanical, bounded, and uniquely determined, and it does not expand past Intent; a security fix must be mechanically secure, not merely plausible. Everything else is `Note` – surfaced, never auto-applied, even under `--fix` – and ties default to `Note`.
+- `Routing:` – `Fix` or `Note`, with a one-line rationale. `Fix` only when confidence ≥75, scope relation is `primary`, class is `code-defect`, the fix is mechanical, bounded, and uniquely determined, and it does not expand past Intent; a security fix must be mechanically secure, not merely plausible. Everything else is `Note` – surfaced, never applied on this tag's authority, even under `--fix` – and ties default to `Note`.
 
 This section owns the field set, its value spaces, the class meanings, and the Fix bar.
 

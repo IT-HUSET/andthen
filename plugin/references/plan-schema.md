@@ -36,8 +36,8 @@ A story `id` is unique within the plan – the lookup key every row write and de
 
 | Field | Contract |
 |---|---|
-| `prd` | Repo-root-relative path of the `prd.md` or requirements file the plan came from, or `null`: the standalone one-story plan the `andthen:spec` skill writes, or a tracker-item source. |
-| `fis` | Canonical `sNN-<slug>.md` basename beside the plan, or `null`; `done` requires a non-null FIS, and a terminal row keeps the pointer it finished with – reopening runs through `blocked`. |
+| `prd` | Repo-root-relative path of the `prd.md` or requirements file the plan came from, or `null` when it came from anything else – a description, an intent doc, a tracker item. |
+| `fis` | Canonical `sNN-<slug>.md` basename beside the plan, or `null`; `done` requires a non-null FIS, and a terminal row keeps the pointer it finished with. |
 | `completedTaskIds` | Unique task IDs in the FIS's declared order, naming tasks of the FIS `fis` points at: empty while `fis` is `null`, and cleared when that pointer changes. |
 | `verified` | `{at, summary}`, written with `done` and never without it: `at` a UTC ISO-8601 minute, `summary` one line on § Execution semantics' shape – the only trace of what ran once the bundle is deleted. |
 | `owner` | The run session holding the story, or `null`; an `owner` on a row that is not `in-progress` is stale and free to take. |
@@ -64,11 +64,11 @@ The path is repo-root-relative POSIX, no leading `./` or trailing slash, resolve
 
 Runtime state – `status`, `verified`, `fis`, `completedTaskIds`, `owner` – is edited in place per this schema by the skill that owns what it writes. **While a run is in flight there is exactly one writer**: the run session executing the bundle (the `andthen:exec-plan` or `andthen:exec-spec` skill). A story subagent never opens the file – it reports its state and the session writes the row. That is what makes parallel stories safe; two racing writers lose a row.
 
-Status transitions: `pending` → `spec-ready` when the story has a FIS, `in-progress` at dispatch, then `done`, `blocked`, or `skipped`. `done` and `skipped` are terminal; `blocked` is a hold that a later decision reopens.
+Status transitions: `pending` → `spec-ready` when the story has a FIS, `in-progress` at dispatch, then `done` or `skipped`, both terminal. A legacy `blocked` row reads as `spec-ready`.
 
 ## Execution semantics
 
-A story is dependency-ready when its status is `spec-ready` or `in-progress` and every `dependsOn` story is `done`. A skipped, blocked, or failed prerequisite contains its dependents rather than satisfying the edge.
+A story is dependency-ready when its status is `spec-ready` or `in-progress` and every `dependsOn` story is `done`. A skipped or failed prerequisite contains its dependents rather than satisfying the edge.
 
 `completedTaskIds` is the resume authority for what a re-run may skip. `verified.summary` is one line quoted from executed output – the proof command, its exit status, and the runner's own result line (`{cmd} -> exit=0, Ran 4 tests, OK`); an exit code alone records that something ran, not what it found, and "looks right" is never a verification.
 
@@ -83,4 +83,4 @@ A story is dependency-ready when its status is `spec-ready` or `in-progress` and
 
 Every FIS is a plan story, so a standalone feature gets a `plan.json` of its own beside it – written by `andthen:spec`, the one exception to `andthen:plan` owning plan authorship. One state shape means one reader and no second schema to keep aligned.
 
-It carries `schemaVersion` `"2"`, `prd: null`, an `overview` whose `summary` is the feature's one line, and a single story `S01`: `name` and `scope` from the feature, `dependsOn: []`, `completedTaskIds: []`, `fis` the canonical `s01-<slug>.md` basename, and `status` `spec-ready` or `blocked` from the spec's closure verdict.
+It carries `schemaVersion` `"2"`, `prd` the input PRD's path or `null`, an `overview` whose `summary` is the feature's one line, and a single story `S01`: `name` and `scope` from the feature, `dependsOn: []`, `completedTaskIds: []`, `fis` the canonical `s01-<slug>.md` basename, and `status` `spec-ready`.

@@ -76,9 +76,10 @@ Then present the **optional documents**, recommendation-first. Wait for the user
 
 - **Planning** (optional): `Roadmap` (docs/ROADMAP.md).
 - **Domain** (optional): `Ubiquitous Language` document (the `andthen:clarify` skill seeds it as terms settle; the `andthen:describe` skill in `--mode domain` extracts it in full).
+- **Tracker** (optional, only when issues live outside GitHub – Jira, Linear, GitLab): `Issue Tracker` document (docs/ISSUE-TRACKER.md), `Backend:` set and whatever Operation Table rows the user can give; the template's comment states what rows left `...` block.
 - **Monorepo** (if `IS_MONOREPO = true`): offer per-sub-project agent instruction files matching the root file choice
 
-Lead with a recommendation drawn from what Step 2a detected, and let the user reply **"default"** to accept it: add `Roadmap` when the intent spans multiple features or phases; add `Ubiquitous Language` for domain-heavy work. State the recommendation, then ask: _"Which optional documents would you like to create alongside the Core stubs? Reply 'default' to accept the recommendation, name specific documents (e.g. 'Roadmap, Ubiquitous Language'), or 'none for now'."_
+Lead with a recommendation drawn from what Step 2a detected, and let the user reply **"default"** to accept it: add `Roadmap` when the intent spans multiple features or phases; add `Ubiquitous Language` for domain-heavy work; add `Issue Tracker` when the user names a non-GitHub tracker, which detection cannot tell. State the recommendation, then ask: _"Which optional documents would you like to create alongside the Core stubs? Reply 'default' to accept the recommendation, name specific documents (e.g. 'Roadmap, Ubiquitous Language'), or 'none for now'."_
 
 For each confirmed document type, generate the file from templates in `../../references/project-document-templates.md`, using the location from the **Project Document Index** or the default path above.
 

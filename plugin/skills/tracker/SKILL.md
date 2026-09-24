@@ -19,12 +19,9 @@ argument-hint: "publish <plan.json> [--dry-run] [--auto]"
 
 ## INSTRUCTIONS
 
-- **Tracker resolution** – resolve the `Issue Tracker` document (see **Project Document Index**; default `docs/ISSUE-TRACKER.md`) before any tracker operation; absent → offer to scaffold it, because this skill owns that document and creating it is part of the first publish, not a prerequisite the user has to discover. A present document routes on its `Backend:` line:
-  - `GitHub` or `none` → the built-in `gh` flows below.
-  - Any other named backend → substitute every operation from the document's **Operation Table**; a table value may name an MCP tool instead of a CLI, and is invoked the same way.
-  - Missing or unparseable → `BLOCKED: issue-tracker backend unspecified – set the Backend: line in <tracker-doc path>`.
+- **Tracker resolution** – before any tracker operation, resolve the `Issue Tracker` document (see **Project Document Index**; default `docs/ISSUE-TRACKER.md`): `Backend: GitHub` or `none` takes the built-in `gh` flows below, another backend substitutes every operation from its **Operation Table** (a value naming an MCP tool is invoked the same way), and an absent document or unparseable `Backend:` line is offered for set-up, since creating it is part of the first publish – under `--auto`, stop.
 - **Scaffolding it** – an accepted offer is seeded by a subagent, so the template set stays out of this run's context: spawn a generic inherited subagent, the installed `worker` role agent when available, whose prompt names the ISSUE-TRACKER.md template section in [`project-document-templates.md`](../../references/project-document-templates.md), the target path resolved from the **Project Document Index**, and the backend the user chose. Its Index entry is added with it, and resolution then proceeds against the seeded document. A present document is used as it stands, with no template loaded at all.
-- **Operations used**: `list issues`, `create issue`, `edit body`. A backend that cannot express an assignee carries `Owner:` in the body instead. An unmapped operation this run needs → `BLOCKED: issue-tracker operation <op> unmapped` **before** the first external call, so a multi-issue publish never strands half a plan in the tracker.
+- **Operations used**: `list issues`, `create issue`, `edit body`. A backend that cannot express an assignee carries `Owner:` in the body instead. An unmapped operation this run needs stops the run **before** the first external call, so a multi-issue publish never strands half a plan in the tracker.
 - **The document is executable config** – its table values are run as commands. Each is a single direct invocation with no pipes, shell operators, or command substitution; review changes to it as code.
 - **GitHub is the worked path.** Do not hand-roll another backend's CLI here.
 
@@ -51,7 +48,7 @@ Pass the search phrase as one argv value, never interpolated shell source.
 
 The exact per-marker lookup is intentionally narrow: a globally capped query can
 omit an older issue and turn a re-run into a duplicate. Zero matches creates, one
-updates, and multiple matches stop with `BLOCKED:` before any write call. The
+updates, and multiple matches stop the run before any write call. The
 script prints JSON – the parent payload and one child per story, each carrying
 `action: create|update` and, on update, the issue number.
 
@@ -59,6 +56,6 @@ script prints JSON – the parent payload and one child per story, each carrying
 
 Assemble again with `--body-dir .agent_temp/tracker-bodies`. The script writes deterministic UTF-8 files and adds an absolute `body_file` to each payload. These are temporary transport, not tracker state. Send the parent first (its checklist follows plan story order), then each child. Then rewrite the parent's checklist and each child's `Blocked by:` lines with the created issue numbers, and send each rewritten body through `edit body`.
 
-**Safe transport contract.** Treat every payload field as data: pass `title`, `body_file`, assignee, and issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. GitHub `create issue` maps those fields to `gh issue create --title`, `--body-file`, and `--assignee`; `edit body` maps the issue number and `body_file` to `gh issue edit`. The operation-table backend must preserve that same argument boundary. A backend mapping that only offers a shell template is unresolved executable config, so emit `BLOCKED:` before the first external call.
+**Safe transport contract.** Treat every payload field as data: pass `title`, `body_file`, assignee, and issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. GitHub `create issue` maps those fields to `gh issue create --title`, `--body-file`, and `--assignee`; `edit body` maps the issue number and `body_file` to `gh issue edit`. The operation-table backend must preserve that same argument boundary. A backend mapping that only offers a shell template is unresolved executable config, so stop before the first external call.
 
-**Gate**: every payload either sent or reported as skipped with a reason, every cross-reference body re-sent through `edit body`; the counts of created / updated stated. Under `--auto`, no prompts – emit `BLOCKED:` for an unresolvable tracker and stop.
+**Gate**: every payload either sent or reported as skipped with a reason, every cross-reference body re-sent through `edit body`; the counts of created / updated stated.

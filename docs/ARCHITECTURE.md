@@ -79,9 +79,8 @@ The canonical assets live at `plugin/references/` – a single canonical locatio
 |---|---|
 | `architecture-model.md` | describe |
 | `architecture-model.schema.json` | describe |
-| `automation-mode.md` | plan, spec, exec-spec, exec-plan, implement-fix, triage, ui-ux-design, simplify-code, backlog-triage, tracker |
+| `automation-mode.md` | plan, spec, exec-spec, exec-plan, review, implement-fix, triage, architecture, ui-ux-design, simplify-code, backlog-triage, tracker, testing |
 | `board-models.md` | architecture |
-| `closure.md` | spec, plan |
 | `context-map.schema.json` | architecture |
 | `design-tree.md` | architecture, clarify |
 | `event-storm.schema.json` | architecture |
@@ -93,7 +92,8 @@ The canonical assets live at `plugin/references/` – a single canonical locatio
 | `lens-adversarial.md` | review, skill-review |
 | `plan-schema.md` | plan, spec, exec-spec, exec-plan, review |
 | `plan.schema.json` | plan, spec |
-| `project-document-templates.md` | architecture, describe, init, tracker |
+| `preflight.md` | spec, plan |
+| `project-document-templates.md` | architecture, backlog-triage, clarify, describe, init, plan, spec, tracker, triage |
 | `review-calibration.md` | review, architecture, implement-fix, skill-review |
 | `self-review.md` | clarify, spec, plan |
 | `testing-strategy.md` | testing |
@@ -134,7 +134,7 @@ Every hand-off in the pipeline is either the same conversation or fresh context,
 Per transition – the boundary it crosses, then its reason:
 
 - **`now-what` → the routed skill** – same conversation; hands off in place, deliberately without `context: fork`. No reason needed: routing.
-- **`clarify` → `plan`, `plan` → `exec-plan`, `spec` → `exec-spec`** – fresh session; the authoring skill prints one paste-ready line and offers nothing in-session. Context rot: planning and execution each perform best in a clean session, and the artifact is the whole hand-off.
+- **`clarify` → `spec` or `plan`, `plan` → `exec-plan`, `spec` → `exec-spec`, `exec-spec` → `review`, `review --fix` → its follow-up review** – fresh session; the skill prints one paste-ready line that names the fresh session and offers nothing in-session. Context rot: planning and execution each perform best in a clean session, and the artifact is the whole hand-off.
 - **`clarify` / `spec` → self-review** – fresh-context subagent loading the `self-review.md` rubric (§ PRD or § FIS, the latter beside `fis-authoring-guidelines.md` and `fis-contract.md`) by absolute path; the author-loaded guidelines carry no reviewer text, so the author never reads the rubric it is judged by. Reviewer independence: the author does not review its own document.
 - **`plan` → per-story FIS authoring (`spec --auto story <id>`)** – one subagent per story; the orchestrator never authors FIS content. Context rot: protects the orchestrator's context window.
 - **`plan` → cross-cutting review** – fresh-context subagent on the same rubric (§ FIS and § Bundle), reading the PRD fresh and returning a per-FIS roster. Reviewer independence: the bundle's single fresh-context gate.
@@ -143,7 +143,7 @@ Per transition – the boundary it crosses, then its reason:
 - **`exec-spec` → documentation lookup, codebase reconnaissance** – read-only subagents returning distilled briefs. Context rot.
 - **`exec-spec` → the per-story review** – one fresh reviewer subagent invoking the `andthen:review` skill with `--quick` and `--intent`, on every run. Reviewer independence: `exec-spec` wrote the code, so the independent pass is not its own; one quick pass is the depth a story earns, and the rest stays at the plan-level review ([ADR-014](adrs/ADR-014-story-runs-where-invoked.md)).
 - **`exec-spec` → `visual-validation`** – subagent. Reviewer independence.
-- **`exec-plan` → plan-level review (`review --mode code,gap,security,outcome`)** – fresh session; the run ends on a `Next:` line carrying that one invocation with `--fix`, which runs `implement-fix` on the report. Context rot: after N stories the run session is the most loaded context in the workflow; `implement-fix` applies the fixes as one round, and is where a per-story review's open findings are enforced.
+- **`exec-plan` → plan-level review (`review --mode code,gap,security,outcome`)** – fresh session; the run ends on a `Next (fresh session):` line carrying that one invocation with `--fix`, which runs `implement-fix` on the report. Context rot: after N stories the run session is the most loaded context in the workflow; `implement-fix` applies the fixes as one round, and is where a per-story review's open findings are enforced.
 - **`exec-plan` → final repair after a red full tier** – one fresh subagent invoking the `andthen:triage` skill with `--auto` on the failing checks and the affected FIS paths; the run session re-runs what the repair invalidated. Context rot: the repair reads the failing checks, not the run's history.
 - **`review` → a chain's lens pass, fan-out partitions and boundary pass** – fresh reviewer subagents, partitions dispatched as one flat batch. Context rot: a chain's rubrics, or a large diff's partitions, against a session that still owes filtering, verdict, and report. A single lens below the fan-out trigger runs in the invoking session, which the caller already made the independent reader; the Critic is a posture every lens applies, never its own pass.
 - **any session → `handoff` → the next session** – the document is written for a fresh session. Context rot: the session is ending or low on context.

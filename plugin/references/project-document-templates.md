@@ -194,7 +194,8 @@ _No tech debt recorded yet._
      Versions stay in the manifest and lockfile. -->
 
 ## Key Components
-<!-- List major components/modules and their responsibilities. -->
+<!-- List major components/modules and their responsibilities. With more than one process,
+     deployable units first, then the modules inside each. -->
 
 | Component | Responsibility | Key Files/Dirs |
 |-----------|---------------|----------------|
@@ -347,7 +348,8 @@ Application URL: `TODO` <!-- e.g. http://localhost:3000 -->
 Commands: see `docs/KEY_DEVELOPMENT_COMMANDS.md` § Testing (`fast`, `full`, run one test).
 
 ## Levels In Use
-<!-- Place a behavior by the trust boundary it crosses, not by file count. Drop
+<!-- Place a behavior by the trust boundary it crosses, not by file count. Say
+     whether each boundary runs real (a container, a temp dir) or a fake. Drop
      a row this project does not run rather than leaving it TODO. -->
 | Level | Applies to | Lives in |
 |-------------|------------|----------|
@@ -361,7 +363,9 @@ Commands: see `docs/KEY_DEVELOPMENT_COMMANDS.md` § Testing (`fast`, `full`, run
 - `TODO`
 
 ## What Must Have a Test Before Merge
-<!-- The bar, stated so an agent applies it without asking. -->
+<!-- The bar, stated so an agent applies it without asking: the named high-risk
+     areas and E2E journeys, whether test-first is required, the changed-lines
+     coverage gate (or none), and who may quarantine a flaky test, for how long. -->
 - `TODO`
 
 ## Known Gotchas
@@ -401,7 +405,7 @@ Commands: see `docs/KEY_DEVELOPMENT_COMMANDS.md` § Testing (`fast`, `full`, run
 
 ## ISSUE-TRACKER.md
 
-> Maps the issue-tracker backend agent workflows read from and publish to. Resolved before any issue operation via **Tracker resolution**. Any backend other than GitHub fills the Operation Table so skills substitute each transport call; body shapes, label names, and footer tokens stay identical (the document maps transport, not contract). The `andthen:tracker` skill owns this document and scaffolds it from here on first use; the `andthen:init` skill registers its Index entry.
+> Maps the issue-tracker backend agent workflows read from and publish to. Resolved before any issue operation via **Tracker resolution**. Any backend other than GitHub fills the Operation Table so skills substitute each transport call; body shapes, label names, and footer tokens stay identical (the document maps transport, not contract). The `andthen:init` skill registers its Index entry and offers the file at setup for a non-GitHub backend; the first skill that needs it offers to create it from here.
 
 ```markdown
 # Issue Tracker
@@ -412,7 +416,7 @@ Backend: GitHub
 
 ## Operation Table
 <!-- Non-GitHub backends only. Map every abstract operation to the backend's concrete command/API call.
-     A required operation left unmapped blocks triage/publish (BLOCKED: issue-tracker operation <op> unmapped).
+     A required operation left unmapped stops triage/publish before the first external call.
      Each value is a single direct command invocation (executable + fixed args + <placeholders>) – no pipes,
      shell operators, command substitution, or piping to an interpreter.
      This file is security-critical executable config: review changes as code.

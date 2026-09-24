@@ -10,11 +10,11 @@ Implementation-coupled signals, any one of which is a rewrite: assertions on int
 
 ## Level signal in the Arrange block
 
-When Arrange outgrows Act + Assert combined, one of these is true: wrong level – promote to integration; too many responsibilities in the unit – split it; setup belongs in a named fixture (`a_customer_with_overdue_invoices`, not `setup_db_with_data_3`).
+When Arrange outgrows Act + Assert combined, one of these is true: stubs where real collaborators belong – use them, promoting to integration if they cross a boundary; too many responsibilities in the unit – split it; setup belongs in a named fixture (`a_customer_with_overdue_invoices`, not `setup_db_with_data_3`).
 
 ## Mocks
 
-Each mock declares "this collaborator's behavior is not part of what I'm proving". Mock at system edges only – filesystem, network, clock, randomness; your own repositories and services take a real implementation with a fixture or an in-memory fake. Elaborate stubbing encodes the call graph: replace with a fake or promote to integration. **Never mock the unit under test** – needing to means the unit was mis-identified.
+Each mock declares "this collaborator's behavior is not part of what I'm proving". Mock at system edges only – filesystem, network, clock, randomness. Your own services run real; a repository may be an in-memory fake for its callers, and is itself proved against the real engine. **Never mock the unit under test** – needing to means the unit was mis-identified.
 
 ## Diagnosability
 

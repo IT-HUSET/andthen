@@ -14,7 +14,7 @@ steps:
 
         Keep every story independently executable, and leave
         docs/specs/amount-filter/prd.md unchanged.
-      - "Return the workspace-relative plan.json path."
+      - "Nothing further from me – take your recommendations, finish, and return the workspace-relative plan.json path."
     outputs:
       plan:
         format: text

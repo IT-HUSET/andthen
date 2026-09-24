@@ -1,6 +1,6 @@
 # Review Verdict Model
 
-Unified severity scale and per-mode verdict/readiness definitions for every lens of the `andthen:review` skill.
+Unified severity scale and per-mode verdict/readiness definitions for every lens of the `andthen:review` skill; how a verdict renders is `report-template.md`.
 
 
 ## Severity Scale
@@ -23,19 +23,7 @@ Unified severity scale and per-mode verdict/readiness definitions for every lens
 | Completeness | Are there stubs, TODOs, placeholders, or missing features? | >= 9 |
 | Wiring | Is everything connected end-to-end? | >= 8 |
 
-Any dimension below threshold is **FAIL**; all at threshold is **PASS**; no conditional verdicts. In a single-lens gap report the `## Verdict` section is this block – the shape is matched on, so the dimensions, thresholds, and wording stay stable:
-
-```markdown
-## Verdict
-
-| Dimension     | Score | Threshold | Status |
-|---------------|-------|-----------|--------|
-| Functionality | X/10  | >= 7      | PASS/FAIL |
-| Completeness  | X/10  | >= 9      | PASS/FAIL |
-| Wiring        | X/10  | >= 8      | PASS/FAIL |
-
-**Overall: PASS / FAIL**
-```
+Any dimension below threshold is **FAIL**; all at threshold is **PASS**; no conditional verdicts.
 
 ### Code mode (`--mode code`)
 
@@ -57,4 +45,4 @@ The code-mode scale, severity anchored by the lens's own § Severity. Readiness 
 
 ### Mixed mode (a resolved multi-lens set)
 
-Per-lens verdicts in each lens's own label (code/security/outcome the three-level scale; gap PASS/FAIL), and **overall readiness** the **worst** across lenses: `Blocked` / `FAIL` > `Needs Fixes` > `Ready` / `PASS`. They share the report's one `## Verdict` section, the gap block demoted to a `### Gap` subheading of it with its dimensions, thresholds, and overall line otherwise unchanged: a second `## Verdict` heading breaks the shape a reader and an agent both match the verdict on. Each lens's findings stay in their own subsection; a defect surfacing in two lenses (SQLi is both a correctness bug and an injection vulnerability) merges under the strongest framing – the security section, with a back-reference from the code section.
+Per-lens verdicts in each lens's own label (code/security/outcome the three-level scale; gap PASS/FAIL), and **overall readiness** the **worst** across lenses: `Blocked` / `FAIL` > `Needs Fixes` > `Ready` / `PASS`.

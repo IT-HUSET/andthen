@@ -6,14 +6,11 @@ keeps the runner generic - the FIS size ceiling, the one-story plan's status, an
 the review-evidence shape. Whether the FIS kept the request's decisions is the
 judge's call, not a phrase match: a correct FIS words a clause its own way.
 
-A remediated verdict passes at any grade. The skill's Self-Review is one
-rubric-loading reviewer pass at Step 7 that never re-reviews, and Step 9 writes
-the one-story plan only afterwards - so the recorded verdict is a snapshot of a
-FIS the run had not finished, and a reviewer that grades the missing plan.json
-gating is reading the contract correctly at that moment. What the contract does
-bind is the end state this file checks directly: the plan exists, validates, and
-carries the story; the FIS is under the ceiling. Unremediated, the grade is the
-end state and only a clean one passes.
+The evidence records that a fresh-context review ran and whether it remediated;
+it carries no grade, because the run has none - Preflight ends on the next
+command, not a verdict. What the contract binds is the end state this file
+checks directly: the plan exists, validates, and carries the story spec-ready;
+the FIS is under the ceiling and carries no retired section or verdict line.
 
 Python 3 standard library only.
 """
@@ -53,23 +50,11 @@ def main():
         if words > MAX_FIS_WORDS:
             problems.append("%s is %d words, over the %d ceiling"
                             % (fis, words, MAX_FIS_WORDS))
+        problems.extend(story_state.retired(fis))
 
     problems.extend(plan_problems(fis))
 
-    evidence = find("review-evidence.json")
-    remediated = None
-    if evidence is not None:
-        data = load(evidence)
-        if isinstance(data, dict):
-            remediated = data.get("remediated")
-            if not isinstance(remediated, bool):
-                problems.append("%s: remediated is not a boolean" % evidence)
-            if not (isinstance(data.get("verdict"), str) and data["verdict"].strip()):
-                problems.append("%s: verdict is not a recorded grade" % evidence)
-    fields = {"freshContext": True}
-    if remediated is not True:
-        fields["verdict"] = ("READY", "PASS")
-    problems.extend(expect_json(evidence, "review-evidence.json", fields))
+    problems.extend(evidence_problems(find("review-evidence.json")))
 
     for problem in problems:
         sys.stderr.write(problem + "\n")
@@ -78,9 +63,8 @@ def main():
 
 def plan_problems(fis):
     """A standalone FIS is a one-story plan written beside it (ADR-013): the
-    story carries the closure verdict as its status and points at the FIS by
-    canonical basename, so a spec that closes READY in prose while its story
-    stays blocked would never execute."""
+    story is spec-ready and points at the FIS by canonical basename - the state
+    the executor reads."""
     rows, problems = story_state.stories(PLAN)
     if problems:
         return problems
@@ -99,23 +83,19 @@ def load(path):
         return exc
 
 
-def expect_json(path, name, fields):
+def evidence_problems(path):
     if path is None:
-        return ["no %s in the workspace" % name]
+        return ["no review-evidence.json in the workspace"]
     data = load(path)
     if not isinstance(data, dict):
         return ["%s: not a JSON object (%s)" % (path, data)]
-    # A tuple of wanted values accepts any of them, case-insensitively: the
-    # recorded grade is the FIS closure word `READY`, or gap mode's `PASS` when
-    # a run records a review verdict instead.
-    def accepted(value, want):
-        wanted = want if isinstance(want, tuple) else (want,)
-        return value in wanted or (isinstance(value, str)
-                                   and value.lower() in [w.lower() for w in wanted
-                                                         if isinstance(w, str)])
-    return ["%s: %s is %r, expected %r" % (path, key, data.get(key), want)
-            for key, want in sorted(fields.items())
-            if not accepted(data.get(key), want)]
+    problems = []
+    if data.get("freshContext") is not True:
+        problems.append("%s: freshContext is %r, expected True"
+                        % (path, data.get("freshContext")))
+    if not isinstance(data.get("remediated"), bool):
+        problems.append("%s: remediated is not a boolean" % path)
+    return problems
 
 
 if __name__ == "__main__":

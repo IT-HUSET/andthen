@@ -14,12 +14,11 @@ Generic defaults applied silently read to the next agent as decisions this proje
 
 ## Distilled defaults
 
-Level follows trust boundaries, not file count. A **trust boundary** is a line you do not own the other side of at runtime – filesystem, DB engine, third-party API, browser event loop, OS. Crossing none is a unit test, one at a time is integration, many (usually with a browser or the full stack) is E2E. Integration is the default; E2E is reserved for journeys the business cannot ship without, because they cost minutes and rot fastest.
+Level follows trust boundaries, not file count. A **trust boundary** is a line you do not own the other side of at runtime – filesystem, DB engine, third-party API, browser event loop, OS. Crossing none is a unit test, one at a time is integration, many (usually with a browser or the full stack) is E2E. The default is the sociable test – real collaborators, doubles only at trust boundaries – with behavior that lives at a boundary (a query, a file format) proved against the real dependency and an HTTP API through a contract test, since a fake of it proves the fake. E2E is reserved for journeys the business cannot ship without, because they cost minutes and rot fastest.
 
 A test whose label and whose boundaries disagree is slow, fragile, or proves nothing:
 
-- **"Unit" that is integration** – Arrange wires five collaborators, heavy stubbing of non-external things. Promote, with real collaborators.
 - **"Integration" that is E2E** – Crosses services, a browser, or a queue. Split: contract tests at each boundary plus per-service integration.
 - **"E2E" that is unit** – Asserts a value that never leaves the backend. Demote.
 
-Rank what to cover by blast radius of a silent failure and by change frequency – coverage percentage is a vanity metric. Refuse coverage theatre: did-not-throw tests, line coverage with no assertion on output semantics, and mock-heavy tests that stay green when their collaborators break.
+Rank what to cover by blast radius of a silent failure and by change frequency – a global coverage percentage as a target is a vanity metric, while uncovered changed lines are a real signal. Refuse coverage theatre: did-not-throw tests, line coverage with no assertion on output semantics, and mock-heavy tests that stay green when their collaborators break.

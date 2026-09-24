@@ -14,7 +14,7 @@ On 2026-09-14 the maintainer decided the collapse below, with three bounds: `pla
 
 ## Decision
 
-*Amended 2026-09-15, see `docs/DECISIONS.md` § Still Current: `--auto` retires and `--brief` writes `intent.md`.*
+*Amended 2026-09-15, see `docs/DECISIONS.md` § Still Current: `--auto` retires and `--brief` writes `intent.md`. Amended 2026-09-24 ("Where work starts: two questions, not one"): `spec` takes a PRD too, so story count alone picks `spec` or `plan`.*
 
 **`clarify` is the requirements skill and writes the PRD.** It absorbs `prd`: input resolution and amendment, the Discovery & Ideation interview, the PRD template and its validation, the fresh-context doc self-review, and the Product non-goals rule. An attended run interviews at least once – a complete brief gets one short confirmation round; `--auto` synthesises with recorded assumptions and the Vague-Input Bailout. Feature scope writes `<specs-root>/<feature>/prd.md` (`issue-{n}-<slug>/` for a tracker item); product scope writes `PRODUCT.md` as before. `intent.md` is no longer an output – a hand-written intake stays an input that `clarify` folds into the PRD. It ends on the `plan` command and recommends `architecture --mode trade-off` when the PRD leaves a design fork and `ui-ux-design` when UI is in scope with no design system or wireframes. It needs nothing downstream: a stakeholder refining requirements into a document is a complete use. `prd` retires.
 

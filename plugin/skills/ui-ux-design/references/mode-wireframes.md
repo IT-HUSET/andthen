@@ -54,7 +54,7 @@ Cross-check against Phase 1 inventory: every page has a corresponding wireframe,
 
 ### 3.1 Visual Validation
 
-Browser automation is the gate: when the subagent below reports that nothing available can set viewports, capture full-page screenshots, inspect DOM geometry, and read console and network failures, stop with `BLOCKED: wireframe validation requires browser automation` – a manually opened browser does not satisfy it.
+Validation needs browser automation: when the subagent below reports that nothing available can set viewports, capture full-page screenshots, inspect DOM geometry, and read console and network failures, report validation as not run, and why – a manually opened browser does not satisfy it.
 
 Spawn a fresh subagent that invokes the `andthen:visual-validation` skill over every wireframe page at four viewports:
 
@@ -71,7 +71,7 @@ Full-page screenshots land at `OUTPUT_DIR/screenshots/[page]-[viewport].png`, ov
 
 Fix hidden or overlapping content, missing navigation, and horizontal scroll on mobile before anything else, by adjusting CSS (gap, overflow, min-height, breakpoint rules); note spacing and decorative overlap and continue. Improve unclear sections, add missing elements, ensure consistency.
 
-**Gate**: the validation report passes every page and viewport
+**Gate**: the validation report passes every page and viewport, or validation is reported as not run
 
 ## Phase 4: Documentation
 

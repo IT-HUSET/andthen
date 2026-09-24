@@ -9,7 +9,7 @@ argument-hint: "[--mode <mode>[,<mode>...]: advise|trade-off|review|decompose|fi
 
 - `--output-dir` sets `OUTPUT_DIR`, which must be writable.
 - `COUNT` is the number of alternatives trade-off derives – 5 unless the request names one ("compare three options").
-- `--auto` (`AUTO_MODE`) runs unattended. Never ask what to do next. Infer mode and scope from the Mode table, and where no defensible inference exists stop with `BLOCKED:` naming the minimum missing inputs. Propagate it to nested `andthen:*` skills that accept it. Close on the findings summary and the report path, no follow-up offers.
+- `--auto` (`AUTO_MODE`, [`automation-mode.md`](../../references/automation-mode.md)) runs unattended. Never ask what to do next. Infer mode and scope from the Mode table; a request with nothing to act on stops the run. Propagate it to nested `andthen:*` skills that accept it. Close on the answer or findings summary and, for a mode that writes a report, its path; no follow-up offers.
 
 ## Mode (auto-detected from arguments or explicit `--mode`)
 
@@ -29,9 +29,7 @@ argument-hint: "[--mode <mode>[,<mode>...]: advise|trade-off|review|decompose|fi
 
 The analysis modes (`review`, `decompose`, `fitness`, `strategic-design`, `event-storming`) run in declared order and share context – metrics, dependency graphs, subdomain and context candidates, findings – so a later mode never recomputes what an earlier one produced. Each still needs its own **Required input**, collected in Phase 0 when it is missing.
 
-`advise` and `trade-off` are the decision modes and run alone: `advise` reaches structured comparison by moving into `trade-off`, which is the same thing done once.
-
-A list mixing a decision mode with analysis modes is `BLOCKED:` naming the two invocations to run in order – dropping the analysis modes would report a partial run as complete.
+`advise` and `trade-off` are the decision modes, one per run: `advise` reaches structured comparison by moving into `trade-off`, which is the same thing done once. Listed with analysis modes, a decision mode runs last, on their findings.
 
 In **trade-off** mode the `OUTPUT_DIR` subtree layout follows `references/mode-trade-off.md`, and absent `--output-dir`, `OUTPUT_DIR` defaults to the **Project Document Index** Research location, or `<project_root>/docs/research/`; the analysis modes default it to `reviews/` under the Index's `Agent Temp` location, never a source tree.
 
@@ -47,7 +45,7 @@ Each analysis-mode report is one file in `OUTPUT_DIR`, named `<scope-or-topic>-a
 
 ## WORKFLOW
 
-### Phase 0: Guided Setup _(ambiguous mode or missing input only; `BLOCKED:` under `--auto`)_
+### Phase 0: Guided Setup _(ambiguous mode or missing input only; never under `--auto`)_
 
 Present the Mode table's rows one line each, ask what they want to accomplish and where – one mode or a chain of analysis modes – and collect the **Required input** of each mode chosen. Confirm the order too when a chain was elicited here; an explicit `--mode` already declares it.
 
@@ -62,7 +60,7 @@ Present the Mode table's rows one line each, ask what they want to accomplish an
    - `Context Map` when present – read before any boundary or integration judgment.
    - `Product` – anchor every component the design proposes, and every subdomain classification, against its **Proportionality** facts. Drop or flag what they do not carry or a standing technical non-goal forbids, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). Absent or `unknown` facts are not licence to size against imagined scale – say the anchor was unavailable and let the user set it.
    - `architecture-model.json` under `Models` when it exists, in `strategic-design` – keep its context ids/names consistent with the accepted Context Map; align them or surface the divergence.
-2. Detect the primary language from project files (`review`, `decompose`, `fitness` only):
+2. Detect the primary language from project files (`review`, `decompose`, `fitness` only). The tooling is examples – prefer what the project already runs; `lizard` measures cyclomatic complexity for every language here but Dart:
 
    | Indicator | Language | Tooling |
    |-----------|----------|---------|

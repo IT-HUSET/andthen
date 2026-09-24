@@ -2,7 +2,8 @@
 """Reconciliation for the implement-fix report case, run with cwd = the workspace. The
 pass must leave build_label reading seed.txt, both stories still done with the
 `verified` record their completion wrote, and the input report annotated once
-with a `## Remediation Status` section that states F1 RESOLVED and one
+with a `## Remediation Status` section whose `Finding 1` bullet - the report
+template's key - states RESOLVED, and one
 `**Remediated**:` line in its header - the annotation is what the next reader
 trusts, so a fix without it, a status that contradicts the code, or a header that
 still opens on the FAIL verdict alone is not a remediated report.
@@ -41,10 +42,10 @@ def check():
         problems.append("%s: %d '## Remediation Status' section(s), expected exactly 1"
                         % (REPORT, len(sections) - 1))
     else:
-        stated = [ln for ln in sections[1].splitlines() if re.search(r"\bF1\b", ln)]
+        stated = [ln for ln in sections[1].splitlines() if re.search(r"\bFinding 1\b", ln)]
         if not stated or not any(re.search(r"\bRESOLVED\b", ln) and not NOT_RESOLVED.search(ln)
                                  for ln in stated):
-            problems.append("%s: Remediation Status does not state F1 RESOLVED: %r"
+            problems.append("%s: Remediation Status does not state Finding 1 RESOLVED: %r"
                             % (REPORT, stated[:1]))
     # The report opens on its FAIL verdict, so the header is where a reader learns
     # the fixes came after it; a marker below the first section is not in the header.

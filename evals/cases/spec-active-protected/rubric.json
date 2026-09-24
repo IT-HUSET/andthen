@@ -2,7 +2,7 @@
   "criteria": [
     {
       "id": "SPEC_PROTECT_REFUSES",
-      "intent": "the run stops with the BLOCKED line saying the story's state already exists and must be executed or retired before re-authoring"
+      "intent": "the run stops without re-authoring, saying the story's execution state already exists and must be executed or retired first"
     }
   ]
 }

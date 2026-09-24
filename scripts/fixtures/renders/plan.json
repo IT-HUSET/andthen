@@ -22,6 +22,10 @@
         "TI01",
         "TI02"
       ],
+      "verified": {
+        "at": "2026-08-28T14:05Z",
+        "summary": "python3 -m unittest tests.auth.test_session -> exit=0, Ran 2 tests, OK"
+      },
       "owner": null,
       "scope": "Cookie flags on the sign-in response.",
       "sourceRefs": [

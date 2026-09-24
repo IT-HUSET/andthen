@@ -63,25 +63,3 @@ Two shapes get over-escalated on category rather than exposure, and both are MED
 - **A transitive CVE in the lockfile whose affected function the project never calls** – name the dependency and recommend the bump, but severity follows a traced call path, not the advisory's own rating. Trace one and the finding is HIGH.
 
 A disclaimer-as-finding (`review-calibration.md` § Anti-Leniency Protocol) on an auth, injection, or secret issue inside the changed files defaults to HIGH here. The report's `<feature>` token is the feature or primary changed-area name (`payments`, `auth-refresh`, `webhook-handler`); the target is source code, so the report never sits beside it.
-
-
-## Report Sections
-
-```markdown
-## Summary
-overview, OWASP surfaces covered
-## CRITICAL findings
-## HIGH findings
-## MEDIUM findings
-## LOW findings
-each naming its OWASP category and source/sink
-## Coverage Matrix
-## Trust-Boundary Map
-- source → validation → sink, per analyzed flow
-## Critic Coverage
-## Verification Evidence
-- Scanners run, skipped, or unavailable – each with its result or reason
-## Readiness
-## Next Steps
-sequenced by exposure level
-```

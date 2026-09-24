@@ -5,7 +5,7 @@ Rubric for validating a finished feature against the problem its PRD set out to 
 
 ## Baseline
 
-The PRD – from a plan, the file its `prd` names; otherwise the `prd.md` discovered as Intent Context – plus the Product document's Vision, Value Propositions, and Non-Goals when present. Without a PRD the pass is unavailable: reported as such with its impact in a chain, `BLOCKED: outcome has no PRD baseline` alone.
+The PRD – from a plan, the file its `prd` names; otherwise the `prd.md` discovered as Intent Context – plus the Product document's Vision, Value Propositions, and Non-Goals when present. Without a PRD the pass is unavailable: in a chain, reported as such with its impact; alone, the review stops.
 
 
 ## Coverage Matrix
@@ -36,24 +36,5 @@ Role `Findings Filter reviewing outcome findings`; questions: does the PRD state
 
 ## Findings Output
 
-Readiness per `review-verdict.md` § Outcome mode. Classes are the Structured Finding Contract's: an implementation short of the PRD is `code-defect`; a PRD the built feature or a recorded decision has overtaken is `spec-stale`; a PRD that never decided is `ambiguous-intent`. PRD-side findings route `Note` and name the `andthen:clarify` skill against the PRD in **Recommended Next Action**; Step 6 owns whether that becomes an offer. `code-defect` takes the normal Fix bar. The report's `<feature>` token is the PRD's feature name (its directory under Specs & Plans); the baseline is a document, so the report may sit beside it.
-
-
-## Report Sections
-
-```markdown
-## Executive Summary
-verdict and readiness, the need met or not in one sentence, Findings Filter stats
-
-## Coverage Matrix
-
-## Outcome Findings
-per the Structured Finding Contract, grouped by failure mode
-
-## Critic Coverage
-(personas walked, narrowings hunted, unhappy paths attacked.)
-
-## Recommended Next Action
-one line – the skill, the PRD path, the trigger
-```
+Readiness per `review-verdict.md` § Outcome mode. Classes are the Structured Finding Contract's: an implementation short of the PRD is `code-defect`; a PRD the built feature or a recorded decision has overtaken is `spec-stale`; a PRD that never decided is `ambiguous-intent`. PRD-side findings route `Note` and name the `andthen:clarify` skill against the PRD in `## Next Steps`; Step 6 owns whether that becomes an offer. `code-defect` takes the normal Fix bar. The report's `<feature>` token is the PRD's feature name (its directory under Specs & Plans); the baseline is a document, so the report may sit beside it. Its Executive Summary states in one sentence whether the need is met.
 

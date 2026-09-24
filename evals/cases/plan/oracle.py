@@ -5,8 +5,8 @@ Case data, not harness: `check.json`'s `validate_plan.py` call proves the
 manifest against its schema, but nothing a check.json key sees proves the
 bundle is *executable* - that every story reached spec-ready, that its FIS
 pointer resolves on the filesystem, and that each FIS names the story it was
-written for. Provenance is a claim across two files, which is what `oracle` is
-for.
+written for and carries no retired section or verdict line. Provenance is a
+claim across two files, which is what `oracle` is for.
 
 Whether each FIS carries runnable proof is the rubric's call (`plan-execution`):
 under ADR-013 nothing projects a FIS into JSON, and a grammar violation is a
@@ -28,10 +28,11 @@ PLAN = Path("docs/specs/amount-filter/plan.json")
 PROVENANCE = re.compile(r"^\*\*(Plan|Story-ID)\*\*:[ \t]*(\S.*?)[ \t]*$", re.M)
 
 
-def provenance_problems(row):
+def fis_problems(row):
     """The header pair is what an implementer dispatched with only the FIS path
     reads to find its plan and row; a FIS that names another story would complete
-    the wrong one."""
+    the wrong one. Every FIS this run wrote also carries no retired section or
+    verdict line."""
     identifier, pointer = row.get("id"), row.get("fis")
     if not isinstance(pointer, str) or not pointer:
         return ["%s: story %s has no fis pointer" % (PLAN, identifier)]
@@ -48,14 +49,14 @@ def provenance_problems(row):
     if Path(found.get("Plan", "")).name != PLAN.name:
         problems.append("%s: Plan is %r, expected the plan beside it"
                         % (fis, found.get("Plan")))
-    return problems
+    return problems + story_state.retired(fis)
 
 
 def main():
     rows, problems = story_state.stories(PLAN)
     for row in rows:
         problems.extend(story_state.diverges(PLAN, row, status="spec-ready"))
-        problems.extend(provenance_problems(row))
+        problems.extend(fis_problems(row))
     for problem in problems:
         sys.stderr.write(problem + "\n")
     return 1 if problems else 0

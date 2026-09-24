@@ -16,8 +16,8 @@ steps:
         with its one-story plan.json beside it.
       - >-
         Preserve the fresh-context self-review evidence produced by the spec workflow
-        in review-evidence.json with exactly three fields: freshContext (boolean),
-        verdict (the run's own closure word, as a string), and remediated (boolean).
+        in review-evidence.json with exactly two fields: freshContext (boolean)
+        and remediated (boolean).
     outputs:
       fis:
         format: text
@@ -26,8 +26,7 @@ steps:
         schema:
           type: object
           additionalProperties: false
-          required: [freshContext, verdict, remediated]
+          required: [freshContext, remediated]
           properties:
             freshContext: {type: boolean}
-            verdict: {type: string}
             remediated: {type: boolean}

@@ -33,10 +33,11 @@ the owner and the artifact path, each `## Section:` block carries one section's 
 are `- ` bullets in creation order, and a multi-line note continues with two-space indentation. The
 `andthen:now-what` skill keys on that H1 to route a pasted payload.
 
-The two review reports split the header the `andthen:review` skill pins under the H1: `review-report.md` is a
-single-lens report with the always-present fields, `review-report-mixed.md` a remediated follow-up review over a
-lens chain, carrying `Resolved chain`, `Follows`, `Remediated`, and the one `## Verdict` section a mixed report
-has.
+The two review reports follow the `andthen:review` skill's `references/report-template.md`, which
+`tests/test_review_report.py` checks them against: `review-report.md` is a single-lens code report with the
+always-present header fields, `review-report-mixed.md` a remediated follow-up review over a code, gap, and security
+chain, carrying `Resolved chain`, `Follows`, `Remediated`, the lens-conditional sections, and the one
+`## Verdict` section a mixed report has.
 
 The four model `.json` fixtures are sample documents for a downstream renderer; nothing in this repo
 validates them; their shape contract is the `*.schema.json` shipped in `plugin/references/`, with the

@@ -8,7 +8,7 @@
   "additionalProperties": false,
   "properties": {
     "schemaVersion": {
-      "description": "Bumps only on a breaking delta. Consumers reject unknown versions with BLOCKED: unsupported plan.json schemaVersion.",
+      "description": "Bumps only on a breaking delta. Consumers reject unknown versions.",
       "const": "2"
     },
     "prd": {
@@ -98,6 +98,12 @@
           "provenance": { "type": ["string", "null"] },
           "assetRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
           "sequencing": { "type": ["string", "null"] }
+        },
+        "if": { "properties": { "status": { "const": "done" } }, "required": ["status"] },
+        "then": {
+          "description": "A done story carries the proof of what ran and the FIS it finished with.",
+          "required": ["verified"],
+          "properties": { "fis": { "type": "string" } }
         }
       }
     }

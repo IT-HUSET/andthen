@@ -13,10 +13,7 @@ argument-hint: "[--auto] [scope: dir/file path and/or description]"
 - **Intent + Rules Context** – per [`intent-and-rules-context.md`](../../references/intent-and-rules-context.md) (collected in Phase 1.3). Behavior-preserving is not intent-preserving: the Phase 2 Intent anchor drops cleanups that contradict the Intent (surfaced in the completion summary, not applied).
 - **Preserve exact behavior** – change only *how* the code works, never *what* it does, unless explicitly requested
 - Ground style judgments in the codebase's existing conventions and the project guidelines – not in generic taste
-- **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](../../references/automation-mode.md). Simplify-code-specific `BLOCKED:` triggers:
-  - red baseline – tests, build, or lint failing before any simplify edit;
-  - no defensible scope derivable from arguments, current-branch diff, or conversation context;
-  - ambiguity between two or more incompatible simplification directions with no conservative default.
+- **Automation rules** (headless-first, `--auto` strict mode, `--auto` propagation): see [`automation-mode.md`](../../references/automation-mode.md).
 - **Scope stays the user's** – this is Boy Scout cleanup inside the requested scope; widening to an adjacent module mid-flow is the named failure mode, and that module is a separate run.
 - **Lean code** over defensive bulk – every abstraction, guard, and test must be paid for by a present requirement, not a hypothetical one (YAGNI).
 
@@ -40,12 +37,12 @@ Resolve scope in precedence order:
 
 Treat the resolved scope as authoritative – never widen it.
 
-In `AUTO_MODE`, the diff/conversation fallback is defensible only when it yields a non-empty, cohesive set; otherwise stop with `BLOCKED: no defensible scope (no path, no description, branch-diff/conversation fallback yielded {nothing | shallow-clone error | a wide cross-module set})` rather than simplifying against noise.
+In `AUTO_MODE`, the diff/conversation fallback is defensible only when it yields a non-empty, cohesive set; otherwise stop rather than simplifying against noise.
 
 #### 1.2. Establish Baseline
 - Resolve the project's check commands per [`verification-evidence.md`](../../references/verification-evidence.md); they serve both this baseline and Phase 4.
 - Establish a green baseline (tests + lint/type checks pass); record current state for regression comparison.
-- In `AUTO_MODE`, a red baseline triggers `BLOCKED:` (per INSTRUCTIONS) rather than Stop-the-Line iteration – simplify-code never tries to fix the baseline itself
+- In `AUTO_MODE`, a red baseline stops the run rather than Stop-the-Line iteration – simplify-code never tries to fix the baseline itself
 
 #### 1.3. Collect Intent + Rules Context
 
@@ -104,5 +101,4 @@ In `AUTO_MODE`, emit the deterministic completion summary per [`automation-mode.
 
 - changed paths relative to the repo root;
 - one line per verification check with its result;
-- the items Phase 2 conservatism dropped, including unapproved `behavior-affecting` findings;
-- `BLOCKED:` in place of the summary when the run could not complete.
+- the items Phase 2 conservatism dropped, including unapproved `behavior-affecting` findings.

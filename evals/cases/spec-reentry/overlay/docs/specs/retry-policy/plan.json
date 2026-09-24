@@ -4,6 +4,8 @@
   "overview": {
     "summary": "Settle the backoff policy a held-open report write is retried on."
   },
+  "sharedDecisions": [],
+  "bindingConstraints": [],
   "stories": [
     {
       "id": "S01",

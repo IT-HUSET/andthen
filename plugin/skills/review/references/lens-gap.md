@@ -10,7 +10,7 @@ The implementation is the default target, not absolutely: when coherent, tested 
 Two inputs are explicit before the lens runs: the **requirements baseline** and the **implementation target**; a baseline with nothing implemented against it routes as Step 1 says. When the caller gives a directory or a plan file, discover the full baseline rather than treating the one input as the only source:
 
 - **Directory path** – search it and its parent for `plan.json` (canonical; `plan-schema.md`), `prd.md`, and co-located FIS files (`s01-*.md`, …); the Project Document Index may point further.
-- **Plan file** – `schemaVersion` `"2"` before shape, else `BLOCKED: unsupported plan.json schemaVersion` and regeneration through the `andthen:plan` skill. The baseline is what the plan's `prd` names (a repo path, not necessarily a sibling) or, with `prd` null, the sources its `stories[].sourceRefs` cite – repo paths, or a tracker item URL resolved through the `Issue Tracker` document (**Project Document Index**); when neither yields a readable source, `BLOCKED: plan names no readable requirements baseline` rather than reviewing the FIS files against themselves. Then each non-null `stories[].fis` and the FIS files present on disk.
+- **Plan file** – `schemaVersion` `"2"` before shape, else stop, pointing to regeneration through the `andthen:plan` skill. The baseline is what the plan's `prd` names (a repo path, not necessarily a sibling) or, with `prd` null, the sources its `stories[].sourceRefs` cite – repo paths, or a tracker item URL resolved through the `Issue Tracker` document (**Project Document Index**); when neither yields a readable source, stop rather than reviewing the FIS files against themselves. Then each non-null `stories[].fis` and the FIS files present on disk.
 - **Any other input** (file, issue, URL) – as-is.
 
 **FIS baseline** – its three proof surfaces in the distinct roles `fis-contract.md` defines: Acceptance Scenarios as behavioral requirements, Structural Criteria as non-behavioral properties proved by task Verify lines, Work Areas as forward-coverage anchors. "Acceptance criteria" here means the Acceptance Scenarios when the baseline is a FIS; the generic reading holds for PRDs, issues, and ad-hoc requirements. Upstream context for a FIS resolves per `fis-contract.md` § Consuming Upstream Context.
@@ -45,7 +45,7 @@ Role `Findings Filter reviewing gap analysis findings`; questions: is this a rea
 
 ## Dimensional Scoring
 
-Thresholds and the canonical `## Verdict` block are `review-verdict.md` § Gap mode. Score each dimension:
+Thresholds are `review-verdict.md` § Gap mode. Score each dimension:
 
 | Dimension | Scoring Guide |
 |-----------|---------------|
@@ -54,21 +54,6 @@ Thresholds and the canonical `## Verdict` block are `review-verdict.md` § Gap m
 | **Wiring** | 10: all components wired, verified via build/tests. 8: all critical paths wired, minor integration gaps. 2: significant unwired code. |
 
 
-## Report Sections
-
-```markdown
-## Executive Summary
-verdict block, overview, high-level findings, Findings Filter stats
-
-## Coverage Matrix
-
-## Gap Analysis Results
-findings per the Structured Finding Contract, grouped by failure mode
-
-## Critic Coverage
-
-## Remediation Plan
-by severity, with dependencies, sequencing, acceptance criteria
-```
+## Findings Output
 
 The report's `<feature>` token is the baseline's feature name (from the spec, FIS, or plan path); the baseline supplies the spec directory the report may sit in, never beside the implementation.
