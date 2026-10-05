@@ -6,7 +6,7 @@
     },
     {
       "id": "REQUEST_IS_THE_FIX_SET",
-      "intent": "the request's one requirement is treated as the whole Fix set - nothing beyond it is edited, and anything noticed outside it is surfaced rather than fixed"
+      "intent": "the request's one requirement is treated as the whole Fix set - beyond it, only a Boy Scout tidy in a file the change touches is edited (behavior kept, or an obvious small bug fixed under a test), and named as one; anything else noticed is surfaced rather than fixed"
     },
     {
       "id": "REQUEST_NO_INFERRED_PUBLICATION",

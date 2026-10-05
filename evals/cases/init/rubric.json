@@ -1,0 +1,7 @@
+{
+  "criteria": [
+    {"id": "INIT_ASKS_NOTHING", "intent": "The run asks the user no question at any point: it takes the project from the README, the manifest and the code, and questions_asked is empty."},
+    {"id": "INIT_OVERVIEW_FROM_THE_REPOSITORY", "intent": "The instruction file's Project Overview describes Tally - a word count per line of a text file - from what the repository says, invents nothing, and leaves no TODO placeholder."},
+    {"id": "INIT_SUMMARY_OFFERS", "intent": "The closing summary lists what the run wrote, says how to commit review reports instead of ignoring them, recommends the clarify skill as the first step, and offers the critical rules, describe --mode codebase and testing --mode strategy one line each, without acting on any of them. It offers the role agents too, unless the workspace already holds them in .claude/agents/ - the harness installs them for Claude cells, where leaving that offer out is correct."}
+  ]
+}

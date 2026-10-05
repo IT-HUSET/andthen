@@ -1,6 +1,6 @@
 # PR Target
 
-Resolution and execution policy for a pull-request target, in place of the local-tree scope Step 1 otherwise builds.
+Resolution and execution policy for a pull-request target, in place of the local-tree scope a review otherwise builds.
 
 
 ## Resolve

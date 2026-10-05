@@ -1,22 +1,26 @@
-"""Run-directory staging, Codex registration, dispatch, run-record readers.
+"""Run-directory staging, candidate registration, dispatch, run-record readers.
 
-A Claude cell runs in the operator's own environment: the parent environment
-passes through whole, so the subject sees the settings, memory, agents, MCP
-servers and installed candidate a real session sees, which is what the corpus is
-there to measure. Nothing to stage, nothing to register.
+Every cell runs a snapshot of the working tree's plugin, staged as candidate/,
+and none of the operator's own configuration. A Claude cell keeps the parent
+environment, which is where its login resolves, but DartClaw spawns it with
+project-only setting sources, so ~/.claude/CLAUDE.md, the output style and user
+MCP servers stay out; the candidate arrives through `--plugin-dir`, and the
+role agents `init` installs arrive as the workspace's project agents.
 
-Codex cannot follow. DartClaw pins Codex's CODEX_HOME to
+Codex needs more. DartClaw pins Codex's CODEX_HOME to
 <data_dir>/credentials/codex whatever the environment holds, so a Codex cell
-registers a snapshot of the candidate there; a run that left the environment
-alone would leave it unregistered, which is how Gate 0's first attempts failed.
+registers the candidate there; a run that left the environment alone would leave
+it unregistered, which is how Gate 0's first attempts failed.
 """
 
 import hashlib
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -33,7 +37,8 @@ from evals.cases import REPO_ROOT, read_text
 # so copying in is the only shape it accepts, and a run directory starts empty.
 CREDENTIALS = {"codex": Path.home() / ".codex/auth.json"}
 
-# All a Codex cell's dispatch inherits; a Claude cell inherits everything.
+# All a Codex cell's dispatch inherits; a Claude cell inherits the environment
+# whole and is kept from the operator's configuration by its setting sources.
 ENV_KEYS = ("PATH", "USER", "LOGNAME", "TMPDIR", "LANG", "LC_ALL", "SHELL", "TERM")
 
 # One dispatch carries subject, checks and judge, so the turn ceiling and the
@@ -53,10 +58,23 @@ KEEP = 3
 STAMP_TIME = "%Y%m%dT%H%M%S"
 STAMP = re.compile(r"(\d{8}T\d{6})-[0-9a-f]{8}")
 
-# The Codex marketplace source. plugin/ alone registers nothing: the CLI reads the
-# manifests to find it, so both are staged beside it. andthen@andthen is enabled.
+# Where a cell runs before `land` moves it under EVIDENCE. Claude loads every
+# CLAUDE.md on the path above its working directory, so a workspace inside this
+# repo handed the subject the repo's own CLAUDE.md and CLAUDE.local.md. The whole
+# run stages out, not only the workspace: the subject reads candidate/ and the
+# judge reads request/, and neither may sit under this repo either.
+STAGING = Path(tempfile.gettempdir()).resolve() / "andthen-evals"
+
+# The candidate: plugin/, which Claude loads directly, and the Codex marketplace
+# source, where plugin/ alone registers nothing - the CLI reads the manifests to
+# find it, so both are staged beside it. andthen@andthen is enabled.
 CANDIDATE_ASSETS = ("plugin", ".claude-plugin/marketplace.json",
                     ".agents/plugins/marketplace.json")
+
+# The role agents `init` installs, from the candidate. A subject without them ran
+# its critics as general-purpose at high effort, so a Claude cell gets them as
+# project agents - the one scope its setting sources still load.
+ROLES = "plugin/skills/init/templates/agents/claude"
 
 # The vendored application every overlay case starts from. Its deliberate flaws
 # are documented beside it, never inside it, for the same reason `oracle.py` is
@@ -64,7 +82,7 @@ CANDIDATE_ASSETS = ("plugin", ".claude-plugin/marketplace.json",
 SUBJECT = REPO_ROOT / "evals" / "subject"
 
 # Where every skill that writes a review report puts it, per the review skill's
-# Step 5 and the `--output-dir` the spec and clarify skills pass it. Ignored by
+# Step 5 and the `--output-dir` the plan and clarify skills pass it. Ignored by
 # the subject app, so stage_diff forces this subtree - and only this one - in.
 REPORTS = ".agent_temp/reviews"
 
@@ -98,24 +116,22 @@ enabled = true
 trust_level = "trusted"
 """
 
-# Where the operator's Claude Code keeps the plugins it has installed, which is
-# where the candidate runs from now that nothing redirects the config dir.
-CLAUDE_PLUGINS = Path(os.environ.get("CLAUDE_CONFIG_DIR")
-                      or Path.home() / ".claude") / "plugins"
-
 # Both subjects run unprompted in a throwaway workspace. Claude's `dontAsk`
 # denies any tool outside an allow-list, so the trust Codex gets from
 # `approval: never` is spelled out here; DartClaw refuses bypass mode for a
 # workflow step. `dontAsk` also denies a read outside the workspace, so the two
 # directories a cell reaches outside it are named: the plugin bundle whose
 # references a skill reads, and the judge step's request directory.
+# `inherit_user_settings: false` is DartClaw's `--setting-sources project`, which
+# keeps the operator's settings, memory, output style and agents out; the
+# candidate comes in through _claude_wrapper instead.
 PROVIDER_BLOCK = {
-    "claude": ("    auth: auto\n    inherit_user_settings: true\n"
+    "claude": ("    auth: auto\n    inherit_user_settings: false\n"
                "    pool_size: 1\n    permissionMode: dontAsk\n"
                "    permissions:\n      allow: [Bash, Read, Glob, Grep, Write, Edit, "
                "NotebookEdit, Skill, Agent, TodoWrite, EnterWorktree, ExitWorktree]\n"
-               "    settings:\n      additionalDirectories:\n        - %s\n"
-               "        - {request}\n" % CLAUDE_PLUGINS),
+               "    settings:\n      additionalDirectories:\n        - {candidate}/plugin\n"
+               "        - {request}\n"),
     # Codex's workspace-write sandbox keeps .git read-only, and an executor
     # commits its story; the workspace is the run's own, so full access is the
     # Codex spelling of the Claude allow-list above.
@@ -127,13 +143,22 @@ PROVIDER_BLOCK = {
 def new_run_dir(case, provider):
     """`data/` is DartClaw's own state, per run so one cell's ledger, sessions and
     credentials are never another's; `home/` and `provider/` are the environment
-    only a Codex cell dispatches under."""
+    only a Codex cell dispatches under. Under STAGING until `land`."""
     stamp = "%s-%s" % (time.strftime(STAMP_TIME), uuid.uuid4().hex[:8])
-    path = EVIDENCE / case / provider / stamp
+    path = STAGING / case / provider / stamp
     path.mkdir(parents=True)
     for name in ("data",) + (("home", "provider") if provider == "codex" else ()):
         (path / name).mkdir()
     return path
+
+
+def land(run, root=None):
+    """Moves a finished run from STAGING to the same <case>/<provider>/<stamp>
+    under the evidence root, and returns where it landed."""
+    target = (root or EVIDENCE) / run.relative_to(STAGING)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(run), str(target))
+    return target
 
 
 def write(path, text):
@@ -153,7 +178,7 @@ def git(repo, *args):
     return out
 
 
-def stage_workspace(run, case_dir):
+def stage_workspace(run, case_dir, roles=False):
     """The starting tree as one commit: the vendored subject app with the case's
     `overlay/` copied over it, an overlay file replacing the app's file of the
     same path - or the app unchanged, for a case that reviews or acts on it as it
@@ -176,6 +201,9 @@ def stage_workspace(run, case_dir):
     for name in ("prompt.md", "scripted-replies.json"):
         if (case_dir / name).is_file():
             shutil.copy2(str(case_dir / name), str(workspace / name))
+    if roles:
+        shutil.copytree(str(run / "candidate" / ROLES), str(workspace / ".claude" / "agents"),
+                        dirs_exist_ok=True)
     # One commit of the starting state, so the diff afterwards is the subject's,
     # and named for what it is to the subject that reads this history: a
     # project's own baseline, not a harness word.
@@ -227,8 +255,7 @@ def register_codex(run):
     """Codex is handed the marketplace and the plugin materialized in its cache,
     the layout Gate 0 ran on, under the CODEX_HOME DartClaw pins. Written before
     the credential is seeded, so a missing one leaves no half-written registration
-    behind. Claude needs no counterpart: the operator's own environment already
-    registers the candidate."""
+    behind. Claude's counterpart is _claude_wrapper."""
     home = run / "data" / "credentials" / "codex"
     source = run / "candidate" / "plugin"
     version = json.loads(read_text(source / ".claude-plugin" / "plugin.json"))["version"]
@@ -251,39 +278,69 @@ def seed_credentials(run, providers):
 def clear_credentials(run):
     """Whatever the outcome: a run directory is shared evidence, a token is not -
     and neither is the CODEX_HOME DartClaw pins beside it, some 65 MB of Codex's
-    own state a cell that no check, judge, or report reads."""
+    own state a cell that no check, judge, or report reads. Its `sessions/`
+    subdirectory is the one exception: a Codex cell's rollouts, the only record
+    of its tool calls, so they move out to `data/codex-sessions` before the rest
+    of the credentials tree - tokens, auth.json, config, caches - goes."""
+    codex_sessions = run / "data" / "credentials" / "codex" / "sessions"
+    if codex_sessions.is_dir():
+        try:
+            shutil.move(str(codex_sessions), str(run / "data" / "codex-sessions"))
+        except FileNotFoundError:
+            pass  # a concurrent sweep moved them first
     shutil.rmtree(str(run / "data" / "credentials"), ignore_errors=True)
 
 
 def sweep(root=None, keep=KEEP, now=None):
     """Once, before a tier's first cell. A cell killed outright never reached its
-    own teardown, so its token is still on disk; two walls after its stamp it
-    cannot be a cell of a tier in flight elsewhere, and clearing it is safe. The
-    cells past the newest `keep` go whole - a running cell is always among those."""
+    own teardown, so its token is still on disk and its run never landed; two
+    walls after its stamp it cannot be a cell of a tier in flight elsewhere, so it
+    lands and its token is cleared. The cells past the newest `keep` go whole -
+    a running cell is still under STAGING, never among them. Tiers started
+    together sweep the same cells, so a move the other got to first is done."""
     now = time.time() if now is None else now
+
+    def stale(cell):
+        began = time.mktime(time.strptime(STAMP.fullmatch(cell.name).group(1), STAMP_TIME))
+        return now - began > 2 * TIMEOUT
+
+    for cell in STAGING.glob("*/*/*"):
+        if cell.is_dir() and STAMP.fullmatch(cell.name) and stale(cell):
+            try:
+                land(cell, root)
+            except FileNotFoundError:
+                continue
     for cells in (p for p in (root or EVIDENCE).glob("*/*") if p.is_dir()):
         stamped = sorted(p for p in cells.iterdir() if p.is_dir() and STAMP.fullmatch(p.name))
         for cell in stamped[:-keep]:
             shutil.rmtree(str(cell), ignore_errors=True)
         for cell in stamped[-keep:]:
-            began = time.mktime(time.strptime(STAMP.fullmatch(cell.name).group(1), STAMP_TIME))
-            if now - began > 2 * TIMEOUT:
+            if stale(cell):
                 clear_credentials(cell)
 
 
-def _claude_wrapper(run):
-    """A Codex cell's judge step still runs on Claude, spawned by DartClaw under
-    the empty HOME dispatch_env builds for Codex - so the `claude` CLI it finds
-    reports `Not logged in`. This wrapper is that spawn's executable instead: it
-    restores the operator's real HOME (and CLAUDE_CONFIG_DIR, if set) for the one
-    exec, while Codex itself keeps running under the empty HOME."""
+def _claude_wrapper(run, restore_home):
+    """Every Claude process a cell spawns execs through this, which is how the
+    candidate is registered: `--plugin-dir` holds under project-only setting
+    sources, and the executable is the one thing DartClaw's skill preflight shares
+    with the steps - the preflight passes no `--settings`, so a plugin registered
+    there is missing and the run is refused before its first step (0.26.2).
+
+    A Codex cell's judge step also runs on Claude, spawned under the empty HOME
+    dispatch_env builds for Codex, where the CLI reports `Not logged in`; with
+    `restore_home` the exec gets the operator's real HOME (and CLAUDE_CONFIG_DIR,
+    if set) back, while Codex itself keeps running under the empty one."""
     real = shutil.which("claude") or "claude"
-    config_dir = os.environ.get("CLAUDE_CONFIG_DIR")
-    # `env` takes its options before any assignment, so the unset comes first.
-    env_args = ("CLAUDE_CONFIG_DIR=%s" % config_dir) if config_dir else "-u CLAUDE_CONFIG_DIR"
+    env = ""
+    if restore_home:
+        config_dir = os.environ.get("CLAUDE_CONFIG_DIR")
+        # `env` takes its options before any assignment, so the unset comes first.
+        env = "env %s %s " % (shlex.quote("CLAUDE_CONFIG_DIR=" + config_dir) if config_dir
+                               else "-u CLAUDE_CONFIG_DIR",
+                               shlex.quote("HOME=" + os.environ.get("HOME", "")))
     path = run / "claude"
-    write(path, "#!/bin/sh\nexec env %s HOME=%s %s \"$@\"\n"
-          % (env_args, os.environ.get("HOME", ""), real))
+    write(path, "#!/bin/sh\nexec %s%s --plugin-dir %s \"$@\"\n"
+          % (env, shlex.quote(real), shlex.quote(str(run / "candidate" / "plugin"))))
     path.chmod(0o755)
     return path
 
@@ -311,7 +368,8 @@ def write_config(path, run, workspace, subject, judge):
             "providers:\n" % (run / "data", TURN_TIMEOUT, provider, model, effort))
     for name in dict.fromkeys((provider, judge["provider"])):
         wrapped = name == "claude" and provider == "codex"
-        exe = _claude_wrapper(run) if wrapped else shutil.which(name) or name
+        exe = (_claude_wrapper(run, wrapped) if name == "claude"
+               else shutil.which(name) or name)
         text += "  %s:\n    executable: %s\n" % (name, exe)
         if wrapped:
             # DartClaw's own auth gate reads the dartclaw-workflow process's HOME
@@ -320,7 +378,8 @@ def write_config(path, run, workspace, subject, judge):
             # ever runs; credentials_required: false skips that gate outright and
             # leaves the login to the wrapped binary (security.md ~line 518).
             text += "    credentials_required: false\n"
-        text += PROVIDER_BLOCK[name].format(request=(run / REQUEST).parent)
+        text += PROVIDER_BLOCK[name].format(request=(run / REQUEST).parent,
+                                            candidate=run / "candidate")
     text += "workflow:\n  workspace_dir: %s\n  defaults:\n" % workspace
     for role, seat in (("workflow", subject), ("reviewer", judge)):
         text += ("    %s:\n      provider: %s\n      model: %s\n      effort: %s\n"
@@ -342,9 +401,30 @@ def preflight(providers):
                       if names])
 
 
+def dartclaw_binary():
+    """{path, version, error} of the `dartclaw-workflow` dispatch resolves, once
+    per tier: no cell recorded which binary ran, so diagnosing a DartClaw race
+    meant reconstructing it. An unreadable version is recorded, never raised -
+    preflight owns refusing a missing binary."""
+    path = shutil.which("dartclaw-workflow")
+    if path is None:
+        return {"path": None, "version": None, "error": "unresolved on PATH"}
+    try:
+        done = subprocess.run([path, "--version"], text=True, timeout=30,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        return {"path": path, "version": None, "error": "%s: %s" % (type(exc).__name__, exc)}
+    version = done.stdout.strip()
+    if done.returncode or not version:
+        return {"path": path, "version": None, "error": "exit %d: %s" % (
+            done.returncode, (done.stderr.strip() or "no output"))}
+    return {"path": path, "version": version, "error": None}
+
+
 def dispatch_env(run, provider):
-    """The operator's own, except for Codex: DartClaw builds the CODEX_HOME it
-    pins by mirroring the operator's ~/.codex plugin tables, so a Codex cell gets
+    """The operator's own for Claude, whose login resolves from it while its
+    setting sources keep the rest out. Not for Codex: DartClaw builds the
+    CODEX_HOME it pins by mirroring the operator's ~/.codex plugin tables, so a Codex cell gets
     an empty HOME and the candidate it registered stands alone. The judge step's
     `claude` spawn still needs the operator's real environment, which is what
     _claude_wrapper restores for that one process."""
@@ -395,7 +475,7 @@ def stage_diff(run, workspace):
     base = read_text(run / "fixture-head.txt").strip() or "HEAD"
     git(workspace, "add", "-A", "--", ".", ":!.dartclaw")
     # The project's own .gitignore is not the harness's: the subject app ignores
-    # .agent_temp/, and REPORTS under it is where the review, spec and clarify
+    # .agent_temp/, and REPORTS under it is where the review, plan and clarify
     # skills write the report the judge has to see. Only that subtree is forced
     # in - everything else a subject leaves under .agent_temp is its own working
     # scratch, and forcing all of it put a 27 MB probe CSV into one cell's diff.
@@ -503,8 +583,15 @@ def step_outputs(context):
                          if "." not in key and not key.startswith("_"))
 
 
+def _retained(run, *parts):
+    """A DartClaw record under `data/`: 0.27.1 moved the per-session records into
+    `data/standalone/`, and cells retained before that keep the legacy path."""
+    current = run.joinpath("data", "standalone", *parts)
+    return current if current.exists() else run.joinpath("data", *parts)
+
+
 def session_cost(run, session_id):
-    """DartClaw's own accounting for one session, from data/kv.json: fresh input,
+    """DartClaw's own accounting for one session, from its kv.json: fresh input,
     output, cache read and write, its cache-weighted `effective_tokens`, and a
     list-price estimate. Short on both hosts until DartClaw counts the subagent
     sessions a step spawns (Claude) and every turn's cumulative usage (Codex):
@@ -512,7 +599,7 @@ def session_cost(run, session_id):
     if not session_id:
         return None
     try:
-        kv = json.loads((run / "data" / "kv.json").read_text(encoding="utf-8"))
+        kv = json.loads(_retained(run, "kv.json").read_text(encoding="utf-8"))
         raw = json.loads(kv["session_cost:%s" % session_id]["value"])
     except (OSError, ValueError, KeyError, TypeError):
         return None
@@ -527,5 +614,5 @@ def assistant_messages(run, session_id):
     """What the subject actually said in one step, for the judge to read."""
     if not session_id:
         return []
-    path = run / "data" / "sessions" / str(session_id) / "messages.ndjson"
+    path = _retained(run, "sessions", str(session_id), "messages.ndjson")
     return [m.get("content") for m in _lines(path) if m.get("role") == "assistant"]

@@ -3,14 +3,18 @@
 
 Case data, not harness: `check.json`'s `validate_plan.py` call proves the
 manifest against its schema, but nothing a check.json key sees proves the
-bundle is *executable* - that every story reached spec-ready, that its FIS
+bundle is *executable* - that every story is pending with a FIS, that its FIS
 pointer resolves on the filesystem, and that each FIS names the story it was
 written for and carries no retired section or verdict line. Provenance is a
 claim across two files, which is what `oracle` is for.
 
+The PRD holds two capabilities that ship independently in different modules,
+so a bundle of one story means `plan` skipped the several-story breakdown this
+attended case exists to exercise.
+
 Whether each FIS carries runnable proof is the rubric's call (`plan-execution`):
-under ADR-013 nothing projects a FIS into JSON, and a grammar violation is a
-finding, not a parse error.
+no script parses a FIS (Decisions: "The `ops` skill and its script are
+retired"), and a grammar violation is a finding, not a parse error.
 
 Python 3 standard library only, 3.9-compatible.
 """
@@ -24,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import story_state  # noqa: E402
 
 PLAN = Path("docs/specs/amount-filter/plan.json")
+MIN_STORIES = 2
 
 PROVENANCE = re.compile(r"^\*\*(Plan|Story-ID)\*\*:[ \t]*(\S.*?)[ \t]*$", re.M)
 
@@ -54,8 +59,11 @@ def fis_problems(row):
 
 def main():
     rows, problems = story_state.stories(PLAN)
+    if rows and len(rows) < MIN_STORIES:
+        problems.append("%s: %d story, expected at least %d - two independent "
+                        "capabilities in different modules" % (PLAN, len(rows), MIN_STORIES))
     for row in rows:
-        problems.extend(story_state.diverges(PLAN, row, status="spec-ready"))
+        problems.extend(story_state.diverges(PLAN, row, status="pending"))
         problems.extend(fis_problems(row))
     for problem in problems:
         sys.stderr.write(problem + "\n")

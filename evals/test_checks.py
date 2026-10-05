@@ -36,6 +36,17 @@ from evals import run as runner  # noqa: E402
 
 LIVE_CASE = "spec"
 
+# The cases that run unattended, and the flag that makes them so - the only
+# trigger (Decisions: "`--auto` is the only unattended trigger").
+UNATTENDED_CASES = ("spec", "spec-two-stories", "architecture",
+                    "implement-fix", "implement-fix-deferred", "implement-fix-intent")
+UNATTENDED = "--auto"
+# The cases whose subject is the interview: `plan` grades the reply that asks the
+# PRD's self-contradiction, `clarify` the round it asks at all, `clarify-brief`
+# that round on a source that reads as settled. Passing the flag would make any
+# of them pass by no longer being the test.
+ASKING_CASES = ("plan", "clarify", "clarify-brief")
+
 # A minimal subject workflow of the shape staging appends the tail to.
 SUBJECT_WORKFLOW = ("name: synthetic-subject\nsteps:\n  - id: s1\n"
                     "    name: Do the thing\n    prompt: \"prompt.md\"\n")
@@ -82,23 +93,13 @@ OPEN_MARKER_FIS = ("- CONFUSION: which encoding does the caller expect?\n",
                     "MISSING REQUIREMENT: no encoding is specified\n")
 RESOLVED_ASSUMPTION = "- ASSUMPTION: reads utf-8 - binary input would need a flag\n"
 
-# The open item the re-entry case's FIS ships with - the backoff an `--auto` run
-# assumed - and the same settled policy in the two wordings a correct FIS may reach
-# for: the unit and the word for the growth are the author's choice, the values are
-# the decision.
-REENTRY_MARKER = "ASSUMPTION"
-REENTRY_WORDINGS = (
-    "- **TI01** `retry` sleeps 200 ms before the first retry and doubles the pause "
-    "before each one after, at most 3 retries, no jitter.\n",
-    "- **TI01** `retry` pauses 0.2 s, then 0.4 s, then 0.8 s - the pause is "
-    "`base * 2 ** attempt` - and gives up after the third retry, no jitter.\n",
-)
-
 # A judge answer whose one decision passes, quoting the prompt every synthetic
 # case carries - so a cell that still fails is failing on its checks alone.
 JUDGE_PASS = {"decisions": [{"id": "C1", "pass": True, "reason": "the work is there",
                              "evidence": "do the thing"}]}
 
+FIRST_WRITE_PREAMBLE = ("A document whose file does not exist yet reads as empty. The first skill "
+                        "that writes to it creates the file at the path its entry names.\n\n")
 PASSING_ORACLE = "import sys\nsys.exit(0)\n"
 FAILING_ORACLE = "import sys\nsys.stderr.write('reconciliation failed\\n')\nsys.exit(1)\n"
 
@@ -397,8 +398,21 @@ class ValidationTest(unittest.TestCase):
         # step's declared `plan` output is never written.
         self.assertIn("plan.json", cases.read_text(
             cases.CASES_DIR / "plan" / "subject-workflow.yaml"))
+        # An unattended run is an obligation of the same kind: a later turn reaches a
+        # subject that has already asked. A workflow whose prompt is `prompt.md`
+        # invokes the skill on that file.
+        self.assertIn(UNATTENDED, cases.read_text(
+            cases.REPO_ROOT / "plugin" / "references" / "unattended-runs.md"))
+        for name in UNATTENDED_CASES:
+            workflow = cases.read_text(cases.CASES_DIR / name / "subject-workflow.yaml")
+            turn = (cases.read_text(cases.CASES_DIR / name / "prompt.md")
+                    if 'prompt: "prompt.md"' in workflow else invoking_turn(name))
+            self.assertIn(UNATTENDED, turn, name)
+        for name in ASKING_CASES:
+            workflow = cases.read_text(cases.CASES_DIR / name / "subject-workflow.yaml")
+            self.assertNotIn(UNATTENDED, workflow, name)
 
-    # Six of the cases carrying an oracle are driven here, for what no check.json
+    # The cases carrying an oracle are driven here, for what no check.json
     # key can assert: a state transition, a branch's isolation, an annotated fix,
     # a deferral filed exactly once.
     # Each is staged from the real case and driven through the states around its
@@ -427,88 +441,28 @@ class ValidationTest(unittest.TestCase):
 
     def edit_story(self, plan_path, story_id="S01", **fields):
         """One story record of a plan.json rewritten in place. Every FIS is a
-        plan story (ADR-013), so this is the single state shape each journey
+        plan story (ADR-003), so this is the single state shape each journey
         oracle reads, and driving it here is how both directions are proved."""
         plan = json.loads(plan_path.read_text(encoding="utf-8"))
         next(s for s in plan["stories"] if s["id"] == story_id).update(fields)
         plan_path.write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
 
-    def reentry_fis(self, workspace, body):
-        """The FIS a re-entry leaves: the staged one with the settled policy
-        integrated into the prose in place of its backoff assumption. Rebuilt from
-        the overlay every time, so each wording starts from the same staged FIS
-        rather than from the last one written."""
-        staged = (cases.CASES_DIR / "spec-reentry" / "overlay" / "docs"
-                  / "specs" / "retry-policy" / "s01-retry-policy.md")
-        lines = staged.read_text(encoding="utf-8").splitlines(True)
-        path = workspace / "docs" / "specs" / "retry-policy" / "s01-retry-policy.md"
-        stage.write(path, "".join(body if REENTRY_MARKER + ":" in line else line
-                                  for line in lines))
-        return path
-
-    def test_spec_reentry_oracle_reads_the_policy_by_meaning_not_by_wording(self):
-        """Re-entry is the settled policy carried in the FIS and the staged legacy
-        `blocked` story rewritten `spec-ready` in the record beside it, and this
-        oracle reads both - the record because it is the state the next skill reads.
-
-        The policy is read by meaning: a FIS that wrote `0.2 s` and `2 ** attempt`
-        settled exactly what one that wrote `200 ms` and `doubling` did, and a
-        literal needle for either spends a live run failing the other. What it must
-        still catch is a term dropped, the backoff still assumed beside the decision,
-        a retired marker written back, and a story left `blocked`."""
-        workspace = self.stage_case("spec-reentry")
-        plan_path = workspace / "docs" / "specs" / "retry-policy" / "plan.json"
-
-        done = self.run_oracle("spec-reentry", workspace)
-        self.assertEqual(1, done.returncode)
-        for missing in ("200 ms base", "doubling growth", "3-retry maximum",
-                        REENTRY_MARKER, "status is 'blocked'"):
-            self.assertIn(missing, done.stderr)
-
-        self.edit_story(plan_path, "S01", status="spec-ready")
-        for body in REENTRY_WORDINGS:
-            self.reentry_fis(workspace, body)
-            done = self.run_oracle("spec-reentry", workspace)
-            self.assertEqual(0, done.returncode, done.stderr)
-
-        fis = self.reentry_fis(workspace, REENTRY_WORDINGS[0].replace("3 retries", "retries"))
-        done = self.run_oracle("spec-reentry", workspace)
-        self.assertEqual(1, done.returncode)
-        self.assertIn("3-retry maximum", done.stderr)
-
-        for regressed, named in (
-                ("  - ASSUMPTION: keep the fixed pause – the decision would change it\n",
-                 REENTRY_MARKER),
-                ("MISSING REQUIREMENT: the backoff policy is undecided\n",
-                 "MISSING REQUIREMENT"),
-                ("Closure: READY\n", "Closure verdict line")):
-            stage.write(fis, REENTRY_WORDINGS[0] + regressed)
-            done = self.run_oracle("spec-reentry", workspace)
-            self.assertEqual(1, done.returncode, regressed)
-            self.assertIn(named, done.stderr)
-
-        self.reentry_fis(workspace, REENTRY_WORDINGS[0])
-        self.edit_story(plan_path, "S01", status="blocked")
-        done = self.run_oracle("spec-reentry", workspace)
-        self.assertEqual(1, done.returncode)
-        self.assertIn("status is 'blocked'", done.stderr)
-
     def spec_end_state(self, workspace, fresh=True, body=CURRENT_FIS, **story):
-        """The state a clean `andthen:spec` run leaves: the FIS, the one-story
-        plan beside it (ADR-013), and the self-review's evidence."""
+        """The state a clean `andthen:plan` run leaves: the FIS, the one-story
+        plan beside it (ADR-003), and the self-review's evidence."""
         spec = workspace / "docs" / "specs" / "label-slug"
         stage.write(spec / "s01-slugify-label.md",
                     "# Slugify Label\n\n**Plan**: docs/specs/label-slug/plan.json\n"
                     "**Story-ID**: S01\n\n" + body)
         stage.write(spec / "plan.json", json.dumps({"schemaVersion": "2", "stories": [dict(
-            {"id": "S01", "status": "spec-ready", "completedTaskIds": [],
+            {"id": "S01", "status": "pending", "completedTaskIds": [],
              "fis": "s01-slugify-label.md"}, **story)]}, indent=2) + "\n")
         stage.write(workspace / "review-evidence.json", json.dumps(
             {"freshContext": fresh, "remediated": False}) + "\n")
 
     def test_spec_oracle_reads_the_end_state_and_the_fresh_review(self):
         """The run ends on its next command, not a grade, so the oracle binds what
-        the next skill reads - the FIS and its spec-ready story - plus evidence
+        the next skill reads - the FIS and its pending story - plus evidence
         that a fresh-context reviewer, not the author, read the FIS."""
         workspace = self.stage_case("spec")
         done = self.run_oracle("spec", workspace)
@@ -529,7 +483,7 @@ class ValidationTest(unittest.TestCase):
         self.spec_end_state(workspace, status="blocked")
         done = self.run_oracle("spec", workspace)
         self.assertEqual(1, done.returncode)
-        self.assertIn("expected 'spec-ready'", done.stderr)
+        self.assertIn("expected 'pending'", done.stderr)
 
         (workspace / "docs" / "specs" / "label-slug" / "plan.json").unlink()
         done = self.run_oracle("spec", workspace)
@@ -579,7 +533,7 @@ class ValidationTest(unittest.TestCase):
 
         def bundle(last_body):
             stage.write(spec / "plan.json", json.dumps({"schemaVersion": "2", "stories": [
-                {"id": sid, "status": "spec-ready", "completedTaskIds": [], "fis": name}
+                {"id": sid, "status": "pending", "completedTaskIds": [], "fis": name}
                 for sid, name in stories]}, indent=2) + "\n")
             for index, (sid, name) in enumerate(stories):
                 stage.write(spec / name,
@@ -597,6 +551,57 @@ class ValidationTest(unittest.TestCase):
             self.assertEqual(1, done.returncode, line)
             self.assertIn(named, done.stderr)
             self.assertIn(stories[-1][1], done.stderr)
+
+    def test_plan_oracle_fails_a_one_story_bundle(self):
+        """The plan PRD holds two capabilities in different modules so that the
+        attended case exercises `plan`'s several-story breakdown: a bundle of one
+        story, otherwise valid, is `plan` taking its one-story branch and fails."""
+        workspace = self.stage_case("plan")
+        spec = workspace / "docs" / "specs" / "amount-filter"
+        stage.write(spec / "plan.json", json.dumps({"schemaVersion": "2", "stories": [
+            {"id": "S01", "status": "pending", "completedTaskIds": [],
+             "fis": "s01-amount-filter.md"}]}, indent=2) + "\n")
+        stage.write(spec / "s01-amount-filter.md",
+                    "# Story\n\n**Plan**: docs/specs/amount-filter/plan.json\n"
+                    "**Story-ID**: S01\n\n" + CURRENT_FIS)
+        done = self.run_oracle("plan", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("1 story, expected at least 2", done.stderr)
+
+    def test_spec_two_stories_oracle_needs_a_bundle_of_two(self):
+        """Two independent requirements in two leaf modules are two stories, so the
+        oracle is the sizing check ADR-020 R3 names: a one-story bundle - `plan`
+        taking its one-story branch - fails, and so does a FIS whose provenance
+        names another story, since executing it would complete the wrong row."""
+        workspace = self.stage_case("spec-two-stories")
+        spec = workspace / "docs" / "specs" / "ledger-hygiene"
+        done = self.run_oracle("spec-two-stories", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("plan.json", done.stderr)
+
+        def bundle(stories, header_ids=None):
+            stage.write(spec / "plan.json", json.dumps({"schemaVersion": "2", "stories": [
+                {"id": sid, "status": "pending", "completedTaskIds": [], "fis": name}
+                for sid, name in stories]}, indent=2) + "\n")
+            for (sid, name), header in zip(stories, header_ids or [s for s, _ in stories]):
+                stage.write(spec / name,
+                            "# Story\n\n**Plan**: docs/specs/ledger-hygiene/plan.json\n"
+                            "**Story-ID**: %s\n\n%s" % (header, CURRENT_FIS))
+
+        two = (("S01", "s01-comment-lines.md"), ("S02", "s02-short-run-labels.md"))
+        bundle(two)
+        done = self.run_oracle("spec-two-stories", workspace)
+        self.assertEqual(0, done.returncode, done.stderr)
+
+        bundle(two[:1])
+        done = self.run_oracle("spec-two-stories", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("1 story, expected at least 2", done.stderr)
+
+        bundle(two, header_ids=("S01", "S01"))
+        done = self.run_oracle("spec-two-stories", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("Story-ID is 'S01', expected 'S02'", done.stderr)
 
     def test_implement_fix_oracle_accepts_an_annotated_fix_and_rejects_the_rest(self):
         """A remediated report is judged by the code and the annotation together:
@@ -658,14 +663,14 @@ class ValidationTest(unittest.TestCase):
     def test_exec_plan_worktree_oracle_needs_both_stories_done_on_executed_proof(self):
         """Two stories ran in parallel worktrees; the checks read the merged tree and
         the git shape, and this oracle reads the two story rows - each done, its one
-        task recorded, and a verified record the run session wrote. Staged, both are
-        spec-ready; both completed passes; one story left behind fails by name."""
+        task recorded, and a verified record the story wrote. Staged, both are
+        pending; both completed passes; one story left behind fails by name."""
         workspace = self.stage_case("exec-plan-worktree")
         plan = workspace / "docs" / "specs" / "run-summary" / "plan.json"
         done = self.run_oracle("exec-plan-worktree", workspace)
         self.assertEqual(1, done.returncode)
-        self.assertIn("story S01 status is 'spec-ready', expected 'done'", done.stderr)
-        self.assertIn("story S02 status is 'spec-ready', expected 'done'", done.stderr)
+        self.assertIn("story S01 status is 'pending', expected 'done'", done.stderr)
+        self.assertIn("story S02 status is 'pending', expected 'done'", done.stderr)
 
         verified = {"at": "2026-09-16T10:00Z", "summary": "fast tier exit 0"}
         for story_id in ("S01", "S02"):
@@ -839,6 +844,113 @@ class ValidationTest(unittest.TestCase):
             self.assertEqual(1, done.returncode)
             self.assertIn("does not record %s" % reply, done.stderr)
 
+    def test_init_oracle_needs_the_index_and_the_commands_and_nothing_else(self):
+        """An existing repository is set up with no question: the Index names every
+        Core document, Key Dev Commands names the repository's own test command, and
+        the other five Core documents wait for their first writer. Either spelling of
+        that command passes - `make test` is the unittest run behind it - while a
+        PRODUCT.md written up front, or no commands document, fails."""
+        workspace = self.stage_case("init")
+        fixture = cases.CASES_DIR / "init" / "fixture"
+        self.assertEqual([], [(p.name, w) for p in fixture.rglob("*") if p.is_file()
+                              for w in cases.named_words(cases.read_text(p),
+                                                         cases.OVERLAY_WORDS)])
+        commands = workspace / "docs" / "KEY_DEVELOPMENT_COMMANDS.md"
+
+        done = self.run_oracle("init", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("no AGENTS.md or CLAUDE.md", done.stderr)
+
+        index = "".join("- **%s** – `docs/%s.md`\n  Read when it applies.\n" % (name, name.upper())
+                        for name in ("Product", "Architecture", "Key Dev Commands",
+                                     "Testing Strategy", "Decisions", "Learnings"))
+        # Every later writer's creation rule lives in the preamble alone, so an init
+        # run that paraphrases it away leaves each first write improvising a shape.
+        stage.write(workspace / "AGENTS.md", "# Tally\n\n## Project Document Index\n\n" + index)
+        stage.write(commands, "# Key Development Commands\n\n## Testing\n\n| fast | `make test` | |\n")
+        done = self.run_oracle("init", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("the Index preamble lost the first-write rule", done.stderr)
+        stage.write(workspace / "AGENTS.md", "# Tally\n\n## Project Document Index\n\n"
+                    + FIRST_WRITE_PREAMBLE + index)
+        for test_row in ("| fast | `make test` | unit tests |",
+                         "| fast | `PYTHONPATH=src python3 -m unittest discover -s tests` | unit |"):
+            stage.write(commands, "# Key Development Commands\n\n## Testing\n\n" + test_row + "\n")
+            done = self.run_oracle("init", workspace)
+            self.assertEqual(0, done.returncode, done.stderr)
+
+        stage.write(workspace / "docs" / "PRODUCT.md", "# Tally\n")
+        done = self.run_oracle("init", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("PRODUCT.md exists before any skill wrote to it", done.stderr)
+        (workspace / "docs" / "PRODUCT.md").unlink()
+
+        stage.write(commands, "# Key Development Commands\n\n## Testing\n\n| fast | `TODO` | |\n")
+        done = self.run_oracle("init", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("does not name the repository's test command", done.stderr)
+        commands.unlink()
+        done = self.run_oracle("init", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("no KEY_DEVELOPMENT_COMMANDS.md", done.stderr)
+
+    def test_init_admits_bytecode_its_own_test_run_leaves(self):
+        """Confirming Key Dev Commands by running `make test` leaves `__pycache__`
+        behind, the fixture has no .gitignore to hide it, and the host blocks the
+        subject's cleanup - so a correct run failed allowedPaths on bytecode alone
+        (2026-09-28). Anything else outside the set still fails."""
+        check, error = cases.load_json(cases.CASES_DIR / "init" / "check.json")
+        self.assertIsNone(error)
+        allowed = {"allowedPaths": check["allowedPaths"]}
+        bytecode = ["AGENTS.md", "src/tally/__pycache__/cli.cpython-312.pyc",
+                    "tests/__pycache__/test_cli.cpython-312.pyc"]
+        self.assertEqual(checks.PASS, checks.evaluate(allowed, self.tmp, bytecode, self.tmp)[0]["status"])
+        stray = checks.evaluate(allowed, self.tmp, bytecode + ["src/tally/cli.py"], self.tmp)
+        self.assertEqual(checks.FAIL, stray[0]["status"])
+
+    def test_init_empty_oracle_reads_the_reply_by_meaning_and_refuses_a_commands_document(self):
+        """An empty repository's one answer is the Project Overview, in the author's
+        words: `pictures` and `capture date` carry the reply `photos` and `the date
+        each one was taken` do. An overview missing either half fails, and so does a
+        Key Dev Commands document, because nothing in the repository declares a
+        command."""
+        workspace = self.stage_case("init-empty")
+        agents = workspace / "AGENTS.md"
+
+        done = self.run_oracle("init-empty", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("no AGENTS.md or CLAUDE.md", done.stderr)
+
+        def overview(text, preamble=FIRST_WRITE_PREAMBLE):
+            stage.write(agents, "# Renamer\n\n## Project Overview\n\n%s\n\n"
+                                "## Project Document Index\n\n%s- **Product** – `docs/PRODUCT.md`\n"
+                        % (text, preamble))
+            return self.run_oracle("init-empty", workspace)
+
+        done = overview("Renames holiday photos by the date each one was taken.", preamble="")
+        self.assertEqual(1, done.returncode)
+        self.assertIn("the Index preamble lost the first-write rule", done.stderr)
+
+        for text in ("A command-line tool that renames holiday photos by the date each one "
+                     "was taken, for one person's photo archive.",
+                     "Renames pictures in a personal archive using their capture date."):
+            done = overview(text)
+            self.assertEqual(0, done.returncode, done.stderr)
+
+        for text, missing in (("A command-line tool that renames files by date.",
+                               "the photos it works on"),
+                              ("A command-line tool for a personal photo archive.",
+                               "the renaming by date")):
+            done = overview(text)
+            self.assertEqual(1, done.returncode)
+            self.assertIn("does not state %s" % missing, done.stderr)
+
+        overview("Renames holiday photos by the date each one was taken.")
+        stage.write(workspace / "docs" / "KEY_DEVELOPMENT_COMMANDS.md", "# Commands\n")
+        done = self.run_oracle("init-empty", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("nothing declares a command", done.stderr)
+
 
 class ValidatePlanScriptTest(unittest.TestCase):
     """`validate_plan.py` is a script that shells out from a case's `check.json`
@@ -916,9 +1028,10 @@ class RunnerTest(unittest.TestCase):
     """Who a cell blames
     after dispatch, and what a maintainer can open afterwards. Every assertion
     drives run.py itself: stage.dispatch and stage.preflight stand in for the two
-    halves that cost money, the run directory is redirected because a cell under
-    the evidence root reads as a maintainer's own run, and nothing else is
-    doubled - a fix proved against a re-implementation is not proved."""
+    halves that cost money, the run directory and its landing are redirected
+    because a cell under the evidence root reads as a maintainer's own run, and
+    nothing else is doubled - a fix proved against a re-implementation is not
+    proved."""
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
@@ -955,7 +1068,7 @@ class RunnerTest(unittest.TestCase):
                     json.dumps({"data": data}))
 
     def drive(self, check, subject=lambda workspace: None, record=record(),
-              outputs=None, dispatched=None, judge=None, kv=None):
+              outputs=None, dispatched=None, judge=None, kv=None, dartclaw=None):
         """One cell through run.run_cell. `subject` leaves behind what the
         dispatched subject would have, `outputs` is the context it wrote, `judge`
         is how the judge step settled (`answer`, and `status`/`session` when they
@@ -969,7 +1082,7 @@ class RunnerTest(unittest.TestCase):
             stage.write(run / "stdout.jsonl", record)
             stage.write(run / "stderr.log", "")
             if kv is not None:
-                stage.write(run / "data" / "kv.json", json.dumps(kv))
+                stage.write(run / "data" / "standalone" / "kv.json", json.dumps(kv))
             data = dict(outputs or {})
             self.context(run, data)
             subject(workspace)
@@ -985,9 +1098,10 @@ class RunnerTest(unittest.TestCase):
 
         with mock.patch.object(cases, "CASES_DIR", case.parent), \
                 mock.patch.object(stage, "new_run_dir", lambda c, p: self.run_dir()), \
+                mock.patch.object(stage, "land", lambda run: run), \
                 mock.patch.object(stage, "preflight", lambda providers: ""), \
                 mock.patch.object(stage, "dispatch", dispatch):
-            return runner.run_cell("synthetic", "claude", "default", PROFILE)
+            return runner.run_cell("synthetic", "claude", "default", PROFILE, dartclaw)
 
     def test_candidate_satisfies_its_manifests(self):
         """The staged manifests are what registers the candidate for Codex, and a
@@ -1006,14 +1120,14 @@ class RunnerTest(unittest.TestCase):
 
         # Registration enables the one plugin and materializes it in the Codex
         # cache, where DartClaw looks; staging its files alone evaluates nothing.
-        # A Claude cell gets whichever plugins the operator has enabled.
+        # A Claude cell registers the same candidate through its provider settings.
         stage.register_codex(run)
         config = (run / "data" / "credentials" / "codex" / "config.toml").read_text(encoding="utf-8")
         self.assertIn('[plugins."andthen@andthen"]', config)
         self.assertIn('[projects."', config)
         cache = run / "data" / "credentials" / "codex" / "plugins" / "cache" / "andthen"
         self.assertTrue(next((cache / "andthen").iterdir())
-                        .joinpath("skills", "spec", "SKILL.md").is_file())
+                        .joinpath("skills", "plan", "SKILL.md").is_file())
 
     def test_both_role_defaults_and_both_providers_are_configured(self):
         """Every subject workflow pins `@workflow` and the appended tail pins
@@ -1050,8 +1164,8 @@ class RunnerTest(unittest.TestCase):
         """The judge step spawns `claude` under the empty HOME dispatch_env gives
         a Codex cell, so the bare CLI would report `Not logged in`. A Codex cell's
         config names a wrapper script instead, which execs the real binary with
-        the operator's HOME restored; a Claude cell still names the real binary,
-        since it dispatches in the operator's own environment already."""
+        the operator's HOME restored; a Claude cell's wrapper leaves HOME alone,
+        since it dispatches with the operator's HOME already."""
         run = self.run_dir()
         stage.write_config(run / "dartclaw.yaml", run, run / "workspace",
                            {"provider": "codex", "model": "gpt-5.6-luna", "effort": "high"},
@@ -1067,86 +1181,136 @@ class RunnerTest(unittest.TestCase):
                          if l.startswith("exec "))
         self.assertIn("HOME=%s" % os.environ.get("HOME", ""), exec_line)
 
-        # A Claude cell dispatches in the operator's own environment already, so
-        # DartClaw's auth gate sees a real HOME and needs no bypass.
+        # A Claude cell dispatches with the operator's HOME already, so
+        # DartClaw's auth gate sees a real one and needs no bypass.
         stage.write_config(run / "dartclaw.yaml", run, run / "workspace",
                            {"provider": "claude", "model": "claude-opus-5", "effort": "high"},
                            {"provider": "claude", "model": "claude-opus-5", "effort": "high"})
         config = (run / "dartclaw.yaml").read_text(encoding="utf-8")
-        self.assertIn("  claude:\n    executable: %s\n"
-                      % (shutil.which("claude") or "claude"), config)
+        self.assertIn("  claude:\n    executable: %s\n" % wrapper, config)
         self.assertNotIn("credentials_required", config)
+        self.assertNotIn("HOME=", wrapper.read_text(encoding="utf-8"))
 
-    def test_a_claude_cell_dispatches_in_the_operators_own_environment(self):
-        """What the corpus measures is the plugin as a user runs it, so a Claude
-        cell hands DartClaw the parent environment whole: the operator's settings,
-        memory, agents, MCP servers and installed candidate all reach the subject,
-        and a redirected HOME would take every one of them away. Codex cannot
-        follow - DartClaw builds the CODEX_HOME it pins from the operator's
-        ~/.codex, so a Codex cell keeps its own HOME and the candidate it
-        registered stands alone."""
+    def test_claude_wrapper_preserves_paths_and_forwarded_arguments(self):
+        """Candidate loading and restored login paths survive shell parsing;
+        quoted path characters never split argv or become shell syntax."""
+        for suffix in (" with spaces", " 'quoted' $HOME; & (literal)"):
+            for restore_home, config_set in ((False, True), (True, True), (True, False)):
+                with self.subTest(suffix=suffix, restore_home=restore_home,
+                                  config_set=config_set):
+                    run = self.tmp / ("run" + suffix)
+                    run.mkdir(exist_ok=True)
+                    executable = self.tmp / ("fake claude" + suffix)
+                    executable.write_text(
+                        "#!%s\nimport json, os, sys\n"
+                        "print(json.dumps({'argv': sys.argv[1:], 'home': os.environ['HOME'], "
+                        "'config': os.environ.get('CLAUDE_CONFIG_DIR')}))\n" % sys.executable,
+                        encoding="utf-8")
+                    executable.chmod(0o755)
+                    home, config = "home" + suffix, "config" + suffix
+                    with mock.patch.dict(os.environ, {"HOME": home}, clear=False), \
+                            mock.patch.object(stage.shutil, "which", return_value=str(executable)):
+                        if config_set:
+                            os.environ["CLAUDE_CONFIG_DIR"] = config
+                        else:
+                            os.environ.pop("CLAUDE_CONFIG_DIR", None)
+                        wrapper = stage._claude_wrapper(run, restore_home)
+                    forwarded = ["--version", "argument with spaces", "'literal' $HOME; &"]
+                    environment = dict(os.environ, HOME="dispatch home",
+                                       CLAUDE_CONFIG_DIR="dispatch config")
+                    result = subprocess.run([str(wrapper)] + forwarded, env=environment,
+                                            capture_output=True, text=True)
+                    self.assertEqual(0, result.returncode, result.stderr)
+                    self.assertEqual({
+                        "argv": ["--plugin-dir", str(run / "candidate" / "plugin")] + forwarded,
+                        "home": home if restore_home else "dispatch home",
+                        "config": (config if config_set else None) if restore_home else "dispatch config",
+                    }, json.loads(result.stdout))
+
+    def test_a_claude_cell_runs_the_candidate_without_the_operators_settings(self):
+        """A subject that loaded the operator's ~/.claude/CLAUDE.md and output
+        style was measured under the operator's rules, not the plugin's (2026-09-24 plan
+        cells). The environment still passes whole, because the login resolves
+        from it; `inherit_user_settings: false` is what keeps user settings,
+        memory and MCP servers out. The staged snapshot comes in as the
+        `--plugin-dir` of the executable DartClaw spawns, because its skill
+        preflight shares nothing else with the steps: registered through
+        `settings`, the plugin was missing there and the run refused before
+        its first step. Codex cannot take the same route - DartClaw builds the
+        CODEX_HOME it pins from the operator's ~/.codex, so a Codex cell gets
+        its own HOME."""
         run = self.run_dir()
         self.assertEqual(dict(os.environ), stage.dispatch_env(run, "claude"))
         codex = stage.dispatch_env(run, "codex")
         self.assertEqual(str(run / "home"), codex["HOME"])
         self.assertEqual(str(run / "provider"), codex["CODEX_HOME"])
 
-    def test_a_claude_cell_records_the_plugin_it_actually_ran(self):
-        """Running in the operator's environment means running his installed
-        plugin, not this working tree: a cell recorded `installedHead 2cd88e7`,
-        an object that does not exist in this repo, while the install directory
-        was byte-identical to the tree's plugin/. That sha is Claude Code's own
-        bookkeeping, not this repo's, so staleness is decided by content: the
-        install directory against the tree's plugin/, ignoring OS/lock files.
-        The note fires only on a content mismatch or an unreadable manifest -
-        never for Codex, whose cell registers a snapshot of the tree."""
-        repo = pathlib.Path(tempfile.mkdtemp(dir=str(self.tmp)))
-        source = repo / "plugin"
-        (source / "skills").mkdir(parents=True)
-        (source / "skills" / "a.md").write_text("alpha", encoding="utf-8")
+        seat = {"provider": "claude", "model": "claude-opus-5", "effort": "high"}
+        stage.write_config(run / "dartclaw.yaml", run, run / "workspace", seat, seat)
+        config = (run / "dartclaw.yaml").read_text(encoding="utf-8")
+        self.assertIn("    inherit_user_settings: false\n", config)
+        self.assertNotIn("inherit_user_settings: true", config)
+        self.assertIn("  claude:\n    executable: %s\n" % (run / "claude"), config)
+        exec_line = next(l for l in (run / "claude").read_text(encoding="utf-8").splitlines()
+                         if l.startswith("exec "))
+        self.assertIn("--plugin-dir %s " % (run / "candidate" / "plugin"), exec_line)
+        # The skill's references are read from the snapshot, never from ~/.claude.
+        self.assertIn("        - %s\n" % (run / "candidate" / "plugin"), config)
+        self.assertNotIn(".claude/plugins", config)
 
-        plugins = pathlib.Path(tempfile.mkdtemp(dir=str(self.tmp)))
-        entry = {"scope": "user", "installPath": str(plugins / "cache" / "andthen"),
-                 "gitCommitSha": "2cd88e7000000000000000000000000000000000"}
-        stage.write(plugins / "installed_plugins.json", json.dumps(
-            {"version": 2, "plugins": {"andthen@andthen": [entry],
-                                       "other@elsewhere": [dict(entry, gitCommitSha="dead")]}}))
+    def test_a_cell_runs_outside_the_repo_and_lands_under_the_evidence_root(self):
+        """Claude loads every CLAUDE.md above its working directory, so a
+        workspace under .agent_temp/evals/ handed the subject this repo's own
+        CLAUDE.md and CLAUDE.local.md. A cell runs under STAGING, with nothing
+        of it inside the repo, and lands under the evidence root when it ends,
+        where a maintainer reads it as before. A cell killed mid-run never
+        lands itself; the sweep lands it once two walls have passed, so its
+        evidence survives and its token is cleared, and leaves a younger one
+        alone because it may belong to a tier running in another terminal."""
+        staging, evidence = self.tmp / "staging", self.tmp / "evidence"
+        with mock.patch.object(stage, "STAGING", staging), \
+                mock.patch.object(stage, "EVIDENCE", evidence):
+            run = stage.new_run_dir("a-case", "claude")
+            self.assertEqual(staging / "a-case" / "claude", run.parent)
+            stage.write(run / "result.json", "{}")
+            landed = stage.land(run)
+            self.assertEqual(evidence / "a-case" / "claude" / run.name, landed)
+            self.assertTrue((landed / "result.json").is_file())
+            self.assertFalse(run.exists())
 
-        # Identical content, extra OS/lock artifacts ignored: no note.
-        install = pathlib.Path(entry["installPath"])
-        (install / "skills").mkdir(parents=True)
-        (install / "skills" / "a.md").write_text("alpha", encoding="utf-8")
-        (install / ".DS_Store").write_text("junk", encoding="utf-8")
-        (install / ".in_use").write_text("lock", encoding="utf-8")
-        with mock.patch.object(stage, "CLAUDE_PLUGINS", plugins), \
-             mock.patch.object(runner.cases, "REPO_ROOT", repo):
-            candidate = runner._candidate()
-        self.assertEqual(entry["gitCommitSha"], candidate["installedHead"])
-        self.assertEqual(entry["installPath"], candidate["installPath"])
-        self.assertTrue(candidate["installMatches"])
-        cell = {"case": "spec", "provider": "claude", "candidate": candidate}
-        self.assertIsNone(runner._install_note(cell))
-        self.assertIsNone(runner._install_note(dict(cell, provider="codex")))
+            now = time.mktime(time.strptime("20260918T120000", stage.STAMP_TIME))
+            killed, live = (staging / "a-case" / "codex" / name for name in
+                            ("20260917T100000-00000001", "20260918T100000-00000002"))
+            for cell in (killed, live):
+                stage.write(cell / "data" / "credentials" / "codex" / "auth.json", "{}")
+            stage.sweep(now=now)
+            recovered = evidence / "a-case" / "codex" / killed.name
+            self.assertTrue((recovered / "data").is_dir())
+            self.assertFalse((recovered / "data" / "credentials").exists())
+            self.assertTrue((live / "data" / "credentials" / "codex" / "auth.json").is_file())
+        self.assertNotIn(stage.REPO_ROOT, stage.STAGING.parents)
 
-        # One differing byte: the note fires.
-        (install / "skills" / "a.md").write_text("beta", encoding="utf-8")
-        with mock.patch.object(stage, "CLAUDE_PLUGINS", plugins), \
-             mock.patch.object(runner.cases, "REPO_ROOT", repo):
-            candidate = runner._candidate()
-        self.assertFalse(candidate["installMatches"])
-        self.assertEqual(
-            "installed plugin differs from the working tree's plugin/ - "
-            "a Claude cell measures the install",
-            runner._install_note(dict(cell, candidate=candidate)))
+    def test_a_claude_workspace_carries_the_role_agents_in_its_baseline(self):
+        """User settings no longer reach a Claude subject, and neither do the
+        role agents `init` installs under ~/.claude/agents; without a `reviewer`
+        role, critics ran as general-purpose at high effort. The candidate's own
+        definitions are committed as project agents, the one scope project-only
+        setting sources load, so the diff the checks weigh is the subject's
+        alone. A Codex cell reads no .claude/ directory and gets none."""
+        run = self.run_dir()
+        stage.stage_candidate(run)
+        case = self.make_case({})
+        roles = sorted(p.name for p in (stage.REPO_ROOT / stage.ROLES).iterdir())
+        self.assertIn("reviewer.md", roles)
 
-        # No manifest is not "the tree is what ran": it is not knowing.
-        with mock.patch.object(stage, "CLAUDE_PLUGINS", plugins / "gone"), \
-             mock.patch.object(runner.cases, "REPO_ROOT", repo):
-            candidate = runner._candidate()
-        self.assertIsNone(candidate["installedHead"])
-        self.assertIsNone(candidate["installMatches"])
-        self.assertEqual("installed plugin unknown",
-                         runner._install_note(dict(cell, candidate=candidate)))
+        workspace = stage.stage_workspace(run, case, roles=True)
+        agents = workspace / ".claude" / "agents"
+        self.assertEqual(roles, sorted(p.name for p in agents.iterdir()))
+        self.assertEqual("", stage.git(workspace, "status", "--porcelain"))
+
+        other = self.run_dir()
+        stage.stage_candidate(other)
+        self.assertFalse((stage.stage_workspace(other, case) / ".claude").exists())
 
     def test_check_level_error_sets_error(self):
         """A check that could not run leaves result.json saying only
@@ -1217,6 +1381,7 @@ class RunnerTest(unittest.TestCase):
 
         with mock.patch.object(cases, "CASES_DIR", case.parent), \
                 mock.patch.object(stage, "new_run_dir", lambda c, p: run), \
+                mock.patch.object(stage, "land", lambda run: run), \
                 mock.patch.object(stage, "preflight", lambda providers: ""), \
                 mock.patch.object(stage, "dispatch", dispatch):
             cell, run_out = runner.run_cell("synthetic", "claude", "default", PROFILE)
@@ -1285,7 +1450,7 @@ class RunnerTest(unittest.TestCase):
 
     def test_a_failing_check_still_gets_a_verdict_and_still_fails_the_cell(self):
         """The cheapest layer must not veto the most valuable one: three live
-        `spec-reentry` runs failed one wording check with the skill
+        runs of a since-retired case failed one wording check with the skill
         correct, and with no criteria beside it "the case is miscalibrated" and
         "the skill regressed" read identically. Criteria are not an appeal
         either - the cell passes only when checks and criteria both do - and the
@@ -1577,7 +1742,7 @@ class RunnerTest(unittest.TestCase):
             "\"Ran 4 tests in 0.003s / OK\"", double_escaped))
 
     def test_a_committed_story_is_still_the_subjects_diff(self):
-        """exec-spec commits its story with a plain `git commit`, staged by path; a diff from HEAD
+        """exec-plan commits its story with a plain `git commit`, staged by path; a diff from HEAD
         then showed the judge only the state written around the commit and no
         implementation, and the path checks never saw the committed files."""
         case = self.make_case({})
@@ -1609,11 +1774,13 @@ class RunnerTest(unittest.TestCase):
         order so a row is found where it was requested. A barrier both cells
         must reach proves they overlapped; a pool of one would wait forever."""
         barrier = threading.Barrier(2, timeout=10)
-        seen = []
+        seen, binaries = [], []
+        resolved = {"path": "/bin/dartclaw-workflow", "version": "0.26.2", "error": None}
 
-        def run_cell(case, provider, profile_name, profile):
+        def run_cell(case, provider, profile_name, profile, dartclaw):
             barrier.wait()
             seen.append(case)
+            binaries.append(dartclaw)
             return {"case": case, "provider": provider, "outcome": "PASS", "error": None}, None
 
         smoke = ("b-case", "a-case")
@@ -1622,14 +1789,18 @@ class RunnerTest(unittest.TestCase):
         # evidence root, and it runs once, before any cell has a directory there.
         with mock.patch.object(runner, "run_cell", run_cell), \
                 mock.patch.object(stage, "sweep", lambda: seen.append("sweep")), \
+                mock.patch.object(stage, "dartclaw_binary",
+                                  lambda: seen.append("resolve") or resolved), \
                 mock.patch.object(cases, "SMOKE", smoke), \
                 mock.patch.object(cases, "discover", lambda: sorted(smoke)), \
                 contextlib.redirect_stdout(stdout):
             # A case named twice, once by the tier and once by name, runs once.
             code = runner.main(["smoke", "a-case", "--provider", "claude", "--jobs", "2"])
         self.assertEqual(0, code)
-        self.assertEqual("sweep", seen[0])
-        self.assertEqual(sorted(smoke), sorted(seen[1:]))
+        # The binary is resolved once for the tier, and every cell records it.
+        self.assertEqual(["sweep", "resolve"], seen[:2])
+        self.assertEqual(sorted(smoke), sorted(seen[2:]))
+        self.assertEqual([resolved, resolved], binaries)
         rows = [line.split(" | ")[0] for line in stdout.getvalue().splitlines()[1:3]]
         self.assertEqual(list(smoke), rows)
         self.assertIn("2 cell(s) in", stdout.getvalue())
@@ -1660,6 +1831,19 @@ class RunnerTest(unittest.TestCase):
             self.assertFalse((run / "data" / "credentials").exists())
             self.assertTrue((run / "result.json").is_file())
 
+    def test_clear_credentials_keeps_codex_rollouts(self):
+        """The rollout under `sessions/` is the only record of a Codex cell's tool
+        calls; clearing the credentials tree must not take it with the token."""
+        run = self.run_dir()
+        stage.write(run / "data" / "credentials" / "codex" / "auth.json", "{}")
+        rollout = run / "data" / "credentials" / "codex" / "sessions" / "2026" / "x.jsonl"
+        stage.write(rollout, "{}")
+
+        stage.clear_credentials(run)
+
+        self.assertTrue((run / "data" / "codex-sessions" / "2026" / "x.jsonl").is_file())
+        self.assertFalse((run / "data" / "credentials").exists())
+
     def test_the_sweep_keeps_the_newest_cells_and_clears_a_killed_cells_token(self):
         """A killed cell never ran its teardown, which left 23 live tokens under
         the evidence root; the sweep clears one only when two walls have passed,
@@ -1674,7 +1858,8 @@ class RunnerTest(unittest.TestCase):
             stage.write(cells / name / "result.json", "{}")
         stage.write(cells.parent / ".DS_Store", "")
 
-        stage.sweep(self.tmp / "evidence", now=now)
+        with mock.patch.object(stage, "STAGING", self.tmp / "staging"):
+            stage.sweep(self.tmp / "evidence", now=now)
 
         kept = sorted(p.name for p in cells.iterdir())
         self.assertEqual(stamps[-stage.KEEP:] + ["aborted-20260901T100000"], kept)
@@ -1684,6 +1869,32 @@ class RunnerTest(unittest.TestCase):
         self.assertFalse((cells / stamps[-2] / "data" / "credentials").exists())
         self.assertTrue((cells / stamps[-2] / "result.json").is_file())
         self.assertTrue((cells / "aborted-20260901T100000" / token).is_file())
+
+    def test_two_tiers_started_together_sweep_the_same_killed_cell(self):
+        """Concurrent invocations are how a case is repeated, and each sweeps at
+        its start, so two of them land the same killed cell: both crashed in the
+        sweep when one found the cell, or its rollouts, already moved. Every move
+        here is raced by the other tier's, which gets there first."""
+        now = time.mktime(time.strptime("20260918T120000", stage.STAMP_TIME))
+        staging, evidence = self.tmp / "staging", self.tmp / "evidence"
+        killed = staging / "a-case" / "codex" / "20260917T100000-00000001"
+        home = killed / "data" / "credentials" / "codex"
+        stage.write(home / "auth.json", "{}")
+        stage.write(home / "sessions" / "x.jsonl", "{}")
+        move = shutil.move
+
+        def raced(src, dst):
+            move(src, dst)
+            return move(src, dst)
+
+        with mock.patch.object(stage, "STAGING", staging), \
+                mock.patch.object(shutil, "move", raced):
+            stage.sweep(evidence, now=now)
+
+        landed = evidence / "a-case" / "codex" / killed.name
+        self.assertFalse(killed.exists())
+        self.assertTrue((landed / "data" / "codex-sessions" / "x.jsonl").is_file())
+        self.assertFalse((landed / "data" / "credentials").exists())
 
     def test_the_report_names_a_smoke_cell_over_the_bar(self):
         """One long cell is the whole tier's wall, so a smoke cell over the bar
@@ -1731,6 +1942,60 @@ class RunnerTest(unittest.TestCase):
 
         cell, _ = self.drive({}, outputs={"s1.sessionId": "subj-2"})
         self.assertEqual({"subject": None, "judge": None}, cell["tokens"])
+
+    def test_session_records_read_from_either_dartclaw_layout(self):
+        """DartClaw 0.27.1 moved the session records under data/standalone/, and
+        the readers missed it silently: every judge got an empty transcript and
+        every cost row read `none`, so a whole live tier proved nothing. Cells
+        retained before the move keep the legacy path and must still read."""
+        message = {"role": "assistant", "content": "SURFACED: two findings"}
+        cost = {"session_cost:s1": {"value": json.dumps({"effective_tokens": 7})}}
+        for root in (("data", "standalone"), ("data",)):
+            with self.subTest("/".join(root)):
+                run = self.run_dir()
+                base = run.joinpath(*root)
+                stage.write(base / "sessions" / "s1" / "messages.ndjson",
+                            json.dumps({"role": "user", "content": "go"}) + "\n"
+                            + json.dumps(message) + "\n")
+                stage.write(base / "kv.json", json.dumps(cost))
+                self.assertEqual([message["content"]], stage.assistant_messages(run, "s1"))
+                self.assertEqual(7, stage.session_cost(run, "s1")["effective"])
+
+    def test_the_dartclaw_binary_and_version_land_in_result_json(self):
+        """No cell recorded which `dartclaw-workflow` ran, so diagnosing a
+        DartClaw race meant reconstructing the binary afterwards. A version that
+        cannot be read is recorded as null with its cause and never fails the
+        cell, because the cell's outcome is about the subject."""
+        bin_dir = self.tmp / "bin"
+        fake = bin_dir / "dartclaw-workflow"
+
+        def resolve(script):
+            stage.write(fake, "#!/bin/sh\n" + script)
+            fake.chmod(0o755)
+            with mock.patch.dict(os.environ, {"PATH": str(bin_dir)}):
+                return stage.dartclaw_binary()
+
+        dartclaw = resolve("echo 0.26.2\n")
+        self.assertEqual({"path": str(fake), "version": "0.26.2", "error": None}, dartclaw)
+        cell, run = self.drive({"commands": ["exit 0"]}, judge={"answer": JUDGE_PASS},
+                               dartclaw=dartclaw)
+        self.assertEqual("PASS", cell["outcome"])
+        written = json.loads((run / "result.json").read_text(encoding="utf-8"))
+        self.assertEqual(dartclaw, written["dartclaw"])
+
+        broken = resolve("echo 'no such flag' >&2\nexit 64\n")
+        self.assertEqual({"path": str(fake), "version": None,
+                          "error": "exit 64: no such flag"}, broken)
+        cell, run = self.drive({"commands": ["exit 0"]}, judge={"answer": JUDGE_PASS},
+                               dartclaw=broken)
+        self.assertEqual("PASS", cell["outcome"])
+        self.assertIsNone(cell["error"])
+        written = json.loads((run / "result.json").read_text(encoding="utf-8"))
+        self.assertEqual(broken, written["dartclaw"])
+
+        with mock.patch.dict(os.environ, {"PATH": str(self.tmp / "empty")}):
+            self.assertEqual({"path": None, "version": None, "error": "unresolved on PATH"},
+                             stage.dartclaw_binary())
 
     def test_worktree_escape_is_error_not_fail(self):
         """Artifacts left in a DartClaw worktree mean --inline did not

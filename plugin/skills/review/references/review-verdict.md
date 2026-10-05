@@ -37,7 +37,7 @@ Severity counts plus a readiness label:
 
 ### Security mode (`--mode security`)
 
-The code-mode scale, so the mixed-mode ladder below covers it without a second vocabulary: LOW/MEDIUM items are hardening and defense-in-depth opportunities, a failing load-bearing security scanner is `Blocked`. Severity is calibrated by exposure tier, so the same defect at different exposure levels can land at different readiness verdicts.
+The code-mode scale: LOW/MEDIUM items are hardening and defense-in-depth opportunities, a failing load-bearing security scanner is `Blocked`.
 
 ### Outcome mode (`--mode outcome`)
 

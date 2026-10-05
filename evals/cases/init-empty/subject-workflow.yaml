@@ -1,0 +1,31 @@
+name: andthen-init-empty-subject
+description: Set up an empty repository, answering the one question inline.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: init
+    name: Set up the empty repository
+    skill: andthen:init
+    prompt:
+      - >-
+        Set up AndThen in this repository.
+      - >-
+        It is a command-line tool that renames holiday photos by the date each
+        one was taken, for my own photo archive. Take that as the answer to what
+        you asked, finish the setup, and end on your closing summary.
+    outputs:
+      summary:
+        format: text
+      questions_asked:
+        format: json
+        schema:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [question, anythingWrittenBefore]
+            properties:
+              question: {type: string}
+              anythingWrittenBefore: {type: boolean}

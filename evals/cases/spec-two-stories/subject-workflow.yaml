@@ -1,0 +1,45 @@
+name: andthen-spec-two-stories-subject
+description: Author the committed two-requirement PRD, unattended, into a plan bundle.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: spec
+    name: Author the bundle
+    skill: andthen:plan
+    prompt:
+      - >-
+        --auto docs/specs/ledger-hygiene
+
+        Leave docs/specs/ledger-hygiene/prd.md unchanged, and return the
+        workspace-relative plan.json path.
+    outputs:
+      plan:
+        format: text
+      dispatch_evidence:
+        format: json
+        schema:
+          type: object
+          additionalProperties: false
+          required: [storyAuthors, bundleReview]
+          properties:
+            storyAuthors:
+              type: array
+              description: One entry per FIS, naming who wrote it.
+              items:
+                type: object
+                additionalProperties: false
+                required: [story, freshSubagent, invocation]
+                properties:
+                  story: {type: string}
+                  freshSubagent: {type: boolean}
+                  invocation: {type: string, description: The skill and arguments the author ran.}
+            bundleReview:
+              type: object
+              additionalProperties: false
+              required: [freshSubagent, afterEveryFis, roster]
+              properties:
+                freshSubagent: {type: boolean}
+                afterEveryFis: {type: boolean}
+                roster: {type: array, items: {type: string}, description: The FIS files the review read.}

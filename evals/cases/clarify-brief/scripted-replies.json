@@ -1,0 +1,4 @@
+[
+  {"topic": "same report or separate file", "reply": "Not appended: write the totals to a second file beside the report, so the report's existing readers are untouched."},
+  {"topic": "anything else in the source", "reply": "The rest of the source stands as written."}
+]

@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Visualize"
+  short_description: "Draw an AndThen artifact as a self-contained HTML page with SVG figures, checked by rendering it"
+  default_prompt: "Draw this AndThen artifact as one self-contained HTML page with inline SVG figures, rendered and looked at before it is shown. Artifact and what the page should bring out: "
+
+policy:
+  allow_implicit_invocation: true

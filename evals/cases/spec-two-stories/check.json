@@ -1,0 +1,11 @@
+{
+  "requiredArtifacts": ["docs/specs/ledger-hygiene/plan.json"],
+  "forbiddenArtifacts": ["**/intent.md"],
+  "allowedPaths": ["docs/specs/ledger-hygiene/**", "docs/LEARNINGS.md",
+                   "docs/TECH-DEBT-BACKLOG.md", ".agent_temp/**"],
+  "commands": [
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/ledger-hygiene/plan.json",
+    "git diff HEAD --exit-code --name-only -- docs/specs/ledger-hygiene/prd.md 1>&2"
+  ],
+  "oracle": "oracle.py"
+}

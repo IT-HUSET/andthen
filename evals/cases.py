@@ -38,7 +38,7 @@ PROVIDER_CHOICES = PROVIDERS + ("both",)
 # Claude-only, so `full` on Codex is `smoke`.
 SMOKE = ("implement-fix", "implement-fix-intent", "implement-fix-request",
          "now-what-active-plan", "now-what-uninitialized", "review-quick",
-         "spec-active-protected", "spike-isolation")
+         "spike-isolation")
 SMOKE_SECONDS = 300
 TIERS = ("smoke", "full")
 

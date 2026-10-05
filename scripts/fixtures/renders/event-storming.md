@@ -6,23 +6,10 @@ One pivotal event – `SessionIssued` – separates credential handling from eve
 
 ## Event Timeline
 
-- `CredentialsSubmitted`
-- `CredentialsValidated`
-- `SessionIssued` (pivotal)
-- `SignInRecorded`
-
-## Commands and Actors
-
-| Command | Actor |
-|---|---|
-| Submit credentials | Visitor |
-| Issue session | Sign-in handler |
-| Record sign-in | Audit writer |
-
-## Policies and Read Models
-
-- **Policy**: whenever `SessionIssued`, record the attempt.
-- **Read model**: recent sign-ins per user, built from `SignInRecorded`.
+- `CredentialsSubmitted` – Visitor
+- `CredentialsValidated` – Sign-in handler
+- `SessionIssued` (pivotal) – Sign-in handler
+- `SignInRecorded` – Audit writer
 
 ## Hotspots
 

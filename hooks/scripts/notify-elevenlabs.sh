@@ -1,10 +1,13 @@
 #!/bin/bash
 set -uo pipefail
 
-# ElevenLabs TTS Completion Notification (Stop + Notification events)
+# ElevenLabs TTS Completion Notification (UserPromptSubmit + Stop + Notification events)
 # Voice notification when Claude finishes or needs attention.
 # Requires: ELEVENLABS_API_KEY env var, curl, afplay (macOS) or aplay (Linux)
 # Always exits 0 – notifications must never block Claude.
+
+# The nested `claude -p` below runs the user's hooks too; it must not announce itself.
+[[ -n "${CLAUDE_TTS_NOTIFY_NESTED:-}" ]] && exit 0
 
 umask 077
 
@@ -16,11 +19,11 @@ INPUT=$(cat)
 if command -v jq &>/dev/null; then
   EVENT=$(echo "$INPUT" | jq -r '.hook_event_name // empty' 2>/dev/null)
   RAW_SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty' 2>/dev/null)
-  MATCHER=$(echo "$INPUT" | jq -r '.matched_hook.matcher // empty' 2>/dev/null)
+  NOTIFICATION_TYPE=$(echo "$INPUT" | jq -r '.notification_type // empty' 2>/dev/null)
 else
   EVENT=$(echo "$INPUT" | grep -o '"hook_event_name"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*"hook_event_name"[[:space:]]*:[[:space:]]*"//;s/".*//')
   RAW_SESSION_ID=$(echo "$INPUT" | grep -o '"session_id"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*"session_id"[[:space:]]*:[[:space:]]*"//;s/".*//')
-  MATCHER=$(echo "$INPUT" | grep -o '"matcher"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*"matcher"[[:space:]]*:[[:space:]]*"//;s/".*//')
+  NOTIFICATION_TYPE=$(echo "$INPUT" | grep -o '"notification_type"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*"notification_type"[[:space:]]*:[[:space:]]*"//;s/".*//')
 fi
 
 SESSION_ID=$(echo "$RAW_SESSION_ID" | tr -cd 'a-zA-Z0-9_-')
@@ -28,20 +31,19 @@ SESSION_ID=$(echo "$RAW_SESSION_ID" | tr -cd 'a-zA-Z0-9_-')
 
 TMPBASE="${TMPDIR:-/tmp}"
 DEBOUNCE_FILE="$TMPBASE/claude-tts-notify-last-$SESSION_ID"
-START_FILE="$TMPBASE/claude-tts-session-start-$SESSION_ID"
+TURN_FILE="$TMPBASE/claude-tts-notify-turn-$SESSION_ID"
 NOW=$(date +%s)
 
-# Record session start on first invocation
-if [[ ! -f "$START_FILE" ]] || [[ -L "$START_FILE" ]]; then
-  [[ -L "$START_FILE" ]] && exit 0
-  echo "$NOW" > "$START_FILE"
+# UserPromptSubmit only stamps the turn start for the Stop check below
+if [[ "$EVENT" == "UserPromptSubmit" ]]; then
+  [[ -L "$TURN_FILE" ]] || echo "$NOW" > "$TURN_FILE"
+  exit 0
 fi
 
-# Session duration check (Stop only) – suppress if < 30s
-if [[ "$EVENT" == "Stop" ]]; then
-  START_TIME=$(cat "$START_FILE" 2>/dev/null || echo "$NOW")
-  ELAPSED=$(( NOW - START_TIME ))
-  [[ "$ELAPSED" -lt 30 ]] && exit 0
+# Stop after a turn under 30s – the user is likely still watching
+if [[ "$EVENT" == "Stop" ]] && [[ -f "$TURN_FILE" ]] && [[ ! -L "$TURN_FILE" ]]; then
+  START_TIME=$(cat "$TURN_FILE" 2>/dev/null || echo "0")
+  [[ $(( NOW - START_TIME )) -lt 30 ]] && exit 0
 fi
 
 # Debounce: skip if notified within last 5 seconds
@@ -71,7 +73,7 @@ case "$EVENT" in
     FALLBACK="Claude has finished responding"
     ;;
   Notification)
-    case "$MATCHER" in
+    case "$NOTIFICATION_TYPE" in
       *permission_prompt*)
         PROMPT="Generate a short, fun spoken notification (max 10 words) asking the user to approve something. Vary the phrasing each time. Reply with only the message, no quotes."
         FALLBACK="Claude needs your approval"
@@ -99,7 +101,7 @@ _tts_notify() {
   local MESSAGE="$2"
   if command -v claude &>/dev/null; then
     local GENERATED
-    GENERATED=$(CLAUDECODE="" claude --model claude-haiku-4-5-20251001 --no-session-persistence -p "$1" 2>/dev/null | head -1 | tr -d '\"`')
+    GENERATED=$(CLAUDE_TTS_NOTIFY_NESTED=1 CLAUDECODE="" claude --model claude-haiku-4-5-20251001 --no-session-persistence -p "$1" 2>/dev/null | head -1 | tr -d '\"`')
     [[ -n "$GENERATED" ]] && MESSAGE="$GENERATED"
   fi
 

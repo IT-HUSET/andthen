@@ -4,13 +4,13 @@
 
 **Recorded:** 2026-09-20
 
-**Supersedes:** [ADR-005](ADR-005-optional-satellite.md). **Amends:** [ADR-004](ADR-004-shared-plugin-sources.md) – the satellite-copy clause.
+**Supersedes:** the optional-satellite split (`31c4211`), and with it the byte-identical satellite reference copies.
 
 ## Context
 
-ADR-005 split optional tools into `andthen-some` so a workflow install would not carry every tool. Measured on the `1.0` branch at `71ae505`:
+The satellite split optional tools into `andthen-some` so a workflow install would not carry every tool. Measured on the `1.0` branch at `71ae505`:
 
-- The saving is eight skill descriptions, about 2,400 always-loaded characters. Skill bodies load on invocation only, and ADR-005's own amendment records that the size win came from compressing references, not from the split.
+- The saving is eight skill descriptions, about 2,400 always-loaded characters. Skill bodies load on invocation only, and the 2026-09-09 return of `architecture-analysis` and `describe` to core (`19a4326`) showed that the size win came from compressing references, not from the split.
 - The boundary's recurring cost sits in core: 14 "when installed; otherwise …" fallback sites in 12 files plus 4 bare namings, regrown after the amendment removed four; 6 byte-identical reference copies with their sync and byte-diff machinery in `install-skills.py`; six version locations, two READMEs, two entries per marketplace file; and a Learnings trap – a satellite skill cannot load a core skill's own reference.
 - Dependency is one-way: the satellite names core skills about 30 times and is installable alone but useless alone.
 - `andthen-some:<name>` becomes a public name at 1.0. After ship, the reversal is a breaking rename.
@@ -18,6 +18,8 @@ ADR-005 split optional tools into `andthen-some` so a workflow install would not
 Three satellite skills were weighed on the Product Decision Rule while deciding the merge, because folding a skill after the move means touching its files twice.
 
 ## Decision
+
+*Amended 2026-09-25 by [ADR-021](ADR-021-fold-backlog-triage-and-move-skill-review-out.md): `backlog-triage` folds into `tracker` as `tracker triage`, and `skill-review` leaves the plugin for this repo's project level. The new evidence is that all 112 recorded `skill-review` uses were the maintainer's, inside this repo.*
 
 **One plugin, `andthen`, from `plugin/`.** The satellite directory, its manifests, its reference copies, and the `andthen-some` namespace retire before 1.0 ships. `backlog-triage`, `simplify-code`, `skill-review`, `spike`, and `tracker` move into core unchanged, and every offer-when-installed site becomes a plain skill reference.
 
@@ -31,7 +33,7 @@ Three skills do not move:
 
 ## Rationale
 
-The merge: the boundary costs core prose and installer machinery on every change while saving about 600 always-loaded tokens. ADR-005's amendment already ran this experiment for `architecture-analysis` and `describe` with the same result – placement is bookkeeping, the content cut is the work.
+The merge: the boundary costs core prose and installer machinery on every change while saving about 600 always-loaded tokens. `19a4326` already ran this experiment for `architecture-analysis` and `describe` with the same result – placement is bookkeeping, the content cut is the work.
 
 The budget: no gate in the suite fails on surplus – six assert presence, and the one ceiling is `DESCRIPTION_CAP`. Removal has been owner-driven: 38 campaign commits out of 224 did 75.5% of six weeks' removal. The project's own measurements say a prose principle does not bind (0 of 6, then no effect) and a numeric cap does (101–115 words against 238–275, 3 of 3). A gate moves the cost of accretion to the point of edit, one reviewed line in a diff. The surface is not on a ratchet – 192,695 words at its August peak, 100,716 today – so the gate races no rate; it exists so the down-stroke stops depending on one person. It is a budget on an authored artifact, the same class as the shared description budget in the authoring guidelines, not the numeric output shaping the prompt guidelines reject.
 
@@ -42,7 +44,7 @@ Rejected: **keeping `council` and `security-review` as skills in the merged plug
 - Every user gets 21 skills, and all descriptions compete in one listing: about 5,800 characters today against Codex's 8,000 fallback budget, each held by `DESCRIPTION_CAP`.
 - `install-skills.py` loses `_satellite_assets`, `--sync-satellite-assets`, and the byte-diff check; `docs/ARCHITECTURE.md` loses its two-plugin section and the `*` markers; the Learnings trap dies with the boundary; four version locations instead of six. Loose-skill installs keep their shape.
 - After the rename the old satellite stays *installed* on both hosts while gone from the manifest, and every eval measures a stale two-plugin install until it is uninstalled by hand.
-- Every legitimate growth commit carries a budget line.
+- Growth past the ceiling carries a budget line in its commit.
 
 Reopens: **the split**, if a host gains per-skill install or a core-only user base is measured rather than assumed; **`e2e-test`**, on an `outcome` or `testing` run over a UI product where the model fails to walk journeys unprompted; **the council's seats**, on a review where partition fan-out demonstrably misses what concern fan-out would catch; **the budget**, if within one release 80% or more of its raises land with no discussion in the commit – the falsifier the gate carries.
 
@@ -50,5 +52,6 @@ Reopens: **the split**, if a host gains per-skill install or a core-only user ba
 
 - Retiring: `plugin-some/`, the `andthen-some` entries in both marketplace files, `plugin-some/skills/{council,e2e-test,security-review}/`.
 - Measured at `71ae505`: surface 100,716 words in 107 files; `rg -n 'andthen-some' plugin/ --glob '!README.md'` → 18 lines in 16 files; the one ceiling at `tests/test_skill_review.py:27`.
-- History: `31c4211` establishes the satellite; `19a4326` returns `architecture-analysis` and `describe` to core (ADR-005 amendment).
-- Working notes (local, gitignored): `docs/temp/research/2026-09-20-streamline-and-merge-brief.md` (decisions D1–D10 with sources), `2026-09-20-single-plugin-merge-brief.md` (the merge surface), `2026-09-20-single-plugin-merge-plan.md` (file-level phases); audits under `.agent_temp/ops-audit/`.
+- History: `31c4211` establishes the satellite; `19a4326` returns `architecture-analysis` and `describe` to core.
+- Regrowth, measured 2026-09-20: text added inside existing files over the twelve quiet weeks ran at +288 words/week (standard error 739), indistinguishable from zero; over the six consolidation weeks, 38 campaign commits removed a net 115,002 words, 3.8 times the 29,875 ordinary work added.
+- Council seats, checked 2026-09-20: the three seats worth keeping already had core rubric text – Architecture Strategist in `lens-code.md` dimension 2, Test Strategist in its Proof Falsifiers plus `lens-gap.md` Verification depth, Product Requirements in `lens-outcome.md` plus `lens-gap.md` Acceptance Scenarios.

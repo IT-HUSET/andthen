@@ -41,17 +41,94 @@ class PublishTest(unittest.TestCase):
         self.assertEqual(tracker.PLAN_SCHEMA_VERSION,
                          schema["properties"]["schemaVersion"]["const"])
 
-    def test_v1_plan_routes_to_regeneration_before_projection(self):
+    def test_an_older_plan_publishes_from_the_fields_it_carries(self):
+        """A version label is form, not substance: a v1 plan still carries every
+        field the projection reads, so refusing it strands a team's tracker on a
+        regeneration nobody needed. The version it read is still reported."""
         plan = json.loads(PLAN.read_text(encoding="utf-8"))
         plan["schemaVersion"] = "1"
         plan["references"] = ["adr.md"]
         with tempfile.TemporaryDirectory() as tmp:
             path = pathlib.Path(tmp) / "plan.json"
             path.write_text(json.dumps(plan), encoding="utf-8")
-            with self.assertRaises(SystemExit) as ctx:
-                tracker.load_plan(path)
-        self.assertIn("unsupported plan.json schemaVersion '1'", str(ctx.exception))
-        self.assertIn("andthen:plan", str(ctx.exception))
+            stderr = io.StringIO()
+            with contextlib.redirect_stderr(stderr), \
+                    mock.patch.object(tracker, "canonical_plan_path",
+                                      return_value="specs/plan.json"):
+                out = run(["publish", str(path), "--sha", "abc1234"])
+        self.assertEqual([c["id"] for c in out["children"]],
+                         [s["id"] for s in plan["stories"]])
+        self.assertIn(plan["overview"]["summary"], out["parent"]["body"])
+        self.assertIn("schemaVersion '1'", stderr.getvalue())
+
+    def test_a_plan_missing_a_read_field_exits_naming_it(self):
+        """A field the projection reads that is missing or unreadable cannot be
+        projected; the exit names the field and the story before any tracker
+        call, so no half-published plan and no traceback is left behind."""
+        def missing_name(plan):
+            del plan["stories"][1]["name"]
+
+        def missing_stories(plan):
+            del plan["stories"]
+
+        def missing_id(plan):
+            del plan["stories"][1]["id"]
+
+        def empty_id(plan):
+            # An empty id would give the child the parent's marker, so the
+            # child's update would overwrite the parent issue.
+            plan["stories"][1]["id"] = ""
+
+        def scalar_depends_on(plan):
+            plan["stories"][1]["dependsOn"] = [1]
+
+        def null_scope(plan):
+            plan["stories"][1]["scope"] = None
+
+        def list_fis(plan):
+            plan["stories"][1]["fis"] = ["s02-record-sign-ins.md"]
+
+        def scalar_source_refs(plan):
+            # Iterated as a string, this would publish one `PRD:` line per character.
+            plan["stories"][1]["sourceRefs"] = "REQ-01"
+
+        cases = ((missing_name, "story S02 lacks a readable `name`"),
+                 (missing_stories, "plan.json lacks a `stories` list"),
+                 (missing_id, "story #2 lacks a readable `id`"),
+                 (empty_id, "story #2 lacks a readable `id`"),
+                 (scalar_depends_on, "story S02 lacks a readable `dependsOn`"),
+                 (null_scope, "story S02 lacks a readable `scope`"),
+                 (list_fis, "story S02 lacks a readable `fis`"),
+                 (scalar_source_refs, "story S02 lacks a readable `sourceRefs`"))
+        for breaks, message in cases:
+            with self.subTest(breaks.__name__):
+                plan = json.loads(PLAN.read_text(encoding="utf-8"))
+                breaks(plan)
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = pathlib.Path(tmp) / "plan.json"
+                    path.write_text(json.dumps(plan), encoding="utf-8")
+                    with self.assertRaises(SystemExit) as ctx:
+                        tracker.load_plan(path)
+                self.assertIn(message, str(ctx.exception))
+                self.assertIn(f"andthen:plan skill on the requirements source of {path.parent.as_posix()}",
+                              str(ctx.exception))
+
+    def test_a_repeated_story_id_stops_before_any_body_is_written(self):
+        """Each child's marker is plan path plus story id, so two stories with
+        one id would share an issue and the second body would overwrite the
+        first. The exit names the id before anything is materialized."""
+        plan = json.loads(PLAN.read_text(encoding="utf-8"))
+        plan["stories"][1]["id"] = plan["stories"][0]["id"]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "plan.json"
+            path.write_text(json.dumps(plan), encoding="utf-8")
+            body_dir = pathlib.Path(tmp) / "bodies"
+            with mock.patch.object(tracker, "canonical_plan_path",
+                                   return_value="specs/plan.json"), \
+                    self.assertRaises(SystemExit) as ctx:
+                _capture(["publish", str(path), "--body-dir", str(body_dir)])
+            self.assertFalse(body_dir.exists())
+        self.assertIn("repeats story id S01 (#2)", str(ctx.exception))
 
     def setUp(self):
         self.plan = json.loads(PLAN.read_text(encoding="utf-8"))
@@ -69,7 +146,7 @@ class PublishTest(unittest.TestCase):
         checks = [ln for ln in body.splitlines() if ln.startswith("- [")]
         self.assertEqual(len(checks), len(self.plan["stories"]))
         self.assertTrue(checks[0].startswith("- [x]"))   # S01 is done
-        self.assertTrue(checks[1].startswith("- [ ]"))   # S02 is spec-ready
+        self.assertTrue(checks[1].startswith("- [ ]"))   # S02 is pending
         self.assertNotIn("### P", body)
         self.assertNotIn("**W", body)
 
@@ -84,7 +161,7 @@ class PublishTest(unittest.TestCase):
         self.assertIn("Blocked by: S01", s02["body"])
         self.assertEqual(s02["dependsOn"], ["S01"])
         self.assertNotIn("labels", s02)
-        self.assertIsNone(s02["assignee"])
+        self.assertNotIn("assignee", s02)
 
     def test_child_projects_external_task_progress_without_risk(self):
         """Tracker progress comes from plan state, never FIS checkboxes.

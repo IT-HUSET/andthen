@@ -28,7 +28,6 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 
 from evals import cases, checks, stage
 
@@ -70,16 +69,18 @@ def main(argv=None):
     # the pool never reorders the report, so a row is found where it was asked for.
     started = time.time()
     stage.sweep()
+    dartclaw = stage.dartclaw_binary()
     with ThreadPoolExecutor(max_workers=args.jobs) as pool:
-        rows = list(pool.map(lambda cell: run_cell(cell[0], cell[1], args.profile, profile),
-                             selected))
+        rows = list(pool.map(lambda cell: run_cell(cell[0], cell[1], args.profile, profile,
+                                                   dartclaw), selected))
     return _report(rows, time.time() - started)
 
 
-def run_cell(case, provider, profile_name, profile):
-    """One case on one provider. Returns (result, run directory or None)."""
+def run_cell(case, provider, profile_name, profile, dartclaw=None):
+    """One case on one provider. Returns (result, run directory or None).
+    `dartclaw` is the tier's stage.dartclaw_binary(), recorded as is."""
     started = time.time()
-    cell = _new_cell(case, provider, profile_name, profile)
+    cell = _new_cell(case, provider, profile_name, profile, dartclaw)
     staged = {}
     try:
         _execute(cell, staged, cases.CASES_DIR / case, provider)
@@ -108,10 +109,11 @@ def run_cell(case, provider, profile_name, profile):
             + [p.name for p in top if p.name != "request"] + ["result.json", "summary.md"])
         stage.write(run / "result.json", json.dumps(cell, indent=2) + "\n")
         stage.write(run / "summary.md", _summary(cell))
+        run = stage.land(run)
     return cell, run
 
 
-def _new_cell(case, provider, profile_name, profile):
+def _new_cell(case, provider, profile_name, profile, dartclaw):
     subject = (profile.get("subject") or {}).get(provider) or {}
     judge = profile.get("judge") or {}
     return {"case": case, "provider": provider, "profile": profile_name,
@@ -119,7 +121,7 @@ def _new_cell(case, provider, profile_name, profile):
                         "effort": subject.get("effort"), "sessionId": None, "runId": None},
             "judge": {"provider": judge.get("provider"), "model": judge.get("model"),
                       "effort": judge.get("effort"), "sessionId": None},
-            "candidate": _candidate(), "outcome": "ERROR", "error": None,
+            "candidate": _candidate(), "dartclaw": dartclaw, "outcome": "ERROR", "error": None,
             "checks": [], "criteria": [], "evidence": [], "durationSeconds": 0.0,
             "tokens": {"subject": None, "judge": None}}
 
@@ -139,12 +141,10 @@ def _execute(cell, staged, case_dir, provider):
 
     run = staged["run"] = stage.new_run_dir(cell["case"], provider)
     used = [provider] + [p for p in [cell["judge"]["provider"]] if p and p != provider]
+    stage.stage_candidate(run)
     if "codex" in used:
-        # Claude reads the candidate the operator already has installed; Codex
-        # reads a snapshot, because DartClaw pins where it looks.
-        stage.stage_candidate(run)
         stage.register_codex(run)
-    workspace = stage.stage_workspace(run, case_dir)
+    workspace = stage.stage_workspace(run, case_dir, roles=provider == "claude")
     stage.seed_credentials(run, used)
     stage.stage_workflows(run, case_dir)
     config = run / "dartclaw.yaml"
@@ -333,10 +333,8 @@ def _dispatch_error(dispatched, step, executable, missing=()):
 
 
 def _candidate():
-    """What was tested: the working tree's commit and dirtiness, and the copy the
-    subject actually loads. A Claude cell dispatches in the operator's own
-    environment, so it runs the installed plugin rather than this tree - a cell
-    whose result named only the tree reported a candidate the run never used."""
+    """What was tested: the working tree's commit and dirtiness. Every cell loads
+    a snapshot of this tree's plugin/, staged as the run's candidate/."""
     def out(*args):
         return subprocess.run(["git", "-C", str(cases.REPO_ROOT)] + list(args), text=True,
                               stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
@@ -344,58 +342,9 @@ def _candidate():
         head = out("rev-parse", "HEAD")
     except OSError:
         head = None
-    candidate = ({"head": None, "dirty": None} if head is None or head.returncode else
-                 {"head": head.stdout.strip(),
-                  "dirty": bool(out("status", "--porcelain").stdout.strip())})
-    installed = _installed_plugin()
-    candidate.update({"installedHead": installed.get("gitCommitSha"),
-                      "installPath": installed.get("installPath"),
-                      "installMatches": _install_matches(installed.get("installPath"))})
-    return candidate
-
-
-def _installed_plugin():
-    """The `andthen@andthen` record Claude Code wrote at install time, or {} when
-    there is no readable manifest. Its first entry: a second is the same plugin
-    installed at another scope, and which one a session loads is Claude Code's
-    decision, not something this file says."""
-    manifest = cases.load_json(stage.CLAUDE_PLUGINS / "installed_plugins.json")[0]
-    plugins = manifest.get("plugins") if isinstance(manifest, dict) else None
-    entry = plugins.get("andthen@andthen") if isinstance(plugins, dict) else None
-    return entry[0] if entry and isinstance(entry[0], dict) else {}
-
-
-_INSTALL_IGNORE = {".DS_Store", ".in_use", ".git"}
-
-
-def _install_matches(install_path):
-    """Whether the installed plugin directory is byte-identical to the working
-    tree's plugin/, or None when there is nothing to compare. The manifest's
-    `gitCommitSha` is Claude Code's own bookkeeping, not an object in this repo,
-    so staleness is decided by content instead."""
-    if not install_path:
-        return None
-    installed, source = Path(install_path), cases.REPO_ROOT / "plugin"
-    if not installed.is_dir() or not source.is_dir():
-        return None
-    def snapshot(root):
-        return {p.relative_to(root): p.read_bytes() for p in root.rglob("*")
-                if p.is_file() and not _INSTALL_IGNORE & set(p.relative_to(root).parts)}
-    return snapshot(installed) == snapshot(source)
-
-
-def _install_note(cell):
-    """Whether this cell's installed plugin is what the report should trust, or
-    None. Claude only: a Codex cell registers a snapshot of the working tree,
-    so there is no install for it to drift from."""
-    if cell["provider"] != "claude":
-        return None
-    matches = (cell.get("candidate") or {}).get("installMatches")
-    if matches is None:
-        return "installed plugin unknown"
-    return None if matches else (
-        "installed plugin differs from the working tree's plugin/ - "
-        "a Claude cell measures the install")
+    return ({"head": None, "dirty": None} if head is None or head.returncode else
+            {"head": head.stdout.strip(),
+             "dirty": bool(out("status", "--porcelain").stdout.strip())})
 
 
 def _reason(cell):
@@ -422,14 +371,6 @@ def _summary(cell):
              "- judge: %s" % role("judge", cell["judge"]["provider"]),
              "- candidate: %s%s" % (candidate["head"] or "unknown",
                                     " (dirty)" if candidate["dirty"] else "")]
-    if cell["provider"] == "claude":
-        # Only a Claude cell has an install to report: it dispatches in the
-        # operator's environment and loads what he installed, while a Codex cell
-        # registers a snapshot of the tree the candidate sha already names.
-        lines.append("- installed plugin: %s%s"
-                     % (candidate.get("installedHead") or "unknown",
-                        " at %s" % candidate["installPath"]
-                        if candidate.get("installPath") else ""))
     lines += ["- duration: %ss" % cell["durationSeconds"],
               "- tokens: subject %s; judge %s" % tuple(
                   _tokens(cell["tokens"][r]) for r in ("subject", "judge"))]
@@ -472,12 +413,10 @@ def _report(rows, wall):
                  run.relative_to(cases.REPO_ROOT).as_posix() if run else "-", _reason(cell)))
         # A cell refused before staging has no run directory to read, so its
         # cause is printed under the table rather than lost; so is a smoke cell
-        # over the tier bar, because one such cell is the whole tier's wall, and
-        # a Claude cell that ran a plugin this tree has moved on from.
+        # over the tier bar, because one such cell is the whole tier's wall.
         causes = [cell["error"]] if run is None and cell["error"] else []
         if cell["case"] in cases.SMOKE and seconds > cases.SMOKE_SECONDS:
             causes.append("%ds over the %ds smoke bar" % (round(seconds), cases.SMOKE_SECONDS))
-        causes += [note for note in [_install_note(cell)] if note]
         notes += ["  %s/%s: %s" % (cell["case"], cell["provider"], c) for c in causes]
     for note in notes:
         print(note)

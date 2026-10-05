@@ -1,0 +1,1 @@
+Write a brief for `source.md` with the staged `andthen:clarify` skill and `--brief`. Record it at `docs/specs/report-totals/intent.md`, write no other document under `docs/`, and return that workspace-relative path.

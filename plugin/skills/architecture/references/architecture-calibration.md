@@ -1,10 +1,11 @@
 # Architecture Calibration
 
-Thresholds, selection criteria, and misfire traps for the architecture modes, applied on top of `review-calibration.md` where the mode loads it. The frameworks are assumed known – Martin's package principles, Page-Jones/Weirich connascence, Evans/Vernon/Khononov DDD, Ousterhout's deep modules, Newman on extraction – and this file carries only what knowing them does not give.
+Thresholds, selection criteria, and misfire traps for the architecture modes, applied on top of `review-calibration.md` where the mode loads it.
 
 ## Metrics and Thresholds
 
-**Ca** afferent, **Ce** efferent, **I** = `Ce / (Ca + Ce)`, **A** = abstract types / total types (abstract classes, interfaces, and mixins count as abstract), **D** = `|A + I - 1|`. Graph-level, computable from any dependency graph (Dart: `lakos --metrics --node-metrics <dir>`): CD = nodes reachable from a node including itself (blast radius), CCD = sum of CD, ACD = CCD / N, NCCD = CCD relative to a balanced binary tree of N – below 1.0 beats that baseline.
+- **Package** – **Ca** afferent, **Ce** efferent, **I** = `Ce / (Ca + Ce)`, **A** = abstract types / total types (abstract classes, interfaces, and mixins count as abstract), **D** = `|A + I - 1|`.
+- **Graph**, computable from any dependency graph (Dart: `lakos --metrics --node-metrics <dir>`) – CD = nodes reachable from a node including itself (blast radius), CCD = sum of CD, ACD = CCD / N, NCCD = CCD relative to a balanced binary tree of N; below 1.0 beats that baseline.
 
 | Metric | Healthy | Warning | Critical |
 |--------|---------|---------|----------|
@@ -16,7 +17,12 @@ Thresholds, selection criteria, and misfire traps for the architecture modes, ap
 | Package LOC | < 3000 | 3000 – 10000 | > 10000 |
 | Consumer waste | < 30% | 30 – 50% | > 50% (split signal) |
 
-**Principle assertions.** ADP: Tarjan's SCC, any SCC with more than one node is a violation – always a finding, always fixed. SDP: for every edge A → B assert `I(A) ≥ I(B)`. SAP: for packages with I < 0.3 assert A > 0.3. Among the cohesion principles, prioritize CCP early, when blast radius dominates, and shift toward CRP as consumer diversity grows.
+**Principle assertions.**
+
+- **ADP** – any SCC with more than one node is a violation: always a finding, always fixed.
+- **SDP** – for every edge A → B assert `I(A) ≥ I(B)`.
+- **SAP** – for packages with I < 0.3 assert A > 0.3.
+- **Cohesion** – prioritize CCP early, when blast radius dominates, and shift toward CRP as consumer diversity grows.
 
 **Zones.** Zone of Pain: I < 0.2, A < 0.1, Ca > 5, D > 0.7. Zone of Uselessness: I > 0.8, A > 0.8, Ca ≈ 0, D > 0.7, acceptable only during active design.
 
@@ -27,7 +33,7 @@ Thresholds, selection criteria, and misfire traps for the architecture modes, ap
 - **Strength** – static: CoN 1, CoT 2, CoM 3, CoP 4, CoA 5. Dynamic: CoE 6, CoTm 7, CoV 8, CoI 9.
 - **Degree** – affected files, classes, or call sites. **Locality** – 3 within a class, 2 cross-class within a package, 1 cross-package.
 
-Dynamic forms outrank every static form because static analysis cannot see them and review usually misses them. The weaker form is required as distance grows (Weirich's Rule of Locality), so high connascence *inside* a boundary is cohesion, not a finding.
+Dynamic forms outrank every static form because static analysis cannot see them and review usually misses them. Per Weirich's Rule of Locality, high connascence *inside* a boundary is cohesion, not a finding.
 
 Boundary reading: cross-boundary coupling that is all CoN/CoT means a healthy boundary; any CoM/CoP/CoA crossing is MEDIUM and names refactoring targets before the boundary counts as stable; any dynamic form crossing is HIGH or CRITICAL and a strong merge signal.
 
@@ -47,7 +53,7 @@ Contrastive pairs. The over-escalations are the ones this skill actually makes.
 
 ## Deep Modules
 
-Ousterhout's **deep modules** (*A Philosophy of Software Design*) grade in-process interfaces – package, module, class, public API – and never service boundaries or deployment topology.
+Ousterhout's **deep modules** grade in-process interfaces – package, module, class, public API – and never service boundaries or deployment topology.
 
 - **At any in-process scope** a **shallow module**, **information leakage**, **temporal decomposition**, and a pass-through layer are findings.
 - **A scope targeting one module, class, or public API** adds each **pass-through method** as a finding, and four questions:
@@ -61,15 +67,25 @@ Findings tag C4 **Component** or **Code**. There are no special thresholds: an i
 
 ## Boundary and Domain Calibration
 
-**Bounded contexts** are a linguistic boundary, not a deployment one – a context map applies inside a modular monolith too. One team owns one or more whole contexts, never a fraction of one. A God-object aggregate at the centre says the context is too broad. Every pair in a context map names its integration pattern from the nine – Evans' eight plus Big Ball of Mud as a quarantine wrapper – and moves up that list (Partnership, Shared Kernel) when teams are aligned and models stable, down it (Conformist, Anticorruption Layer, Separate Ways) when teams are distant, models incompatible, or the upstream cannot be negotiated with. Team boundaries cutting across context boundaries predict a distributed monolith.
+**Bounded contexts** are a linguistic boundary, not a deployment one – a context map applies inside a modular monolith too. One team owns one or more whole contexts, never a fraction of one: a team boundary cutting across a context boundary predicts a distributed monolith. A God-object aggregate at the centre says the context is too broad.
+
+**Integration patterns.** Every pair in a context map names its pattern from the nine – Evans' eight plus Big Ball of Mud as a quarantine wrapper. Move up that list (Partnership, Shared Kernel) when teams are aligned and models stable; move down it (Conformist, Anticorruption Layer, Separate Ways) when teams are distant, models incompatible, or the upstream cannot be negotiated with.
 
 **Aggregates.** An invariant is a rule enforced *at commit*; a rule that only has to hold eventually never justifies widening an aggregate. To test a cluster, list the aggregates one use case modifies and name the invariant forcing them into a single transaction – no invariant, break the cluster. The rules describe a steady state, so a migration step may violate them transiently.
 
-**CQRS** only when read and write shapes genuinely diverge, query load is a real constraint, or different teams own the two paths – never for CRUD. **Event sourcing** only when audit or temporal queries are first-class, or state is fully derivable from history; schema versioning becomes permanent operational work.
+**CQRS** only when read and write shapes genuinely diverge, query load is a real constraint, or different teams own the two paths – never for CRUD.
+
+**Event sourcing** only when audit or temporal queries are first-class, or state is fully derivable from history; schema versioning becomes permanent operational work.
 
 **Ubiquitous language.** Domain class names are the terms an expert uses unprompted; weasel suffixes are the smell (`UserInfo`, `OrderData`, `PaymentManager`, `CustomerEntity`), with infrastructure classes the exception.
 
-**Sizing.** Component size within 1–2 standard deviations of the mean (Ford/Richards); a cognitive-load ceiling of 2–3 low-complexity domains per team (Team Topologies); an owning team past ~5–7 people means the service may be too large; one business requirement change should touch exactly one package; a barrel exporting more than ~50 symbols means reassess scope.
+**Sizing.**
+
+- Component size within 1–2 standard deviations of the mean (Ford/Richards).
+- A cognitive-load ceiling of 2–3 low-complexity domains per team (Team Topologies).
+- An owning team past ~5–7 people means the service may be too large.
+- One business requirement change should touch exactly one package.
+- A barrel exporting more than ~50 symbols means reassess scope.
 
 **Extraction gate** (Newman). No compelling reason, an unclear domain, fewer than ~8 engineers, or no need for independent deployability → stay a modular monolith. Extract only the subsystems that need independent scaling, or the boundaries that need team autonomy (Conway).
 
@@ -88,11 +104,12 @@ Check the matching trap before recording a finding: each marks where an anti-pat
 9. **Temporal decomposition in a real pipeline** – compilers, ETL, and stream processors legitimately split by stage when each stage owns a *distinct* abstraction and hands on a typed intermediate form. A parser emitting AST nodes is legitimate; a parser whose output the next stage re-interprets is the anti-pattern.
 10. **Information leakage read too narrowly** – a design decision (file format, protocol detail, data layout, algorithm) leaks by *shape*, not only through imported internal types. The question is how many interfaces change when it changes; more than one is leakage.
 11. **Pass-through layer** – different layer, different abstraction: a layer earns its place only with an abstraction the caller would ask for – aggregation, translation, policy, caching, authorization. "None" means delete it.
-12. **Define errors out of existence** – only where the absent case is valid state (`delete(path)` meaning "ensure it is absent"); redefining a real fault away swallows it.
-13. **Testability pulling toward shallow** – narrow mockable interfaces favour shallow modules. A legitimately deep module is tested through its interface, not split to mock its parts.
-14. **Convenience coupling** – a dependency taken because the class happened to be there is a finding only when it creates an SDP violation.
-15. **Speculative generality** – one implementation of an abstraction is a candidate, not a verdict; reintroduce at the second consumer (Rule of Three).
-16. **Premature decomposition** – boundaries redrawn more than twice mean the domain is not understood well enough to split.
-17. **Microservices premium** – no regulatory reason for process isolation and low DevOps maturity each argue against paying it.
-18. **False-invariant aggregate** – grouped by navigational convenience; the symptom is that most use cases touch only a subset.
-19. **Leaky integration event** – internal aggregate structure published as a public contract, so consumers break on internal refactors. Domain events stay inside their context; integration events are purpose-built, versioned additively, published after persistence via an outbox, and consumed idempotently.
+12. **Hidden behaviour** – Locality of Behaviour (Carson Gross). Behaviour wired in from elsewhere (event-bus subscribers, aspects, decorators, config-driven dispatch, naming-convention magic) is a finding only when the indirection buys neither a pass-through layer's abstraction nor a publisher that must not know its consumers. Against DRY, extract copies that are one decision and must change together; copies that merely look alike stay local.
+13. **Define errors out of existence** – only where the absent case is valid state (`delete(path)` meaning "ensure it is absent"); redefining a real fault away swallows it.
+14. **Testability pulling toward shallow** – narrow mockable interfaces favour shallow modules. A legitimately deep module is tested through its interface, not split to mock its parts.
+15. **Convenience coupling** – a dependency taken because the class happened to be there is a finding only when it creates an SDP violation.
+16. **Speculative generality** – one implementation of an abstraction is a candidate, not a verdict; reintroduce at the second consumer (Rule of Three).
+17. **Premature decomposition** – boundaries redrawn more than twice mean the domain is not understood well enough to split.
+18. **Microservices premium** – no regulatory reason for process isolation and low DevOps maturity each argue against paying it.
+19. **False-invariant aggregate** – grouped by navigational convenience; the symptom is that most use cases touch only a subset.
+20. **Leaky integration event** – internal aggregate structure published as a public contract, so consumers break on internal refactors. Domain events stay inside their context; integration events are purpose-built, versioned additively, published after persistence via an outbox, and consumed idempotently.

@@ -75,7 +75,6 @@ def scanned_files():
     # docs/ top level only: docs/temp is transient, docs/adrs is a decision record.
     yield from sorted((ROOT / "docs").glob("*.md"))
     yield from sorted((ROOT / "docs/guidelines").glob("*.md"))
-    yield from sorted((ROOT / "docs/prompt-guidelines").glob("*.md"))
 
 
 PARAGRAPH_TABLE = """

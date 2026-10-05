@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Review"
   short_description: "Review code, spec conformance, security, or product outcome"
-  default_prompt: "Review the target through the selected lenses (code, gap, security, outcome, or a chain), or the one-pass quick path with --quick. Review target: "
+  default_prompt: "Review the target through the selected lenses (code, gap, security, outcome, or a chain). Review target: "
 
 policy:
   allow_implicit_invocation: true

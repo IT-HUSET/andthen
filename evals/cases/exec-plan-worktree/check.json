@@ -4,6 +4,7 @@
     "src/reporter/text_tools.py",
     "tests/**",
     "docs/specs/run-summary/**",
+    "docs/ARCHITECTURE.md",
     "docs/LEARNINGS.md",
     "docs/TECH-DEBT-BACKLOG.md",
     ".agent_temp/**"

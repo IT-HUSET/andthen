@@ -29,6 +29,5 @@ steps:
             properties:
               role: {type: string}
               sessionId: {type: string}
-              artifactExists: {type: boolean}
               questions: {type: array, items: {type: string}}
               replies: {type: integer}

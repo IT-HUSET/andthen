@@ -10,7 +10,7 @@ steps:
     skill: andthen:implement-fix
     prompt:
       - >-
-        add shout(text) to src/reporter/text_tools.py, returning the text uppercased with one trailing exclamation mark, with a unit test
+        add shout(text) to src/reporter/text_tools.py, returning the text uppercased with any trailing exclamation marks replaced by exactly one (shout("hi") == "HI!", shout("hi!!") == "HI!"), with a unit test
     outputs:
       summary:
         format: text

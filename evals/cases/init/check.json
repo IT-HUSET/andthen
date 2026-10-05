@@ -1,0 +1,21 @@
+{
+  "forbiddenArtifacts": [
+    "**/PRODUCT.md",
+    "**/ARCHITECTURE.md",
+    "**/TESTING-STRATEGY.md",
+    "**/DECISIONS.md",
+    "**/LEARNINGS.md"
+  ],
+  "allowedPaths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/KEY_DEVELOPMENT_COMMANDS.md",
+    ".gitignore",
+    ".agent_temp/**",
+    "**/__pycache__/**"
+  ],
+  "requiredText": {
+    ".gitignore": [".agent_temp/", "*-andthen-*-review-*.md"]
+  },
+  "oracle": "oracle.py"
+}

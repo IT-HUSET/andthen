@@ -1,74 +1,73 @@
 # Mode: codebase
 
-Map an existing codebase into structured documentation and discovered implicit requirements; with `--model`, emit the typed Architecture Model.
+Map an existing codebase into structured documentation and discovered implicit requirements; with `MODEL`, emit the typed Architecture Model.
 
+## Rules
 
-## INSTRUCTIONS
+`Learnings`, `Architecture`, `Key Dev Commands`, `Context Map`, `ADRs`, and `Models` are Project Document Index entries. Read `Learnings`, when it exists, before starting.
 
-- **Read project learnings** – If the `Learnings` document (see **Project Document Index**) exists, read it before starting
-- **Regeneration contract** – The `Architecture` and `Key Dev Commands` documents are derived documents: an existing one is merged, never overwritten, per the **Regeneration contract** in `project-document-templates.md`. Name any `<NAME>.discovered.md` pair it produces in the completion summary
-- **Discovery, not invention** – Document what exists, don't prescribe what should exist
-- **Model-only fast path** (`MODEL_ONLY`) – run only the codebase survey (step 1) and the Architecture Model emission from step 2a; skip every documentation output and the discovery steps. Existing `Architecture` and `Context Map` documents inform clustering. This is the normal way to refresh the committed projection.
+- **Discovery, not invention.**
+- **Merge, never overwrite.** `Architecture` and `Key Dev Commands` are derived documents: an existing one is merged per the **Regeneration contract** in `project-document-templates.md`. Name any `<NAME>.discovered.md` pair it produces in the completion summary.
 
+## Workflow
 
-## WORKFLOW
+`MODEL_ONLY` runs Step 1 and Step 2a's model emission only, skipping every documentation output and Steps 3 and 4. Existing `Architecture` and `Context Map` documents inform clustering.
 
-### 1. Codebase Survey
+### 1. Survey
 
-1. Survey project shape: existing docs (README, CLAUDE.md, AGENTS.md, docs/), primary language(s)/frameworks from config files, and recent git history.
-2. **Detect monorepo/workspace structure** – look for `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `"workspaces"` in root `package.json`, `[workspace]` in root `Cargo.toml`, `go.work`, or multiple sub-dirs with their own package config. If detected: list workspace tool and sub-projects. Set `IS_MONOREPO = true` and pass the sub-project list to all analysis subagents.
+Detect a monorepo or workspace. When one is found, list the workspace tool and sub-projects, set `IS_MONOREPO`, and pass the sub-project list to every analysis subagent.
 
-**Gate**: Project shape understood, technologies identified, monorepo status determined
+**Gate**: `IS_MONOREPO` is decided, with the sub-project list when set.
 
+### 2. Parallel analysis
 
-### 2. Parallel Analysis
+Spawn parallel subagents, each prompt carrying its task and a scope that is read-only on source: a subagent writes only the output files its brief names, such as its document or `architecture-model.json`.
 
-Spawn parallel generic subagents whose prompts carry the task and a read-only scope – the installed role agent for the tier when available, else inherit, never a model or effort pinned in the prompt. Route each task to its tier:
+- **Small retrieval** – the command inventory (2c), when tightly scoped: a `worker`.
+- **High judgment** – everything else: architecture with its testing overview, boundary analysis, conventions synthesis, and requirements and decision discovery. Always a generic inherited subagent, since judgment keeps the session's model; never downshift these as scanning.
 
-- **Small retrieval** – command inventory, when tightly scoped.
-- **High judgment** – architecture, boundary analysis, conventions synthesis, and implicit-requirements/decision discovery. Never downshift these as scanning.
+A subagent briefed to write a derived document carries the Regeneration contract in its brief: an analyst who never sees it overwrites the file it was meant to merge into.
 
-A subagent briefed to write a derived document carries the **Regeneration contract** in its brief – an analyst who never sees it overwrites the file it was meant to merge into.
+Under `IS_MONOREPO`, every subagent organizes findings by sub-project boundary, documents shared aspects once, and calls out per-sub-project specifics only where they differ.
 
-**Monorepo note** (apply to all subagents when `IS_MONOREPO = true`): organize findings with clear sub-project boundaries. Document shared aspects once; only call out per-sub-project specifics where they differ.
+#### 2a. Architecture
 
-#### 2a. Architecture Analysis (subagent)
-Analyze and document what the system is built on (language, runtime, main framework – versions stay in the manifest), system design and component boundaries, key modules and responsibilities, data flow, entry points (routes, CLI, event handlers), and integration points with external systems and infrastructure. If monorepo: document sub-project boundaries and inter-project relationships.
-Output: the `Architecture` document (see **Project Document Index**; default: `OUTPUT_DIR/ARCHITECTURE.md`)
+Document what the system is built on (language, runtime, main framework – versions stay in the manifest), system design and component boundaries, key modules and their responsibilities, data flow, entry points (routes, CLI, event handlers), and integration points with external systems and infrastructure. In a monorepo, add sub-project boundaries and inter-project relationships.
 
-When `MODEL`, the same subagent also emits an **Architecture Model** – the typed JSON defined in `architecture-model.md` – as `architecture-model.json` under the `Models` location (see **Project Document Index**; default: `docs/models/`), a committed projection per the schema's Persistence and precedence: `meta.revision` is the code revision it describes, and the code stays the record. Method contract:
-- **Deterministic first** – nodes and edges come from ecosystem dependency tooling or import scans plus git change-coupling (evidence `imports` / `git-coupling`) – or, where the ecosystem has no import graph, from structured declarations in project docs and manifests (evidence `declared`); agent judgment is confined to clustering nodes into contexts, naming, summaries, and optional tours (evidence `inferred`).
-- Every node carries a real repo-relative `ref` – a node whose location can't be named is invention, not discovery.
-- When a `Context Map` document exists (see **Project Document Index**), bounded-context ids/names come from it – never a second name for a mapped context.
-- Check the candidate against `architecture-model.schema.json` and `architecture-model.md` before writing.
+Add a "Testing" section covering test frameworks, test directory structure, coverage patterns, test helpers and fixtures, and integration or E2E setup. One subagent writes the whole document, because two writers to one file overwrite each other.
 
-#### 2b. Conventions Analysis (subagent)
-Analyze and document naming conventions, file organization patterns, error handling, logging, testing patterns, and code style (formatting, imports, exports).
-Output: a `## Conventions` section for the project's root agent instruction file (`CLAUDE.md` and/or `AGENTS.md`). Append it to whichever root instruction file exists; if both exist, keep the section aligned in both; if neither exists, include the section in the completion output so the `andthen:init` skill can insert it when creating the file(s).
+Output: the `Architecture` document (default `OUTPUT_DIR/ARCHITECTURE.md`).
 
-#### 2c. Testing Overview (subagent)
-Analyze test framework(s), test directory structure, coverage patterns, test helpers/fixtures, and integration/E2E setup.
-Output: included in the `Architecture` document (see **Project Document Index**) under a "Testing" section
+Under `MODEL` or `MODEL_ONLY`, the same subagent emits the **Architecture Model** – the typed JSON `architecture-model.md` defines – as `architecture-model.json` under `Models` (default `docs/models/`).
 
-#### 2d. Key Development Commands Discovery (subagent)
-Discover commands from the sources the KEY_DEVELOPMENT_COMMANDS.md template names, and fill its Testing tiers and run-one-test row – a document that declares no tiers leaves every reader inferring what is heavy. If monorepo: organize commands per sub-project and identify root-level orchestration commands.
-Output: the `Key Dev Commands` document (see **Project Document Index**; default: `docs/KEY_DEVELOPMENT_COMMANDS.md`)
+**Deterministic first.** Nodes and edges come from ecosystem dependency tooling or import scans plus git change-coupling (evidence `imports` / `git-coupling`). Where the ecosystem has no import graph, they come from structured declarations in project docs and manifests (evidence `declared`). Agent judgment is confined to clustering nodes into contexts, naming, summaries, and optional tours (evidence `inferred`).
 
-**Gate**: All analysis subagents complete
+#### 2b. Conventions
 
+Document naming conventions, file organization patterns, error handling, logging, testing patterns, and code style (formatting, imports, exports).
 
-### 3. Requirements & Decisions Discovery
+Output: a `## Conventions` section for the project's root agent instruction file. Append it to whichever of `CLAUDE.md` and `AGENTS.md` exists, keeping the section aligned in both when both exist. With neither, include the section in the completion output, so the `andthen:init` skill can insert it when it creates the file.
 
-Spawn a subagent (task shape: high judgment) to reverse-engineer a discovered requirements document by analyzing:
+#### 2c. Key development commands
 
-- **What the System Does**: user-facing features/workflows (routes, UI, API), admin/operator features, background processes
-- **Implicit Requirements**: validation rules, business logic, access control, data integrity rules
-- **External Dependencies**: third-party API contracts, infrastructure requirements, environment requirements
-- **Non-Functional Characteristics**: caching, rate limiting, error handling, logging, performance optimizations
+Discover commands from the sources the KEY_DEVELOPMENT_COMMANDS.md template names, and fill its Testing tiers and run-one-test row: a document that declares no tiers leaves every reader inferring what is heavy. In a monorepo, organize commands per sub-project and identify the root-level orchestration commands.
 
-Extend the same subagent's brief to also identify **load-bearing implicit decisions** visible in the codebase – framework choice, persistence shape, boundary lines between modules, build/test tooling, deployment topology – and any in-tree ADRs already present under the `ADRs` location. These are decisions worth surfacing because they constrain future work, even when no ADR was ever written.
+Output: the `Key Dev Commands` document (default `docs/KEY_DEVELOPMENT_COMMANDS.md`).
 
-Output: `OUTPUT_DIR/requirements-discovered.md` in a format compatible with the `andthen:plan` skill input. Required sections and entry shapes:
+**Gate**: every analysis subagent has returned, and each output file exists with one writer.
+
+### 3. Requirements and decisions discovery
+
+Spawn a high-judgment subagent, per Step 2, to reverse-engineer a discovered requirements document from:
+
+- **What the system does** – user-facing features and workflows (routes, UI, API), admin and operator features, background processes.
+- **Implicit requirements** – validation rules, business logic, access control, data integrity rules.
+- **External dependencies** – third-party API contracts, infrastructure and environment requirements.
+- **Non-functional characteristics** – caching, rate limiting, error handling, logging, performance optimizations.
+
+The same subagent identifies the **load-bearing implicit decisions** visible in the code – framework choice, persistence shape, boundary lines between modules, build and test tooling, deployment topology – and any ADRs already under `ADRs`. They constrain future work even when no ADR was ever written.
+
+Output `OUTPUT_DIR/requirements-discovered.md`, compatible with the `andthen:plan` skill's input, with these sections and entry shapes:
 
 ```markdown
 # Discovered Requirements: [Project Name]
@@ -86,17 +85,22 @@ Output: `OUTPUT_DIR/requirements-discovered.md` in a format compatible with the 
 ## Gaps & Uncertainties
 ```
 
-Also emit `OUTPUT_DIR/decisions-discovered.md` using the `DECISIONS.md` template shape from `project-document-templates.md`, with the header `> Status: Discovered – requires validation by team` (same convention as `requirements-discovered.md`). Place existing in-tree ADRs in **Current ADRs**; place implicit load-bearing decisions in **Still Current** with brief evidence (file path or pattern). Leave **Superseded** and **Pending** empty unless evidence supports an entry.
+Output `OUTPUT_DIR/decisions-discovered.md` in the `DECISIONS.md` template shape from `project-document-templates.md`, headed `> Status: Discovered – requires validation by team`. Existing in-tree ADRs go in **Current ADRs**; implicit load-bearing decisions go in **Still Current** with brief evidence (a file path or pattern). **Superseded** and **Pending** stay empty unless evidence supports an entry.
 
-**Gate**: Requirements and decisions discovery complete
+**Gate**: both discovered documents are written in their shapes.
 
+### 4. Sub-project instruction files
 
-### 4. Output Summary
+In a monorepo, write a lightweight agent instruction file, matching the root choice (`CLAUDE.md`, `AGENTS.md`, or both), for each sub-project that lacks one: name and description, an inline table of key development commands, and sub-project-specific notes.
 
-1. If `IS_MONOREPO = true`: generate lightweight sub-project agent instruction file(s) that match the root file choice (`CLAUDE.md`, `AGENTS.md`, or both) for each sub-project that doesn't already have them (under ~40 lines: name/description, key development commands inline table, sub-project-specific notes)
-2. Suggest next steps: review discovered requirements and decisions with team (validate `decisions-discovered.md` and promote to `DECISIONS.md` when confirmed), invoke the `andthen:plan` skill on `OUTPUT_DIR/requirements-discovered.md`
+**Gate**: every sub-project has an instruction file.
 
+## Output
 
-## OUTPUT
+Print each output file's path relative to the project root, the Architecture Model JSON included when emitted; under `MODEL_ONLY`, print only the model's path.
 
-Print each output file's **relative path from the project root**, including the Architecture Model JSON when emitted. With `MODEL_ONLY`, print only the model's path.
+The discovered requirements and decisions are for team review, and `decisions-discovered.md` is promoted into `DECISIONS.md` once confirmed.
+
+## Follow-up
+
+Suggest the `andthen:plan` skill on `OUTPUT_DIR/requirements-discovered.md`.

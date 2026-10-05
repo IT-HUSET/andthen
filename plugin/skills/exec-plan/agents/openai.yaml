@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Exec Plan"
-  short_description: "Execute a fully-specced plan bundle through the AndThen pipeline"
-  default_prompt: "Execute every story in this plan bundle – one fresh exec-spec subagent per ready story, full verification, then the Next: line for the plan-level review. Flags: --auto, --worktree (independent stories in parallel, one worktree each), --no-full-tier. Plan directory: "
+  short_description: "Execute a FIS, or a plan directory with one fresh subagent per story"
+  default_prompt: "Execute this Feature Implementation Specification, or every ready story of this plan directory through one fresh subagent each – implement, verify against the proofs, review, complete on executed proof. Flags: --auto, --tdd, --worktree (plan directory: independent stories in parallel), --no-full-tier. FIS or plan directory: "
 
 policy:
   allow_implicit_invocation: true

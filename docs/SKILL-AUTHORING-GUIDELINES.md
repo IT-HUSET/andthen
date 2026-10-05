@@ -1,141 +1,193 @@
 # Skill-Authoring Guidelines
 
-How to write a `SKILL.md` bundle that a current frontier model runs well at the smallest context cost. Anthropic's Agent Skills best-practices page and the Agent Skills specification own the general doctrine; this document carries the numbers, what the current model generation changes, and this repository's own craft and constraints. Read `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md` first – it says what belongs in any prompt and what no longer does.
+How to write a prompt-like file – a skill bundle, a reference, an agent definition, an instruction file, an output style – for the current frontier models (Claude Fable 5.1, Fable 5, Opus 5, Sonnet 5; GPT-6 Astra, GPT-5.6) at the smallest context cost. Model and effort choice is `docs/MODEL-EFFORT-SELECTION-GUIDE.md`'s.
 
-**Audience**: anyone, human or agent, authoring or reviewing a skill bundle.
+## The one test
 
-## What a skill is
+Before you write a line, and again when you review one, ask: **would the reading agent do the right thing without it?** Right means an outcome that serves the file's purpose, not the steps you would take. If it would, the line is not written, and an existing one is cut. When unsure, assume it would, unless the failure would be destructive or silent.
 
-A folder – `SKILL.md` plus optional references and scripts – that an agent discovers by name and description and loads on demand. It is an onboarding guide for a capable new hire, not a manual: it carries what the model cannot know (this project's contracts, the counter-intuitive rules, the named failure modes) and nothing the model already does unprompted.
+The agent cannot get right what only the author knows, so keep it: the product and audience, environment facts, the quality bar, contracts and their mechanics, the hard judgment calls, and the reason behind a rule that runs against the model's default. That is context, and context is never cruft. Cut restated defaults, behaviour the model shows unprompted (planning, thoroughness, tool use, testing, reading docs, where to look in a repository, telling a pre-existing failure from a regression), and workarounds for failures current models no longer have. Justify a cut by the pattern it removes, never by its length.
 
-It loads in three levels – progressive disclosure – and each level is paid differently:
+Length buys no compliance, and restating the repository's own docs lowers task success. Conflicting instructions collapse compliance, make Astra pause, and make Claude spend effort reconciling them. Past roughly 150–200 live instructions on the loaded path, adherence drops and earlier instructions win.
 
-| Level | Loads | Cost |
+### What no longer belongs
+
+Each was written for models that needed it, and is neutral at best on current ones.
+
+- **Pressure language** – MUST, NEVER, CRITICAL over-apply and set an anxious register. A hedge ("try to", "if possible") on a real requirement reads as permission to skip it. Emphasis is a tested fix for one underweighted instruction, never a register.
+- **Thinking scaffolds** – "think step by step", "plan first", "be thorough" cause over-planning; depth is an effort setting. Never ask a model to show its reasoning, which Fable 5.1 can refuse.
+- **Step choreography for judgment work** – micro-steps where the model's own plan does better. Spell out a sequence only for a narrow bridge where one alone is safe: destructive commands, migrations, auth.
+- **Prohibitions without provenance** – a "never" against a failure the model would not make anchors it toward that failure. Keep one that encodes a real constraint or a reproduced failure, with its reason, and rewrite the rest as the wanted behaviour plus a check.
+- **Anchoring examples** – the model copies an example's length, tone, and structure. Use examples only to pin a format-sensitive output shape: several, varied, labelled illustrative.
+- **Numeric output shaping** – word caps, "at most five bullets", "be concise". State the audience and the outcome.
+- **Fossils** – retired-model workarounds, rules nothing enforces, reminders on a cadence.
+- **Update suppressors** – "hold findings for the end", "don't narrate", "never use bullets". Current models under-narrate with them present.
+- **Ask-first reflexes** – "confirm before", "ask if unsure", "stop for review" make Claude, and Astra most, pause on safe actions and stop early. Define done, and reserve confirmation for destructive, irreversible, external, or scope-expanding acts.
+- **Verification nagging** – "run the tests", "double-check", "read the docs first". Verification the model cannot give itself stays, as a dispatch: a fresh-context reviewer beats self-critique, on a cadence in long builds.
+- **Rules the host states** – the Claude Code and Codex system prompts carry autonomy, scope, progress, and formatting rules. A repeat wastes tokens, and a contradiction fights the harness.
+- **Grader vocabulary and strategy coaching** – "you will be graded on", "it's usually best to".
+
+## Writing
+
+- **Altitude** – state the outcome, the constraints, and how success is verified.
+- **A reason in one clause**, only where the rule runs against the model's default, because there a bare rule is followed rigidly or rationalised away.
+- **Scope stated** – current models apply a rule exactly as scoped. "Report only high-severity findings" loses recall, so ask for every finding with a severity and filter downstream.
+- **Leading words** – name a load-bearing rule with a term that already carries pretraining weight (*Chesterton's Fence*, *Stop-the-Line*, *Boy Scout rule*), in place of its explanation, and reuse it verbatim everywhere. Keep only what the project adds to its common meaning, settled by asking the cheapest model cold. Coin a term only where plain words fail, and keep one term per concept.
+- **Gates over steps** – a phase ends on an observable that shows it done ("every modified model accounted for"), and a gate restating its step is cut. Visible later phases pull toward premature completion. Sharpen the current gate first, and hide later phases behind a fresh subagent only when runs show rushing.
+- **Dispatch sites** – a delegating step names the skill the subagent invokes, fresh or in-session context, the values it cannot derive as that skill's arguments, and the return shape the caller parses. It names the target in words and passes only switches such as `--fix`, `--quick`, and `--auto` as flags, never a mode or lens the invoked skill resolves from its target. The loaded skill is the **Single Authority**, and a hand-rolled prompt is a second copy that drifts. GPT models delegate in parallel only when told to.
+- **Prose for behaviour, lists for data** – a rule is one sentence with its reason. Data is what the model looks up – a token mapped to an action, a route by flag or host, a return shape – and takes a list, one key per item. A table cell is a phrase; `tests/test_table_legibility.py` fails one over 200 chars.
+- **Plain sentences** – one condition and one action per sentence, in common words, imperative for instructions and descriptive for definitions. The actor is you unless the sentence names another. Split a sentence holding two or more of `:`, `;` and ` – `, unless it is a data line. Cut filler and mannered turns: an aphorism, a clause restating the one before, a contrast written for rhythm. Shorten by selecting, never by packing clauses.
+- **Contrast only a named failure** – write "X, not Y" only where Y is behaviour a recorded run produced.
+- **One concern per paragraph**, so an "otherwise" never reaches back past its condition. Layout adds markup, never instructions, so it does not count against concision.
+- **Bind shared names once**, in a line such as "`Learnings` and `Tech Debt` are Project Document Index entries", then use the bare names.
+- **Tested vendor wording** (the Astra guide's autonomy, approve-last, and anti-slop snippets) is reused verbatim, in an instruction file or output style and never in a skill.
+- **A mitigation names the model it patches**, so the next release can remove it. Re-audit prompt-like files at each model release.
+
+## Skills
+
+A skill is a folder – `SKILL.md` plus optional references and scripts – that an agent discovers by its description and loads on demand.
+
+| Item | Loads | Limit |
 |---|---|---|
-| Metadata (`name`, `description`) | Every turn, every installed skill | ~100 tokens per skill, always |
-| Body | On trigger, then stays in context | Under 500 lines / 5k tokens |
-| References and scripts | On explicit read or run | Zero until used |
+| `name`, `description` | Every turn, every installed skill | Name 1–64 chars, lowercase, hyphens, matching the directory; description 1,024 chars |
+| All descriptions | Every turn | Codex: 2% of the window, or 8,000 chars when unknown |
+| Body | On trigger, then stays | Under 500 lines, under 5k tokens |
+| References, scripts | On explicit read or run | One level deep; a table of contents past 100 lines |
+| Instruction files | Every turn | Codex `AGENTS.md` chain 32 KiB; `CLAUDE.md` under 200 lines |
 
-The limits, from the specification and the hosts:
+The body loads once and is never re-read, so a rule for the whole run is a standing instruction. Compaction keeps each re-attached skill's first 5,000 tokens, 25,000 across all, so what must survive a long run goes early. A step that must happen is a hook's job, because a skill is probabilistic.
 
-| Item | Limit | Source |
-|---|---|---|
-| `name` | 1–64 chars, lowercase, hyphens, matches the directory | Agent Skills spec |
-| `description` | 1–1,024 chars; Claude Code allows 1,536 with `when_to_use` | spec; Claude Code |
-| All descriptions together | 2% of the context window, or 8,000 chars when unknown | Codex |
-| `SKILL.md` body | Under 500 lines, under 5k tokens | spec |
-| References | One level deep from `SKILL.md` | spec; the installer enforces it |
-| Reference table of contents | Files over 100 lines | Anthropic |
-| Instruction files | `AGENTS.md` chain 32 KiB on Codex; `CLAUDE.md` under 200 lines | Codex; Claude Code |
+### Frontmatter
 
-Codex shortens descriptions and then drops skills when the shared budget overflows; this repository's 27 shipped descriptions total about 7,300 chars, under the 8,000 fallback only while every one stays lean. Description length is a packaging budget every skill shares.
+- Codex reads `agents/openai.yaml` beside the skill, and the `/command` name comes from the directory.
+- `model`, `effort`, `disable-model-invocation`, and `user-invocable` stay out of shipped skills: roles and the session steer models, and every skill serves users and subagents alike (`docs/DECISIONS.md`).
+- `context: fork` runs the body as a fresh subagent without the conversation, only for an actionable task, paired with `agent`.
+- `allowed-tools` pre-approves and does not sandbox.
 
-## Frontmatter
+### Description – the trigger surface
 
-Claude Code reads `name`, `description`, `when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `allowed-tools`, `disallowed-tools`, `model`, `effort`, `context`, `agent`, `background`, `hooks`, `paths`, `shell`, `metadata`, `license`, `compatibility`. Only `name`, `description`, `license`, `metadata`, `compatibility`, and `allowed-tools` are in the specification; the rest are host extensions, and Codex reads its own `agents/openai.yaml` beside the skill.
+The only text seen before the skill fires, loaded every turn. Codex trims descriptions from the end, then drops skills, once the shared budget overflows, and `tests/test_surface_budget.py` caps each shipped one at 400 chars.
 
-- The `/command` name comes from the directory, not `name`.
-- `model` and `effort` stay out of shipped AndThen skills: the role definitions and the session are the only steering surface (`docs/MODEL-EFFORT-SELECTION-GUIDE.md`).
-- `context: fork` runs the body as a fresh subagent's prompt with no access to the conversation; use it only for a skill that is an actionable task, and pair it with `agent` to pick the subagent type.
-- `disable-model-invocation` and `user-invocable` stay out of shipped AndThen skills: every capability is a skill both a user and a subagent can invoke (`docs/DECISIONS.md`, "No model-only or user-only skills").
-- `allowed-tools` pre-approves; it does not sandbox. List what the skill needs so review is legible.
+- What it does, then when, in the users' words, the load-bearing trigger first.
+- No first or second person ("I can help…", "You can use this…"), because the description joins the system prompt and a shifting point of view hurts discovery.
+- One boundary clause where a neighbour is easily confused.
+- Calibrated urgency belongs here and nowhere else, because skills under-trigger. No procedure or option menu.
+- Name a category of intent; a phrase per missed trigger generalises worse.
+- Brevity cuts steering and examples, never contract: what it does, when, and its inputs. Under-description is the common failure, here and in agent and tool descriptions.
+- The body explains each term the description uses. `argument-hint` names every input the body accepts and nothing else, and the Codex default prompt agrees with both.
 
-## Description engineering: the trigger surface
+### The body
 
-It is the only text the model sees before the skill fires, it loads every turn, and Codex trims it first. Write it as one discriminating sentence pair:
+**The prompt handles the edge case.** A skill covers the path most runs take. An edge case the user can steer with a line of input gets no text: revising the skill's own output, a narrower scope, another destination, a non-default choice. Every branch is read on every run and invites the model to take it where it does not apply, and the Cookbook carries the user's recipe instead. A destructive or silent failure is the exception, and gets a one-sentence guard.
 
-- Third person, present tense: what the skill does, then when to use it, in the words users actually say.
-- The load-bearing trigger first: earlier text wins under primacy bias and survives budget trimming.
-- One boundary clause when an adjacent skill is easily confused ("not for executing an existing spec – that is `exec-spec`").
-- No manual, no option menu, no procedure.
-- Calibrated urgency is allowed here, because skills under-trigger, and nowhere else in the bundle.
+**Text allowance by aspect.** Every line serves one aspect, and text past its aspect's allowance is cut, however true. A line the one test removes is unprompted behaviour, even where it reads as a guard or a rubric item. It goes whole, because a one-line version still gives the instruction.
 
-Failure modes: too vague (never selected); too broad (fires on unrelated work – tighten the boundary or set `disable-model-invocation`); a term the description uses and the body never explains; a description that grows one phrase per missed trigger – enumerated queries generalize worse than a named category of intent.
+| Aspect | Allowance |
+|---|---|
+| Purpose | 1–3 sentences opening the body |
+| Input | One sentence placing `$ARGUMENTS`; a line per flag, and per input shape only where it loads a different file |
+| Main flow | One short step per phase: what it achieves, and the gate that shows it done |
+| Common variation | One sentence, at the step it changes |
+| Guard against a destructive or silent failure | One sentence, at the step it guards |
+| Edge case the user can prompt: rare input, re-entry, recovery, legacy state | None |
+| Parsed contract | Exact and once, in a template or data list |
+| Project fact the model cannot know | One line |
+| Reason for a rule | One clause, only where the rule runs against the model's default |
+| What the model does unprompted | None |
+| Another skill's or file's behaviour | A mention, never a restatement |
+| One host's quirk | None; a Learning, unless a one-line fix is proven on that host |
 
-## The body
+- **Common** means most runs, or an input users type often. A case whose only evidence is one eval cell is rare.
+- **Parsed contract** means a token, shape, path, or line another skill, script, hook, or test reads, and a skill's description. In an instruction file it includes every rule other skills, hooks, or the user's own instructions rely on, and each index entry resolved by name. In an agent definition it includes the frontmatter and the tier contract the role carries.
+- **Destructive** means lost or reverted work someone else made, or an irreversible action. **Silent** means no gate, test, or reviewer downstream would catch it.
+- Input gets one sentence because nothing parses it: `$ARGUMENTS` is raw substitution, and `argument-hint` validates nothing.
 
-Written for the model that executes it, read once when the skill fires, and laid out for the person who maintains it. Prompts and skills written for prior models are too prescriptive for the current generation and reduce output quality (Anthropic's migration guide; OpenAI's Astra guidance): state the goal, the constraints, the verification, and the named failure modes, and let the model plan.
+**Skeleton.** Every body uses these sections in run order, leaving out any it does not need, and a reference uses the same headings for the part it continues.
 
-- **Intent over procedure.** Match specificity to fragility. An open field takes a direction and heuristics; a narrow bridge with cliffs – migrations in sequence, destructive commands, auth flows – takes the exact command. Numbered steps only where one sequence is safe.
-- **Why beside the rule.** A rule with its reason generalizes to cases the author never listed; a bare rule is followed rigidly or rationalized past. The reason is what earns the tokens.
-- **Leading words** (a project convention, unmeasured)**.** Name a load-bearing rule with a term that carries pretraining weight (*Chesterton's Fence*, *Stop-the-Line*, *tracer bullet*) and reuse the term verbatim in description, body, and references. The term replaces its explanation: keep only what the project adds to the common meaning, and settle what that meaning is by asking the cheapest model cold, never from your own recall. A coined term recruits no priors and costs its definition every time.
-- **Gates over steps.** A phase ends on a falsifiable condition ("every modified model accounted for"), not an action ("produce a change list"). A gate has two dials: clarity, so done is distinguishable from not-done, and demand, so satisfying it forces the invisible work. Visible later phases pull the model toward being done – *premature completion*; sharpen the current gate first, and hide later phases behind a fresh subagent only when rushing is observed in runs.
-- **Dispatch sites.** A delegating step writes the dispatch, never the work: which skill the subagent invokes, fresh context or in-session and why, the values it cannot derive, the return shape the caller parses. Values pass as that skill's arguments. The skill body loaded there is the **Single Authority**; a hand-rolled prompt is a second copy that drifts.
-- **The host already speaks.** Before a skill states an autonomy, scope, progress, or formatting rule, read the host's system prompt – the general guidelines say why – and keep instruction precedence (the user's instructions over a skill's) in `AGENTS.md` once, never per skill.
-- **Headless by default.** Execution skills run to completion on recorded assumptions; a decision never stops a run, only an unusable call does. Discovery and design skills are interactive by contract – the interview is the deliverable – and say so; suggested or preselected answers are never confirmation.
-- **The argument line.** The body opens with one sentence placing the single `$ARGUMENTS` substitution point and stating only what `argument-hint` cannot – a default, a validity rule, a resolution order. No usage block and no variables block re-deriving the hint.
-- **Data in lists**, on the general guidelines' terms. In a skill the data is a verb's output tokens and what each one triggers, a route chosen by flag or host, a dispatch's return shape.
-- **Tables hold short cells.** A cell is a phrase; a sentence or an instruction becomes a list (`tests/test_table_legibility.py` fails any cell over 200 chars).
+| Section | Holds |
+|---|---|
+| Opening lines | Purpose |
+| `## Input` | `$ARGUMENTS` and the flags |
+| `## Rules` | Standing rules for the whole run, a few lines |
+| `## Workflow` | Numbered steps in run order, each ending on its gate; a branch loads its reference at the step |
+| `## Output` | What is written where, and the shapes other files parse |
+| `## Follow-up` | The one next command |
 
-## Pruning
+**Flow.**
 
-Length itself buys no compliance; what it costs, and what conflict costs, is in the general guidelines. Prune in this order:
+- One condition per branch point, read off the input or an artifact. Nested branches are two flows, and the second is a reference or another skill.
+- One case, one rule: where two rules can apply to one case with different outcomes, rewrite until one does.
+- One home per fact, and every other mention points at it.
+- Only `--auto` stops a skill asking what its text says to ask (`docs/DECISIONS.md`), and only then does it read `plugin/references/unattended-runs.md`. A skill whose interview is the deliverable takes no `--auto`.
 
-1. **Conflict audit.** Read the body, its references, `AGENTS.md`, and the host prompt together and resolve every pair that pulls in different directions. This comes first because no cut repairs a conflict.
-2. **The distillation test, per consuming path.** Delete the block: does a competent frontier model now do something different, and worse, on this path? Only three answers keep text: a counter-pretraining calibration (the untutored default is wrong), a named agent failure mode (a behaviour models actually exhibit), or a contract another skill or a parser reads. A block that is contract on one path and inert on another fails the test on the second path; the cure is a split by consumer, not a rewrite.
-3. **The four failure modes**, by name. *Duplication* – one meaning stated twice, already drifting; one canonical statement. *Sediment* – layers left by add-only edits; rework the section whole. *Sprawl* – material only some paths need, inline; move it to a reference loaded behind a condition the model decides without judgment (a flag, a mode, a host). *No-op* – what the model does unprompted ("be thorough") and filler; delete, and settle disputes by running the skill.
-4. **Count live instructions on the loaded path.** Compliance degrades from roughly 150–200 simultaneous instructions across system prompt, instruction files, skill, and references, and earlier instructions win.
-5. **Prove nothing was lost.** Before the first edit, list the contracts on the loaded path: tokens, flags, arguments, dispatches, gates, named failure modes, literal commands, paths, numbers, and each rule with its reason. After the last, each one is kept, moved, or cut with its keeper named.
-   - A moved item sits in a reference whose load site comes before the first step that needs it, under a condition shown true on every invocation that reached it. A gate or fail-fast check stays in the body, because position is part of its contract.
-   - Diff the code spans of the before and after text with a command; reading misses omissions.
-   - A fresh-context reviewer builds its own list from the before text and resolves it against the after text.
-   - Re-run the skill's test or eval case.
-   - Doubt reverts the edit: a regression costs more than the characters saved.
+### Scripts and references
 
-Contract markers that protect a span: an imperative lead verb, enumerated inputs, outputs, or modes, a counter-prior phrase ("preserving exact behaviour"), a verification commitment, a fail-fast gate at the top of the body – position is part of that contract. Always-safe cuts – the general guidelines' anti-patterns – usage blocks restating slash syntax (`argument-hint` owns it), description restatement, generic virtues, migration phrasing ("now", "no longer"), retired-model workarounds, examples of judgment the model owns. Examples survive only where they pin an output shape, on the general guidelines' terms.
+Script source never enters context, only its output. Deterministic work goes to a script, and the body says whether to run or read it. Name MCP tools `Server:tool`.
 
-When unsure whether the model already knows a span, propose the cut, unless a contract marker is present: redundant context cost 14–22% more reasoning tokens and lowered task success in the measured cases, and step 5 catches a wrong cut on a contract. Off that list nothing does, so name where the behaviour still comes from. A cut removes meaning the model does not need, never markup: collapsing a list into a paragraph or chaining sentences with dashes lowers the character count and keeps every instruction, harder to find. The size of a lean skill is whatever survives this pass; a remainder still too large for one trigger means moving content out of per-run context – a deeper tier, a split by consumer – not trimming harder. The shipped surface as a whole carries one aggregate word budget (ADR-018): a budget on an authored artifact, like the description budget above, not the output shaping the prompt guidelines reject. A change that grows past it cuts elsewhere or raises the number in the same commit, where the raise is one reviewed line.
+**The file rule.** Text every run needs goes in the body. Text only some runs need moves to a reference once it passes a few paragraphs, loaded behind a condition decided without judgment: a flag, a mode, a host. A reference holds such a branch or a rubric (lens, calibration, schema, contract), never a procedure handed to a subagent. A dispatched run is its own run, so `exec-plan` routes a FIS to `references/story.md` rather than its orchestrating body. A shared canonical stays in `plugin/references/` wherever it loads. Once the file rule holds, a large per-path load is no reason to split further.
 
-## Scripts and references
+**Loading a reference.** A reference loads where its path appears in `SKILL.md`, relative to the skill root. The skill's own file is `references/<name>.md`, and a canonical is `../../references/<name>.md`. The link form is the one `docs/ARCHITECTURE.md` § Reference Syntax in Skill Prompts fixes.
 
-Script source never enters context; only its output does. Deterministic work goes to a script, with explicit error handling and specific messages, and the body says whether to run it or read it. References are rubrics – a lens, a calibration, a schema, a contract – never a procedure handed to a subagent as "read this and perform it"; one file per domain so a task loads only its own; a table of contents above 100 lines; MCP tools named `Server:tool`.
+- Link each file once, where the run loads it, in a list with one line per condition. A mode table's cells and a flag's argument line serve as that list. A link threaded through a sentence hides the load.
+- A reference continues the body's step numbering, or cites no step outside itself.
+- A later mention is the bare backticked filename or a declared alias, and loads nothing. Mention only a file the same body loads, or another skill's file as a fact. A model opens any name it can resolve, so `install-skills.sh --validate-only` fails on a bare name of an unloaded file under `references/`.
+- Only `SKILL.md` links or paths to another file, and every other file only mentions, code fences included. Chained loads get partial reads.
 
-**Loading a reference.** A reference loads where its path appears in `SKILL.md` – `references/<name>.md` for the skill's own file, `../../references/<name>.md` for a canonical, both relative to the skill root the host announces – as a link URL or a code span; the sentence around the path says what the file carries and when to read it, an unconditioned path meaning read it on reaching the line. A mode table's cells carry the paths. A bare `<name>.md` or a declared alias (*The Authoring Guidelines*) is a mention and loads nothing, so it may name only a file the same body already loads by path, or another skill's file as a fact – a model opens what a step needs and it can resolve, so a bare name of an unloaded file that exists under `references/` is a load waiting to happen, and `install-skills.sh --validate-only` fails on it. Every file but `SKILL.md` mentions and never links or paths, code fences included: chained loads get partial reads (`head`), which is why references stay one level deep.
+## Changing a skill
 
-## Prove it
+Most changes are a few lines in an existing file, and most bloat arrives that way.
 
-- **Evaluation-driven authoring**, on the general guidelines' terms: baseline the model unaided, write the minimum text that fixes the observed failures, keep the cases, re-run after every cut, and test each tier the skill will meet.
-- **This repository's gates**: the fast tier in `AGENTS.md` § Testing, the install validate-only check, the eval cases under `evals/cases/`.
+- **Rework, don't accrete.** Rewrite the sentence or step the change touches, so the file reads as if the behaviour was always there and holds or shrinks its size. An appended clause or a sentence bolted on beside the old one leaves a seam.
+- **An added sentence names its cause**: the run that went wrong without it, or the contract it carries (the **Product** document's Decision Rule). A review finding about a rare path names neither, so a fix pass adds text for it only as a one-sentence guard against a destructive or silent failure.
+- **A rule several skills need** is one sentence built on its leading word, identical in each, plus only that skill's own exception. Search the shipped surface for the concept before writing it, because a paraphrase drifts from its siblings on the first edit.
+- **Preserve behaviour the request does not change**, and keep cleanup inside the files the change touches.
+- **The shipped surface has one word budget** (`tests/surface-budget.json`, ADR-018): a round ceiling a few percent above the count, so an ordinary fix fits under it. Growth past it cuts elsewhere or raises it in the same commit to a new round number with that headroom, as one reviewed line.
+
+## Pruning and review
+
+The allowance is the test, for old text as for new.
+
+### Conflict audit
+
+Read the target with everything that loads beside it – its references, the project instruction file, the host prompt – and resolve every pair pulling different ways first. No cut repairs a conflict.
+
+### Failure modes
+
+Measure against what one load pays for, since a link pulls its whole target into every consumer.
+
+- **Duplication** – one meaning stated twice. On one loaded path it costs every load, and across skills a paraphrase drifts from its siblings.
+- **Sediment** – seams of add-only edits: bolted-on sentences, doubled altitude, contradictions, history phrasing ("now", "no longer", "instead of", a diff against text the model never saw).
+- **Sprawl** – text in the wrong file by the file rule.
+- **No-op** – what the model does unprompted or the host already says, the catalogue above, filler, usage blocks, description restatement. Settle a dispute by running the skill, because No-op status is model-relative.
+
+### Branch ledger
+
+List every branch and aspect in scope with the verdict its allowance sets: keep, one line, move, or cut. Then count the live instructions left on the loaded path against the 150–200 threshold.
+
+- An edge case the user can prompt is cut, however well tested. A test or rubric grading a sentence is no reason to keep it, and the eval of a cut branch changes or retires in the same commit.
+- Doubt about a rare case cuts it. A failure on a common path brings it back as one sentence.
+- A cut names its keeper: where the behaviour still comes from on the loaded path, such as a kept row, a loaded reference, the host prompt, or the model's own default. A keeper is text the running agent will have loaded, so a dispatched skill's body, an unshipped note, a project document, or a README is none. A cut without a keeper is a decision, named in the commit message.
+- A move goes to the file that already owns the fact, loaded before the first step that needs it on every invocation that reached it. A gate moves only with its whole step, and a fail-fast check stays in the body, because position is part of their contract.
+- Packing is not a cut: a list collapsed into a paragraph keeps every instruction, harder to find. A reshape that pulls data out of prose or splits a packed sentence is a fix, and its markup does not count against the size.
+
+### Proof
+
+Author evaluation-driven: baseline the most capable model the file meets, write the minimum text that fixes the observed failures, keep the cases, then test the other tiers. Agents report adherence they did not perform, so gates and verifiable artifacts carry what matters, and proof is a test or a case under `evals/cases/`.
+
+Rewrite from intent, never compress: write the purpose and main flow on a blank page, then add back what the ledger keeps, because compressing keeps the branches. A rewrite proves no regression three ways:
+
+- Before the first edit, the eval cases run several times in parallel on Claude, and the smoke tier on Codex, as the baseline. One run proves nothing, because evals are intermittent.
+- Parsed contracts stay byte-exact, checked by a command diff of code spans, because reading misses omissions.
+- A fresh-context reviewer finds each kept ledger row in the rewrite, and the re-run evals match or beat the baseline, or the change reverts.
+
+The `skill-review` skill's `--fix` runs this.
 
 ## Repository constraints
 
-`AGENTS.md` states them once – § Skill And Agent Model (no invocation sigils, `andthen:<name>` with the type noun adjacent, the wording audit) and § Maintenance Contracts (the README and CHANGELOG obligations, no tests under `plugin/`). A skill change that touches a shared canonical also updates the installer's asset arrays and the Architecture table.
-
-## Checklist
-
-1. Description: third person, what + when in the user's words, trigger first, boundary named, within the shared budget.
-2. `argument-hint` matches every input the body accepts.
-3. Body under 500 lines; references one level deep, rubric-shaped, table of contents above 100 lines.
-4. No instruction conflicts across body, references, `AGENTS.md`, and the host prompt.
-5. Every rule carries its reason; no pressure language, no hedges on real requirements.
-6. No thinking, planning, or "be thorough" scaffolds; no numeric output caps or update cadences.
-7. Steps only where one sequence is safe; every phase ends on a gate.
-8. Dispatch sites name the skill and its arguments and say "subagent".
-9. Examples only pin an output shape, labelled illustrative.
-10. No retired-model workarounds, migration phrasing, history narrative, or dated guidance.
-11. One term per concept; leading words reused verbatim, never re-explained.
-12. Plain sentences, one concern per paragraph, data in lists, no filler.
-13. Deterministic work in scripts, run-or-read stated, MCP names qualified.
-14. Proof exists: an eval case or test, and a removal re-run for each cut.
-15. After a pruning pass, every contract of the old text is kept, moved, or cut with its keeper.
-
-## Layering
-
-| Topic | Where it lives |
-|---|---|
-| What belongs in any prompt, what no longer does | `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES.md` |
-| Current Claude generation | `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES-CLAUDE.md` |
-| Current GPT generation and Codex limits | `docs/prompt-guidelines/PROMPT-ENGINEERING-GUIDELINES-GPT.md` |
-| Skill packaging, discovery, pruning, this repo's craft | this document |
-| Non-negotiable engineering rules | `docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md` |
-
-Skill craft wins over general prompt craft for skill files.
+A reference in `plugin/references/` needs two consuming skills, and with one it moves into that skill.
 
 ## References
 
-- Agent Skills best practices – https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-- Agent Skills specification – https://agentskills.io/specification
-- Claude Code skills – https://code.claude.com/docs/en/skills
-- Codex skills and AGENTS.md – https://developers.openai.com/codex/skills, https://developers.openai.com/codex/guides/agents-md
-- Instruction count: IFScale, arXiv:2507.11538 (2025); conflict: Instruction Stacking Collapse, arXiv:2608.02639 (2026); file size and position: Instruction Adherence in Coding Agent Configuration Files, arXiv:2605.10039 (2026); context-file content: ETH SRI, Evaluating AGENTS.md (2026)
-- Examples: Revisiting Chain-of-Thought Prompting, arXiv:2506.14641; The Few-shot Dilemma, arXiv:2509.13196
+- Skills: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices, https://agentskills.io/specification, https://code.claude.com/docs/en/skills, https://developers.openai.com/codex/skills, https://developers.openai.com/codex/guides/agents-md
+- Prompting: https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices, the migration and prompt-audit guides bundled with the Claude Code `claude-api` skill, and https://developers.openai.com/api/docs/guides/latest-model (Astra, with the tested snippets)
+- Evidence: IFScale, arXiv:2507.11538; Instruction Stacking Collapse, arXiv:2608.02639; Instruction Adherence in Coding Agent Configuration Files, arXiv:2605.10039; ETH SRI, Evaluating AGENTS.md (2026); The Few-shot Dilemma, arXiv:2509.13196

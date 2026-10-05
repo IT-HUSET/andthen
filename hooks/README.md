@@ -1,19 +1,21 @@
 # Hooks
 
-Standalone Claude Code hooks. Pick the ones you need and add them to your settings individually.
+Standalone Claude Code hooks; `context-hint.py` also runs on Codex. Pick the ones you need and add them to your settings individually.
 
 ## Available Hooks
 
 | Script | Hook Event | Matcher | Purpose |
 |--------|-----------|---------|---------|
 | `block-dangerous-commands.py` | PreToolUse | `Bash` | Blocks destructive shell commands (rm -rf, fork bombs, pipe-to-shell, etc.) |
-| `notify.sh` | Stop, Notification | -- | Desktop notifications when Claude finishes or needs attention |
-| `notify-elevenlabs.sh` | Stop, Notification | -- | Voice notifications via ElevenLabs TTS API |
-| `reinject-context.sh` | SessionStart | `compact` | Re-injects critical rules after context compaction |
+| `notify.sh` | UserPromptSubmit, Stop, Notification | -- | Desktop notifications when Claude finishes or needs attention |
+| `notify-elevenlabs.sh` | UserPromptSubmit, Stop, Notification | -- | Voice notifications via ElevenLabs TTS API |
+| `context-hint.py` | Stop | -- | Tells the agent the session's context size past a threshold, so it can suggest a fresh session (Claude Code and Codex) |
+
+Claude Code re-reads the project-root `CLAUDE.md` after compaction on its own, so no hook is needed to keep project rules in context.
 
 ## Prerequisites
 
-- **Python 3.8+** (for `block-dangerous-commands.py`)
+- **Python 3.8+** (for `block-dangerous-commands.py` and `context-hint.py`)
 - **jq** (recommended; scripts have fallback to Python-based or grep/sed JSON parsing)
 - **curl** (for ElevenLabs voice notifications)
 
@@ -31,7 +33,7 @@ mkdir -p ~/.claude/hooks/scripts ~/.claude/hooks/configs
 cp hooks/scripts/block-dangerous-commands.py ~/.claude/hooks/scripts/
 cp hooks/scripts/notify.sh                   ~/.claude/hooks/scripts/
 cp hooks/scripts/notify-elevenlabs.sh        ~/.claude/hooks/scripts/
-cp hooks/scripts/reinject-context.sh         ~/.claude/hooks/scripts/
+cp hooks/scripts/context-hint.py             ~/.claude/hooks/scripts/
 
 # Copy config
 cp hooks/configs/blocked-commands.json       ~/.claude/hooks/configs/
@@ -58,11 +60,11 @@ Add entries to `~/.claude/settings.json` (user-level, global) or `.claude/settin
 
 ### block-dangerous-commands.py
 
-Intercepts Bash commands and blocks destructive patterns: `rm -rf`, fork bombs, `chmod 777`, `dd` to devices, `mkfs`, pipe-to-shell (`curl | sh`), interpreter escapes (`bash -c`, `eval`, `python3 -c`), network tools (`nc`, `socat`, `telnet`), system control (`shutdown`, `reboot`), privilege commands (`chown`, `passwd`, `useradd`), and obfuscated execution (`base64 | bash`, reverse shells). Allows safe pipe targets like `jq`, `grep`, `sort`.
+Intercepts Bash commands and blocks destructive patterns: `rm -rf`, fork bombs, `chmod 777`, `dd` to devices, `mkfs`, pipe-to-shell (`curl | sh`), interpreter escapes (`bash -c`, `eval`, `python3 -c`), network tools (`nc`, `socat`, `telnet`), system control (`shutdown`, `reboot`), privilege commands (`chown`, `passwd`, `useradd`), and obfuscated execution (`base64 | bash`, reverse shells). Text inside quotes is treated as data, so a commit message or search pattern that names these commands passes, unless it contains `$(...)` or backticks, which still execute – so a `-m "$(cat <<'EOF' … EOF)"` commit message is scanned too. Quoting the command name or a flag (`"rm" -rf`, `rm '-rf'`) does not hide it. Tool names match only where they run as a command (after a separator, pipe, `sudo`, `timeout`, `xargs`, and similar wrappers), so `grep nc` passes and `timeout 5 nc -z host 80` does not.
 
 > **Note/Disclaimer/Warning:** This is not an exhaustive list of dangerous commands. It covers common destructive patterns but cannot catch every possible risky operation. Always review agent commands, keep Claude Code's built-in permission system enabled, and add project-specific patterns to your local `blocked-commands.json` as needed.
 
-**Config**: `blocked-commands.json` – customize blocked patterns and safe pipe targets. Copy to `~/.claude/hooks/configs/` to override defaults.
+**Config**: `blocked-commands.json` – customize blocked patterns. Copy to `~/.claude/hooks/configs/` to override defaults.
 
 **Add to `hooks.PreToolUse` array in settings:**
 
@@ -81,13 +83,20 @@ Intercepts Bash commands and blocks destructive patterns: `rm -rf`, fork bombs, 
 
 ### notify.sh
 
-Sends desktop notifications when Claude finishes a task (Stop event) or needs attention (permission prompt, idle). Uses macOS `osascript`, Linux `notify-send`, or terminal bell as fallback. Includes smart debouncing (5s) and suppresses Stop notifications for short sessions (<30s).
+Sends desktop notifications when Claude finishes a task (Stop event) or needs attention (permission prompt, idle). Uses macOS `osascript`, Linux `notify-send`, or terminal bell as fallback. Debounces to one notification per 5s, and skips the Stop notification when the turn took under 30s, since you are likely still watching. The `UserPromptSubmit` entry records when each turn starts; without it, every Stop notifies.
 
 No config file. No dependencies beyond Bash (jq optional, has grep/sed fallback).
 
-**Add both entries to settings** – one under `hooks.Stop`, one under `hooks.Notification`:
+**Add all three entries to settings** – under `hooks.UserPromptSubmit`, `hooks.Stop`, and `hooks.Notification`:
 
 ```json
+"UserPromptSubmit": [{
+  "hooks": [{
+    "type": "command",
+    "command": "bash ~/.claude/hooks/scripts/notify.sh",
+    "timeout": 10
+  }]
+}],
 "Stop": [{
   "hooks": [{
     "type": "command",
@@ -113,9 +122,16 @@ Voice notification variant using the ElevenLabs TTS API. Same events and debounc
 
 No config file. Requires `ELEVENLABS_API_KEY` env var and `curl`. See [ElevenLabs Setup](#elevenlabs-setup).
 
-**Add both entries to settings** – same structure as `notify.sh`:
+**Add all three entries to settings** – same structure as `notify.sh`:
 
 ```json
+"UserPromptSubmit": [{
+  "hooks": [{
+    "type": "command",
+    "command": "bash ~/.claude/hooks/scripts/notify-elevenlabs.sh",
+    "timeout": 10
+  }]
+}],
 "Stop": [{
   "hooks": [{
     "type": "command",
@@ -135,29 +151,52 @@ No config file. Requires `ELEVENLABS_API_KEY` env var and `curl`. See [ElevenLab
 
 ---
 
-### reinject-context.sh
+### context-hint.py
 
-Re-injects `CLAUDE.md` (project instructions) into Claude's context after automatic compaction. Without this, rules from CLAUDE.md can be lost when the conversation gets long and context is compressed. Triggers only on the `compact` matcher (i.e., when Claude Code compacts context).
+The model cannot see how large its context has grown, and long interactive sessions get worse well before the window fills. When the agent is about to end its turn, this hook reads the size of the last request from the session transcript. Past the threshold it blocks the stop once, telling the model the size, and the model adds one closing line: continue here, or start a fresh session after writing a handoff, or nothing when it is mid-task and should go on. You decide.
 
-No config file. Requires `CLAUDE.md` to exist in the project directory.
+- **Threshold**: `CONTEXT_HINT_THRESHOLD` tokens, default `200000`, one absolute number on both hosts, because the decline tracks tokens rather than the window size. The hint fires on crossing it and again at every further 50k. A compacted session reads small again, so the hint returns once it regrows past the threshold.
+- **Silent** below the threshold, while the agent is already continuing because of a Stop hook, and in a run with a single prompt (headless, `--auto`, or otherwise unattended). Claude Code subagents end on `SubagentStop`, so they never reach it.
+- **Cost**: each firing is one extra model turn. One small state file per session in `$TMPDIR`.
+- **Fails open**: any error prints nothing and lets the stop through.
 
-**Add to `hooks.SessionStart` in settings:**
+No config file. Python 3 standard library only. Set the threshold in your shell profile, or for Claude Code in the settings `env` block, as for [ElevenLabs](#elevenlabs-setup).
+
+**Claude Code** – add to the `hooks.Stop` array in settings, beside any `notify.sh` entry:
 
 ```json
-"SessionStart": [{
-  "matcher": "compact",
+{
   "hooks": [{
     "type": "command",
-    "command": "bash ~/.claude/hooks/scripts/reinject-context.sh"
+    "command": "python3 ~/.claude/hooks/scripts/context-hint.py",
+    "timeout": 10
   }]
-}]
+}
 ```
+
+**Codex** – hooks are on by default (`[features] hooks = true` in `config.toml` turns them back on). Add the same entry to `~/.codex/hooks.json` or a repo's `.codex/hooks.json`, pointing at wherever you copied the script; Codex asks you to trust a new hook in `/hooks` before it runs it, and hands the model the hint as a new prompt.
+
+```json
+{
+  "hooks": {
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "python3 ~/.claude/hooks/scripts/context-hint.py",
+        "timeout": 10
+      }]
+    }]
+  }
+}
+```
+
+In `config.toml` the same entry is a `[[hooks.Stop]]` table holding a `[[hooks.Stop.hooks]]` table with `type`, `command`, and `timeout`.
 
 ---
 
 ## Full Example
 
-Complete `~/.claude/settings.json` with all included hooks enabled:
+Complete `~/.claude/settings.json` with the command blocker and desktop notifications enabled:
 
 ```json
 {
@@ -172,6 +211,13 @@ Complete `~/.claude/settings.json` with all included hooks enabled:
         }]
       }
     ],
+    "UserPromptSubmit": [{
+      "hooks": [{
+        "type": "command",
+        "command": "bash ~/.claude/hooks/scripts/notify.sh",
+        "timeout": 10
+      }]
+    }],
     "Stop": [{
       "hooks": [{
         "type": "command",
@@ -185,13 +231,6 @@ Complete `~/.claude/settings.json` with all included hooks enabled:
         "type": "command",
         "command": "bash ~/.claude/hooks/scripts/notify.sh",
         "timeout": 10
-      }]
-    }],
-    "SessionStart": [{
-      "matcher": "compact",
-      "hooks": [{
-        "type": "command",
-        "command": "bash ~/.claude/hooks/scripts/reinject-context.sh"
       }]
     }]
   }

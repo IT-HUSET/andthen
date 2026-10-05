@@ -55,8 +55,8 @@ def story(path, identifier):
 def diverges(path, row, verified=False, **wanted):
     """Every way one story row diverges from the state a case expects. `wanted`
     names story fields by their own keys - status, completedTaskIds, fis - and
-    `verified` asks for the at/summary record the run session writes when it
-    marks the story done, from the proof lines that were executed, which is the
+    `verified` asks for the at/summary record the session executing the story
+    writes when it marks the story done, from the proof lines that were executed, which is the
     only trace binding a status to a run rather than to a narrative."""
     problems = ["%s: story %s %s is %r, expected %r"
                 % (path, row.get("id"), field, row.get(field), want)
@@ -66,7 +66,7 @@ def diverges(path, row, verified=False, **wanted):
     record = row.get("verified")
     if not isinstance(record, dict):
         return problems + ["%s: story %s has no verified record, expected one the "
-                           "run session writes on done" % (path, row.get("id"))]
+                           "story writes on done" % (path, row.get("id"))]
     return problems + ["%s: story %s verified.%s is %r, expected a non-empty string"
                        % (path, row.get("id"), field, record.get(field))
                        for field in ("at", "summary")

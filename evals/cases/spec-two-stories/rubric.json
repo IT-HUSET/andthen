@@ -1,0 +1,8 @@
+{
+  "criteria": [
+    {"id": "TWO_STORIES_MODULE_SPLIT", "intent": "The bundle cuts the PRD along its two leaf modules: one story's scope and FIS cover FR1 in src/reporter/records.py, another's cover FR2 in src/reporter/text_tools.py, and no story touches both modules or adds scope the PRD does not ask for."},
+    {"id": "TWO_STORIES_ONE_AUTHOR_PER_STORY", "intent": "Each FIS is written by its own fresh authoring subagent invoked with --batch on that one story of the plan.json; the session that cut the stories authors no FIS itself and is the only writer of plan.json."},
+    {"id": "TWO_STORIES_ONE_BUNDLE_REVIEW", "intent": "One fresh reviewer subagent reviews the whole bundle once, after every FIS exists, and its roster names every story's FIS; no per-FIS self-review runs in the story subagents."},
+    {"id": "TWO_STORIES_ASKS_NOTHING", "intent": "The unattended run asks no question at any point and ends on exactly one next command - the andthen:exec-plan skill on docs/specs/ledger-hygiene - with no Closure: or other verdict line; an item left open is an `ASSUMPTION: <reading> – <what would change it>` line in the FIS where it bites, never a story without its FIS or marked blocked; a `pending` story whose FIS exists, waiting on its `dependsOn` or not, is the authored state, not an open item. A --worktree clause on that command, and an Assumed: list or the plan.json path before it, are expected, not defects."}
+  ]
+}

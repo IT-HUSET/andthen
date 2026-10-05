@@ -1,0 +1,21 @@
+name: andthen-init-subject
+description: Set up an existing repository that has no agent instruction file.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: init
+    name: Set up the repository
+    skill: andthen:init
+    prompt:
+      - >-
+        Set up AndThen in this repository, and end on your closing summary.
+    outputs:
+      summary:
+        format: text
+      questions_asked:
+        format: json
+        schema:
+          type: array
+          items: {type: string}

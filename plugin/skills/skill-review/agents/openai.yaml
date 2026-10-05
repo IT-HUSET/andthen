@@ -1,7 +1,0 @@
-interface:
-  display_name: "AndThen - Skill Review"
-  short_description: "Review a skill bundle or prompt-like file against skill craft; --fix tightens it with zero contract loss"
-  default_prompt: "Review this skill bundle or prompt-like file against skill craft and return findings, a cut list, and a ship-ready verdict. Target: "
-
-policy:
-  allow_implicit_invocation: true

@@ -1,6 +1,7 @@
 """Schema-only `plan.json` validator for eval checks.
 
-`ops.py` is gone (ADR-003, ADR-013): the skill that writes a plan checks its own
+`ops.py` is gone (ADR-003; Decisions: "The `ops` skill and its script are
+retired"): the skill that writes a plan checks its own
 candidate against `plan.schema.json` now, so a case's `check.json` needs its own
 way to fail on a malformed plan. This lifts the minimal `validate_instance`
 walker from `ops.py` (see `git show ea80fe3^:plugin/skills/ops/scripts/ops.py`)

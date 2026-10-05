@@ -1,7 +1,7 @@
 {
   "patterns": [
     {
-      "regex": "\\brm\\s+(-[a-zA-Z]*r[a-zA-Z]*\\s+-[a-zA-Z]*f[a-zA-Z]*|(-[a-zA-Z]*f[a-zA-Z]*\\s+-[a-zA-Z]*r[a-zA-Z]*)|(-[a-zA-Z]*rf[a-zA-Z]*)|(-[a-zA-Z]*fr[a-zA-Z]*))\\b",
+      "regex": "\\brm(?=(?:(?!\\$\\(|`)[^|])*\\s(?:-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)\\b)(?=(?:(?!\\$\\(|`)[^|])*\\s(?:-[a-zA-Z]*f[a-zA-Z]*|--force)\\b)",
       "message": "Recursive force delete blocked. Use explicit file paths.",
       "category": "destructive"
     },
@@ -56,42 +56,42 @@
       "category": "interpreter_escape"
     },
     {
-      "regex": "\\b(nc|netcat|ncat)\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(nc|netcat|ncat)\\b",
       "message": "Netcat blocked. Network socket tools are not needed for development tasks.",
       "category": "network"
     },
     {
-      "regex": "\\bsocat\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?socat\\b",
       "message": "Socat blocked. Bidirectional data relay tools are not needed for development tasks.",
       "category": "network"
     },
     {
-      "regex": "\\btelnet\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?telnet\\b",
       "message": "Telnet blocked. Use curl or other HTTP tools instead.",
       "category": "network"
     },
     {
-      "regex": "\\b(shutdown|reboot|halt|poweroff)\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(shutdown|reboot|halt|poweroff)\\b",
       "message": "System shutdown/reboot blocked.",
       "category": "system_damage"
     },
     {
-      "regex": "\\b(fdisk|parted)\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(fdisk|parted)\\b",
       "message": "Disk partitioning blocked.",
       "category": "system_damage"
     },
     {
-      "regex": "\\b(mount|umount)\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(mount|umount)\\b",
       "message": "Filesystem mount/unmount blocked.",
       "category": "system_damage"
     },
     {
-      "regex": "\\b(passwd|useradd|userdel|usermod)\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(passwd|useradd|userdel|usermod)\\b",
       "message": "User management blocked.",
       "category": "privilege"
     },
     {
-      "regex": "\\bchown\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?chown\\b",
       "message": "Ownership change blocked.",
       "category": "privilege"
     },
@@ -110,6 +110,5 @@
       "message": "Reverse shell blocked.",
       "category": "reverse_shell"
     }
-  ],
-  "safe_pipe_targets": ["jq", "grep", "sort", "wc", "head", "tail", "less", "cat", "tee", "tr", "uniq"]
+  ]
 }

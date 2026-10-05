@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Plan"
-  short_description: "Create the plan bundle – plan.json plus a FIS per story"
-  default_prompt: "Create the plan bundle – story breakdown and a FIS per story – from a prd.md (or its directory), a requirements file, or a tracker item URL. Source: "
+  short_description: "Author the FIS for the work – one story, or plan.json plus a FIS per story – with fresh-context self-review"
+  default_prompt: "Author the Feature Implementation Specification for this work – one FIS, or a plan bundle when it needs several stories – then run fresh-context self-review. Source: "
 
 policy:
   allow_implicit_invocation: true

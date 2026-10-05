@@ -9,6 +9,7 @@ A rule *stated* in prose is never pinned here, because a sentence pinned here
 cannot be reworked and drifts instead."""
 import importlib.util
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -28,7 +29,7 @@ def misses(line):
 class ExtractionTest(unittest.TestCase):
     def test_comment_and_second_invocation_end_a_segment(self):
         segs = [s for _, s in audit.segments(
-            "`/andthen:spec docs/x/`  # or: /andthen:spec @docs/y.md")]
+            "`/andthen:plan docs/x/`  # or: /andthen:plan @docs/y.md")]
         self.assertEqual([s.strip() for s in segs], ["docs/x/", "@docs/y.md"])
 
     def test_a_quoted_request_is_prose_not_an_option(self):
@@ -91,7 +92,7 @@ class RetiredSurfaceGuards(unittest.TestCase):
     def test_issue_consumers_do_not_resolve_a_bare_issue_number(self):
         # A bare number resolves against whatever repo the agent happens to be in.
         for rel in ("plugin/skills/clarify/SKILL.md",
-                    "plugin/skills/triage/SKILL.md", "plugin/skills/spec/SKILL.md"):
+                    "plugin/skills/triage/SKILL.md", "plugin/skills/plan/SKILL.md"):
             self.absent(rel, "gh issue view <N>")
 
     def test_tracker_has_no_global_cap_or_substring_query(self):
@@ -101,7 +102,7 @@ class RetiredSurfaceGuards(unittest.TestCase):
     def test_plan_v1_surfaces_stay_retired(self):
         # 1.0 regenerates a bundle from the PRD instead of migrating v1 state, so
         # neither the migration reader nor v1's `metadata` field has a consumer left.
-        self.absent("plugin/skills/plan/SKILL.md", "migration input")
+        self.absent("plugin/skills/plan/references/breakdown.md", "migration input")
         self.absent("plugin/references/plan-schema.md", "`metadata`")
         self.absent("plugin/skills/tracker/SKILL.md", "legacy metadata")
 
@@ -110,6 +111,7 @@ class RetiredSurfaceGuards(unittest.TestCase):
         # Agent Teams orchestration, the capacity flag, and the script-driven
         # worktree lifecycle with its merge-resolve protocol.
         for rel in ("plugin/skills/exec-plan/SKILL.md", "plugin/references/plan-schema.md",
+                    "plugin/skills/exec-plan/references/plan-run.md",
                     "plugin/skills/exec-plan/references/story-worktrees.md"):
             self.absent(rel, "--team", "--max-parallel", "merge-resolve",
                         "worktree-mode.md", "team-mode-orchestration.md",
@@ -117,28 +119,31 @@ class RetiredSurfaceGuards(unittest.TestCase):
                         "attribution rule")
 
     def test_a_non_default_execution_target_is_not_a_warning(self):
-        self.absent("plugin/skills/exec-plan/SKILL.md",
+        self.absent("plugin/skills/exec-plan/references/plan-run.md",
                     "WARNING: BASE_BRANCH={value} is not the repo's default branch")
 
     def test_checkbox_task_state_stays_retired(self):
         # Task state lives in the story's `plan.json` record, never in ticked boxes
         # the FIS carries.
-        self.absent("plugin/skills/exec-spec/SKILL.md", "checks the boxes",
-                    "Mark the task checkbox", "status is untouched",
-                    "the only thing that writes")
-        self.absent("plugin/skills/exec-spec/SKILL.md",
-                    "--plan {PLAN_FILE_PATH} --story {STORY_ID}")
-        self.absent("plugin/skills/exec-plan/SKILL.md", "exec-spec handles FIS writes only",
+        for rel in ("plugin/skills/exec-plan/SKILL.md",
+                    "plugin/skills/exec-plan/references/story.md"):
+            self.absent(rel, "checks the boxes", "Mark the task checkbox",
+                        "status is untouched", "the only thing that writes",
+                        "--plan {PLAN_FILE_PATH} --story {STORY_ID}")
+        self.absent("plugin/skills/exec-plan/references/plan-run.md",
+                    "exec-plan handles FIS writes only",
                     "keeps its pre-run `plan.json` status")
         self.absent("README.md", "A refused completion changes nothing")
         self.absent("COOKBOOK.md", "observations and ticked boxes")
 
     def test_the_ops_verb_surface_stays_retired(self):
-        # `plan.json` has one writer - the run session, editing it with its file
-        # tools - so no skill may route a state write through a script verb again.
-        for rel in ("plugin/skills/exec-spec/SKILL.md", "plugin/skills/exec-plan/SKILL.md",
+        # The session executing a story writes its `plan.json` row with its file
+        # tools, so no skill may route a state write through a script verb again.
+        for rel in ("plugin/skills/exec-plan/SKILL.md",
+                    "plugin/skills/exec-plan/references/story.md",
+                    "plugin/skills/exec-plan/references/plan-run.md",
                     "plugin/skills/exec-plan/references/story-worktrees.md",
-                    "plugin/skills/plan/SKILL.md", "plugin/skills/spec/SKILL.md",
+                    "plugin/skills/plan/SKILL.md", "plugin/skills/plan/references/breakdown.md",
                     "plugin/skills/handoff/SKILL.md", "plugin/references/plan-schema.md"):
             self.absent(rel, "ops.py", "andthen:ops", "validate-plan", "merge-story",
                         "read-state", "update-plan", "complete-task", "complete-story")
@@ -147,7 +152,7 @@ class RetiredSurfaceGuards(unittest.TestCase):
 
     def test_plan_authoring_has_no_post_status_validation_pass(self):
         # The candidate is checked before it is written, so no second pass follows.
-        self.absent("plugin/skills/plan/SKILL.md",
+        self.absent("plugin/skills/plan/references/breakdown.md",
                     "After those final status writes, pass the Step 4")
 
     def test_remediation_rounds_stay_retired(self):
@@ -158,25 +163,45 @@ class RetiredSurfaceGuards(unittest.TestCase):
                     "Rounds used")
 
     def test_the_retired_review_gate_stays_gone(self):
-        """ADR-011 retired the per-story review gate: the review is a code review
+        """ADR-014 retired the per-story review gate: the review is a code review
         sized to the change, with no report, no verdict grammar, and no flag. The
         tokens are assembled rather than typed, for the same reason a policing
         script skips its own source - the repository sweeps itself for them, and
         this guard must not be the match that sweep finds."""
         gate = "story-" + "gate"
         for rel in ("plugin/skills/review/SKILL.md",
+                    "plugin/skills/review/references/full-review.md",
                     "plugin/skills/implement-fix/SKILL.md",
-                    "plugin/skills/exec-spec/SKILL.md",
-                    "plugin/skills/exec-plan/SKILL.md"):
+                    "plugin/skills/exec-plan/SKILL.md",
+                    "plugin/skills/exec-plan/references/story.md",
+                    "plugin/skills/exec-plan/references/plan-run.md"):
             self.absent(rel, "--" + gate, gate + ".md", "Story-" + "Gate:")
 
-    def test_the_story_procedure_lives_in_the_exec_spec_body(self):
-        """The story procedure lives in the exec-spec skill body; no reference file
-        holds it and nothing may point at one."""
-        for rel in ("plugin/skills/exec-spec/SKILL.md", "plugin/skills/exec-plan/SKILL.md",
+    def test_the_story_procedure_lives_in_the_exec_plan_body(self):
+        """ADR-014's recorded regression was a plan run executing the story in its
+        own session. The story procedure lives in `exec-plan/references/story.md`,
+        which only the exec-plan body links, so a plan run - which reads
+        `plan-run.md` - never loads the procedure it must delegate, and no other
+        skill can run it in place. The retired shared-reference shapes stay gone."""
+        self.assertTrue((ROOT / "plugin/skills/exec-plan/references/story.md").is_file())
+        body = ROOT / "plugin/skills/exec-plan/SKILL.md"
+        self.assertIn("](references/story.md)", body.read_text(encoding="utf-8"))
+        mention = re.compile(r"(?<![\w-])story\.md")
+        for path in sorted((ROOT / "plugin").rglob("*")):
+            if not path.is_file() or path == body or path.suffix not in (".md", ".yaml", ".py"):
+                continue
+            with self.subTest(path=path.relative_to(ROOT).as_posix()):
+                self.assertIsNone(mention.search(path.read_text(encoding="utf-8")))
+        for rel in ("plugin/skills/spec", "plugin/skills/exec-spec"):
+            with self.subTest(path=rel):
+                self.assertFalse((ROOT / rel).exists())
+        for rel in ("plugin/skills/exec-plan/SKILL.md",
+                    "plugin/skills/exec-plan/references/story.md",
+                    "plugin/skills/exec-plan/references/plan-run.md",
                     "plugin/skills/review/SKILL.md",
+                    "plugin/skills/review/references/full-review.md",
                     "plugin/skills/implement-fix/SKILL.md",
-                    "plugin/skills/plan/SKILL.md"):
+                    "plugin/skills/plan/references/breakdown.md"):
             self.absent(rel, "story-execution.md", "caller-lines.md",
                         "delegation-shape.md", "data-contract.md",
                         "GOVERNING " + "PLAN PATH", "Executor " + "rounds")

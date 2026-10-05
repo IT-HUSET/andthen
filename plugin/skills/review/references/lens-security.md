@@ -2,12 +2,12 @@
 
 Rubric for reviewing implementation, config, infrastructure, and supply-chain artifacts for security defects – source, config, IaC, CI/CD workflows, lockfiles, and deployment manifests, excluding generated and vendored noise unless lockfile changes are themselves the surface (supply-chain review).
 
-Where the code lens flags the smells visible in passing, this lens runs OWASP-aligned coverage and explicit data-flow analysis over authn/authz, secrets, injection, trust boundaries, and LLM/agent flows: use this rubric and the project's scanners, and report unavailable scanner depth.
+Where the code lens flags the smells visible in passing, this lens runs OWASP-aligned coverage and explicit data-flow analysis over authn/authz, secrets, injection, trust boundaries, and LLM/agent flows.
 
 
 ## Escalation Triggers
 
-Any one pulls `security` into an auto-resolved lens set (Step 1, `--mode` absent):
+Any one pulls `security` into a lens set resolved without `--mode`:
 
 - auth/session/authz (login, JWT, OAuth, RBAC, password); payments/money; secrets/credentials/keys/crypto.
 - network-exposed handlers (HTTP/GraphQL/gRPC/webhooks/consumers) and user-input/file-upload parsing; LLM/agent/RAG/tool-call flows.

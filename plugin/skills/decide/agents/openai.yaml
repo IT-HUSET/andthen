@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Decide"
+  short_description: "Interview to technical decisions, then record them as ADRs – a weighted trade-off where one is contested"
+  default_prompt: "Interview me over the technical decisions this needs, recommend each, and record them as ADRs. Decision, technical area, or PRD: "
+
+policy:
+  allow_implicit_invocation: true

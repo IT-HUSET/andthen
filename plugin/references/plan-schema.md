@@ -1,8 +1,10 @@
 # The Plan Schema
 
-`plan.json` is authoritative plan-bundle state: durable intent, dependency edges, and minimal resumable execution state. Phases, batches, parallel flags, and risk labels are derived views, not persisted facts.
+`plan.json` is authoritative plan-bundle state: durable intent, dependency edges, and minimal resumable execution state. It and its FIS files are scoped to the plan's branch.
 
-**Machine form.** `plan.schema.json` (JSON Schema draft 2020-12) owns shape invariants; the skill that authors or regenerates a plan checks its candidate against it before writing. It opens no FIS – task ids, provenance, and proofs are the executing agent's read. `schemaVersion` bumps only on a breaking delta.
+**Shipping.** The plan's branch is ready once every story is `done` or `skipped` (cut from scope), and its plan-level review over the `done` stories leaves no CRITICAL or HIGH finding open and no load-bearing check failing. A `DEFERRED` finding is still open: a deferral names a blocker, it does not accept the risk.
+
+**Machine form.** `plan.schema.json` (JSON Schema draft 2020-12) owns the shape invariants. The skill that authors a plan checks its candidate against it before writing.
 
 ## Document Shape
 
@@ -18,13 +20,12 @@
       "id": "S01",
       "name": "Foundation",
       "dependsOn": [],
-      "status": "spec-ready",
+      "status": "pending",
       "fis": "s01-foundation.md",
       "completedTaskIds": [],
-      "owner": null,
       "scope": "Establish the shared contract.",
       "sourceRefs": ["docs/prd.md#foundation"],
-      "provenance": "docs/plans/plan.json",
+      "provenance": null,
       "assetRefs": [],
       "sequencing": null
     }
@@ -32,55 +33,56 @@
 }
 ```
 
-A story `id` is unique within the plan – the lookup key every row write and dependency edge resolves through, which no JSON Schema expresses. The fields whose *meaning* prose has to state:
+A story `id` is unique within the plan; JSON Schema cannot state it.
+
+The fields whose *meaning* prose has to state:
 
 | Field | Contract |
 |---|---|
 | `prd` | Repo-root-relative path of the `prd.md` or requirements file the plan came from, or `null` when it came from anything else – a description, an intent doc, a tracker item. |
-| `fis` | Canonical `sNN-<slug>.md` basename beside the plan, or `null`; `done` requires a non-null FIS, and a terminal row keeps the pointer it finished with. |
-| `completedTaskIds` | Unique task IDs in the FIS's declared order, naming tasks of the FIS `fis` points at: empty while `fis` is `null`, and cleared when that pointer changes. |
-| `verified` | `{at, summary}`, written with `done` and never without it: `at` a UTC ISO-8601 minute, `summary` one line on § Execution semantics' shape – the only trace of what ran once the bundle is deleted. |
-| `owner` | The run session holding the story, or `null`; an `owner` on a row that is not `in-progress` is stale and free to take. |
-| `scope` | Bounded implementation brief. |
-| `provenance` | The plan path recorded in the FIS header. |
+| `fis` | Canonical `sNN-<slug>.md` basename beside the plan, or `null`; `done` requires a non-null FIS. |
+| `completedTaskIds` | Unique task IDs naming tasks of the FIS `fis` points at: empty while `fis` is `null`, and cleared when that pointer changes. |
+| `verified` | `{at, summary}`, written with `done` and never without it; `at` a UTC ISO-8601 minute. |
+| `provenance` | Why no `sourceRefs` entry covers the story, or `null`. |
 | `sequencing` | Residual dependency rationale, or `null`. |
 
 ## FIS identity
 
-A plan story's FIS sits beside the plan as `s{NN}-{name}.md`: `NN` is the zero-padded story number (`01`, never `1`) and `{name}` is a kebab-case slug of the story name – lowercase, alphanumerics and ASCII hyphen, whitespace collapsed, no leading or trailing hyphen (`s01-user-auth.md`). A pointer is accepted only in that exact form, derived from the story ID and name, with no directory component and resolving to a regular file – a symlink would alias two stories onto one spec; the authoring skill requires matching provenance in the target before it writes.
+A plan story's FIS sits beside the plan as `s{NN}-{name}.md` (`s01-user-auth.md`):
 
-That provenance sits between the FIS's H1 and `## Feature Overview and Goal`; a declaration elsewhere is malformed:
+- `NN` is the zero-padded story number (`01`, never `1`);
+- `{name}` is a kebab-case slug of the story name – lowercase, alphanumerics and ASCII hyphen, whitespace collapsed, no leading or trailing hyphen.
+
+A pointer is accepted only in that exact form, derived from the story ID and name, with no directory component, and resolving to a regular file.
+
+The FIS records its plan and story between its H1 and `## Feature Overview and Goal`:
 
 ```
 **Plan**: <relative-posix-path-from-project-root-to-plan.json>
 **Story-ID**: <ID>
 ```
 
-The path is repo-root-relative POSIX, no leading `./` or trailing slash, resolved from the project root holding the FIS and never from a working directory; `Story-ID` is uppercase `S` plus two digits (`S03`). There is no `**Status**:` field – `status` is `plan.json`-only, so no second source of truth exists.
+The path is repo-root-relative POSIX, with no leading `./` or trailing slash, resolved from the project root holding the FIS and never from a working directory. `Story-ID` is uppercase `S` plus two digits (`S03`).
 
-## State ownership
+## State writers
 
-`andthen:plan` owns durable planning fields and initializes new stories to `pending`, `fis: null`, `completedTaskIds: []`, and `owner: null`. Regeneration preserves that runtime state only when the story ID and normalized name still identify the same story and what it retains stays valid against the regenerated FIS.
+`andthen:plan` owns durable planning fields and initializes new stories to `pending`, `fis: null`, and `completedTaskIds: []`.
 
-Runtime state – `status`, `verified`, `fis`, `completedTaskIds`, `owner` – is edited in place per this schema by the skill that owns what it writes. **While a run is in flight there is exactly one writer**: the run session executing the bundle (the `andthen:exec-plan` or `andthen:exec-spec` skill). A story subagent never opens the file – it reports its state and the session writes the row. That is what makes parallel stories safe; two racing writers lose a row.
+Runtime state is `status`, `verified`, `fis`, and `completedTaskIds`. **The session executing a story writes its row** – a direct `andthen:exec-plan` run, or the story subagent a plan run dispatched. A plan run writes only under `--worktree`: the batch's rows as `in-progress`, committed before the batch branches, while no story copy exists yet. Authoring keeps one writer: the `andthen:plan` breakdown session writes the plan, and its story subagents report and never write it. Never put two writers on one copy of the file at once: racing writers lose a row.
 
-Status transitions: `pending` → `spec-ready` when the story has a FIS, `in-progress` at dispatch, then `done` or `skipped`, both terminal. A legacy `blocked` row reads as `spec-ready`.
+Statuses: `pending` until execution starts, with `fis` recording whether the FIS exists; `in-progress` once execution starts, and still after a failure, which lives in the run report; `done`, written with `verified`; `skipped`, set only by hand. `done` and `skipped` are terminal for execution.
 
 ## Execution semantics
 
-A story is dependency-ready when its status is `spec-ready` or `in-progress` and every `dependsOn` story is `done`. A skipped or failed prerequisite contains its dependents rather than satisfying the edge.
+A story is dependency-ready when it is `pending` with a FIS, or `in-progress`, and every `dependsOn` story is `done`. A `skipped` dependency blocks its dependents, since it was never built and their FIS presumes its code.
 
-`completedTaskIds` is the resume authority for what a re-run may skip. `verified.summary` is one line quoted from executed output – the proof command, its exit status, and the runner's own result line (`{cmd} -> exit=0, Ran 4 tests, OK`); an exit code alone records that something ran, not what it found, and "looks right" is never a verification.
+An older plan runs as it stands: `spec-ready` and `blocked` read as `pending`, and a field this schema lacks, such as `owner`, is ignored. A story with any other status stays unstarted, and the run report names it.
+
+`verified.summary` is one line quoted from executed output: the proof command, its exit status, and the runner's own result line (`{cmd} -> exit=0, Ran 4 tests, OK`). An exit code alone records that something ran, not what it found, and "looks right" is never a verification.
 
 ## Canonical serialization
 
 - UTF-8 JSON, two-space indentation, one trailing newline.
-- Schema order: top level `schemaVersion`, `prd`, `overview`, `sharedDecisions`, `bindingConstraints`, `stories`; story `id`, `name`, `dependsOn`, `status`, `fis`, `completedTaskIds`, `verified`, `owner`, `scope`, `sourceRefs`, `provenance`, `assetRefs`, `sequencing`.
-- Preserve story, dependency, and completed-task source order.
+- Keys in the example's order, `verified` after `completedTaskIds`.
+- Preserve story and dependency source order, and completed tasks in the FIS's declared order.
 - Path-valued fields are repo-root-relative POSIX strings; no absolute paths, backslashes, dot/dot-dot components, or containment escapes. A `sourceRefs` entry is such a path with an optional `#anchor`, or – for a tracker-sourced plan – the item's URL.
-
-## The one-story plan
-
-Every FIS is a plan story, so a standalone feature gets a `plan.json` of its own beside it – written by `andthen:spec`, the one exception to `andthen:plan` owning plan authorship. One state shape means one reader and no second schema to keep aligned.
-
-It carries `schemaVersion` `"2"`, `prd` the input PRD's path or `null`, an `overview` whose `summary` is the feature's one line, and a single story `S01`: `name` and `scope` from the feature, `dependsOn: []`, `completedTaskIds: []`, `fis` the canonical `s01-<slug>.md` basename, and `status` `spec-ready`.

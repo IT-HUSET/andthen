@@ -288,8 +288,7 @@ class InstallSkillsValidationCase(unittest.TestCase):
         # canonical: copied byte-for-byte (a consumer validates against it) and
         # its SKILL.md path rewritten local, since nothing may leave the bundle.
         cases = {
-            "describe": ["architecture-model.schema.json"],
-            "architecture": ["context-map.schema.json", "event-storm.schema.json"],
+            "plan": ["plan.schema.json"],
         }
         for skill_name, schemas in cases.items():
             with self.subTest(skill=skill_name):
@@ -389,15 +388,16 @@ class InstallSkillsValidationCase(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
         return destination
 
-    def schema_version_diagnostic(self, script: Path) -> str:
-        """What the installed tracker.py tells a user to re-run for a stale plan."""
-        # The plan's repository identity is resolved before its version, so the
-        # stale plan needs a repository to sit in.
+    def regenerate_diagnostic(self, script: Path) -> str:
+        """What the installed tracker.py tells a user to re-run for a plan
+        missing a field the projection reads."""
+        # The plan's repository identity is resolved before its fields, so the
+        # broken plan needs a repository to sit in.
         plan_repo = Path(self.temp_dir.name) / "plan-repo"
         plan_repo.mkdir(exist_ok=True)
         subprocess.run(["git", "init", "-q", str(plan_repo)], check=True)
         plan = plan_repo / "plan.json"
-        plan.write_text('{"schemaVersion": "1", "stories": []}', encoding="utf-8")
+        plan.write_text('{"schemaVersion": "2", "stories": [{"id": "S01"}]}', encoding="utf-8")
         result = subprocess.run(
             [sys.executable, str(script), "publish", str(plan), "--dry-run"],
             text=True, capture_output=True, check=False,
@@ -411,7 +411,7 @@ class InstallSkillsValidationCase(unittest.TestCase):
         tracker = destination / "andthen-tracker" / "scripts" / "tracker.py"
         self.assertIn('SKILL_NS = "andthen-"', tracker.read_text(encoding="utf-8"))
         self.assertIn("re-run the andthen-plan skill",
-                      self.schema_version_diagnostic(tracker))
+                      self.regenerate_diagnostic(tracker))
 
     def test_custom_prefix_rewrites_the_namespace_constant_and_nothing_else(self) -> None:
         destination = self.install_scripts("--prefix", "custom-")
@@ -420,7 +420,7 @@ class InstallSkillsValidationCase(unittest.TestCase):
         tracker_text = tracker.read_text(encoding="utf-8")
         self.assertIn('SKILL_NS = "custom-"', tracker_text)
         self.assertIn("re-run the custom-plan skill",
-                      self.schema_version_diagnostic(tracker))
+                      self.regenerate_diagnostic(tracker))
 
         # One occurrence: the constant's own line, no other token moved.
         self.assertEqual(1, tracker_text.count("custom-"))
@@ -441,9 +441,9 @@ class InstallSkillsValidationCase(unittest.TestCase):
             with self.subTest(prefix=prefix):
                 destination = Path(self.temp_dir.name) / ("installed-" + prefix)
                 result = self.run_installer(
-                    "--skills-dir", str(destination), "--skills", "exec-spec,review", *extra)
+                    "--skills-dir", str(destination), "--skills", "exec-plan,review,now-what", *extra)
                 self.assertEqual(0, result.returncode, result.stderr)
-                skill_dir = destination / (prefix + "exec-spec")
+                skill_dir = destination / (prefix + "exec-plan")
                 procedure = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
                 self.assertNotIn("../../references/", procedure)
                 self.assertNotIn("%sreview/references/" % prefix, procedure)
@@ -454,6 +454,12 @@ class InstallSkillsValidationCase(unittest.TestCase):
                     self.assertTrue((references / peer).is_file())
                     self.assertNotIn("../../references/",
                                      (references / peer).read_text(encoding="utf-8"))
+                router = destination / (prefix + "now-what")
+                self.assertIn("(references/plan-schema.md)",
+                              (router / "SKILL.md").read_text(encoding="utf-8"))
+                shipping = (router / "references" / "plan-schema.md").read_text(encoding="utf-8")
+                self.assertIn("**Shipping.**", shipping)
+                self.assertIn("no load-bearing check failing", shipping)
 
 
 if __name__ == "__main__":

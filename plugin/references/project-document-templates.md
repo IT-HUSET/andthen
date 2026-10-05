@@ -1,8 +1,8 @@
 # Project Document Templates
 
-Canonical starter templates for the supplementary project documents in the **Project Document Index** – read the section you need (see Contents), not the whole file.
+Canonical starter templates for the supplementary project documents in the **Project Document Index**. Read the section you need (see Contents), not the whole file.
 
-A template's `>` note sits above its fenced block, states who owns that document, and does not ship. Everything inside a fenced block is emitted verbatim into the created file, HTML comments included – they guide whoever maintains the document later.
+A template's `>` note sits above its fenced block, states who owns that document, and does not ship. Everything inside a fenced block is emitted verbatim into the created file, HTML comments included, because they guide whoever maintains the document later.
 
 ## Contents
 - Regeneration contract – merge rules shared by the derived documents (ARCHITECTURE, KEY_DEVELOPMENT_COMMANDS)
@@ -22,11 +22,11 @@ A template's `>` note sits above its fenced block, states who owns that document
 
 ## Regeneration contract
 
-> Binds every writer of a _derived_ document – ARCHITECTURE.md, KEY_DEVELOPMENT_COMMANDS.md – whose content a fresh analysis of the codebase re-derives. Cite it by name from the write site and keep only skill-specific gates inline.
+> Binds every writer of a _derived_ document – ARCHITECTURE.md, KEY_DEVELOPMENT_COMMANDS.md – whose content a fresh analysis of the codebase re-derives.
 >
-> - **An existing document at the target path** is **merged, never overwritten**: regenerate the sections its template note marks _derived_ from the current analysis; preserve the sections marked _judgment_ – rationale is the one thing code cannot re-derive – appending genuinely new items marked `(new)`.
+> - **An existing document at the target path** is **merged, never overwritten**. Regenerate the sections its template note marks _derived_ from the current analysis. Preserve the sections marked _judgment_, because rationale is the one thing code cannot re-derive, and append genuinely new items marked `(new)`.
 > - **A row whose subject can no longer be located** is flagged in place, never deleted: it may have moved rather than gone.
-> - **Template headings not locatable at all** – the document was hand-written to a different structure – means no merge is attempted: leave the file untouched, write the analysis beside it as `<NAME>.discovered.md` under a `> Status: Discovered – requires validation by team` header, and name the pair for reconciliation.
+> - **Template headings not locatable at all** mean the document was hand-written to a different structure, so no merge is attempted. Leave the file untouched, write the analysis beside it as `<NAME>.discovered.md` under a `> Status: Discovered – requires validation by team` header, and name the pair for reconciliation.
 > - **An absent target** is written fresh from the template.
 
 ---
@@ -62,7 +62,7 @@ A template's `>` note sits above its fenced block, states who owns that document
 
 ## TECH-DEBT-BACKLOG.md
 
-> Known technical debt grouped by severity, append-only. An agent deferring a fix reads the document and appends one entry under the matching severity heading – that heading *is* the entry's severity – replacing the placeholder line on a section's first write.
+> Known technical debt grouped by severity, append-only. An agent deferring a fix reads the document and appends one entry under the matching severity heading, which *is* the entry's severity. A section's first write replaces its placeholder line.
 
 ```markdown
 # Technical Debt Backlog
@@ -138,11 +138,11 @@ _No tech debt recorded yet._
 # Decisions
 
 <!-- Maintenance:
-     - The `andthen:architecture` skill in `--mode trade-off` auto-registers
+     - The `andthen:decide` skill auto-registers
        ADRs (appends to Current ADRs; moves prior rows to Superseded on
        supersession). Idempotent on ADR ID.
      - "Still Current" captures load-bearing choices that don't warrant a full
-       ADR. Promote via `--mode trade-off` if the choice becomes contested.
+       ADR. Promote via the `andthen:decide` skill if the choice becomes contested.
      - Status enum (Current ADRs): Proposed | Accepted | Deprecated.
        Superseded decisions move to the dedicated table; Rejected decisions
        stay only in the ADR file itself (not indexed). -->
@@ -172,7 +172,7 @@ _No tech debt recorded yet._
 ## Pending
 
 <!-- Decisions under discussion, awaiting acceptance. Typically populated by
-     the `andthen:architecture` skill in `--mode trade-off` when a
+     the `andthen:decide` skill when a
      recommendation hasn't yet been accepted as an ADR. -->
 
 - ...
@@ -233,7 +233,7 @@ _No tech debt recorded yet._
 # Project Learnings
 
 <!-- Traps only, one bullet each: `- **{title}** – …` trap + pointer; postmortem depth lives in
-     the spec archive or an ADR. An entry is admitted only if a frontier model does not already
+     the story commit or an ADR. An entry is admitted only if a frontier model does not already
      know it, the code and git history do not already carry it, and it outlives the current
      initiative – anything else belongs in that initiative's PRD, plan, or FIS. Read the document
      before appending, so a reworded duplicate of an entry it already carries never lands; keep
@@ -335,7 +335,7 @@ Application URL: `TODO` <!-- e.g. http://localhost:3000 -->
 
 ## TESTING-STRATEGY.md
 
-> How this project tests. Scaffolded by `andthen:init`, authored and maintained by the `andthen:testing` skill in `--mode strategy`, read by every skill that writes a test. Fill it from what the test tree already does, not from general testing theory.
+> How this project tests. Authored and maintained by the `andthen:testing` skill in `--mode strategy`, read by every skill that writes a test. Fill it from what the test tree already does, not from general testing theory.
 
 ```markdown
 # Testing Strategy
@@ -405,14 +405,14 @@ Commands: see `docs/KEY_DEVELOPMENT_COMMANDS.md` § Testing (`fast`, `full`, run
 
 ## ISSUE-TRACKER.md
 
-> Maps the issue-tracker backend agent workflows read from and publish to. Resolved before any issue operation via **Tracker resolution**. Any backend other than GitHub fills the Operation Table so skills substitute each transport call; body shapes, label names, and footer tokens stay identical (the document maps transport, not contract). The `andthen:init` skill registers its Index entry and offers the file at setup for a non-GitHub backend; the first skill that needs it offers to create it from here.
+> Maps the issue-tracker backend agent workflows read from and publish to. Resolved before any issue operation via **Tracker resolution**. Any backend other than GitHub fills the Operation Table so skills substitute each transport call. Body shapes, label names, and footer tokens stay identical: the document maps transport, not contract. The `andthen:init` skill registers its Index entry, and the first skill that needs it offers to create it from here.
 
 ```markdown
 # Issue Tracker
 
 Backend: GitHub
-<!-- One of: GitHub | <named backend, e.g. Jira, Linear>. GitHub (or no file) uses the built-in gh default –
-     omit the Operation Table below. -->
+<!-- One of: GitHub | none | <named backend, e.g. Jira, Linear>. GitHub (or no file) uses the built-in gh
+     default; none declares no tracker. Either way, omit the Operation Table below. -->
 
 ## Operation Table
 <!-- Non-GitHub backends only. Map every abstract operation to the backend's concrete command/API call.
@@ -457,7 +457,7 @@ Backend: GitHub
 
 ## CONTEXT-MAP.md
 
-> Bounded contexts and the patterns that integrate them. Registered and refreshed by the `andthen:architecture` skill in `--mode strategic-design` – the accepted Target map (or the confirmed Current map when auditing) graduates here; brownfield re-runs read it first and report drift against it. Idempotent per context and per context pair.
+> Bounded contexts and the patterns that integrate them. Registered and refreshed by the `andthen:architecture` skill in `--mode strategic-design`: the accepted Target map, or the confirmed Current map when auditing, graduates here. Brownfield re-runs read it first and report drift against it. Idempotent per context and per ordered pair plus channel.
 
 ```markdown
 # Context Map
@@ -471,10 +471,11 @@ Backend: GitHub
 ## Integration Patterns
 <!-- One row per ordered context pair that exchanges data. Pattern names come from the 9-pattern catalog
      (Partnership, Shared Kernel, Customer/Supplier, Conformist, Anticorruption Layer, Open Host Service,
-     Published Language, Separate Ways, Big Ball of Mud). Split a multi-channel pair into separate rows. -->
+     Published Language, Separate Ways, Big Ball of Mud). Split a multi-channel pair into one row per channel;
+     Channel stays empty for a single-channel pair. -->
 
-| Upstream | Downstream | Pattern | Notes |
-|----------|------------|---------|-------|
-| ...      | ...        | ...     | ...   |
+| Upstream | Downstream | Channel | Pattern | Notes |
+|----------|------------|---------|---------|-------|
+| ...      | ...        | ...     | ...     | ...   |
 
 ```

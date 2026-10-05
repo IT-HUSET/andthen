@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "andthen",
-  "description": "AndThen – structured workflows for agentic development: clarify → plan → exec-plan → review → implement-fix → PR",
+  "description": "AndThen – structured workflows for agentic development: clarify → plan → exec-plan → review → ship",
   "owner": {
     "name": "IT-HUSET"
   },
@@ -9,7 +9,7 @@
     {
       "name": "andthen",
       "source": "./plugin",
-      "version": "1.0.0-rc.3",
+      "version": "1.0.0-rc.4",
       "description": "AndThen workflow system: structured agentic development from requirements to shipped code",
       "author": {
         "name": "Tobias Löfstrand"

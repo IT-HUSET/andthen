@@ -7,7 +7,7 @@ stepDefaults:
 steps:
   - id: spec
     name: Author standalone FIS
-    skill: andthen:spec
+    skill: andthen:plan
     prompt:
       - >-
         --auto feature-request.md

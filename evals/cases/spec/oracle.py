@@ -9,7 +9,7 @@ judge's call, not a phrase match: a correct FIS words a clause its own way.
 The evidence records that a fresh-context review ran and whether it remediated;
 it carries no grade, because the run has none - Preflight ends on the next
 command, not a verdict. What the contract binds is the end state this file
-checks directly: the plan exists, validates, and carries the story spec-ready;
+checks directly: the plan exists, validates, and carries the story pending with its FIS;
 the FIS is under the ceiling and carries no retired section or verdict line.
 
 Python 3 standard library only.
@@ -62,15 +62,15 @@ def main():
 
 
 def plan_problems(fis):
-    """A standalone FIS is a one-story plan written beside it (ADR-013): the
-    story is spec-ready and points at the FIS by canonical basename - the state
+    """A standalone FIS is a one-story plan written beside it (ADR-003): the
+    story is pending and points at the FIS by canonical basename - the state
     the executor reads."""
     rows, problems = story_state.stories(PLAN)
     if problems:
         return problems
     if len(rows) != 1:
         return ["%s: %d stories, expected exactly one" % (PLAN, len(rows))]
-    wanted = {"id": "S01", "status": "spec-ready", "completedTaskIds": []}
+    wanted = {"id": "S01", "status": "pending", "completedTaskIds": []}
     if fis is not None:
         wanted["fis"] = fis.name
     return story_state.diverges(PLAN, rows[0], **wanted)

@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Skill Review"
+  short_description: "Review a skill bundle, prompt-like file, or a change to them against the skill-authoring guidelines; --fix rewrites from a branch ledger"
+  default_prompt: "Review this skill bundle, prompt-like file, or change against the skill-authoring guidelines and return findings, a branch ledger, and a ship-ready verdict. Scope: "
+
+policy:
+  allow_implicit_invocation: true

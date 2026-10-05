@@ -1,7 +1,0 @@
-interface:
-  display_name: "AndThen - Spec"
-  short_description: "Author the FIS for one story – a feature from a PRD or the request, or one plan story – with fresh-context self-review"
-  default_prompt: "Author the Feature Implementation Specification for this feature or plan story, then run fresh-context self-review. Feature: "
-
-policy:
-  allow_implicit_invocation: true

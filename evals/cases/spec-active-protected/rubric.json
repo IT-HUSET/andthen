@@ -1,8 +1,0 @@
-{
-  "criteria": [
-    {
-      "id": "SPEC_PROTECT_REFUSES",
-      "intent": "the run stops without re-authoring, saying the story's execution state already exists and must be executed or retired first"
-    }
-  ]
-}

@@ -1,14 +1,6 @@
 # Large-Diff Fan-Out
 
-Partition-based subagent fan-out for the `code` and `gap` lenses when the diff is too large for one reviewer's working context. This fans one lens pass over scope partitions for breadth.
-
-
-## Trigger
-
-- **Large surface** – ≥20 changed files, ≥1000 changed LOC excluding generated/vendor/lockfile noise, or 3+ top-level packages/modules/app entry points.
-- The caller asked for a partitioned review explicitly.
-
-Below these, the single lens pass runs. Each partition costs about one full review, so fan-out is the skill's one automatic cost multiplier and fires on surface size alone, never on phrasing; a caller who asks to keep it inline suppresses it, and the report line is contract: `Fan-out suppressed; inline review over <N>-file diff`.
+Partition-based subagent fan-out for the `code` and `gap` lenses when the diff is too large for one reviewer's working context.
 
 
 ## Partition Strategy
@@ -24,15 +16,14 @@ Never partition by architectural layer (`api/`, `domain/`, `infra/`, `tests/`): 
 
 ## Execution
 
-1. Compute partitions and record the partition map in the report (slice name → file count) so the user can audit the split.
-2. Each partition pass applies its resolved lenses' rubrics to its own file list; its matrix rows carry its own evidence, never orchestrator back-fill.
-3. After every partition returns, a **boundary pass** attacks what no partition owns: `refactor-invariants.md` checks 1 (deletion completeness), 2 (resolve-once, consume-many), and 6 (parameter threading) across partition boundaries – the checks whose second site can live in another partition – and contradictions between partitions (slice A passes a surface slice B flags). Its findings tag `reviewer: Boundary Pass`, `scope_relation: primary`, `source_partition: boundary`.
-4. Merge every partition's findings with the boundary pass's into one set, deduplicated by `(location, finding)` keeping the strongest framing, in the report's one `## Findings` section – never segregated by partition; the `reviewer` field keeps the boundary pass identifiable. The Findings Filter then runs once over the merged set, at Step 4.
+1. Dispatch the partition passes as one flat parallel batch without inherited conversation, each prompt carrying its own file list and slice of the coverage plan, so a pass never re-detects scope. A pass applies its lenses' rubrics to that list, and its matrix rows carry its own evidence, never orchestrator back-fill. A concern reaching past the list returns as a lead for the boundary pass, never a finding it reviews there.
+2. After every partition returns, a **boundary pass** attacks what no partition owns: `refactor-invariants.md` checks 1 (deletion completeness), 2 (resolve-once, consume-many), and 6 (parameter threading) across partition boundaries – the checks whose second site can live in another partition – and contradictions between partitions (slice A passes a surface slice B flags). Its findings tag `reviewer: Boundary Pass`, `scope_relation: primary`, `source_partition: boundary`.
+3. Merge every partition's findings with the boundary pass's into one set, deduplicated by `(location, finding)` keeping the strongest framing, in the report's one `## Findings` section – never segregated by partition; the `reviewer` field keeps the boundary pass identifiable. The Findings Filter then runs once over the merged set, at Step 4.
 
 
 ## Reporting
 
-Two lines in the Executive Summary when fan-out ran:
+Two lines in the Executive Summary when fan-out ran, so the user can audit the split:
 
 ```markdown
 Partition strategy: <vertical-slice | package | language>

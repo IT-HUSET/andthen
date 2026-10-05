@@ -1,0 +1,8 @@
+{
+  "requiredArtifacts": ["docs/specs/report-totals/intent.md"],
+  "forbiddenArtifacts": ["docs/specs/report-totals/prd.md", "docs/specs/report-totals/plan.json"],
+  "allowedPaths": ["docs/specs/report-totals/intent.md", ".agent_temp/**"],
+  "requiredText": {
+    "docs/specs/report-totals/intent.md": ["> **Source**:"]
+  }
+}

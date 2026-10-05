@@ -26,7 +26,7 @@ The `andthen:clarify` skill's product-scope **output** contract. Every section h
 - [What this product is NOT, and why]
 
 ## Proportionality
-<!-- Facts, not philosophy – preserve any answers init already wrote; `unknown` beats an empty line. -->
+<!-- Facts, not philosophy – preserve any answers already written; `unknown` beats an empty line. -->
 - **Stage**: prototype | internal | production
 - **Scale**: [users] · [data volume] · [deploy topology] · [maintainers]
 - **Standing technical non-goals**: [what this project will not grow]

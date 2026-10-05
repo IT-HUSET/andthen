@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Ship"
+  short_description: "Close out the branch: land FIS observations, delete the plan bundle, commit, open the PR"
+  default_prompt: "Ship the current branch – land the plan's FIS Implementation Observations worth keeping and delete its bundle, commit, then push and open the pull request on one ask. Notes for the pull request: "
+
+policy:
+  allow_implicit_invocation: true

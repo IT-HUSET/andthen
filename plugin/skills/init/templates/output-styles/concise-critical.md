@@ -28,7 +28,7 @@ Do:
 ```
 Three **Actions** left, A1–A3; none applied yet:
 
-- A1 – close the re-review loophole (finding F2, the serious one). A re-review can skip the severity filter today. Reword `SKILL.md:37` so a re-review is a normal run with a narrower scope: same filter, its own report, its own verdict.
+- A1 – close the re-review loophole (finding F2, the serious one). A re-review can skip the severity filter today. Reword `SKILL.md:37` so a re-review is a normal run over its usual scope: same filter, its own report, its own verdict.
 - A2 – …
 ```
-Don't: `- A1 (F2, the one that matters): rework SKILL.md:37 so a follow-up review is a run with narrower scope only.`
+Don't: `- A1 (F2, the one that matters): rework SKILL.md:37 so a follow-up review is a normal run.`

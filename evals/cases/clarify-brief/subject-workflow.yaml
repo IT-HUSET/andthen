@@ -1,0 +1,33 @@
+name: andthen-clarify-brief-subject
+description: Brief one committed feature source that reads as settled, through scripted replies.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: clarify-brief
+    name: Brief the feature source
+    skill: andthen:clarify
+    prompt:
+      - "prompt.md"
+      - >-
+        Answer every question you just asked from the committed replies in
+        scripted-replies.json; a question no reply addresses stays open - record
+        it as an open question rather than deciding it or asking again - then
+        write docs/specs/report-totals/intent.md.
+    outputs:
+      intent:
+        format: text
+      turn_evidence:
+        format: json
+        schema:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [role, sessionId]
+            properties:
+              role: {type: string}
+              sessionId: {type: string}
+              questions: {type: array, items: {type: string}}
+              replies: {type: integer}

@@ -4,7 +4,7 @@
 Case data, not harness. The failure this case exists to catch is a run that
 implements the story, narrates its verification, and reports the plan complete:
 the claim spans the story row, the task IDs it recorded, and the `verified`
-record the run session wrote from the proof lines the story subagent executed,
+record the story subagent wrote from the proof lines it executed,
 which no single check.json key sees. One story, because DartClaw caps a workflow
 step at thirty minutes; the two-story overlay serves the implement-fix case.
 

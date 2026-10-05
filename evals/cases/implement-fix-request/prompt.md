@@ -1,1 +1,1 @@
-Run the staged `andthen:implement-fix` skill on the inline request: add `shout(text)` to `src/reporter/text_tools.py`, returning the text uppercased with one trailing exclamation mark, with a unit test. The request asks for neither a commit nor a PR.
+Run the staged `andthen:implement-fix` skill on the inline request: add `shout(text)` to `src/reporter/text_tools.py`, returning the text uppercased with any trailing exclamation marks replaced by exactly one (`shout("hi") == "HI!"`, `shout("hi!!") == "HI!"`), with a unit test. The request asks for neither a commit nor a PR.

@@ -21,10 +21,9 @@
         "at": "2026-04-16T10:24Z",
         "summary": "Ran 15 tests in 0.004s OK"
       },
-      "owner": null,
       "scope": "Render records as CSV and write the report file.",
       "sourceRefs": [],
-      "provenance": "docs/specs/csv-export/plan.json",
+      "provenance": null,
       "assetRefs": [],
       "sequencing": null
     },
@@ -34,13 +33,12 @@
       "dependsOn": [
         "S01"
       ],
-      "status": "spec-ready",
+      "status": "pending",
       "fis": "s02-summary-flag.md",
       "completedTaskIds": [],
-      "owner": null,
       "scope": "Append per-label totals to the report behind a command-line flag.",
       "sourceRefs": [],
-      "provenance": "docs/specs/csv-export/plan.json",
+      "provenance": null,
       "assetRefs": [],
       "sequencing": "After S01 writes the report."
     }

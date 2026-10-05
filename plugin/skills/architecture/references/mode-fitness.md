@@ -2,15 +2,19 @@
 
 Propose fitness functions for governance and ADR enforcement.
 
-## Step 1 – Analyze Current Architecture
+## Workflow
+
+### Step 1 – Analyze Current Architecture
 
 Identify which architectural properties are currently protected (existing tests, CI checks, lint rules) and which are unprotected.
 
-## Step 2 – Map ADRs
+### Step 2 – Map ADRs
 
-Check which ADRs have corresponding automated enforcement. An active ADR with no automated check is a **governance gap** and a finding: an ADR without a fitness function is documentation that may be ignored, a fitness function without an ADR is a rule with opaque reasoning. New ones are written in the same PR as the ADR and link both ways – the test names the ADR number, the ADR names the test location.
+Check which ADRs have corresponding automated enforcement. An active ADR with no automated check is a **governance gap** and a finding.
 
-## Step 3 – Propose Functions
+New fitness functions are written in the same PR as the ADR and link both ways – the test names the ADR number, the ADR names the test location.
+
+### Step 3 – Propose Functions
 
 Organize proposals by the 4-level governance stack:
 
@@ -31,10 +35,12 @@ Default thresholds to propose unless the project's own evidence says otherwise:
 
 For each proposal give: name, what it checks, threshold, implementation approach (language-specific tooling), which ADR it enforces, and severity if violated. **Dart has no ArchUnit equivalent** – compose from `lakos` (CCD/ACD/NCCD, instability, cycles, DOT output), `dart pub deps --json`, `dart analyze`, `custom_lint`, and a `tool/arch_check.dart` walking the AST with the `analyzer` package.
 
-## Step 4 – Prioritize
+### Step 4 – Prioritize
 
-Rank by: (1) blast radius if violated, (2) likelihood of accidental violation, (3) implementation effort. Start with 3 fitness functions and grow; 5–6 actively governed dimensions is a mature codebase, not a starting bar. Fitness functions that enforce seams are runway investment – roughly 2–4 sprints of prepared capacity is the calibration, below which teams pay architecture tax continuously and above which it is speculative. A deliberately sacrificial architecture still gets fitness functions, pointed at handoff qualities – modularity, tests, documented interfaces – not long-term operational ones.
+Rank by: (1) blast radius if violated, (2) likelihood of accidental violation, (3) implementation effort.
 
-## Report Contents
+Start with 3 fitness functions and grow; 5–6 actively governed dimensions is a mature codebase, not a starting bar. Fitness functions that enforce seams are runway investment – roughly 2–4 sprints of prepared capacity is the calibration, below which teams pay architecture tax continuously and above which it is speculative.
+
+## Output
 
 Fitness-mode report opens with Step 1's governance coverage assessment and How to Read This Report (compact legend for ADR, governance levels, and any architecture shorthand used), then carries the Step 2–4 artifacts in order.

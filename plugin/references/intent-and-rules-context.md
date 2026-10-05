@@ -27,7 +27,7 @@ If no governing artifact is discoverable, omit the Intent Context bundle entirel
 
 Both bundles are **falsifier sources**, not coverage checklists – evidence the executor cites to dismiss, demote, promote, or block. Canonical anchor moves, composed into your own gates:
 
-- **Contradicts a Non-Goal / Out-of-Scope statement / explicit deferral** → dismiss the finding (or refuse the change) with the artifact cited as the falsifier.
+- **Contradicts a Non-Goal / Out-of-Scope statement / explicit deferral** → dismiss the finding with the artifact cited as the falsifier. A change the user asked for that contradicts one is a decision for the user, not the run: ask it attended; unattended, leave the change unmade and record `ASSUMPTION: <Non-Goal> stands – the user revising it`, citing the artifact.
 - **Flags missing behavior the artifact defers to a later story** → real but out-of-scope for *this* change set; demote to a note-class finding, do not auto-apply.
 - **Contradicts a stated Expected Outcome** → promote, regardless of where severity heuristics would otherwise land it. A real intent violation outweighs a low severity score.
 - **Violates a Project Rules Context rule** → surface as a finding with the rule cited by source. Route severity through your own review or mutation policy; this reference supplies trace evidence, not a uniform blocking mandate.

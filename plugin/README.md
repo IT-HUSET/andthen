@@ -1,151 +1,110 @@
 # AndThen Plugin
 
-Lightweight spec-driven development for AI coding agents. This is the reference for the 21 skills – flags, modes, edge-case behavior. The task-oriented companion is [`COOKBOOK.md`](../COOKBOOK.md).
-
-See the [full documentation](../README.md) for the workflow overview and setup.
+Lightweight agentic software engineering for AI coding agents, spec-driven when the work needs a spec. This is the reference for the 20 skills: what to type, what comes back, and what might surprise you. For recipes, see [`COOKBOOK.md`](../COOKBOOK.md). For the workflow overview, see the [main README](../README.md).
 
 ## Installation
 
-<!-- pre-release: delete this warning when 1.0 is public -->
-> [!WARNING]
-> 1.0 is not on the public marketplace yet – the `IT-HUSET/andthen` commands below install 0.40.x. Use the [1.0 preview install](../README.md#10-release-candidate-from-the-develop-branch).
-
-```bash
-/plugin marketplace add IT-HUSET/andthen
-/plugin install andthen
-```
-
-**Scope options:**
-```bash
-/plugin install andthen --scope project   # current project only (default: user scope)
-```
-
-**Enable auto-update**: run `/plugin`, go to the **Marketplaces** tab, select the `andthen` marketplace, and choose **Enable auto-update**.
-
-**Local install** (repo cloned):
-```bash
-claude plugin install ./plugin
-```
-
-**Codex CLI plugin**:
-```bash
-codex plugin marketplace add IT-HUSET/andthen
-codex plugin add andthen@andthen
-```
-
-For loose-skill installs on other agents, see [Other agents](../README.md#other-agents-aider-cursor-gemini-cli-opencode) in the full documentation. Python 3 is the one runtime requirement (the `tracker` script).
+Install steps for Claude Code, Codex CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, run `claude plugin marketplace add ./` from its root, then `claude plugin install andthen@andthen` for a persistent local install. Python 3 is the one runtime requirement (the `tracker` script).
 
 ## Setup
 
-Skills reference your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex/generic agents; when both tools are used, `AGENTS.md` is the canonical file and `CLAUDE.md` is a thin `@AGENTS.md` import with any Claude-specific additions below it) for two things:
+Skills read your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and generic agents) for two things:
 
-- **Project Document Index** – tells skills where to read and write (specs, plans, project docs). Each entry names a document and its location on one line and its read/update trigger on the next. Documents are read whole, so they stay short and stale entries are trimmed on append.
-- **Project-Specific Guidelines and Rules** – project-specific guidelines and workflow notes (critical rules are adopted through init as described below).
+- **Project Document Index**: a list that maps each document type (specs, plans, decisions, testing strategy) to its location, so skills know where to read and write. Documents are read whole, so keep them short.
+- **Project-Specific Guidelines and Rules**: your own conventions and workflow notes.
 
-See [`skills/init/templates/CLAUDE.template.md`](skills/init/templates/CLAUDE.template.md) for the starter template.
+Skills name documents and folders by their Index entry (Specs & Plans, Agent Temp, Research, Models, Tech Debt, Learnings), and the starter template gives each a default path. The `fast` and `full` check tiers are rows of the `Key Dev Commands` document.
+
+When you use both tools, `AGENTS.md` holds the content and `CLAUDE.md` is a thin `@AGENTS.md` import. The `init` skill writes both from the [starter template](skills/init/templates/CLAUDE.template.md).
 
 ### How AndThen describes a project
 
-Markdown documents are the **sources of truth**; typed models are **committed projections** of them, written against the schema shipped beside each model's reference:
+Markdown documents are the sources of truth. Typed models (JSON) are committed projections of them, regenerated at deliberate points. A projection that disagrees with its source is stale.
 
 | Aspect | Source of truth | Committed projection |
 |---|---|---|
-| Product intent | `PRODUCT.md` (including its Proportionality facts) | – |
-| Domain language | `UBIQUITOUS_LANGUAGE.md` (glossary and nothing else); `CONTEXT-MAP.md` owns bounded-context identity when present | `domain-model.json` via `describe --mode domain --model` |
-| System structure | the code itself (`ARCHITECTURE.md` is prose orientation) | `architecture-model.json` via `describe --mode codebase --model` |
+| Product intent | `PRODUCT.md`, including its Proportionality facts | none |
+| Domain language | `UBIQUITOUS_LANGUAGE.md` (glossary only) | `domain-model.json` via `describe --mode domain --model` |
+| System structure | the code (`ARCHITECTURE.md` is prose orientation) | `architecture-model.json` via `describe --mode codebase --model` |
 
-Projections live under the `Models` Index location (default `docs/models/`), carry the source revision they describe in `meta.revision` – its last commit, suffixed `-dirty` when the working tree differs – and are regenerated at deliberate points – a projection that disagrees with its source is stale, never authoritative. The plugin owns all of these: `describe` writes the glossary and both models, `architecture --mode strategic-design` writes the Context Map, and `clarify` adds settled terms to the glossary when the Project Document Index configures one.
+Projections live under the `Models` Index location (default `docs/models/`) and record the commit they describe in `meta.revision`, suffixed `-dirty` when the working tree differs.
 
 ### Foundational Rules and Conversation Style
 
-**Project rules are the recommended scope.** The `andthen:init` skill offers the [critical-rules starter](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) directly in the root instruction file: `AGENTS.md` for Codex/generic agents, `CLAUDE.md` for Claude Code alone, or shared `AGENTS.md` with a thin `CLAUDE.md` import for both. The adopted rules travel with the checkout into CI and containers; no home-directory copy, runtime plugin path, or hook is needed.
+**Project rules.** At the end of a run, `init` offers the [critical-rules starter](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) for your root instruction file. The rules then travel with the checkout into CI and containers. Your team owns them: init preserves your customizations and never overwrites them.
 
-Teams own their adopted policy. Init preserves customizations and existing referenced rules; upgrades do not synchronize them back to the starter. **Skip** records `<!-- AndThen critical rules: skipped -->` in the owning instruction file, so later init runs respect the choice. An active rules block takes precedence over the marker, which declines adoption rather than disabling existing project or global policy. To adopt later, ask init to remove the marker and add the rules. Existing separate or global copies are reconciled only with the user's agreement.
+- Declining writes `<!-- AndThen critical rules: skipped -->` to the instruction file, and later runs respect it. Ignoring the offer writes nothing, so the next run offers again.
+- To adopt later, ask init to remove the marker and add the rules. Without init, ask your agent to adopt the starter in your root instruction file, preserving existing policy.
 
-Init rewrites only the block between the `# Critical Rules and Guardrails` heading and the next top-level heading, so surrounding content and customizations survive; it never creates a second copy of the guideline. Personal installation remains available on request at user level, with the same comparison against the shipped starter and the same replacement protection. Neither rule adoption nor skipping configures conversation style.
+**Conversation style.** [`concise-critical.md`](skills/init/templates/output-styles/concise-critical.md) asks for brief, plain answers, a critical stance, and the answer first with any ask last. It belongs in the system prompt, where it survives compaction, so init configures it only when you ask. To set it yourself:
 
-Without init, ask your agent:
-
-> Adopt AndThen's critical-rules starter in this project's root instruction file. Use AGENTS.md with CLAUDE.md importing it when both hosts are used. Preserve existing policy and customizations, reconcile any duplicate copies with me, and leave personal configuration alone.
-
-**Conversation style** – [`skills/init/templates/output-styles/concise-critical.md`](skills/init/templates/output-styles/concise-critical.md) (brief plain-language answers a cold reader can act on, critical stance, state-each-fact-once, reference codes, conclusion last). Only the top-level agent talks to you, and the harness's own system prompt sets competing tone and verbosity defaults there – so these rules go in the system prompt, where they survive compaction and Claude Code re-emphasizes them. Keeping a rule in both tiers dilutes it, so the guideline above deliberately omits them.
-- Claude Code: the plugin registers the style (`outputStyles` in the plugin manifest); opt in with `"outputStyle": "andthen:concise-critical"` in `~/.claude/settings.json`, then start a new session (confirm the plugin-namespaced name is listed by your Claude Code version; if not, use the copy below). `keep-coding-instructions: true` keeps Claude Code's built-in engineering instructions alongside. User-tier and loose installs: copy the file to `~/.claude/output-styles/` and use `"outputStyle": "concise-critical"`. A project-level `outputStyle` (`.claude/settings*.json`) shadows the user-level one.
-- Codex: the style body (everything below the frontmatter) goes into `~/.codex/config.toml`, top-level section:
+- Claude Code: set `"outputStyle": "andthen:concise-critical"` in `~/.claude/settings.json` and start a new session. If your version does not list that name, copy the file to `~/.claude/output-styles/` and use `"outputStyle": "concise-critical"`. A project-level `outputStyle` overrides the user-level one.
+- Codex: put the style body (everything below the frontmatter) in `~/.codex/config.toml`:
   ```toml
-  model_verbosity = "low"        # optional response-length knob; back off to "medium" if deliverables lose needed detail
+  model_verbosity = "low"        # optional; use "medium" if deliverables lose needed detail
   personality = "pragmatic"      # optional tone preset
   developer_instructions = """
   <body of skills/init/templates/output-styles/concise-critical.md>
   """
   ```
-  Do not use `model_instructions_file` for this – it replaces Codex's base instructions wholesale.
-- Don't want an output style / `developer_instructions`? Append the style body to your user-level `CLAUDE.md`/`AGENTS.md` instead on explicit request.
+  Do not use `model_instructions_file` for this: it replaces Codex's base instructions.
 
 ## Workflows
 
-**User input**: `clarify`'s interview rounds, the Preflight questions `plan` and `spec` close on, `architecture`'s trade-off gates, and `backlog-triage`'s per-item ratification use the host's structured question tool when available, permitted, and suited to the question, respecting its mode restrictions, schema, and limits; otherwise they ask in chat. Asynchronous questions still require your response before dependent decisions; preselected answers are not confirmation.
+Every skill works standalone. The cookbook covers [how the workflow fits together](../COOKBOOK.md#how-the-workflow-fits-together) and runnable sequences such as [one story or several](../COOKBOOK.md#one-story-or-several), [a small change](../COOKBOOK.md#a-small-change), and [unattended execution](../COOKBOOK.md#unattended-execution).
 
-Every skill works standalone – no pipeline required. See the [full documentation](../README.md#the-workflow) for the workflow, the design stage, and the two loops, and the cookbook for the runnable sequences: [one story](../COOKBOOK.md#one-story), [several stories](../COOKBOOK.md#several-stories), [a small change](../COOKBOOK.md#a-small-change), [team story work](../COOKBOOK.md#team-story-work), [unattended execution](../COOKBOOK.md#unattended-execution), [resuming interrupted work](../COOKBOOK.md#resuming-interrupted-work).
+**Questions.** `clarify`, `decide`, `plan`, `architecture`, `tracker triage`, and `ship` stop and wait for your answer, each question with a recommended answer. They never replace a question with a silent assumption unless you pass `--auto`.
 
-**Session management**: the context-intensive skills – `exec-spec`, `plan`, `exec-plan` – perform best in a **clean session**. The authoring skills (`clarify`, `plan`, `spec`) close on one paste-ready next command that says to run it in a fresh session, `exec-spec` and `exec-plan` on a `Next (fresh session):` line, and `handoff` compacts a session that has to end mid-work. The conversation-boundary map in [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md#conversation-boundaries) lists every hand-off and whether it stays in the conversation.
+**Unattended runs (`--auto`).** The flag makes a run ask nothing. It records each open decision as `ASSUMPTION: <what> – <what would change it>`, skips any action that needs your consent, and stops with `BLOCKED: <what is needed>` when the call is unusable. Only the flag does this, never how the run was launched, and the run passes it on to every skill it invokes. `clarify` has no unattended form, because the interview is the skill.
 
-**Headless orchestration**: `plan`, `spec`, `exec-spec`, `exec-plan`, `review`, `implement-fix`, `triage`, `architecture`, and `ui-ux-design` accept `--auto`. In automation mode they do not ask follow-up questions, record each open decision's recommendation as `ASSUMPTION: <what was assumed> – <what would change it>` in artifacts or summaries, propagate `--auto` to nested skill calls that accept it, and stop only on an unusable call, with `BLOCKED: <what is needed>`. A spec conflict or ambiguity is an investigation before it is a stop: the executors climb a five-rung **Resolution Ladder** – re-read in context, widen the evidence, delegate the question, work around and record it, stop – so an unattended run does not abort on something the repo already answers. `exec-plan --auto` preserves partial work, skips dependents, continues independent stories, and exits with an aggregate failure report. `clarify` has no `--auto`: the interview is the skill, and an unattended pipeline starts at `plan` from a requirements file or tracker item.
+**Fresh sessions.** `plan` on several stories and `exec-plan` work best in a clean session. Each step of the pipeline – `clarify`, `decide`, `ui-ux-design`, `plan`, `exec-plan`, `review` – ends on one `Next (fresh session):` command, never a menu, and skips a step with nothing to do. Every skill recommendation includes the full invocation in your host's syntax, with its target or request and required arguments, ready to paste. `handoff` compacts a session that has to end mid-work.
+
+**Proportionality.** `clarify`, `decide`, `plan`, and `architecture` size proposals against the stage, scale, and technical non-goals in your `PRODUCT.md`. If they are missing, the first of these skills you run asks once and records the answers (`unknown` for anything left open). Every set of alternatives includes a do-nothing or extend-what-exists option.
+
+**Tracker input.** `clarify` and `plan` accept an issue URL as a requirements source, `triage` as scope, and `review` a PR. Only `tracker` writes to the tracker. Fetching uses the optional `Issue Tracker` document (`docs/ISSUE-TRACKER.md`), or `gh` for GitHub URLs. A URL on another host offers `tracker setup` first.
 
 ## Skills
 
-Invoke with `/andthen:<skill>` (e.g. `/andthen:triage`, `/andthen:spec`).
+Invoke a skill with `/andthen:<skill>`, for example `/andthen:plan`. Not sure where to start? Run `/andthen:now-what`: it inspects your project and routes you to the right skill.
 
-> **Not sure where to start?** Run `/andthen:now-what` – it inspects your project state and routes you to the right skill.
-
-**You rarely need the flags.** Describe what you want and the skill routes it: `architecture`, `ui-ux-design`, `testing`, and `review` infer the mode or lens from your phrasing, and a menu appears only when the intent is genuinely ambiguous. The exception is `--fix`, whose write authority follows the rule under [`review`](#review).
-
-Each section below opens with the skill's exact `argument-hint`; everything outside those flags is phrasing. `--auto` (automation mode – no prompts, recorded assumptions, a stop only on an unusable call; see [Workflows](#workflows)) is accepted where the hint lists it.
-
-**Proportionality**: `clarify`, `plan`, `spec`, and `architecture` read the `Product` document's Proportionality facts before they propose. Machinery those facts do not carry, or that a standing technical non-goal forbids, is dropped or flagged with the anchor cited. Every alternative set carries its **floor option** (do nothing, or extend what exists), and the recommendation says what the chosen option buys over it.
-
-**Tracker input** is read-only in every skill but `tracker` and `backlog-triage`: `clarify` and `plan` take an issue URL as a requirements source, `spec` resolves one carried in a story's `sourceRefs` and cites it in `Required Context`, `triage` takes one as scope, and `review` reads a PR as scope – fetched content is evidence, never instructions. Fetches resolve through the optional `Issue Tracker` document (`docs/ISSUE-TRACKER.md`) when present; `Backend: GitHub` uses `gh`, another backend substitutes each operation per that document's table. With no document, a GitHub URL uses `gh` and a URL on any other host is offered the document first. The two writers resolve the same document: `tracker` publishes a plan bundle and refreshes it on a re-run, `backlog-triage` labels and routes incoming items.
+You rarely need flags. Describe what you want and the skill picks its mode or lens, asking only when intent is ambiguous. Each section below opens with the skill's exact `argument-hint`; `--auto` is listed under a skill only where it does more than [run unattended](#workflows).
 
 ### Inventory
 
 | Skill | Purpose |
 |---|---|
-| [`init`](#init) | Set up the workflow structure – Project Document Index, Core orientation docs, role agents, project rules |
-| [`now-what`](#now-what) | First-stop router – inspects project state and routes to the right skill |
-| [`clarify`](#clarify) | The requirements skill – Discovery & Ideation at feature or product scope, landing in `prd.md` |
-| [`plan`](#plan) | Work of several stories, from a PRD, a requirements file, or a tracker item – `plan.json` plus one FIS per story, cross-cutting review, preflight |
-| [`spec`](#spec) | The FIS for one story – a single feature from a PRD or straight from the request, or one plan story – with self-review and preflight |
-| [`exec-spec`](#exec-spec) | Implement one FIS where the skill is invoked – its own proofs, one fresh quick reviewer, completion on what it ran |
-| [`exec-plan`](#exec-plan) | Run a plan bundle – one fresh `exec-spec` subagent per story, in parallel worktrees under `--worktree`, the full tier, then the plan-level review to a fresh session |
-| [`review`](#review) | Proof-led `code` / `gap` / `security` / `outcome` review and PR review; a story's own review is one `--quick` pass |
-| [`implement-fix`](#implement-fix) | A small feature or fix from a request, or a report's Fix-routed findings, as minimal verified changes – no FIS |
-| [`triage`](#triage) | Investigate, diagnose, and fix build failures, config errors, runtime bugs, and test failures |
-| [`testing`](#testing) | Test strategy, test authoring, TDD, and the Prove-It bugfix flow |
-| [`handoff`](#handoff) | Compact the conversation into a document a fresh session resumes from |
-| [`architecture`](#architecture) | Trade-off analysis settling an ADR, design advice, and the deep analysis modes; no code changes |
-| [`describe`](#describe) | Map an existing codebase into docs, or extract its Ubiquitous Language; `--model` emits the typed atlas model |
-| [`ui-ux-design`](#ui-ux-design) | UX research, design systems, and wireframes, singly or chained |
-| [`visual-validation`](#visual-validation) | Validate screenshots and built UI against wireframes, design specs, and baselines |
-| [`tracker`](#tracker) | Project a plan bundle into the issue tracker – one parent issue, one child per story, refreshed on a re-run |
-| [`spike`](#spike) | Answer one design question by building a throwaway runnable spike, then report a verdict – evidence, not product |
-| [`simplify-code`](#simplify-code) | Behavior-preserving simplification – clarity, reuse, leanness, less over-engineering |
-| [`skill-review`](#skill-review) | Review one skill bundle or prompt-like file against skill craft; `--fix` tightens it with zero contract loss |
-| [`backlog-triage`](#backlog-triage) | Label, categorize, and route untriaged tracker items toward implementation or a human decision |
+| [`init`](#init) | Set up the Project Document Index |
+| [`now-what`](#now-what) | Route to the right skill |
+| [`clarify`](#clarify) | Interview you, write the PRD |
+| [`decide`](#decide) | Make technical decisions, write ADRs |
+| [`plan`](#plan) | Write the FIS for one story or several |
+| [`exec-plan`](#exec-plan) | Implement a FIS or run a plan |
+| [`review`](#review) | Review code, spec conformance, security, outcome, PRs |
+| [`implement-fix`](#implement-fix) | Small change or review fixes, no FIS |
+| [`ship`](#ship) | Close out the branch and open the PR |
+| [`triage`](#triage) | Diagnose and fix failures |
+| [`testing`](#testing) | Test strategy, authoring, TDD, prove-it |
+| [`handoff`](#handoff) | Write a resume document for a fresh session |
+| [`architecture`](#architecture) | Design advice and structural analysis |
+| [`describe`](#describe) | Map a codebase or extract its glossary |
+| [`ui-ux-design`](#ui-ux-design) | UX research, design systems, wireframes |
+| [`visual-validation`](#visual-validation) | Check built UI against designs |
+| [`visualize`](#visualize) | Draw an artifact as a checked HTML page |
+| [`tracker`](#tracker) | Publish plans, triage incoming issues |
+| [`spike`](#spike) | Answer one design question with throwaway code |
+| [`simplify-code`](#simplify-code) | Behavior-preserving cleanup |
 
 ## Skill Reference
 
 ### `init`
 
-`[project name]`
+`[project name | seed <Index entry>]`
 
-Sets up the workflow structure for new projects, partial setups, and brownfield codebases. Scaffolds the Core orientation stubs by default – `Product` (its three Proportionality questions asked and answered, `unknown` allowed, never a TODO stub), `Architecture`, `Key Dev Commands` (declaring the `fast` and `full` verification tiers plus a run-one-test row), `Testing Strategy`, `Decisions`, `Learnings` – and offers the optional documents recommendation-first. The `Models` Index entry is always written and the `Context Map` entry on confirmation, both before their files exist, because they are location declarations their writers fill in later; the `Issue Tracker` entry is always written too, while its file is an optional document offered when issues live outside GitHub – at setup, or by the first skill that needs it. A codebase of 20+ files is offered `describe --mode codebase`; a detected test suite is offered `testing --mode strategy`, a detected served UI `visual-validation --mode setup` – `init` authors neither document itself.
+Sets up the workflow structure for new projects, partial setups, and existing codebases. It asks nothing in an existing repository. In an empty one it asks a single question: what the project is.
 
-Every indexed document is read whole, so it stays short. One that outgrows that becomes an index over **shards** – topic files beside it, as `Decisions` is over `adrs/` and `Learnings` over `learnings/<topic>.md` – with one pointer line per shard, opened only when a task names its topic; a convention, with no ceiling or verb behind it.
-
-The documentation lookup policy uses available search and fetch tools, preferring official sources matched to library versions and reporting version gaps.
-
-Gitignore hygiene adds `.agent_temp/` without asking, and review reports get an ignore-or-commit offer, recommending ignore – a report is a working file of one review run, read by whoever ran it and the fix that follows, while a committed one puts what was reviewed and at which revision in the team's history. Choosing ignore appends `*-andthen-*-review-*.md`, the exact pattern `review`'s filenames make possible.
-
-Init also offers the four optional role agents – `oracle`, `implementer`, `reviewer`, `worker` subagent definitions (Claude Code `.md`, Codex `.toml`) installed at user or project level, pinning model and effort for the Subagent Model Policy's tiers; they load at next session start. It closes by recommending project-owned critical rules, preserving existing policy and customizations and remembering an opt-out. Personal rules and conversation style are configured only on request. Scope and adoption semantics are in [Foundational Rules and Conversation Style](#foundational-rules-and-conversation-style).
+- **You get**: the root instruction file(s) with the full Project Document Index, `Key Dev Commands` when the project has a manifest (the `fast` and `full` check tiers plus a run-one-test row), and `.gitignore` entries for `.agent_temp/` and review reports. A partial setup gets only what is missing.
+- **Options**: `seed <Index entry>` creates one missing document from its template. Skills use it internally.
+- **Good to know**: every other document (`Product`, `Architecture`, `Testing Strategy`, `Decisions`, `Learnings`) is created later by the first skill that writes to it. The closing summary offers the rest, one line each: role agents, critical rules, `describe --mode codebase` for existing code without a filled-in `Architecture` document, `testing --mode strategy`, and `visual-validation --mode setup`. An offer you ignore writes nothing. Reports are gitignored by default; delete that `.gitignore` line to commit them.
 
 ```bash
 /andthen:init
@@ -156,9 +115,9 @@ Init also offers the four optional role agents – `oracle`, `implementer`, `rev
 
 `[brief description of what you want to do]`
 
-Inspects project state and hands off in place to the skill that fits. Setup, codebase, and workflow state are computed independently, so an active plan routes even beside init stubs, and a `CLAUDE.md` that imports `AGENTS.md` reads as one source. Input whose requirements a PRD source already carries goes to `plan`, whatever its size; still-open requirements, or inline text alone, go to `clarify`; an executed plan with no plan-level review report beside `plan.json` goes to `review --mode code,gap,security,outcome`. A standalone FIS carrying no `Plan` / `Story-ID` provenance routes to `spec` on its requirements source, and a review report is mid-flow state only while its findings are unaddressed. User-level critical rules are not a setup requirement.
+Inspects project state and hands off to the skill that fits. Settled requirements go to `plan`, whatever their size. Open requirements go to `clarify`. A finished plan without a plan-level review goes to `review`; a failing load-bearing check goes to `triage`. Shipping readiness follows the canonical plan contract.
 
-It invokes the skill it recommends, passing your request through. Ask for a recommendation only, or decline the offer, and it prints the route and stops there; there is no `--auto`, because that reply is the whole hand-off.
+- **Good to know**: it invokes the skill it recommends. Ask for a recommendation only, or decline, and it prints the route and stops. It has no unattended form.
 
 ```bash
 /andthen:now-what
@@ -169,15 +128,11 @@ It invokes the skill it recommends, passing your request through. Ask for a reco
 
 `[--brief] <description | file path | tracker item URL | other URL | specs directory>`
 
-The requirements skill: Discovery & Ideation – probing gaps, edge cases, scope boundaries, and the alternatives you had not considered – landing in a document. Scope is inferred from the input and stated before the interview: **feature scope** writes `prd.md` under the indexed Specs & Plans root, **product scope** writes `PRODUCT.md`. Inline text, a file, a tracker item URL, any other web page URL, and a specs directory are all accepted, and every input maps deterministically into that root – prior artifacts stay co-located, same-source re-entry reuses its directory, an unrelated collision suffixes, tracker URLs retain repository identity as `issue-{n}-<slug>/`, and any other URL is fetched as evidence and named for its final path segment. An existing `prd.md` passes through untouched, or is amended in place for an explicit requirement decision. An `intent.md` (problem, proposed outcome, affected systems, constraints, open questions) is an intent doc anyone can drop in by hand: its sections are folded into the PRD and the interview still runs. The PRD is self-contained – transient sources are inlined, not cited – and records a stable `Source` identity.
+The requirements skill. It interviews you in rounds about gaps, edge cases, scope, and alternatives you had not considered, then writes the document. Scope is inferred and stated first: **feature scope** writes `prd.md` under the Specs & Plans location, **product scope** writes `PRODUCT.md`.
 
-**`--brief` stops at that intent doc.** The same interview, ended where you say the picture is clear enough to share, writes `intent.md` in the subject's directory – the five sections plus a decisions log of what you settled, each open question with the recommended answer and alternatives so it can be answered in the document – and closes on the command that lands the PRD. Edit it, put it in front of a colleague or a customer, then run `clarify` on the directory: the intent doc is the baseline, only what the edits opened or left open is asked, an answer written in place is settled, an untouched recommendation is asked again, and no settled decision is re-asked. A second `--brief` run amends it in place. The subject need not be a feature: a decision, a plan, or a proposal gets the same rounds over its own forks, and the project's Product and Architecture anchors apply only where the subject is this product's. Product scope ignores the flag – `PRODUCT.md` is already one document – and a directory that holds a `prd.md` gets no intent doc behind it.
-
-**The interview is the deliverable.** It settles the problem, who has it, and the outcome that counts as solved before anything is cut against them – the PRD carries those as `Problem Definition` and `Success Metrics` (baseline, target, how observed), which a FIS's Intent and Expected Outcomes later cite. Questions come in rounds over the frontier – everything askable now, each with a recommended answer, while a question that depends on an open one waits – until nothing is left silently assumed, and the settled picture is played back for your yes before anything is written. Every run asks at least one round and waits for real answers; an input that already answers everything earns one short confirmation round, never zero. There is no `--auto`: an unattended pipeline starts at `plan` from a requirements file or tracker item.
-
-The interview checks the `Product` document's Non-Goals and the `Context Map`, and routes an empirical unknown to the `spike` skill. Settled domain terms land where the project already keeps them – a glossary row in the `Ubiquitous Language` document when the Project Document Index configures one, otherwise term entries in the output's Decisions Log. Clarify never creates a glossary document; when the vocabulary warrants one it offers the `describe --mode domain` skill, or `init` for the Index entry. Rejected scope lands in the `Product` document's Non-Goals, and a fresh-context self-review – a reviewer subagent on the PRD rubric, applying mechanical fixes in place – runs before finishing.
-
-Requirements are a complete deliverable – a stakeholder refining them into a document needs nothing downstream. The run recommends `ui-ux-design` when UI is in scope with no design system or wireframes, then closes on one next step, for a clean session: `architecture --mode trade-off` first when the PRD leaves a design fork that binds beyond the work or is costly to reverse, or a taken decision supersedes a constraint or ADR the Decisions document records; otherwise `spec` when one story carries the PRD, `plan` when it takes several. The story count stays `plan`'s call – a PRD too big for one story makes `spec` flag it and route it to `plan`.
+- **You get**: a self-contained PRD with a problem definition and success metrics. Settled domain terms go to the `Ubiquitous Language` document when one exists, and concepts you explicitly reject to the `Product` document's Non-Goals.
+- **Options**: `--brief` stops at `intent.md` (problem, outcome, affected systems, constraints, open questions, plus a decisions log). Edit or share it, then run `clarify` on its directory: only what is still open is asked. Product scope ignores the flag.
+- **Good to know**: every run asks at least one round and waits for real answers, even when your input looks complete. You confirm the settled picture before anything is written; when the scope adds screens no wireframes cover, that question also asks whether design comes first. It closes on one next step: `decide` if a design fork binds beyond the work, then `ui-ux-design` if you chose design first, otherwise `plan`.
 
 ```bash
 /andthen:clarify "users should be able to export their data"
@@ -185,108 +140,94 @@ Requirements are a complete deliverable – a stakeholder refining them into a d
 /andthen:clarify --brief "users should be able to export their data"   # stop at intent.md; later: /andthen:clarify docs/specs/<feature>/
 ```
 
+### `decide`
+
+`[--output-dir <path>] [--auto] <decision | technical area | PRD, plan, or report path>`
+
+Makes the technical decisions a solution needs and records them. It sits between `clarify` (what to build) and `plan` (one story's how). It lists the decision points and sorts each: a choice that binds beyond one story or is costly to reverse is decided here, a story-local one is left to `plan`, a user-visible requirement goes back to the PRD via `clarify`, and anything the code or an earlier decision settles is cited, not asked.
+
+- **You get**: one ADR per decision with real alternatives, registered in `DECISIONS.md` (superseded rows move, never disappear), or a one-line Still Current entry for a load-bearing choice with no alternative. You pick `Accepted` or `Proposed` at the playback. Parked decisions go under Pending.
+- **Options**: `--output-dir <path>` sets where trade-off research lands (default: the Research location, else `docs/research/`). `--auto` settles the named decisions on its own recommendations and writes `Proposed` ADRs, which a later run asks you again.
+- **Good to know**: when no option stands out, or you ask for a comparison, it runs a weighted trade-off analysis with five options unless you name a count ("compare three options"). A question only running code can answer goes to `spike`. No code changes. Run on a PRD, it closes on `plan` (or `ui-ux-design` when the PRD puts design first); run from `plan`'s Preflight, it records the answer you already gave and closes on `exec-plan`.
+
+```bash
+/andthen:decide docs/specs/export/                                         # the PRD's open technical forks
+/andthen:decide "how should the export job queue work?"
+/andthen:decide "compare three options for the job queue: Postgres SKIP LOCKED, Redis streams, SQS"   # weighted trade-off
+/andthen:decide --auto "SQL vs document DB" --output-dir docs/research/
+```
+
 ### `plan`
 
-`[--auto] <directory with prd.md or plan.json | prd.md | requirements file | tracker item URL>`
+`[--auto] <description | @<requirements-file> | tracker-item URL | a prd.md or intent.md path, or its directory | story <id> of <plan.json>>`
 
-**The entry for work of several stories.** Produces a schema v2 `plan.json` plus one FIS per story, each authored by one `spec` subagent in dependency-ready batches, then runs one failure-closed cross-cutting review – one fresh reviewer subagent over the whole bundle, the per-FIS self-review plus the cross-story checks, returning a per-FIS roster the gate reads; what it leaves open becomes a preflight question. Three source forms resolve: a directory holding `prd.md` or that file's path (output lands beside it), any other readable requirements file, and a tracker item URL (both under the Specs & Plans root, named as `clarify` names its directories). Inline text is not a requirements source – it has no anchors to cite and no record to amend – so it redirects to `clarify`. `prd` in the plan is the in-repo source path, or `null` for a tracker item; `sourceRefs` cite the source either way. Compatible story/FIS/task state survives regeneration, a completed story's `verified` proof record with it, and a v1 plan is evidence only – it regenerates from its source.
+Writes the Feature Implementation Specification (FIS): the blueprint a fresh session implements without asking questions. `plan` decides whether the work is one story or several. Inline text and `story <id> of <plan.json>` are one story each. A written source (a PRD, intent doc, requirements file, or tracker item) is sized: one vertical slice that fits a fresh-context run is one story, anything larger is several, unless you ask for one story ("as one story").
 
-Story breakdown lives here: one story is a normal outcome and the bundle shape does not change for it. Stories follow the **Single-session rule**, **Module fan-out**, and **expand → migrate in batches → contract** for wide mechanical work. The plan stores causal dependencies and minimal resumable state; presentation groupings are derived. `plan` asks what the source leaves open before it slices, then preflight asks what authoring surfaced in one sitting, each question with a recommendation: a requirement answer – a scope trade the self-review offered included – lands in the PRD through `clarify`'s amendment path, a cross-story contract in `sharedDecisions` and every consuming FIS; `sharedDecisions` has no minimum count. A sign-off the source gives a person is never swapped for an agent gate: by default the first story they judge runs alone through `exec-spec`, and the closing line says so before handing the rest to `exec-plan`. Every question expects an answer; under `--auto`, or as a safety net for a question genuinely left unanswered, the recommendation is written into the FIS as an `ASSUMPTION:`, and every story ends `spec-ready`. Every candidate plan is checked against `plan.schema.json` before it is written.
+- **You get**: for one story, a FIS plus a one-story `plan.json` beside it. For several, `plan.json` plus one FIS per story and a cross-story review. Output lands beside a PRD, intent doc, or plan story, else under `docs/specs/<feature>/`. No code changes.
+- **Options**: `--auto` writes each open question as an `ASSUMPTION:` instead of asking.
+- **Good to know**: `plan` asks about missing requirements first, then runs a self-review, then a final round of open questions, each with a recommendation, and closes by listing every open item with what settled it. A FIS too big for one run is flagged `OVERSIZE:` and you choose to split it or keep it as one. `plan` always authors from the source: it has no revise mode, so to revise a spec or re-plan after the source changed, see [the cookbook recipe](../COOKBOOK.md#revising-a-spec-or-re-planning). It closes on the `exec-plan` command for a fresh session, or stops early on `clarify` for a source too thin to spec, or on `ui-ux-design` when you choose to design new screens first.
 
 ```bash
-/andthen:plan docs/specs/dashboard/
+/andthen:plan "users can export their data"
+/andthen:plan docs/specs/data-export/
 /andthen:plan https://github.com/org/repo/issues/42
-```
-
-### `spec`
-
-`[--auto] [--batch] <description | @<requirements-file> | tracker-item URL | <prd.md, intent.md, or the directory holding one> | existing FIS path | story <story-id> of <path-to-plan.json>>`
-
-Writes a compact FIS for a standalone feature or for `story <id> of <plan.json>`, favoring durable tests and sources over repeated prose. A `clarify` PRD and a hand-written intent doc are accepted inputs – the file or its directory. Every FIS is a plan story and carries paired provenance: a standalone feature gets a feature directory holding its FIS and the one-story `plan.json` this skill writes beside it after the final scan, with `prd` naming the input PRD, or `null` without one. An existing FIS path re-authors that story from its `**Plan**:` / `**Story-ID**:` header pair; one provenance line without the other, or a pair whose plan holds no such story, is malformed and stops, while a FIS carrying no pair at all is read as a requirements note – how a 0.x standalone spec migrates when its requirements source is gone.
-
-The **Durable-State Check** prevents re-authoring live work: where a plan exists, a story that is `pending` or `spec-ready` (a legacy `blocked` reads as one) is re-authored in place, and anything else is live execution state – FIS and plan bytes are preserved and the run stops until it is executed or retired.
-
-Optional `Proof` and required `Verify` targets use `<file>#<test>` (the `{file}` the Key Dev Commands run-one-test row expects – a dotted module for `-m unittest {file}.{test}`), `cmd:`, or `inspect: path:LINE`; every task backlinks through `SATISFIES`, and `[runtime]` marks execution-only criteria. Test files are the implementer's, so a `Proof` binds an existing target only – with no match the scenario stays unbound with complete Given/When/Then and its implementing task carries a `cmd:` or `inspect:` Verify. The **Single-session rule** governs size: a FIS over the word limit with its task count in range has its restated facts cut first, and `OVERSIZE:` on what remains means the story is too big to execute in one run – decompose it, or trade the requirement its Architecture Decision names; standalone, `spec` asks whether to slice it with `plan`, discarding the FIS it just wrote, or proceed as one story. Requirement gaps are asked as soon as the source is read; one fresh-context self-review then precedes preflight, which asks what is still open – scope trades included – one question at a time with a recommendation, writes each answer into the FIS, and ends on the `exec-spec` line. Each question expects an answer, the recommendation preselected; under `--auto`, or for a question left unanswered, the recommendation is written as an `ASSUMPTION:` and the story is still `spec-ready` – what stays unclear is the executor's to settle. `--batch` calls, which `plan` makes, defer review, preflight, and plan writes to `plan`.
-
-```bash
-/andthen:spec docs/specs/data-export/
-/andthen:spec "story S03 of docs/specs/dashboard/plan.json"
-/andthen:spec docs/specs/dashboard/s03-export-endpoint.md
-```
-
-### `exec-spec`
-
-`[--auto] [--tdd] [--no-full-tier] <path-to-fis>`
-
-Implements one FIS after admission checks over its provenance and its story's plan state. A gap in the FIS's detail – a broken anchor, a missing or form-less proof target, an unbound scenario – never stops the run: the skill takes the best reading, derives what is missing, and records the gap for re-spec. The implementation/test loop, the terminal writes, and the decisions run where the skill is invoked – a fresh session on a direct run, a fresh subagent under `exec-plan`; lookups go to read-only subagents. Plan provenance comes from the FIS header, or lacking it from the `plan.json` beside the FIS.
-
-Tests are written through the `testing` skill; `--tdd` implements test-first, one scenario at a time (default off, honored under `--auto`). Resume skips completed task IDs, and direct plan execution requires every dependency story `done`. Pending tasks persist in the story's `completedTaskIds`, batched no further than a resume would redo, without changing FIS prose. Direct Checks catch tautological or suppressed tests. The run baselines a shared worktree before its first edit: another session's changes are never staged, stashed, or reverted, and a file holding both commits only this story's hunks. Applicable plan `sharedDecisions` are execution input and outrank contradicting FIS text, recorded as spec-stale drift.
-
-Verification and review are separate passes. The skill runs the project's **full** verification tier once – or the fast tier under `--no-full-tier`, for a caller running the full tier on the final tree – and every `Proof` and `Verify` target and Final Validation Checklist item itself, keeping one line per id – what ran and its exit code, or what it saw. It then spawns one fresh reviewer subagent that invokes `review --quick --fix --intent <fis>` – `--auto` added under `--auto` – over the changed paths, on every run, carrying the Chain Attestation as the claims to falsify; it applies the Fix-routed findings as the story's one repair round across resumes, and the skill re-runs what those fixes invalidated. UI work also gets a fresh `visual-validation` subagent – handed the screens and states the story touched, the project's `Visual Validation` document, and the design contract, never the builder's measurements, summaries, or earlier verdicts – whose P1 Critical and P2 Major findings are objective failures – fixed, then the screen recaptured – while P3 is reported. Open findings and `NOTICED BUT NOT TOUCHING` items are recorded under the FIS's `## Implementation Observations` and reported on the `Reviewed:` line; the separate `review` → `implement-fix` step reads them from there and is where they are enforced. A story that stays red reports its route out: `review --mode code,gap --intent <fis>`, `implement-fix` on the report it writes, then this skill again on the FIS to re-run the proofs and complete the story. The completion report's `Reviewed:` line names what reviewed the change and what stays open – prose, never parsed; where no reviewer subagent can be spawned, the skill's own diff pass against the FIS is the review and that line says so. A complete outcome → scenario/criterion → task attestation and one explanation per outcome precede completion. The story's row is then written – `verified: {at, summary}` quoting one of those proof lines, and `done` with it – by the run session, which is `plan.json`'s only writer; dispatched by `exec-plan`, this skill reports those fields instead and the run session writes them. Run directly, it ends on a `Next (fresh session):` line: `exec-spec` on the plan's next dependency-ready story, or once none remains `review --mode code,gap,security,outcome --fix <plan.json>`, `outcome` only when the plan names a PRD.
-
-```bash
-/andthen:exec-spec docs/specs/data-export/s01-data-export.md
-/andthen:exec-spec --tdd docs/specs/dashboard/s01-project-setup.md
+/andthen:plan "story S03 of docs/specs/dashboard/plan.json"
 ```
 
 ### `exec-plan`
 
-`[--auto] [--worktree] [--no-full-tier] <path-to-plan-directory>`
+`[--auto] [--tdd] [--worktree] [--no-full-tier] <path-to-fis | plan directory>`
 
-Runs a fully-specced schema v2 bundle, one fresh implementer subagent per ready story invoking `exec-spec --auto --no-full-tier <fis>`. That subagent owns its story whole – admission, implementation, its own proofs, the quick review, its one repair round, and the commit – so this skill schedules, contains failures, owns the run gate, and adds no second review. Non-default targets confirm interactively; `--auto` prints the difference and proceeds.
+Implements one FIS in the current session, or runs a plan directory, giving each ready story to a fresh subagent. Either way it runs the project's checks and every proof the FIS names, has a fresh reviewer check the change, and completes a story only on executed proof.
 
-Admission reads the bundle: an unsupported schema version routes to regeneration, a malformed one stops before FIS resolution, and every schedulable FIS resolves. **This run session is `plan.json`'s only writer** – it sets `in-progress` at dispatch and writes the story's row from what the story reported, `done` only together with the `verified` line quoting executed proof output. Stories never write the file, so there is nothing to reconcile.
-
-Stories run one at a time in the shared tree, each triaged before the plan is re-read. **`--worktree`** dispatches a dependency-ready batch at once (about five), each story on its own branch in its own git worktree from the current HEAD, carrying code and its FIS appends; every return is merged back with `git merge --no-ff` before the next batch, the row written and committed in the main checkout, then the worktree and branch removed. A merge conflict aborts the merge and stops the line with the conflicting paths – the story's work stands, the merge is what is missing. Any uncommitted change to a tracked file blocks the flag, and so does an untracked bundle, a gitignored specs directory included – stories branch from HEAD and merge back into it, and a worktree holds only what is tracked. A failed story keeps its branch and worktree, and a rerun resumes on them rather than beside them. Per story, the fast tier runs once inside that story's subagent, and Post-Completion extracts observations. **Batch discovery triage** propagates discoveries before later stories run.
-
-The run gate is the full tier each story deferred, on the final tree, iterated to green – each repair round a fresh subagent invoking `triage --auto` on the failing checks, and a round that turns nothing green fails the run; `--no-full-tier` makes the fast tier the gate instead, and the report names the tier that ran. `Scope:` and `Verification:` are reported on separate lines, and the report ends with a `Next (fresh session):` line – opening with the full tier under `--no-full-tier` – `review --mode code,gap,security,outcome --fix <plan.json>`, one paste, so the deep review and its remediation start in a fresh session. That line is scoped to what is `done`: a partial run names those story ids after the plan path, and a run that completed none prints `Next: no completed stories – nothing to review.` instead, since a review over the whole plan raises gap findings against stories nobody implemented. An all-done rerun verifies, reports state, and prints the same line. `--auto` preserves partial work, skips dependents, continues independent stories, never blocks on a review, and exits with an aggregate failure report.
+- **You get**: committed code per story, its commit message carrying the FIS's Intent and Expected Outcomes so the why outlives the FIS, with the story's `plan.json` row set to `done` and a `verified` summary quoting the proof it ran. The report ends with a `Reviewed:` line (what reviewed the change, what stays open) and a `Next (fresh session):` line. The run that completes the plan's last story also runs one `simplify-code` pass over the plan's code. Open findings are recorded in the FIS under `## Implementation Observations`.
+- **Options**: `--tdd` implements test-first. `--worktree` runs a plan's independent stories in parallel, each on its own branch in its own git worktree, merged back after each batch. `--no-full-tier` runs the fast check tier where the full one would run, for a caller that runs the full tier itself.
+- **Good to know**:
+  - A direct story run asks before building on dependency stories that are not `done`. An unattended run stops.
+  - A gap in a FIS (a broken anchor, an unbound proof) never stops the run: it takes the best reading and records it.
+  - Plan run: stories run one at a time in the shared tree. Each story runs the fast tier, then the plan run runs the full tier once on the final tree and repairs failures. A failed story's dependents are reported skipped. Other stories continue only when the failure's changes are provably isolated, which is always true under `--worktree`; otherwise the run stops.
+  - `--worktree` needs a clean tracked tree and a committed bundle (a gitignored specs directory fails this). A failed story keeps its branch and worktree, and a rerun resumes there. A merge conflict fails the story, except lines both sides appended to the changelog or `Learnings`.
+  - Another session's uncommitted changes are never staged, stashed, or reverted.
+  - A red story ends with a route out: `review --fix` over the story's changed paths, for correctness and against its FIS, then `exec-plan` again on the same input.
+  - The plan-level review (`review --fix <plan.json>`) is printed, never run for you.
+  - `plan.json` and the FIS files stay in the tree. After a clean plan-level review, a `Next (fresh session):` line for `ship` lands their observations and deletes them. `prd.md` stays.
 
 ```bash
+/andthen:exec-plan docs/specs/data-export/s01-data-export.md
+/andthen:exec-plan --tdd docs/specs/dashboard/s01-project-setup.md
 /andthen:exec-plan docs/specs/dashboard/
-/andthen:exec-plan --auto docs/specs/dashboard/
 /andthen:exec-plan --worktree docs/specs/dashboard/   # independent stories in parallel, one worktree each
 ```
 
-**`plan.json` and the FIS files are branch-scoped** – delete them before the merge; `prd.md` stays. Read each FIS's `## Implementation Observations` first and land what belongs in Learnings or Decisions, because the bodies go with the bundle.
-
 ### `review`
 
-`[--mode code|gap|security|outcome[,...]] [--quick] [--fix] [--intent <fis-path>] [--output-dir <path>] [--auto] [target: paths, a PRD/plan/FIS, or a PR]`
+`[--mode code|gap|security|outcome[,...]] [--quick] [--fix] [--output-dir <path>] [--auto] [target: paths, a PRD/plan/FIS, or a PR]`
 
-Proof-led `code`, `gap`, `security`, or `outcome` review – every lens reviews an implementation against intent, so documentation as a deliverable is a code-lens surface and a requirements document is reviewed where it is written (`clarify`, `spec`, and `plan` each close on a self-review) and afterwards as a baseline here; `gap` proves the implementation matches its FIS or plan; `outcome` proves the finished feature solves its PRD's problem for its Target Users, walked as those users along the PRD's flows, never read from FIS proofs, and needs a PRD – or a comma-chain of them sharing one target map, with a Coverage Matrix and test-contract falsification. **One lens pass is the default**, carrying every resolved lens with the Guardrails check, the Critic posture, and the Findings Filter inside the run. It runs in the session you invoked it from only when that session did not write or reason about the target – otherwise, and whenever that is unclear, a fresh reviewer runs it, because the author cannot be the review's only reader; a chain is always one reviewer subagent. Partition passes happen only when the diff exceeds one reviewer's useful coverage (≥20 changed files, ≥1000 changed LOC excluding generated and vendored noise, 3+ top-level modules) or the caller asks for a partitioned review – surface size decides it, never phrasing. A request to keep the review in one pass forces that single pass and is reported when it suppresses an active trigger.
+Reviews an implementation through one or more lenses: `code` (quality and correctness), `gap` (does it match its FIS or plan), `security`, and `outcome` (does the finished feature solve its PRD's problem for its users; needs a PRD). Lenses are inferred from your wording and can be chained into one report.
 
-**The `security` lens** calibrates severity by exposure tier – the same defect is CRITICAL on a public unauthenticated path and MEDIUM behind admin SSO and a VPN, and a build/CI surface holds its severity – and runs the project's own scanners, recording an unavailable one rather than reading it as clean.
-
-`--quick` is a **quick path**: one pass over the change – the lens rubric with its Critic sub-lens, under the same independence gate, and no coverage matrix, Guardrails pass, fan-out, or report file. Findings come back labeled `quick`, so the caller knows what it did not buy. `--quick --fix` applies the Fix-routed findings inline as one patch set, no report and no remediation pass – what `quick-review --fix` did. Nothing else selects it: without the flag, every request takes the full six steps.
-
-**Earlier reports are input, never scope.** A review reads any earlier report on the same target, `## Remediation Status` included, and the open items a story left under its FIS's `## Implementation Observations`, checks each against the code as it is now, and states the result – resolved, still open, or regressed – so an addressed finding is not raised as new and a still-open item is routed like any finding of this review. Scope narrows only when you ask for it – a re-review or follow-up after fixes, as a review/fix loop does from its second round: that review covers the latest report's findings, what their fixes touched, and regressions from them, and is otherwise a full run with its own report and verdict. The Guardrails check runs first, inside the lens pass, and reads an optional `Review Policy` document when the Project Document Index names one – this project's path exclusions, extra passes, and threshold calibration; nothing scaffolds it, and without it the defaults are the policy. `Guardrails Coverage: N checked, M findings` is emitted; a missing or zeroed line means the pass did not run.
-
-**The report** opens with a pinned header under its H1 – `Review mode`, `Resolved chain` on a lens chain, a typed `Target` (`plan <plan.json>`, `story <ID> in <plan.json>`, `PR <n>`, `range <base>..<head>`, or `paths …`), the `Revision` reviewed with a `-dirty` suffix when uncommitted work was in scope, `Follows` naming the most recent earlier report on the same target, and `Remediated` once `implement-fix` has annotated it – so a reader, or a tool, sees what was reviewed and whether the verdict predates later commits. It lands in the spec directory of the reviewed document or of the governing FIS or plan, else `reviews/` under the Agent Temp location, never in a source tree, named `<feature>-andthen-<suffix>-<agent>-<YYYY-MM-DD>.md`; `<feature>` is that spec directory's name plus the story id for a story target. Every report follows one template, whatever the lenses: Executive Summary, Coverage Matrix, Findings, the code lens's Compliance and the security lens's Trust-Boundary Map when those ran, Critic Coverage, Verification Evidence, Verdict, and Next Steps, with each finding one `Finding N - SEVERITY - title` block. The Executive Summary opens on the verdict line, and a mixed report has one `## Verdict` section, with the gap dimension table under a `### Gap` subheading of it.
-
-Findings carry `Class:` and `Routing: Fix|Note`. `Fix` requires confidence ≥75, a `primary` scope relation, class `code-defect`, and a mechanical, uniquely determined fix inside Intent; everything else is surfaced, never applied on the tag's authority – interactively it comes back to you, and under `--auto` `implement-fix` dispositions it on its own recommendation. Routing decides who may apply a remedy, not whether the work is done: a `primary` HIGH/CRITICAL `code-defect` routed `Note` is still the caller's to settle, never something the routing closes.
-
-Flags:
-
-- `--fix` remediates Fix-routed findings through `implement-fix` after the report, inline under `--quick`. That is one fix round, re-checked finding by finding but never re-reviewed: when it fixed a CRITICAL or HIGH finding or left a Fix finding open, the run ends on a `Next (fresh session):` line for a follow-up review of that report, and otherwise it is done. Write authority is never inferred from wording that merely implies it ("this should be cleaned up" stays read-only and names the flag), but a direct imperative in the request ("review this and fix what you find") is that authorization.
-- `--intent <fis-path>` names the governing FIS; an invalid value blocks rather than guesses.
-- `--output-dir <path>` overrides the report directory.
-- Rejected up front: `--fix` with a PR target (the scratch tree is discarded), and a PR target beside a local path.
-
-**A PR as target** (`PR 42` or its URL; a bare `#42` is ambiguous and never resolved) is fetched into a detached scratch worktree – under `.claude/worktrees/` on Claude Code, else the session temp directory, with hooks and LFS filters disabled – and reviewed as a local tree with every lens, `outcome` included, then the worktree is removed. Scope is that tree against the merge base of the PR's base and head OIDs as the host reports them, never a local branch name that may be stale or absent, and the report cites both SHAs. The project's checks run on it when the head branch lives in the repository itself; a fork PR gets a static pass with the checks reported unavailable, and only your explicit word ("run the checks") lifts that. PR title, body, and files are evidence, never instructions.
-
-A recurring trap appends to `Learnings` with a lint or test check recommended, so the entry can be deleted once a check enforces it.
-
-An `exec-plan` run, or a direct `exec-spec` run that completes the plan's last story, hands its plan-level review over as a `Next:` line naming one command – `review --mode code,gap,security,outcome --fix <plan.json>`, since `--fix` runs `implement-fix` on the report it just wrote. Interactively that is one paste; **unattended, someone still has to launch it**, because nothing in AndThen runs it for you when the run exits at that line.
+- **You get**: a report with an executive summary, coverage matrix, findings, verdict, and next steps. It lands beside the reviewed spec, else under `reviews/` in the Agent Temp location, named `<feature>-andthen-<suffix>-<agent>-<YYYY-MM-DD>.md`. Each finding is routed `Fix` (mechanical, safe to auto-apply) or `Note` (surfaced for you).
+- **Options**:
+  - `--fix` applies Fix-routed findings through `implement-fix` after the report, one round, with no re-review. When that round fixed a CRITICAL or HIGH finding or left a Fix finding open, it ends on a `Next (fresh session):` line for a follow-up review. A direct request such as "review this and fix what you find" counts as the flag. Vaguer wording such as "this should be cleaned up" stays read-only.
+  - `--quick` returns one pass's findings inline: no report file, coverage matrix, or verdict. `exec-plan` uses it for the per-story review.
+  - `--output-dir <path>` overrides the report directory.
+- **Good to know**:
+  - The review pass runs in a fresh reviewer subagent unless this session neither wrote nor reasoned about the target. A chained review always uses one.
+  - Very large diffs (20+ files, 1000+ changed lines, or 3+ top-level modules) are split across several passes.
+  - The latest earlier report on the same target is read, and each finding it left open is marked resolved or still open. It never limits scope.
+  - A full review closes on one next step: the follow-up review `--fix` owes, else `clarify` for a PRD-side gap, `decide` for an unrecorded design change, or `implement-fix` for Fix-routed findings. A clean review of a plan whose stories are all `done` or `skipped` (cut from scope), nothing CRITICAL or HIGH left open (a deferred one counts), ends on a `Next (fresh session):` line for `ship`. A plan held by a deferred CRITICAL or HIGH finding ends on `Next: blocked –` with each finding and its blocker instead.
+  - The `security` lens sets severity by exposure and records unavailable scanners rather than reading them as clean.
+  - A PR (`PR 42` or its URL; a bare `#42` is ambiguous) is checked out in a scratch worktree and reviewed with every lens. Checks run only when the head branch is in the repository itself. Fork PRs get a static pass unless you say "run the checks". `--fix` is rejected for PRs.
+  - An optional `Review Policy` document (path exclusions, extra passes, stricter verdict thresholds) is read when the Index names it. Nothing creates it; see the starter below.
 
 ```bash
 /andthen:review                                       # current changes, lens auto-detected
-/andthen:review "does this match the spec?" <path>    # → gap lens
-/andthen:review "review PR 42"                        # PR fetched into a scratch worktree, every lens
+/andthen:review "does this match the spec?" <path>    # gap lens
+/andthen:review "review PR 42"                        # PR in a scratch worktree, every lens
 /andthen:review --mode outcome docs/specs/my-feature/plan.json   # does the built feature solve the PRD's problem?
-/andthen:review --mode gap,code,security              # chain lenses → one consolidated report
+/andthen:review --mode gap,code,security              # chain lenses into one consolidated report
 ```
 
-**Review Policy starter** – hand-written only; no skill creates or updates it. All three sections ship, and an empty one means the defaults apply.
+**Review Policy starter** (write it by hand; an empty section means the defaults apply):
 
 ```markdown
 # Review Policy
@@ -306,28 +247,55 @@ An `exec-plan` run, or a direct `exec-spec` run that completes the plan's last s
 
 ### `implement-fix`
 
-`[--auto] <request | review-report path(s) | report URL(s)>`
+`[--auto] <request | review-report path or URL>`
 
-Implements a small change with the smallest safe change set, re-validation, and workflow-state updates; mutations stay inside the current git root. Two inputs, one body: an inline request, or a review report (path or raw URL). **An inline request is its own findings list, every item routed `Fix` by the user** – each stated requirement becomes one finding with the request as its evidence, an ambiguity is asked once (assumed under `--auto`), and anything unstated is surfaced as `NOTICED BUT NOT TOUCHING:`, never edited. A request describing a plan, a PRD, or a FIS stops and is directed to `spec`/`exec-spec` or `clarify`/`plan`.
+Implements a small change, or a review report's Fix-routed findings, with the smallest safe edit and re-validation. No FIS needed. A request describing a plan, PRD, or FIS stops and points you to `plan`, then `exec-plan`.
 
-For report input, `Routing: Note` is a negative edit boundary, and untagged findings must reconstruct the canonical Fix bar before anything is applied. Every hunk maps to a Fix finding either way. **Under `--auto` nobody answers the list an interactive run returns**, so each `Note` and `NOTICED BUT NOT TOUCHING` item takes one disposition with the recommendation on record: applied when the pass would make the change unasked – inside the reviewed surface, within Intent, one provable remedy, no open decision settled – `DEFERRED` to the Tech Debt Backlog with the recommended remedy when a named blocker holds it, or closed `SURFACED` with the reason.
-
-The pass is one round – re-validate, apply the Fix set, verify once, re-check every finding – with no re-review: whatever stays open is escalated with evidence, and the next review is a user request. A Fix-routed finding whose repair would settle a decision the project records as open is `DEFERRED` against that named blocker rather than demoted or guessed at – the code is left alone and the entry goes to the Tech Debt Backlog, since only a CRITICAL/HIGH blocked finding escalates. An inline request's finding carries no report severity, so a blocked one always defers. A prior pass's `## Remediation Status` names what it left open, and a writable report gets that section written back, one bullet per finding keyed by its number (`Finding N - title`). An empty auto-applicable set – a report with nothing routed Fix, or a request whose findings were all surfaced – returns a summary that nothing was fixed.
-
-**Publication is never inferred**: the verified change stays in the working tree for you to commit. The completion report's `Reviewed:` line names what reviewed the change – the in-session diff pass is the review for a small change, and a fresh reviewer subagent invoking `review --mode code` only when a defect would not be visible in that diff.
+- **You get**: a verified change left in your working tree (nothing is committed), a table with each finding resolved, deferred, or surfaced, and the `Reviewed:` line. A writable report gets a `## Remediation Status` section written back.
+- **Good to know**:
+  - A request is its own finding list. Beyond it, only small tidies in the files the change touches are edited, each named in the report. A larger issue you did not ask for is reported as `NOTICED BUT NOT TOUCHING:`. An ambiguity is asked once.
+  - From a report, an attended run edits only `Routing: Fix` findings, plus small tidies in the files they touch. `Note` findings stay untouched unless you direct otherwise; under `--auto`, eligible Notes can be promoted to Fix by the disposition below.
+  - It is one round: re-validate, fix, verify once, re-check each finding. What stays open is escalated with evidence.
+  - Run on a report, it closes like `review --fix`: a `Next (fresh session):` follow-up review when it fixed a CRITICAL or HIGH finding or left a Fix open, else a `Next (fresh session):` line for `ship` for a plan whose stories are all `done` or `skipped` with nothing CRITICAL or HIGH left open, a deferred one included.
+  - A Fix finding blocked by a named reason (an open decision, a file outside scope, a new test harness, a migration, a caller API change, a concrete risk) is deferred to the `Tech Debt` backlog. Attended, you approve each entry. Unattended, all are written.
+  - Unattended, it dispositions each `Note` item itself (apply, defer, or surface with a reason).
+  - It never edits `plan.json`.
 
 ```bash
 /andthen:implement-fix "add a --json flag to the export command"
 /andthen:implement-fix docs/specs/csv-export/csv-export-andthen-code-review-claude-2026-09-07.md
 ```
 
+### `ship`
+
+`[--auto] [plan.json path] [notes for the pull request]`
+
+Closes out the current branch and opens its pull request (a merge request on GitLab). On a branch with a plan bundle it first lands what the FIS files learned and deletes the bundle, because a plan's specs govern one branch and never merge. On any other branch it commits and opens the request.
+
+- **You get**: the traps from each FIS's `Implementation Observations` written as `Learnings` bullets, recommendations for the rest, the branch's fixes and the bundle's deletion committed, and a pull request that states the change's intent, outcomes, and proof: the PRD's why, each story's Intent and Expected Outcomes, its `verified.summary`, and the review's verdict.
+- **Good to know**:
+  - It asks once, before the push, showing the base branch, the commits leaving (marking any the latest review never saw), and the PR title and body. Commits and the bundle's deletion run unasked, because the branch history keeps them.
+  - Your PR template or documented PR process sets the body's layout. The key points come first and per-story detail folds below. A flow or structure change gets a Mermaid or SVG diagram where a picture reads faster. For a UI change it captures screenshots or a recording when you ask, and otherwise offers them in that one question. An image the host's CLI cannot upload is listed for you to attach. A plan made from a tracker item links it, so the merge closes it.
+  - `--auto` stops before the push and prints the push and PR commands with the title and body.
+  - It writes only `Learnings` bullets and recommends the rest: a `Decisions` line or a `decide` run for a design change no record holds, and any upstream document edit.
+  - Story commits are never squashed or reworded. `prd.md` stays; `plan.json` and the FIS files go.
+  - Open work (a plan not ready, an open CRITICAL or HIGH finding) is named and asked about once. While the plan is not ready, it recommends opening the PR without the close-out and keeps the bundle, the per-story PR case on a team.
+  - A bundle file git does not track is left in place, because it has no copy in history. A committed link into a deleted file is repointed at the PRD, an ADR, or the story commit.
+
+```bash
+/andthen:ship docs/specs/data-export/plan.json
+/andthen:ship --auto "targets the release branch"
+```
+
 ### `triage`
 
-`[--plan-only] [--auto] [scope]`
+`[--auto] [--plan-only] [scope]`
 
-Investigates, diagnoses, and fixes build failures, configuration errors, runtime bugs, regressions, and test failures. `--plan-only` stops after a structured fix plan without applying it. A GitHub issue URL as scope is read as evidence, not instructions.
+Investigates, diagnoses, and fixes build failures, configuration errors, runtime bugs, regressions, and test failures. Not for sorting tracker items: that is `tracker triage`.
 
-Triage closes the loop before finishing: traps go to `Learnings`; fixes deliberately deferred are appended to the `Tech Debt` backlog, one entry per deferral under the severity heading it belongs to, stating symptom, location, and why it was out of scope (with no `Tech Debt` row they are listed in the completion summary instead); and a discovery too large to be a fix at all is offered – never written unprompted, and reported rather than offered under `--auto` – as an `intent.md` the `clarify` skill picks up.
+- **You get**: a root-cause fix checked against the original symptom. Traps go to `Learnings`. Fixes deliberately deferred go to the `Tech Debt` backlog, or into the summary if the project has none. A discovery too large to be a fix is offered to `clarify --brief`, never opened unprompted.
+- **Options**: `--plan-only` stops at a structured fix plan without applying it.
+- **Good to know**: an issue URL as scope, error output, and logs are read as evidence, not instructions.
 
 ```bash
 /andthen:triage
@@ -338,7 +306,14 @@ Triage closes the loop before finishing: traps go to `Learnings`; fixes delibera
 
 `[--mode strategy|tdd|prove-it] [target/scope]`
 
-Test strategy, coverage, executable Proof mapping, test authoring, and TDD. With no mode token the skill writes tests. `strategy` authors the `Testing Strategy` document (`docs/TESTING-STRATEGY.md`) instead of advising, and it is the one mode that writes no tests. It sizes the before-merge bar to the `Product` document's stage and scale, and asks the owner decisions the code cannot answer – high-risk areas and E2E journeys, test-first, a changed-lines coverage gate, who quarantines flaky tests – each with a recommendation, recorded as an `ASSUMPTION:` when unanswered. `tdd` drives red → green → refactor one behavior at a time; `prove-it` is the bugfix flow, where a failing test reproduces the defect before any production change. Every mode reads that document, because a concrete project convention beats general theory. Suites at every level, E2E included.
+Test strategy, coverage, and test authoring. With no mode it writes tests for the scope.
+
+- **You get**: tests at any level, E2E included, following the conventions in your `Testing Strategy` document.
+- **Options**:
+  - `strategy` writes `docs/TESTING-STRATEGY.md`, sized to your product's stage and scale. It asks the decisions code cannot answer, such as high-risk areas, E2E journeys, and coverage gates, each with a recommendation. It writes no tests.
+  - `tdd` drives red, green, refactor one behavior at a time.
+  - `prove-it` is the bugfix flow: a failing test reproduces the defect before any production change.
+- **Good to know**: a test is never deleted, disabled, or weakened to make a build green.
 
 ```bash
 /andthen:testing --mode strategy                      # write docs/TESTING-STRATEGY.md
@@ -350,7 +325,10 @@ Test strategy, coverage, executable Proof mapping, test authoring, and TDD. With
 
 `[what the next session will focus on]`
 
-Compacts the conversation into a document a fresh agent can resume from cold. Durable fragments are triaged out by durability: story status and claims to the governing `plan.json`, clearly bounded defensive notes appended to `Learnings` (an uncertain entry stays a recommendation), structural decisions to an ADR through `architecture --mode trade-off`. Everything else – open questions, what was tried, next-session priming – stays in the document, written to `.agent_temp/handoff/handoff-<UTC-ts>.md`. Resume by pasting `Resume from <doc-path>` into a fresh session.
+Compacts the conversation into a document a fresh session can resume from cold.
+
+- **You get**: `.agent_temp/handoff/handoff-<UTC-ts>.md` with open questions, what was tried, and next-session priming. Resume with `Resume from <doc-path>` in a fresh session.
+- **Good to know**: clearly bounded gotchas are appended to `Learnings`. Structural decisions are recommended to `decide`, never written as ADRs. Secrets are redacted, but the file sits under `.agent_temp/`, so treat it as not private.
 
 ```bash
 /andthen:handoff "next: finish S03's migration"
@@ -358,30 +336,42 @@ Compacts the conversation into a document a fresh agent can resume from cold. Du
 
 ### `architecture`
 
-`[--mode <mode>[,<mode>...]: advise|trade-off|review|decompose|fitness|strategic-design|event-storming] [--output-dir <path>] [--auto] [scope/path]`
+`[--mode <mode>[,<mode>...]: advise|review|decompose|fitness|strategic-design|event-storming] [--output-dir <path>] [--auto] [scope/path]`
 
-Seven modes, auto-detected from the request or named explicitly. The two decision modes run one per invocation: `trade-off` compares options against weighted criteria including the floor option, settles the ADR, and routes empirical unknowns to the `spike` skill (naming a count – "compare three options" – overrides the default of five); `advise` is design guidance grounded in CUPID, DDD, and Ousterhout's deep modules, text only, and is the default. The five analysis modes chain in declared order and share what an earlier mode computed (`--mode review,fitness`): `review` (dependency metrics, connascence, anti-patterns, fitness proposals), `decompose` (one split/merge decision with Ford/Richards driver scoring), `fitness` (governance and ADR enforcement), `strategic-design` (subdomain classification, bounded contexts, and the Context Map it writes), `event-storming` (a Brandolini discovery session, interactive by contract). A chain produces one combined report, never a file per mode, and a decision mode listed with analysis modes runs last, on their findings. No mode changes code.
+Design guidance and structural analysis. It never changes code. The mode is inferred from your request or named with `--mode`.
 
-`strategic-design` emits its candidate context maps into the report's own output directory and registers only the map you accept – into the `Context Map` document and as `context-map.json` under the `Models` location; `--auto` skips that gate rather than infer acceptance and reports the map unregistered.
-
-`--output-dir` pins the report destination; without it, `trade-off` writes under the Project Document Index Research location, or `docs/research/`, and the five analysis modes write to `reviews/` under the Index's Agent Temp location, never a source tree.
+- **You get**: `advise` returns text only. The five analysis modes write one report to `reviews/` under the Agent Temp location (or `--output-dir`). A chain such as `--mode review,fitness` produces one combined report.
+- **Options**:
+  - `advise`: design guidance, grounded in CUPID, DDD, deep modules, and Locality of Behaviour.
+  - `review`: dependency metrics, connascence, anti-patterns, fitness proposals.
+  - `decompose`: one split-or-merge decision with scored drivers.
+  - `fitness`: governance and ADR enforcement.
+  - `strategic-design`: subdomains, bounded contexts, and the Context Map.
+  - `event-storming`: a discovery session with you as the domain expert. Its board lands under `docs/models/event-storms/`, and a later run on the same scope continues it.
+- **Good to know**: `strategic-design` registers only the map you accept, into the `Context Map` document and `context-map.json`. An unattended run skips that step and reports the map unregistered. A decision to settle and record goes to `decide`.
 
 ```bash
-/andthen:architecture "compare caching strategies for API responses"        # → trade-off, ADR
-/andthen:architecture --mode trade-off "SQL vs document DB" --output-dir docs/research/
-/andthen:architecture "should I use event sourcing for the order domain?"   # → advise, text only
-/andthen:architecture --mode review,fitness src/                            # → one combined report
-/andthen:architecture "map the bounded contexts"                            # → strategic-design, writes the Context Map
+/andthen:architecture "should I use event sourcing for the order domain?"   # advise, text only
+/andthen:architecture --mode review,fitness src/                            # one combined report
+/andthen:architecture "map the bounded contexts"                            # strategic-design, writes the Context Map
 ```
 
 ### `describe`
 
-`[--mode codebase|domain] [--model] [--model-only] [scope or output directory]`
+`[--mode codebase|domain] [--model] [--model-only] [output directory (codebase) or scope (domain)]`
 
-Read-only description of what a project already is; the mode is auto-detected and `--mode` wins. `codebase` (the default) maps the repository into the `Architecture` and `Key Dev Commands` documents plus `requirements-discovered.md` and `decisions-discovered.md`, merging into existing derived documents rather than overwriting them. `domain` extracts and maintains the `Ubiquitous Language` document, merging into curated terms by default. `--model` emits that mode's typed atlas model – `architecture-model.json` or `domain-model.json` under the `Models` Index location, committed with the source revision in `meta.revision` – alongside the documentation in `codebase` mode and in place of it in `domain` mode, where the model projects the existing glossary; `--model-only` emits the model and writes no documentation in either mode, which is the refresh path when only the model needs to be current. A run that needs both descriptions runs `codebase` first: its context list seeds the domain clustering.
+Documents what a project already is, without modifying code. The mode is inferred from your phrasing; `--mode` wins. If neither decides, it asks once: codebase (preselected), domain, or both.
+
+- **You get**:
+  - `codebase` maps the repository into the `Architecture` and `Key Dev Commands` documents, `requirements-discovered.md` and `decisions-discovered.md` for team review, and a `## Conventions` section in `CLAUDE.md` / `AGENTS.md`. A monorepo also gets a short instruction file per sub-project. Existing documents are merged into, never overwritten.
+  - `domain` extracts the `Ubiquitous Language` glossary, merging into curated terms.
+- **Options**:
+  - `--model` also writes the typed model under the `Models` location: `architecture-model.json` from the code, or `domain-model.json` from the glossary.
+  - `--model-only` writes just the model, no documentation. It is the refresh path.
+- **Good to know**: `plan` and `architecture` read the architecture model.
 
 ```bash
-/andthen:describe                                        # map the codebase
+/andthen:describe                                        # not sure? it asks: codebase, domain, or both
 /andthen:describe --mode domain                          # build or refresh the glossary
 /andthen:describe --mode codebase --model-only           # refresh the Architecture Model alone
 ```
@@ -390,7 +380,10 @@ Read-only description of what a project already is; the mode is auto-detected an
 
 `[--auto] [inputs/path]`
 
-UX research, design systems, and wireframes, singly or chained, with the mode inferred from phrasing: `research` (journey maps, information architecture, competitive analysis, flows), `design-system` (tokens, component styles, style guide; output `docs/design-system` or the indexed location), `wireframes` (screen layouts, low-fi sketches; output `docs/wireframes` or the indexed location). The design-system and wireframes modes require feature requirements as inline text, a file, or a PRD reference, elicited when absent. **Multi-mode**: a request naming several of them in order runs them in that order and shares context – research insights feed design-system decisions, and the design-system mode's output directory binds the wireframes mode's `DESIGN_DIR`, so the wireframes use the tokens just written. Validating a built UI is not a mode here – that is `visual-validation`.
+UX research, design systems, and wireframes, singly or chained. The mode is inferred from your phrasing.
+
+- **You get**: `research` (journey maps, information architecture, competitive analysis, flows), `design-system` (tokens, component styles, style guide) in `docs/design-system`, or `wireframes` (screen layouts) in `docs/wireframes`. The Index can name other locations.
+- **Good to know**: design-system and wireframes need requirements as text, a file, or a PRD, and ask for them when missing. Name several modes in order and they run in that order, with each mode's output feeding the next (wireframes use the tokens just written). It closes on one next step: `clarify` for questions research left open, else `plan` on the requirements a design system or wireframes were drawn from. Checking a built UI is `visual-validation`, not this skill.
 
 ```bash
 /andthen:ui-ux-design "wireframe the dashboard screens"
@@ -401,31 +394,57 @@ UX research, design systems, and wireframes, singly or chained, with the mode in
 
 `[--mode setup] [<screens-or-states-to-validate>] [design-reference/baseline]`
 
-Validates UI screenshots and implementations against visual, responsive, and design expectations, and runs visual regression checks against wireframes, design specs, or baselines. Each image shows one region at viewport size, reference and build separate – a full-page or side-by-side composite is judged as a thumbnail, and an unreadable image is `not judged`, never passed. **Differences before verdict**: per region the differences from the reference and every clipped, truncated, overlapping, wrapped, or missing element are listed and classified first, and a pass quotes what it read at the region's edges; this holds under the project's own `Visual Validation` document too. Findings come back one line per region judged, naming its screen, state, and viewport: a P1 Critical or P2 Major finding blocks – the caller gates completion on it, and re-validation after the fix recaptures the affected screens and records the second verdict beside the first – while P3 is reported, not gated. Design-system and wireframe authoring is `ui-ux-design`.
+Checks built UI screenshots against wireframes, design specs, or baselines, and runs visual regression checks. For each screen, state, and viewport it lists the differences from the reference before deciding pass or fail.
 
-`--mode setup` runs once per project and judges nothing: it serves the app, proves the capture procedure with a trial capture, and writes the `Visual Validation` document (`docs/VISUAL-VALIDATION.md`) – serve command, capture tooling, routes and states, breakpoints, reference locations – which every later run captures from. Nothing that did not run successfully is written down. Judging stays with the skill: a document can say how images are obtained, never how they are scored. Without the document, validation falls back to working the capture out per run and says so in its Summary.
+- **You get**: one finding line per region judged. A P1 Critical or P2 Major finding blocks: a caller such as `exec-plan` gates completion on it, and after the fix the affected screens are recaptured and the second verdict recorded beside the first. P3 is reported, not gated. An unreadable image is `not judged`, never passed.
+- **Options**: `--mode setup` runs once per project. It serves the app, proves the capture procedure with a trial capture, and writes the `Visual Validation` document (`docs/VISUAL-VALIDATION.md`) with serve command, capture tooling, routes, states, breakpoints, and reference locations. Only what ran successfully is written down.
+- **Good to know**: without the document, each run works out capture itself and says so.
 
 ```bash
 /andthen:visual-validation --mode setup                  # write docs/VISUAL-VALIDATION.md
 /andthen:visual-validation "checkout screen, mobile and desktop" docs/wireframes/
 ```
 
+### `visualize`
+
+`<artifact path or name> [what the page should bring out]`
+
+Draws one AndThen artifact as a self-contained HTML page with inline SVG figures. It is the public way to see what `architecture-model.json`, `domain-model.json`, `context-map.json`, `event-storms/<slug>.json`, and `plan.json` hold: evidence levels, runtime shape, tours, overloaded terms, story dependencies and status. Any other artifact works too, such as a FIS, a PRD, a review report, or an ADR.
+
+- **You get**: the page at `.agent_temp/visualize/<artifact>.html`. It is a derived copy, so it is not committed by default and goes stale when its source changes.
+- **Good to know**: before handing the page over it renders it in a browser, a headless one where available, and fixes overlaps, clipped labels, unreadable arrows, dead controls, and console errors. With no browser reachable it says the page is unchecked. The check is the model judging its own render. Checking your project's own UI is `visual-validation`.
+
+```bash
+/andthen:visualize docs/models/architecture-model.json "walk the tours"
+/andthen:visualize docs/specs/export/plan.json
+```
+
 ### `tracker`
 
-`publish <plan.json> [--dry-run] [--auto]`
+`[--auto] (publish <plan.json> [--dry-run] | triage [issue number(s) or tracker query] | setup)`
 
-Projects a schema v2 plan bundle into the issue tracker; another version blocks before projection and routes to `plan` regeneration. `plan.json` stays agent truth and the tracker is the human projection. `publish` creates one parent issue (summary, PRD link, source-ordered story checklist) and one child per story (title `S03 - <name>`; scope, PRD anchors, commit-pinned FIS link, `dependsOn` blocked-by, completed task IDs, owner). An exact machine marker carrying the repository-relative plan path and story ID is the join key – relative and absolute invocations update the same issue, each marker is queried directly so a global result cap cannot hide it, and duplicate matches block publication. Live publication uses deterministic temporary body files so plan prose never becomes shell source: the parent is sent first, then each child, then a second `edit body` pass sends the parent's checklist and each child's `Blocked by:` lines back with the real issue numbers, so the cross-references reach the tracker and not just the local bodies. Re-publishing after execution refreshes the same issues from the plan's current state; the projection is one way, repo → tracker, and there is no reverse sync. Scaffolds the `Issue Tracker` document on first publish when it is absent; GitHub via `gh` is the worked path, other backends fill its operation table. `--dry-run` makes no tracker call and no file write, so every `action` reads `unknown` – the lookup is what decides create-versus-update.
+One skill for the issue tracker, with three verbs. Each first reads the `Issue Tracker` document; `Backend: none` means no tracker, and `publish` and `triage` end on one line saying so. GitHub via `gh` is the supported path, and other backends fill in the document's operation table.
+
+- **`publish`** creates one parent issue (summary, PRD link, story checklist) and one child issue per story (title `S03 - <name>`, scope, PRD anchors, commit-pinned FIS link, blocked-by links). Re-running after execution updates the same issues. Flow is one way, plan to tracker, with no reverse sync. `--dry-run` makes no tracker call and writes no file. A plan missing a field it needs is refused before any tracker call, naming the field.
+- **`triage`** labels untriaged issues (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; `bug`, `enhancement`), routes them toward implementation or a human decision, and appends an Agent Brief a fresh executor can act on to `ready-for-agent` items. A ratified `wontfix` is also recorded in the `Product` document's Non-Goals. Interactively, you ratify every write per item. Unattended, it applies only safe transitions and leaves `wontfix`, `ready-for-agent`, and duplicate closes for a human.
+- **`setup`** writes the `Issue Tracker` document. It asks which backend you use and, for anything but GitHub, the command for each operation. Other skills offer it when they meet an unconfigured tracker URL, and an unattended run stops on `BLOCKED:` instead.
 
 ```bash
 /andthen:tracker publish docs/specs/dashboard/plan.json --dry-run
 /andthen:tracker publish docs/specs/dashboard/plan.json
+/andthen:tracker triage                     # untriaged items
+/andthen:tracker triage 118 121 "label:bug is:open"
+/andthen:tracker setup
 ```
 
 ### `spike`
 
 `[the one design question | approach A vs approach B]`
 
-Answers one named design question by building a throwaway runnable spike on a `spike/<slug>` branch in its own worktree under `.agent_temp/spike/` – the caller checkout is never stashed, cleaned, switched, or staged, and the spike commits only the paths it owns – and printing a **Spike Verdict** – evidence, never merged product. The verdict folds back as evidence in `clarify`, `architecture --mode trade-off`, and `spec` / `plan` preflight. Not for shippable code (`implement-fix` or the spec chain) or for screen design (`ui-ux-design`).
+Answers one named design question by building a throwaway runnable spike, then reports a **Spike Verdict**: the answer, the evidence, and what the spike did not cover.
+
+- **You get**: a verdict in chat and the code on a `spike/<slug>` branch. The spike runs in its own worktree under `.agent_temp/spike/`, so your checkout is never touched. The worktree is removed afterwards and the branch kept as evidence.
+- **Good to know**: invoked directly, it confirms the question with you before building. Spike code is never merged or reused. The verdict feeds `clarify`, `decide`, and `plan`. A question building cannot answer is redirected: open requirements to `clarify`, a choice between options to `decide`, screen design to `ui-ux-design`. Shippable code is `implement-fix` or the plan path.
 
 ```bash
 /andthen:spike "does the streaming parser hold under 10k events/s?"
@@ -433,54 +452,35 @@ Answers one named design question by building a throwaway runnable spike on a `s
 
 ### `simplify-code`
 
-`[--auto] [scope: dir/file path and/or description]`
+`[--auto] [scope: paths and/or description]`
 
-Behavior-preserving simplification – clarity, reuse, leanness, less over-engineering – over the scope given as the argument. Loads the originating FIS's Intent Context when one governs the code and drops cleanups that contradict it.
+Behavior-preserving simplification: clarity, reuse, and less over-engineering, within the scope you give.
+
+- **You get**: edits that keep behavior, checked against the baseline it records first. Cleanups that contradict the governing FIS's `What We're NOT Doing` or `Architecture Decision` are dropped and reported. Run standalone, a substantial change ends on a `Next (fresh session):` line for a `review` of the changed paths.
+- **Good to know**: without a scope it falls back to the current branch diff, and an unattended run stops if that is not a cohesive set. Removing anything observable or exported needs your approval; unattended, it is deferred. `exec-plan` runs it once per plan, from the run that completes the last story, before the review.
 
 ```bash
 /andthen:simplify-code src/billing/invoice.ts
 ```
 
-### `skill-review`
-
-`[--fix] [--output-dir <path>] <skill directory, paths inside one, or one prompt-like file>`
-
-Reviews one skill bundle – `SKILL.md`, the references it names, `agents/openai.yaml` – or one prompt-like file – a project instruction file (`AGENTS.md`, `CLAUDE.md`), a guideline, an agent or role definition, an output style, a document skills read whole at task start – against skill craft: a bundle's trigger surface, instruction conflicts across body, references, project instructions and the host prompt, dropped contracts, and the four prose failure modes (Duplication, Sediment, Sprawl, No-op). Several targets are several runs. The loaded path is what one load pays for – a bundle's files, or the file plus what it pulls in on the same turn – and the ledger names what loads it and how often, because the same cut is worth more in a file read every turn than in a skill that fires rarely. Findings carry `Class:` and `Routing:`; the readiness line (`Ready` / `Needs Fixes` / `Blocked`) names the host validator the target still has to pass. `--output-dir` writes the report there as `skill-review-<target stem>.md`, and as `skill-review-<target stem>-fix.md` under `--fix` so a tighten never overwrites the review-only report beside it; without the flag the findings and verdict print inline. `--fix` (or "tighten this prompt") is the only thing that edits the target, applying the Fix-routed findings as one tighten pass with a per-file character ledger. Material only some invocations need moves into the bundle's own `references/` behind a flag, mode, or host condition; contract changes, and splits that change a registration (a manifest, an Index entry, an `@import`), stay `SURFACED:`. Nothing may be lost: the pass inventories the target's contracts before the first edit, then a mechanical diff of code spans and a fresh-context reviewer building its own inventory resolve every item as kept, moved, or cut with its keeper – a lost item, or doubt about one, reverts the edit – before the project's fast tier and the target's own proof run. A cut that replaces an explanation with a leading word (*Chesterton's Fence*) is probed first: a cheap-tier subagent without the target's text says what the term makes an agent do, and only what the project adds beyond that answer stays. Findings also cover readability: data buried in running prose, paragraphs carrying several concerns, packed sentences, filler.
-
-```bash
-/andthen:skill-review plugin/skills/clarify
-/andthen:skill-review --fix .claude/skills/deploy
-/andthen:skill-review docs/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md
-```
-
-### `backlog-triage`
-
-`[--auto] [issue number(s) or tracker query]`
-
-Triages incoming tracker items: labels and categorizes untriaged bugs and enhancements with the canonical role set (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; `bug`, `enhancement`, mapped to your repo's labels), routes them toward implementation or a human decision, and appends an Agent Brief a fresh executor can act on alone. Every write is ratified per item interactively; `--auto` applies only safe transitions. Resolves the `Issue Tracker` document before any operation. Debugging a failure is `triage`.
-
-```bash
-/andthen:backlog-triage                     # untriaged items
-/andthen:backlog-triage 118 121 "label:bug is:open"
-```
-
 ## Delegation
 
-No plugin agent auto-loads. The `init` skill bundles four optional roles in two host formats (`oracle`, `implementer`, `reviewer`, `worker`); once installed, those definitions own their tier's model and effort. Without them, delegation stays portable: a generic inherited subagent whose prompt invokes the relevant skill or loads the relevant reference.
+AndThen skills hand work to subagents. Nothing is installed by default. The `init` skill can install four optional role agents (for Claude Code as `.md`, for Codex as `.toml`) that pin a model and effort level per task type. They take effect from the next session. Re-check the installed pins when a provider's model lineup changes.
 
-Execution nests, three layers below the session at most: `exec-plan` spawns one fresh subagent per story invoking `exec-spec`, which spawns its own quick reviewer, lookups, and visual validation. Each story's waits, review results, state transitions, and commit belong to the context that ran it.
+- **`oracle`**: judgment work you assign it (a design, an architecture call, a second opinion on a decision), and hard problems an agent hands over because they exceed its tier. It returns a diagnosis or recommendation. `triage` hands over once, when `oracle` is installed, before it stops after three failed fixes. A second opinion is never requested unasked. The model-initiated form is Claude Code's built-in advisor (`/advisor`): experimental, Anthropic API only, with no Codex equivalent.
+- **`implementer`**: one medium or large unit of pinned work, such as executing a story or authoring a plan story's FIS.
+- **`reviewer`**: any review.
+- **`worker`**: small, well-specified subtasks such as lookups and scans.
 
-**`oracle`.** It takes judgment work you assign it – a design, an architecture call, a spec or plan, an analysis, with inputs and constraints pinned – and hard problems an agent hands over because they exceed its tier: a failure that survives a real fix, a design that will not close, a cause the material at hand cannot explain. The hand-over states what was tried and what stays unexplained; it returns a diagnosis and a recommendation, and the task stays the asker's. Simple questions and advice never reach it, and judgment work the agent would route on its own stays in the session, on the model you chose for it. A second opinion on a decision the session has reached is yours to ask for and never spawned unasked: the session hands over the decision, its reasoning, and the alternatives it rejected, and the oracle returns where it is wrong or what it checked before agreeing – on either host, under the role's model and effort pin ([cookbook](../COOKBOOK.md#a-second-opinion-before-committing-to-a-decision)). The model-initiated form is Claude Code's built-in advisor (`/advisor opus` or `/advisor fable`, `/advisor off`): the main model calls it at its own decision points, it reads the whole conversation, subagents inherit it, and every call re-reads the transcript at the advisor's rate, so it pays on long multi-step work and not on short tasks. Anthropic API only, experimental; Codex has no equivalent. Details: https://code.claude.com/docs/en/advisor
-
-Documentation lookup and research follow the same shape: the subagent gets the concrete question, a read-only scope, and the project's `## Documentation Lookup Tools` section or the calling skill's research contract. Every review lens runs a Critic pass in a fresh-context subagent loading `references/lens-adversarial.md` with its calibration peers.
+Without the roles installed, every skill falls back to the same portable shape: a generic subagent on your session's model, whose prompt invokes the relevant skill or reference. Judgment work stays in your session. Execution nests: a plan run starts one subagent per story, and each of those starts its own reviewer.
 
 ## Working in a Team
 
-See [Working in a team](../README.md#working-in-a-team) in the full documentation – the five steps, the local-files-versus-tracker table, and why concurrency needs no shared state file.
+See [Working in a team](../COOKBOOK.md#working-in-a-team) in the cookbook.
 
 ## Bundling Into a Downstream Toolkit
 
-Niche, for toolkit authors only. Other workflow toolkits can pull AndThen in under their own prefix so the two coexist without namespace collisions. The pattern is clone + install:
+For toolkit authors only. Another toolkit can bundle AndThen under its own prefix so the two coexist without name collisions. Clone the repo and install with a prefix that ends in `-`:
 
 ```bash
 git clone --depth 1 https://github.com/IT-HUSET/andthen /tmp/andthen
@@ -493,9 +493,7 @@ git clone --depth 1 https://github.com/IT-HUSET/andthen /tmp/andthen
   --claude-skills-dir "$PWD/.claude/skills"
 ```
 
-Each downstream picks its own `--prefix` (must end with `-`). Skills install as `<prefix><name>` and on Claude Code are invokable as `/<prefix><name>`. AndThen can be installed alongside another toolkit's copy without conflict as long as the prefixes differ.
-
-`--claude-skills-dir` overrides the Claude-side skill destination and implies a Claude Code user-tier install (no separate `--claude-user` needed). The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too for a fully project-local bundle.
+Skills install as `<prefix><name>` and are invoked on Claude Code as `/<prefix><name>`. `--claude-skills-dir` overrides the Claude-side destination and implies a user-tier install. The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too for a fully project-local bundle.
 
 ## Release Notes
 

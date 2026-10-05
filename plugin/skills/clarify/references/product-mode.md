@@ -1,10 +1,10 @@
 # Product Mode
 
-Deltas to the `andthen:clarify` skill's steps when `MODE=product`; everything the body states and this file does not override still holds. Product scope is the whole product or product line, sitting above PRDs (one product spawns many) – the litmus is *"what should this product be?"* where feature scope asks *"what should this feature do?"*. `--brief` is a no-op here: this scope already writes one document.
+Deltas to the `andthen:clarify` skill's steps at product scope; everything the body states and this file does not override still holds.
 
-**Step 1** – `OUTPUT_DIR` is not under the Specs & Plans root and the input dispatch is skipped: product mode writes the **Project Document Index** `Product` row, default `<project_root>/docs/PRODUCT.md`. At that path, the init-scaffolded **stub** (≤ 10 lines AND a `TODO` or `[fill me in]` marker) means write fresh content; anything else is a baseline – INPUT is the delta, Step 2 scopes to new or still-open gaps, Step 3 updates it in place.
+**Step 1** – `OUTPUT_DIR` is not under the Specs & Plans root and the input dispatch is skipped: product mode writes the **Project Document Index** `Product` row, default `<project_root>/docs/PRODUCT.md`. A document there that is absent, or holds nothing but its template's placeholders and Proportionality facts, is written fresh, keeping those facts. Anything else is a baseline: `INPUT` is the delta, and Step 3 updates it in place.
 
-**Step 2** – the questions are vision & problem statement; target users & personas; value propositions; anti-goals; success metrics; strategic constraints; proportionality facts (stage, scale, standing technical non-goals); roadmap themes, not features.
+**Step 2** – the questions are the product template's sections; roadmap themes, not features.
 
 **Step 3** – write the product template in product-template.md at the resolved `Product` path, in place of a `prd.md`.
 
@@ -12,6 +12,6 @@ Deltas to the `andthen:clarify` skill's steps when `MODE=product`; everything th
 
 **Step 5 does not run** – product mode has no reviewer.
 
-**Step 6 does not run** – the `Non-Goals` this mode writes are Step 3's template section, not an append carrying one feature's rejection.
+**Step 6 does not run** – this mode writes `Non-Goals` in Step 3.
 
-**Follow-up** – the `andthen:architecture` skill in `--mode strategic-design`, deriving bounded contexts from the vision.
+**Follow-up** – the `Next (fresh session):` line is the `andthen:architecture` skill in `--mode strategic-design`, deriving bounded contexts from the vision.

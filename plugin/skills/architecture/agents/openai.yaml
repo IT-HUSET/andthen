@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Architecture"
-  short_description: "Architecture decisions and analysis – trade-offs, ADRs, health review, decomposition, fitness, DDD"
-  default_prompt: "Architecture work in one mode or a chain (advise, trade-off, review, decompose, fitness, strategic-design, event-storming). Scope, decision, or domain: "
+  short_description: "Architecture advice and analysis – health review, decomposition, fitness, DDD, event storming"
+  default_prompt: "Architecture work in one mode or a chain (advise, review, decompose, fitness, strategic-design, event-storming). Scope, question, or domain: "
 
 policy:
   allow_implicit_invocation: true

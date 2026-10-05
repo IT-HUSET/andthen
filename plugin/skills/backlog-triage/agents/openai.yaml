@@ -1,7 +1,0 @@
-interface:
-  display_name: "AndThen - Backlog Triage"
-  short_description: "Triage incoming tracker items – label, categorize, route to implementation or a human decision"
-  default_prompt: "Triage incoming issue-tracker items – label, categorize, and route each toward implementation or a human decision; --auto applies only safe transitions. Issue number(s) or tracker query: "
-
-policy:
-  allow_implicit_invocation: false

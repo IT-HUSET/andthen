@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SKILL = ROOT / "plugin" / "skills" / "review" / "SKILL.md"
+FULL_REVIEW = ROOT / "plugin" / "skills" / "review" / "references" / "full-review.md"
 TEMPLATE = ROOT / "plugin" / "skills" / "review" / "references" / "report-template.md"
 CALIBRATION = ROOT / "plugin" / "references" / "review-calibration.md"
 ANNOTATION = ROOT / "plugin" / "skills" / "implement-fix" / "references" / "report-annotation.md"
@@ -64,7 +64,7 @@ def states_earlier_finding_state(text):
     finding's state - resolved, still open, or regressed - in its body,
     above its own `## Remediation Status` heading. The header itself is
     excluded so a `**Resolved chain**:` label can't pass the check by
-    accident. The follow-up contract (SKILL.md Step 1 § Earlier reports)
+    accident. The follow-up contract (full-review.md Step 1 § Earlier reports)
     requires the review to say this itself; the Remediation Status section
     is written afterward by `implement-fix` and does not count, or a report
     could satisfy the contract without the review pass ever having compared
@@ -75,12 +75,12 @@ def states_earlier_finding_state(text):
 
 
 class SkillSpecifiesTheHeaderTest(unittest.TestCase):
-    """The template is the one place the header is specified, and Step 5 of
-    the skill writes the report from it; the fixtures and every consumer
+    """The template is the one place the header is specified, and the Output
+    of the skill writes the report from it; the fixtures and every consumer
     follow it."""
 
     def setUp(self):
-        self.step5 = SKILL.read_text(encoding="utf-8").split("### 5. Write One Report")[1]
+        self.step5 = FULL_REVIEW.read_text(encoding="utf-8").split("\n## Output\n")[1]
 
     def test_each_field_is_specified_by_the_skill_that_writes_it(self):
         self.assertIn("report-template.md", self.step5)
@@ -112,7 +112,7 @@ class SkillSpecifiesTheHeaderTest(unittest.TestCase):
 
 class FixtureHeaderTest(unittest.TestCase):
     """The corpus is what downstream tooling pins, so each fixture's header sits
-    under the H1, ahead of any section, in the order Step 5 lists."""
+    under the H1, ahead of any section, in the order the template lists."""
 
     def test_single_lens_fixture_carries_the_required_fields(self):
         self.assertEqual(header_labels(REPORT.read_text(encoding="utf-8")), list(REQUIRED))

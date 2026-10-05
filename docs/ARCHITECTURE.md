@@ -10,19 +10,19 @@ For everyday rules and routing, see `CLAUDE.md` instead.
 
 ## One Plugin, One Marketplace
 
-**`andthen`** (`plugin/`, 21 skills) is the pipeline end to end – `init`, `now-what`, `clarify`, `plan`, `spec`, `exec-spec`, `exec-plan`, `implement-fix`, `review`, `triage`, `testing`, `handoff`, `architecture`, `describe`, `ui-ux-design`, `visual-validation` – plus `tracker` for the issue-tracker projection and the solo tools `spike`, `simplify-code`, `skill-review`, `backlog-triage`. Both marketplace files carry the one entry.
+**`andthen`** (`plugin/`, 20 skills) is the pipeline end to end – `init`, `now-what`, `clarify`, `decide`, `plan`, `exec-plan`, `implement-fix`, `review`, `ship`, `triage`, `testing`, `handoff`, `architecture`, `describe`, `ui-ux-design`, `visual-validation` – plus `tracker` for the issue tracker (`publish`, `triage`, `setup`) and the solo tools `spike`, `simplify-code`, `visualize`. Both marketplace files carry the one entry.
 
 **Document ownership.** The plugin owns all three domain documents – scaffold, write, and read.
 
 | Document | Scaffold | Write | Read |
 |---|---|---|---|
-| Ubiquitous Language | `init` (optional Domain doc) | `describe --mode domain`; `clarify` seeds it inline as terms settle | `spec`, `plan`, `exec-spec`, `review` lenses, `handoff`, `describe` |
-| Context Map | `init` – Index entry only, when confirmed | `architecture --mode strategic-design` | `clarify`, `spec`, `describe`, `architecture --mode advise` |
+| Ubiquitous Language | `init` – Index entry; the file when its summary offer is taken up | `describe --mode domain`; `clarify` adds rows as terms settle, once it exists | `clarify`, `review`'s code lens, `handoff`, `describe` |
+| Context Map | `init` – Index entry only | `architecture --mode strategic-design` | `clarify`, `decide`, `plan`, `describe`, `architecture --mode advise` |
 | Models (committed, `docs/models/`) | `init` – Index entry, always present | `describe --mode domain --model` (domain model), `describe --mode codebase --model` (architecture model), `architecture --mode event-storming` / `--mode strategic-design` (boards) | `plan`, `architecture` |
 
 Names stay `Ubiquitous Language` / `Context Map`: the Document Index entry, not the path, is the contract, and "context" is the most overloaded word in the agent world.
 
-**Working artifacts are branch-scoped; the requirements source – `prd.md`, or the tracker item a plan with `prd: null` came from – is the surviving product record.** `plan.json` and FIS files stay on the branch and are deleted before the merge. Reading each FIS's Implementation Observations for what belongs in Learnings or Decisions, and writing it, comes before the deletion, because the bodies go with the bundle. The FIS head (`Story-ID`, Intent, Expected Outcomes) travels in the squash-merge message so `git log --grep <story-id>` keeps the why, and the per-story commit `exec-plan` and `exec-spec` make, staged by path, carries the same `Story-ID:`/`Plan:` trailers, so the key exists before merge. Stated once here; the skills cite it.
+**Working artifacts are branch-scoped; the requirements source – `prd.md`, or the tracker item a plan with `prd: null` came from – is the surviving product record.** `plan.json` and FIS files stay on the branch and are deleted before the merge. The `ship` skill reads each FIS's Implementation Observations and lands or recommends what is worth keeping before it deletes the bundle, because the bodies go with it, then commits and opens the PR after one confirmation. The per-story commit `exec-plan` makes, staged by path, carries the FIS head (Intent, Expected Outcomes, `Story-ID:`/`Plan:` trailers), and the merge keeps it (the PR body `ship` writes states the change's intent, outcomes, and proof, so a squash keeps them too), so `git log --grep <story-id>` keeps the why. The plan-level review, `implement-fix` on its report, and `now-what` hand off to it on a `Next (fresh session):` line once the plan is ready under `plan-schema.md` § Shipping. Skills never cite this document, because `ship` states the close-out.
 
 
 ---
@@ -32,10 +32,10 @@ Names stay `Ubiquitous Language` / `Context Map`: the Document Index entry, not 
 
 Skills read the **user's project** `CLAUDE.md` (not this repo's) for two key integration points:
 
-- **Project Document Index** – a list mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `plugin/skills/init/templates/CLAUDE.template.md` for the entry shape: name and location on one line, the read/update trigger on the next.
-- **Project-Specific Guidelines and Rules** – project conventions and workflow notes. The `andthen:init` skill offers critical rules directly in the root instruction file; dual-host projects share `AGENTS.md` through a thin `CLAUDE.md` import. The shipped guideline is a starter, not a runtime dependency: the project owns its adopted policy, customizations and opt-out survive reruns, and existing referenced policies remain valid. `init` edits the rule section between its own heading and the next top-level heading, at project scope by default; personal rules and the separate `concise-critical` conversation style are configured only on request.
+- **Project Document Index** – a list mapping document types to file paths (specs, plans, ADRs, etc.). Skills use this to determine where to read/write output. See `plugin/skills/init/templates/CLAUDE.template.md` for the entry shape: a `###` heading with name and location, over the `Description`, `Read`, and `Write` bullets that apply.
+- **Project-Specific Guidelines and Rules** – project conventions and workflow notes. The `andthen:init` skill offers critical rules directly in the root instruction file; dual-host projects share `AGENTS.md` through a thin `CLAUDE.md` import. The shipped guideline is a starter, not a runtime dependency: the project owns its adopted policy, customizations and opt-out survive reruns, and existing referenced policies remain valid. `init` edits the rule section between its own heading and the next heading outside the guideline, at project scope by default; personal rules and the separate `concise-critical` conversation style are configured only on request.
 
-**Runtime state lives in one place.** Schema v2 `plan.json` is the machine truth for every story, standalone features included – the `andthen:spec` skill writes a one-story plan beside a standalone FIS, so there is one state shape, one reader, and no second schema. **One writer**: the session running `andthen:exec-plan` or `andthen:exec-spec` edits the rows with its file tools, and a story subagent reports its state instead of writing it – concurrent writers, not a race in one file, was what dropped a status write. Continuity across sessions remains the `andthen:handoff` skill's on-demand document. [ADR-003](adrs/ADR-003-runtime-state.md) records the rationale.
+**Runtime state lives in one place.** Schema v2 `plan.json` is the machine truth for every story, standalone features included – the `andthen:plan` skill writes a one-story plan beside a standalone FIS, so there is one state shape, one reader, and no second schema. **One writer per copy**: the session executing a story writes that story's row with its file tools and commits it with its work – under `--worktree` in its own worktree copy, which the merge brings back – and under `--worktree` the plan run commits each batch's `in-progress` rows before the batch branches, so no copy has two writers at once, the race that dropped a status write. Continuity across sessions remains the `andthen:handoff` skill's on-demand document. [ADR-003](adrs/ADR-003-runtime-state.md) records the rationale.
 
 **External artifact compatibility is fixture-bound.** `scripts/fixtures/renders/` publishes one minimal, real-shaped artifact per type, and a downstream consumer pins that directory by AndThen tag. That consumer owns its real adapter and compatibility run; a breaking candidate waits for that repository to pass the pinned corpus. AndThen carries neither adapter copies nor cross-repository CI.
 
@@ -47,7 +47,7 @@ Skills read the **user's project** `CLAUDE.md` (not this repo's) for two key int
 
 Skills live in `plugin/skills/<name>/`, the plugin dir under its Claude Code and Codex manifests. Each skill contains:
 
-- `SKILL.md` – the skill prompt (with frontmatter: `description`, `argument-hint`, and optional `user-invocable`, `context`, `agent`). The `description` is also a routing surface: front-load the primary use case, prefer a `Use when...` framing, include 2-4 natural trigger phrases and AndThen-native terms users actually say (`spec`, `FIS`, `PRD`, `plan`, `gap analysis`, etc.), and keep it concise enough that key terms survive truncation.
+- `SKILL.md` – the skill prompt (with frontmatter: `description`, `argument-hint`, and optional `context`, `agent`). Frontmatter and description craft is in `docs/SKILL-AUTHORING-GUIDELINES.md` § Skills.
 - `agents/openai.yaml` – OpenAI/Codex agent metadata for cross-agent portability.
 - Optional subdirectories for templates, checklists, or references.
 
@@ -59,9 +59,11 @@ Skills live in `plugin/skills/<name>/`, the plugin dir under its Claude Code and
 
 Skills are fully self-contained: each skill owns its `references/`, `templates/`, and `scripts/` locally, and no skill file reaches into another skill's directory – `../<other-skill>/...` fails validation like every `..` path but the canonical one. A skill that needs another skill's rubric spawns a subagent that invokes that skill, so the skill body loaded there is the one copy and no install tier has a cross-skill path to resolve.
 
+**Shipped text cites nothing outside `plugin/`.** Only `plugin/` ships, so a rule a skill needs is stated in the skill or a shared canonical, never cited from this repository's `docs/`, its ADRs, or `AGENTS.md`. A path naming a file in the user's project, such as a Project Document Index default (`docs/PRODUCT.md`), their `AGENTS.md`, or their ADRs, is not such a citation. `install-skills.sh` rejects only `..` paths, so a prose citation passes validation and only review catches it.
+
 **References are one level deep**: no file in a skill but `SKILL.md` links or paths to another file – the skill body naming a load site names its whole read-set, since a chained reference is invisible to a reader who previews the intermediate file – and `install-skills.sh --validate-only` fails on any such link or path, naming file and line (a bare filename in prose stays a legal mention). The load and mention rule itself is in `docs/SKILL-AUTHORING-GUIDELINES.md` § Scripts and references.
 
-Reusable canonical content lives at `plugin/references/` and is consumed via `../../references/<asset>` – see **Shared Plugin Assets** below. Canonicals are shared by multiple skills; a single-consumer template lives in its owning skill's own `references/` instead (`fis-template.md` under `spec`, `prd-template.md` under `clarify`), so a dedup pass has nothing to promote back. `install-skills.sh` inlines each canonical into every consuming skill at install time, so installed bundles stay self-contained.
+Reusable canonical content lives at `plugin/references/` and is consumed via `../../references/<asset>` – see **Shared Plugin Assets** below. Canonicals are shared by multiple skills; a single-consumer template lives in its owning skill's own `references/` instead (`fis-template.md` under `plan`, `prd-template.md` under `clarify`), so a dedup pass has nothing to promote back. `install-skills.sh` inlines each canonical into every consuming skill at install time, so installed bundles stay self-contained.
 
 **Forking shared content** – when a consumer genuinely needs a divergent version, fork explicitly: copy the canonical into the skill's local `references/` under a distinct name (e.g. `triage-plan-schema.md` as a triage-only fork of `plan-schema.md`) and point that skill's references at the local copy. Don't preemptively duplicate – fork on demand, not by default.
 
@@ -77,27 +79,20 @@ The canonical assets live at `plugin/references/` – a single canonical locatio
 
 | Asset | Consumed by |
 |---|---|
-| `architecture-model.md` | describe |
-| `architecture-model.schema.json` | describe |
-| `automation-mode.md` | plan, spec, exec-spec, exec-plan, review, implement-fix, triage, architecture, ui-ux-design, simplify-code, backlog-triage, tracker, testing |
-| `board-models.md` | architecture |
-| `context-map.schema.json` | architecture |
-| `design-tree.md` | architecture, clarify |
-| `event-storm.schema.json` | architecture |
-| `execution-discipline.md` | exec-spec, exec-plan |
-| `fis-authoring-guidelines.md` | plan, spec |
-| `fis-contract.md` | plan, spec, exec-spec, review |
-| `fis-mutability.md` | exec-spec, review, implement-fix |
-| `intent-and-rules-context.md` | review, implement-fix, simplify-code, skill-review |
-| `lens-adversarial.md` | review, skill-review |
-| `plan-schema.md` | plan, spec, exec-spec, exec-plan, review |
-| `plan.schema.json` | plan, spec |
-| `preflight.md` | spec, plan |
-| `project-document-templates.md` | architecture, backlog-triage, clarify, describe, init, plan, spec, tracker, triage |
-| `review-calibration.md` | review, architecture, implement-fix, skill-review |
-| `self-review.md` | clarify, spec, plan |
-| `testing-strategy.md` | testing |
-| `verification-evidence.md` | exec-spec, exec-plan, implement-fix, review, testing, triage, simplify-code |
+| `design-tree.md` | decide, clarify |
+| `fis-contract.md` | plan, exec-plan, review |
+| `fis-mutability.md` | exec-plan, review, implement-fix |
+| `intent-and-rules-context.md` | review |
+| `lens-adversarial.md` | review |
+| `plan-schema.md` | plan, exec-plan, review, implement-fix, ship, now-what |
+| `plan.schema.json` | plan |
+| `project-document-templates.md` | describe, init |
+| `review-calibration.md` | review, architecture, decide, implement-fix |
+| `self-review.md` | clarify, plan |
+| `unattended-runs.md` | plan, exec-plan, review, implement-fix, ship, triage, architecture, decide, ui-ux-design, simplify-code, tracker, testing |
+| `verification-evidence.md` | exec-plan, implement-fix, review, testing, triage, simplify-code |
+
+A single-consumer canonical lives in that skill's own `references/` instead (`docs/SKILL-AUTHORING-GUIDELINES.md` § Repository constraints). A schema lives beside its prose reference, so `plan.schema.json` stays here with `plan-schema.md`, which has several consumers, and the model schemas live in `describe` and `architecture` beside theirs.
 
 
 ---
@@ -121,7 +116,7 @@ A path is a load, a bare backticked filename a mention; the authoring guidelines
 
 ## Typed Artifacts
 
-The atlas has a typed data contract with two kinds sharing one invariant core (schema canonical: `plugin/references/architecture-model.md`): `architecture-model.json`, produced by the `andthen:describe` skill in `--mode codebase --model` – deterministic extraction (dependency tooling, import scans, doc/manifest declarations, git change-coupling) owns nodes and edges, agent judgment is confined to clustering, naming, summaries, and tours, and every claim carries an `evidence` tag – and `domain-model.json`, produced by the same skill in `--mode domain --model` as a 1:1 projection of the Ubiquitous Language document (contexts from its clusters, doc-anchored `ref`s, overloaded terms carrying per-context `meanings`). Each model's schema ships beside its reference in `plugin/references/` as the shape contract; no shipped verb validates a model, so a producer checks its own candidate before writing. Both models are **committed projections** under the `Models` Index location (default `docs/models/`), carrying the source revision in `meta.revision` – the code and the Ubiquitous Language document are the sources of truth, and a `Context Map`, when present, owns bounded-context identity across both kinds. The two board models the `andthen:architecture` skill emits – `event-storm` and `context-map`, schema canonical `plugin/references/board-models.md` – follow the same pattern.
+The atlas has a typed data contract with two kinds sharing one invariant core (schema canonical: `plugin/skills/describe/references/architecture-model.md`): `architecture-model.json`, produced by the `andthen:describe` skill in `--mode codebase --model` – deterministic extraction (dependency tooling, import scans, doc/manifest declarations, git change-coupling) owns nodes and edges, agent judgment is confined to clustering, naming, summaries, and tours, and every claim carries an `evidence` tag – and `domain-model.json`, produced by the same skill in `--mode domain --model` as a 1:1 projection of the Ubiquitous Language document (contexts from its clusters, doc-anchored `ref`s, overloaded terms carrying per-context `meanings`). Each model's schema ships beside its reference as the shape contract; no shipped verb validates a model, so a producer checks its own candidate before writing. Both models are **committed projections** under the `Models` Index location (default `docs/models/`), carrying the source revision in `meta.revision` – the code and the Ubiquitous Language document are the sources of truth, and a `Context Map`, when present, owns bounded-context identity across both kinds. The two board models the `andthen:architecture` skill emits – `event-storm` and `context-map`, schema canonical `plugin/skills/architecture/references/board-models.md` – follow the same pattern.
 
 
 ---
@@ -134,17 +129,18 @@ Every hand-off in the pipeline is either the same conversation or fresh context,
 Per transition – the boundary it crosses, then its reason:
 
 - **`now-what` → the routed skill** – same conversation; hands off in place, deliberately without `context: fork`. No reason needed: routing.
-- **`clarify` → `spec` or `plan`, `plan` → `exec-plan`, `spec` → `exec-spec`, `exec-spec` → `review`, `review --fix` → its follow-up review** – fresh session; the skill prints one paste-ready line that names the fresh session and offers nothing in-session. Context rot: planning and execution each perform best in a clean session, and the artifact is the whole hand-off.
-- **`clarify` / `spec` → self-review** – fresh-context subagent loading the `self-review.md` rubric (§ PRD or § FIS, the latter beside `fis-authoring-guidelines.md` and `fis-contract.md`) by absolute path; the author-loaded guidelines carry no reviewer text, so the author never reads the rubric it is judged by. Reviewer independence: the author does not review its own document.
-- **`plan` → per-story FIS authoring (`spec --auto story <id>`)** – one subagent per story; the orchestrator never authors FIS content. Context rot: protects the orchestrator's context window.
-- **`plan` → cross-cutting review** – fresh-context subagent on the same rubric (§ FIS and § Bundle), reading the PRD fresh and returning a per-FIS roster. Reviewer independence: the bundle's single fresh-context gate.
-- **`exec-plan` → one story** – one fresh subagent per ready story invoking the `andthen:exec-spec` skill with `--auto --no-full-tier`; it owns that story whole, down to the code commit; under `--worktree` a ready batch runs at once, one worktree each, merged back by the run session with `git merge --no-ff` – a conflict stops the line rather than being resolved blind. Context rot: the Single-session rule sizes a story to one fresh-context run, and each story's implementation, proof, and review output stays in its own ([ADR-014](adrs/ADR-014-story-runs-where-invoked.md)).
-- **`exec-spec` → the story's code and proofs** – same conversation: it implements the FIS and runs its tier and every `Proof` and `Verify` where it was invoked. No boundary needed: a direct run is already a fresh session, and under `exec-plan` the story's subagent is that context.
-- **`exec-spec` → documentation lookup, codebase reconnaissance** – read-only subagents returning distilled briefs. Context rot.
-- **`exec-spec` → the per-story review** – one fresh reviewer subagent invoking the `andthen:review` skill with `--quick` and `--intent`, on every run. Reviewer independence: `exec-spec` wrote the code, so the independent pass is not its own; one quick pass is the depth a story earns, and the rest stays at the plan-level review ([ADR-014](adrs/ADR-014-story-runs-where-invoked.md)).
-- **`exec-spec` → `visual-validation`** – subagent. Reviewer independence.
-- **`exec-plan` → plan-level review (`review --mode code,gap,security,outcome`)** – fresh session; the run ends on a `Next (fresh session):` line carrying that one invocation with `--fix`, which runs `implement-fix` on the report. Context rot: after N stories the run session is the most loaded context in the workflow; `implement-fix` applies the fixes as one round, and is where a per-story review's open findings are enforced.
-- **`exec-plan` → final repair after a red full tier** – one fresh subagent invoking the `andthen:triage` skill with `--auto` on the failing checks and the affected FIS paths; the run session re-runs what the repair invalidated. Context rot: the repair reads the failing checks, not the run's history.
+- **`clarify` → `decide` → `ui-ux-design` → `plan` → `exec-plan` → `review`, and `review --fix` → its follow-up review** – fresh session; each skill closes on one paste-ready `Next (fresh session):` line, the first case of its Follow-up that applies, and offers nothing in-session. A skill with nothing to do is skipped: the line goes to the next one in this order. A `decide` or `clarify` run that records a decision the FIS already states, as a Preflight answer is, hands back to `exec-plan`, and a run another skill invoked prints no line. Context rot: planning and execution each perform best in a clean session, and the artifact is the whole hand-off.
+- **`clarify` / `plan` → self-review** – fresh-context subagent loading the `self-review.md` rubric (§ PRD or § FIS, the latter beside `fis-authoring-guidelines.md` and `fis-contract.md`) by absolute path; the author-loaded guidelines carry no reviewer text, so the author never reads the rubric it is judged by. Reviewer independence: the author does not review its own document.
+- **`plan` on several stories → per-story FIS authoring (`plan --auto --batch story <id>`)** – one subagent per story; the orchestrator leaves the body's one-story steps at the branch and never authors FIS content. Context rot: protects the orchestrator's context window.
+- **`plan` on several stories → cross-cutting review** – fresh-context subagent on the same rubric (§ FIS and § Bundle), reading the PRD fresh and returning a per-FIS roster. Reviewer independence: the bundle's single fresh-context gate.
+- **`exec-plan` on a plan → one story** – one fresh subagent per ready story invoking the `andthen:exec-plan` skill on its FIS with `--auto --no-full-tier`, plus `--tdd` when the run has it; it owns that story whole, down to the code commit; under `--worktree` a batch of the wave runs at once, one worktree each, merged back by the run session with `git merge --no-ff` – a conflict of lines both sides appended to the changelog or `Learnings` keeps both, and any other fails that story, worktree and branch kept, rather than being resolved blind. Context rot: the Single-session rule sizes a story to one fresh-context run, and each story's implementation, proof, and review output stays in its own ([ADR-014](adrs/ADR-014-story-runs-where-invoked.md)).
+- **`exec-plan` → the story's code and proofs** – same conversation: it implements the FIS and runs its tier and every `Proof` and `Verify` where it was invoked. No boundary needed: a direct run is already a fresh session, and under a plan run the story's subagent is that context.
+- **`exec-plan` → documentation lookup, codebase reconnaissance** – read-only subagents returning distilled briefs. Context rot.
+- **`exec-plan` → the per-story review** – one fresh reviewer subagent invoking the `andthen:review` skill with `--quick`, over the story's changed paths against its FIS, on every run. Reviewer independence: `exec-plan` wrote the code, so the independent pass is not its own; one quick pass is the depth a story earns, and the rest stays at the plan-level review ([ADR-014](adrs/ADR-014-story-runs-where-invoked.md)).
+- **`exec-plan` → `visual-validation`** – subagent. Reviewer independence.
+- **`exec-plan` → `simplify-code`** – one fresh subagent with `--auto`, from the run that completes the plan, after its gate and before the review. Reviewer independence: the author is the worst judge of its own bloat, and only the plan's whole change set shows one story duplicating another.
+- **`exec-plan` on a plan → plan-level review (`review --fix` on the plan)** – fresh session; the run ends on a `Next (fresh session):` line carrying that one invocation, whose `--fix` runs `implement-fix` on the report. Context rot: after N stories the run session is the most loaded context in the workflow; `implement-fix` applies the fixes as one round, and is where a per-story review's open findings are enforced.
+- **`exec-plan` on a plan → final repair after a red full tier** – one fresh subagent invoking the `andthen:triage` skill with `--auto`, on the failing checks and the affected FIS paths; the run session re-runs what the repair invalidated. Context rot: the repair reads the failing checks, not the run's history.
 - **`review` → a chain's lens pass, fan-out partitions and boundary pass** – fresh reviewer subagents, partitions dispatched as one flat batch. Context rot: a chain's rubrics, or a large diff's partitions, against a session that still owes filtering, verdict, and report. A single lens below the fan-out trigger runs in the invoking session, which the caller already made the independent reader; the Critic is a posture every lens applies, never its own pass.
 - **any session → `handoff` → the next session** – the document is written for a fresh session. Context rot: the session is ending or low on context.
 

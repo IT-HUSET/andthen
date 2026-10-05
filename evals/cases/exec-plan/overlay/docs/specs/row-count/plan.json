@@ -5,6 +5,6 @@
   "sharedDecisions": [],
   "bindingConstraints": [],
   "stories": [
-    {"id": "S01", "name": "Record Row Count", "dependsOn": [], "status": "spec-ready", "fis": "s01-record-row-count.md", "completedTaskIds": [], "owner": null, "scope": "Write the exported record count beside the report.", "sourceRefs": [], "provenance": "docs/specs/row-count/plan.json", "assetRefs": [], "sequencing": null}
+    {"id": "S01", "name": "Record Row Count", "dependsOn": [], "status": "pending", "fis": "s01-record-row-count.md", "completedTaskIds": [],"scope": "Write the exported record count beside the report.", "sourceRefs": [], "provenance": null, "assetRefs": [], "sequencing": null}
   ]
 }

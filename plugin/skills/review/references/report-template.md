@@ -12,13 +12,13 @@
 **Revision**: {{short HEAD sha the find-passes read}}{{-dirty when uncommitted changes were in scope}}
 **Follows**: {{filename of the most recent earlier report on this target}}
 
-> `Resolved chain` only when the mode is `mixed`; `Follows` only when an earlier report exists, and that report is not edited to point forward. The `andthen:implement-fix` skill later appends a `**Remediated**:` line here; the review never writes one.
+> `Resolved chain` only when the mode is `mixed`; a plan narrowed by story ids stays `plan <plan.json>`; `Follows` only when an earlier report exists, and that report is not edited to point forward. The `andthen:implement-fix` skill later appends a `**Remediated**:` line here; the review never writes one.
 
 ## Executive Summary
 
 {{The verdict line exactly as `## Verdict` states it, then two or three sentences: what the findings establish about readiness – for a chain, what they establish jointly, and an evidenced failure pattern stated once with its consequence and the findings that show it.}}
 
-{{Scope, one line. `Intent Context:` its source or `none discoverable`. `Drift Notes:` those recorded, or `none recorded`. On a follow-up, each earlier finding and open FIS observation with its state now – resolved, still open, or regressed.}}
+{{Scope, one line, naming the story ids when a plan review is narrowed to them. `Intent Context:` its source or `none discoverable`. `Drift Notes:` those recorded, or `none recorded`. On a follow-up, each earlier finding and open FIS observation with its state now – resolved, still open, or regressed.}}
 
 Guardrails Coverage: {{N}} checked, {{M}} findings
 Filter summary: {{N}} validated, {{N}} downgraded, {{N}} withdrawn
@@ -86,7 +86,7 @@ Filter summary: {{N}} validated, {{N}} downgraded, {{N}} withdrawn
 
 ## Next Steps
 
-{{Sequenced actions. Gap: the remediation plan by severity, with dependencies and acceptance criteria. Security: sequenced by exposure. Outcome: one line – the skill, the PRD path, the trigger.}}
+{{Sequenced actions. Gap: the remediation plan by severity, with dependencies and acceptance criteria. Security: sequenced by exposure. Outcome: one line – the skill, the PRD path, the gaps.}}
 
 > `## Remediation Status` follows, written only by the `andthen:implement-fix` skill, one bullet per finding keyed by its number:
 >

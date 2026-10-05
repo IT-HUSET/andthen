@@ -3,146 +3,150 @@
 </p>
 
 <p align="center">
-  <i>Lightweight spec-driven development for AI coding agents.</i>
+  <i>Lightweight agentic software engineering for AI coding agents, spec-driven when the work needs a spec.</i>
 </p>
 
 > "I have a feature idea" → *and then?* → **clarify** → *and then?* → **plan** → *and then?* → **exec-plan** → *and then?* → **review** → **ship it.**
->
-> Requirements already clear – in your head, an issue, a PM doc? Skip **clarify**. One story? **spec** → **exec-spec** in place of plan and exec-plan.
 
-Most AI coding goes straight from idea to code. That works for small fixes, but complex features drift, miss requirements, and produce code that is hard to verify. Spec-driven development adds one step: *write a spec first, then implement against it*. The spec is the contract – what to build, how to prove it, and when it is done. AndThen enforces that contract mechanically:
+AndThen is a set of skills for AI coding agents (Claude Code, Codex CLI, and others) that covers the whole engineering job: requirements, design, implementation, testing, review, and debugging. Its main workflow is spec-driven: for anything bigger than a small fix, the agent writes a spec first and then builds against it. The spec says what to build, how to prove it works, and when it is done.
 
-- **Nothing is done on its own say-so** – a story reaches `done` only together with a `verified` line quoting the output of what ran, written by the session that saw it run.
-- **The reviewer wrote none of the code** – one fresh subagent reviews each story's implementation against the specification it implements, on every run.
-- **Specs cannot rot** – the plan and its per-story specs govern one branch and are deleted before the merge; `prd.md` is what survives.
-- **Ceremony is sized to the work** – a sentence-sized change skips the chain entirely (`implement-fix`), and every proposal is sized against the `Product` document's Proportionality facts.
+What AndThen enforces, so you don't have to:
 
-AndThen ships as a Claude Code plugin, a Codex CLI plugin, and a loose-skill install for other agents – one plugin, `andthen`, with 21 skills. One runtime requirement, Python 3. No mandatory directories or proprietary formats: skills read a Project Document Index in your `CLAUDE.md` / `AGENTS.md` to find where specs, plans, and docs live.
+- **Nothing is done on the agent's word.** A story is marked done only with a quoted line from the check that proved it, written by the session that ran the check.
+- **The code is reviewed by an agent that didn't write it.** Every story gets a review from a fresh subagent that checks it against its spec.
+- **Specs don't go stale.** The plan and its specs belong to one branch and are deleted before the merge. The requirements document (`prd.md`) is what stays.
+- **Process is sized to the work.** A change you can state in one sentence skips the specs entirely (`implement-fix`).
+
+It is one plugin, `andthen`, with 20 skills. The only runtime dependency is Python 3, and only the `tracker` skill needs it. There is no CLI to install and no tool directory to commit: skills find your specs and docs through an index in `CLAUDE.md` / `AGENTS.md`.
 
 <p align="center">
-  <a href="assets/workflows-overview.png"><img src="assets/workflows-overview.png" alt="AndThen workflows overview" width="800"></a>
+  <!-- pre-release: the raw link targets develop; point it at IT-HUSET/andthen/raw/main when 1.0 merges -->
+  <a href="https://github.com/IT-HUSET/andthen/raw/develop/assets/skills-overview.svg"><img src="assets/skills-overview.svg" alt="AndThen skills and workflow – the idea-to-merge chain (optional clarify, decide and ui-ux-design, then plan, exec-plan, review, implement-fix and ship) with where you take part: the interviews of clarify, decide and plan, three numbered gates (PRD, ADRs, PR), and two optional reads (the FIS files, the review report), the hand-off artifacts (intent.md or a short note, prd.md, ADRs, plan.json with a FIS per story), the twelve standalone skills, and the four opt-in subagent roles"></a>
+  <br><sub>Click the figure for the interactive version: hover a skill, artifact, or role to see what it does.</sub>
 </p>
 
-<!-- pre-release: delete this warning when 1.0 is public -->
-> [!WARNING]
-> **1.0 is not on the public marketplace yet.** Until it is, the `IT-HUSET/andthen` commands on this page install 0.40.x from `main`. Install 1.0 from the [`develop` branch](#10-release-candidate-from-the-develop-branch) instead.
 
-In a hurry?
+## Quick start
 
 ```bash
 # Claude Code
-/plugin marketplace add IT-HUSET/andthen
-/plugin install andthen            # the plugin
+/plugin marketplace add IT-HUSET/andthen@develop
+/plugin install andthen@andthen
 /andthen:init                      # set up your project
 /andthen:now-what                  # ...and let it route you from there
 
 # Codex CLI
-codex plugin marketplace add IT-HUSET/andthen
+codex plugin marketplace add IT-HUSET/andthen@develop
 codex plugin add andthen@andthen
 ```
 
-Skills register under the same `andthen:<name>` ids on both hosts, and asking for one by name works everywhere: *Run the `andthen:init` skill*, then *Run the `andthen:now-what` skill*. The `/andthen:<name>` form used in the examples below is Claude Code's.
+On Codex, ask for a skill by name: *Run the `andthen:init` skill*. This works on every host. The `/andthen:<name>` commands on this page are Claude Code's.
 
+<!-- pre-release: at 1.0, drop "@develop" from both marketplace lines above and the note's first sentence -->
 > [!NOTE]
-> **1.0 is a breaking release.** Retired 0.x flags and skills have no compatibility aliases, and legacy Feature Implementation Specifications (FIS) must be re-specced before execution – [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) is the migration. AndThen is experimental by nature – agentic engineering is a young field – and skills change shape between minor versions.
-
-Where to go next: what to type for your situation is the [Cookbook](COOKBOOK.md); every flag, mode, and edge case is the [skill reference](plugin/README.md#skills); arriving from 0.x starts at [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md).
+> **1.0 is a breaking release, in release candidates on the `develop` branch** (`main` still serves 0.40.x). Have 0.x installed? [Remove it first](#10-release-candidate-from-the-develop-branch). Retired 0.x skills and flags have no aliases, and 0.x specs must be rewritten with `plan` before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) walks you through it. AndThen is experimental, and skills still change shape between minor versions.
 
 
-## The Workflow
+## The workflow
 
-<p align="center">
-  <!-- pre-release: the raw link targets develop; point it at IT-HUSET/andthen/raw/main when 1.0 merges -->
-  <a href="https://github.com/IT-HUSET/andthen/raw/develop/assets/skills-overview.svg"><img src="assets/skills-overview.svg" alt="AndThen skills and workflow – the one workflow, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles"></a>
-  <br><sub>Click the figure for the interactive version: hover a skill, artifact, or role to read what it does, click to keep it in view.</sub>
-</p>
+Five terms you will see throughout:
 
-AndThen has one workflow. Three questions pick your way through it, and every step ends on the paste-ready next command, so what comes next is printed, never worked out.
+- **PRD** (`prd.md`) – the requirements document `clarify` writes: the problem, who has it, and what counts as solved.
+- **Story** – one slice of the work, small enough for one agent session to build and prove.
+- **FIS** (Feature Implementation Specification) – the spec for one story: what to build, the tests that prove it, and the tasks. `plan` writes one per story.
+- **Plan** (`plan.json`) – the list of stories, their order, and each one's status, kept beside the FIS files.
+- **Fresh session** – a new conversation (`/clear` in Claude Code). Each step reads the files the previous step wrote, so it starts on a clean context.
 
-1. **Do you know what to build?** If not, `clarify` interviews you and writes `prd.md`. If you do – in your head, an issue, a document – skip it.
-2. **Is a design choice still open that binds beyond this work or is costly to reverse?** `architecture --mode trade-off` settles it as an ADR first.
-3. **One story or several?** One: `spec` → `exec-spec`. Several: `plan` → `exec-plan`, which runs `exec-spec` once per story.
-
-Then the full `review --fix` over the plan, and the PR, either way – on top of the quick review every `exec-spec` runs on its own story.
+The path through the workflow:
 
 ```
-[clarify] → [architecture] → spec → exec-spec  ─┬→ review --fix → PR
-                           → plan → exec-plan  ─┘
+[clarify] → [decide] → [ui-ux-design] → plan → exec-plan → review --fix → ship
 ```
 
-| Step | Skill | Reads | Writes |
-|---|---|---|---|
-| Setup, once per project | `init` | the repository | the Project Document Index in `CLAUDE.md` / `AGENTS.md`, and the Core orientation docs every later skill reads |
-| Requirements, optional | `clarify` | your idea, or a source from anywhere – a pasted note, a tracker issue, an `intent.md` hand-written or from `clarify --brief` | `prd.md` – what to build and why |
-| Design, optional | `architecture`, `ui-ux-design` | the PRD or the request | an ADR; a design system or wireframes |
-| Spec | `spec` (one story) or `plan` (several) | a `prd.md` (or its directory), a requirements file, a tracker issue – or, for `spec`, just a description | `plan.json` – the stories, their dependencies and status – plus one FIS per story |
-| Build | `exec-spec` or `exec-plan` | `plan.json` and the FIS | the code, one commit per story, each story `done` in `plan.json` |
-| Review and fix | `review --mode code,gap,security,outcome --fix` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json`, and the fixes |
-| Merge | – | each FIS's `## Implementation Observations` | `plan.json` and the FIS files are branch-scoped: delete them before the merge; `prd.md` stays |
+1. **`clarify`** (optional) interviews you and writes the PRD. Skip it when the requirements already exist, in your head, an issue, or a document. A rule of thumb: if you can't list three concrete acceptance criteria, you have an idea, not requirements.
+2. **`decide`** (optional) settles a technical choice that reaches beyond this work or is costly to reverse, and records it as an architecture decision record (ADR). **`ui-ux-design`** (optional) designs new screens first when you choose that.
+3. **`plan`** writes the specs. It decides whether the work is one story or several.
+4. **`exec-plan`** builds the stories. For each one it writes the code and tests, runs every check, has a fresh subagent review it, and commits.
+5. **`review --fix`** reviews the finished work as a whole and applies the findings it marks `Fix`. Findings marked `Note` are left for you to decide. A clean review ends on a `Next (fresh session):` line for `ship`.
+6. **`ship`** lands what each story's `Implementation Observations` hold worth keeping, deletes `plan.json` and the FIS files, commits, and shows the PR title and body (a merge request on GitLab). It pushes and opens it after your one yes. Each story's commit carries its Intent and Expected Outcomes, and the PR body states the change's intent, outcomes, and proof, in your PR template when you have one, so a squash merge keeps them.
 
-`plan` decides the final story count, and `spec` flags a story too big for one run and routes it to `plan`, so a wrong guess at question 3 costs little. `review --fix` is one review and one fix round, each fix re-checked; when that round fixed a Critical or High finding or left one open, the run prints a follow-up review as its `Next (fresh session):` line.
+Every step ends by printing the full next command to paste, including its target and required arguments. Not sure where you are? `/andthen:now-what` reads your project state and sends you to the right skill.
 
-Two core skills change code without a spec: `triage` diagnoses and fixes a broken build, test, or runtime bug, and `implement-fix` makes a sentence-sized change with verification – the same skill that applies a review report's findings. `triage` never touches `plan.json`.
+### From a one-line request
 
-> **Not sure where to start?** Run `/andthen:now-what` – it inspects your project state and routes you. The [Cookbook](COOKBOOK.md) has a recipe per situation, opening with how to choose.
+`plan` treats a request typed inline as one story:
 
-### Your four checkpoints
+```bash
+/andthen:plan "users can export their data"                    # writes the FIS and its one-story plan.json
+/andthen:exec-plan docs/specs/data-export/s01-data-export.md   # fresh session: builds and reviews the story
+/andthen:review --fix docs/specs/data-export/plan.json   # fresh session: the Next line exec-plan printed
+/andthen:ship docs/specs/data-export/plan.json           # fresh session: the Next line review printed
+```
 
-The workflow runs on its own between these four:
+### From a PRD
 
-- **After `clarify`** – read `prd.md`: it is what every story is cut from, and the one artifact that survives the merge.
-- **After `spec` or `plan`** – read the FIS files. The run asked you what the requirements left open and wrote each answer in; what you decided and what it assumed is listed above the next command.
-- **After the review** – read the report. `implement-fix` applies only the Fix-routed findings; Note findings are decisions left to you.
-- **Before the merge** – graduate each FIS's `## Implementation Observations` into Learnings and Decisions, because the bodies go with the bundle.
+`plan` splits a written source (a PRD, a requirements file, an issue) into as many stories as it needs, often just one. `exec-plan` then takes the whole plan directory:
 
-### The design stage and ADRs
+```bash
+/andthen:clarify "users should be able to export their data"   # interviews you, writes docs/specs/data-export/prd.md
+/andthen:plan docs/specs/data-export/                          # fresh session: plan.json and one FIS per story
+/andthen:exec-plan docs/specs/data-export/                     # fresh session: builds every story, one subagent each
+/andthen:review --fix docs/specs/data-export/plan.json   # fresh session: the Next line exec-plan printed
+/andthen:ship docs/specs/data-export/plan.json           # fresh session: the Next line review printed
+```
 
-Two skills settle what the requirements left open, neither changing code: `architecture` (`--mode trade-off` compares options and records an ADR; `review`, `decompose`, `fitness`, `strategic-design`, and `event-storming` run deeper analysis) and `ui-ux-design` (research, design systems, wireframes). An ADR comes in at three points, on one test – the choice binds beyond this work or is costly to reverse:
+Each review mode (lens) checks one thing: `code` the code itself, `gap` whether it matches its source and specs, `security` its vulnerabilities, and `outcome` whether the feature solves the problem the PRD describes. `review` picks the lenses the plan supports, so paste the line `exec-plan` printed.
 
-- **Before the spec** – `clarify` makes the trade-off its closing command when the PRD leaves such a fork open.
-- **While specifying** – a fork only the spec surfaces is a Preflight question; you answer it into the FIS, and the ADR is recommended as its record.
-- **While building** – a real pivot in `exec-spec` records one before the FIS changes.
+### Where you take part
 
-### The artifacts – where each comes from, who reads it, how long it lives
+You answer when `clarify` and `decide` interview you and when `plan` asks its preflight questions; otherwise the workflow runs on its own. Three points need your sign-off, because what they hold outlives the branch:
 
-| Artifact | Written by | Read by | Lifecycle |
-|---|---|---|---|
-| any short source – the intent doc `intent.md` is one shape | anyone, by hand: a pasted note, an issue, a sentence, or the five-section `intent.md`; `clarify --brief` writes that file | `clarify` or `spec`, and `now-what`, `architecture` when it is a file on disk | superseded – `clarify` folds it into `prd.md`, `spec` into the FIS |
-| `PRODUCT.md` | `init`, or `clarify` at product scope | every proposal skill, as the proportionality anchor | durable, project-lifetime |
-| `prd.md` | `clarify` | `spec` or `plan`, which record it in `plan.json`; `review --mode gap,outcome` | survives the merge – the product record |
-| `plan.json` | `plan`, or `spec` for the one-story plan; runtime state by the run session alone | `exec-plan`, `exec-spec`, `review`, `now-what`, `tracker` | branch-scoped – deleted before the merge |
-| FIS (one per story) | `spec`, standalone or through `plan` | `exec-spec` and `review` | branch-scoped – deleted before the merge |
-| Review report | `review` | `implement-fix` | a working file of one review run – ignored or committed, the project's choice at `init` |
-| `LEARNINGS.md`, `DECISIONS.md` | the agent that read them, at close-out and after triage | every skill at task start | durable, project-lifetime |
+- **After `clarify`** – read `prd.md`. Every story is cut from it, and it is the one planning file that survives the merge.
+- **After `decide`**, when it ran – read the ADRs. Every later skill treats them as settled.
+- **At the PR** – review it as you would any PR. `ship` lands the observations worth keeping and prints its recommendations for the rest, so read those and settle the review's open `Note` findings, which are decisions left to you, before you say yes to its push-and-PR question.
 
-### The two loops
+Two more reads pay off when you have the time: the FIS files after `plan`, with what you decided and what the run assumed listed above the next command, and the review report.
 
-- **Outer loop, once per initiative** – `clarify`, then `spec` or `plan`: what and why, then a FIS per story.
-- **Inner loop, once per story** – `exec-spec → PR`: build one story and prove it, review included. `exec-plan` runs this loop for you, one story at a time in the shared tree, or independent stories in parallel under `--worktree`, one worktree each – a shared tree shares one test run.
+### Smaller work
 
-This is a scope-and-cadence split, not the DevEx sense of inner loop (edit-build-test) versus outer loop (CI/CD). AndThen's third motion is the **knowledge cycle**, which is not a loop at all: FIS `Implementation Observations` graduate into `LEARNINGS.md` and `DECISIONS.md` at close-out, recurring review traps become lint rules or tests, and settled trade-offs become ADRs – so what one story learned, the next one starts from.
+Two skills change code without a spec:
 
-### Headless / automation mode
+```bash
+/andthen:implement-fix "return 404 instead of 500 for an unknown export job id"   # a change you can state in one sentence
+/andthen:triage "tests fail on main since yesterday"                             # something is broken and you don't know why
+```
 
-The pipeline and the standalone execution/review skills accept `--auto` for external orchestrators (CI, agent runners): no follow-up questions, open decisions written into artifacts as assumptions, and a stop only on an unusable call. See [plugin/README.md](plugin/README.md#workflows) for the contract.
+The [Cookbook](COOKBOOK.md) has a recipe for each situation, starting with [choosing a path](COOKBOOK.md#choosing-a-path), and follows [one feature end to end](COOKBOOK.md#the-worked-example-workspace-invitations).
 
-### Terms
 
-- **Story** – one bounded, verifiable unit of work that fits one fresh-context run, 1:1 with a FIS. `OVERSIZE:` means it does not fit one run – split it (recommended) or proceed knowingly.
-- **Plan bundle** – the feature directory holding `plan.json`, its FIS files, and `prd.md` when a PRD was the source.
-- **FIS** – Feature Implementation Specification, one per story: intent and expected outcomes, acceptance scenarios with runnable `Proof` bindings, structural criteria, scope boundaries, the technical approach, and a task breakdown where each task names what it `SATISFIES` and how to `Verify` it.
-- **Preflight** – the closing round of `plan` and `spec`: every question the run could not answer itself, asked in one sitting with a recommendation preselected, expecting an answer, and answered into the FIS, then the next command. Under `--auto`, or as a safety net for a question genuinely left unanswered, the recommendation is recorded as an assumption for the executor.
-- **fast / full tier** – the two verification tiers your project declares in its `Key Dev Commands` document. `exec-spec` runs the full tier, or the fast tier under `--no-full-tier` when `exec-plan` runs the full tier on the final tree.
+## Core skills
+
+The eight skills most work starts from:
+
+| Skill | What it does |
+|---|---|
+| `init` | Sets up a project: the document index in `CLAUDE.md` / `AGENTS.md`, the project's test commands, and offers for the optional extras |
+| `now-what` | Reads your project state and routes you to the right skill |
+| `clarify` | Interviews you about an idea and writes the PRD; `--brief` stops at a shorter `intent.md` you can share first |
+| `decide` | Settles technical choices with you and records them as ADRs |
+| `plan` | Decides whether the work is one story or several, and writes one FIS per story plus the `plan.json` that tracks them |
+| `exec-plan` | Builds one FIS, or every story in a plan, each proven by its checks and reviewed by a fresh subagent |
+| `review` | Reviews code, spec conformance, security, or the outcome against the PRD; also reviews PRs |
+| `handoff` | Writes a document a fresh session can resume from when a session has to end mid-work |
+
+The other twelve are `implement-fix`, `ship`, `triage`, `testing`, `architecture`, `describe`, `ui-ux-design`, `visual-validation`, `visualize`, `tracker`, `spike`, and `simplify-code`. The [skill reference](plugin/README.md#skills) covers all 20 skills, with every flag and mode.
 
 
 ## Installation
 
-**Requirement: Python 3.** The one runtime AndThen needs: the tracker projection is a single stdlib script, so it behaves the same from Bash, Git Bash, PowerShell, and CMD. Without it, `andthen:init` reports `python3 not found → tracker projection unavailable` and continues.
+The [quick start](#quick-start) covers both plugin hosts.
+
+**Python 3 is required** for the `tracker` skill, a single standard-library script. Without it, `init` reports that the tracker is unavailable and carries on.
 
 <!-- pre-release: delete this section when 1.0 is public -->
 ### 1.0 release candidate from the develop branch
 
-Until 1.0 ships on `main`, install from `IT-HUSET/andthen@develop` – it follows the release candidates, and auto-update works; `IT-HUSET/andthen@v1.0.0-rc.3` pins one instead. Both the 0.x and the 1.0 marketplace are named `andthen`, so remove the old one first; on Claude Code, removing a marketplace also uninstalls the plugin that came from it.
+`IT-HUSET/andthen@develop` follows the release candidates (turn on auto-update under [Host options](#host-options)); `IT-HUSET/andthen@v1.0.0-rc.<N>` pins candidate N. The 0.x and 1.0 marketplaces are both named `andthen`, so remove the old one first. On Claude Code, removing the marketplace also uninstalls its plugin.
 
 ```bash
 # Claude Code
@@ -157,171 +161,55 @@ codex plugin marketplace add IT-HUSET/andthen@develop
 codex plugin add andthen@andthen
 ```
 
-From a checkout of the branch, `python3 scripts/andthen-plugins.py --path .` does the same on both hosts in one step – it removes what is installed, installs the plugin, and verifies the version that landed. To go back to 0.x, run the same commands with `IT-HUSET/andthen` (the `main` branch) in place of `IT-HUSET/andthen@develop`.
+From a checkout of the branch, `python3 scripts/andthen-plugins.py --path .` does all of this on both hosts and checks the installed version. To go back to 0.x, run the same commands with `IT-HUSET/andthen` in place of `IT-HUSET/andthen@develop`.
 
-### The plugin install, host by host
+### Host options
 
-The commands for both hosts are in the quick start at the top of this page. Beyond them:
-
-- **Claude Code** – `/plugin install andthen --scope project` installs for the current project only; the default is user scope. Enable auto-update from `/plugin` → the **Marketplaces** tab → `andthen` → **Enable auto-update**.
-- **Codex CLI** – skills register under the same `andthen:<name>` ids, and you invoke one by asking for it by name: *Run the `andthen:plan` skill on `docs/specs/data-export/`* – the form every AndThen skill prints as its own next command.
-- Coming from a previous `install-skills.sh` install? Remove the old `~/.agents/skills/andthen-*` directories first – Codex shows duplicates (`andthen-review` and `andthen:review`) side by side otherwise.
+- **Claude Code** – `/plugin install andthen@andthen --scope project` installs for the current project only; the default is your user. Turn on auto-update in `/plugin` → **Marketplaces** → `andthen` → **Enable auto-update**.
+- **Codex CLI** – if you used `install-skills.sh` before, delete the old `~/.agents/skills/andthen-*` directories first, or Codex lists every skill twice.
 
 ### Other agents (Aider, Cursor, Gemini CLI, opencode)
 
-The installer exports the plugin's skills under `andthen-`-prefixed names to your agent's skills directory, inlining the shared references so each bundle is self-contained. Invoke them with `$andthen-<skill>` in Codex and other `~/.agents/skills` readers.
+The installer copies the skills into your agent's skills directory under `andthen-` names, each bundle self-contained. Invoke them with `$andthen-<skill>` in Codex and other agents that read `~/.agents/skills`.
 
 ```bash
 ./scripts/install-skills.sh                                # all skills (default: ~/.agents/skills)
-./scripts/install-skills.sh --dry-run                      # preview planned operations
-./scripts/install-skills.sh --skills clarify,spec,review   # a subset
+./scripts/install-skills.sh --dry-run                      # preview what it will do
+./scripts/install-skills.sh --skills clarify,plan,review   # a subset
 ./scripts/install-skills.sh --skills-dir <path>            # custom skills directory
 ./scripts/install-skills.sh --claude-user                  # also install for Claude Code at the user tier
 ```
 
-A custom `--prefix` rewrites installed references and invocation names automatically – that is also how another toolkit [bundles AndThen in](plugin/README.md#bundling-into-a-downstream-toolkit) under its own namespace. Reinstalls replace owned matching skill bundles, removing stale files inside them, but do not infer or delete retired `<prefix>*` directories.
+A reinstall replaces the skills it installed before but leaves retired ones in place. `--prefix` installs under another name, which is how a toolkit [bundles AndThen](plugin/README.md#bundling-into-a-downstream-toolkit) into its own namespace.
 
 
-## Setup
+## Project setup
 
 ```bash
 /andthen:init
 ```
 
-The single entry point for new projects, partial setups, and existing codebases. It generates `CLAUDE.md` / `AGENTS.md` (for dual-tool projects: `AGENTS.md` canonical, `CLAUDE.md` a thin `@AGENTS.md` import), scaffolds the Core orientation docs (Product with its Proportionality facts, Architecture, Key Dev Commands with `fast` / `full` test tiers, Testing Strategy, Decisions, Learnings), and offers project-owned critical rules. For an existing codebase it offers `describe --mode codebase`, which generates the architecture and conventions docs from code analysis.
+`init` works on new projects, half-set-up ones, and existing codebases. In an existing repository it asks nothing; in an empty one it asks what the project is. It writes:
 
-**Project-owned rules** – init recommends adopting critical rules directly in project `AGENTS.md` / `CLAUDE.md`, so they travel with the checkout into CI and containers. Teams can customize or skip them; rerunning init preserves both choices. Personal rules and the `concise-critical` conversation style are configured only on request. See [the setup reference](plugin/README.md#foundational-rules-and-conversation-style) for adoption, opt-out, and existing-copy handling.
+- the **Project Document Index** in `CLAUDE.md` / `AGENTS.md`, which tells every skill where your specs and docs live (with both hosts, `AGENTS.md` holds it and `CLAUDE.md` imports it);
+- when the project has a manifest (`package.json`, `pyproject.toml`, and the like), a **Key Dev Commands** document with its fast and full test commands;
+- two `.gitignore` entries.
 
-**Manual setup** – skills read two sections from your root agent instruction file: a **Project Document Index** (each entry a document's location plus its read/update trigger) and **Project-Specific Guidelines**. [`CLAUDE.template.md`](plugin/skills/init/templates/CLAUDE.template.md) is the starter.
+Every other document is created by the first skill that needs it. The closing summary offers the optional extras one line each: role agents that pin a model per kind of work, critical rules for your instruction file, a map of an existing codebase (`describe`), and a testing strategy. The [skill reference](plugin/README.md#foundational-rules-and-conversation-style) covers the rules and the optional `concise-critical` conversation style.
 
-
-## Your first feature
-
-Run `/andthen:init` once per project – it writes the Project Document Index every later skill reads.
-
-**Clarify first, or not.** If you cannot list three concrete acceptance criteria, you have an idea, not requirements: start with `clarify`, which asks in rounds (scope, flows, edge cases, success criteria) until the requirements are settled and writes `prd.md` – a small feature takes one round. Requirements already stated – inline, an issue, a document – skip it.
-
-**One story** – from the request straight to a merged PR:
-
-```bash
-/andthen:spec "users can export their data"                    # writes docs/specs/data-export/s01-data-export.md + a one-story plan.json
-/andthen:exec-spec docs/specs/data-export/s01-data-export.md   # fresh session: builds it, its quick review included
-/andthen:review --mode code,gap,security --fix docs/specs/data-export/plan.json   # fresh session: the Next line exec-spec prints; outcome joins with a PRD
-```
-
-After `clarify`, give `spec` the PRD's directory instead (`/andthen:spec docs/specs/data-export/`). The one-story `plan.json` holds the story's status and is what the review reads.
-
-**Several stories** – `plan` and `exec-plan` take the place of `spec` and `exec-spec`. `plan` needs a written source, never inline text, so this path usually starts with `clarify`:
-
-```bash
-/andthen:clarify "users should be able to export their data"   # interviews you, writes docs/specs/data-export/prd.md
-/andthen:plan docs/specs/data-export/                          # fresh session: plan.json + one FIS per story
-/andthen:exec-plan docs/specs/data-export/                     # fresh session: the command plan printed
-/andthen:review --mode code,gap,security,outcome --fix docs/specs/data-export/plan.json   # fresh session: the Next line exec-plan prints
-```
-
-A **fresh session** is a new conversation (`/clear` in Claude Code): each step reads what it needs from the files the step before wrote, so it starts on a clean context instead of the previous step's conversation. Past `clarify`'s interview, either path runs on its own between [the four checkpoints](#your-four-checkpoints). A change you can state in one sentence needs neither path: `/andthen:implement-fix "return 404 instead of 500 for an unknown export job id"`.
-
-The cookbook walks one initiative end to end, with the artifacts and the completion report each step produces: [the worked example](COOKBOOK.md#the-worked-example-workspace-invitations). Unsure which path is yours? [Choosing a path](COOKBOOK.md#choosing-a-path).
+To set up by hand instead, start from [`CLAUDE.template.md`](plugin/skills/init/templates/CLAUDE.template.md).
 
 
-## Working in a team
+## More
 
-The pipeline does not change per tracker; the tracker is a projection of the plan, never a second source of truth. Five steps:
-
-1. **A request arrives** as a tracker item – one line or a long brief.
-2. **Outer loop, once per epic** – `clarify <item-url>` → `prd.md` (with a `> **Source**:` provenance line) → `plan` → `plan.json` + a FIS per story → **PR to the milestone branch**. An item that already states its requirements goes straight to `plan <item-url>`. The team reviews the PRD and the plan there.
-3. **Publish the breakdown** – `tracker publish plan.json` creates one parent issue and one child issue per story (scope, PRD anchors, a commit-pinned FIS link, blocked-by links, completed task IDs, owner). A canonical repository-relative marker makes re-runs update instead of duplicating and blocks ambiguous duplicate matches.
-4. **Inner loop, once per story** – pick the story's issue → claim it (the story's `owner`) and branch (`{type}/{story-id}-{slug}`) → `exec-spec`, its quick review included → PR with `Closes #N`. Merge closes the issue natively; no skill involved.
-5. **State** – `plan.json` is agent truth while the plan governs, written by the run session alone; the tracker is the human projection (re-run `tracker publish` to refresh it; the projection is one way, repo → tracker). `prd.md` outlives the bundle; the issues and the PRs are the per-story record.
-
-A single story is the same flow with a different argument:
-
-| Step | Local files | Tracker |
-|---|---|---|
-| Request | any short source – inline, a file, an `intent.md`, or a `clarify` PRD | issue URL / key |
-| Spec | `spec <source>` → the FIS plus its one-story plan on the feature branch | `spec <issue-url>` → same bundle; the plan records the URL as its source |
-| Build + prove | `exec-spec` → `review --fix` → PR | same; PR body `Closes #42` |
-| Status | branch + PR | native: branch name / PR link moves the issue, merge closes it |
-| Record after merge | the PR and commits – the squash-merge message carries the FIS's intent and expected outcomes | the issue and the PR |
-| Close-out | the bundle is deleted before the merge | same |
-
-The requirements record differs: a PRD leaves `prd.md` behind; any other source leaves only the request itself. Concurrency needs no shared state file: `plan.json` is the one state owner, and per-story FIS prose is frozen and naturally partitioned.
-
-
-## Skills
-
-Flags, modes, and edge cases: [the skill reference](plugin/README.md#skills).
-
-| Skill | Purpose |
-|---|---|
-| `init` | Set up the workflow structure – `CLAUDE.md` / `AGENTS.md`, the Project Document Index, the Core orientation docs, the foundational rules guideline |
-| `now-what` | First-stop router – inspects project state and routes to the right skill |
-| `clarify` | The requirements skill – Discovery & Ideation at feature or product scope, landing in `prd.md` (or `PRODUCT.md`) after fresh-context self-review; a hand-written `intent.md` is one input it folds in, and `--brief` stops at that same `intent.md` instead – a feature before its PRD, or any decision or proposal to sharpen and share |
-| `plan` | Work of several stories, from a PRD, a requirements file, or a tracker item: `plan.json` + a FIS per story, cross-cutting review, one preflight |
-| `spec` | The FIS for one story – from a PRD, a description, or an issue – or one plan story, with the durable-state check, self-review, and preflight |
-| `exec-spec` | Implement one FIS where invoked: its own proofs → one quick reviewer subagent → full verification → the story's `done` record |
-| `exec-plan` | Run a plan bundle: one fresh `exec-spec` subagent per story, then the full tier, then hand the plan-level code/gap/security review to a fresh session |
-| `review` | Proof-led `code` / `gap` / `security` / `outcome` review and PR review; a story's own review is one `--quick` pass |
-| `implement-fix` | A small feature or fix from a request, or a review report's Fix-routed findings, with verification – no spec |
-| `triage` | Investigate, diagnose, and fix build failures, config errors, runtime bugs, regressions, test failures |
-| `testing` | Test strategy (writes the `Testing Strategy` document), test authoring, TDD, and the Prove-It bugfix flow |
-| `handoff` | Compact the conversation into a document a fresh session resumes from; durable fragments written to the plan and the Learnings document |
-| `architecture` | Seven modes: `trade-off` settles an ADR from weighted options, `advise` gives design guidance, and `review`, `decompose`, `fitness`, `strategic-design`, `event-storming` run the deep analysis, singly or chained. No code changes |
-| `describe` | Describe what a project already is – `--mode codebase` maps it into docs, `--mode domain` extracts the Ubiquitous Language; `--model` emits the typed atlas model |
-| `ui-ux-design` | UX research, design systems, and wireframes |
-| `visual-validation` | Validate screenshots and built UI against wireframes, design specs, and baselines; `--mode setup` writes the project's `Visual Validation` document once |
-| `tracker` | Project a plan bundle into the issue tracker – `publish` creates the parent and child issues and refreshes them on a re-run |
-| `spike` | Answer one design question by building a throwaway spike and reporting a verdict |
-| `simplify-code` | Behavior-preserving simplification – less complexity, less over-engineering |
-| `skill-review` | Review one skill bundle or prompt-like file against skill craft – findings and a ship-ready verdict; `--fix` tightens it with zero contract loss |
-| `backlog-triage` | Label, categorize, and route untriaged tracker items toward implementation or a human decision |
-
-**Security depth.** `review --mode security` calibrates severity by exposure tier and runs the project's own scanners; the standing reference material it deliberately does not ship – OWASP's cheat-sheet series, semgrep's own rule registry – is where to go deeper on a given surface.
-
-
-## Coming from Spec Kit, Kiro, or BMAD
-
-**Where AndThen sits.** It is spec-first with programmatic enforcement. While the plan governs, `sourceRefs` and `SATISFIES` backlinks trace requirements to stories and tasks, and a story reaches `done` only with the one line naming what was run to prove it. The boundary is deliberate: a team whose obligation is audit-grade permanent spec traceability – a regulator, a requirement→test matrix that must outlive the merge – needs a spec-anchored tool that keeps the spec alive after merge. AndThen keeps governing artifacts branch-scoped.
-
-**Reading across frameworks.** Every spec-driven toolchain names the same three layers differently, and "spec" is the word they disagree on hardest. The bridge:
-
-| Layer | Anthropic's AI-native SDLC playbook | GitHub Spec Kit | AWS Kiro | BMAD | AndThen |
-|---|---|---|---|---|---|
-| Intake – the problem, before anyone commits to solving it | `intent.md` | – | – | project brief | any short source – the intent doc `intent.md` is one shape |
-| Requirements – what to build and what counts as done | `spec.md` | `spec.md` (replaces the PRD) | `requirements.md` | PRD | `prd.md`, written by `clarify` |
-| Design and breakdown – files, order, risks, proof | `plan.md` | `plan.md` + `tasks.md` | `design.md` + `tasks.md` | architecture doc + story files | one FIS per story + `plan.json` |
-
-The row that trips people up is the second: AndThen's "spec" is the FIS, and it sits **downstream** of the PRD rather than replacing it. Arriving from Spec Kit, you will map it one layer too high.
-
-**What the critiques ask for.** The standing critique of spec-driven development is that a spec written up front assumes implementation teaches nothing, and that an agent asked to verify its own work will certify it. Beyond the four mechanisms at the top of this page:
-
-- **Learning during implementation** – requirements found mid-execution are appended through the FIS's Discovered Requirements channel before the code that needs them, and deliberate divergence is a Drift Note. Both graduate into `LEARNINGS.md` / `DECISIONS.md` at close-out.
-- **Agents reviewing their own work** – the story's executor implements the FIS and runs its proofs; the fresh reviewer subagent takes the story's attestation as the claims to falsify. Nothing completes on its author's own reading of it.
-- **Repeat incidents** – a reproducible bug gets a failing test before the fix, so the fix has something that fails without it.
-
-
-## Upgrading from 0.x
-
-1.0 removes the retired 0.x command surface with no compatibility aliases, and legacy FIS files must be re-specced through the `andthen:spec` skill before execution. Make a clean commit or another recoverable copy first.
-
-[MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) is the migration: what changed in the model, the four steps, a two-pass prompt that inventories your project before touching anything, and the disposition of every retired skill, agent, flag, operation, and artifact.
-
-
-## Docs
-
-- [`COOKBOOK.md`](COOKBOOK.md) – one recipe per situation, plus a continuous worked example from rough request to the milestone PR.
-- [`plugin/README.md`](plugin/README.md) – the skill reference: flags, modes, edge cases.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) – the plugin layout, shared references, document ownership, conversation boundaries.
-- [`docs/PRODUCT.md`](docs/PRODUCT.md) – goals, non-goals, and how AndThen weighs verification against the cost of ceremony.
-- [`docs/MODEL-EFFORT-SELECTION-GUIDE.md`](docs/MODEL-EFFORT-SELECTION-GUIDE.md) – model and thinking-effort selection.
-- One starter guideline ships with AndThen – `CRITICAL-RULES-AND-GUARDRAILS.md`, offered by `init` directly in an adopting project's instruction file, where the team owns its copy. All other guidelines are project-authored.
-- Beyond AndThen: [Agent Browser](https://github.com/vercel-labs/agent-browser) (CLI tool and skill), and from the official marketplace ([anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official)) [`semgrep`](https://github.com/semgrep/mcp-marketplace) (external, officially recommended), `playground`, and `claude-md-management`.
-
-
-## Hooks
-
-Four optional standalone Claude Code hooks, none of them required by the workflow: blocking destructive shell commands, desktop and ElevenLabs voice notifications, and re-injecting critical rules after context compaction. See [`hooks/README.md`](hooks/README.md) for the scripts, their events, and setup.
+- [`COOKBOOK.md`](COOKBOOK.md) – what to type for each situation, how the workflow fits together, [working in a team](COOKBOOK.md#working-in-a-team), [coming from Spec Kit, Kiro, BMAD, or GSD](COOKBOOK.md#coming-from-spec-kit-kiro-bmad-or-gsd), and a worked example.
+- [`plugin/README.md`](plugin/README.md) – the skill reference: every flag, mode, and edge case.
+- [`MIGRATING-FROM-0.x.md`](MIGRATING-FROM-0.x.md) – upgrading a 0.x project: what changed, the steps, and a prompt that does them.
+- [`docs/PRODUCT.md`](docs/PRODUCT.md) – goals, non-goals, and how AndThen weighs verification against ceremony.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) – how the plugin is built, for contributors.
+- [`docs/MODEL-EFFORT-SELECTION-GUIDE.md`](docs/MODEL-EFFORT-SELECTION-GUIDE.md) – choosing models and thinking effort.
+- [`hooks/README.md`](hooks/README.md) – four optional Claude Code hooks: block destructive shell commands, desktop or ElevenLabs voice notifications, and a context-size hint, also for Codex, that has the agent suggest a fresh session once a conversation grows long.
+- Works well with: [Agent Browser](https://github.com/vercel-labs/agent-browser), and from the [official marketplace](https://github.com/anthropics/claude-plugins-official) `playground` and `claude-md-management`, and [`semgrep`](https://github.com/semgrep/mcp-marketplace) (external, recommended there).
 
 
 ## Evolved From
@@ -342,7 +230,7 @@ and then
 
 Too many to list, but special shoutout to:
 - [Peter Steinberger](https://github.com/steipete)
-- [Cole Medin](https://github.com/coleam00) – the two loops above are his outer/inner split, and the habit of saying per hand-off whether to continue or start fresh
+- [Cole Medin](https://github.com/coleam00) – the split into an outer loop per feature and an inner loop per story, and the habit of saying at each hand-off whether to continue or start fresh
 - [IndieDevDan](https://github.com/disler)
 - [Matt Maher](https://github.com/bladnman)
 - [Mario Zechner](https://github.com/badlogic)

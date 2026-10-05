@@ -1,0 +1,7 @@
+{
+  "criteria": [
+    {"id": "BRIEF_ASKS_BEFORE_WRITING", "intent": "The first turn's closing message ends on at least one question and reports no intent doc written: a source that reads as settled still earns a confirmation round, so a first turn that reports the doc created, or closes on editing and sharing it, fails however complete the doc is."},
+    {"id": "BRIEF_REPLY_FIDELITY", "intent": "The intent doc carries the reply that overturned the source - totals in a second file, not appended to the report - and keeps the per-period breakdown out of scope, inventing no decision the source and replies do not carry."},
+    {"id": "BRIEF_SHAPE", "intent": "The artifact is an intent doc, not a PRD: the intent template's sections, a Decisions Log of what the interview settled, and its own `> **Source**:` line."}
+  ]
+}

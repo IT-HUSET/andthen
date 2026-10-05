@@ -1,0 +1,11 @@
+[project]
+name = "tally"
+version = "0.3.1"
+description = "Count the words on each line of a text file."
+requires-python = ">=3.9"
+
+[project.scripts]
+tally = "tally.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

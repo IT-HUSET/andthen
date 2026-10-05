@@ -1,75 +1,62 @@
 # UI/UX – Design System Mode
 
-Transform feature requirements into a focused design system with essential visual language, design tokens, component styles, and documentation.
+Turn feature requirements into a focused design system: essential visual language, design tokens, component styles, and documentation. Start minimal – essential tokens and components only, never premature complexity.
 
-## Inputs
+Bound from `ARGUMENTS`:
 
-Bound from `ARGUMENTS`: `REQUIREMENTS` (required – inline description, file path, or PRD reference), `CONCEPT_DIR` (optional – concept design, mockups, or an existing design system), `OUTPUT_DIR` (`docs/design-system`, or the **Project Document Index** design-system location).
+- `REQUIREMENTS` – required: an inline description, a file path, or a PRD reference.
+- `CONCEPT_DIR` – optional: a concept design, mockups, or an existing design system.
+- `OUTPUT_DIR` – the `Design System` document location (default `docs/design-system`).
 
-## Principles
+## Workflow
 
-- **Start minimal** – essential tokens/components only; avoid premature complexity
+### Phase 1: Input analysis
 
-## Phase 1: Input Analysis
+When `CONCEPT_DIR` is given, verify it exists and catalog its contents (mockups, brand guidelines, an existing design system).
 
-`REQUIREMENTS` absent stops with a missing-input error; when `CONCEPT_DIR` is provided, verify it exists and catalog its contents (mockups, brand guidelines, existing design system). Extract from `REQUIREMENTS` the components needed, the visual hierarchy, and the brand, platform, and accessibility requirements.
+Extract from `REQUIREMENTS` the components needed, the visual hierarchy, and the brand, platform, and accessibility requirements.
 
-**Gate**: Requirements understood, design inputs cataloged
+### Phase 2: Design research
 
-## Phase 2: Design Research (Conditional)
+Skip it when `CONCEPT_DIR` holds sufficient design direction. Otherwise research with parallel implementer subagents, each returning a findings summary per topic. Save the research to `<project_root>/.agent_temp/research/design/` only when it is substantial.
 
-Skip if `CONCEPT_DIR` contains sufficient design direction.
+### Phase 3: Design tokens
 
-Using parallel subagents: research appropriate design patterns and UI conventions, accessibility-first patterns, similar products for inspiration (3-5), suitable foundation design systems or component libraries, and domain-specific best practices.
+Tokens have two homes that stay in sync. The **canonical**, machine-readable source is the `DESIGN.md` front matter (Phase 5), which agents and tooling consume; `tokens.css` is the CSS-custom-property export for direct web use. These naming conventions govern the CSS export:
 
-Save research to `<project_root>/.agent_temp/research/design/` only if substantial.
-
-**Gate**: Design direction established
-
-## Phase 3: Design Token Creation
-
-Create essential design tokens. Tokens have two homes that must stay in sync: the **canonical** machine-readable source is the `DESIGN.md` front matter (Phase 5.1, agent- and tooling-consumable); `tokens.css` is the CSS-custom-property export for direct web consumption. The naming conventions below govern the CSS export.
-
-**Naming conventions:**
-- Colors: `--color-{role}[-{variant}]` (e.g. `--color-primary`, `--color-primary-dark`, `--color-gray-50` through `--color-gray-900`, `--color-success`, `--color-error`)
-- Typography: `--font-{property}` and `--text-{size}` (e.g. `--font-sans`, `--font-normal: 400`, `--text-xs` through `--text-3xl`)
-- Spacing: `--space-{n}` on an 8px base grid (e.g. `--space-1` through `--space-8`)
+- Colors: `--color-{role}[-{variant}]` (`--color-primary`, `--color-primary-dark`, `--color-gray-50` through `--color-gray-900`, `--color-success`, `--color-error`)
+- Typography: `--font-{property}` and `--text-{size}` (`--font-sans`, `--font-normal: 400`, `--text-xs` through `--text-3xl`)
+- Spacing: `--space-{n}` on an 8px base grid (`--space-1` through `--space-8`)
 - Layout: `--container`, `--mobile: 640px`, `--tablet: 768px`, `--desktop: 1024px`
 - Effects: `--shadow-{level}` (3 levels), `--radius[-{variant}]`, `--transition`
 
-**Principles:**
-- System fonts by default – but choose typography with character when the brief or brand warrants it
-- Define semantic colors (success, error, warning) only if needed
-- 3 shadow levels and 3 border radius variants are sufficient for most projects
+Give the system an intentional visual direction – typography with character, color with a dominant direction and clear accents – never generic AI aesthetics or default stacks. Semantic colors (success, error, warning) only when needed. Three shadow levels and three border-radius variants suffice for most projects.
 
-**Gate**: Core tokens defined
+### Phase 4: Component styles
 
-## Phase 4: Component Styles
+From Phase 1's requirements, list only the components actually needed. Each component's base and variant styles reference design tokens, never hardcoded values; components stay minimal and composable.
 
-From Phase 1 requirements, list only the components actually needed. Typical set: buttons (primary, secondary, states), form elements (input, select, textarea, checkbox, radio), cards/containers, navigation patterns, typography classes.
+**Gate**: no hardcoded value remains in `components.css`.
 
-Each component's base and variant styles reference design tokens, never hardcoded values; components stay minimal and composable.
+### Phase 5: Documentation and showcase
 
-**Gate**: Essential components styled
+**`OUTPUT_DIR/DESIGN.md`**, in the DESIGN.md format: machine-readable YAML front matter, then a human-readable markdown body.
 
-## Phase 5: Documentation & Showcase
+The front matter, delimited by `---` fences, is the canonical token source, keyed by category:
 
-**5.1 DESIGN.md** – Create `OUTPUT_DIR/DESIGN.md` in the DESIGN.md format: machine-readable YAML front matter followed by a human-readable markdown body.
-
-Front matter (delimited by `---` fences) – the canonical token source, keyed by category:
-- `colors:` – role → CSS color value (hex/rgb/oklch)
+- `colors:` – role → CSS color value (hex, rgb, oklch)
 - `typography:` – named text style → `family`, `size`, `weight`, `lineHeight`, `letterSpacing`
 - `rounded:` – border-radius scale
 - `spacing:` – spacing scale (8px base grid)
 - `components:` – named UI element → token-referencing properties (`backgroundColor`, `textColor`, `padding`, `rounded`, …)
 
-Markdown body – the canonical sections, in this order, including only those that apply: **Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts**. Document rationale and application guidance (the *why* and *when*), not just values.
+The markdown body holds the canonical sections that apply, in this order: **Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts**. Document rationale and application guidance – the *why* and *when* – not just values.
 
-**5.2 Interactive Showcase** – Create `OUTPUT_DIR/showcase.html` demonstrating all color swatches with hex values, typography scale, spacing visualization, every component variant with live examples, interactive states, light/dark theme toggle (if applicable), and code snippets.
+**`OUTPUT_DIR/showcase.html`**, an interactive showcase: every color swatch with its hex value, the typography scale, a spacing visualization, every component variant with live examples, interactive states, a light/dark theme toggle where applicable, and code snippets.
 
-**Gate**: Documentation complete
+**Gate**: every `tokens.css` property has its `DESIGN.md` front-matter value.
 
-## Output Layout
+## Output
 
 ```
 OUTPUT_DIR/

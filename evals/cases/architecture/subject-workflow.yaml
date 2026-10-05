@@ -7,7 +7,7 @@ stepDefaults:
 steps:
   - id: architecture
     name: Decide the delivery architecture
-    skill: andthen:architecture
+    skill: andthen:decide
     prompt: "prompt.md"
     outputs:
       report:

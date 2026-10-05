@@ -1,29 +1,41 @@
 ---
-description: Describe what a project already is – map an existing codebase into documentation and implicit requirements, or extract and maintain its Ubiquitous Language glossary; `--model` emits the architecture or domain model for downstream tooling. Trigger on 'map this codebase', 'what does this repo do', 'build a glossary', 'generate an architecture model'.
-argument-hint: "[--mode codebase|domain] [--model] [--model-only] [scope or output directory]"
+description: Document what a project already is – map an existing codebase into architecture docs and discovered requirements, or extract and maintain its Ubiquitous Language glossary; `--model` adds the typed architecture or domain model. Trigger on 'map this codebase', 'document this repo', 'build a glossary'.
+argument-hint: "[--mode codebase|domain] [--model] [--model-only] [output directory (codebase) or scope (domain)]"
 ---
 
 # Describe
 
-Read-only description of what a project already is. Both modes read code, docs, and conversation without modifying or committing them and write their own documentation outputs; `--model` emits the mode's typed artifact – alongside the documentation in codebase mode, in place of it in domain mode, where the model is a projection of the existing `Ubiquitous Language` document.
+Describe documents what a project already is and never modifies its code.
 
-`$ARGUMENTS` minus flags is the focus area (`SCOPE`, blank for the whole project) or, in codebase mode, the documentation output directory `OUTPUT_DIR`, which defaults to the **Project Document Index** location or `docs/`.
+## Input
 
-## Mode (auto-detected from arguments or explicit `--mode`)
+`$ARGUMENTS` minus flags is, in codebase mode, the output directory `OUTPUT_DIR` (default `docs/`); in domain mode, the focus area `SCOPE` (blank for the whole project). Codebase mode always maps the whole project.
 
-| Mode | Triggers | Read |
-|------|----------|----------------|
-| **codebase** (default) | "map the codebase", "understand this repo", "what does this project do", "document the architecture", "discover requirements", "architecture model" | `references/mode-codebase.md`; `../../references/project-document-templates.md` when the run writes documentation |
-| **domain** | "glossary", "ubiquitous language", "domain terms", "terminology cleanup", "what do we call this", "domain model" | `references/mode-domain.md`; `../../references/project-document-templates.md` when the run writes documentation |
+- `--mode codebase|domain` picks the mode.
+- `--model` (`MODEL`), also set when the request asks for the model in words, adds the mode's typed model: `architecture-model` in codebase mode, `domain-model` in domain mode. Write it against [`architecture-model.md`](references/architecture-model.md) and [`architecture-model.schema.json`](references/architecture-model.schema.json).
+- `--model-only` (`MODEL_ONLY`) writes the model against the same two files and no documentation – the refresh path when only the model must be current.
 
-Explicit `--mode` always wins. On an ambiguous invocation ("describe this project") default to **codebase** and say which mode you took in one line, so the user can redirect – mode selection is cheap and reversible.
+| Mode | Triggers |
+|------|----------|
+| **codebase** | "map the codebase", "document the architecture", "discover requirements", "architecture model" |
+| **domain** | "glossary", "ubiquitous language", "domain terms", "terminology cleanup", "domain model" |
 
-The two modes are separate because each emits a different typed artifact under `--model`: `architecture-model` from **codebase**, `domain-model` from **domain**. Either model is written against `../../references/architecture-model.schema.json` and `../../references/architecture-model.md`, read under `--model` only.
+An explicit `--mode` wins, then a request that points at one mode. When neither decides it, ask once – codebase (preselected), domain, or both – because the modes write different documents and a wrong guess costs a full run.
 
-`MODEL` is true when `--model` is passed or the request asks for that mode's model in words; `--model-only` (`MODEL_ONLY`) implies it. Both pass through to the active mode, which owns their meaning. `MODEL_ONLY` refreshes the committed projection and writes no documentation – the deterministic surface an orchestrating skill uses when only the model needs to be current.
+## Rules
 
-## WORKFLOW
+- Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
-Resolve the mode, state it, then load what its **Read** column names and follow the mode reference end to end. The mode reference owns its contract; nothing here overrides it.
+- Every dispatch is a fresh subagent: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
 
-A run that needs both descriptions runs the modes one after the other, codebase first – the context list it produces is the seed the domain extraction clusters against.
+## Workflow
+
+1. **Resolve the mode.** A run of both modes runs codebase first, so the domain extraction reads a current `Architecture` document.
+
+2. **Run the mode.** Follow its reference end to end:
+
+   - Codebase mode: [`mode-codebase.md`](references/mode-codebase.md).
+   - Domain mode: [`mode-domain.md`](references/mode-domain.md).
+   - A run that writes documentation – every run but `--model-only`, and the extraction a domain `--model-only` run needs: [`project-document-templates.md`](../../references/project-document-templates.md).
+
+   **Gate**: the reference's Output is printed.

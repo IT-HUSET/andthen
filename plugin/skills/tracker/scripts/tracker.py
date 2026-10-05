@@ -23,13 +23,59 @@ PLAN_SCHEMA_VERSION = "2"
 SKILL_NS = "andthen:"
 
 
+def _text(value):
+    return isinstance(value, str) and value != ""
+
+
+def _unreadable(story):
+    """The story fields the projection would misread or crash on, by name.
+
+    `id` and `name` build the title and the marker - an empty `id` would give a
+    child the parent's marker and overwrite the parent issue. The optional
+    fields are joined into the body, so each must be the shape a join takes."""
+    bad = [f"`{field}`" for field in ("id", "name") if not _text(story.get(field))]
+    if "scope" in story and not isinstance(story["scope"], str):
+        bad.append("`scope`")
+    if story.get("fis") and not isinstance(story["fis"], str):
+        bad.append("`fis`")
+    # A scalar string would iterate by character into one `PRD:` line each.
+    for field in ("dependsOn", "completedTaskIds", "sourceRefs"):
+        value = story.get(field)
+        if value and not (isinstance(value, list) and all(_text(v) for v in value)):
+            bad.append(f"`{field}`")
+    return bad
+
+
 def load_plan(path):
+    """Read the plan leniently: any schemaVersion projects, and it exits only on
+    a field the projection reads that is missing or unreadable, naming it, or on
+    a repeated story id."""
     with pathlib.Path(path).open(encoding="utf-8") as handle:
         plan = json.load(handle)
-    version = plan.get("schemaVersion") if isinstance(plan, dict) else None
+    rerun = (f"re-run the {SKILL_NS}plan skill on the requirements source of "
+             f"{pathlib.Path(path).parent.as_posix()} to re-plan it")
+    replan = f", which the projection reads; {rerun}"
+    stories = plan.get("stories") if isinstance(plan, dict) else None
+    if not isinstance(stories, list):
+        sys.exit(f"plan.json lacks a `stories` list{replan}")
+    overview = plan.get("overview")
+    if isinstance(overview, dict) and not isinstance(overview.get("summary", ""), str):
+        sys.exit(f"plan.json has an unreadable `overview.summary`{replan}")
+    seen = set()
+    for index, story in enumerate(stories, 1):
+        story = story if isinstance(story, dict) else {}
+        bad = _unreadable(story)
+        if bad:
+            label = story["id"] if _text(story.get("id")) else f"#{index}"
+            sys.exit(f"plan.json story {label} lacks a readable {' and '.join(bad)}{replan}")
+        if story["id"] in seen:
+            sys.exit(f"plan.json repeats story id {story['id']} (#{index}), and each id "
+                     f"marks its own issue, so two stories would share one; {rerun}")
+        seen.add(story["id"])
+    version = plan.get("schemaVersion")
     if version != PLAN_SCHEMA_VERSION:
-        sys.exit(f"unsupported plan.json schemaVersion {version!r}; "
-                 f"re-run the {SKILL_NS}plan skill to regenerate")
+        print(f"plan.json schemaVersion {version!r} (current {PLAN_SCHEMA_VERSION!r}): "
+              "projected from the fields it carries", file=sys.stderr)
     return plan
 
 
@@ -89,7 +135,8 @@ def checklist(plan):
 
 def parent_payload(plan, plan_path, existing):
     marker = machine_marker(plan_path)
-    body = [plan.get("overview", {}).get("summary", ""), ""]
+    overview = plan.get("overview")
+    body = [overview.get("summary", "") if isinstance(overview, dict) else "", ""]
     prd = plan.get("prd")
     if prd:
         body += [f"PRD: {prd}", ""]
@@ -121,7 +168,6 @@ def child_payload(story, plan, plan_path, sha, existing):
         "kind": "story",
         "id": story["id"],
         "title": f"{story['id']} - {story['name']}",
-        "assignee": story.get("owner"),
         "dependsOn": story.get("dependsOn") or [],
         "body": "\n".join(body),
         "search": marker,

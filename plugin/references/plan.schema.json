@@ -2,20 +2,17 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "andthen:plan.schema.json",
   "title": "AndThen plan.json",
-  "description": "Machine form of plan-schema.md. Carries every invariant JSON Schema can state; cross-field and filesystem facts - a FIS pointer resolving, a dependency edge - are the reading agent's, and surface when the file is opened.",
+  "description": "Machine form of plan-schema.md.",
   "type": "object",
   "required": ["schemaVersion", "prd", "overview", "stories"],
   "additionalProperties": false,
   "properties": {
-    "schemaVersion": {
-      "description": "Bumps only on a breaking delta. Consumers reject unknown versions.",
-      "const": "2"
-    },
+    "schemaVersion": { "const": "2" },
     "prd": {
       "type": ["string", "null"],
       "minLength": 1,
       "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$)).+$",
-      "description": "Repo-root-relative POSIX path of the prd.md or requirements file the plan came from, without dot or dot-dot components, or null for a standalone one-story plan that has no PRD, or when the source was a tracker item."
+      "description": "Repo-root-relative POSIX path of the prd.md or requirements file the plan came from, or null for any other source: a description, an intent doc, a tracker item."
     },
     "overview": {
       "type": "object",
@@ -70,7 +67,7 @@
             "items": { "$ref": "#/$defs/storyId" }
           },
           "status": {
-            "enum": ["pending", "spec-ready", "in-progress", "done", "skipped", "blocked"]
+            "enum": ["pending", "in-progress", "done", "skipped"]
           },
           "fis": {
             "type": ["string", "null"],
@@ -92,7 +89,6 @@
               "summary": { "type": "string", "minLength": 1 }
             }
           },
-          "owner": { "type": ["string", "null"], "pattern": "^[^|\\n]+$" },
           "scope": { "type": "string", "minLength": 1 },
           "sourceRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
           "provenance": { "type": ["string", "null"] },

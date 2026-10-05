@@ -1,40 +1,64 @@
 ---
-description: Project a plan bundle into the issue tracker – `publish` creates the parent issue and one child issue per story, updated on a re-run. Trigger on 'publish this plan to the tracker', 'create issues for these stories'.
-argument-hint: "publish <plan.json> [--dry-run] [--auto]"
+description: Work the issue tracker – `publish` projects a plan bundle into a parent issue and one child issue per story, `triage` labels and routes incoming items toward implementation or a human decision, and `setup` writes the Issue Tracker document. Trigger on 'publish this plan to the tracker', 'triage the backlog', 'set up the issue tracker'.
+argument-hint: "[--auto] (publish <plan.json> [--dry-run] | triage [issue number(s) or tracker query] | setup)"
 ---
 
-# Tracker: Project the Plan Into the Issue Tracker
+# Tracker
 
-`plan.json` is agent truth; the tracker is the human projection of it. This skill writes that projection and nothing else – it never ships the plan file, never invents work the plan does not carry, and never writes `plan.json`.
+Work the project's issue tracker through its `Issue Tracker` document, one verb per run.
 
-**One way, by design.** The projection flows repo → tracker. There is no reverse sync: a PM reprioritizing in the tracker is a re-plan, not a status write, and reading it back would make two writers of one field.
+## Input
 
-**No state of its own.** The join key is one exact HTML-comment marker line carrying the repository-relative plan path and, for a child, its story ID. That canonical identity makes relative and absolute invocations converge on the same issue without adding a `plan.json` field.
+`$ARGUMENTS` opens with the verb, and `ARGUMENTS` is the rest minus flags. With no verb there, take the one the request's words name.
 
-`$ARGUMENTS` is the verb (`publish`) then the path to a `plan.json`.
+| Verb | `ARGUMENTS` | Read |
+|---|---|---|
+| **publish** | the path to a `plan.json` | § 2a below |
+| **triage** | issue number(s) or a tracker query; empty triages the untriaged backlog | [`triage.md`](references/triage.md), [`agent-brief.md`](references/agent-brief.md) |
+| **setup** | none | § 2c below |
 
-`--auto` is `AUTO_MODE`: no conversational prompts, per [`automation-mode.md`](../../references/automation-mode.md).
+`--auto` makes the run unattended: read [`unattended-runs.md`](../../references/unattended-runs.md) and follow it.
 
-`--dry-run` prints the assembled payloads and stops – the safety boundary: no tracker call and no file, so it works offline and unauthenticated.
+## Rules
 
-## INSTRUCTIONS
+- Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
-- **Tracker resolution** – before any tracker operation, resolve the `Issue Tracker` document (see **Project Document Index**; default `docs/ISSUE-TRACKER.md`): `Backend: GitHub` or `none` takes the built-in `gh` flows below, another backend substitutes every operation from its **Operation Table** (a value naming an MCP tool is invoked the same way), and an absent document or unparseable `Backend:` line is offered for set-up, since creating it is part of the first publish – under `--auto`, stop.
-- **Scaffolding it** – an accepted offer is seeded by a subagent, so the template set stays out of this run's context: spawn a generic inherited subagent, the installed `worker` role agent when available, whose prompt names the ISSUE-TRACKER.md template section in [`project-document-templates.md`](../../references/project-document-templates.md), the target path resolved from the **Project Document Index**, and the backend the user chose. Its Index entry is added with it, and resolution then proceeds against the seeded document. A present document is used as it stands, with no template loaded at all.
-- **Operations used**: `list issues`, `create issue`, `edit body`. A backend that cannot express an assignee carries `Owner:` in the body instead. An unmapped operation this run needs stops the run **before** the first external call, so a multi-issue publish never strands half a plan in the tracker.
-- **The document is executable config** – its table values are run as commands. Each is a single direct invocation with no pipes, shell operators, or command substitution; review changes to it as code.
-- **GitHub is the worked path.** Do not hand-roll another backend's CLI here.
+- **Executable config.** The `Issue Tracker` document is security-critical, because its table values run as commands. Each value is a single direct command invocation (an executable, fixed arguments, `<placeholders>`) with no pipes, shell operators, command substitution, or piping to an interpreter. Review changes to it as code.
+- **Complete mapping first.** Before a verb's first tracker call, reads included, stop on any operation it needs that the Operation Table leaves unmapped, so a multi-issue write never strands partial state.
+- **Argv-safe.** Every payload field is data: pass `title`, `body_file`, and issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. On GitHub, `create issue` maps them to `gh issue create --title` and `--body-file`, and `edit body` maps the issue number and `body_file` to `gh issue edit`. An operation-table backend keeps the same argument boundary, and a mapping that only offers a shell template is unresolved executable config: stop before the first external call.
 
-## WORKFLOW
+## Workflow
 
-### 1. Assemble the payloads
+### 1. Tracker resolution
 
-**`--dry-run`**: one script call, `--dry-run` and no `--existing`, then print the payloads and stop. It makes no tracker lookup, so every `action` reads `unknown` – the lookup below is what decides create-versus-update.
+Before `publish` or `triage` runs any tracker operation, resolve the `Issue Tracker` document (**Project Document Index**; default `docs/ISSUE-TRACKER.md`) by its `Backend:` line:
 
-Live: assemble once without `--existing` to derive the canonical plan identity and every
-exact `search` marker. For each emitted marker, call `list issues` with that whole
-marker as the body-search phrase and a limit of 2, then combine the returned
-`number,body` rows in `.agent_temp/tracker-existing.json` and assemble against it:
+- `GitHub` takes the built-in `gh` flows.
+- `none` declares no tracker: end on one line saying so, naming the `Backend:` line.
+- Another backend substitutes every operation from its **Operation Table**. A value naming an MCP tool is invoked the same way.
+- An unparseable `Backend:` line takes `setup`.
+- For `publish`, an absent document takes `setup`, since creating it is part of the first publish.
+- For `triage`, an absent document takes the `gh` default where the repository has a GitHub remote, and `setup` where it has none, since there is nothing to read.
+
+Taking `setup` means offering it, and an unattended run stops as step 2c says. On acceptance, run it, then resolve against the document it wrote.
+
+**Gate**: the backend is known and every operation the verb needs is mapped.
+
+### 2a. Publish
+
+`plan.json` is agent truth, and the tracker is its human projection. `publish` writes that projection and never writes `plan.json`.
+
+**One-way sync.** A PM reprioritizing in the tracker is a re-plan.
+
+**Idempotent publish**, keyed on the script's marker line.
+
+**Operations used**: `list issues`, `create issue`, `edit body`. GitHub is the worked path: do not hand-roll another backend's CLI here.
+
+#### Assemble the payloads
+
+**`--dry-run`** is the safety boundary: one script call with `--dry-run` and no `--existing`, print the payloads, and stop. It makes no tracker call and writes no file, and every `action` reads `unknown` – only the lookup below decides create-versus-update.
+
+**Live**, assemble once without `--existing` to derive the canonical plan identity and every exact `search` marker. For each marker, call `list issues` with that whole marker as the body-search phrase and a limit of 2. Combine the returned `number,body` rows in `.agent_temp/tracker-existing.json` and assemble against it:
 
 ```sh
 python3 <skill-dir>/scripts/tracker.py publish <plan.json> --sha <commit-sha>
@@ -42,20 +66,33 @@ gh issue list --search '"<exact emitted search marker>" in:body' --state all --j
 python3 <skill-dir>/scripts/tracker.py publish <plan.json> --sha <commit-sha> --existing .agent_temp/tracker-existing.json
 ```
 
-`--sha` pins each child's FIS link to a commit; it defaults to `HEAD`.
+`--sha` pins each child's FIS link to a commit, and defaults to `HEAD`.
 
-Pass the search phrase as one argv value, never interpolated shell source.
+The lookup is per marker because a globally capped query can omit an older issue and turn a re-run into a duplicate.
 
-The exact per-marker lookup is intentionally narrow: a globally capped query can
-omit an older issue and turn a re-run into a duplicate. Zero matches creates, one
-updates, and multiple matches stop the run before any write call. The
-script prints JSON – the parent payload and one child per story, each carrying
-`action: create|update` and, on update, the issue number.
+**Gate**: the payloads are assembled against `--existing`, every row `create` or `update`; under `--dry-run`, the payloads are printed.
 
-### 2. Send it
+#### Send it
 
-Assemble again with `--body-dir .agent_temp/tracker-bodies`. The script writes deterministic UTF-8 files and adds an absolute `body_file` to each payload. These are temporary transport, not tracker state. Send the parent first (its checklist follows plan story order), then each child. Then rewrite the parent's checklist and each child's `Blocked by:` lines with the created issue numbers, and send each rewritten body through `edit body`.
+Assemble again with `--body-dir .agent_temp/tracker-bodies`. The script writes deterministic UTF-8 files and adds an absolute `body_file` to each payload.
 
-**Safe transport contract.** Treat every payload field as data: pass `title`, `body_file`, assignee, and issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. GitHub `create issue` maps those fields to `gh issue create --title`, `--body-file`, and `--assignee`; `edit body` maps the issue number and `body_file` to `gh issue edit`. The operation-table backend must preserve that same argument boundary. A backend mapping that only offers a shell template is unresolved executable config, so stop before the first external call.
+Send the parent first (its checklist follows plan story order), then each child. Then rewrite the parent's checklist and each child's `Blocked by:` lines with the created issue numbers, and send each rewritten body through `edit body`.
 
-**Gate**: every payload either sent or reported as skipped with a reason, every cross-reference body re-sent through `edit body`; the counts of created / updated stated.
+**Gate**: every payload is sent or reported as skipped with a reason, and every cross-reference body is re-sent through `edit body`.
+
+### 2b. Triage
+
+Follow `triage.md`.
+
+### 2c. Setup
+
+Ask which backend the tracker uses, and for any backend but GitHub, the command each operation maps to. An unattended run writes nothing and stops on `BLOCKED:` naming `setup` and the `Backend:` line to set.
+
+- **An existing document** is edited in place, with no template loaded: set its `Backend:` line and the operations the answer maps.
+- **A new document** is seeded by a subagent – the installed `worker` role agent when available, else a generic inherited one – that invokes the `andthen:init` skill with `seed Issue Tracker` and the chosen backend, which keeps the templates out of this run's context. Add its Index entry when the instruction file lacks one.
+
+**Gate**: the document carries a parseable `Backend:` line and every operation the chosen backend needs.
+
+## Output
+
+`publish` reports the counts of created and updated issues, and any payload skipped with its reason.

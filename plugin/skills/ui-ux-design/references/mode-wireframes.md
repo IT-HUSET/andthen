@@ -1,22 +1,23 @@
 # UI/UX – Wireframes Mode
 
-Transform feature requirements into simple HTML wireframes that capture key layout and interaction patterns for all pages/screens.
+Turn feature requirements into simple HTML wireframes that capture the key layout and interaction patterns of every page and screen.
 
-## Inputs
+Bound from `ARGUMENTS`:
 
-Bound from `ARGUMENTS`: `REQUIREMENTS` (required – inline description, file path, or PRD reference; absent, stop with a missing-input error), `DESIGN_DIR` (optional – design system directory or concept inputs, noted when it exists), `OUTPUT_DIR` (`docs/wireframes`, or the **Project Document Index** wireframes location).
+- `REQUIREMENTS` – required: an inline description, a file path, or a PRD reference.
+- `DESIGN_DIR` – optional: a design system directory or concept inputs, noted when it exists.
+- `OUTPUT_DIR` – the `Wireframes` document location (default `docs/wireframes`).
 
-## Principles
+**100% page coverage**: an un-wireframed page becomes an un-designed surface downstream, so every distinct page and state in the inventory gets its own wireframe.
 
-- **100% page coverage** – an un-wireframed page becomes an un-designed surface downstream, so every distinct page/state in the inventory gets its own wireframe
+## Workflow
 
-## Phase 1: Requirements Analysis
+### Phase 1: Requirements analysis
 
-### 1.1 Create Page Inventory
+#### 1.1 Page inventory
 
-Extract the comprehensive list of pages/screens from `REQUIREMENTS`, modal/overlay states (if complex enough to warrant separate wireframe) and error/empty/loading states (if distinct layouts needed) included.
+Extract every page and screen from `REQUIREMENTS`, including modal and overlay states complex enough to warrant their own wireframe and error, empty, and loading states that need distinct layouts. Record them in `OUTPUT_DIR/page-inventory.md`:
 
-Document in `OUTPUT_DIR/page-inventory.md`:
 ```markdown
 # Page Inventory
 ## Pages to Wireframe
@@ -24,62 +25,56 @@ Document in `OUTPUT_DIR/page-inventory.md`:
 ## Total: [N] wireframes required
 ```
 
-### 1.2 Identify Key Patterns
+#### 1.2 Key patterns
 
-From requirements, note: navigation structure, key content blocks and hierarchy, primary user actions and CTA placement, responsive requirements (mobile/tablet/desktop).
+Note the navigation structure, key content blocks and their hierarchy, primary user actions and CTA placement, and responsive requirements (mobile, tablet, desktop).
 
-**Gate**: Complete page inventory created, patterns identified
+**Gate**: `page-inventory.md` lists every page and distinct state.
 
-## Phase 2: Wireframe Creation
+### Phase 2: Wireframe creation
 
-### 2.1 Wireframe Principles
+#### 2.1 Wireframe principles
 
-Create basic grayscale HTML layouts: major sections and placement, key containers (panels, cards), content blocks with realistic proportions, primary navigation, important CTAs. Boxes and placeholders only; layout and hierarchy over polish.
+Basic grayscale HTML layouts: major sections and their placement, key containers (panels, cards), content blocks in realistic proportions, primary navigation, important CTAs. Boxes and placeholders only; layout and hierarchy over polish.
 
 **HTML structure**: Use `system-ui` font, `#f5f5f5` background, white `.box` containers with `2px solid #ddd`, `.placeholder` divs with `#e0e0e0` background and `2px dashed #999`, `.btn` in `#666`, CSS grid/flex for layout, and a `@media (max-width: 768px)` breakpoint. Include `<!DOCTYPE html>`, a `viewport` meta tag, and the CSS inline in `<style>`.
 
-### 2.2 Parallel Wireframe Creation
+#### 2.2 Parallel creation
 
-Fan out one subagent per inventory page, concurrently – the pages are independent. Each is a plain subagent, not a re-entry into this mode: given 2.1's HTML structure verbatim, its `OUTPUT_DIR/[page-name].html` target, the page name and purpose, key content/sections, navigation context, and responsive requirements, it writes that one page's HTML and returns the path. A child re-entering the mode would rebuild the inventory and re-run validation once per page.
+The pages are independent, so fan out one implementer subagent per inventory page, concurrently. Each gets its page only and never re-enters this mode: a child re-entering the mode would rebuild the inventory and re-run validation once per page. Give each one 2.1's HTML structure verbatim, its `OUTPUT_DIR/[page-name].html` target, the page's name and purpose, its key content and sections, its navigation context, and its responsive requirements. It writes that page's HTML and returns the path.
 
-**Naming convention**: `[page-name].html` (e.g., `home.html`, `dashboard.html`, `user-profile.html`)
+**Gate**: every page in the inventory has a wireframe, none skipped for seeming "similar" to another.
 
-### 2.3 Completeness Verification
+### Phase 3: Validation
 
-Cross-check against Phase 1 inventory: every page has a corresponding wireframe, none skipped because it seems "similar" to another.
+#### 3.1 Visual validation
 
-**Gate**: All pages from inventory have wireframes
+Validation needs browser automation. When the subagent below reports that nothing available can set viewports and capture screenshots, report validation as not run, and why: a manually opened browser does not satisfy it.
 
-## Phase 3: Validation
-
-### 3.1 Visual Validation
-
-Validation needs browser automation: when the subagent below reports that nothing available can set viewports, capture full-page screenshots, inspect DOM geometry, and read console and network failures, report validation as not run, and why – a manually opened browser does not satisfy it.
-
-Spawn a fresh subagent that invokes the `andthen:visual-validation` skill over every wireframe page at four viewports:
+Spawn a fresh reviewer subagent that invokes the `andthen:visual-validation` skill over every wireframe page at four viewports:
 
 - Mobile 375×667
 - Tablet 768×1024
 - Desktop 1280×800
 - Wide 1920×1080
 
-Ask it to check horizontal overflow, overlapping elements, collapsed containers, responsive reflow (grids, flex, touch targets ≥44px on mobile), and console errors and 404s, and to judge information hierarchy, content organization, user-flow representation, and missing UI states.
+Ask it also to judge missing UI states.
 
-Full-page screenshots land at `OUTPUT_DIR/screenshots/[page]-[viewport].png`, overriding its default capture directory, and the report at `OUTPUT_DIR/validation-report.md`, pass/fail per page and viewport.
+Screenshots land at `OUTPUT_DIR/screenshots/[page]-[viewport].png`, overriding its default capture directory, and the report at `OUTPUT_DIR/validation-report.md`, per page and viewport.
 
-### 3.2 Refinement
+#### 3.2 Refinement
 
-Fix hidden or overlapping content, missing navigation, and horizontal scroll on mobile before anything else, by adjusting CSS (gap, overflow, min-height, breakpoint rules); note spacing and decorative overlap and continue. Improve unclear sections, add missing elements, ensure consistency.
+Fix hidden or overlapping content, missing navigation, and horizontal scroll on mobile first, by adjusting CSS (gap, overflow, min-height, breakpoint rules). Note spacing and decorative overlap and continue. Then improve unclear sections, add missing elements, and make the pages consistent.
 
-**Gate**: the validation report passes every page and viewport, or validation is reported as not run
+**Gate**: the report holds no P1 or P2 finding and no `not judged` region for any page and viewport, or validation is reported as not run.
 
-## Phase 4: Documentation
+### Phase 4: Documentation
 
-Mark all wireframes as complete in `OUTPUT_DIR/page-inventory.md`, and create `OUTPUT_DIR/index.html` as a navigation hub: a grid of all wireframes with iframes previewing each page, title, brief description, and a link to the wireframe file.
+Mark every wireframe complete in `OUTPUT_DIR/page-inventory.md`. Create `OUTPUT_DIR/index.html` as a navigation hub: a grid of all wireframes, each with an iframe preview, its title, a brief description, and a link to its file.
 
-**Gate**: Documentation complete
+**Gate**: `index.html` links every wireframe in the inventory.
 
-## Output Layout
+## Output
 
 ```
 OUTPUT_DIR/

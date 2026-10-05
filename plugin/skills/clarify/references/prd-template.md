@@ -1,6 +1,8 @@
 # Product Requirements Document Template
 
-> Baseline shape for `prd.md`. Keep every `##` section below; adapt optional subsections to the project, but never collapse functional requirements into vague prose.
+> Baseline shape for `prd.md`: everything from the `# Product Requirements Document:` heading down. Keep every `##` section; adapt optional subsections to the project, but never collapse functional requirements into vague prose.
+
+**Contents** (an index of this file, not a PRD section): Executive Summary · Problem Definition · Success Metrics · Scope · Functional Requirements · Non-Functional Requirements · Edge Cases · Constraints & Assumptions · Open Questions · Decisions Log
 
 
 # Product Requirements Document: [Project Name]
@@ -49,7 +51,7 @@ The 2–4 items that materially shape scope or priority, drawn from `Constraints
 - [Who has the problem – role or persona, and the job they are trying to get done when it bites]
 
 ### Desired Outcome
-[What is different for those users and for the business once this is solved – the result, not the feature. Every requirement below serves it.]
+[What is different for those users and for the business once this is solved, and the end state they are left with – what remains of the old way, if anything. The result, not the feature; every requirement below serves it.]
 
 ### Evidence & Context
 - [Observed user pain, business driver, support volume, workflow friction, etc.]
@@ -159,7 +161,7 @@ How the Desired Outcome will be known to have happened. Outcomes, not outputs: "
 
 ## Open Questions
 
-- [Question precise enough to be closed as written by a later amendment, the plan, or an architecture trade-off]
+- [Question precise enough to be closed as written by a later amendment, the spec, or a decision]
 - Area to revisit: [area not yet stateable as a question] – [what would sharpen it]
 
 

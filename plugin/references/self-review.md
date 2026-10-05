@@ -1,51 +1,44 @@
 # Self-Review
 
-The rubric for the fresh reader an authoring skill spawns over the document it just wrote – never the author. One pass, applied in place: the only independent reader before the next skill builds on the document, so a gap that survives here is built.
+The rubric for the fresh reader an authoring skill spawns over the document it just wrote. It is the only independent reader before the next skill builds on the document, so a gap that survives here is built.
 
 ## The contract
 
-**Fix bar** – edit only what is mechanical, uniquely determined, and inside the document's stated intent: wording, a broken anchor, a summary line disagreeing with its source row, a missing tag, a conformance slip. Never a requirement, decision, scope line, threshold, or anything a Note would ask the owner about.
+**The question.** Where would the document's next reader – the `andthen:plan` skill for a PRD, an unattended executor for a FIS – have to **guess**?
 
-**Intent anchors**, supplied by the caller as paths: a finding a Non-Goal, deferral, or Out-of-Scope line covers is dismissed with that citation; one against a stated outcome is a Note whatever its size. Withdraw a candidate only against text that covers it.
+**Fix bar.** Edit only what is mechanical, uniquely determined, and inside the document's stated intent: wording, a broken anchor, a summary line disagreeing with its source row, a missing tag, a conformance slip. Never edit a requirement, decision, scope line, threshold, or anything a Note would ask the owner about.
 
-**Traps**: absent sections the project's scale does not need; deferrals flagged as gaps; brevity read as incompleteness; conformance slips reported one per instance instead of applied.
+**Intent anchors.** A finding that an anchor or the document's own record settles or knowingly parks – a Non-Goal, a deferral, an Out-of-Scope line, a `Decisions` entry, the PRD's `Decisions Log`, `Constraints & Assumptions` or `Open Questions` – is closed by citing that line. The citation closes the choice, never a claim about how code or a tool behaves, since recording a claim does not test it. A claim a decision or scenario takes as given is a `blocks: empirical` Note unless a test, run or code line shows it on the path the claim describes. A finding against a stated outcome is a Note whatever its size.
 
-**Return** to the caller these blocks, plus any the caller adds, and nothing else – no report file, no readiness label: `Applied:`, one line per edit as section → change; `Notes:`, each with location, finding, and `blocks: requirements | architecture | empirical | no` (`blocks: no` is an assumption the caller records, anything else a decision it routes); `Attacked:`, what was attacked in one line, even when nothing survived. A FIS review adds `Scope trades:` in the shape below.
+**Traps**: absent sections the project's scale does not need, and brevity read as incompleteness.
+
+**Return.** Return to the caller these blocks and nothing else – no report file, no readiness label:
+
+- `Applied:` – one line per edit, as section → change.
+- `Notes:` – each with location, finding, and `blocks: requirements | architecture | empirical | no`. `blocks: no` is an assumption the caller records; anything else is a decision it routes.
+- `Attacked:` – what was attacked, in one line, even when nothing survived.
+- `Scope trades:` – a FIS review only, in the shape § FIS gives.
 
 ## PRD
 
-The next reader is a planner, not a stakeholder. Walk the requirements asking where the `andthen:plan` or `andthen:spec` skill would have to **guess**:
+Look for ambiguity, contradiction between sections, a missing unhappy path, and **undefined behavior** – a stated capability whose result is unstated for an input the user flows reach. Skip what the author's validation already checked: section completeness, testable criteria, Success Metric shape, and problem-solution fit.
 
-- **Ambiguity** – a term, threshold, actor, or state the document uses two ways, or never defines.
-- **Contradiction between sections** – a scope line, a metric, and a functional requirement that cannot all hold.
-- **Undefined behavior** – a stated capability whose result is unstated for an input the user flows reach.
-- **Missing unhappy path** – a requirement with no error, rejection, empty, or expiry state where its user can reach one.
-
-The gaps the interview never asked about are what this pass exists for – not a re-run of the skill's validation step, which already checked template sections, Success Metric shape, and problem-solution fit.
-
-A PRD has no design, so there are no scope trades to offer – pricing a requirement against a floor is the FIS review's, once a design exists.
-
-**Anchors**:
-
-- **Product document** – its **Non-Goals** and **Proportionality** facts, cited the way the interview cites them (`flagged: exceeds stage prototype in docs/PRODUCT.md`). A requirement re-litigating a Non-Goal, or sized past what the stage facts carry, is a Note naming the anchor; absent or `unknown` facts are not licence to size against imagined scale.
-- **The PRD's own record** – `Decisions Log`, `Constraints & Assumptions`, `Open Questions`. A concern one of them settles – or knowingly parks – is closed by citation, not re-raised.
-- **Summary vs. source** – every `Executive Summary` bullet derives from a canonical row below it, and on conflict the summary is the bug: a mechanical edit, not a Note.
+**Product document** – its **Non-Goals** and **Proportionality** facts. A requirement re-litigating a Non-Goal, or sized past what the stage facts carry, is a Note naming the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). Absent or `unknown` facts are no licence to size against imagined scale.
 
 ## FIS
 
-Apply the guidelines' *Self-Check*, *Plan-Spec Alignment Check*, and *Reverse Coverage Check*, and confirm the `Required Context` anchors resolve per *Consuming Upstream Context*. The question is where an unattended executor running this spec would go wrong: behavior it would have to infer, a term used two ways, a design choice stated as fact – with no Architecture or Decisions baseline behind it, an architectural prescription needs code-pattern evidence or reads as an assumption.
+Apply the authoring guidelines' *Self-Check*, *Plan-Spec Alignment Check*, and *Reverse Coverage Check*, and confirm the `Required Context` anchors resolve per *Consuming Upstream Context*. Phantom scope is a `PHANTOM_SCOPE` Note, never removed.
 
-**Scope trades.** The Architecture Decision's `**Why this over the floor**:` line says which requirement clause is buying the design. For each component the floor would not carry, return one Note naming that clause, the floor, the narrower reading that would drop it, and what the Target User loses against the Desired Outcome; a trade the `Decisions` document or a Non-Goal already settles is closed by citation. The shape is the whole value:
+With no Architecture or Decisions baseline behind it, an architectural prescription needs code-pattern evidence or reads as an assumption.
 
-- **Is a scope trade**: *FR-3 "exports run against remote hosts" buys the SSH transport, host registry, and retry layer – five of the story's eight tasks. Read as same-network hosts, the existing file copy covers it; lost: off-site exports, which the Desired Outcome does not name.*
-- **Is not**: *the design could be simpler.* It gives the owner nothing to decide.
+**Scope trades.** The Architecture Decision's `**Why this over the floor**:` line says which requirement clause is buying the design. For each component the floor would not carry, return one Note naming that clause, the floor, the narrower reading that would drop it, and what the Target User loses against the Desired Outcome. "The design could be simpler" is not one: it gives the owner nothing to decide.
 
 ## Bundle
 
 A plan bundle is reviewed as one document set: apply § FIS to each FIS, then the three checks no single document shows.
 
-- **Inter-story coherence** – overlapping scope, duplicate work, contradictory ADR choices, inconsistent naming, and dependency gaps between `plan.json`'s `dependsOn` and FIS task order.
-- **Seams and chains** – an output one story needs that another's spec never produces; for each multi-step flow in the source, compose every scenario's title and GWT in flow order and check that each leg's output satisfies the next precondition, naming handoff artifacts and flagging orphan outputs or unsourced inputs. Inspect Proof only to verify an articulated leg, never to fill a semantic gap.
-- **Source → FIS traceability** – every story scope, Binding Constraint, and source acceptance criterion covered by ≥1 scenario or criterion; silent narrowing without a scope note is a finding ("remote host support" must not become "always loopback"), and so is FIS scope with no source (`PHANTOM_SCOPE`).
+- **Inter-story coherence** – overlapping scope, contradictory ADR choices, inconsistent naming, and dependency gaps between `plan.json`'s `dependsOn` and FIS task order.
+- **Seams and chains** – an output one story needs that another's spec never produces. For each multi-step flow in the source, compose every scenario's title and GWT in flow order and check that each leg's output satisfies the next precondition, naming handoff artifacts and flagging orphan outputs or unsourced inputs. Inspect Proof only to verify an articulated leg, never to fill a semantic gap.
+- **Source → FIS traceability** – every story scope, Binding Constraint, and source acceptance criterion covered by ≥1 scenario or criterion.
 
-The return is the bundle's coverage proof, and adds to the blocks above a **per-FIS roster**: one line per FIS naming fixes applied, Notes open, any `PHANTOM_SCOPE`, and any `OVERSIZE:` echo. The cross-cutting `Notes:` name the stories each one holds, as do `Scope trades:` and `Attacked:`.
+The return is the bundle's coverage proof. To the blocks above it adds a **per-FIS roster**: one line per FIS naming fixes applied, Notes open, and any `PHANTOM_SCOPE`. The cross-cutting `Notes:`, `Scope trades:`, and `Attacked:` each name the stories they hold.

@@ -40,10 +40,10 @@ def text(x, y, s, cls="t1", size=13, anchor="start", family=SANS, weight=None, s
 
 def band(x, y, w, h, cls, kicker, title, sub):
     out.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="14" class="{cls}"/>')
-    text(x + 22, y + 26, kicker, "kick", 10, family=MONO, spacing="0.12em")
+    text(x + 22, y + 26, kicker, "kick", 11, family=MONO, spacing="0.12em")
     text(x + 22, y + 50, title, "t1", 16, weight="600")
     for i, ln in enumerate(sub if isinstance(sub, list) else [sub]):
-        text(x + 22, y + 69 + i * 15, ln, "t2", 11.5)
+        text(x + 22, y + 69 + i * 16, ln, "t2", 12)
 
 
 def arrow(x1, y1, x2, y2):
@@ -68,16 +68,33 @@ def detail(kicker, lines):
     out.append('</g>')
 
 
-def hot(key, x, y, w, h, label, cls, kicker, body, sub=None, size=13, rx=9):
-    """A hotspot: box + label, plus a detail block drawn in the bottom panel."""
+def hot(key, x, y, w, h, label, cls, kicker, body, sub=None, size=13, rx=9, asks=False):
+    """A hotspot: box + label, plus a detail block drawn in the bottom panel; asks marks a step that interviews you."""
     out.append(f'<g class="hot" tabindex="0" data-hotspot="{key}">')
     out.append(f'<rect x="{x:.0f}" y="{y:.0f}" width="{w:.0f}" height="{h:.0f}" rx="{rx}" class="{cls}"/>')
     ly = y + h / 2 + size * 0.36 - (7 if sub else 0)
     text(x + w / 2, ly, label, cls + "-t", size, anchor="middle", family=MONO, weight="600")
     if sub:
-        text(x + w / 2, ly + 15, sub, cls + "-s", 10.5, anchor="middle")
+        text(x + w / 2, ly + 15, sub, cls + "-s", 11.5, anchor="middle")
+    if asks:
+        bubble(x + w - 13, y + min(10, h / 2))
     detail(kicker, body)
     out.append('</g>')
+
+
+def bubble(cx, cy):
+    """A speech bubble: the step interviews you."""
+    out.append(f'<rect x="{cx - 6.5:.1f}" y="{cy - 5:.1f}" width="13" height="9" rx="2.5" class="cp"/>')
+    out.append(f'<path d="M{cx - 4:.1f},{cy + 3:.1f} l0,4 l4,-4 z" class="cp"/>')
+
+
+def marker(n, cx, cy, r=10):
+    """A numbered human-gate badge, or with n None the hollow ring of an optional read."""
+    if n is None:
+        out.append(f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{r * 0.55:.1f}" class="cp-ring"/>')
+        return
+    out.append(f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{r}" class="cp"/>')
+    text(cx, cy + r * 0.45, str(n), "cp-t", r * 1.25, anchor="middle", family=MONO, weight="700")
 
 
 class Flow:
@@ -94,29 +111,32 @@ class Flow:
         """Two stacked dashed boxes occupying one step slot – the design stage."""
         h = (self.h - 6) / 2
         for i, kw in enumerate(items):
-            hot(x=self.x, y=self.y + i * (h + 6), w=w, h=h, cls="pre", size=10.5, rx=5, **kw)
+            hot(x=self.x, y=self.y + i * (h + 6), w=w, h=h, cls="pre", size=11.5, rx=5, **kw)
         self.x += w
         return self.x - w / 2
 
-    def arrow(self, gap=18):
+    def arrow(self, gap=18, gate=None, read=False):
         arrow(self.x + 6, self.y + self.h / 2, self.x + gap, self.y + self.h / 2)
+        if gate or read:
+            marker(gate, self.x + (gap + 6) / 2, self.y - 12)
         self.x += gap + 6
 
-    def pr(self):
-        out.append(f'<rect x="{self.x}" y="{self.y + 7}" width="56" height="{self.h - 14}" rx="15" class="pill"/>')
-        text(self.x + 28, self.y + self.h / 2 + 4, "PR", "pill-t", 12, anchor="middle", family=MONO, weight="600")
+    def ship(self, gate, **kw):
+        """The ship skill and its PR / MR – the last gate, so the badge sits on the pill, not the arrow into it."""
+        hot(x=self.x, y=self.y + 7, w=56, h=self.h - 14, label="ship", cls="pill", size=12, rx=15, **kw)
+        marker(gate, self.x + 28, self.y - 12)
         self.x += 56
 
 
 # ---------------------------------------------------------------- document
-H = 876
-PANEL_Y = H - PANEL_H - 22
+H = 892
+PANEL_Y = H - PANEL_H - 24
 
 out.append(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ttl" font-family="{SANS}">')
-out.append('<title id="ttl">AndThen skills and workflow – the one workflow, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>')
+out.append('<title id="ttl">AndThen skills and workflow – the one workflow with its three human gates and two optional reads, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>')
 out.append('''<style>
 .bg{fill:#FBF8F3}
-.t1{fill:#1A140E}.t2{fill:#5E564C}.t3{fill:#8A8075}
+.t1{fill:#1A140E}.t2{fill:#5E564C}.t3{fill:#6F665B}
 .kick{fill:#2C5738}
 .band-flow{fill:#F2F6F3;stroke:#B9D0BD;stroke-width:1.5}
 .band-art{fill:#FFFFFF;stroke:#D4C9B3;stroke-width:1.5;stroke-dasharray:6,5}
@@ -126,20 +146,22 @@ out.append('''<style>
 .exec{fill:#11251A}.exec-t{fill:#FBF8F3}.exec-s{fill:#8DB294}
 .tail{fill:#3E6E48}.tail-t{fill:#FBF8F3}.tail-s{fill:#DFEAE1}
 .pre{fill:#FFFFFF;stroke:#8DB294;stroke-width:1.5;stroke-dasharray:5,4}.pre-t{fill:#21452C}.pre-s{fill:#5E564C}
-.core{fill:#FBF8F3;stroke:#8DB294;stroke-width:1.5}.core-t{fill:#21452C}
+.core{fill:#FBF8F3;stroke:#8DB294;stroke-width:1.5}.core-t{fill:#21452C}.core-s{fill:#5E564C}
 .role{fill:#E9E1D2}.role-t{fill:#1A140E}.role-s{fill:#5E564C}
-.pill{fill:none;stroke:#5E564C;stroke-width:1.5}.pill-t{fill:#5E564C}
-.card{fill:#FBF8F3;stroke:#D4C9B3;stroke-width:1.5}.card-t{fill:#1A140E}.card-s{fill:#5E564C}.fold{fill:#E9E1D2}
+.pill{fill:none;stroke:#A84F18;stroke-width:2}.pill-t{fill:#A84F18}
+.cp{fill:#A84F18}.cp-t{fill:#FFFFFF}.cp-ring{fill:none;stroke:#A84F18;stroke-width:2}
+.card{fill:#FBF8F3;stroke:#D4C9B3;stroke-width:1.5;stroke-linejoin:round}.card-t{fill:#1A140E}.card-s{fill:#5E564C}
+.fold{fill:#E9E1D2;stroke:#D4C9B3;stroke-width:1.5;stroke-linejoin:round}
 .arrow{stroke:#5E564C;stroke-width:1.8;fill:none}.ah{fill:#5E564C}
 .link{stroke:#8A8075;stroke-width:1.3}.dot{fill:#8A8075}
 .panel{fill:#11251A}.dk{fill:#E29A63}.db{fill:#FBF8F3}.dh{fill:#8DB294}
 .hot{cursor:pointer}.hot:focus{outline:none}
-.hot:hover>rect,.hot:focus>rect{stroke:#C46326;stroke-width:2.5;stroke-dasharray:none}
+.hot:hover>rect,.hot:focus>rect,.hot:hover>.card,.hot:focus>.card{stroke:#C46326;stroke-width:2.5;stroke-dasharray:none}
 .d{display:none;pointer-events:none}.hot:hover .d,.hot:focus .d{display:block}
 :root:has(.hot:hover) .hot:focus:not(:hover) .d{display:none}
 @media (prefers-color-scheme:dark){
 .bg{fill:#0F1A13}
-.t1{fill:#FBF8F3}.t2{fill:#C9C0B2}.t3{fill:#8A8075}
+.t1{fill:#FBF8F3}.t2{fill:#C9C0B2}.t3{fill:#A39A8D}
 .kick{fill:#8DB294}
 .band-flow{fill:#172A1D;stroke:#2C5738}
 .band-art{fill:#131C16;stroke:#3D362E}
@@ -147,22 +169,23 @@ out.append('''<style>
 .band-roles{fill:#1C1A15;stroke:#3D362E}
 .step{fill:#3E6E48}.step-s{fill:#DFEAE1}
 .exec{fill:#2C5738}.exec-s{fill:#B9D0BD}
-.tail{fill:#5F8E69}
+.tail{fill:#5F8E69}.tail-t,.tail-s{fill:#0F1A13}
 .pre{fill:#142218;stroke:#5F8E69}.pre-t{fill:#DFEAE1}.pre-s{fill:#C9C0B2}
-.core{fill:#1B2A1F;stroke:#3E6E48}.core-t{fill:#DFEAE1}
+.core{fill:#1B2A1F;stroke:#3E6E48}.core-t{fill:#DFEAE1}.core-s{fill:#C9C0B2}
 .role{fill:#3D362E}.role-t{fill:#F5F0E7}.role-s{fill:#C9C0B2}
-.pill{stroke:#C9C0B2}.pill-t{fill:#C9C0B2}
-.card{fill:#1A211C;stroke:#3D362E}.card-t{fill:#FBF8F3}.card-s{fill:#C9C0B2}.fold{fill:#3D362E}
+.pill{stroke:#E29A63}.pill-t{fill:#E29A63}
+.cp{fill:#E29A63}.cp-t{fill:#11251A}.cp-ring{stroke:#E29A63}
+.card{fill:#1A211C;stroke:#3D362E}.card-t{fill:#FBF8F3}.card-s{fill:#C9C0B2}.fold{fill:#3D362E;stroke:#3D362E}
 .arrow{stroke:#C9C0B2}.ah{fill:#C9C0B2}
 .panel{fill:#21452C}
-.hot:hover>rect,.hot:focus>rect{stroke:#E29A63}
+.hot:hover>rect,.hot:focus>rect,.hot:hover>.card,.hot:focus>.card{stroke:#E29A63}
 }
 </style>''')
 out.append('<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>')
 out.append(f'<rect width="{W}" height="{H}" class="bg"/>')
 
 text(BX, 40, "AndThen skills and workflow", "t1", 26, weight="700")
-text(BX, 62, "Spec-driven development for AI coding agents – one workflow, the artifacts it exchanges, standalone skills on call", "t2", 13)
+text(BX, 62, "Agentic software engineering for AI coding agents – one spec-driven workflow, the artifacts it exchanges, standalone skills on call", "t2", 13)
 
 # panel hint – drawn before the hotspots so their detail blocks overlay it
 out.append(f'<rect x="{BX}" y="{PANEL_Y}" width="{BW}" height="{PANEL_H}" rx="14" class="panel"/>')
@@ -172,161 +195,162 @@ text(BX + 22, PANEL_Y + 70, "Inside the README this image is static – click it
 
 # ------------------------------------------------ the workflow
 y = 84
-band(BX, y, BW, 218, "band-flow", "THE WORKFLOW", "Idea to merged, one chain",
-     ["Every step reads what the step before it wrote, and each authoring step closes on the next command – printed, never worked out.",
-      "clarify and the design stage are optional: a trade-off comes first when a fork binds beyond the work, UI design where a screen has none."])
-TOP_Y = y + 100
-BOT_Y = TOP_Y + BH + 14
-MID_Y = (TOP_Y + BOT_Y + BH) / 2      # the shared steps sit between the two lanes
-f = Flow(LX, MID_Y - BH / 2)
-CLARIFY_X = f.box(100, key="clarify", label="clarify", cls="pre", size=12, rx=7, sub="when unsure",
+band(BX, y, BW, 226, "band-flow", "THE WORKFLOW", "Idea to merged: you decide, agents build",
+     ["Your part: answer the interviews and sign off at the three gates; the chain runs the rest.",
+      "Every step reads what the step before it wrote and closes on the printed next command.",
+      "clarify and the design stage are optional: decide when a choice binds beyond the work,",
+      "UI design where a screen has none."])
+ROW_Y = y + 152                       # the one lane, below the header text and the gate badges
+
+# the README's "Where you take part": bubbles interview you, numbered gates sign off what outlives the branch,
+# rings are optional reads
+LGX = 620
+text(LGX, y + 26, "HUMAN-IN-THE-LOOP CHECKPOINTS", "kick", 11, family=MONO, spacing="0.12em")
+for i, (n, ln) in enumerate([("ask", "you answer: clarify and decide interview you, plan asks its preflight questions"),
+                             (1, "read prd.md"), (2, "read the ADRs, when decide ran"),
+                             (3, "PR / MR: settle open Notes, read ship's recommendations, approve push"),
+                             (None, "worth a read: the FIS files, the review report")]):
+    if n == "ask":
+        bubble(LGX + 8, y + 44 + i * 16)
+    else:
+        marker(n, LGX + 8, y + 45 + i * 16, r=7.5)
+    text(LGX + 24, y + 49 + i * 16, ln, "t2", 12)
+
+f = Flow(LX, ROW_Y)
+CLARIFY_X = f.box(100, key="clarify", label="clarify", cls="pre", size=12, rx=7, sub="when unsure", asks=True,
                   kicker="andthen · clarify",
                   body=["The requirements skill: Discovery & Ideation over an idea, a file or a tracker item – gaps, edge cases, scope boundaries, alternatives.",
-                        "Writes prd.md, or PRODUCT.md at product scope, after at least one round of answered questions, then closes on spec or plan."])
-f.arrow()
-f.stack(128, [
-    dict(key="architecture", label="architecture", kicker="andthen · architecture",
-         body=["--mode trade-off settles an ADR from weighted options; advise gives design guidance grounded in CUPID / DDD.",
-               "review, decompose, fitness, strategic-design and event-storming run the deep analysis, singly or chained. No code changes."]),
+                        "Writes prd.md, or PRODUCT.md at product scope, after at least one round of answered questions, then closes on decide, ui-ux-design, or plan."])
+f.arrow(gate=1)
+# decide sits below, where its link to the ADRs card leaves the stack
+DECIDE_X = f.stack(128, [
     dict(key="ui-ux-design", label="ui-ux-design", kicker="andthen · ui-ux-design",
          body=["UX research, design systems, and wireframes – singly or chained. Validating the built UI is visual-validation."]),
+    dict(key="decide", label="decide", asks=True, kicker="andthen · decide",
+         body=["Interviews you over the decisions a technical solution needs, recommends each, and deepens a contested one into a weighted trade-off.",
+               "Writes ADRs and Decisions lines. Optional: when a choice binds beyond the work or is costly to reverse."]),
 ])
-# fork – one story on top, the common path; several below; both rejoin at review
-FORK = 30
-bx = f.x + 14
-seg(f.x + 6, MID_Y, bx, MID_Y)
-seg(bx, TOP_Y + BH / 2, bx, BOT_Y + BH / 2)
-for ly in (TOP_Y, BOT_Y):
-    arrow(bx, ly + BH / 2, f.x + FORK, ly + BH / 2)
-s, p = Flow(f.x + FORK + 6, TOP_Y), Flow(f.x + FORK + 6, BOT_Y)
-s.box(126, key="spec", label="spec", cls="step", sub="one story",
-      kicker="andthen · spec",
-      body=["One FIS from a PRD, a description, a file or an issue URL, with its one-story plan.json beside it – prd the PRD's path, or null.",
-            "Also authors one story of a plan under plan --batch. Self-review, preflight questions, then the exec-spec line."])
-s.arrow()
-s.box(140, key="exec-spec", label="exec-spec", cls="exec", sub="its quick review included",
-      kicker="andthen · exec-spec",
-      body=["Implement one FIS where it is invoked: the tasks, the story's proofs and the full tier, one fresh reviewer subagent, then the fixes.",
-            "Completes by recording the verified line it saw executed, then prints the review line. The same per-story unit exec-plan spawns."])
-PLAN_X = p.box(126, key="plan", label="plan", cls="step", sub="several stories",
+f.arrow(gate=2)
+PLAN_X = f.box(140, key="plan", label="plan", cls="step", sub="one story or several", asks=True,
                kicker="andthen · plan",
-               body=["Work of several stories: plan.json plus a FIS per story, from a prd.md, a requirements file, or a tracker item.",
-                     "One cross-cutting review over the bundle, one preflight round of questions, then the exec-plan line. One story is a normal outcome."])
-p.arrow()
-p.box(140, key="exec-plan", label="exec-plan", cls="exec", sub="one exec-spec per story",
+               body=["The FIS for the work, from a PRD, a description, a file or an issue URL – one story, or plan.json plus a FIS per story when it needs several.",
+                     "Several stories get one fresh authoring subagent each and one cross-cutting review. Self-review, preflight questions, then the exec-plan line."])
+f.arrow(read=True)
+f.box(150, key="exec-plan", label="exec-plan", cls="exec", sub="FIS or plan directory",
       kicker="andthen · exec-plan",
-      body=["Run a plan bundle: admit every schedulable FIS, one fresh exec-spec subagent per ready story, then the full tier on the final tree.",
-            "Ends on a Next: line – one paste, the plan-level review with --fix – for a fresh session. exec-spec is yours to run per story by hand too."])
-assert s.x == p.x, (s.x, p.x)
-mx = s.x + 14
-for ly in (TOP_Y, BOT_Y):
-    seg(s.x + 6, ly + BH / 2, mx, ly + BH / 2)
-seg(mx, TOP_Y + BH / 2, mx, BOT_Y + BH / 2)
-arrow(mx, MID_Y, s.x + FORK, MID_Y)
-f.x = s.x + FORK + 6
-f.box(234, key="review", label="review", cls="tail", sub="--mode code,gap,security,outcome --fix",
+      body=["Implement one FIS where it is invoked: the tasks, the proofs and the full tier, one fresh reviewer subagent, the fixes, the verified line.",
+            "On a plan directory: one fresh exec-plan subagent per ready story, the full tier and one simplify-code pass, then a Next (fresh session): line for the plan review."])
+f.arrow()
+f.box(224, key="review", label="review", cls="tail", sub="code · gap · security · outcome",
       kicker="andthen · review",
       body=["Proof-led code / gap / security / outcome review over the plan – outcome when it names a PRD – and PR review; a story's own review is one",
             "--quick pass. Proves coverage before the verdict and routes findings into Fix / Note; --fix hands the Fix set to implement-fix. Runs on any diff."])
-f.arrow()
-f.box(120, key="implement-fix", label="implement-fix", cls="tail", size=12,
+f.arrow(read=True)
+f.box(120, key="implement-fix", label="implement-fix", cls="tail", size=12, sub="the Fix findings",
       kicker="andthen · implement-fix",
       body=["Apply a report's Fix-routed findings – what review --fix runs on its own report – or a sentence-sized request of your",
-            "own, as minimal changes across code, specs, plans, and docs, then re-verify once and annotate. No re-review."])
+            "own, as minimal changes across code, specs, and docs, then re-verify once and annotate. No re-review."])
 f.arrow()
-f.pr()
+f.ship(gate=3, key="ship", kicker="andthen · ship",
+       body=["Lands what each FIS's Observations hold worth keeping, deletes plan.json and the FIS files, and commits the branch's own work.",
+             "Then shows the PR / MR title and body and asks once before it pushes and opens it. --auto stops before the push."])
 assert f.x <= BR - 14, f.x
 
 # ------------------------------------------------ artifacts
-y = 318
+y = 326
 band(BX, y, BW, 112, "band-art", "ARTIFACTS", "The hand-offs",
-     ["Branch-scoped until", "the merge"])
+     ["plan.json and FIS go", "before the merge;", "prd.md and ADRs stay"])
 CX0 = 224
-CW, CH = 196, 74
+CW, CH = 204, 74
 CG = (BR - 22 - CX0 - 4 * CW) / 3
-cards = [("intent", "a short source", ["from anywhere, or clarify --brief:", "a note, an issue, intent.md"],
-          "artifact · a short source · optional",
-          ["Written by hand – a pasted note, a tracker issue, a sentence, the five-section intent.md – or by clarify --brief; read by clarify or spec,",
-           "now-what and architecture. clarify folds it into prd.md, spec into the FIS."]),
+# in flow order (clarify → decide → plan), so the links to the workflow row never cross
+cards = [("intent", "intent.md / note", ["a short note or an issue, or", "what clarify --brief writes"],
+          "artifact · intent.md or a short note · optional",
+          ["Written by hand – a pasted note, a tracker issue, a sentence, the five-section intent.md – or by clarify --brief; read by clarify or plan,",
+           "now-what and architecture. clarify folds it into prd.md, plan into the FIS."]),
          ("prd", "prd.md", ["what and why, agreed;", "the surviving product record"],
           "artifact · prd.md · durable",
-          ["Written by clarify; read by spec or plan and review --mode gap,outcome. The governing artifact, and the one that outlives the branch:",
-           "plan.json and the FIS files are branch-scoped – delete them before the merge; prd.md stays."]),
-         ("planjson", "plan.json", ["story inventory, dependencies,", "status, one FIS pointer per story"],
-          "artifact · plan.json · branch-scoped",
-          ["Written by plan, or by spec for the one-story plan, and by the run session alone at runtime; read by exec-plan, exec-spec, review, now-what and tracker.",
-           "a story reaches done only together with the verified line quoting what ran. Its prd field is the PRD or requirements file, else null."]),
-         ("fis", "FIS", ["intent, scenarios with Proof", "bindings, scope boundaries, tasks"],
-          "artifact · Feature Implementation Specification · branch-scoped",
-          ["One per story, authored by spec – standalone for one story, one subagent per story under plan; read by exec-spec and review.",
-           "scenarios with runnable Proof bindings, what we are not doing, and tasks naming what they SATISFY and how to Verify."])]
+          ["Written by clarify; read by plan and review --mode gap,outcome. The governing artifact, and the one that outlives the branch:",
+           "plan.json and the FIS files are branch-scoped – ship deletes them before the merge; prd.md stays."]),
+         ("adr", "ADRs", ["technical decisions by decide,", "indexed in DECISIONS.md"],
+          "artifact · architecture decision record · durable",
+          ["Written by decide, one per decision with real alternatives, in the ADRs location (default docs/adrs/) and registered in the Decisions document;",
+           "a choice with no real alternative gets a one-line Decisions entry instead. Later skills read them as settled, and they outlive the branch."]),
+         ("plan-fis", "plan.json + FIS", ["stories, order, status, and", "one spec (FIS) per story"],
+          "artifact · plan.json and Feature Implementation Specifications · branch-scoped",
+          ["Written by plan: plan.json lists the stories, their dependencies and status; each FIS holds its story's intent, scenarios with runnable",
+           "Proof bindings, scope, and tasks. exec-plan builds from them, and a story is done only with the verified line quoting what ran."])]
 card = {}
 for i, (key, title, desc, kick, body) in enumerate(cards):
     cx = CX0 + i * (CW + CG)
     cy = y + 20
     card[key] = (cx + CW / 2, cy, cy + CH)
     out.append(f'<g class="hot" tabindex="0" data-hotspot="{key}">')
-    out.append(f'<rect x="{cx:.0f}" y="{cy}" width="{CW}" height="{CH}" rx="8" class="card"/>')
-    out.append(f'<path d="M{cx + CW - 18:.0f},{cy} L{cx + CW:.0f},{cy + 18} L{cx + CW - 18:.0f},{cy + 18} z" class="fold"/>')
+    # a dog-eared note: the card's top-right corner is cut off, and the flap folds down inside it
+    x0, x1, y1, F, R = cx, cx + CW, cy + CH, 18, 8
+    out.append(f'<path d="M{x0 + R:.1f},{cy} H{x1 - F:.1f} L{x1:.1f},{cy + F} V{y1 - R} '
+               f'A{R},{R} 0 0 1 {x1 - R:.1f},{y1} H{x0 + R:.1f} A{R},{R} 0 0 1 {x0:.1f},{y1 - R} '
+               f'V{cy + R} A{R},{R} 0 0 1 {x0 + R:.1f},{cy} Z" class="card"/>')
+    out.append(f'<path d="M{x1 - F:.1f},{cy} V{cy + F} H{x1:.1f} Z" class="fold"/>')
     text(cx + 14, cy + 24, title, "card-t", 13, family=MONO, weight="700")
     for j, ln in enumerate(desc):
-        text(cx + 14, cy + 44 + j * 15, ln, "card-s", 11)
+        text(cx + 14, cy + 44 + j * 15, ln, "card-s", 12)
     detail(kick, body)
     out.append('</g>')
 assert CG >= 20, CG
 
 # artifact links, once the box geometry is known
-# spec sits above plan and writes the same two, so plan's links stand for both lanes
-link(CLARIFY_X - 10, MID_Y + BH / 2 + 2, card["intent"][0], card["intent"][1] - 2)
-link(CLARIFY_X + 10, MID_Y + BH / 2 + 2, card["prd"][0], card["prd"][1] - 2)
-link(PLAN_X - 12, BOT_Y + BH + 2, card["planjson"][0], card["planjson"][1] - 2)
-link(PLAN_X + 12, BOT_Y + BH + 2, card["fis"][0], card["fis"][1] - 2)
+link(CLARIFY_X - 10, ROW_Y + BH + 2, card["intent"][0], card["intent"][1] - 2)
+link(CLARIFY_X + 10, ROW_Y + BH + 2, card["prd"][0], card["prd"][1] - 2)
+link(DECIDE_X, ROW_Y + BH + 2, card["adr"][0], card["adr"][1] - 2)
+link(PLAN_X, ROW_Y + BH + 2, card["plan-fis"][0], card["plan-fis"][1] - 2)
 
 # ------------------------------------------------ standalone skills
-y = 446
-SEC_H = 220
-band(BX, y, BW, SEC_H, "band-core", "STANDALONE", "andthen – call any time", "No pipeline or setup required; 21 skills in all")
-core = [("now-what", "First-stop router – inspects project state (init'd? greenfield? brownfield? mid-flow?) and routes to the right skill."),
-        ("init", ["Set up the workflow structure: CLAUDE.md / AGENTS.md, the Project Document Index, the orientation docs,",
-                  "the foundational rules guideline, and the four opt-in roles below."]),
-        ("handoff", "Compact the conversation into a document a fresh session resumes from; durable fragments go to the plan and the Learnings document."),
-        ("triage", ["Investigate, diagnose, and fix build failures, config errors, runtime bugs, regressions, test failures.",
+y = 454
+SEC_H = 232
+band(BX, y, BW, SEC_H, "band-core", "STANDALONE", "andthen – call any time", "No pipeline or setup required; 20 skills in all")
+core = [("now-what", "routes you to a skill", "First-stop router – inspects project state (init'd? greenfield? brownfield? mid-flow?) and routes to the right skill."),
+        ("init", "sets up your project", ["Set up the workflow structure: CLAUDE.md / AGENTS.md with the Project Document Index, Key Dev Commands,",
+                  "and one-line offers for the foundational rules guideline and the four opt-in roles below."]),
+        ("handoff", "resume next session", "Compact the conversation into a document a fresh session resumes from; durable fragments go to the Learnings document."),
+        ("triage", "debug and fix", ["Investigate, diagnose, and fix build failures, config errors, runtime bugs, regressions, test failures.",
                     "A reproducible bug gets a failing test before the fix. No spec, no plan state."]),
-        ("testing", ["Test strategy (writes the Testing Strategy document), test authoring, TDD, and the Prove-It bugfix flow.",
+        ("testing", "strategy and TDD", ["Test strategy (writes the Testing Strategy document), test authoring, TDD, and the Prove-It bugfix flow.",
                      "Suites at every level, E2E included."]),
-        ("visual-validation", "Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks."),
-        ("describe", ["Describe what a project already is: --mode codebase maps it into docs, --mode domain extracts the Ubiquitous",
-                      "Language; --model emits the typed architecture or domain model."]),
-        ("tracker", ["Project a plan bundle into the issue tracker: publish creates the parent and one child issue per story,",
-                     "and a re-run refreshes them from the plan's current state."]),
-        ("backlog-triage", "Label, categorize, and route untriaged tracker items toward implementation or a human decision. Debugging a failure is the triage skill."),
-        ("spike", "Answer one named design question by building a throwaway runnable spike, then report a verdict – evidence, not product."),
-        ("simplify-code", "Behavior-preserving simplification: less complexity, less over-engineering, exact behavior kept."),
-        ("skill-review", ["Review one skill bundle or prompt-like file against skill craft – trigger surface, conflicts, contracts, prose failure modes;",
-                          "--fix tightens it with zero contract loss."])]
+        ("visual-validation", "UI against its design", "Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks."),
+        ("describe", "map code, glossary", ["Describe what a project already is: --mode codebase maps it into docs, --mode domain extracts the Ubiquitous",
+                      "Language; --model adds the typed architecture or domain model."]),
+        ("architecture", "advice and analysis", ["Design advice grounded in CUPID / DDD, in text. review, decompose, fitness, strategic-design and event-storming",
+                          "run the deep analysis, singly or chained. No code changes."]),
+        ("tracker", "plan to issue tracker", ["The issue tracker: publish projects a plan bundle into a parent and one child issue per story,",
+                     "triage labels and routes untriaged items, and setup writes the Issue Tracker document."]),
+        ("visualize", "artifact as a page", ["Draw an AndThen artifact – a model, a board, a plan, any spec or report – as one self-contained HTML page",
+                         "with inline SVG figures, rendered and looked at before it is shown."]),
+        ("spike", "build to answer", "Answer one named design question by building a throwaway runnable spike, then report a verdict – evidence, not product."),
+        ("simplify-code", "less code, same result", "Behavior-preserving simplification: less complexity, less over-engineering, exact behavior kept.")]
 COLS = 7
-ch, cg = 38, 10
+ch, cg = 46, 10
 cw = (BW - 44 - (COLS - 1) * cg) / COLS
 cx, cy = BX + 22, y + 88
 rows = (len(core) + COLS - 1) // COLS
-for i, (key, body) in enumerate(core):
+for i, (key, sub, body) in enumerate(core):
     hot(key, cx + (i % COLS) * (cw + cg), cy + (i // COLS) * (ch + cg), cw, ch,
-        key, "core", f"andthen · {key}", body, size=12, rx=7)
+        key, "core", f"andthen · {key}", body, sub=sub, size=12, rx=7)
 FOOT_Y = cy + rows * (ch + cg) + 6
-text(cx, FOOT_Y, "+ the 9 workflow skills above", "t3", 11.5)
+text(cx, FOOT_Y, "+ the 8 workflow skills above", "t3", 12)
 assert FOOT_Y + 16 <= y + SEC_H, (FOOT_Y, SEC_H)
 
 # ------------------------------------------------ roles
-y = 446 + SEC_H + 16
+y = 454 + SEC_H + 16
 band(BX, y, BW, 64, "band-roles", "ROLES", "", "")
-text(BX + 22, y + 48, "Opt-in subagent tiers installed by init; each pins its model and effort.", "t2", 11.5)
-roles = [("oracle", "top model · xhigh", ["Judgment work the user assigns it, and hard problems an agent hands over because they exceed its tier: a failure that",
+text(BX + 22, y + 48, "Opt-in subagent tiers installed by init; each pins its model and effort.", "t2", 12)
+roles = [("oracle", "S-tier model", ["Judgment work the user assigns it, and hard problems an agent hands over because they exceed its tier: a failure that",
                                           "survives a real fix, a design that will not close, a cause the material at hand cannot explain."]),
-         ("implementer", "top model · high", ["One fully-specified unit of work: executing a story or spec, research that weighs or synthesises sources,",
+         ("implementer", "A-tier model", ["One fully-specified unit of work: executing a story or spec, research that weighs or synthesises sources,",
                                               "authoring a FIS for a pinned plan story."]),
-         ("reviewer", "top model · medium", ["One review pass over a pinned target – a diff, a document, a design, a claim. Effort sits below",
-                                             "implementation on purpose: more review effort breeds scope creep, not findings."]),
-         ("worker", "cheap model · medium", ["One small, well-specified, verifiable subtask: retrieval, scans, mechanical edits, fact lookups against a pinned",
+         ("reviewer", "A-tier model", ["Any review, of any target, returning findings and a verdict. Read-only unless the prompt",
+                                    "carries a fix contract."]),
+         ("worker", "B-tier model", ["One small, well-specified, verifiable subtask: retrieval, scans, mechanical edits, fact lookups against a pinned",
                                              "question. Answers found, never made."])]
 rw, rg = 150, 10
 rx = BR - 22 - 4 * rw - 3 * rg

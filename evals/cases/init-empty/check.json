@@ -1,0 +1,8 @@
+{
+  "forbiddenArtifacts": ["docs/**"],
+  "allowedPaths": ["AGENTS.md", "CLAUDE.md", ".gitignore", ".agent_temp/**"],
+  "requiredText": {
+    ".gitignore": [".agent_temp/", "*-andthen-*-review-*.md"]
+  },
+  "oracle": "oracle.py"
+}

@@ -5,8 +5,9 @@ Case data, not harness. Two independent stories ran in parallel worktrees and
 were merged back; the checks read the merged tree and the git shape (one
 worktree left, no story branches, a merge commit, both trailers), and this
 oracle reads what no check.json key sees: each story row, the task id it
-recorded, and the `verified` record the run session wrote in the main checkout
-from the proof lines its own subagent executed.
+recorded, and the `verified` record each story wrote and committed in its own
+worktree from the proof lines it executed, which reached the main checkout with
+the merge.
 
 Python 3 standard library only, 3.9-compatible.
 """

@@ -82,7 +82,7 @@ class CorpusTest(unittest.TestCase):
 
 
 class NotesSampleTest(unittest.TestCase):
-    """The payload shape a viewer sends back and now-what routes on: owner and path
+    """The payload shape a viewer sends back: owner and path
     in the H1, one `## Section:` block per annotated heading of that artifact,
     bullets, and two-space continuation for a multi-line note."""
 

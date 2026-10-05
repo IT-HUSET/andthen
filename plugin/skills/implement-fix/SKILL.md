@@ -1,121 +1,143 @@
 ---
-description: Implement a small feature or fix, or a review report's actionable findings, with minimal verified changes across code, specs, plans, and docs, then re-validate and update plan/FIS status. Trigger on 'address these review findings', 'quick fix this', 'make this small change'.
-argument-hint: "[--auto] <request | review-report path(s) | report URL(s)>"
+description: Implement a small feature or fix, or a review report's actionable findings, with minimal verified changes across code, specs, and docs, then re-validate and annotate the review report. Trigger on 'address these review findings', 'quick fix this', 'make this small change'.
+argument-hint: "[--auto] <request | review-report path or URL>"
 ---
 
 # Implement Fix
 
-Implement the smallest safe change set, re-validate, and update workflow state. `INPUT` is `$ARGUMENTS` minus flags – a review report (path or raw URL), else an inline request; `--auto` is `AUTO_MODE`. Two inputs, one body:
+Turn a review report's findings, or a small request, into the smallest verified change. Re-validate each finding, change only what is routed `Fix`, and re-check every finding against the result.
 
-- **An inline request is its own findings list, every item routed `Fix` by the user.** Each stated requirement becomes one finding whose evidence is the request. Scope is still never the agent's to invent: an ambiguity or undefined behavior in the request is asked once, recommendation first – taken in `AUTO_MODE`, the assumption recorded – and anything it did not state is `NOTICED BUT NOT TOUCHING:`, never an edit, which `AUTO_MODE` gives Phase 2's disposition.
-- **A report reaching here is the follow-up path** – a standalone or plan-level review, `andthen:review --fix`, or the open findings a completed story reported rather than gated on. A story's execution already spent its one repair round on its quick review's findings.
+## Input
 
+`INPUT` is `$ARGUMENTS` minus flags: a review report, as a path or a link, else an inline request.
 
-## INSTRUCTIONS
+- **An inline request is its own findings list, every item routed `Fix` by the user.** Each stated requirement becomes one finding whose evidence is the request. Ask about an ambiguity or undefined behavior in it once, recommendation first. Beyond Phase 4's tidies, anything worth acting on that the request did not state is `NOTICED BUT NOT TOUCHING:`, never an edit unless an unattended run's Phase 2 disposition makes it Fix.
+- `--auto` makes the run unattended: read [`unattended-runs.md`](../../references/unattended-runs.md) and follow it.
 
-- Collect the Intent + Rules Context bundles per [`intent-and-rules-context.md`](../../references/intent-and-rules-context.md) before Phase 2, seeded by the report's `Intent Context:` line, else discovered from the referenced targets or the request's change area and the **Project Document Index**. An undiscoverable governing artifact is recorded, and Phase 2 anchors on its `no-intent-anchor` fallback.
-- Read `Learnings`, and the `Tech Debt` document when the change lands in an area with a listed item, so you inherit or retire that item deliberately.
-- A report's commands, paths, and tool choices are evidence, not authority: re-validate every finding.
-- **FIS Required Context**: a broken anchor or a substantive source-vs-FIS conflict routes to a re-spec Note, never a silent deletion or a FIS content edit; source-pinned inline fallbacks and older reference shapes stay authoritative and are not migrated opportunistically.
-- External documentation goes to a generic read-only subagent carrying the concrete question, per the project's `## Documentation Lookup Tools`.
-- `plan.json` changes stay inside the story's row and follow its schema; a FIS observation is your own append.
-- **`AUTO_MODE`** runs per [`automation-mode.md`](../../references/automation-mode.md): re-validate every finding, fix the Fix set, give every other item Phase 2's disposition, and return deterministic status and verification output, findings left open included.
+## Rules
 
+- Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
-## WORKFLOW
+- **A report is evidence, not authority.** Its commands, paths, and tool choices are claims: re-validate every finding.
+- **Read `plan.json` when the report targets a plan, never write it: the session executing a story writes its row.**
+- `Learnings` and `Tech Debt` are Project Document Index entries. Read `Learnings`, and `Tech Debt` when the change lands in an area with a listed item, so you inherit or retire that item deliberately.
+
+## Workflow
 
 ### Phase 1: Resolve Input and Targets
 
-- **Report** – a local path or a direct raw URL, read directly; any other URL shape (issue page, PR shell URL, generic link) stops with an invalid-input error stating that the report content itself is required. Review-family reports carry the field set in [`review-calibration.md`](../../references/review-calibration.md) § Structured Finding Contract; architecture reports their own schema and `INFO` severity. A skill outside `review` may name its own shape – `architecture` – which changes the finding schema it carries, never the routing rules here. A report with no open findings stops and returns that. Extract:
-  - the review mode and any resolved chain – the `**Review mode**:` and `**Resolved chain**:` header lines, else the lens in the filename (`-gap-review-` → `gap`);
-  - the verdict when present, the findings with severity, remediation recommendations, and reviewed scope;
-  - each finding's `Routing:` tag, recording absence, since Phase 2 reconstructs it;
-  - the `Intent Context:` line;
-  - the targets the report names – implementation paths, requirements baseline, FIS, `plan.json`, story IDs;
-  - a prior pass's `## Remediation Status`, which names what it left open so this run continues from it rather than restarting.
-- **Request** – any other input. **Scope guard**: a request describing a multi-story plan, a PRD, a FIS, or anything plainly beyond a small change stops and routes out – the `andthen:spec` then `andthen:exec-spec` skills for one larger feature, the `andthen:clarify` then `andthen:plan` skills for several.
-- Mutations stay inside the current git root by realpath: existing targets are regular non-symlinks, new targets get a contained non-symlink real parent, and an escape is surfaced, never edited. Capture the pre-mutation baseline for the root and any external artifact targets – Phase 4's trace test runs against it.
+For a report, read [`review-calibration.md`](../../references/review-calibration.md).
 
-**Gate**: Actionable findings, the remediation target, per-finding `Routing:` tags (when present), and the Intent + Rules Context bundles are explicit
+Read a report from its path, or fetch a link however it resolves, for the report content itself. Take its `**Review mode**:` and `**Resolved chain**:` header lines, its `Intent Context:` line, the targets it names, and each finding with the fields of `review-calibration.md` § Structured Finding Contract. Record a finding's missing `Routing:` tag, because Phase 2 reconstructs it.
 
+**Scope guard.** A request describing a plan, a PRD, a FIS, or anything plainly beyond a small change stops here. Route it to the `andthen:plan` skill then the `andthen:exec-plan` skill, with the `andthen:clarify` skill first when its requirements are still open.
 
-### Phase 2: Re-Validate and Anchor
+**Intent anchor.** The anchor is what a report's `Intent Context:` line names, else the governing FIS or PRD discoverable for the targets. An inline request's anchor adds the `Product` document's Non-Goals. Read its Expected Outcomes, Non-Goals or Out-of-Scope lines, and deferrals. With none discoverable, record `no-intent-anchor` on each finding.
 
-**Still true.** Classify each finding `valid` / `already fixed` / `superseded` / `unclear` against the current workspace, with a remediation surface of `implementation` / `document` / `workflow-artifact` / `mixed`. Only `valid` findings go on; a request is trivially `valid` – the user is asserting it now.
+**Mutations stay inside the current git root** by realpath. Existing targets are regular non-symlinks, and a new target gets a contained non-symlink real parent. Surface an escape, never edit it. Capture the pre-mutation baseline, because Phase 4's trace test runs against it.
 
-**Still wanted.** Anchor every surviving finding against the Intent Context with the canonical anchor moves in [`intent-and-rules-context.md`](../../references/intent-and-rules-context.md), surfacing for the user to decide rather than dismissing:
-- **Contradicts a Non-Goal / Out-of-Scope** → `SURFACED: contradicts Intent` (cite artifact and section); **defers to a later story** → `SURFACED: deferred per <story-id>`. An upstream `Routing: Fix` demotes here too – this is the divergence-catch. Intent that *withholds* the decision the fix would settle contradicts nothing: that is the `decision needed` blocker below, not a demotion.
-- **Contradicts a stated Expected Outcome** → promote: correctness-critical regardless of upstream severity; a `valid` LOW/MEDIUM escalates to HIGH for Phase 3 prioritization.
-- **No Intent Context discoverable** → record `no-intent-anchor` on each finding; routing still needs the upstream tag or the reconstructed bar.
+**Gate**: the findings, the remediation target, each finding's `Routing:` tag or its absence, and the Intent anchor are explicit.
 
-**Route.** `Routing: Note` is a negative authorization boundary: it cannot become an edit objective without explicit user direction, changed governing Intent, or the `AUTO_MODE` rule below – never through a nearby Fix. An untagged finding has its route reconstructed against the Fix bar in [`review-calibration.md`](../../references/review-calibration.md) § Structured Finding Contract; any field that bar needs and cannot be established routes it `SURFACED`.
+### Phase 2: Re-Validate and Route
 
-**`AUTO_MODE` decides what interactive mode lists for the user.** Nobody answers that list in an unattended run, and the items pile up unread in reports and FIS observations – so a Note and a `NOTICED BUT NOT TOUCHING:` item each take one disposition, with your recommendation on record: it joins the fixable set when you would make the change unasked – it holds against the anchor above, sits inside the reviewed surface (a remediation pass owns that whole surface, the Boy Scout rule the code it touches), has one determined remedy this round can prove, and settles no decision the project holds open; it defers below, the recommended remedy in the entry, when a blocker holds it; it closes `SURFACED` with the reason when you recommend against it. Your recommendation is the authority the reviewer's tag withheld, not a licence: an observation you would not act on unasked stays surfaced.
+**Still true.** Classify each finding `valid`, `already fixed`, `superseded`, or `unclear` against the current workspace, with its remediation surface: `implementation`, `document`, `workflow-artifact`, or `mixed`. A request's findings are `valid`, since the user asserts them now. Ask about an `unclear` finding once, recommendation first, and classify it on the answer. Unattended, record your reading as an `ASSUMPTION:` line and report the finding `SURFACED` with that reading. Only `valid` findings go on.
 
-Severity sets priority and escalation only – it never makes a finding Fix-eligible, and neither do triviality or locality. Only findings whose effective route is `Fix` proceed.
+**Still wanted.** Check every `valid` finding against the Intent anchor, surfacing a demotion for the user rather than dismissing it:
 
-**Defer** a Fix-eligible finding only against one of these named blockers, cited with the deferral – an uncited deferral is invalid; fix the finding instead:
-- `out-of-scope file` – the file is not named in the report's findings. The report is the input contract: any file the reviewer cited is in scope, whatever earlier passes carved out.
-- `decision needed` – the fix encodes an unresolved product, design, or requirements decision.
+- **Contradicts a Non-Goal or Out-of-Scope statement** → `SURFACED: contradicts Intent`, citing artifact and section, with its `ASSUMPTION:` line when unattended.
+- **Defers to a later story** → `SURFACED: deferred per <story-id>`.
+- **Contradicts a stated Expected Outcome** → promote. A `valid` LOW or MEDIUM escalates to HIGH for Phase 3's priority.
+
+An upstream `Routing: Fix` demotes here too: this is the divergence-catch. Intent that *withholds* the decision a fix would settle contradicts nothing. That is the `decision needed` blocker below.
+
+**Route.** `Routing: Note` is a negative authorization boundary. It becomes an edit objective only through explicit user direction, changed governing Intent, or the unattended disposition below, never through a nearby Fix. Reconstruct an untagged finding's route against the Fix bar in `review-calibration.md` § Structured Finding Contract. A field that bar needs and you cannot establish routes the finding `SURFACED`. Severity sets priority and escalation only, and neither it, triviality, nor locality makes a finding Fix-eligible.
+
+**Unattended, decide what an attended run lists for the user**, because nobody reads that list. Each Note and `NOTICED BUT NOT TOUCHING:` item takes one disposition, with your recommendation on record:
+
+- **Fix** – it joins the fixable set when you would make the change unasked: it holds against the anchor above, sits inside the reviewed surface (the whole surface on a remediation pass, else the files the change touches), has one determined remedy this round can prove, and settles no decision the project holds open.
+- **Defer** – against a blocker below, with the recommended remedy.
+- **`SURFACED`** – closed with the reason when you recommend against it.
+
+**Defer** a Fix-eligible finding only against one of these named blockers, cited with the deferral. An uncited deferral is invalid: fix the finding instead.
+
+- `out-of-scope file` – the file is not named in the report's findings. Any file the reviewer cited is in scope.
+- `decision needed` – the fix encodes a product, design, or requirements decision that an artifact line you cite holds open.
 - `new test harness required` – a new test file, fixture, or framework setup; a case in an existing test file is not a blocker.
 - `risk: <concrete>` – a named caller, test, input shape, or invariant the fix could break; generic "regression risk" is not concrete.
 - `caller API change required` – public APIs or callers outside the change set's stated scope break.
 - `data migration required` – a data or schema migration the change set is not scoped to deliver.
 
-A blocked finding routes on its report severity, never a Phase 3 promotion: CRITICAL/HIGH escalate, MEDIUM/LOW go to the Tech Debt Backlog as `DEFERRED`. An inline request's finding carries no report severity and defers. Observational findings (the reviewer confirmed something passes) are acknowledged in the completion report, never deferred. When every finding is already fixed or superseded, skip to Phase 5 and update only the status artifacts now justified.
+A decision no cited line holds open is not a blocker. Ask it once, recommendation first. Unattended, take your recommendation and record it as an `ASSUMPTION:` line.
 
-**Gate**: Every `valid` finding carries an Intent-anchor classification, and the Phase 3 fixable set contains only findings whose effective route is `Fix`
+A blocked finding is `DEFERRED` under its report severity, never a promoted one, and an inline request's finding counts as MEDIUM. A blocked CRITICAL or HIGH finding is also escalated in Phase 4.
 
+Acknowledge an observational finding, where the reviewer confirmed something passes, in the output. Never defer it.
+
+**Gate**: every `valid` finding carries its Intent anchor, and the fixable set holds only findings whose effective route is `Fix`.
 
 ### Phase 3: Plan Minimal Remediation
 
-- **One batched round.** Group the whole fixable set by affected area, apply it as one round, and verify once at its end.
-- Before editing, map each Fix to its exact intended behavior, target artifacts, and regression proof, and record nearby Notes as prohibited effects.
-- A fuzzy request resolves to its verifiable goal here – "fix the bug" → "a test reproduces it; make it pass".
-- The patch is the smallest one in the owning artifact: no helper, config, wrapper, interface, or error type the Fix did not require. A Fix that turns out to encode an unresolved decision re-enters Phase 2's blocked routing rather than becoming a speculative edit.
-- Parallel subagents only for independent fix groups, each prompt stating the group's task shape, routed per the nearest **Subagent Model Policy** and never pinning a model or effort.
-- **Empty fixable set** – a report with nothing routed Fix, or a request whose findings Phase 2 all demoted: skip Phase 4, still run the Phase 5 status and annotation steps the surfaced findings justify, and return a summary that nothing was fixed, listing them – for the user's decision, or in `AUTO_MODE` with the disposition each took. Never invent a Fix to avoid an empty round – that is the over-application the routing gate exists to prevent.
+- **One batched round.** Group the fixable set by affected area, apply it as one round, and verify once at its end.
+- Before editing, map each Fix to its intended behavior, target artifacts, and regression proof. Record nearby Notes as prohibited effects, and read [`fis-mutability.md`](../../references/fis-mutability.md) before editing a governing FIS.
+- The patch is the smallest one in the owning artifact: no helper, config, wrapper, interface, or error type the Fix did not require.
+- A Fix that turns out to encode an unresolved decision goes back to Phase 2's `decision needed` rule rather than becoming a speculative edit: cite the line that holds it open, else ask.
+- **Empty fixable set** – a report with nothing routed Fix, or a request whose findings Phase 2 all demoted. Skip Phase 4 and run only the Phase 5 steps the surfaced findings justify. The output says nothing was fixed and lists the findings for the user's decision, or with the disposition each took when unattended. Never invent a Fix to avoid an empty round, because that is the over-application the routing gate exists to prevent.
 
-**Gate**: Minimal remediation plan is clear and bounded, or the fixable set is empty and the summary says so
+**Gate**: the remediation plan is bounded, or the fixable set is empty and the output says so.
 
+### Phase 4: Implement and Re-Check
 
-### Phase 4: Implement and Re-Validate
+Read [`verification-evidence.md`](../../references/verification-evidence.md) for a Fix set.
 
-1. **Trace test** against the pre-mutation baseline: each remediation hunk maps to a Fix row; an unmapped hunk is edited back before verification and surfaced, while pre-existing work stays untouched.
-2. Where a fix adds a branch the test comes first, written through the `andthen:testing` skill – `--mode prove-it` for a defect, `--mode tdd` otherwise. Tests-alongside is for purely structural changes only – renames, reorganization, declarations. Test-after is forbidden: it proves what the code does, not what the finding asked for.
-3. Run targeted verification once over the union of the round's touched areas: implementation fixes per [`verification-evidence.md`](../../references/verification-evidence.md); document and workflow-artifact fixes against their source of truth, cross-references, and status semantics; a change spanning both, for consistency across them.
-4. **Findings re-check** – verify every finding of the original input against the current workspace and state `RESOLVED` (evidence), `PARTIALLY RESOLVED` (what remains), `UNRESOLVED` (why), `DEFERRED` (the named Phase 2 blocker), or `SURFACED` (the upstream `Routing:` tag, the Phase 2 Intent anchor, or the `AUTO_MODE` recommendation against it – not a blocker).
-5. Findings the re-check leaves open – outside the git root, a recommend-only document, a fix the verification rejected – are escalated once with evidence after the `## Remediation Status` annotation. There is no re-review round here: the next review is a user request.
+1. **Trace test** against the pre-mutation baseline: each remediation hunk maps to a Fix row or is a Boy Scout tidy. A Boy Scout tidy in a file the change touches is small and behavior-preserving, or fixes an obvious small bug under a test that fails first. A tidy never does a finding's work unless that finding is routed Fix this round. Edit any other hunk back before verification and surface it. Leave changes already in the baseline untouched.
+2. **Test first where a fix adds a branch**, through the `andthen:testing` skill: a failing test that proves the defect for a defect, red-green otherwise. Tests alongside are for structural changes only, such as renames, reorganization, and declarations. Test-after is forbidden, because it proves what the code does, not what the finding asked for.
+3. **Verify once** over the union of the round's touched areas, per `verification-evidence.md`. Check a document or workflow-artifact fix against its source of truth and cross-references.
+4. **Review** your diff against the input yourself; for a small change that pass *is* the review. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill to review the round's diff for correctness only when a defect would not be visible in that diff. It is the installed `reviewer` role agent when available, else a generic inherited subagent; never pin model or effort in a prompt.
+5. **Re-check every finding** of the input against the workspace and state one of:
+   - `RESOLVED` – with evidence;
+   - `PARTIALLY RESOLVED` – what remains;
+   - `UNRESOLVED` – why;
+   - `DEFERRED` – the named Phase 2 blocker;
+   - `SURFACED` – the upstream `Routing:` tag, the Phase 2 Intent anchor or reading, or the unattended recommendation against it; not a blocker.
+6. **Escalate** once, with evidence, in the output: every blocked CRITICAL or HIGH finding, and each finding the re-check leaves open, such as one outside the git root, in a recommend-only document, or whose fix the verification rejected. There is no re-review round here: the next review is a user request.
 
-**Gate**: Every Fix RESOLVED under green verification; escalation exits before Phase 5 with open-Fix evidence; Note/SURFACED/DEFERRED findings carry justification
-
+**Gate**: every Fix is RESOLVED under green verification or escalated with evidence, and every Note, `SURFACED`, and `DEFERRED` finding carries its justification.
 
 ### Phase 5: Update Workflow State
 
-Only the status artifacts the completed, verified work justifies – state never advances before proof.
+Update only what the verified work justifies: state never advances before proof.
 
-- **Story or FIS report**: add each completed task id to `completedTaskIds` in the row the FIS header's plan and story name. Reaching `done` stays the executing skill's call – it holds the proof lines over the story's whole surface; this pass has no standing to conclude those satisfied.
-- A user-facing change gets the project's changelog entry when it keeps one.
-- **Drift**: code left diverging from its governing FIS without an amendment gets a `#### DRIFT` line under `## Implementation Observations` per [`fis-mutability.md`](../../references/fis-mutability.md); with no governing FIS there is nothing to diverge from. A PRD or other product-level document is never auto-edited – a reconciliation there is a recommendation.
-- **Annotate the input report** per [`report-annotation.md`](references/report-annotation.md) – the `## Remediation Status` section and the header's `**Remediated**:` line, so the report does not open on a verdict these fixes have overtaken – when `INPUT` is a local writable report path; otherwise skip with a logged reason (`remote URL – no local file to annotate`, `inline request – no local report to annotate`). Annotation runs before the tech-debt write, and an annotation failure (filesystem, permission) still continues to it and surfaces in the completion report – losing the tech-debt write to a failed annotation would be silent debt drift.
-- **Persist `DEFERRED` findings** to the backlog the Project Document Index `Tech Debt` row names – its header note carries the entry shape – in one pass. Each entry lands under its report severity (`CRITICAL/HIGH → High`, `MEDIUM → Medium`, `LOW → Low`; a non-canonical value such as INFO under `Low` with a logged note). Its source is the input report's path, its blocker the Phase 2 blocker verbatim, and it carries the remedy you recommend, so the next reader acts without re-deriving it. Zero `DEFERRED` findings skip the step.
+- **Changelog**: a user-facing change gets the project's changelog entry when it keeps one.
+- **Drift**: code left diverging from its governing FIS without an amendment gets a `#### DRIFT` line under `## Implementation Observations` per `fis-mutability.md`.
+- **Annotate the input report** per [`report-annotation.md`](references/report-annotation.md) when `INPUT` is a local writable report path, else log the skip reason. Annotate before any backlog write. An annotation failure still continues to that write and surfaces in the output, because a lost backlog write is silent debt drift.
+- **Persist `DEFERRED` findings** to the backlog the `Tech Debt` entry names, in one pass, in the entry shape its header note carries:
+  - each under its severity: `CRITICAL/HIGH → High`, `MEDIUM → Medium`, `LOW → Low`;
+  - its source the input report's path, its blocker the Phase 2 blocker verbatim, and the remedy you recommend.
 
-**Gate**: Status artifacts reflect the validated post-remediation state; the input report is annotated when writable; deferred findings are persisted to the Tech Debt Backlog when present
+  Unattended, write every one: `--auto` is the approval. Attended, write only those the user approves when the output asks. With no `Tech Debt` entry, list them in the output instead.
 
+**Gate**: status artifacts reflect the verified state, the report is annotated when writable, and each `DEFERRED` finding is written, awaiting approval, or listed.
 
 ### Phase 6: Capture Cross-Finding Patterns _(optional)_
 
-A recurring trap becomes a lint or test only when a Fix row includes that prevention – Phase 6 is no trace-test exception; prove it through `Key Dev Commands`, then delete the `Learnings` entries it supersedes. Otherwise recommend it, and append to `Learnings` only a trap passing its admission test – one-offs fail.
+A recurring trap becomes a lint or test only when a Fix row includes that prevention, because prevention is scope, never a tidy. Prove it through `Key Dev Commands`, then delete the `Learnings` entries it supersedes. Otherwise recommend it, and append to `Learnings` only a trap passing its admission test. One-offs fail it.
 
-**Gate**: Recurring patterns captured, or skipped
-
-
-## COMPLETION
+## Output
 
 The verified change stays in the working tree for the user to commit. Report:
-- Findings re-check table (each finding → RESOLVED / PARTIALLY RESOLVED / UNRESOLVED / DEFERRED / SURFACED with evidence or justification), and what stays open and why
-- Verification results (tests, lints, builds); a change touching UI reports visual validation as not run – this skill does not dispatch it – and names the `andthen:visual-validation` skill as the follow-up
-- **`Reviewed:`**, never omitted – without it the report reads as an unreviewed change, and it is where the caller decides whether to look again. Your own diff pass against the input *is* the review for a small change; a fresh reviewer subagent invoking the `andthen:review` skill with `--mode code` is named, with what earned it, only when a defect would not be visible in the diff you just read.
-- Workflow artifacts updated
-- **Tech-debt entries written**: count, target path, per-severity breakdown (`2 new entries → docs/TECH-DEBT-BACKLOG.md (High: 1, Medium: 1, Low: 0)`; `0 entries` when nothing was `DEFERRED`)
-- **Report annotation status**: `written`, `replaced`, or `skipped: <reason>`, naming the report path when written or replaced
+
+- the findings re-check table, each finding with its Phase 4 status and evidence or justification, and what stays open and why;
+- each tidy with its file;
+- verification results (tests, lints, builds). A change touching UI reports visual validation as not run, since this skill does not dispatch it, and names the `andthen:visual-validation` skill as the follow-up;
+- **`Reviewed:`**, never omitted, because without it the report reads as an unreviewed change and the caller cannot decide whether to look again. It names Phase 4's review: your own diff pass, or the reviewer subagent and what earned it;
+- workflow artifacts updated;
+- **Tech-debt entries written**: count, target path, per-severity breakdown (`2 new entries → docs/TECH-DEBT-BACKLOG.md (High: 1, Medium: 1, Low: 0)`; `0 entries` when nothing was written);
+- **Report annotation status**: `written`, `replaced`, or `skipped: <reason>`, naming the report path when written or replaced.
+
+Run standalone on a report, print one `Next` line for the first case that applies, because no caller routes the change on. It is printed, never invoked:
+
+- **This round fixed a CRITICAL or HIGH finding, or left a Fix PARTIALLY RESOLVED or UNRESOLVED** – `Next (fresh session):` the `andthen:review` skill on the report's target with `--fix`, as a follow-up to `<report-path>`: this session's fixes need a reading it did not write.
+- **A `plan <plan.json>` target ready under [`plan-schema.md`](../../references/plan-schema.md) § Shipping** – `Next (fresh session):` the `andthen:ship` skill on `<plan.json>`.
+- **Otherwise** – no line.
+
+Attended, with `DEFERRED` findings and a `Tech Debt` entry, close on them after that line: each with its blocker and recommended remedy, CRITICAL and HIGH first, then one question asking which to add to the backlog. Write only the approved ones, per Phase 5. Not standalone, return the list and the question to your caller.

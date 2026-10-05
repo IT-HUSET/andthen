@@ -1,0 +1,7 @@
+{
+  "criteria": [
+    {"id": "INIT_EMPTY_ONE_QUESTION", "intent": "The workspace holds no manifest, README or source file, so the run asks exactly one question, about what the project is, before it writes anything, and asks nothing else in either turn; questions_asked and the diff agree."},
+    {"id": "INIT_EMPTY_OVERVIEW_FROM_THE_REPLY", "intent": "The instruction file's Project Overview states the reply - a command-line tool that renames holiday photos by the date each was taken, for the user's own photo archive - without inventing a stack, users or features, and leaves no TODO placeholder."},
+    {"id": "INIT_EMPTY_WRITES_ONLY_THE_DEFAULTS", "intent": "The run writes the instruction file(s) and the .gitignore entries and nothing else - no Key Dev Commands document, since nothing declares a command, and no other project document - and its closing summary lists what it wrote."}
+  ]
+}
