@@ -14,7 +14,7 @@
 
 ## Current ADRs
 
-ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-028.
+ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-029.
 
 | ID | Title | Status | Scope |
 |----|-------|--------|-------|
@@ -28,6 +28,7 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 | [ADR-025](adrs/ADR-025-decide-skill.md) | Make and record technical decisions in a `decide` skill | Accepted | `decide` interviews over technical decisions and writes ADRs; `architecture` loses `trade-off` and `advise`'s Design sub-mode |
 | [ADR-026](adrs/ADR-026-ship-skill.md) | Ship the branch with a `ship` skill | Accepted | `ship` owns the close-out on any branch: lands FIS observations, deletes the bundle, commits, one ask before push and PR; the printers hand off to it |
 | [ADR-027](adrs/ADR-027-visualize-skill.md) | Draw AndThen artifacts as checked pages with a small `visualize` skill | Accepted | Model-written self-contained HTML with inline SVG, gated by a render-and-look loop; any artifact; `now-what` drops its notes route |
+| [ADR-028](adrs/ADR-028-tracker-record.md) | Keep a feature's record in the issue tracker, opt-in per project | Accepted | `Record: repo \| tracker`; the PRD lives in the source issue, story issues carry intent and acceptance, `ship` writes the final record and the merge closes it; prose, no script |
 
 ## Superseded
 

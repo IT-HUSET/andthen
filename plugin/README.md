@@ -4,7 +4,7 @@ Lightweight agentic software engineering for AI coding agents, spec-driven when 
 
 ## Installation
 
-Install steps for Claude Code, Codex CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, run `claude plugin marketplace add ./` from its root, then `claude plugin install andthen@andthen` for a persistent local install. Python 3 is the one runtime requirement (the `tracker` script).
+Install steps for Claude Code, Codex CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, run `claude plugin marketplace add ./` from its root, then `claude plugin install andthen@andthen` for a persistent local install.
 
 ## Setup
 
@@ -132,6 +132,7 @@ The requirements skill. It interviews you in rounds about gaps, edge cases, scop
 
 - **You get**: a self-contained PRD with a problem definition and success metrics. Settled domain terms go to the `Ubiquitous Language` document when one exists, and concepts you explicitly reject to the `Product` document's Non-Goals.
 - **Options**: `--brief` stops at `intent.md` (problem, outcome, affected systems, constraints, open questions, plus a decisions log). Edit or share it, then run `clarify` on its directory: only what is still open is asked. Product scope ignores the flag.
+- **Tracker record**: with `Record: tracker` in the `Issue Tracker` document, it asks once and then saves the PRD to its issue, creating one when the input was not an issue. `plan` on that issue takes the PRD back, so the local `prd.md` is optional to keep. `clarify` on the issue amends it.
 - **Good to know**: every run asks at least one round and waits for real answers, even when your input looks complete. You confirm the settled picture before anything is written; when the scope adds screens no wireframes cover, that question also asks whether design comes first. It closes on one next step: `decide` if a design fork binds beyond the work, then `ui-ux-design` if you chose design first, otherwise `plan`.
 
 ```bash
@@ -148,7 +149,7 @@ Makes the technical decisions a solution needs and records them. It sits between
 
 - **You get**: one ADR per decision with real alternatives, registered in `DECISIONS.md` (superseded rows move, never disappear), or a one-line Still Current entry for a load-bearing choice with no alternative. You pick `Accepted` or `Proposed` at the playback. Parked decisions go under Pending.
 - **Options**: `--output-dir <path>` sets where trade-off research lands (default: the Research location, else `docs/research/`). `--auto` settles the named decisions on its own recommendations and writes `Proposed` ADRs, which a later run asks you again.
-- **Good to know**: when no option stands out, or you ask for a comparison, it runs a weighted trade-off analysis with five options unless you name a count ("compare three options"). A question only running code can answer goes to `spike`. No code changes. Run on a PRD, it closes on `plan` (or `ui-ux-design` when the PRD puts design first); run from `plan`'s Preflight, it records the answer you already gave and closes on `exec-plan`.
+- **Good to know**: each decision is labelled a one-way or two-way door (costly or cheap to reverse), and its ADR says what reversing takes. When no option stands out, or you ask for a comparison, it runs a weighted trade-off analysis with five options unless you name a count ("compare three options"). Close options on a two-way door skip it, because either pick is cheap to undo. A question only running code can answer goes to `spike`. No code changes. Run on a PRD, it closes on `plan` (or `ui-ux-design` when the PRD puts design first); run from `plan`'s Preflight, it records the answer you already gave and closes on `exec-plan`.
 
 ```bash
 /andthen:decide docs/specs/export/                                         # the PRD's open technical forks
@@ -180,7 +181,7 @@ Writes the Feature Implementation Specification (FIS): the blueprint a fresh ses
 
 Implements one FIS in the current session, or runs a plan directory, giving each ready story to a fresh subagent. Either way it runs the project's checks and every proof the FIS names, has a fresh reviewer check the change, and completes a story only on executed proof.
 
-- **You get**: committed code per story, its commit message carrying the FIS's Intent and Expected Outcomes so the why outlives the FIS, with the story's `plan.json` row set to `done` and a `verified` summary quoting the proof it ran. The report ends with a `Reviewed:` line (what reviewed the change, what stays open) and a `Next (fresh session):` line. The run that completes the plan's last story also runs one `simplify-code` pass over the plan's code. Open findings are recorded in the FIS under `## Implementation Observations`.
+- **You get**: committed code per story, its commit message a brief subject with `Story-ID:` and `Plan:` trailers, and the story's `plan.json` row set to `done` and a `verified` summary quoting the proof it ran. The report ends with a `Reviewed:` line (what reviewed the change, what stays open) and a `Next (fresh session):` line. The run that completes the plan's last story also runs one `simplify-code` pass over the plan's code. Open findings are recorded in the FIS under `## Implementation Observations`.
 - **Options**: `--tdd` implements test-first. `--worktree` runs a plan's independent stories in parallel, each on its own branch in its own git worktree, merged back after each batch. `--no-full-tier` runs the fast check tier where the full one would run, for a caller that runs the full tier itself.
 - **Good to know**:
   - A direct story run asks before building on dependency stories that are not `done`. An unattended run stops.
@@ -190,7 +191,7 @@ Implements one FIS in the current session, or runs a plan directory, giving each
   - Another session's uncommitted changes are never staged, stashed, or reverted.
   - A red story ends with a route out: `review --fix` over the story's changed paths, for correctness and against its FIS, then `exec-plan` again on the same input.
   - The plan-level review (`review --fix <plan.json>`) is printed, never run for you.
-  - `plan.json` and the FIS files stay in the tree. After a clean plan-level review, a `Next (fresh session):` line for `ship` lands their observations and deletes them. `prd.md` stays.
+  - `plan.json` and the FIS files stay in the tree. After a clean plan-level review, a `Next (fresh session):` line for `ship` lands their observations and deletes them. `prd.md` stays under `Record: repo`; under `Record: tracker`, its issue carries the record.
 
 ```bash
 /andthen:exec-plan docs/specs/data-export/s01-data-export.md
@@ -272,15 +273,16 @@ Implements a small change, or a review report's Fix-routed findings, with the sm
 
 Closes out the current branch and opens its pull request (a merge request on GitLab). On a branch with a plan bundle it first lands what the FIS files learned and deletes the bundle, because a plan's specs govern one branch and never merge. On any other branch it commits and opens the request.
 
-- **You get**: the traps from each FIS's `Implementation Observations` written as `Learnings` bullets, recommendations for the rest, the branch's fixes and the bundle's deletion committed, and a pull request that states the change's intent, outcomes, and proof: the PRD's why, each story's Intent and Expected Outcomes, its `verified.summary`, and the review's verdict.
+- **You get**: the traps from each FIS's `Implementation Observations` written as `Learnings` bullets, recommendations for the rest, the branch's fixes and the bundle's deletion committed, and a pull request that states the change's intent, outcomes, and proof: the PRD's why, each story's Intent and Expected Outcomes, its `verified.summary`, and the review's verdict. It also says whether the change is a one-way or two-way door and what breaks if it is wrong, so a reviewer knows which to read slowly.
 - **Good to know**:
   - It asks once, before the push, showing the base branch, the commits leaving (marking any the latest review never saw), and the PR title and body. Commits and the bundle's deletion run unasked, because the branch history keeps them.
-  - Your PR template or documented PR process sets the body's layout. The key points come first and per-story detail folds below. A flow or structure change gets a Mermaid or SVG diagram where a picture reads faster. For a UI change it captures screenshots or a recording when you ask, and otherwise offers them in that one question. An image the host's CLI cannot upload is listed for you to attach. A plan made from a tracker item links it, so the merge closes it.
-  - `--auto` stops before the push and prints the push and PR commands with the title and body.
+  - Your PR template or documented PR process sets the body's layout. The key points come first and per-story detail folds below. A flow or structure change gets a Mermaid or SVG diagram where a picture reads faster. For a UI change it captures screenshots or a recording when you ask, and otherwise offers them in that one question. An image the host's CLI cannot upload is listed for you to attach. A plan made from a tracker item links it, so the merge closes it, unless the bundle is kept.
+  - `--auto` stops before anything leaves the machine and prints the push and PR commands with the title and body.
   - It writes only `Learnings` bullets and recommends the rest: a `Decisions` line or a `decide` run for a design change no record holds, and any upstream document edit.
-  - Story commits are never squashed or reworded. `prd.md` stays; `plan.json` and the FIS files go.
+  - `plan.json` and the FIS files go. `prd.md` stays unless the `Issue Tracker` document sets `Record: tracker`. `prd.md` or the issues, and the PR body, then carry the stories' intent, so a squash merge loses none of it.
+  - Under `Record: tracker`, the one question also shows what `tracker publish` will write to the issues: on a yes it publishes before the push, and the PR closes each issue, which makes it the record. A ship that keeps the bundle closes only finished stories' issues, leaving the parent and unfinished stories open. The bundle is deleted before a push, keeping `prd.md` when nothing was published, and stays for the next run when nothing is pushed.
   - Open work (a plan not ready, an open CRITICAL or HIGH finding) is named and asked about once. While the plan is not ready, it recommends opening the PR without the close-out and keeps the bundle, the per-story PR case on a team.
-  - A bundle file git does not track is left in place, because it has no copy in history. A committed link into a deleted file is repointed at the PRD, an ADR, or the story commit.
+  - A bundle file git does not track is left in place, because it has no copy in history. A committed link into a deleted file is repointed at the PRD or an ADR, never at a branch commit, which a squash merge leaves out of the base branch.
 
 ```bash
 /andthen:ship docs/specs/data-export/plan.json
@@ -421,13 +423,13 @@ Draws one AndThen artifact as a self-contained HTML page with inline SVG figures
 
 ### `tracker`
 
-`[--auto] (publish <plan.json> [--dry-run] | triage [issue number(s) or tracker query] | setup)`
+`[--auto] (publish <plan.json | prd.md> [--dry-run] | triage [issue number(s) or tracker query] | setup)`
 
-One skill for the issue tracker, with three verbs. Each first reads the `Issue Tracker` document; `Backend: none` means no tracker, and `publish` and `triage` end on one line saying so. GitHub via `gh` is the supported path, and other backends fill in the document's operation table.
+One skill for the issue tracker, with three verbs. Each first reads the `Issue Tracker` document; `Backend: none` means no tracker, and `publish` and `triage` end on one line saying so. GitHub via `gh` is the supported path, and other backends fill in the document's operation table. The document's `Record:` line says where a feature's requirements record lives after the merge: `repo` (the default) keeps `prd.md`, and `tracker` keeps the PRD and story issues instead.
 
-- **`publish`** creates one parent issue (summary, PRD link, story checklist) and one child issue per story (title `S03 - <name>`, scope, PRD anchors, commit-pinned FIS link, blocked-by links). Re-running after execution updates the same issues. Flow is one way, plan to tracker, with no reverse sync. `--dry-run` makes no tracker call and writes no file. A plan missing a field it needs is refused before any tracker call, naming the field.
+- **`publish`** writes the PRD and a story checklist into the parent issue, which is the PRD's own issue when there is one, keeping its original text above the projected part. Each story gets a child issue (title `S03 - <name>`) with its scope, intent, expected outcomes, and acceptance scenarios, its dependencies, and once done its verification summary. No issue names a file or a commit, because both are gone after the merge. A `prd.md` alone publishes into its issue only. Re-running updates the same issues, found through the parent's checklist. Before writing, it shows what each issue gains or loses and asks once, so an edit made in the tracker is seen before it is replaced; unattended, it writes and reports what it replaced. A closed issue is a shipped record and is never edited, so a later plan gets a new parent issue. Flow is one way, plan to tracker, with no reverse sync. `--dry-run` shows the preview and writes nothing. Issues published by an earlier release candidate are not found again.
 - **`triage`** labels untriaged issues (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; `bug`, `enhancement`), routes them toward implementation or a human decision, and appends an Agent Brief a fresh executor can act on to `ready-for-agent` items. A ratified `wontfix` is also recorded in the `Product` document's Non-Goals. Interactively, you ratify every write per item. Unattended, it applies only safe transitions and leaves `wontfix`, `ready-for-agent`, and duplicate closes for a human.
-- **`setup`** writes the `Issue Tracker` document. It asks which backend you use and, for anything but GitHub, the command for each operation. Other skills offer it when they meet an unconfigured tracker URL, and an unattended run stops on `BLOCKED:` instead.
+- **`setup`** writes the `Issue Tracker` document. It asks which backend you use, for anything but GitHub the command for each operation, and whether requirements live in the repo or the tracker. Other skills offer it when they meet an unconfigured tracker URL, and an unattended run stops on `BLOCKED:` instead.
 
 ```bash
 /andthen:tracker publish docs/specs/dashboard/plan.json --dry-run

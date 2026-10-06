@@ -26,7 +26,6 @@ Write the root agent instruction file(s) and the defaults the AndThen skills rel
 Scan the project for:
 
 - **The existing setup** – root agent instruction files (`CLAUDE.md`, `AGENTS.md`), `docs/` and its documents, guidelines in `docs/guidelines/`, and the package manifest for the project name and tech stack.
-- **The Python 3 runtime** – run `python3 --version` (on Windows, `python --version` when only the launcher is on PATH). When it is absent, carry `python3 not found → tracker projection unavailable` into the closing summary.
 - **A monorepo or workspace** – note the workspace tool and list the sub-projects.
 - **A test suite and a served UI** – a test directory or a manifest test script; a UI framework dependency, HTML templates, or a dev or serve script.
 
@@ -80,7 +79,7 @@ For a role-agent, rules, document or sub-project offer taken up, the critical-ru
 
 ## Output
 
-The closing summary lists only what this run created or changed, one line per file with its purpose, plus Step 1's runtime line when Python 3 was absent, then the offers. Write project paths relative to the project root and host paths with `~`.
+The closing summary lists only what this run created or changed, one line per file with its purpose, then the offers. Write project paths relative to the project root and host paths with `~`.
 
 Say how to commit review reports instead: delete the `*-andthen-*-review-*.md` line from `.gitignore`.
 

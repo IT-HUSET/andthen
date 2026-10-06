@@ -186,7 +186,7 @@
 <text x="46" y="376" class="t1" font-size="16" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="600">The hand-offs</text>
 <text x="46" y="395" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">plan.json and FIS go</text>
 <text x="46" y="411" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">before the merge;</text>
-<text x="46" y="427" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">prd.md and ADRs stay</text>
+<text x="46" y="427" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">PRD record and ADRs stay</text>
 <g class="hot" tabindex="0" data-hotspot="intent">
 <path d="M232.0,346 H410.0 L428.0,364 V412 A8,8 0 0 1 420.0,420 H232.0 A8,8 0 0 1 224.0,412 V354 A8,8 0 0 1 232.0,346 Z" class="card"/>
 <path d="M410.0,346 V364 H428.0 Z" class="fold"/>
@@ -205,12 +205,12 @@
 <path d="M638.7,346 V364 H656.7 Z" class="fold"/>
 <text x="467" y="370" class="card-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700">prd.md</text>
 <text x="467" y="390" class="card-s" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">what and why, agreed;</text>
-<text x="467" y="405" class="card-s" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">the surviving product record</text>
+<text x="467" y="405" class="card-s" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">record in repo or tracker</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
-<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">artifact · prd.md · durable</text>
-<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Written by clarify; read by plan and review --mode gap,outcome. The governing artifact, and the one that outlives the branch:</text>
-<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">plan.json and the FIS files are branch-scoped – ship deletes them before the merge; prd.md stays.</text>
+<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">artifact · PRD · durable record</text>
+<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Written by clarify; read by plan and review --mode gap,outcome. Its record outlives the branch in the repo or tracker.</text>
+<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">ship deletes plan.json and FIS before the merge; under Record: tracker it publishes the PRD to its issue and deletes prd.md too.</text>
 </g>
 </g>
 <g class="hot" tabindex="0" data-hotspot="adr">

@@ -67,13 +67,9 @@ jobs:
           test "$(jq -r '.plugins | length' .agents/plugins/marketplace.json)" = "1"
           test "$(jq -r '.plugins[0].source.path' .agents/plugins/marketplace.json)" = "./plugin"
 
-  # The shipped scripts are the first code in the core pipeline, so the runtime
-  # contract (V1-PLAN 3.3) is proved rather than assumed: one Python 3 stdlib
-  # entry point that behaves identically on all three platforms. The
-  # windows-latest job runs it from Git Bash and PowerShell because those are the
-  # two shells a native-Windows host actually hands the agent - a suite that only
-  # ever ran under bash would not notice a PowerShell argument-quoting or path
-  # break - and the ubuntu-latest and macos-latest jobs run the same suite.
+  # The repo scripts (the loose-skill installer above all, whose rewrites reach
+  # every loose install) run on all three platforms, because path and
+  # line-ending handling is where they diverge.
   scripts:
     name: scripts (${{ matrix.os }}, py${{ matrix.python }})
     strategy:
@@ -90,8 +86,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      # Every suite under tests/: the shipped tracker script and the repo
-      # tooling (installer, cookbook audit, surface budget). The installer
+      # Every suite under tests/: the repo tooling (installer, cookbook audit,
+      # surface budget) and the shipped-content contracts. The installer
       # suites shell out to bash, so the whole step runs under it.
       - name: tests/ suites
         shell: bash
@@ -107,11 +103,3 @@ jobs:
       - name: Install-time content validations
         shell: bash
         run: bash scripts/install-skills.sh --validate-only
-      - name: tracker.py entry point from Git Bash
-        if: runner.os == 'Windows'
-        shell: bash
-        run: python plugin/skills/tracker/scripts/tracker.py publish scripts/fixtures/renders/plan.json --dry-run
-      - name: tracker.py entry point from PowerShell
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: python plugin/skills/tracker/scripts/tracker.py publish scripts/fixtures/renders/plan.json --dry-run

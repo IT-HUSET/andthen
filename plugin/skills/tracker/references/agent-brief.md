@@ -4,7 +4,7 @@ The handoff payload triage appends to the issue body when an item reaches `ready
 
 ## Rules
 
-Author it per the **Durability rule** (`triage.md` § Rules).
+Author it per the skill's **Durability rule**.
 
 ## Output
 

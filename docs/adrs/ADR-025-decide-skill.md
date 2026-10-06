@@ -5,6 +5,8 @@ Accepted. Recorded 2026-10-02.
 
 Amends [ADR-020](ADR-020-one-authoring-and-one-execution-skill.md) and [ADR-021](ADR-021-fold-backlog-triage-and-move-skill-review-out.md) in direction only: they cut entry points, and this adds one.
 
+*Amended 2026-10-06: each decision decided here is labelled a one-way or two-way door, and the ADR template gains a `**Reversal**` line under Consequences. Close options on a two-way door no longer count as contested, because either pick is cheap to reverse. Missing evidence or the user's request still runs the trade-off analysis for any door, so a two-way door keeps it where it matters. Running it for every one-way door was rejected, because on an uncontested choice it mostly confirms the recommendation.*
+
 ## Context
 
 Every route to a decision record goes through `architecture --mode trade-off`. Seven skills send their open decisions there:

@@ -40,15 +40,10 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
 
 1. **Write the story's row** in `PLAN_FILE_PATH`: `fis` this file's canonical basename, every verified task id in `completedTaskIds`, `verified: {at, summary}` after it, and only then `status: done`. `at` is a UTC ISO-8601 minute. `summary` is one line quoted from Step 3's output: the proof command, its exit status, and the runner's own result line (`{cmd} -> exit=0, Ran 4 tests, OK`).
 2. **Write what the project keeps**: a changelog entry for a user-facing change where the project keeps a changelog, and each story-level trap as one `Learnings` bullet under its fitting topic, admitted against its header note.
-3. **Commit** the change set, the review's applied fixes, the FIS, `plan.json`, and Step 4.2's writes, per the commit rule. The message is the FIS head, because the FIS is deleted before the plan's branch merges and the story's why must outlive it:
+3. **Commit** the change set, the review's applied fixes, the FIS, `plan.json`, and Step 4.2's writes, per the commit rule. The message is a subject and two trailers with no body, because a squash merge can list every commit's message:
 
    ```
    {type}({STORY_ID}): <the FIS title, lowercased>
-
-   Intent: <the FIS's Intent line>
-
-   Expected Outcomes:
-   - <each [OC<NN>] line>
 
    Story-ID: {STORY_ID}
    Plan: {PLAN_FILE_PATH}

@@ -41,7 +41,7 @@ chain, carrying `Resolved chain`, `Follows`, `Remediated`, the lens-conditional 
 The four model `.json` fixtures are sample documents for a downstream renderer; nothing in this repo
 validates them; their shape contract is the `*.schema.json` shipped beside its prose reference in
 `plugin/skills/describe/references/` (`architecture-model`) or `plugin/skills/architecture/references/`
-(`board-models`, for the `event-storm` and `context-map` kinds). `plan.json` and `s01-harden-the-session-cookie.md`
-are read by two more suites: `tests/test_tracker.py` projects the plan into tracker payloads, and
-`tests/test_audit_cookbook.py` pins its `schemaVersion` against `plan.schema.json`. Change a fixture
+(`board-models`, for the `event-storm` and `context-map` kinds). `plan.json` is also read by
+`tests/test_audit_cookbook.py`, which pins its `schemaVersion` against `plan.schema.json`, and by
+`evals/test_checks.py`, which runs the eval plan validator on it. Change a fixture
 and run every suite that reads it.

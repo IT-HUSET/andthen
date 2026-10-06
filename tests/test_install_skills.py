@@ -4,9 +4,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import shutil
 import subprocess
-import sys
 import tempfile
 import unittest
 
@@ -151,9 +151,9 @@ class InstallSkillsValidationCase(unittest.TestCase):
     def test_a_stale_pycache_in_the_source_tree_does_not_reach_an_install(self) -> None:
         # Compiled Python is build output of whoever ran the source tree; the
         # copy is recursive, so nothing but an explicit strip keeps it out.
-        cache = self.repo / "plugin" / "skills" / "tracker" / "scripts" / "__pycache__"
+        cache = self.repo / "plugin" / "skills" / "tracker" / "__pycache__"
         cache.mkdir(parents=True, exist_ok=True)
-        (cache / "tracker.cpython-314.pyc").write_bytes(b"stale bytecode")
+        (cache / "helper.cpython-314.pyc").write_bytes(b"stale bytecode")
         destination = Path(self.temp_dir.name) / "installed"
 
         result = self.run_installer(
@@ -270,19 +270,6 @@ class InstallSkillsValidationCase(unittest.TestCase):
 
         self.assertEqual(0, result.returncode, result.stderr)
 
-    def test_the_skill_dir_placeholder_is_baked_to_the_install_path(self) -> None:
-        # The placeholder is what a model resolves against the announced skill
-        # root; a loose install knows that path, so it bakes it instead.
-        destination = Path(self.temp_dir.name) / "installed"
-        result = self.run_installer(
-            "--skills-dir", str(destination), "--skills", "tracker")
-
-        self.assertEqual(0, result.returncode, result.stderr)
-        skill = destination / "andthen-tracker"
-        body = (skill / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("python3 %s/scripts/tracker.py" % skill, body)
-        self.assertNotIn("<skill-dir>", body)
-
     def test_a_json_canonical_is_inlined_verbatim_and_its_path_rewritten(self) -> None:
         # A model schema is read with its reference, so it travels like any other
         # canonical: copied byte-for-byte (a consumer validates against it) and
@@ -373,60 +360,33 @@ class InstallSkillsValidationCase(unittest.TestCase):
         self.assertEqual(0, upgraded.returncode, upgraded.stderr)
         self.assertEqual(fresh, self.snapshot(skill))
 
-    # ---- Runtime namespace (SKILL_NS) ------------------------------------
-    # Executable scripts print instructions naming skills to invoke. A renamed
-    # install must name skills that exist in that namespace, while identifiers
-    # matched on read must not move - so the rewrite is anchored to the one
-    # SKILL_NS assignment line, and these tests pin both halves.
+    # ---- Storage identity ------------------------------------------------
+    # The installer rewrites every `andthen:` in markdown, while identifiers
+    # matched on read must not move with the install prefix.
 
-    SCRIPT_SKILLS = "plan,tracker"
-
-    def install_scripts(self, *extra: str) -> Path:
+    def test_storage_identity_survives_a_renamed_install(self) -> None:
+        """A tracker issue found by its projection line, or a plan by its schema
+        `$id`, must read the same from a plugin install and a renamed loose
+        install, or one teammate's publish misses the issues another created."""
         destination = Path(self.temp_dir.name) / "installed"
-        result = self.run_installer(
-            "--skills-dir", str(destination), "--skills", self.SCRIPT_SKILLS, *extra)
+        result = self.run_installer("--skills-dir", str(destination),
+                                    "--skills", "plan,tracker", "--prefix", "custom-")
+
         self.assertEqual(0, result.returncode, result.stderr)
-        return destination
-
-    def regenerate_diagnostic(self, script: Path) -> str:
-        """What the installed tracker.py tells a user to re-run for a plan
-        missing a field the projection reads."""
-        # The plan's repository identity is resolved before its fields, so the
-        # broken plan needs a repository to sit in.
-        plan_repo = Path(self.temp_dir.name) / "plan-repo"
-        plan_repo.mkdir(exist_ok=True)
-        subprocess.run(["git", "init", "-q", str(plan_repo)], check=True)
-        plan = plan_repo / "plan.json"
-        plan.write_text('{"schemaVersion": "2", "stories": [{"id": "S01"}]}', encoding="utf-8")
-        result = subprocess.run(
-            [sys.executable, str(script), "publish", str(plan), "--dry-run"],
-            text=True, capture_output=True, check=False,
-        )
-        self.assertEqual(1, result.returncode, result.stdout)
-        return result.stderr
-
-    def test_default_install_names_skills_in_the_installed_namespace(self) -> None:
-        destination = self.install_scripts()
-
-        tracker = destination / "andthen-tracker" / "scripts" / "tracker.py"
-        self.assertIn('SKILL_NS = "andthen-"', tracker.read_text(encoding="utf-8"))
-        self.assertIn("re-run the andthen-plan skill",
-                      self.regenerate_diagnostic(tracker))
-
-    def test_custom_prefix_rewrites_the_namespace_constant_and_nothing_else(self) -> None:
-        destination = self.install_scripts("--prefix", "custom-")
-
-        tracker = destination / "custom-tracker" / "scripts" / "tracker.py"
-        tracker_text = tracker.read_text(encoding="utf-8")
-        self.assertIn('SKILL_NS = "custom-"', tracker_text)
-        self.assertIn("re-run the custom-plan skill",
-                      self.regenerate_diagnostic(tracker))
-
-        # One occurrence: the constant's own line, no other token moved.
-        self.assertEqual(1, tracker_text.count("custom-"))
-        # Storage identity is not invocation: an existing tracker issue and a
-        # schema reference still resolve after a renamed install.
-        self.assertIn("<!-- andthen:tracker plan=", tracker_text)
+        source = (self.repo / "plugin/skills/tracker/SKILL.md").read_text(encoding="utf-8")
+        installed = (destination / "custom-tracker" / "SKILL.md").read_text(encoding="utf-8")
+        for line in ("<!-- andthen-projection <source> -->",
+                     "<!-- andthen-projection <id> <source> -->"):
+            self.assertIn(line, source)
+            self.assertIn(line, installed)
+        # clarify and plan read the line too: a colon spelling anywhere becomes
+        # `custom-projection` in a renamed install, a line no publish writes.
+        spelled = re.compile(r"andthen:projection")
+        self.assertTrue(spelled.search("below the hidden `andthen:projection` line"))
+        offenders = [str(path.relative_to(self.repo))
+                     for path in (self.repo / "plugin").rglob("*.md")
+                     if spelled.search(path.read_text(encoding="utf-8"))]
+        self.assertEqual([], offenders)
         self.assertIn('"$id": "andthen:plan.schema.json"',
                       (destination / "custom-plan" / "references" / "plan.schema.json")
                       .read_text(encoding="utf-8"))

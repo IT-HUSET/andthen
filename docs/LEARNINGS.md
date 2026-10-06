@@ -1,7 +1,7 @@
 # Project Learnings
 
 <!-- Traps only, one bullet each: `- **{title}** – …`, trap + pointer; postmortem depth lives in
-     the story commit or an ADR. An entry is admitted only if a frontier model does not already
+     an ADR. An entry is admitted only if a frontier model does not already
      know it, the code and git history do not already carry it, and it outlives the current
      initiative. Read the document and append the bullet yourself, under the fitting topic: no
      reworded duplicate of an entry already here, and keep the document short – trim stale

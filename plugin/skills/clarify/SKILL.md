@@ -53,7 +53,7 @@ Never write over an existing `prd.md`: a resolved directory holding one from thi
 - **Directory or file holding an `intent.md`** – a baseline stating what its author knew, not a finished artifact: Step 3 folds its sections into the PRD, and the interview still runs. Read `intent-template.md` for its shape. `OUTPUT_DIR`: that directory.
 - **Other directory** – `OUTPUT_DIR`: that directory.
 - **Other file path** – `OUTPUT_DIR`: root + lowercase kebab-case stem.
-- **Tracker item URL** – fetch it as the `Issue Tracker` document says, or with `gh issue view`, and offer the `andthen:tracker` skill's `setup` when neither works. Store the number. `OUTPUT_DIR`: root + `issue-{number}-<slug>/`, with the issue reference in the PRD header.
+- **Tracker item URL** – fetch it as the `Issue Tracker` document says, or with `gh issue view`, and offer the `andthen:tracker` skill's `setup` when neither works. Store the number. `OUTPUT_DIR`: root + `issue-{number}-<slug>/`, with the issue reference in the PRD header. A PRD the `andthen:tracker` skill published into its body, below the hidden `andthen-projection` line and up to any `## Stories` checklist, is the PRD to amend: copy it to `OUTPUT_DIR/prd.md` unless one is there.
 - **Other URL** – `OUTPUT_DIR`: root + the normalized final path segment without extension.
 - **Inline description** – `OUTPUT_DIR`: root + the first six alphanumeric words, lowercase and hyphenated.
 
@@ -131,6 +131,12 @@ Append a direction firmly rejected **as a concept** to the `Product` document's 
 A deferral is not one: it stays in `Scope > Out of Scope` with the release that would carry it, or becomes a `Tech Debt` entry when it is a fix being put off. Only a rejection traceable to **explicit user input** graduates; an agent-assumed one does not.
 
 **Gate**: user-traceable rejections in the `Product` document's Non-Goals.
+
+### 7. Save the PRD to its issue
+
+With `Record: tracker` in the `Issue Tracker` document, invoke the `andthen:tracker` skill with `publish <prd.md>`, whose preview is the one question. Record the URL of an issue it created in the PRD's `Context` line, so later runs find it. Tell the user the local `prd.md` is a working copy and optional to keep, because `plan` on the issue copies the PRD back.
+
+**Gate**: the issue's URL, or the user's no.
 
 ## Follow-up
 

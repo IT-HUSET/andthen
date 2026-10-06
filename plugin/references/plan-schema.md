@@ -39,7 +39,7 @@ The fields whose *meaning* prose has to state:
 
 | Field | Contract |
 |---|---|
-| `prd` | Repo-root-relative path of the `prd.md` or requirements file the plan came from, or `null` when it came from anything else – a description, an intent doc, a tracker item. |
+| `prd` | Repo-root-relative path of the `prd.md` or requirements file the plan came from (a PRD copied from a tracker item too), else `null`: a description, an intent doc, a bare tracker item. |
 | `fis` | Canonical `sNN-<slug>.md` basename beside the plan, or `null`; `done` requires a non-null FIS. |
 | `completedTaskIds` | Unique task IDs naming tasks of the FIS `fis` points at: empty while `fis` is `null`, and cleared when that pointer changes. |
 | `verified` | `{at, summary}`, written with `done` and never without it; `at` a UTC ISO-8601 minute. |

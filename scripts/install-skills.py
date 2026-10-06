@@ -317,10 +317,10 @@ def _should_install_skill(name, selected):
 # ---------------------------------------------------------------------------
 # Destination canonicalization
 #
-# The <skill-dir> rewrite bakes the destination into installed .md files, so a
-# relative --skills-dir would produce broken invocations at runtime (the agent's
-# cwd is not the installer's). The defaults are already absolute; this only
-# matters for a relative destination flag.
+# A relative --skills-dir resolves against the launch directory, so it is made
+# absolute once and every staged, checked, and reported path agrees. The
+# defaults are already absolute; this only matters for a relative destination
+# flag.
 # ---------------------------------------------------------------------------
 
 def _canonicalize_dir(path):
@@ -388,7 +388,6 @@ RETIRED_TOKEN = re.compile(r"CLAUDE_PLUGIN_ROOT|CLAUDE_SKILL_DIR")
 SIGIL_REF = re.compile(r"/andthen:|\$andthen")
 
 CANONICAL_PREFIX = "../../references/"
-SKILL_DIR_PLACEHOLDER = "<skill-dir>"
 
 
 def _first_match_per_file(pattern, roots):
@@ -423,8 +422,7 @@ def _validate_no_retired_tokens():
     for path, number, line in hits:
         err("error: %s:%d:%s names a retired CLAUDE_PLUGIN_ROOT/CLAUDE_SKILL_DIR token;"
             " load a canonical as %s<asset>.md and run a bundled script as"
-            " %s/scripts/<name>" % (path, number, line, CANONICAL_PREFIX,
-                                    SKILL_DIR_PLACEHOLDER))
+            " <skill-dir>/scripts/<name>" % (path, number, line, CANONICAL_PREFIX))
     return not hits
 
 
@@ -666,10 +664,6 @@ def _check_rewritten_canonical_refs(skill_dir, skill):
             err("error: installed %s still carries %s in %s"
                 % (skill, CANONICAL_PREFIX, markdown))
             ok = False
-        if SKILL_DIR_PLACEHOLDER in text:
-            err("error: installed %s still carries %s in %s"
-                % (skill, SKILL_DIR_PLACEHOLDER, markdown))
-            ok = False
         for match in INSTALLED_LINK.finditer(text):
             for link in match.group(1).split():
                 if os.path.basename(link) not in CANONICAL_ASSETS:
@@ -713,16 +707,6 @@ def rewrite_canonical_refs_dir(directory):
     substitute(Path(directory) / "SKILL.md", CANONICAL_PREFIX, "references/")
 
 
-def rewrite_skill_dir_dir(directory, skill_abs):
-    """Bake <skill-dir> to the absolute installed skill path.
-
-    <skill-dir> is the placeholder a model fills with the skill root its host
-    announced. The installer already knows that path, so baking it spares the
-    resolution step on every tier."""
-    for markdown in markdown_files(directory):
-        substitute(markdown, SKILL_DIR_PLACEHOLDER, str(skill_abs))
-
-
 def rewrite_namespace_dir(directory, prefix):
     for markdown in markdown_files(directory):
         rewrite_namespace_file(markdown, prefix)
@@ -735,32 +719,6 @@ def rewrite_namespace_file(markdown, prefix):
     rewritten = text.replace("andthen:", prefix)
     if rewritten != text:
         write_text(markdown, rewritten)
-
-
-SKILL_NS_LINE = re.compile(r"^SKILL_NS = ")
-
-
-def rewrite_skill_namespace_scripts(skill_dir, prefix):
-    """Rewrite the SKILL_NS constant in an installed skill's Python scripts.
-
-    Runtime diagnostics name skills the user is told to invoke, and the
-    loose-skill channel renames that namespace - without this, a renamed install
-    prints instructions for skills it does not have. Anchored to the constant's
-    own assignment line so nothing else in a script moves: storage keys matched
-    on read (the tracker's plan marker, schema `$id`s, lock filenames) stay
-    literal by construction, which is why this is not a file-wide substitution."""
-    scripts = Path(skill_dir) / "scripts"
-    if not scripts.is_dir():
-        return
-    files = sorted((p for p in scripts.rglob("*")
-                    if p.is_file() and p.suffix == ".py"), key=str)
-    for path in files:
-        text = read_text(path)
-        lines = text.split("\n")
-        rewritten = [line.replace("andthen:", prefix) if SKILL_NS_LINE.match(line) else line
-                     for line in lines]
-        if rewritten != lines:
-            write_text(path, "\n".join(rewritten))
 
 
 def rewrite_skill_openai_metadata(skill_dir, prefix):
@@ -884,9 +842,7 @@ def install_skill(source_skill, skill, destination, refs_dir, opts):
         # same pass.
         inline_canonical_assets(stage, skill, refs_dir, False)
         rewrite_canonical_refs_dir(stage)
-        rewrite_skill_dir_dir(stage, destination)
         rewrite_namespace_dir(stage, opts.prefix)
-        rewrite_skill_namespace_scripts(stage, opts.prefix)
         rewrite_skill_openai_metadata(stage, opts.prefix)
         rewrite_display_brand_dir(stage, opts.display_brand)
         if not _check_rewritten_canonical_refs(stage, skill):

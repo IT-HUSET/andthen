@@ -12,7 +12,7 @@
       "type": ["string", "null"],
       "minLength": 1,
       "pattern": "^(?![A-Za-z][A-Za-z0-9+.-]*:)(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$)).+$",
-      "description": "Repo-root-relative POSIX path of the prd.md or requirements file the plan came from, or null for any other source: a description, an intent doc, a tracker item."
+      "description": "Repo-root-relative POSIX path of the prd.md or requirements file the plan came from, a PRD copied from a tracker item included, or null for any other source: a description, an intent doc, a bare tracker item."
     },
     "overview": {
       "type": "object",

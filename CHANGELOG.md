@@ -6,6 +6,16 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [1.0.0-rc.5] – 2026-10-06
+
+### Changed
+- **Story commits are brief, and the PR body carries story intent.** `exec-plan` commits each story as a subject with `Story-ID:` and `Plan:` trailers, no longer with the FIS's Intent and Expected Outcomes. `ship` writes the PR body from each FIS before deleting the bundle, no longer keeps story commits unsquashed and unreworded, and never repoints a link at a branch commit, so squash merging loses nothing ([ADR-026](docs/adrs/ADR-026-ship-skill.md)).
+- **The issue tracker can hold a feature's record.** With `Record: tracker` in the `Issue Tracker` document, `clarify` saves the PRD to its issue, `plan` takes it back, and `ship` publishes the final issues for the merge to close, then deletes `prd.md` with the bundle. A ship that keeps an unfinished plan's bundle leaves the source issue open and closes only its finished stories' issues. `tracker publish` gives each story issue its intent, outcomes, and acceptance scenarios with no FIS or commit link, keeps a source issue's own text, and shows what each write changes before asking once ([ADR-028](docs/adrs/ADR-028-tracker-record.md)).
+- **Decisions and pull requests name their door.** `decide` labels each decision a one-way or two-way door, skips the trade-off analysis when close options sit on a two-way door, and writes what reversing takes into the ADR. `ship`'s PR body states the door and blast radius, linking the ADR for a one-way door ([ADR-025](docs/adrs/ADR-025-decide-skill.md), [ADR-026](docs/adrs/ADR-026-ship-skill.md)).
+- **No Python needed.** `tracker publish` is now skill text rather than a script, so AndThen has no runtime dependency and `init` no longer checks for Python 3. Issues an earlier release candidate published are not found again: close them, and a re-publish creates new ones.
+
+---
+
 ## [1.0.0-rc.4] – 2026-10-05
 
 ### Changed

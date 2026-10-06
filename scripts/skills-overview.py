@@ -259,7 +259,7 @@ assert f.x <= BR - 14, f.x
 # ------------------------------------------------ artifacts
 y = 326
 band(BX, y, BW, 112, "band-art", "ARTIFACTS", "The hand-offs",
-     ["plan.json and FIS go", "before the merge;", "prd.md and ADRs stay"])
+     ["plan.json and FIS go", "before the merge;", "PRD record and ADRs stay"])
 CX0 = 224
 CW, CH = 204, 74
 CG = (BR - 22 - CX0 - 4 * CW) / 3
@@ -268,10 +268,10 @@ cards = [("intent", "intent.md / note", ["a short note or an issue, or", "what c
           "artifact · intent.md or a short note · optional",
           ["Written by hand – a pasted note, a tracker issue, a sentence, the five-section intent.md – or by clarify --brief; read by clarify or plan,",
            "now-what and architecture. clarify folds it into prd.md, plan into the FIS."]),
-         ("prd", "prd.md", ["what and why, agreed;", "the surviving product record"],
-          "artifact · prd.md · durable",
-          ["Written by clarify; read by plan and review --mode gap,outcome. The governing artifact, and the one that outlives the branch:",
-           "plan.json and the FIS files are branch-scoped – ship deletes them before the merge; prd.md stays."]),
+         ("prd", "prd.md", ["what and why, agreed;", "record in repo or tracker"],
+          "artifact · PRD · durable record",
+          ["Written by clarify; read by plan and review --mode gap,outcome. Its record outlives the branch in the repo or tracker.",
+           "ship deletes plan.json and FIS before the merge; under Record: tracker it publishes the PRD to its issue and deletes prd.md too."]),
          ("adr", "ADRs", ["technical decisions by decide,", "indexed in DECISIONS.md"],
           "artifact · architecture decision record · durable",
           ["Written by decide, one per decision with real alternatives, in the ADRs location (default docs/adrs/) and registered in the Decisions document;",

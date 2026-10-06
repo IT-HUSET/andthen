@@ -22,7 +22,7 @@ For everyday rules and routing, see `CLAUDE.md` instead.
 
 Names stay `Ubiquitous Language` / `Context Map`: the Document Index entry, not the path, is the contract, and "context" is the most overloaded word in the agent world.
 
-**Working artifacts are branch-scoped; the requirements source – `prd.md`, or the tracker item a plan with `prd: null` came from – is the surviving product record.** `plan.json` and FIS files stay on the branch and are deleted before the merge. The `ship` skill reads each FIS's Implementation Observations and lands or recommends what is worth keeping before it deletes the bundle, because the bodies go with it, then commits and opens the PR after one confirmation. The per-story commit `exec-plan` makes, staged by path, carries the FIS head (Intent, Expected Outcomes, `Story-ID:`/`Plan:` trailers), and the merge keeps it (the PR body `ship` writes states the change's intent, outcomes, and proof, so a squash keeps them too), so `git log --grep <story-id>` keeps the why. The plan-level review, `implement-fix` on its report, and `now-what` hand off to it on a `Next (fresh session):` line once the plan is ready under `plan-schema.md` § Shipping. Skills never cite this document, because `ship` states the close-out.
+**Working artifacts are branch-scoped; the requirements source – `prd.md`, or the tracker item a plan with `prd: null` came from – is the surviving product record.** `plan.json` and FIS files stay on the branch and are deleted before the merge. Under `Record: tracker` in the `Issue Tracker` document, `prd.md` goes too: the PRD's issue and one issue per story carry the record, which `tracker publish` writes from the bundle with no file or commit reference and the merge closes (ADR-028). The `ship` skill reads each FIS's Implementation Observations and lands or recommends what is worth keeping before it deletes the bundle, because the bodies go with it, then commits and opens the PR after one confirmation. The per-story commit `exec-plan` makes, staged by path, is a subject plus the `Story-ID:` and `Plan:` trailers its plan run finds it by. The why outlives the bundle in the requirements source and in the PR body `ship` writes from each FIS's Intent and Expected Outcomes, so it holds however the branch merges, squash included, and nothing links to a branch commit. The plan-level review, `implement-fix` on its report, and `now-what` hand off to it on a `Next (fresh session):` line once the plan is ready under `plan-schema.md` § Shipping. Skills never cite this document, because `ship` states the close-out.
 
 
 ---
@@ -154,12 +154,12 @@ Per transition – the boundary it crosses, then its reason:
 
 Before loose-skill copies begin, the installer derives each skill's direct canonical references – the `../../references/` paths in its own files, no transitive following. That required set must exactly match the skill's `_skill_assets_*` declaration. After rewriting a staged bundle, each required canonical asset and canonical markdown link is checked inside that bundle before it replaces the destination, so both declaration drift and copy/rewrite omissions fail before success is reported.
 
-| Target | `../../references/<asset>` | `<skill-dir>/<rest>` |
-|---|---|---|
-| Plugin install (either host) | No rewrite – the canonical travels with the plugin | No rewrite – the model fills the placeholder |
-| `--claude-user` and default / Codex (`~/.agents/skills/`) | Inline canonical into skill's `references/`; rewrite path to local-relative form | Replace with absolute install path of the skill |
+| Target | `../../references/<asset>` |
+|---|---|
+| Plugin install (either host) | No rewrite – the canonical travels with the plugin |
+| `--claude-user` and default / Codex (`~/.agents/skills/`) | Inline canonical into skill's `references/`; rewrite path to local-relative form |
 
-Skills are the only propagated unit, exported as `<prefix><name>`: the installer rewrites `andthen:` to that prefix in markdown and `agents/openai.yaml`, and in the `SKILL_NS = ` assignment line a bundled script defines, so runtime diagnostics name skills that exist in the installed namespace while identifiers matched on read (the tracker's issue marker, schema `$id`s) stay literal. No plugin agent auto-loads; `init` carries opt-in role templates separately. A loose reinstall stages and replaces each owned surviving skill directory, removing stale files inside it. Removing or renaming a whole skill still does not delete its previously installed `<prefix>*` directory.
+The model fills `<skill-dir>` on every tier. Skills are the only propagated unit, exported as `<prefix><name>`: the installer rewrites `andthen:` to that prefix in markdown and `agents/openai.yaml`, so an identifier matched on read spells no `andthen:` (the tracker's `andthen-projection` line) or lives outside them (schema `$id`s). No plugin agent auto-loads; `init` carries opt-in role templates separately. A loose reinstall stages and replaces each owned surviving skill directory, removing stale files inside it. Removing or renaming a whole skill still does not delete its previously installed `<prefix>*` directory.
 
 
 ---

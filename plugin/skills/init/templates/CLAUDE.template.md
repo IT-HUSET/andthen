@@ -35,7 +35,7 @@ A document whose file does not exist yet reads as empty. The first skill that wr
 - **Write**: the FIS and its story's `plan.json` row as execution proceeds. `plan.json` has one writer per copy at a time, so a `plan` breakdown's story subagents never write it. An oversized FIS is a story too big: decompose it (`OVERSIZE:`), never trim it.
 
 ### Issue Tracker – `docs/ISSUE-TRACKER.md`
-- **Description**: Tracker backend, its commands, and label role mapping (optional).
+- **Description**: Tracker backend, its commands, label role mapping, and where the requirements record lives (optional).
 - **Read**: before any issue fetch, triage, or label write.
 
 ### Decisions – `docs/DECISIONS.md`

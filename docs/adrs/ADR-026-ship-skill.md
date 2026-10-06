@@ -5,6 +5,10 @@ Accepted. Recorded 2026-10-03.
 
 Supersedes the Still Current note "No `close-plan` verb", deleted from `Decisions` with this record, and `plan-schema.md` § Shipping's "The user ships it, and no skill does". It also replaces the "commit and open the PR yourself" guidance that took the place of `quick-implement`'s PR creation. `implement-fix` itself still never commits.
 
+*Amended 2026-10-06: story commits no longer carry each FIS's Intent and Expected Outcomes, and `ship` no longer keeps them unsquashed. Squash merging is the common case, and it keeps no branch commit in the base branch's history, so in the common case the commits are no durable record. A squash message listing every story's message also does not scale. The requirements file and the PR body, which `ship` writes from each FIS before deleting the bundle, carry the intent. `ship` never repoints a link at a branch commit, and it leaves the squash message to the host and the merger.*
+
+*Amended 2026-10-06: the PR body also states whether the change is a one-way or two-way door and its blast radius, linking the ADR that settled a one-way door, so the reviewer knows which changes to read slowly. It is always written, because a missing line reads as two-way, and it adds no ask.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:
@@ -28,8 +32,8 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 - **Any branch, input read leniently.** With a plan bundle on the branch, `ship` runs the plan close-out: it lands what the FIS observations hold worth keeping, then deletes the bundle, keeping the requirements file. Without one, it commits and opens the PR.
 - **Open work is asked about, not gated.** An unfinished story or an open CRITICAL or HIGH finding is named and asked about once, recommendation first, per the Still Current note "A decision never stops a run".
-- **All four steps, one ask.** The commit and the bundle deletion run without asking, because the branch history keeps both. One question before push and PR shows the title and body built from the story commits. Under `--auto` the run stops before the push and prints the push and PR command, because opening a PR needs consent.
-- **Written to intent.** The skill states outcomes and the reason behind each of its few hard rules: land before delete, keep story intent through the merge, ask once before publishing. Routine git and host work is left to the model, per the Product principles Flexible and Intent-driven and the Skill-authoring guidelines.
+- **All four steps, one ask.** The commit and the bundle deletion run without asking, because the branch history keeps both. One question before push and PR shows the title and body built from the FIS files and the plan's source. Under `--auto` the run stops before the push and prints the push and PR command, because opening a PR needs consent.
+- **Written to intent.** The skill states outcomes and the reason behind each of its few hard rules: land before delete, carry story intent into the PR body, ask once before publishing. Routine git and host work is left to the model, per the Product principles Flexible and Intent-driven and the Skill-authoring guidelines.
 - **The printers hand off.** `review`, `implement-fix`, and `now-what` close a ready plan on one `Next (fresh session):` line invoking `ship`, in place of the spelled-out steps.
 - **It lands in the 1.0 RC line.**
 
@@ -55,7 +59,7 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 1. **Fold the knowledge step into the runs that print `Next: ship –`.** Rejected: one procedure spread over three skills, and `now-what` would turn from router into executor.
 2. **Plan branches only.** Rejected: an input gate no contract needs (Product, Flexible). A branch without a plan needs only commit and PR, which the same skill does with no extra rule.
-3. **Steps 1–3, never push.** Rejected: the step that carries story intent into the merge stays manual.
+3. **Steps 1–3, never push.** Rejected: the step that carries story intent into the PR stays manual.
 4. **All four steps, no ask.** Rejected: nothing previews the PR body before it is published.
 5. **After 1.0.** Rejected: the RC cycle still admits skills (ADR-025), and the docs describing the workflow's end change once rather than twice.
 6. **Floor option: keep the printed checklist.** Rejected: the knowledge step stays skippable with no trace (studio `8d16a71`), and the eleven restatements stay.
@@ -64,7 +68,7 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 Plan it with the `andthen:plan` skill from this ADR. The items left open for that plan's Preflight settled on 2026-10-04:
 
-- **PR body layout.** The project's PR template or named PR process sets it. The body states the intent, the outcomes, and their proof for a reviewer deciding whether to merge, from the plan's source (its requirements file or tracker item), the story commits, each story's `verified.summary`, and the latest review's verdict, because the bundle and the review report never merge.
+- **PR body layout.** The project's PR template or named PR process sets it. The body states the intent, the outcomes, and their proof for a reviewer deciding whether to merge, from the plan's source (its requirements file or tracker item), each FIS's Intent and Expected Outcomes, each story's `verified.summary`, and the latest review's verdict, because the bundle and the review report never merge.
 - **Commit message shape.** Left to the model and the project's conventions.
 - **A design-changing Drift Note.** A recommended `Decisions` line, or a `decide` run where alternatives are open. `ship` writes only `Learnings` traps and never a decision record, as `handoff` does.
 - **A host without a CLI.** The run ends on the title, the body, and the commands still to run.

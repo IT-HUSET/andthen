@@ -37,7 +37,7 @@ Read `Decisions`, `Learnings`, `Architecture` and `Context Map` where present, a
 
 - **settled** by a source you can cite – cite it;
 - **a requirement** – user-visible behaviour, scope, or a threshold users would notice – goes to the PRD through the `andthen:clarify` skill;
-- **binds beyond one story or is costly to reverse** – decided in this run;
+- **binds beyond one story or is costly to reverse** – decided in this run, labelled a one-way or two-way door;
 - **local to one story** – left to the `andthen:plan` skill's Preflight.
 
 The first round of questions opens with the list and its sorting, so the user can add, drop, or move a point.
@@ -48,7 +48,7 @@ The first round of questions opens with the list and its sorting, so the user ca
 
 Ask in rounds over the frontier. Every decision whose prerequisites are settled goes in this round, and one that depends on an open answer waits for the next, so no answer is guessed before it is heard. Probe a load-bearing answer before accepting it: what it costs, what breaks at 10x, what reversing it later takes.
 
-A decision is **contested** when no option stands out: the options sit close on the criteria that matter, the evidence is missing, or the user asks for the comparison. A contested decision runs through [`trade-off.md`](references/trade-off.md) before you recommend, with its gates asked in the round where the decision sits. Its Findings Filter reviewer reads [`review-calibration.md`](../../references/review-calibration.md), whose path you pass. A question only running code settles goes to the `andthen:spike` skill, whose Spike Verdict folds back in as evidence.
+A decision is **contested** when no option stands out: the options sit close on the criteria that matter, the evidence is missing, or the user asks for the comparison. Close options on a two-way door are not contested, because either pick is cheap to reverse. A contested decision runs through [`trade-off.md`](references/trade-off.md) before you recommend, with its gates asked in the round where the decision sits. Its Findings Filter reviewer reads [`review-calibration.md`](../../references/review-calibration.md), whose path you pass. A question only running code settles goes to the `andthen:spike` skill, whose Spike Verdict folds back in as evidence.
 
 Shared understanding is confirmed, not inferred. Play the settled set back in a few lines – each decision with its rationale and cost, and what stays open – and ask whether that is it. In the same question, ask whether its ADRs go in `Accepted` or `Proposed` for others to sign off, with `Accepted` recommended since the user just settled them. A correction reopens the frontier.
 

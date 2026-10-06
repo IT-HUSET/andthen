@@ -14,4 +14,6 @@ Deltas to the `andthen:clarify` skill's steps at product scope; everything the b
 
 **Step 6 does not run** – this mode writes `Non-Goals` in Step 3.
 
+**Step 7 does not run** – the tracker holds a feature's PRD, and the `Product` document stays in the repo.
+
 **Follow-up** – the `Next (fresh session):` line is the `andthen:architecture` skill in `--mode strategic-design`, deriving bounded contexts from the vision.

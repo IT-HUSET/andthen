@@ -365,13 +365,15 @@ The loop ends on the verdict, never on a severity count: a `Note` the fix round 
 
 ### Working in a team
 
-The pipeline does not change per tracker; the tracker is a projection of the plan, never a second source of truth. Five steps:
+While a plan runs, the tracker is a projection of the plan, never a second source of truth. Five steps:
 
 1. **A request arrives** as a tracker item – one line or a long brief.
 2. **Outer loop, once per epic** – `clarify <item-url>` → `prd.md` → `plan` → `plan.json` + a FIS per story → **PR to the milestone branch**, where the team reviews the PRD and the plan. An item that already states its requirements goes straight to `plan <item-url>`.
-3. **Publish the breakdown** – `tracker publish plan.json` creates one parent issue and one child issue per story (scope, PRD anchors, a commit-pinned FIS link, blocked-by links, completed task IDs); a re-run updates them.
+3. **Publish the breakdown** – `tracker publish plan.json` puts the PRD and a story checklist in the request's issue and creates one child issue per story (scope, intent, expected outcomes, acceptance scenarios, blocked-by links); a re-run updates them.
 4. **Inner loop, once per story** – claim the story's issue by assigning it to yourself, branch (`{type}/{story-id}-{slug}`) → `exec-plan`, its quick review included → PR with `Closes #N`. Merge closes the issue natively.
-5. **State** – `plan.json` is agent truth while the plan governs; the tracker is the human projection (re-run `tracker publish` to refresh it). `prd.md` outlives the bundle; the issues and PRs are the per-story record.
+5. **State** – `plan.json` is agent truth while the plan governs; the tracker is the human projection (re-run `tracker publish` to refresh it). Under the default `Record: repo`, `prd.md` outlives the bundle; the issues and PRs are the per-story record.
+
+**Requirements only in the tracker.** Set `Record: tracker` in the `Issue Tracker` document. `clarify` then saves the PRD to its issue, `plan <issue-url>` copies it back into the bundle, and `ship` publishes the issues a last time for the merge to close, and deletes `prd.md` with the bundle, so nothing requirements-shaped stays in the repo after the merge.
 
 A single story is the same flow with a different argument:
 
@@ -381,15 +383,15 @@ A single story is the same flow with a different argument:
 | Plan | `plan <source>` → the FIS plus its one-story plan on the feature branch | `plan <issue-url>` → same bundle; the plan records the URL as its source |
 | Build + prove | `exec-plan` → `review --fix` → `ship` | same; PR body `Closes #42` |
 | Status | branch + PR | native: branch name / PR link moves the issue, merge closes it |
-| Record after merge | the PR and commits – each story commit carries the FIS head (intent and expected outcomes), kept through the merge | the issue and the PR |
-| Close-out | `ship`, once the plan-level review's `Next (fresh session):` line names it: Observations land in `Learnings`, the rest is recommended, then `plan.json` and the FIS files are deleted before the plan's branch merges; `prd.md` stays | same |
+| Record after merge | `prd.md` and the PR, whose body states each story's intent, outcomes, and proof | the issues and the PR |
+| Close-out | `ship`, once the plan-level review's `Next (fresh session):` line names it: Observations land in `Learnings`, the rest is recommended, then `plan.json` and the FIS files are deleted before the plan's branch merges; `prd.md` stays | same; under `Record: tracker`, the issues are refreshed first and the merge closes them, and `prd.md` goes too |
 
-A PRD leaves `prd.md` behind as the requirements record; any other source leaves only the request itself. Concurrent stories need no shared state file: `plan.json` is the one state owner, and per-story FIS prose is frozen.
+Under `Record: repo`, a PRD leaves `prd.md` behind as the requirements record; any other source leaves only the request itself. Concurrent stories need no shared state file: `plan.json` is the one state owner, and per-story FIS prose is frozen.
 
 **In commands**, with several people taking stories from one plan:
 
 ```
-/andthen:tracker publish docs/specs/workspace-invitations/plan.json --dry-run   # see the payloads first
+/andthen:tracker publish docs/specs/workspace-invitations/plan.json --dry-run   # preview the issues first
 /andthen:tracker publish docs/specs/workspace-invitations/plan.json
 git switch -c feat/S02-accept-an-invitation                                     # {type}/{story-id}-{slug}
 /andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md
@@ -443,9 +445,9 @@ Reference for [the workflow](README.md#the-workflow): what each step reads and w
 | Requirements, optional | `clarify` | your idea, or a source from anywhere – a pasted note, a tracker issue, an `intent.md` | `prd.md` – what to build and why |
 | Design, optional | `decide`, `ui-ux-design` | the PRD or the request | ADRs and Decisions lines; a design system or wireframes |
 | Plan | `plan` | a description, a `prd.md` (or its directory), a requirements file, a tracker issue | `plan.json` – the stories, their dependencies and status – plus one FIS per story |
-| Build | `exec-plan`, on a FIS or the plan directory | `plan.json` and the FIS | the code, one commit per story carrying its FIS head, each story `done` in `plan.json` |
+| Build | `exec-plan`, on a FIS or the plan directory | `plan.json` and the FIS | the code, one commit per story with `Story-ID:` and `Plan:` trailers, each story `done` in `plan.json` |
 | Review and fix | `review --fix` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json`, and the fixes |
-| Ship | `ship` | each FIS's `## Implementation Observations` and the branch's commits | `Learnings` bullets and printed recommendations; `plan.json` and the FIS files deleted, `prd.md` kept; the commits; the PR after one confirmation |
+| Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle deleted; `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation |
 
 `plan` sizes the work before it writes a FIS. When a story still turns out too big for one run, it offers to split it – in the same run for a written source, through `clarify` for a description. `review --fix` is one review and one fix round; when it fixed a CRITICAL or HIGH finding or left a Fix finding open, it prints a follow-up review as its `Next (fresh session):` line. Once the plan's stories are all `done` or `skipped` (cut from scope) and nothing CRITICAL or HIGH is open, its `Next (fresh session):` line runs `ship` instead; `implement-fix` run on the report closes the same way.
 
@@ -688,19 +690,17 @@ Three things the report does not spell out. The reviewer was a fresh subagent, s
 
 ### Turn 4 – ship S01 *(session C continues)*
 
-`ship` on the story branch opens the PR to `1.2` and, with stories still to run, keeps the bundle. The story commit already carries the FIS head – the subject, `Intent:`, `Expected Outcomes:`, and the two trailers – so keep it as the squash-merge message: the *why* survives the FIS's deletion and `git log --grep S01` finds it:
+`ship` on the story branch opens the PR to `1.2` and, with stories still to run, keeps the bundle. The PR body takes S01's intent and outcomes from the FIS and its proof from the `verified` line and the review, so the *why* survives the FIS's deletion however the PR merges. Its head reads:
 
 ```
-feat(S01): send an invitation
+## Send an invitation (S01)
 
-Intent: an owner must be able to bring a teammate in without an admin, so an invitation carries a single-use token to the invitee's email.
+An owner can bring a teammate in without an admin: an invitation carries a single-use token to the invitee's email.
 
-Expected Outcomes:
 - [OC01] An owner's invite request produces one pending Invitation and one email.
 - [OC02] A non-owner's invite request is refused.
 
-Story-ID: S01
-Plan: docs/specs/workspace-invitations/plan.json
+Proof: pytest -q -> exit=0, 3 passed. Review: F1 HIGH fixed; F2 MEDIUM (Mailer.send swallows SMTP errors) left open, pre-existing.
 ```
 
 On a team it also says `Closes #<the S01 child issue>`.
@@ -752,4 +752,4 @@ It ends on a `Next (fresh session):` line for `ship`, which runs on `1.2` as the
 
 It lands what belongs in `Learnings` from each FIS's `## Implementation Observations` and recommends the rest, including the PRD edit S02's Drift Note names, because the Drift Notes and cited ADRs go with the files. It then deletes `plan.json` and the FIS files (`prd.md` stays), commits, shows the `1.2` → `main` PR title and body, and asks once before it pushes.
 
-**What survives.** `prd.md`, the story commits carrying each FIS head with its `Story-ID:` and `Plan:` trailers, the tests, and on a team the issues and PRs.
+**What survives.** `prd.md`, the tests, the PRs whose bodies state each story's intent, outcomes, and proof, and on a team the issues.

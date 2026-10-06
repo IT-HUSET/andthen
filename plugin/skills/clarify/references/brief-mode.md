@@ -10,6 +10,6 @@ The subject is whatever needs sharpening: a feature before its PRD, or a decisio
 
 **Step 3** – write `OUTPUT_DIR/intent.md` from the Intent Document template in intent-template.md: the five sections plus the `Decisions Log` of what the interview settled, with `> **Source**:` populated as the body states. Each Open Question carries a recommendation and alternatives, as a question in the rounds does, so whoever reads the document can answer it there.
 
-**Steps 4–6 do not run** – their checks are PRD-shaped and nothing in an intent doc is settled enough for a reviewer or a Non-Goal. Verify only the `Source` line and the body's sharpness test on Open Questions.
+**Steps 4–7 do not run** – their checks are PRD-shaped, nothing in an intent doc is settled enough for a reviewer or a Non-Goal, and there is no PRD to publish. Verify only the `Source` line and the body's sharpness test on Open Questions.
 
 **Follow-up** – nothing downstream yet; print `Edit and share intent.md.` on its own line, then the `Next (fresh session):` line naming the `andthen:clarify` skill on `<OUTPUT_DIR>`, with `--brief` for a non-feature subject.

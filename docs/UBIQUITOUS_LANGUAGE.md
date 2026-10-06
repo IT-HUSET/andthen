@@ -19,7 +19,7 @@
 | Term | Definition | Avoid |
 |------|------------|-------|
 | Intent Document | The five-section `intent.md` – hand-written, or from the `andthen:clarify` skill under `--brief` on any subject; on a feature it is folded into the next PRD. In prose: intent doc. | intake, requirements clarification, clarification doc |
-| PRD | The feature-scope requirements document `prd.md` written by the `andthen:clarify` skill; the record that survives the merge. | requirements doc, spec, product spec |
+| PRD | The feature-scope requirements document `prd.md` written by the `andthen:clarify` skill; the record that survives the merge, in the repo or, under `Record: tracker`, in its issue. | requirements doc, spec, product spec |
 | Feature Implementation Specification (FIS) | Execution-sized specification for one story or standalone feature, authored by the `andthen:plan` skill and stored in the plan bundle. | spec, feature spec, implementation spec |
 | Intent (FIS) | One-sentence statement under `## Feature Overview and Goal` naming why the feature exists – the problem solved or value unlocked. | feature description, summary, feature title |
 | Expected Outcome | FIS-internal, behavioral, user-/business-observable success condition under `## Feature Overview and Goal`, tagged `[OC<NN>]`. | PRD outcome, success criterion, structural criterion |
@@ -48,6 +48,7 @@
 | Architecture Model | The `andthen:describe` skill's typed `architecture-model.json`: a committed projection of the code – contexts, `ref`-anchored nodes, evidence-tagged edges. | dependency dump, code map |
 | Domain Model | The `andthen:describe` skill's typed `domain-model.json`: a committed projection of the Ubiquitous Language – contexts, term nodes, overloaded meanings. | glossary dump, term map |
 | Single-session rule | The `andthen:plan` skill's story-sizing rule: a story plus its FIS must fit one fresh-context exec run. | story budget |
+| One-way / two-way door | A decision or change that is costly / cheap to reverse; the `andthen:decide` skill labels each decision, ADRs record it, and the `andthen:ship` skill states it in the PR body. | Type 1 / Type 2 decision, irreversible / reversible decision |
 | Canonical triage roles | `tracker triage`'s fixed label set – states `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; categories `bug`, `enhancement`. | triage statuses |
 
 ## Execution and Review
@@ -70,8 +71,7 @@
 | Task progress | Stable task IDs in `stories[].completedTaskIds`, appended as each task's `Verify` passes. | checked tasks, FIS state |
 | Proof lines | The story's evidence, produced by `exec-plan` where it runs: one line per `Proof` or `Verify` id – what ran and its exit code, or what was seen. | verifier, verifier report, proof report |
 | Completion transition | The executing story's write of `status: "done"` together with `verified: {at, summary}`, whose summary quotes executed proof output. | mark done, status write |
-| Close-out | The `ship` skill landing the FIS Implementation Observations, then deleting `plan.json` and the FIS files, before the plan's branch merges (the milestone on a team); `prd.md` stays. | plan cleanup, archive the plan, teardown |
-| FIS head | A FIS's `Story-ID`, `Intent`, and `Expected Outcomes`: the story commit's message, kept through the merge so it outlives the FIS. | commit summary, merge blurb |
+| Close-out | `ship` landing the FIS Implementation Observations, then deleting `plan.json` and the FIS files, before the branch merges (the milestone on a team); `prd.md` stays unless `Record: tracker`. | plan cleanup, archive the plan, teardown |
 | plan.schema.json | The machine form of `plan-schema.md` (JSON Schema draft 2020-12), a shared canonical in `plugin/references/`. | plan schema file, the JSON schema |
 | `Reviewed:` line | The completion report's one review signal: what reviewed the change, which findings were fixed, and what stays open. Prose for the reader, never parsed. | gate result, story verdict |
 | Scope Discipline | The `review-calibration.md` counterweight to the Anti-Leniency Protocol – Analysis Paralysis, Finding Distillation, Verdict first. | proportionality, going easy |

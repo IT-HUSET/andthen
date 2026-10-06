@@ -5,7 +5,7 @@ Rubric for validating a finished feature against the problem its PRD set out to 
 
 ## Baseline
 
-The PRD – from a plan, the file its `prd` names; otherwise the `prd.md` discovered as Intent Context – plus the Product document's Vision, Value Propositions, and Non-Goals when present. Without a PRD the pass is unavailable. A requirement only `skipped` stories' `sourceRefs` cite was cut from scope by hand: its Coverage Matrix row reads `not reviewed`, naming those stories, and it raises no finding.
+The PRD – from a plan, the file its `prd` names; otherwise the `prd.md` discovered as Intent Context – plus the Product document's Vision, Value Propositions, and Non-Goals when present. A plan with no `prd` takes as its PRD the tracker item its stories' `sourceRefs` cite, fetched as the `Issue Tracker` document says or with `gh issue view`. Without a PRD the pass is unavailable. A requirement only `skipped` stories' `sourceRefs` cite was cut from scope by hand: its Coverage Matrix row reads `not reviewed`, naming those stories, and it raises no finding.
 
 
 ## Coverage Matrix

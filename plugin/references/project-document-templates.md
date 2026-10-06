@@ -233,7 +233,7 @@ _No tech debt recorded yet._
 # Project Learnings
 
 <!-- Traps only, one bullet each: `- **{title}** – …` trap + pointer; postmortem depth lives in
-     the story commit or an ADR. An entry is admitted only if a frontier model does not already
+     an ADR. An entry is admitted only if a frontier model does not already
      know it, the code and git history do not already carry it, and it outlives the current
      initiative – anything else belongs in that initiative's PRD, plan, or FIS. Read the document
      before appending, so a reworded duplicate of an entry it already carries never lands; keep
@@ -413,6 +413,11 @@ Commands: see `docs/KEY_DEVELOPMENT_COMMANDS.md` § Testing (`fast`, `full`, run
 Backend: GitHub
 <!-- One of: GitHub | none | <named backend, e.g. Jira, Linear>. GitHub (or no file) uses the built-in gh
      default; none declares no tracker. Either way, omit the Operation Table below. -->
+
+Record: repo
+<!-- Where a feature's requirements record lives after the merge: repo (prd.md stays; the default when
+     this line is absent) or tracker (the PRD lives in its issue, child issues keep each story's record,
+     and ship deletes prd.md with the plan). -->
 
 ## Operation Table
 <!-- Non-GitHub backends only. Map every abstract operation to the backend's concrete command/API call.

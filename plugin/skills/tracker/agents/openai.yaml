@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Tracker"
-  short_description: "Publish a plan bundle to the issue tracker, triage incoming items, or set up the tracker"
-  default_prompt: "Work the issue tracker – publish a plan bundle as a parent issue and one child issue per story, triage incoming items toward implementation or a human decision, or set up the Issue Tracker document. Verb (publish, triage, setup) and its argument: "
+  short_description: "Publish a PRD or plan to the issue tracker, triage incoming items, or set up the tracker"
+  default_prompt: "Work the issue tracker – publish a PRD and its plan as a parent issue and one child issue per story, triage incoming items toward implementation or a human decision, or set up the Issue Tracker document. Verb (publish, triage, setup) and its argument: "
 
 policy:
   allow_implicit_invocation: true
