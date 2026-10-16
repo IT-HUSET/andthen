@@ -36,6 +36,8 @@ Execute a FIS, or a plan with one fresh subagent per story, verify against its p
 
 ### 1. Route
 
+Outside `--auto`, when the current branch is the remote's default branch, ask once whether to start a feature branch first, because commits land on the current branch and the pull request opens from it. Recommend starting it the way the project's written convention for starting work says, else as `<type>/<slug>`.
+
 Route on the path you were given, never on what sits beside it: every FIS the `andthen:plan` skill writes has a `plan.json` beside it. Read and follow:
 
 - A FIS (story run): [`story.md`](references/story.md), [`fis-contract.md`](../../references/fis-contract.md), [`fis-mutability.md`](../../references/fis-mutability.md).

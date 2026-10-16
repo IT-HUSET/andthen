@@ -1,8 +1,24 @@
 {
+  "note": "A suggested starting list, not a complete one: a command written another way gets past any pattern list. Keep permission rules and the OS sandbox on, and add your own patterns.",
   "patterns": [
     {
       "regex": "\\brm(?=(?:(?!\\$\\(|`)[^|])*\\s(?:-[a-zA-Z]*[rR][a-zA-Z]*|--recursive)\\b)(?=(?:(?!\\$\\(|`)[^|])*\\s(?:-[a-zA-Z]*f[a-zA-Z]*|--force)\\b)",
       "message": "Recursive force delete blocked. Use explicit file paths.",
+      "category": "destructive"
+    },
+    {
+      "regex": "(?i)\\b(?:remove-item|ri|del|erase|rd|rmdir)\\b(?=[^|]*\\s-r[a-z]*\\b)(?=[^|]*\\s-fo[a-z]*\\b)",
+      "message": "Recursive force delete blocked. Use explicit file paths.",
+      "category": "destructive"
+    },
+    {
+      "regex": "(?i)\\b(?:rd|rmdir|del|erase)\\b(?=[^|]*(?:\\s//?|/)s\\b)(?=[^|]*(?:\\s//?|/)q\\b)",
+      "message": "Recursive force delete blocked. Use explicit file paths.",
+      "category": "destructive"
+    },
+    {
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?git(?:\\.exe)?(?:\\s+-\\S+(?:\\s+[^-\\s]\\S*)?)*\\s+push\\b(?=(?:(?!\\$\\(|`)[^|])*\\s(?:--force(?:-with-lease|-if-includes)?\\b|-[a-zA-Z]*f[a-zA-Z]*\\b|\\+\\S))",
+      "message": "Force push blocked. It rewrites the remote's history; push without --force, or ask the user to force-push.",
       "category": "destructive"
     },
     {
@@ -31,12 +47,37 @@
       "category": "system_damage"
     },
     {
+      "regex": "(?i)(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?(?:(?:diskpart|format-volume|clear-disk|initialize-disk|remove-partition)\\b|format(?:\\.com)?\\s+[a-z]:)",
+      "message": "Disk format or partition change blocked.",
+      "category": "system_damage"
+    },
+    {
+      "regex": "(?i)\\breg(?:\\.exe)?\\s+delete\\b",
+      "message": "Registry delete blocked.",
+      "category": "system_damage"
+    },
+    {
+      "regex": "(?i)\\b(?:vssadmin|wbadmin)(?:\\.exe)?\\s+delete\\b|\\bwmic\\b.*\\bshadowcopy\\b.*\\bdelete\\b|\\bbcdedit(?:\\.exe)?\\s+//?(?:set|delete|deletevalue)\\b",
+      "message": "Shadow copy or boot configuration change blocked.",
+      "category": "system_damage"
+    },
+    {
       "regex": ">\\s*/dev/sd",
       "message": "Direct write to block device blocked.",
       "category": "system_damage"
     },
     {
       "regex": "\\b(curl|wget)\\b.*\\|\\s*(sh|bash|zsh|dash|ksh|python|python3|perl|ruby|node)\\b",
+      "message": "Pipe-to-shell blocked. Download first, review, then execute.",
+      "category": "pipe_to_shell"
+    },
+    {
+      "regex": "(?i)\\|\\s*iex\\b|\\biex\\s*[($\\\"']|\\binvoke-expression\\b",
+      "message": "Invoke-Expression blocked. Run the command, or a reviewed script file, directly.",
+      "category": "pipe_to_shell"
+    },
+    {
+      "regex": "(?i)\\b(?:iwr|irm|invoke-webrequest|invoke-restmethod|curl|wget)\\b[^|]*\\|\\s*(?:powershell|pwsh|cmd)(?:\\.exe)?\\b",
       "message": "Pipe-to-shell blocked. Download first, review, then execute.",
       "category": "pipe_to_shell"
     },
@@ -56,43 +97,68 @@
       "category": "interpreter_escape"
     },
     {
-      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(nc|netcat|ncat)\\b",
+      "regex": "(?i)\\b(?:powershell|pwsh)(?:\\.exe)?\\b[^|]*\\s-e(?:c|nc[a-z]*)?\\b",
+      "message": "Encoded PowerShell command blocked. Run the command directly.",
+      "category": "obfuscated_exec"
+    },
+    {
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?(nc|netcat|ncat)\\b",
       "message": "Netcat blocked. Network socket tools are not needed for development tasks.",
       "category": "network"
     },
     {
-      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?socat\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?socat\\b",
       "message": "Socat blocked. Bidirectional data relay tools are not needed for development tasks.",
       "category": "network"
     },
     {
-      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?telnet\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?telnet\\b",
       "message": "Telnet blocked. Use curl or other HTTP tools instead.",
       "category": "network"
     },
     {
-      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(shutdown|reboot|halt|poweroff)\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?(shutdown|reboot|halt|poweroff)\\b",
       "message": "System shutdown/reboot blocked.",
       "category": "system_damage"
     },
     {
-      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(fdisk|parted)\\b",
+      "regex": "(?i)(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?(?:stop-computer|restart-computer)\\b",
+      "message": "System shutdown/reboot blocked.",
+      "category": "system_damage"
+    },
+    {
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?(fdisk|parted)\\b",
       "message": "Disk partitioning blocked.",
       "category": "system_damage"
     },
     {
-      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(mount|umount)\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?(mount|umount)\\b",
       "message": "Filesystem mount/unmount blocked.",
       "category": "system_damage"
     },
     {
-      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?(passwd|useradd|userdel|usermod)\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?(passwd|useradd|userdel|usermod)\\b",
       "message": "User management blocked.",
       "category": "privilege"
     },
     {
-      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*/)?chown\\b",
+      "regex": "(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?chown\\b",
       "message": "Ownership change blocked.",
+      "category": "privilege"
+    },
+    {
+      "regex": "(?i)\\bnet(?:\\.exe)?\\s+(?:user|localgroup)\\b.*\\s//?(?:add|del(?:ete)?)\\b|(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?(?:new-localuser|remove-localuser|set-localuser|add-localgroupmember)\\b",
+      "message": "User management blocked.",
+      "category": "privilege"
+    },
+    {
+      "regex": "(?i)(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?takeown(?:\\.exe)?\\b|\\bicacls(?:\\.exe)?\\b[^|]*\\s//?grant\\b",
+      "message": "Ownership or ACL change blocked. Ask the user to change permissions.",
+      "category": "privilege"
+    },
+    {
+      "regex": "(?i)(?:^|[|(`{!]\\s*|\\b(?:sudo|xargs|env|exec|nohup|timeout|command|time|nice|if|then|do|while|until)\\s+(?:-\\S*\\s+(?:[^-\\s]\\S*\\s+)?|\\d\\S*\\s+)*)(?:\\w+=\\S*\\s+)*(?:\\S*[/\\\\])?(?:set-executionpolicy|set-mppreference|add-mppreference|set-netfirewallprofile)\\b|\\bnetsh(?:\\.exe)?\\s+(?:advfirewall|firewall)\\s+set\\b",
+      "message": "Windows security setting change blocked (execution policy, Defender, firewall). Ask the user to make it.",
       "category": "privilege"
     },
     {

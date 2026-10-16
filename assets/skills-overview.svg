@@ -322,7 +322,7 @@
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
 <text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · describe</text>
 <text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Describe what a project already is: --mode codebase maps it into docs, --mode domain extracts the Ubiquitous</text>
-<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Language; --model adds the typed architecture or domain model.</text>
+<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Language; --model adds the typed architecture or glossary model.</text>
 </g>
 </g>
 <g class="hot" tabindex="0" data-hotspot="architecture">

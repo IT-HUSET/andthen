@@ -89,7 +89,7 @@ Acknowledge an observational finding, where the reviewer confirmed something pas
 
 Read [`verification-evidence.md`](../../references/verification-evidence.md) for a Fix set.
 
-1. **Trace test** against the pre-mutation baseline: each remediation hunk maps to a Fix row or is a Boy Scout tidy. A Boy Scout tidy in a file the change touches is small and behavior-preserving, or fixes an obvious small bug under a test that fails first. A tidy never does a finding's work unless that finding is routed Fix this round. Edit any other hunk back before verification and surface it. Leave changes already in the baseline untouched.
+1. **Trace test** against the pre-mutation baseline: each remediation hunk maps to a Fix row or is a Boy Scout tidy. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. A tidy never does a finding's work unless that finding is routed Fix this round. Edit any other hunk back before verification and surface it. Leave changes already in the baseline untouched.
 2. **Test first where a fix adds a branch**, through the `andthen:testing` skill: a failing test that proves the defect for a defect, red-green otherwise. Tests alongside are for structural changes only, such as renames, reorganization, and declarations. Test-after is forbidden, because it proves what the code does, not what the finding asked for.
 3. **Verify once** over the union of the round's touched areas, per `verification-evidence.md`. Check a document or workflow-artifact fix against its source of truth and cross-references.
 4. **Review** your diff against the input yourself; for a small change that pass *is* the review. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill to review the round's diff for correctness only when a defect would not be visible in that diff. It is the installed `reviewer` role agent when available, else a generic inherited subagent; never pin model or effort in a prompt.
@@ -110,13 +110,13 @@ Update only what the verified work justifies: state never advances before proof.
 - **Changelog**: a user-facing change gets the project's changelog entry when it keeps one.
 - **Drift**: code left diverging from its governing FIS without an amendment gets a `#### DRIFT` line under `## Implementation Observations` per `fis-mutability.md`.
 - **Annotate the input report** per [`report-annotation.md`](references/report-annotation.md) when `INPUT` is a local writable report path, else log the skip reason. Annotate before any backlog write. An annotation failure still continues to that write and surfaces in the output, because a lost backlog write is silent debt drift.
-- **Persist `DEFERRED` findings** to the backlog the `Tech Debt` entry names, in one pass, in the entry shape its header note carries:
+- **Persist `DEFERRED` findings** to the `Tech Debt` backlog, creating it per the Index preamble when it does not exist, in one pass, in the entry shape its header note carries:
   - each under its severity: `CRITICAL/HIGH → High`, `MEDIUM → Medium`, `LOW → Low`;
   - its source the input report's path, its blocker the Phase 2 blocker verbatim, and the remedy you recommend.
 
-  Unattended, write every one: `--auto` is the approval. Attended, write only those the user approves when the output asks. With no `Tech Debt` entry, list them in the output instead.
+  Unattended, write every one: `--auto` is the approval. Attended, write only those the user approves when the output asks.
 
-**Gate**: status artifacts reflect the verified state, the report is annotated when writable, and each `DEFERRED` finding is written, awaiting approval, or listed.
+**Gate**: status artifacts reflect the verified state, the report is annotated when writable, and each `DEFERRED` finding is written or awaiting approval.
 
 ### Phase 6: Capture Cross-Finding Patterns _(optional)_
 
@@ -136,8 +136,8 @@ The verified change stays in the working tree for the user to commit. Report:
 
 Run standalone on a report, print one `Next` line for the first case that applies, because no caller routes the change on. It is printed, never invoked:
 
-- **This round fixed a CRITICAL or HIGH finding, or left a Fix PARTIALLY RESOLVED or UNRESOLVED** – `Next (fresh session):` the `andthen:review` skill on the report's target with `--fix`, as a follow-up to `<report-path>`: this session's fixes need a reading it did not write.
+- **This round fixed a CRITICAL or HIGH finding, or left a Fix PARTIALLY RESOLVED** – `Next (fresh session):` the `andthen:review` skill on the report's target with `--fix`, as a follow-up to `<report-path>`: this session's fixes need a reading it did not write.
 - **A `plan <plan.json>` target ready under [`plan-schema.md`](../../references/plan-schema.md) § Shipping** – `Next (fresh session):` the `andthen:ship` skill on `<plan.json>`.
 - **Otherwise** – no line.
 
-Attended, with `DEFERRED` findings and a `Tech Debt` entry, close on them after that line: each with its blocker and recommended remedy, CRITICAL and HIGH first, then one question asking which to add to the backlog. Write only the approved ones, per Phase 5. Not standalone, return the list and the question to your caller.
+Attended, with `DEFERRED` findings, close on them after that line: each with its blocker and recommended remedy, CRITICAL and HIGH first, then one question asking which to add to the backlog. Write only the approved ones, per Phase 5. Not standalone, return the list and the question to your caller.

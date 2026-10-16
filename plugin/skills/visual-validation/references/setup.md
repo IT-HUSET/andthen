@@ -23,7 +23,7 @@ Create the document with one heading per bullet in Output, dropping a heading th
 
 A `Visual Validation Workflow` section's content belongs in this document. Remove the section only after the user confirms the document carries it: it is hand-written project policy in a file this skill does not own.
 
-Add the `Visual Validation` Index entry to the root agent instruction file when it is absent, in the shape that Index already uses.
+A new document gets its Index entry per the Index preamble.
 
 **Gate**: the document carries every proven section, and its Index entry exists.
 

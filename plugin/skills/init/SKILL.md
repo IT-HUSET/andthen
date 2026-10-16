@@ -11,7 +11,7 @@ Write the root agent instruction file(s) and the defaults the AndThen skills rel
 
 `$ARGUMENTS` is the project name, optional: absent, infer it from the directory name or the package config.
 
-- `seed <Index entry>` is a first write, run by a subagent. Create only that document at its Index location, from its section in [`project-document-templates.md`](../../references/project-document-templates.md), with any content the prompt carries, and return its path. Nothing below runs.
+- `seed <Index entry>` is a first write, run by a subagent. Its location is the Index entry's path, else the default its line in [`project-document-templates.md`](../../references/project-document-templates.md) § Index entries names. When the document is missing and has a template there, create it from that template with any content the prompt carries; a document without one gets only its entry. Add that line to the Index when the entry is absent, then return the path. Nothing below runs.
 
 ## Rules
 
@@ -41,7 +41,7 @@ Generate the root agent instruction file(s) from [`CLAUDE.template.md`](template
 - **Codex or a generic agent alone** – one full `AGENTS.md`.
 - **Both, or the target unclear** – `AGENTS.md` carries the full template content and `CLAUDE.md` is a thin import: `@AGENTS.md` as the first line, Claude-specific additions (if any) below it under a `## Claude Code` heading. Codex never reads `CLAUDE.md`, so the `@` sigil is safe there.
 
-Keep the Project Document Index and the Project-Specific Guidelines and Rules sections intact, with every Index entry, including those whose document does not exist yet: the preamble's first-write sentences say how the first skill that writes one creates it.
+Keep the Project Document Index and the Project-Specific Guidelines and Rules sections intact. Append the line from `project-document-templates.md` § Index entries for each AndThen document Step 1 found, at the path where it was found.
 
 Leave no `TODO` placeholder behind: resolve each from the project context or delete its section, since an instruction file is read on every turn of every session.
 
@@ -49,7 +49,7 @@ Append `.agent_temp/` and `*-andthen-*-review-*.md` to `.gitignore` when absent,
 
 When Step 1 found a manifest, derive the `fast`, `full` and run-one-test commands from it and the task runner beside it (`Makefile`, `justfile`, the CI workflow). Seed the `Key Dev Commands` document with them through a subagent – the installed `worker` role agent when available, else a generic inherited one – that invokes this skill with `seed Key Dev Commands` and those commands, so the template set stays out of this run's context.
 
-**Gate**: The instruction file(s) carry every Index entry and the preamble's first-write sentences, and no `TODO`; `.gitignore` carries both entries; `Key Dev Commands` exists when a manifest does; nothing else was created – then Step 3.
+**Gate**: The instruction file(s) carry the preamble's first-write sentences, the `Agent Temp` entry, an Index entry for each other AndThen document that exists and none for one that does not, and no `TODO`; `.gitignore` carries both entries; `Key Dev Commands` exists when a manifest does; nothing else was created – then Step 3.
 
 ### 2b. An instruction file exists
 
@@ -63,7 +63,7 @@ Offer each item that applies, one line each:
 - the critical rules in the root instruction file, unless a policy – inline, referenced or custom – or the skip marker is already there;
 - the `andthen:describe` skill in `--mode codebase`, for an existing codebase with no filled-in `Architecture` document;
 - per-sub-project instruction files, when Step 1 found a monorepo or workspace;
-- the `Roadmap` and `Ubiquitous Language` documents;
+- the documents not created yet among `Product`, `Decisions`, `Learnings`, `Tech Debt`, `Roadmap` and `Ubiquitous Language`, as one line the user picks from;
 - the `andthen:testing` skill in `--mode strategy`, when Step 1 found a test suite;
 - the `andthen:visual-validation` skill in `--mode setup`, when Step 1 found a served UI;
 - the offers Step 2b passed on.
@@ -73,7 +73,7 @@ For a role-agent, rules, document or sub-project offer taken up, the critical-ru
 - the role agents: the [role templates](templates/agents/);
 - the critical rules or personal rules: [`CRITICAL-RULES-AND-GUARDRAILS.md`](templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md);
 - a conversation style: [`concise-critical.md`](templates/output-styles/concise-critical.md);
-- the `Roadmap` or `Ubiquitous Language` document: `project-document-templates.md`.
+- a document: `project-document-templates.md`.
 
 **Gate**: Each offer taken up is done, a declined critical-rules offer is marked, and nothing was written for an offer ignored.
 

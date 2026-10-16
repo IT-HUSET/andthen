@@ -25,7 +25,7 @@ Every run reads [`verification-evidence.md`](../../references/verification-evide
 - **A decision that ambiguity or conflicting evidence leaves open** is asked once, recommendation first.
 - `NOTICED BUT NOT TOUCHING:` holds what someone should act on. Its items close with an offer to create tasks.
 - `Learnings`, `Tech Debt`, `Architecture`, `Issue Tracker`, and `Specs & Plans` are Project Document Index entries. Read `Learnings` first, when it exists.
-- **3-Fix Stop Condition**: after 3 fix attempts on the same symptom or root cause have failed, hand the problem once to the installed `oracle` role agent when available, stating what was tried and what stays unexplained; a root cause it names that no attempt tested earns one more attempt. Then stop and report what you tried, what failed, your root-cause hypothesis, the architectural alternatives, and any diagnosis the oracle returned.
+- **3-Fix Stop Condition**: after 2 failed fix attempts on the same symptom or root cause, write down what both assumed and test it before a third, because a failure that survives two fixes is evidence against what they share. After 3 have failed, hand the problem once to the installed `oracle` role agent when available, stating what was tried, what every attempt assumed, and what stays unexplained; a root cause it names that no attempt tested earns one more attempt. Then stop and report what you tried, what failed, your root-cause hypothesis, the architectural alternatives, and any diagnosis the oracle returned.
 
 ## Workflow
 
@@ -56,14 +56,15 @@ Document each issue with severity, location, symptoms, and the relevant error ou
      - **Environment-dependent** – config, OS, runtime: diff configs across environments, reproduce in each
      - **State-dependent** – stale caches, uninitialized data, leaked state between tests: trace mutations, check setup/teardown
      - **Truly intermittent** – no pattern after classification: add telemetry, collect N occurrences before hypothesizing
+3. Search for each root cause's other instances, the same pattern or wrong assumption elsewhere, and put them in the fix plan, because an instance left in place fails later as a new report.
 
-**Gate**: each critical and high issue has a root cause that a test or reproduction separates from the other hypotheses. With `MODE=plan-only`, stop here and deliver the fix plan in the shape under Output.
+**Gate**: each critical and high issue has a root cause that a test or reproduction separates from the other hypotheses, and its other instances are listed or none were found. With `MODE=plan-only`, stop here and deliver the fix plan in the shape under Output.
 
 ### 4. Fix Mode
 
 Work in dependency order, critical before high-priority, validating each fix before moving on:
 
-1. Make fixes plus Boy Scout tidies. A Boy Scout tidy in a file the change touches is small and behavior-preserving, or fixes an obvious small bug under a test that fails first. Read the `Tech Debt` backlog when the area under repair has a listed item: the entry states what was deferred there and why.
+1. Make fixes plus Boy Scout tidies. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. Read the `Tech Debt` backlog when the area under repair has a listed item: the entry states what was deferred there and why.
 2. For a reproducible bug, a failing test that proves the defect precedes the fix, written through the `andthen:testing` skill.
 
 **Gate**: critical and high-priority issues resolved.
@@ -84,7 +85,7 @@ Write what is worth keeping now, because triage ends in conversation. Three dura
 1. **Traps and error patterns** → root causes, solutions, and preventive measures, appended to the `Learnings` document under the fitting topic, admitted against its header note.
 2. **Deferred fixes you deliberately did not make** → the `Tech Debt` backlog, read first: its header note carries the entry shape.
    - One entry per `NOTICED BUT NOT TOUCHING:` item the user did not already route to tasks, including a medium/low issue Step 4 left open.
-   - With no `Tech Debt` entry nothing resolves a path, so the deferrals are listed in the completion summary instead.
+   - Create the backlog per the Index preamble when it does not exist.
 3. **Discoveries too large to be a fix at all** – a missing capability, a behavior nobody has decided on – are not debt. Offer the `andthen:clarify` skill with `--brief` on one; in an unattended run report it instead, because a feature the user did not ask for is not triage's to open.
 
 **Gate**: traps, deferrals, and feature-sized discoveries each routed or explicitly skipped.

@@ -22,7 +22,7 @@ Architecture advice and structural analysis, in one mode or a chain of modes. No
 | **decompose** | "should I split", "merge these", "extract package", "decomposition", "too big" | the boundary | [`mode-decompose.md`](references/mode-decompose.md) |
 | **fitness** | "fitness functions", "governance", "architectural tests", "prevent drift" | the scope path | [`mode-fitness.md`](references/mode-fitness.md) |
 | **strategic-design** | "strategic design", "subdomains", "bounded contexts", "context map", "domain map", "model the domain" | the domain or workflow scope | [`mode-strategic-design.md`](references/mode-strategic-design.md) |
-| **event-storming** | "event storming", "discover the domain", "process discovery", "pivotal events", Brandolini | the domain or workflow scope + the level, Big Picture the default | [`mode-event-storming.md`](references/mode-event-storming.md) |
+| **event-storming** | "event storming", "discover the domain", "process discovery", "pivotal events", "aggregates", "tactical design", Brandolini | the domain or workflow scope + the level, Big Picture the default, Design Level on "aggregates" or "tactical design" | [`mode-event-storming.md`](references/mode-event-storming.md) |
 
 ## Rules
 
@@ -91,5 +91,5 @@ An analysis-mode report is one file in `OUTPUT_DIR`, named `<scope-or-topic>-arc
 
 Close on one `Next (fresh session):` line for the first case that applies, never a menu. A run another skill invoked prints none, because its caller owns the next step.
 
+- **The report recommends a mode not yet run, or another skill** – that invocation, as the report prints it.
 - **A fork the analysis surfaced, or an `advise` recommendation, to settle and record** – the `andthen:decide` skill on it.
-- **The report recommends a mode not yet run** – the `andthen:architecture` skill in that mode, on the same scope.

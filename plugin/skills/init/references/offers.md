@@ -32,7 +32,7 @@ Never replace an existing style choice or rewrite an unparseable configuration. 
 
 ## Optional documents
 
-For each confirmed document type, generate the file from its template in `project-document-templates.md`, at the location from the **Project Document Index**.
+For each confirmed document, generate the file from its template in `project-document-templates.md` at the default location its § Index entries line names, and append that line to the **Project Document Index**.
 
 ## Sub-project instruction files
 

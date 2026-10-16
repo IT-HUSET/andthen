@@ -82,7 +82,7 @@ Follow `triage.md`.
 Ask which backend the tracker uses, for any backend but GitHub the command each operation maps to, and whether a feature's requirements record lives in the repo or the tracker. An unattended run writes nothing and stops on `BLOCKED:` naming `setup` and the `Backend:` line to set.
 
 - **An existing document** is edited in place, with no template loaded: set its `Backend:` and `Record:` lines and the operations the answer maps.
-- **A new document** is seeded by a subagent – the installed `worker` role agent when available, else a generic inherited one – that invokes the `andthen:init` skill with `seed Issue Tracker`, the chosen backend, and the record's home, which keeps the templates out of this run's context. Add its Index entry when the instruction file lacks one.
+- **A new document** is seeded by a subagent – the installed `worker` role agent when available, else a generic inherited one – that invokes the `andthen:init` skill with `seed Issue Tracker`, the chosen backend, and the record's home, which keeps the templates out of this run's context.
 
 **Gate**: the document carries a parseable `Backend:` line and every operation the chosen backend needs.
 

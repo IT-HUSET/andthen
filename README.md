@@ -3,12 +3,12 @@
 </p>
 
 <p align="center">
-  <i>Lightweight agentic software engineering for AI coding agents, spec-driven when the work needs a spec.</i>
+  <i>Lightweight and flexible agentic software engineering for AI coding agents, spec-driven when the work needs a spec.</i>
 </p>
 
 > "I have a feature idea" → *and then?* → **clarify** → *and then?* → **plan** → *and then?* → **exec-plan** → *and then?* → **review** → **ship it.**
 
-AndThen is a set of skills for AI coding agents (Claude Code, Codex CLI, and others) that covers the whole engineering job: requirements, design, implementation, testing, review, and debugging. Its main workflow is spec-driven: for anything bigger than a small fix, the agent writes a spec first and then builds against it. The spec says what to build, how to prove it works, and when it is done.
+AndThen is a set of skills for AI coding agents (Claude Code, Codex CLI, and others) that covers the whole agentic software engineering process: requirements, architecture, design, implementation, testing, review, and debugging. Its main workflow is spec-driven: for anything bigger than a small fix, the agent writes a spec first and then builds against it. The spec says what to build, how to prove it works, and when it is done.
 
 What AndThen enforces, so you don't have to:
 
@@ -198,6 +198,16 @@ Every other document is created by the first skill that needs it. The closing su
 To set up by hand instead, start from [`CLAUDE.template.md`](plugin/skills/init/templates/CLAUDE.template.md).
 
 
+## Permissions, sandboxing, and hooks
+
+`exec-plan` runs for a long time without you watching, so it is worth limiting what the agent's shell commands can reach. They run as you. Approval prompts and allow/deny rules decide what asks you first, but a command you approve can still read `~/.ssh` or send data anywhere. An OS sandbox closes that gap. Every command and its child processes can write only inside the workspace, has no network, and cannot read the files you deny. Codex turns its sandbox on by default; Claude Code does not.
+
+- [`permissions/`](permissions/README.md) – example settings for both hosts. The sandbox is on and the network off. Commands cannot see `.env` files, cloud credentials, browser profiles, or token variables. `git push` asks first, the destructive-command hook below runs before every command, and Claude Code's bypass flag is refused. Organization-enforced variants are included.
+- [`hooks/`](hooks/README.md) – four optional hooks: a guard against destructive shell commands, desktop or voice notifications, and a context-size hint that has the agent suggest a fresh session. The guard matches patterns, so it adds a layer and does not replace the sandbox.
+
+Run `--dangerously-skip-permissions` or `--yolo` only inside a container or VM that holds none of your credentials.
+
+
 ## More
 
 - [`COOKBOOK.md`](COOKBOOK.md) – what to type for each situation, how the workflow fits together, [working in a team](COOKBOOK.md#working-in-a-team), [coming from Spec Kit, Kiro, BMAD, or GSD](COOKBOOK.md#coming-from-spec-kit-kiro-bmad-or-gsd), and a worked example.
@@ -206,13 +216,16 @@ To set up by hand instead, start from [`CLAUDE.template.md`](plugin/skills/init/
 - [`docs/PRODUCT.md`](docs/PRODUCT.md) – goals, non-goals, and how AndThen weighs verification against ceremony.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) – how the plugin is built, for contributors.
 - [`docs/MODEL-EFFORT-SELECTION-GUIDE.md`](docs/MODEL-EFFORT-SELECTION-GUIDE.md) – choosing models and thinking effort.
-- [`hooks/README.md`](hooks/README.md) – four optional Claude Code hooks: block destructive shell commands, desktop or ElevenLabs voice notifications, and a context-size hint, also for Codex, that has the agent suggest a fresh session once a conversation grows long.
 - Works well with: [Agent Browser](https://github.com/vercel-labs/agent-browser), and from the [official marketplace](https://github.com/anthropics/claude-plugins-official) `playground` and `claude-md-management`, and [`semgrep`](https://github.com/semgrep/mcp-marketplace) (external, recommended there).
 
 
-## Evolved From
+## Other useful skill libraries
 
-AndThen evolved from [cc-workflows](https://github.com/tolo/claude_code_common) – a general-purpose AI coding agent toolkit.
+AndThen has much in common with other skill libraries for agentic engineering and spec-driven development (SDD), especially those that cover the whole development lifecycle without being rigidly prescriptive or using proprietary conventions. And although AndThen covers the main development workflow on its own, it works well with complementary skill libraries, for instance:
+
+- [Matt Pocock's Skills For Real Engineers](https://github.com/mattpocock/skills/)
+- [pstack by @poteto](https://github.com/cursor/plugins/tree/main/pstack)
+- Anthropic's [official plugin marketplace](https://github.com/anthropics/claude-plugins-official), for instance `frontend-design` (visual direction when building UI), `skill-creator` (write and eval your own skills), and `claude-md-management` (audit CLAUDE.md files and capture session learnings in them).
 
 
 ## Inspired by _(name)_
@@ -230,10 +243,10 @@ Too many to list, but special shoutout to:
 - [Peter Steinberger](https://github.com/steipete)
 - [Cole Medin](https://github.com/coleam00) – the split into an outer loop per feature and an inner loop per story, and the habit of saying at each hand-off whether to continue or start fresh
 - [IndieDevDan](https://github.com/disler)
-- [Matt Maher](https://github.com/bladnman)
-- [Mario Zechner](https://github.com/badlogic)
 - [Matt Pocock](https://github.com/mattpocock)
-
+- [Addy Osmani](https://github.com/addyosmani)
+- [Mario Zechner](https://github.com/badlogic)
+- [Matt Maher](https://github.com/bladnman)
 
 ## License
 

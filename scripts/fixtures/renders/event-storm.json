@@ -46,6 +46,7 @@
       "rationale": "Credential verification and cookie issue must commit together.",
       "members": ["session", "credentials-verified", "session-issued"],
       "invariants": ["A session is issued only for verified credentials.",
-                     "One live session per verified credential set."] }
+                     "One live session per verified credential set."],
+      "root": "Session", "entities": ["Credential set"], "valueObjects": ["Session cookie", "Expiry"] }
   ]
 }

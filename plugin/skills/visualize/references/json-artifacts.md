@@ -2,7 +2,7 @@
 
 What the five JSON artifacts mean where their field names do not say. The four models and boards each carry a `kind` and a `meta` with the project, the producing skill, a date, and the source `revision`. A revision ending `-dirty` describes uncommitted changes.
 
-## `architecture-model` and `domain-model`
+## `architecture-model` and `glossary-model`
 
 Written by the `andthen:describe` skill; `kind` tells them apart. `contexts` are clusters, and each node's `contextId` places it in one.
 
@@ -11,7 +11,7 @@ Written by the `andthen:describe` skill; `kind` tells them apart. `contexts` are
 - Edge `weight` is relative strength, `1` when absent.
 - `tours` are ordered walkthroughs. Each step targets one node or one context, with a note on why the stop matters. Draw a tour as a sequence a reader steps through.
 - `ref` is a repository path. Show it as text, because a link from the page would not resolve.
-- In a `domain-model`, a node is a glossary term of kind `entity`, `action`, `state`, or `policy`, `avoid` lists its synonyms to avoid, and `edges` is always empty. A term with `meanings` is overloaded: it belongs between the contexts its meanings name, not inside one.
+- In a `glossary-model`, a node is a glossary term of kind `entity`, `action`, `state`, or `policy`, `avoid` lists its synonyms to avoid, and `edges` is always empty. A term with `meanings` is overloaded: it belongs between the contexts its meanings name, not inside one.
 
 ## `context-map`
 

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.azure/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.kube/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.npmrc)",
+      "Read(~/.netrc)",
+      "Read(~/Library/Application Support/Google/Chrome/**)",
+      "Read(~/Library/Application Support/Chromium/**)",
+      "Read(~/Library/Application Support/Firefox/**)",
+      "Read(~/Library/Application Support/Microsoft Edge/**)",
+      "Read(~/Library/Cookies/**)",
+      "Read(~/.config/google-chrome/**)",
+      "Read(~/.config/chromium/**)",
+      "Read(~/.config/microsoft-edge/**)",
+      "Read(~/.mozilla/**)",
+      "Read(~/AppData/Local/Google/Chrome/**)",
+      "Read(~/AppData/Local/Chromium/**)",
+      "Read(~/AppData/Local/Microsoft/Edge/**)",
+      "Read(~/AppData/Roaming/Mozilla/Firefox/**)",
+      "Read(//mnt/c/Users/*/AppData/Local/Google/Chrome/**)",
+      "Read(//mnt/c/Users/*/AppData/Local/Chromium/**)",
+      "Read(//mnt/c/Users/*/AppData/Local/Microsoft/Edge/**)",
+      "Read(//mnt/c/Users/*/AppData/Roaming/Mozilla/Firefox/**)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(gh *)"
+    ],
+    "disableBypassPermissionsMode": "disable"
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "excludedCommands": [
+      "git push *",
+      "gh *"
+    ],
+    "network": {
+      "allowedDomains": [],
+      "allowManagedDomainsOnly": true
+    },
+    "credentials": {
+      "envVars": [
+        { "name": "GITHUB_TOKEN", "mode": "deny" },
+        { "name": "GH_TOKEN", "mode": "deny" },
+        { "name": "NPM_TOKEN", "mode": "deny" },
+        { "name": "ANTHROPIC_API_KEY", "mode": "deny" },
+        { "name": "OPENAI_API_KEY", "mode": "deny" }
+      ]
+    }
+  }
+}

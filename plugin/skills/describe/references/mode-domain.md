@@ -1,6 +1,6 @@
 # Mode: domain
 
-Read the codebase, docs, and conversation as source material without modifying them. Write only the `Ubiquitous Language` document and, with a model flag, `domain-model.json` under `Models`.
+Read the codebase, docs, and conversation as source material without modifying them. Write only the `Ubiquitous Language` document and, with a model flag, `glossary-model.json` under `Models`.
 
 ## Input
 
@@ -48,7 +48,7 @@ Write the `Ubiquitous Language` document (default `docs/UBIQUITOUS_LANGUAGE.md`)
 
 ### 5. Model projection
 
-Project the `Ubiquitous Language` document into the typed `domain-model` artifact `architecture-model.md` defines – `kind: "domain-model"`, `meta.generatedBy: "andthen:describe"`. The projection mirrors the document 1:1: every context and node is refutable against it at section granularity.
+Project the `Ubiquitous Language` document into the typed `glossary-model` artifact `architecture-model.md` defines – `kind: "glossary-model"`, `meta.generatedBy: "andthen:describe"`. The projection mirrors the document 1:1: every context and node is refutable against it at section granularity.
 
 **Projection contract** (document → model):
 
@@ -69,9 +69,9 @@ Project the `Ubiquitous Language` document into the typed `domain-model` artifac
   - **`meanings` entries** – one per context/meaning cell pair: `label` = the document's context text verbatim (honest to the source), `contextId` = the best-fit cluster by your judgment, never dangling and distinct across the term's meanings (the tie-break toward the term's home cluster applies only where it keeps them distinct).
   - **Degraded overload** – when distinct `contextId`s cannot be assigned without falsifying the source (fewer clusters than meanings, or honest judgment collapsing onto one cluster), emit the term as a plain node without `meanings` and surface the degraded overload in the emission summary.
 
-Write it as `domain-model.json` under `Models` (default `docs/models/`); `meta.revision` is the document revision it projects.
+Write it as `glossary-model.json` under `Models` (default `docs/models/`); `meta.revision` is the document revision it projects.
 
-**Gate**: `domain-model.json` is written, every context and node traceable to the document.
+**Gate**: `glossary-model.json` is written, every context and node traceable to the document.
 
 ## Output
 
@@ -79,4 +79,4 @@ Print the output paths. After a projection, add the emission summary: context an
 
 ## Follow-up
 
-Without a model flag, suggest `--model-only` to project the glossary into a Domain Model.
+Without a model flag, suggest `--model-only` to project the glossary into a Glossary Model.

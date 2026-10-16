@@ -98,7 +98,7 @@ Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-
 /andthen:implement-fix "return 404 instead of 500 when an export job id does not exist"
 ```
 
-**Expect.** Your sentence is the whole Fix set: tests first where the change adds a branch, the change, the project's checks, and a diff pass as the review. No FIS, no plan state, nothing committed – the verified change stays in the working tree. Beyond it, only small tidies in the files the change touches are made, each named. A larger issue the sentence did not ask for comes back under `NOTICED BUT NOT TOUCHING:` rather than as an edit.
+**Expect.** Your sentence is the whole Fix set: tests first where the change adds a branch, the change, the project's checks, and a diff pass as the review. No FIS, no plan state, nothing committed – the verified change stays in the working tree. Beyond it, only Boy Scout tidies are made, each named: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue the sentence did not ask for comes back under `NOTICED BUT NOT TOUCHING:` rather than as an edit.
 
 **Elsewhere.** A sentence that turns out to describe a feature, a PRD, or a plan stops at the scope guard and points at `plan` → `exec-plan`, with `clarify` first when requirements are still open. Contract: [`implement-fix`](plugin/README.md#implement-fix).
 
@@ -126,7 +126,7 @@ Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-
 /andthen:describe --mode codebase      # init's closing summary offers it; run it yourself when you declined
 ```
 
-**Expect.** `init` asks nothing here. It writes the Project Document Index into your root instruction file, `Key Dev Commands` from your manifest (the `fast` and `full` tiers and a run-one-test row), and the `.gitignore` entries; the first skill that writes to any other indexed document creates it. The closing summary offers `describe --mode codebase`, the four role agents, and the critical-rules starter. `describe` fills `Architecture` and `Key Dev Commands` from the code and adds `requirements-discovered.md` and `decisions-discovered.md`; existing documents are merged into, judgment sections kept.
+**Expect.** `init` asks nothing here. It writes the Project Document Index into your root instruction file, `Key Dev Commands` from your manifest (the `fast` and `full` tiers and a run-one-test row), and the `.gitignore` entries; the first skill that writes to any other document creates it and adds its Index entry, so the Index lists only documents you have. The closing summary offers `describe --mode codebase`, the four role agents, the critical-rules starter, and documents you may want now, such as `Learnings` and `Tech Debt`. `describe` fills `Architecture` and `Key Dev Commands` from the code and adds `requirements-discovered.md` and `decisions-discovered.md`; existing documents are merged into, judgment sections kept.
 
 **Elsewhere.** `now-what` routes from here. A glossary is `describe --mode domain`; refreshing a model alone is `--model-only` ([`describe`](plugin/README.md#describe)).
 
@@ -184,7 +184,7 @@ Edit it freely: answer an open question in place, or leave it and it is asked ag
 /andthen:architecture "how should the export pipeline be structured so a failed step can be retried without redoing the others?"
 ```
 
-**Expect.** `decide` lists the decision points it finds and sorts them. It interviews you, in rounds with a recommendation each, on those that bind beyond one story or are costly to reverse. A story-local one goes to `plan`'s Preflight, a user-visible requirement back to `clarify`, and an already settled one is cited. Once you confirm the played-back set, it writes an ADR under `docs/adrs/` and a row in `docs/DECISIONS.md` per real decision, or one Still Current line for a choice with no real alternative.
+**Expect.** `decide` lists the decision points it finds and sorts them. It interviews you, in rounds with a recommendation each, on those that bind beyond one story or are costly to reverse. A story-local one goes to `plan`'s Preflight, a user-visible requirement back to `clarify`, and an already settled one is cited. Once you confirm its closing summary of the settled set, it writes an ADR under `docs/adrs/` and a row in `docs/DECISIONS.md` per real decision, or one Still Current line for a choice with no real alternative.
 
 The second prompt asks for a comparison, so that decision gets the weighted trade-off: criteria and weights for you to confirm, then `docs/research/<topic-slug>/` (design tree, research, trade-off matrix, recommendation). "Three options" sets the count (the default is five); every set includes the floor option (do nothing, or extend what exists). The third prompt is `architecture`'s `advise` mode: prose guidance sized against your `Product` document's Proportionality facts, with `decide` offered when it settles a choice worth recording. Neither changes code.
 
@@ -201,7 +201,7 @@ The second prompt asks for a comparison, so that decision gets the weighted trad
 /andthen:visualize docs/models/event-storms/<slug>.json
 ```
 
-**Expect.** You are the domain expert: the run asks where the timeline has gaps or unclear causes, at Big Picture unless you name Process Modeling or Design Level. It writes a report under `.agent_temp/reviews/` and the board as `docs/models/event-storms/<slug>.json`, the slug taken from the scope, and a later run on the same scope continues that board. For a rewrite, storm the system as built, then the target under a second scope, and ask that run what is kept, renamed, and dropped. The report's hotspots are open questions, which makes it a good `clarify` source; `--mode event-storming,strategic-design` turns its subdomain candidates into bounded contexts in one run. `visualize` draws the board as a page.
+**Expect.** You are the domain expert: the run asks where the timeline has gaps or unclear causes, at Big Picture unless you name Process Modeling or Design Level. It writes a report under `.agent_temp/reviews/` and the board as `docs/models/event-storms/<slug>.json`, the slug taken from the scope, and a later run on the same scope continues that board. For a rewrite, storm the system as built, then the target under a second scope, and ask that run what is kept, renamed, and dropped. The report's hotspots are open questions, which makes it a good `clarify` source; `--mode strategic-design` on the same scope turns its subdomain candidates into bounded contexts, chained in one run or later from the board. `visualize` draws the board as a page.
 
 ### Research, a design system, wireframes
 
@@ -328,7 +328,7 @@ Each `-p` call is its own session, so fresh context holds by construction. Codex
 
 - In an attended run, `Note` findings are not edited without your direction, whatever their severity. They come back to you in the `## Remediation Status` the pass writes into the report. Under `--auto`, eligible Notes can be promoted to Fix as [unattended execution](#unattended-execution) describes.
 - A Fix whose repair would settle a decision the project leaves open is `DEFERRED`: offered to you, or written to the Tech Debt Backlog in an unattended run.
-- When the round fixed a CRITICAL or HIGH finding or left a Fix finding open, the run ends on a `Next (fresh session):` line for a follow-up review; otherwise one round is the whole job.
+- When the round fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, the run ends on a `Next (fresh session):` line for a follow-up review; otherwise one round is the whole job.
 - The change stays in the working tree; nothing is committed.
 
 **Elsewhere.** "This should be cleaned up" is not authorization: the review stays read-only and names `--fix`. `--fix` on a PR target is rejected – the scratch tree is discarded, so there is nothing to remediate. More than one round is [the loop below](#review-and-fix-until-clean-from-a-coordinating-session). Contract: [`implement-fix`](plugin/README.md#implement-fix).
@@ -348,7 +348,7 @@ path. Each fix subagent invokes the
 andthen:implement-fix skill on the report that review wrote. Every subagent brief
 passes --auto.
 
-Stop when a review's overall readiness is Ready/PASS or a fix round fixes nothing. Also
+Stop when a fix round fixes nothing or its Next line asks for no follow-up review. Also
 stop, and report, when a finding survives a fix round unchanged or a fix needs a
 decision. Finish with the final verdict, the report paths, and the remaining Note and
 DEFERRED findings.
@@ -356,7 +356,7 @@ DEFERRED findings.
 
 **Expect.** One full review, then follow-up reviews: each a full `review` run on the same lenses with its own report and verdict, a `Follows` header naming the report before it, and a summary of which of that report's open findings are now resolved or still open.
 
-The loop ends on the verdict, never on a severity count: a `Note` the fix round closes with a reason or defers keeps its MEDIUM in the report, so "until no MEDIUM remains" cannot terminate. A blocked CRITICAL or HIGH fix is deferred and escalated, which is the "needs a decision" stop. Both come back to you with the last report.
+The loop ends on the hand-off, never on the verdict or a severity count: a `Note` no fix round may apply can hold readiness at Needs Fixes, so "until Ready" or "until no MEDIUM remains" may never terminate, while the `Next` line asks for another review only after a round fixed a CRITICAL or HIGH finding or left a fix partial. A blocked CRITICAL or HIGH fix is deferred and escalated, which is the "needs a decision" stop. Both come back to you with the last report.
 
 **Elsewhere.** One round is `review --fix` above. Contract: [`review`](plugin/README.md#review).
 
@@ -449,7 +449,7 @@ Reference for [the workflow](README.md#the-workflow): what each step reads and w
 | Review and fix | `review --fix` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json`, and the fixes |
 | Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle deleted; `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation |
 
-`plan` sizes the work before it writes a FIS. When a story still turns out too big for one run, it offers to split it – in the same run for a written source, through `clarify` for a description. `review --fix` is one review and one fix round; when it fixed a CRITICAL or HIGH finding or left a Fix finding open, it prints a follow-up review as its `Next (fresh session):` line. Once the plan's stories are all `done` or `skipped` (cut from scope) and nothing CRITICAL or HIGH is open, its `Next (fresh session):` line runs `ship` instead; `implement-fix` run on the report closes the same way.
+`plan` sizes the work before it writes a FIS. When a story still turns out too big for one run, it offers to split it – in the same run for a written source, through `clarify` for a description. `review --fix` is one review and one fix round; when it fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it prints a follow-up review as its `Next (fresh session):` line. Once the plan's stories are all `done` or `skipped` (cut from scope) and nothing CRITICAL or HIGH is open, its `Next (fresh session):` line runs `ship` instead; `implement-fix` run on the report closes the same way.
 
 ### The design stage and ADRs
 
@@ -459,7 +459,7 @@ Two skills settle what the requirements left open, neither changing code: `decid
 - **While specifying** – a fork only the spec surfaces is a Preflight question; you answer it into the FIS, and the ADR is recommended as its record. That `decide` run records your answer without asking it again and closes on `exec-plan`.
 - **While building** – a real pivot in `exec-plan` records one before the FIS changes.
 
-Design comes in before the spec, on your answer: `clarify` asks at its playback whether new screens no wireframes cover are designed first, and `plan` asks the same when its source skipped `clarify`. Either way `ui-ux-design` closes on `plan`.
+Design comes in before the spec, on your answer: `clarify` asks, with the closing summary you confirm, whether new screens no wireframes cover are designed first, and `plan` asks the same when its source skipped `clarify`. Either way `ui-ux-design` closes on `plan`.
 
 ### The artifacts – where each comes from, who reads it, how long it lives
 

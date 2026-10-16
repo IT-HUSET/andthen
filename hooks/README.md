@@ -1,12 +1,12 @@
 # Hooks
 
-Standalone Claude Code hooks; `context-hint.py` also runs on Codex. Pick the ones you need and add them to your settings individually.
+Standalone Claude Code hooks; `block-dangerous-commands.py` and `context-hint.py` also run on Codex. Pick the ones you need and add them to your settings individually.
 
 ## Available Hooks
 
 | Script | Hook Event | Matcher | Purpose |
 |--------|-----------|---------|---------|
-| `block-dangerous-commands.py` | PreToolUse | `Bash` | Blocks destructive shell commands (rm -rf, fork bombs, pipe-to-shell, etc.) |
+| `block-dangerous-commands.py` | PreToolUse | `Bash\|PowerShell` | Blocks destructive shell commands (rm -rf, force push, fork bombs, pipe-to-shell, etc.), including their Windows forms |
 | `notify.sh` | UserPromptSubmit, Stop, Notification | -- | Desktop notifications when Claude finishes or needs attention |
 | `notify-elevenlabs.sh` | UserPromptSubmit, Stop, Notification | -- | Voice notifications via ElevenLabs TTS API |
 | `context-hint.py` | Stop | -- | Tells the agent the session's context size past a threshold, so it can suggest a fresh session (Claude Code and Codex) |
@@ -60,9 +60,11 @@ Add entries to `~/.claude/settings.json` (user-level, global) or `.claude/settin
 
 ### block-dangerous-commands.py
 
-Intercepts Bash commands and blocks destructive patterns: `rm -rf`, fork bombs, `chmod 777`, `dd` to devices, `mkfs`, pipe-to-shell (`curl | sh`), interpreter escapes (`bash -c`, `eval`, `python3 -c`), network tools (`nc`, `socat`, `telnet`), system control (`shutdown`, `reboot`), privilege commands (`chown`, `passwd`, `useradd`), and obfuscated execution (`base64 | bash`, reverse shells). Text inside quotes is treated as data, so a commit message or search pattern that names these commands passes, unless it contains `$(...)` or backticks, which still execute – so a `-m "$(cat <<'EOF' … EOF)"` commit message is scanned too. Quoting the command name or a flag (`"rm" -rf`, `rm '-rf'`) does not hide it. Tool names match only where they run as a command (after a separator, pipe, `sudo`, `timeout`, `xargs`, and similar wrappers), so `grep nc` passes and `timeout 5 nc -z host 80` does not.
+Intercepts shell commands and blocks destructive patterns: `rm -rf`, force pushes (`--force`, `--force-with-lease`, `-f`, a `+refspec`), fork bombs, `chmod 777`, `dd` to devices, `mkfs`, pipe-to-shell (`curl | sh`), interpreter escapes (`bash -c`, `eval`, `python3 -c`), network tools (`nc`, `socat`, `telnet`), system control (`shutdown`, `reboot`), privilege commands (`chown`, `passwd`, `useradd`), and obfuscated execution (`base64 | bash`, reverse shells). Text inside quotes is treated as data, so a commit message or search pattern that names these commands passes, unless it contains `$(...)` or backticks, which still execute – so a `-m "$(cat <<'EOF' … EOF)"` commit message is scanned too. Quoting the command name or a flag (`"rm" -rf`, `rm '-rf'`) does not hide it, and neither does handing it to a shell as a string (`sh -c '…'`, `cmd /c "…"`, `pwsh -Command "…"`), nor a line continuation. Tool names match only where they run as a command (after a separator, pipe, `sudo`, `timeout`, `xargs`, and similar wrappers), so `grep nc` passes and `timeout 5 nc -z host 80` does not.
 
-> **Note/Disclaimer/Warning:** This is not an exhaustive list of dangerous commands. It covers common destructive patterns but cannot catch every possible risky operation. Always review agent commands, keep Claude Code's built-in permission system enabled, and add project-specific patterns to your local `blocked-commands.json` as needed.
+**Windows** commands are refused in their common forms from either shell: `Remove-Item -Recurse -Force`, `rd /s /q`, disk formatting (`Format-Volume`, `diskpart`), `Invoke-Expression`, encoded PowerShell (`-EncodedCommand`), user, ownership, and registry changes, shadow-copy deletion, and changes to the execution policy, Defender, or the firewall. One list serves every shell, because the shell decides the syntax, not the operating system: Git Bash runs POSIX commands on Windows, `pwsh` runs on macOS, and any of them can call the others. What changes is how quoting and case are read. A PowerShell command is matched case-insensitively, and a backslash in it is a path separator, not an escape. Claude Code's `PowerShell` tool needs the `Bash|PowerShell` matcher below, because `Bash` alone does not match it. Codex runs PowerShell on Windows but names the tool `Bash`, so on Windows a `Bash` command is read both ways. That fails safe but costs a few false refusals: read the PowerShell way, a Git Bash string with an escaped quote (`"say \"rm -rf /\" now"`) ends early. The Windows patterns are tested on macOS against the hook's input, not yet in a Windows session; if `python3` or `~` does not resolve in your hook shell there, use `python` and the full script path (Codex: `command_windows`).
+
+> **A starting list, not a complete one.** The patterns are suggestions that catch common spellings of the commands above. A command written another way, such as a script file, an alias, or another language, gets past any pattern list. Keep the permission rules and the OS sandbox on ([`permissions/`](../permissions/README.md)), review what the agent runs, and add your own patterns to a local `blocked-commands.json`.
 
 **Config**: `blocked-commands.json` – customize blocked patterns. Copy to `~/.claude/hooks/configs/` to override defaults.
 
@@ -70,7 +72,7 @@ Intercepts Bash commands and blocks destructive patterns: `rm -rf`, fork bombs, 
 
 ```json
 {
-  "matcher": "Bash",
+  "matcher": "Bash|PowerShell",
   "hooks": [{
     "type": "command",
     "command": "python3 ~/.claude/hooks/scripts/block-dangerous-commands.py",
@@ -78,6 +80,8 @@ Intercepts Bash commands and blocks destructive patterns: `rm -rf`, fork bombs, 
   }]
 }
 ```
+
+**Codex** reads the same input and honours the same exit code 2. The entry, in `config.toml` form, is at the end of [`permissions/codex/config.toml`](../permissions/codex/config.toml); [`permissions/`](../permissions/README.md) also has the Claude Code entry beside sandbox settings.
 
 ---
 
@@ -203,7 +207,7 @@ Complete `~/.claude/settings.json` with the command blocker and desktop notifica
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|PowerShell",
         "hooks": [{
           "type": "command",
           "command": "python3 ~/.claude/hooks/scripts/block-dangerous-commands.py",

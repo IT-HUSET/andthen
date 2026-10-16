@@ -6,6 +6,31 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [1.0.0-rc.6] – 2026-10-16
+
+### Added
+- **Example permission and sandbox settings for Claude Code and Codex** in [`permissions/`](permissions/README.md). The sandbox is on with no network. Commands cannot see `.env` files, cloud credentials, browser profiles, or token variables, and `git push` asks first. A personal file, which starts Claude Code in auto mode, and an organization-enforced file come for each host, and the README explains the three layers they set and what is left on native Windows, where Claude Code has no sandbox. The personal files run `block-dangerous-commands.py`, which also works unchanged as a Codex `PreToolUse` hook and now refuses force pushes (`--force`, `--force-with-lease`, `-f`, a `+refspec`) and the Windows forms of its list (`Remove-Item -Recurse -Force`, `rd /s /q`, `Invoke-Expression`, and more). Match it with `Bash|PowerShell` so Claude Code's PowerShell tool is checked too.
+
+### Changed
+- **The Project Document Index lists only documents that exist, one bullet per entry.** `init` writes `Agent Temp` plus an entry for each document it finds or seeds, and the first skill that writes any other document adds its entry from `project-document-templates.md`, so a new project's Index drops from about 6,200 characters to about 1,000. `init`'s closing summary offers `Product`, `Decisions`, `Learnings`, `Tech Debt`, `Roadmap`, and `Ubiquitous Language` to create now; an existing Index keeps working ([ADR-022](docs/adrs/ADR-022-init-asks-only-what-it-cannot-infer.md)).
+- **A missing `Learnings` or `Tech Debt` document is created, not skipped.** `handoff`, `implement-fix`, and `triage` create it at its default location on their first write, where they used to list the entries in their output.
+- **Boy Scout tidies reach further, so fewer issues come back as `NOTICED BUT NOT TOUCHING`.** `exec-plan` stories, `implement-fix`, `triage`, the critical-rules starter, and `testing`'s refactor step fix every smell in a function they edit and minor ones elsewhere, behavior kept, where they used to tidy only small things in the files they touched. A parallel `exec-plan --worktree` story still keeps its tidies to its own files.
+- **The critical-rules starter asks agents to think long-term, prefer deep modules and CUPID, say how they know, and write compact instructions an agent can act on cold.** Agents fit each change into the design instead of bolting it on, never more generally than today's needs, add a gate, test, or document only for an outcome or failure they can name, sized to the project's goals and stage, delete an internal API they replace once its callers move, mark an inference as inferred, run a local, non-destructive check rather than hand it to you, and send subagent work no route fits to `implementer`. The time-estimate and `.env` rules are gone, em dashes are allowed sparingly, throwaway scratch may go in a system temp directory or the host's scratchpad (other temp files still go in `.agent_temp/`), and `init` updates installed rules when you ask.
+- **`triage` questions its premise after two failed fixes and looks for a root cause's other instances.** Before a third attempt it writes down what both attempts assumed and tests it, an `oracle` hand-over carries that assumption, and the fix plan includes each other place the same root cause appears.
+- **Reviews check consumers a symbol search misses**, such as wire formats, database columns, config keys, feature flags, and readers in another language.
+- **Work starts on a feature branch.** On the remote's default branch, `now-what` opens new work by starting a feature branch the way your instruction file, guidelines, or contributing doc say, else as `<type>/<slug>`, and `exec-plan` and `ship` ask once whether to start one before they commit. An `--auto` run, and a repository with no remote, stay on the current branch.
+- **`tracker triage` routes a bug with an unknown cause to `triage`**, which finds the cause before the fix is sized.
+- **`architecture` strategic design builds on earlier work and distills the core; event storming hands aggregates to `plan`.** Strategic design reads your `Product` document and an event-storming board for the same scope, asks you to confirm the subdomain classification and bounded contexts before it maps them, and names generic mechanisms to extract from a core context. Design-Level aggregate candidates name their root, entities, and value objects beside their invariants, and go to `plan` on the board, where they went to `decompose`, which judges only package and service splits.
+- **Breaking: the glossary's typed model is `glossary-model.json`, kind `glossary-model`**, where it was `domain-model.json`, because it projects the glossary and holds no aggregates or relationships. Run `describe --mode domain --model-only` to write the new file, then delete the old one. A request for aggregates or tactical design now routes to `architecture --mode event-storming` at Design Level.
+- **The Claude Code `worker` role runs Haiku at `high` effort**, where it ran Sonnet at `low`. Where you installed the roles, `init` offers the update.
+
+### Fixed
+- **`review --fix` loops end.** A follow-up review is asked for only when a round fixed a CRITICAL or HIGH finding or left one partly fixed, a finding whose fix would edit `plan.json` is routed `Note`, and a MEDIUM or LOW finding the fix round surfaced or deferred stays listed in the next report rather than coming back as a finding. The Cookbook loop stops when a fix round asks for no follow-up review.
+- **Outcome readiness is no longer held by PRD questions.** An outcome finding that needs a PRD decision counts toward readiness only at CRITICAL or HIGH, and a one-story `plan` amends the PRD with its requirement-level answers through `clarify`, as the multi-story breakdown already did.
+- **`clarify` and `decide` confirm in plain words.** The closing summary's question no longer uses internal step names such as "playback".
+
+---
+
 ## [1.0.0-rc.5] – 2026-10-06
 
 ### Changed

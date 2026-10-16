@@ -10,7 +10,7 @@ Universal calibration for all review skills. Load it before assigning severity, 
 4. **Apply the peer-review standard.** If you would flag this in a review for a team you respect, flag it here. Do not lower your standards because this is an automated review.
 5. **Probe deeply, not broadly.** Verify the artifact fulfills its purpose – implementations work end-to-end, specifications are implementable, requirements are testable – rather than that each item has a corresponding artifact.
 6. **No hedging language.** Don't soften findings with "could be an issue", "might cause problems", or "probably fine". State the condition that fails and the impact if it does. Hedging is the verbal form of the leniency bias: it lets the reviewer mark a problem as a non-problem without writing down a falsifier.
-7. **Disclaimer-as-finding inside changed files.** "Did not touch pre-existing X" or "out of scope", applied to an issue sitting *inside the files modified by the change set under review*, is itself a finding, not a disclaimer: flag it. Issues in unchanged files remain out of scope. Default to MEDIUM unless the lens reference sets a different severity.
+7. **Disclaimer-as-finding inside the change.** "Did not touch pre-existing X" or "out of scope", applied to an issue sitting *inside a function or doc section the change set under review modifies*, is itself a finding, not a disclaimer: flag it. Elsewhere in a changed file, only a lens reference makes a disclaimer a finding. Issues in unchanged files remain out of scope. Default to MEDIUM unless the lens reference sets a different severity.
 8. **Severity is per-finding, not cumulative.** A group of five LOW issues is five LOW findings, not one HIGH. Never escalate a finding because many others sit near it. Aggregate volume informs the overall readiness verdict, never an individual finding's severity. Domain calibrations may define narrow aggregation exceptions for mechanical conformance classes, where findings merge and severity still never escalates.
 
 ## Scope Discipline
@@ -57,7 +57,8 @@ Findings that survive the Findings Filter (below) additionally carry:
   - scope relation is `primary`;
   - class is `code-defect`;
   - the fix is mechanical, bounded, and uniquely determined, and does not expand past Intent;
-  - a security fix is mechanically secure, not merely plausible.
+  - a security fix is mechanically secure, not merely plausible;
+  - the remedy edits no `plan.json`: only the `andthen:plan` skill and the session executing a story write it.
 
   Everything else is `Note`: surfaced, never applied on this tag's authority, even under `--fix`. Ties default to `Note`.
 

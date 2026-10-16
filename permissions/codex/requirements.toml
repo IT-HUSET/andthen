@@ -1,0 +1,50 @@
+# Admin-enforced limits for /etc/codex/requirements.toml (or the MDM key requirements_toml_base64).
+# Users cannot override these. See permissions/README.md.
+
+# No `never`, so unattended runs need their own machine or config.
+allowed_approval_policies = ["on-request"]
+# No `danger-full-access`: a request for it, such as --yolo, falls back to an allowed mode.
+allowed_sandbox_modes = ["read-only", "workspace-write"]
+# A person, not the auto_review subagent, answers approval prompts, including the prompt rules below.
+allowed_approvals_reviewers = ["user"]
+
+[windows]
+# Not `unelevated`, which ignores the deny_read paths below; MXC stays allowed.
+allowed_sandbox_implementations = ["elevated"]
+
+[permissions.filesystem]
+deny_read = [
+  "/**/.env",
+  "/**/.env.*",
+  "~/.ssh",
+  "~/.aws",
+  "~/.azure",
+  "~/.config/gcloud",
+  "~/.kube",
+  "~/.config/gh",
+  "~/.npmrc",
+  "~/.netrc",
+  "~/Library/Application Support/Google/Chrome",
+  "~/Library/Application Support/Chromium",
+  "~/Library/Application Support/Firefox",
+  "~/Library/Application Support/Microsoft Edge",
+  "~/Library/Cookies",
+  "~/.config/google-chrome",
+  "~/.config/chromium",
+  "~/.config/microsoft-edge",
+  "~/.mozilla",
+  "~/AppData/Local/Google/Chrome",
+  "~/AppData/Local/Chromium",
+  "~/AppData/Local/Microsoft/Edge",
+  "~/AppData/Roaming/Mozilla/Firefox",
+  "/mnt/c/Users/*/AppData/Local/Google/Chrome",
+  "/mnt/c/Users/*/AppData/Local/Chromium",
+  "/mnt/c/Users/*/AppData/Local/Microsoft/Edge",
+  "/mnt/c/Users/*/AppData/Roaming/Mozilla/Firefox",
+]
+
+[rules]
+prefix_rules = [
+  { pattern = [{ token = "git" }, { token = "push" }], decision = "prompt", justification = "Publishing leaves the machine; review it first." },
+  { pattern = [{ token = "gh" }, { token = "pr" }], decision = "prompt", justification = "Publishing leaves the machine; review it first." },
+]

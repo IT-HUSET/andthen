@@ -45,4 +45,4 @@ Project build, test, lint/type, and format checks are review evidence, per `veri
 
 ## Findings Output
 
-Obsolete files, unmotivated complexity, and cleanup candidates are findings too. A pre-existing-issue disclaimer inside a changed file is HIGH when the issue is a correctness or security defect. The report's `<feature>` token is the feature or primary changed-area name (`payments`, `auth-refresh`); the target is source code, so the report never sits beside it.
+Obsolete files, unmotivated complexity, and cleanup candidates are findings too. A pre-existing-issue disclaimer anywhere in a changed file is a HIGH finding when the issue is a correctness or security defect. The report's `<feature>` token is the feature or primary changed-area name (`payments`, `auth-refresh`); the target is source code, so the report never sits beside it.

@@ -44,9 +44,9 @@
 | Preflight | Closing step of the `andthen:plan` skill: each open item asked in one sitting with a recommendation and answered into the FIS; exec-side pre-run checks are admission. | decision closure, convergence gate, closure verdict |
 | Non-Goals | The `PRODUCT.md` section of product-level scope boundaries, firmly rejected concepts included as dated bullets – checked at the concept level before one is re-proposed. | Out of Scope Registry, rejection log |
 | Context Map | The `docs/CONTEXT-MAP.md` document of bounded contexts and their integration patterns, registered by the `andthen:architecture` skill in `--mode strategic-design`. | context diagram |
-| Atlas model | Either typed model the `andthen:describe` skill emits under `--model` – Architecture Model or Domain Model – committed under the `Models` location. | atlas view, 3D view |
+| Atlas model | Either typed model the `andthen:describe` skill emits under `--model` – Architecture Model or Glossary Model – committed under the `Models` location. | atlas view, 3D view |
 | Architecture Model | The `andthen:describe` skill's typed `architecture-model.json`: a committed projection of the code – contexts, `ref`-anchored nodes, evidence-tagged edges. | dependency dump, code map |
-| Domain Model | The `andthen:describe` skill's typed `domain-model.json`: a committed projection of the Ubiquitous Language – contexts, term nodes, overloaded meanings. | glossary dump, term map |
+| Glossary Model | The `andthen:describe` skill's typed `glossary-model.json`: a committed projection of the Ubiquitous Language – contexts, term nodes, overloaded meanings. | domain model, glossary dump, term map |
 | Single-session rule | The `andthen:plan` skill's story-sizing rule: a story plus its FIS must fit one fresh-context exec run. | story budget |
 | One-way / two-way door | A decision or change that is costly / cheap to reverse; the `andthen:decide` skill labels each decision, ADRs record it, and the `andthen:ship` skill states it in the PR body. | Type 1 / Type 2 decision, irreversible / reversible decision |
 | Canonical triage roles | `tracker triage`'s fixed label set – states `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; categories `bug`, `enhancement`. | triage statuses |
@@ -57,8 +57,8 @@
 | Stop-the-Line | Execution discipline that treats objective red gates as work to finish before advancing or claiming completion. | fail-fast, stop work |
 | Objective Red Gate | Binary failing check such as build, test, lint, type-check, wiring check, or task Verify line. | blocker |
 | Subjective Finding | Review or visual-validation finding that requires judgment rather than a binary check. | review issue |
-| Boy Scout tidy | A small behavior-preserving edit, or an obvious small bug fixed under a failing test, in a file the change already touches; named in the report. | drive-by refactor, cleanup pass |
-| NOTICED BUT NOT TOUCHING | Report label for an issue outside the change's scope, or too big to tidy, that someone should act on. | out-of-scope notes, FYI |
+| Boy Scout tidy | A behavior-preserving fix in an edited function or doc section, or a minor one elsewhere, or an obvious small bug in an edited function fixed under a failing test; named in the report. | drive-by refactor, cleanup pass |
+| NOTICED BUT NOT TOUCHING | Report label for an issue no tidy can fix and the task did not ask for, that someone should act on. | out-of-scope notes, FYI |
 | Verification tier | `Key Dev Commands` tier: `fast` for each plan story; `full` for direct FIS execution or a plan run at convergence. | quick tests, full suite |
 | Traceability Gate | Requirement that tests and motivated code changes trace to FIS requirements or explicitly appended discovered requirements. | trace check |
 | Discovered Requirement | Requirement found during execution and appended through the sanctioned FIS channel before dependent tests or code are written. | inferred requirement |

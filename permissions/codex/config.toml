@@ -1,0 +1,67 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+# Personal baseline for ~/.codex/config.toml. See permissions/README.md.
+
+# Ask before anything the sandbox blocks; `never` is for unattended runs only.
+approval_policy = "on-request"
+# You answer those prompts, set explicitly so no other loaded config switches it. "auto_review"
+# hands them to a reviewer subagent instead, the `git push` prompt rule and network escapes included.
+approvals_reviewer = "user"
+# Without the sandbox every command needs approval: switch to "auto_review" then, never to
+# danger-full-access or `approval_policy = "never"`, which review nothing.
+# Run commands without a login shell, so login profiles (~/.zprofile, ~/.bash_profile) cannot change what runs.
+allow_login_shell = false
+
+# Permission profiles are beta. A `sandbox_mode` in any loaded config, or --sandbox, silently replaces this one.
+default_permissions = "andthen"
+
+[permissions.andthen]
+# Writes limited to the workspace and temp dirs, no network, and .git/.codex/.agents/.aws kept read-only.
+extends = ":workspace"
+
+[permissions.andthen.filesystem]
+# On native Windows these need the elevated or MXC sandbox; the unelevated fallback ignores them.
+"~/.ssh" = "deny"
+"~/.aws" = "deny"
+"~/.azure" = "deny"
+"~/.config/gcloud" = "deny"
+"~/.kube" = "deny"
+"~/.config/gh" = "deny"
+"~/.npmrc" = "deny"
+"~/.netrc" = "deny"
+"~/Library/Application Support/Google/Chrome" = "deny"
+"~/Library/Application Support/Chromium" = "deny"
+"~/Library/Application Support/Firefox" = "deny"
+"~/Library/Application Support/Microsoft Edge" = "deny"
+"~/Library/Cookies" = "deny"
+"~/.config/google-chrome" = "deny"
+"~/.config/chromium" = "deny"
+"~/.config/microsoft-edge" = "deny"
+"~/.mozilla" = "deny"
+"~/AppData/Local/Google/Chrome" = "deny"
+"~/AppData/Local/Chromium" = "deny"
+"~/AppData/Local/Microsoft/Edge" = "deny"
+"~/AppData/Roaming/Mozilla/Firefox" = "deny"
+"/mnt/c/Users/*/AppData/Local/Google/Chrome" = "deny"
+"/mnt/c/Users/*/AppData/Local/Chromium" = "deny"
+"/mnt/c/Users/*/AppData/Local/Microsoft/Edge" = "deny"
+"/mnt/c/Users/*/AppData/Roaming/Mozilla/Firefox" = "deny"
+# Glob denies need a scan depth on Linux, WSL, and Windows.
+glob_scan_max_depth = 3
+
+[permissions.andthen.filesystem.":workspace_roots"]
+"**/.env" = "deny"
+"**/.env.*" = "deny"
+
+[shell_environment_policy]
+inherit = "all"
+# Drop variables whose names contain KEY, SECRET, or TOKEN.
+ignore_default_excludes = false
+
+# Refuses destructive shell commands before they run; see hooks/README.md. Trust it once in /hooks.
+[[hooks.PreToolUse]]
+matcher = "Bash"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "python3 ~/.claude/hooks/scripts/block-dangerous-commands.py"
+statusMessage = "Validating command safety..."

@@ -18,7 +18,7 @@ Attack the target from these angles:
 
 - **Assumptions**: preconditions, environment state, upstream guarantees, downstream behavior, and requirements interpretations that are silently relied on.
 - **Unhappy paths**: failures, retries, concurrency, partial writes, stale data, malformed input, empty input, large input, nulls, and cancellation.
-- **Hidden coupling**: load-bearing side effects, ordering assumptions, implicit contracts, shared mutable state, and "works only because another module happens to behave this way."
+- **Hidden coupling**: load-bearing side effects, ordering assumptions, implicit contracts, shared mutable state, consumers a symbol search misses (serialized or wire formats, database columns, config keys, feature flags, readers in another language), and "works only because another module happens to behave this way."
 - **Guessed behavior**: places where the author filled a requirements gap without naming the choice, documenting the trade-off, or adding a defensive guard.
 - **Substance and wiring**: artifacts that exist but do not actually fulfill their purpose, are not wired into the running system, or only work on the happy path.
 

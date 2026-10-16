@@ -41,7 +41,7 @@ The code-mode scale: LOW/MEDIUM items are hardening and defense-in-depth opportu
 
 ### Outcome mode (`--mode outcome`)
 
-The code-mode scale, severity anchored by the lens's own § Severity. Readiness counts the PRD-side findings that route `Note` too – a need the feature does not meet is not closed by being unfixable in code.
+The code-mode scale, severity anchored by the lens's own § Severity. A PRD-side finding (`spec-stale`, `ambiguous-intent`) counts toward readiness only at CRITICAL or HIGH: below that it asks the user for a PRD decision, which no `--fix` round can make.
 
 ### Mixed mode (a resolved multi-lens set)
 

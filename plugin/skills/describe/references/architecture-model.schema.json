@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "andthen:architecture-model.schema.json",
-  "title": "AndThen atlas model (architecture-model, domain-model)",
+  "title": "AndThen atlas model (architecture-model, glossary-model)",
   "description": "Machine form of architecture-model.md beside it, for both atlas kinds. Carries every invariant JSON Schema can state; id uniqueness, reference resolution, the ref rule, and the meanings contextId rules are stated by that reference and are the producer's to check.",
   "type": "object",
   "required": ["schemaVersion", "kind", "meta", "contexts", "nodes", "edges"],
@@ -12,7 +12,7 @@
     },
     "kind": {
       "description": "The discriminator consumers key on before inspecting anything else.",
-      "enum": ["architecture-model", "domain-model"]
+      "enum": ["architecture-model", "glossary-model"]
     },
     "meta": {
       "type": "object",
@@ -69,13 +69,13 @@
             }
           },
           "avoid": {
-            "description": "domain-model only. Omit the key when there are none, never [].",
+            "description": "glossary-model only. Omit the key when there are none, never [].",
             "type": "array",
             "minItems": 1,
             "items": { "type": "string", "minLength": 1 }
           },
           "meanings": {
-            "description": "domain-model only: per-context meanings of an overloaded term.",
+            "description": "glossary-model only: per-context meanings of an overloaded term.",
             "type": "array",
             "minItems": 2,
             "items": {
@@ -131,11 +131,11 @@
       }
     }
   },
-  "if": { "properties": { "kind": { "const": "domain-model" } } },
+  "if": { "properties": { "kind": { "const": "glossary-model" } } },
   "then": {
     "properties": {
       "nodes": { "items": { "properties": { "kind": { "enum": ["entity", "action", "state", "policy"] } } } },
-      "edges": { "maxItems": 0, "description": "v1 defines no domain edge kinds." }
+      "edges": { "maxItems": 0, "description": "v1 defines no glossary edge kinds." }
     }
   },
   "else": {

@@ -10,10 +10,10 @@ Install steps for Claude Code, Codex CLI, and other agents live in the [main REA
 
 Skills read your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and generic agents) for two things:
 
-- **Project Document Index**: a list that maps each document type (specs, plans, decisions, testing strategy) to its location, so skills know where to read and write. Documents are read whole, so keep them short.
+- **Project Document Index**: a list that maps each document the project has (specs, plans, decisions, testing strategy) to its location and says when to read it, so skills know where to read and write. Documents are read whole, so keep them short.
 - **Project-Specific Guidelines and Rules**: your own conventions and workflow notes.
 
-Skills name documents and folders by their Index entry (Specs & Plans, Agent Temp, Research, Models, Tech Debt, Learnings), and the starter template gives each a default path. The `fast` and `full` check tiers are rows of the `Key Dev Commands` document.
+Skills name documents and folders by their Index entry (Specs & Plans, Agent Temp, Research, Models, Tech Debt, Learnings). The Index lists only documents that exist: the skill that first writes one creates it at its default path and adds its entry. The `fast` and `full` check tiers are rows of the `Key Dev Commands` document.
 
 When you use both tools, `AGENTS.md` holds the content and `CLAUDE.md` is a thin `@AGENTS.md` import. The `init` skill writes both from the [starter template](skills/init/templates/CLAUDE.template.md).
 
@@ -24,7 +24,7 @@ Markdown documents are the sources of truth. Typed models (JSON) are committed p
 | Aspect | Source of truth | Committed projection |
 |---|---|---|
 | Product intent | `PRODUCT.md`, including its Proportionality facts | none |
-| Domain language | `UBIQUITOUS_LANGUAGE.md` (glossary only) | `domain-model.json` via `describe --mode domain --model` |
+| Domain language | `UBIQUITOUS_LANGUAGE.md` (glossary only) | `glossary-model.json` via `describe --mode domain --model` |
 | System structure | the code (`ARCHITECTURE.md` is prose orientation) | `architecture-model.json` via `describe --mode codebase --model` |
 
 Projections live under the `Models` Index location (default `docs/models/`) and record the commit they describe in `meta.revision`, suffixed `-dirty` when the working tree differs.
@@ -53,7 +53,7 @@ Projections live under the `Models` Index location (default `docs/models/`) and 
 
 Every skill works standalone. The cookbook covers [how the workflow fits together](../COOKBOOK.md#how-the-workflow-fits-together) and runnable sequences such as [one story or several](../COOKBOOK.md#one-story-or-several), [a small change](../COOKBOOK.md#a-small-change), and [unattended execution](../COOKBOOK.md#unattended-execution).
 
-**Questions.** `clarify`, `decide`, `plan`, `architecture`, `tracker triage`, and `ship` stop and wait for your answer, each question with a recommended answer. They never replace a question with a silent assumption unless you pass `--auto`.
+**Questions.** `clarify`, `decide`, `plan`, `exec-plan`, `architecture`, `tracker triage`, and `ship` stop and wait for your answer, each question with a recommended answer. They never replace a question with a silent assumption unless you pass `--auto`.
 
 **Unattended runs (`--auto`).** The flag makes a run ask nothing. It records each open decision as `ASSUMPTION: <what> – <what would change it>`, skips any action that needs your consent, and stops with `BLOCKED: <what is needed>` when the call is unusable. Only the flag does this, never how the run was launched, and the run passes it on to every skill it invokes. `clarify` has no unattended form, because the interview is the skill.
 
@@ -102,9 +102,9 @@ You rarely need flags. Describe what you want and the skill picks its mode or le
 
 Sets up the workflow structure for new projects, partial setups, and existing codebases. It asks nothing in an existing repository. In an empty one it asks a single question: what the project is.
 
-- **You get**: the root instruction file(s) with the full Project Document Index, `Key Dev Commands` when the project has a manifest (the `fast` and `full` check tiers plus a run-one-test row), and `.gitignore` entries for `.agent_temp/` and review reports. A partial setup gets only what is missing.
-- **Options**: `seed <Index entry>` creates one missing document from its template. Skills use it internally.
-- **Good to know**: every other document (`Product`, `Architecture`, `Testing Strategy`, `Decisions`, `Learnings`) is created later by the first skill that writes to it. The closing summary offers the rest, one line each: role agents, critical rules, `describe --mode codebase` for existing code without a filled-in `Architecture` document, `testing --mode strategy`, and `visual-validation --mode setup`. An offer you ignore writes nothing. Reports are gitignored by default; delete that `.gitignore` line to commit them.
+- **You get**: the root instruction file(s) with the Project Document Index, listing the documents the project already has, `Key Dev Commands` when the project has a manifest (the `fast` and `full` check tiers plus a run-one-test row), and `.gitignore` entries for `.agent_temp/` and review reports. A partial setup gets only what is missing.
+- **Options**: `seed <Index entry>` creates one missing document from its template and adds its Index entry. Skills use it internally.
+- **Good to know**: every other document (`Product`, `Architecture`, `Testing Strategy`, `Decisions`, `Learnings`) is created, and its entry added, later by the first skill that writes to it. The closing summary offers the rest, one line each: role agents, critical rules, documents to create now (`Product`, `Decisions`, `Learnings`, `Tech Debt`, `Roadmap`, `Ubiquitous Language`), `describe --mode codebase` for existing code without a filled-in `Architecture` document, `testing --mode strategy`, and `visual-validation --mode setup`. An offer you ignore writes nothing. Reports are gitignored by default; delete that `.gitignore` line to commit them.
 
 ```bash
 /andthen:init
@@ -117,7 +117,7 @@ Sets up the workflow structure for new projects, partial setups, and existing co
 
 Inspects project state and hands off to the skill that fits. Settled requirements go to `plan`, whatever their size. Open requirements go to `clarify`. A finished plan without a plan-level review goes to `review`; a failing load-bearing check goes to `triage`. Shipping readiness follows the canonical plan contract.
 
-- **Good to know**: it invokes the skill it recommends. Ask for a recommendation only, or decline, and it prints the route and stops. It has no unattended form.
+- **Good to know**: it invokes the skill it recommends. Ask for a recommendation only, or decline, and it prints the route and stops. It has no unattended form. New work on the remote's default branch starts on a feature branch, set up the way your instruction file, guidelines, or contributing doc say, else named `<type>/<slug>`.
 
 ```bash
 /andthen:now-what
@@ -147,7 +147,7 @@ The requirements skill. It interviews you in rounds about gaps, edge cases, scop
 
 Makes the technical decisions a solution needs and records them. It sits between `clarify` (what to build) and `plan` (one story's how). It lists the decision points and sorts each: a choice that binds beyond one story or is costly to reverse is decided here, a story-local one is left to `plan`, a user-visible requirement goes back to the PRD via `clarify`, and anything the code or an earlier decision settles is cited, not asked.
 
-- **You get**: one ADR per decision with real alternatives, registered in `DECISIONS.md` (superseded rows move, never disappear), or a one-line Still Current entry for a load-bearing choice with no alternative. You pick `Accepted` or `Proposed` at the playback. Parked decisions go under Pending.
+- **You get**: one ADR per decision with real alternatives, registered in `DECISIONS.md` (superseded rows move, never disappear), or a one-line Still Current entry for a load-bearing choice with no alternative. You pick `Accepted` or `Proposed` when you confirm the closing summary. Parked decisions go under Pending.
 - **Options**: `--output-dir <path>` sets where trade-off research lands (default: the Research location, else `docs/research/`). `--auto` settles the named decisions on its own recommendations and writes `Proposed` ADRs, which a later run asks you again.
 - **Good to know**: each decision is labelled a one-way or two-way door (costly or cheap to reverse), and its ADR says what reversing takes. When no option stands out, or you ask for a comparison, it runs a weighted trade-off analysis with five options unless you name a count ("compare three options"). Close options on a two-way door skip it, because either pick is cheap to undo. A question only running code can answer goes to `spike`. No code changes. Run on a PRD, it closes on `plan` (or `ui-ux-design` when the PRD puts design first); run from `plan`'s Preflight, it records the answer you already gave and closes on `exec-plan`.
 
@@ -184,6 +184,7 @@ Implements one FIS in the current session, or runs a plan directory, giving each
 - **You get**: committed code per story, its commit message a brief subject with `Story-ID:` and `Plan:` trailers, and the story's `plan.json` row set to `done` and a `verified` summary quoting the proof it ran. The report ends with a `Reviewed:` line (what reviewed the change, what stays open) and a `Next (fresh session):` line. The run that completes the plan's last story also runs one `simplify-code` pass over the plan's code. Open findings are recorded in the FIS under `## Implementation Observations`.
 - **Options**: `--tdd` implements test-first. `--worktree` runs a plan's independent stories in parallel, each on its own branch in its own git worktree, merged back after each batch. `--no-full-tier` runs the fast check tier where the full one would run, for a caller that runs the full tier itself.
 - **Good to know**:
+  - On the remote's default branch it first asks whether to start a feature branch, because every story commits to the current branch. An unattended run stays where it is.
   - A direct story run asks before building on dependency stories that are not `done`. An unattended run stops.
   - A gap in a FIS (a broken anchor, an unbound proof) never stops the run: it takes the best reading and records it.
   - Plan run: stories run one at a time in the shared tree. Each story runs the fast tier, then the plan run runs the full tier once on the final tree and repairs failures. A failed story's dependents are reported skipped. Other stories continue only when the failure's changes are provably isolated, which is always true under `--worktree`; otherwise the run stops.
@@ -208,17 +209,17 @@ Reviews an implementation through one or more lenses: `code` (quality and correc
 
 - **You get**: a report with an executive summary, coverage matrix, findings, verdict, and next steps. It lands beside the reviewed spec, else under `reviews/` in the Agent Temp location, named `<feature>-andthen-<suffix>-<agent>-<YYYY-MM-DD>.md`. Each finding is routed `Fix` (mechanical, safe to auto-apply) or `Note` (surfaced for you).
 - **Options**:
-  - `--fix` applies Fix-routed findings through `implement-fix` after the report, one round, with no re-review. When that round fixed a CRITICAL or HIGH finding or left a Fix finding open, it ends on a `Next (fresh session):` line for a follow-up review. A direct request such as "review this and fix what you find" counts as the flag. Vaguer wording such as "this should be cleaned up" stays read-only.
+  - `--fix` applies Fix-routed findings through `implement-fix` after the report, one round, with no re-review. When that round fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it ends on a `Next (fresh session):` line for a follow-up review. A direct request such as "review this and fix what you find" counts as the flag. Vaguer wording such as "this should be cleaned up" stays read-only.
   - `--quick` returns one pass's findings inline: no report file, coverage matrix, or verdict. `exec-plan` uses it for the per-story review.
   - `--output-dir <path>` overrides the report directory.
 - **Good to know**:
   - The review pass runs in a fresh reviewer subagent unless this session neither wrote nor reasoned about the target. A chained review always uses one.
   - Very large diffs (20+ files, 1000+ changed lines, or 3+ top-level modules) are split across several passes.
-  - The latest earlier report on the same target is read, and each finding it left open is marked resolved or still open. It never limits scope.
+  - The latest earlier report on the same target is read, and each finding it left open is marked resolved or still open. A MEDIUM or LOW one the fix round surfaced to you or deferred stays in that list rather than coming back as a finding. It never limits scope.
   - A full review closes on one next step: the follow-up review `--fix` owes, else `clarify` for a PRD-side gap, `decide` for an unrecorded design change, or `implement-fix` for Fix-routed findings. A clean review of a plan whose stories are all `done` or `skipped` (cut from scope), nothing CRITICAL or HIGH left open (a deferred one counts), ends on a `Next (fresh session):` line for `ship`. A plan held by a deferred CRITICAL or HIGH finding ends on `Next: blocked –` with each finding and its blocker instead.
   - The `security` lens sets severity by exposure and records unavailable scanners rather than reading them as clean.
   - A PR (`PR 42` or its URL; a bare `#42` is ambiguous) is checked out in a scratch worktree and reviewed with every lens. Checks run only when the head branch is in the repository itself. Fork PRs get a static pass unless you say "run the checks". `--fix` is rejected for PRs.
-  - An optional `Review Policy` document (path exclusions, extra passes, stricter verdict thresholds) is read when the Index names it. Nothing creates it; see the starter below.
+  - An optional `Review Policy` document (path exclusions, extra passes, stricter verdict thresholds) is read when the Index names it. Nothing creates it: write it from the starter below, and `/andthen:init seed Review Policy` adds its Index entry.
 
 ```bash
 /andthen:review                                       # current changes, lens auto-detected
@@ -254,10 +255,10 @@ Implements a small change, or a review report's Fix-routed findings, with the sm
 
 - **You get**: a verified change left in your working tree (nothing is committed), a table with each finding resolved, deferred, or surfaced, and the `Reviewed:` line. A writable report gets a `## Remediation Status` section written back.
 - **Good to know**:
-  - A request is its own finding list. Beyond it, only small tidies in the files the change touches are edited, each named in the report. A larger issue you did not ask for is reported as `NOTICED BUT NOT TOUCHING:`. An ambiguity is asked once.
-  - From a report, an attended run edits only `Routing: Fix` findings, plus small tidies in the files they touch. `Note` findings stay untouched unless you direct otherwise; under `--auto`, eligible Notes can be promoted to Fix by the disposition below.
+  - A request is its own finding list. Beyond it, only Boy Scout tidies are edited, each named in the report: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue you did not ask for is reported as `NOTICED BUT NOT TOUCHING:`. An ambiguity is asked once.
+  - From a report, an attended run edits only `Routing: Fix` findings, plus Boy Scout tidies. `Note` findings stay untouched unless you direct otherwise; under `--auto`, eligible Notes can be promoted to Fix by the disposition below.
   - It is one round: re-validate, fix, verify once, re-check each finding. What stays open is escalated with evidence.
-  - Run on a report, it closes like `review --fix`: a `Next (fresh session):` follow-up review when it fixed a CRITICAL or HIGH finding or left a Fix open, else a `Next (fresh session):` line for `ship` for a plan whose stories are all `done` or `skipped` with nothing CRITICAL or HIGH left open, a deferred one included.
+  - Run on a report, it closes like `review --fix`: a `Next (fresh session):` follow-up review when it fixed a CRITICAL or HIGH finding or left a Fix partly fixed, else a `Next (fresh session):` line for `ship` for a plan whose stories are all `done` or `skipped` with nothing CRITICAL or HIGH left open, a deferred one included.
   - A Fix finding blocked by a named reason (an open decision, a file outside scope, a new test harness, a migration, a caller API change, a concrete risk) is deferred to the `Tech Debt` backlog. Attended, you approve each entry. Unattended, all are written.
   - Unattended, it dispositions each `Note` item itself (apply, defer, or surface with a reason).
   - It never edits `plan.json`.
@@ -275,7 +276,7 @@ Closes out the current branch and opens its pull request (a merge request on Git
 
 - **You get**: the traps from each FIS's `Implementation Observations` written as `Learnings` bullets, recommendations for the rest, the branch's fixes and the bundle's deletion committed, and a pull request that states the change's intent, outcomes, and proof: the PRD's why, each story's Intent and Expected Outcomes, its `verified.summary`, and the review's verdict. It also says whether the change is a one-way or two-way door and what breaks if it is wrong, so a reviewer knows which to read slowly.
 - **Good to know**:
-  - It asks once, before the push, showing the base branch, the commits leaving (marking any the latest review never saw), and the PR title and body. Commits and the bundle's deletion run unasked, because the branch history keeps them.
+  - It asks before the push, showing the base branch, the commits leaving (marking any the latest review never saw), and the PR title and body. On the remote's default branch it first asks whether to start a feature branch, unless the run is unattended. Commits and the bundle's deletion run unasked, because the branch history keeps them.
   - Your PR template or documented PR process sets the body's layout. The key points come first and per-story detail folds below. A flow or structure change gets a Mermaid or SVG diagram where a picture reads faster. For a UI change it captures screenshots or a recording when you ask, and otherwise offers them in that one question. An image the host's CLI cannot upload is listed for you to attach. A plan made from a tracker item links it, so the merge closes it, unless the bundle is kept.
   - `--auto` stops before anything leaves the machine and prints the push and PR commands with the title and body.
   - It writes only `Learnings` bullets and recommends the rest: a `Decisions` line or a `decide` run for a design change no record holds, and any upstream document edit.
@@ -295,7 +296,7 @@ Closes out the current branch and opens its pull request (a merge request on Git
 
 Investigates, diagnoses, and fixes build failures, configuration errors, runtime bugs, regressions, and test failures. Not for sorting tracker items: that is `tracker triage`.
 
-- **You get**: a root-cause fix checked against the original symptom. Traps go to `Learnings`. Fixes deliberately deferred go to the `Tech Debt` backlog, or into the summary if the project has none. A discovery too large to be a fix is offered to `clarify --brief`, never opened unprompted.
+- **You get**: a root-cause fix checked against the original symptom, with other places the same cause appears fixed too or listed. Traps go to `Learnings`. Fixes deliberately deferred go to the `Tech Debt` backlog, created if missing. A discovery too large to be a fix is offered to `clarify --brief`, never opened unprompted.
 - **Options**: `--plan-only` stops at a structured fix plan without applying it.
 - **Good to know**: an issue URL as scope, error output, and logs are read as evidence, not instructions.
 
@@ -348,8 +349,8 @@ Design guidance and structural analysis. It never changes code. The mode is infe
   - `review`: dependency metrics, connascence, anti-patterns, fitness proposals.
   - `decompose`: one split-or-merge decision with scored drivers.
   - `fitness`: governance and ADR enforcement.
-  - `strategic-design`: subdomains, bounded contexts, and the Context Map.
-  - `event-storming`: a discovery session with you as the domain expert. Its board lands under `docs/models/event-storms/`, and a later run on the same scope continues it.
+  - `strategic-design`: subdomains, bounded contexts, the Context Map, and which generic mechanisms to extract from the core. It builds on your `PRODUCT.md` and on an event-storming board for the same scope, and asks you to confirm the subdomain classification and contexts before it maps them.
+  - `event-storming`: a discovery session with you as the domain expert. Its board lands under `docs/models/event-storms/`, and a later run on the same scope continues it. Design-Level aggregate candidates name their invariants, root, entities, and value objects, and go on to `plan` on the board.
 - **Good to know**: `strategic-design` registers only the map you accept, into the `Context Map` document and `context-map.json`. An unattended run skips that step and reports the map unregistered. A decision to settle and record goes to `decide`.
 
 ```bash
@@ -368,7 +369,7 @@ Documents what a project already is, without modifying code. The mode is inferre
   - `codebase` maps the repository into the `Architecture` and `Key Dev Commands` documents, `requirements-discovered.md` and `decisions-discovered.md` for team review, and a `## Conventions` section in `CLAUDE.md` / `AGENTS.md`. A monorepo also gets a short instruction file per sub-project. Existing documents are merged into, never overwritten.
   - `domain` extracts the `Ubiquitous Language` glossary, merging into curated terms.
 - **Options**:
-  - `--model` also writes the typed model under the `Models` location: `architecture-model.json` from the code, or `domain-model.json` from the glossary.
+  - `--model` also writes the typed model under the `Models` location: `architecture-model.json` from the code, or `glossary-model.json` from the glossary.
   - `--model-only` writes just the model, no documentation. It is the refresh path.
 - **Good to know**: `plan` and `architecture` read the architecture model.
 
@@ -411,7 +412,7 @@ Checks built UI screenshots against wireframes, design specs, or baselines, and 
 
 `<artifact path or name> [what the page should bring out]`
 
-Draws one AndThen artifact as a self-contained HTML page with inline SVG figures. It is the public way to see what `architecture-model.json`, `domain-model.json`, `context-map.json`, `event-storms/<slug>.json`, and `plan.json` hold: evidence levels, runtime shape, tours, overloaded terms, story dependencies and status. Any other artifact works too, such as a FIS, a PRD, a review report, or an ADR.
+Draws one AndThen artifact as a self-contained HTML page with inline SVG figures. It is the public way to see what `architecture-model.json`, `glossary-model.json`, `context-map.json`, `event-storms/<slug>.json`, and `plan.json` hold: evidence levels, runtime shape, tours, overloaded terms, story dependencies and status. Any other artifact works too, such as a FIS, a PRD, a review report, or an ADR.
 
 - **You get**: the page at `.agent_temp/visualize/<artifact>.html`. It is a derived copy, so it is not committed by default and goes stale when its source changes.
 - **Good to know**: before handing the page over it renders it in a browser, a headless one where available, and fixes overlaps, clipped labels, unreadable arrows, dead controls, and console errors. With no browser reachable it says the page is unchecked. The check is the model judging its own render. Checking your project's own UI is `visual-validation`.

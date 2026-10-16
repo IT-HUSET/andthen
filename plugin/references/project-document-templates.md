@@ -1,10 +1,11 @@
 # Project Document Templates
 
-Canonical starter templates for the supplementary project documents in the **Project Document Index**. Read the section you need (see Contents), not the whole file.
+Canonical **Project Document Index** entries and starter templates for the project documents. Read the section you need (see Contents), not the whole file.
 
 A template's `>` note sits above its fenced block, states who owns that document, and does not ship. Everything inside a fenced block is emitted verbatim into the created file, HTML comments included, because they guide whoever maintains the document later.
 
 ## Contents
+- Index entries – one line per document, with its default location
 - Regeneration contract – merge rules shared by the derived documents (ARCHITECTURE, KEY_DEVELOPMENT_COMMANDS)
 - ROADMAP.md – phases, success criteria, milestones
 - TECH-DEBT-BACKLOG.md – tech debt by severity
@@ -17,6 +18,36 @@ A template's `>` note sits above its fenced block, states who owns that document
 - UBIQUITOUS_LANGUAGE.md – domain glossary
 - ISSUE-TRACKER.md – agent issue-tracker backend + label role mapping
 - CONTEXT-MAP.md – bounded contexts and integration patterns
+
+---
+
+## Index entries
+
+> The skill that creates a document appends that document's line below to the Index, changing the path only where the project keeps the document elsewhere, so each path below is the default location. `Key Dev Commands` points at the instruction file's § Key Development Commands instead when the project keeps its commands inline. `Agent Temp` ships in the `init` template.
+
+```markdown
+- **Product** – `docs/PRODUCT.md`: vision, personas, non-goals (firmly rejected concepts included), Proportionality facts. Read before proposing a feature, a design, or new machinery, or triaging a request: features anchor to it, and its stage and scale size what gets built.
+- **Roadmap** – `docs/ROADMAP.md`: phases with success criteria. Read when sequencing work across phases; update when a phase's scope or criteria change.
+- **Specs & Plans** – `docs/specs/<version-or-feature>/`: per version or feature, its `prd.md`, `plan.json`, and one FIS per story (`s01-*.md`, …), written by the `clarify` and `plan` skills. Read the governing FIS before implementing; update the FIS and its story's `plan.json` row as execution proceeds. `plan.json` has one writer per copy at a time, so a `plan` breakdown's story subagents never write it. An oversized FIS is a story too big: decompose it (`OVERSIZE:`), never trim it.
+- **Issue Tracker** – `docs/ISSUE-TRACKER.md` (optional): tracker backend, its commands, label role mapping, where the requirements record lives. Read before any issue fetch, triage, or label write.
+- **Decisions** – `docs/DECISIONS.md`: ADR index and Still Current notes. Read before proposing or changing a design or architecture choice; settled decisions are not relitigated without new evidence.
+- **ADRs** – `docs/adrs/`. Read the ADR a decision cites before revisiting it; add one per new decision.
+- **Research** – `docs/research/`: trade-off analyses. Read when re-opening a settled trade-off; add one per new analysis.
+- **Architecture** – `docs/ARCHITECTURE.md`: components, data flow, integrations, key constraints. Read before changing a component, a boundary, or data flow.
+- **Models** – `docs/models/`: committed typed projections (`architecture-model.json`, `glossary-model.json`, `context-map.json`, `event-storms/<slug>.json`). Read when a task needs component or bounded-context boundaries. Regenerate at deliberate points; never hand-edit, since the sources stay the records.
+- **Context Map** – `docs/CONTEXT-MAP.md`: bounded contexts and integration patterns. Read before placing a feature, boundary, or integration; update when a context or its relationships change.
+- **Ubiquitous Language** – `docs/UBIQUITOUS_LANGUAGE.md`: canonical terms and the synonyms to avoid. Read before naming, renaming, or describing domain concepts; add a row when a term settles.
+- **Guidelines** – `docs/guidelines/`. Read a guideline when its condition under Project Guidelines and Standards matches the task.
+- **Review Policy** – `docs/REVIEW-POLICY.md` (optional): paths excluded from review, extra passes, verdict thresholds. Read before a review.
+- **Wireframes** – `docs/wireframes/` (HTML or images). Read before building or validating a screen; update when a flow changes.
+- **Design System** – `docs/design-system/`: `DESIGN.md` is canonical (tokens and rationale), `showcase.html` renders it. Read before writing UI markup or styles; update when a token or component is added.
+- **Visual Validation** – `docs/VISUAL-VALIDATION.md`: how the UI is served and captured (serve command, capture tooling, routes and states, breakpoints, reference locations). Read before capturing a screen.
+- **Learnings** – `docs/LEARNINGS.md`. Read at task start; add a bullet when bitten by a non-obvious failure.
+- **Tech Debt** – `docs/TECH-DEBT-BACKLOG.md`. Read when working in an area that has a listed item; add an entry when deferring a fix.
+- **Key Dev Commands** – `docs/KEY_DEVELOPMENT_COMMANDS.md`: dev, test, build, deploy commands. Read before running verification; update when a command changes.
+- **Testing Strategy** – `docs/TESTING-STRATEGY.md`: levels in use, framework and fixture conventions, the before-merge bar, known gotchas. Read before authoring tests; update when a convention changes.
+- **Agent Temp** – `.agent_temp/`: scratch workspace for reviews, research, and QA; never ship from it.
+```
 
 ---
 
@@ -405,7 +436,7 @@ Commands: see `docs/KEY_DEVELOPMENT_COMMANDS.md` § Testing (`fast`, `full`, run
 
 ## ISSUE-TRACKER.md
 
-> Maps the issue-tracker backend agent workflows read from and publish to. Resolved before any issue operation via **Tracker resolution**. Any backend other than GitHub fills the Operation Table so skills substitute each transport call. Body shapes, label names, and footer tokens stay identical: the document maps transport, not contract. The `andthen:init` skill registers its Index entry, and the first skill that needs it offers to create it from here.
+> Maps the issue-tracker backend agent workflows read from and publish to. Resolved before any issue operation via **Tracker resolution**. Any backend other than GitHub fills the Operation Table so skills substitute each transport call. Body shapes, label names, and footer tokens stay identical: the document maps transport, not contract. The first skill that needs it offers to create it from here.
 
 ```markdown
 # Issue Tracker

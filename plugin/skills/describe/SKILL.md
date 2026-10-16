@@ -1,5 +1,5 @@
 ---
-description: Document what a project already is – map an existing codebase into architecture docs and discovered requirements, or extract and maintain its Ubiquitous Language glossary; `--model` adds the typed architecture or domain model. Trigger on 'map this codebase', 'document this repo', 'build a glossary'.
+description: Document what a project already is – map an existing codebase into architecture docs and discovered requirements, or extract and maintain its Ubiquitous Language glossary; `--model` adds the typed architecture or glossary model. Trigger on 'map this codebase', 'document this repo', 'build a glossary'.
 argument-hint: "[--mode codebase|domain] [--model] [--model-only] [output directory (codebase) or scope (domain)]"
 ---
 
@@ -12,13 +12,13 @@ Describe documents what a project already is and never modifies its code.
 `$ARGUMENTS` minus flags is, in codebase mode, the output directory `OUTPUT_DIR` (default `docs/`); in domain mode, the focus area `SCOPE` (blank for the whole project). Codebase mode always maps the whole project.
 
 - `--mode codebase|domain` picks the mode.
-- `--model` (`MODEL`), also set when the request asks for the model in words, adds the mode's typed model: `architecture-model` in codebase mode, `domain-model` in domain mode. Write it against [`architecture-model.md`](references/architecture-model.md) and [`architecture-model.schema.json`](references/architecture-model.schema.json).
+- `--model` (`MODEL`), also set when the request asks for the model in words, adds the mode's typed model: `architecture-model` in codebase mode, `glossary-model` in domain mode. Write it against [`architecture-model.md`](references/architecture-model.md) and [`architecture-model.schema.json`](references/architecture-model.schema.json).
 - `--model-only` (`MODEL_ONLY`) writes the model against the same two files and no documentation – the refresh path when only the model must be current.
 
 | Mode | Triggers |
 |------|----------|
 | **codebase** | "map the codebase", "document the architecture", "discover requirements", "architecture model" |
-| **domain** | "glossary", "ubiquitous language", "domain terms", "terminology cleanup", "domain model" |
+| **domain** | "glossary", "ubiquitous language", "domain terms", "terminology cleanup" |
 
 An explicit `--mode` wins, then a request that points at one mode. When neither decides it, ask once – codebase (preselected), domain, or both – because the modes write different documents and a wrong guess costs a full run.
 

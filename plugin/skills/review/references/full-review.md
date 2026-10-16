@@ -8,7 +8,7 @@
 
 Build one target map: review target, implementation scope, requirements baseline, and user intent; the resolved lens set and why; the Intent Context source or `none discoverable`; and any recorded Drift Notes from the governing FIS's `## Implementation Observations`.
 
-**Earlier reports and recorded observations are input, never scope.** Read the latest earlier report on this target at the Output destination, `## Remediation Status` included, and each governing FIS's open `## Implementation Observations` items, its open quick-review findings and `NOTICED BUT NOT TOUCHING` among them. The report states whether each finding the earlier report left open is now resolved or still open, and each finding or observation still open enters Step 4 as a finding of this review.
+**Earlier reports and recorded observations are input, never scope.** Read the latest earlier report on this target at the Output destination, `## Remediation Status` included, and each governing FIS's open `## Implementation Observations` items, its open quick-review findings and `NOTICED BUT NOT TOUCHING` among them. The report states whether each finding the earlier report left open is now resolved or still open, and a finding or observation an earlier report carried stays that finding when this run finds it again, never a new one. Each one still open enters Step 4 as a finding of this review, except a MEDIUM or LOW one the earlier report marks `SURFACED` or `DEFERRED`, in its `## Remediation Status` or its summary list: it is already the user's decision, so it stays in this summary's list with that mark, holding neither readiness nor another fix round.
 
 Resolve the lenses by the first rule that applies:
 
@@ -119,7 +119,7 @@ Write it from `report-template.md` – header, sections, finding blocks, and ver
 
 **On completion**, print the report path relative to the project root, absolute in an unattended run. Then close on one `Next` line for the first case that applies, never a menu: a command prints as `Next (fresh session):`. It is printed, never invoked: the next run is the orchestrator's to spend. A run another skill invoked prints none, because its caller owns the next step.
 
-- **`--fix` fixed a CRITICAL or HIGH finding, or left a Fix finding PARTIALLY RESOLVED or UNRESOLVED** – this skill again on the same target with `--fix`, as a follow-up to `<report-path>`: that one round re-checked each finding, not what its fixes broke, and this session applied them, so the follow-up must not be its own reading.
+- **`--fix` fixed a CRITICAL or HIGH finding, or left a Fix finding PARTIALLY RESOLVED** – this skill again on the same target with `--fix`, as a follow-up to `<report-path>`: that one round re-checked each finding, not what its fixes broke, and this session applied them, so the follow-up must not be its own reading.
 - **A PRD-side outcome finding** – the `andthen:clarify` skill on the PRD with: `<the listed gaps>`.
 - **A reconciliation finding for the `andthen:decide` skill** – that skill on `<report-path>`.
 - **Fix-routed findings, without `--fix`** – the `andthen:implement-fix` skill on `<report-path>`.

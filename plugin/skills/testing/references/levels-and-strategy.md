@@ -15,7 +15,7 @@ Canon: Dodds' Testing Trophy, Farley's feedback economics, Fowler's pyramid crit
 
    Give each question your recommendation; a reply of "default" takes them all. When no one can answer, write the recommendation as an `ASSUMPTION:` line (`unattended-runs.md` § Recording an assumption). Gate: every question is answered or carries an `ASSUMPTION:` line.
 3. **Write what is true of this project** – levels in use, when each applies, and whether each boundary runs real (a container, a temp dir) or a fake; framework and fixture conventions; what must have a test before merge, with the step-2 answers; known gotchas. Link the commands, never restate them: a second copy of a command drifts from the row that owns it.
-4. **Create or update.** When the document is absent, create it at its **Project Document Index** location with those four sections and a link line to `Key Dev Commands`. When present, rewrite only the sections this run learned something about, so a hand-written convention survives a re-run. Gate: every other section is byte-identical.
+4. **Create or update.** When the document is absent, create it per the Index preamble, with those four sections and a link line to `Key Dev Commands`. When present, rewrite only the sections this run learned something about, so a hand-written convention survives a re-run. Gate: every other section is byte-identical.
 
 ## Level budgets
 

@@ -6,7 +6,7 @@ AndThen is a lightweight agentic software engineering framework for AI coding ag
 
 ## Decision Rule
 
-Choose the smallest approach that meets the requirement and its verification bar; extending what exists, or changing nothing, is always a candidate. Every addition – a step, artifact, dependency, configuration, agent call, instruction, rule, or check – names the outcome it enables or the failure it prevents. A new instruction or check names the run where the model went wrong without it, on a path most runs take or where the failure is destructive or silent.
+Choose the smallest approach that meets the requirement and its verification bar; extending what exists, or changing nothing, is always a candidate. Every addition – a step, artifact, dependency, configuration, agent call, instruction, rule, or check – names the outcome it enables or the failure it prevents. A new instruction or check also covers a path most runs take or a failure that is destructive or silent. Analysis establishes the need when the text omits a step, gives an output no home, or directs the wrong behaviour; a claim that the model goes wrong where the text is silent needs the run where it did, because without that run the instruction may change nothing (**Intent-driven**).
 
 The rule covers existing design in scope, not only proposals: simplify or remove machinery whose benefit no longer covers its cost. That is judgment, not another approval step or document.
 

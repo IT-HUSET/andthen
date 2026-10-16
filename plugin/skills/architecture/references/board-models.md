@@ -56,10 +56,11 @@ Both follow the atlas models' conventions (`architecture-model.md`): 2-space ind
 | `flows[]` | `from`, `to`, `kind` | yes | `triggers`, `emits`, `handles`, `reads` – the command → aggregate → event → policy chains of Process Modeling and Design Level. |
 | `candidates[]` | `id`, `kind`, `label`, `rationale`, `members` | yes | `subdomain`, `workflow-boundary`, or `aggregate`; `members` are sticky ids. |
 | `candidates[]` | `invariants` | no | The rules that force their members into one transaction. |
+| `candidates[]` | `root`, `entities`, `valueObjects` | no | Verbatim terms: the entity commands enter through, the other entities, the values held. Commands are `triggers` flows into its aggregate sticky, events `emits` flows out of it. |
 
 **The level bounds the board.** Big Picture carries events, actors, external systems, and hotspots and harvests `subdomain` candidates; Process Modeling adds commands, policies, and read models and harvests `workflow-boundary`; Design Level adds aggregates and harvests `aggregate`. A sticky or candidate outside its level is a validation error, because the board would claim a depth the session never reached.
 
-**Cross-field invariants.** Ids unique per collection; `lane`, `attachedTo`, `cluster`, `flows[].from`/`to`, and `members` resolve; `order` unique within a lane (stickies without a lane form their own); `pivotal` only on events; `attachedTo` only on hotspots; `invariants` only on aggregates.
+**Cross-field invariants.** Ids unique per collection; `lane`, `attachedTo`, `cluster`, `flows[].from`/`to`, and `members` resolve; `order` unique within a lane (stickies without a lane form their own); `pivotal` only on events; `attachedTo` only on hotspots; `invariants`, `root`, `entities`, and `valueObjects` only on aggregates.
 
 ## `context-map`
 

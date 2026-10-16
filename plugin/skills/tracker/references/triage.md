@@ -60,8 +60,9 @@ Per item: number or identifier, category, recommended (or applied) state, one-li
 
 ## Follow-up
 
-A `ready-for-agent` item is buildable. Point the user at the execution path by size; an unattended run skips this:
+A `ready-for-agent` item is buildable. Point the user at its execution path; an unattended run skips this:
 
+- **Bug with an unknown cause** → the `andthen:triage` skill on the issue URL, because a fix is sized only once its cause is known.
 - **Small fix** → the `andthen:implement-fix` skill.
 - **Feature, one story or several** → the `andthen:plan` skill on the issue URL, an accepted requirements source it breaks into stories when it needs several, then the `andthen:exec-plan` skill.
 - **Requirements still too thin to plan from** → the `andthen:clarify` skill on the issue URL, then the `andthen:plan` skill on the directory it writes.

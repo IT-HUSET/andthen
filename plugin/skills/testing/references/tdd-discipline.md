@@ -18,7 +18,7 @@ Move the bar; do not finish the feature. Use the obvious implementation, else fa
 
 ### 3. Refactor, on green only
 
-Tidy *the code this cycle wrote* and the tests that drove it, plus Boy Scout tidies. A Boy Scout tidy in a file the change touches is small and behavior-preserving, or fixes an obvious small bug under a test that fails first. In a TDD cycle, an obvious small bug joins the test list; anything larger is reported. Once and Only Once drives the step.
+Tidy *the code this cycle wrote* and the tests that drove it, plus Boy Scout tidies. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. In a TDD cycle, an obvious small bug joins the test list, and what no tidy can fix is reported. Once and Only Once drives the step.
 
 **Tidy First** – a mid-loop refactor that turns out load-bearing for the next red test lands as its own commit first, tests re-run, then the red step starts. Refactoring without a green bar is debugging: revert to green first.
 

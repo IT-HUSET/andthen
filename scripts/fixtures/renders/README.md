@@ -22,11 +22,11 @@ notes go** is what that owner does with them.
 | `strategic-design` | `strategic-design.md` | `andthen:architecture` | the next `andthen:architecture` run in `--mode strategic-design` |
 | `fitness` | `fitness.md` | `andthen:architecture` | the next `andthen:architecture` run in `--mode fitness` |
 | `decompose` | `decompose.md` | `andthen:architecture` | the next `andthen:architecture` run in `--mode decompose` |
-| `event-storming` | `event-storming.md` | `andthen:architecture` | `andthen:architecture --mode strategic-design` (Big Picture) or `--mode decompose` (Design Level) |
+| `event-storming` | `event-storming.md` | `andthen:architecture` | `andthen:architecture --mode strategic-design` (Big Picture) or `andthen:plan` on the board (Design Level) |
 | `event-storm` | `event-storm.json` | `andthen:architecture` | the next `andthen:architecture` run in `--mode event-storming` |
 | `context-map` | `context-map.json` | `andthen:architecture` | the next `andthen:architecture` run in `--mode strategic-design` |
 | `architecture-model` | `architecture-model.json` | `andthen:describe` | `andthen:architecture --mode strategic-design` or `--mode review`, or `andthen:describe --mode codebase` for model corrections and regeneration |
-| `domain-model` | `domain-model.json` | `andthen:describe` | `andthen:describe --mode domain` for glossary corrections, then `--model` to regenerate the projection |
+| `glossary-model` | `glossary-model.json` | `andthen:describe` | `andthen:describe --mode domain` for glossary corrections, then `--model` to regenerate the projection |
 
 `visual-review-notes.md` is the notes payload in the exact shape a viewer copies or sends: the H1 names
 the owner and the artifact path, each `## Section:` block carries one section's heading verbatim, notes

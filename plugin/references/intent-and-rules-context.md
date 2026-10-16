@@ -9,7 +9,7 @@ Before any finding pass, routing decision, or mutation:
 ### Project Rules Context
 
 - The project-tier instructions the host loaded, plus the local rule / guideline files they reference (typically under `docs/guidelines/`, `plugin/references/`, or whatever the project uses).
-- The **Review Policy** document when the Project Document Index carries that entry – an optional, project-authored calibration of the review itself, not a rule set about the code. Three citable sections: `## Excluded Paths` (globs for generated, vendored, or migration paths), `## Extra Passes`, `## Verdict Thresholds`. The entry ships in the init template; the file does not, and no skill creates it. Absent file: nothing degrades, the defaults are the policy.
+- The **Review Policy** document when the Project Document Index carries that entry – an optional, project-authored calibration of the review itself, not a rule set about the code. Three citable sections: `## Excluded Paths` (globs for generated, vendored, or migration paths), `## Extra Passes`, `## Verdict Thresholds`. No skill creates it. Without it nothing degrades, the defaults are the policy.
 - Skip process rules the diff cannot verify.
 - Record source paths (file + section) so any finding that traces to a rule can cite the rule by source.
 

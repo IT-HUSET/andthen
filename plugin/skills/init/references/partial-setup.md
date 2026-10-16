@@ -15,11 +15,11 @@ If only one exists, repair that file, and offer the missing counterpart for cros
 
 Apply these without asking:
 
-- **Missing Index entries**: append to the existing Index in the shape it already uses, never rewriting it.
-- **First-write sentences**: make the Index preamble's match `CLAUDE.template.md`'s, the `Learnings` header line included.
+- **Unlisted documents**: for each AndThen document found without an Index entry, append its line from `project-document-templates.md` § Index entries at the path where it was found, in the shape the Index already uses, never rewriting the Index.
+- **First-write sentences**: make the Index preamble's match `CLAUDE.template.md`'s.
 - **Project Overview**: when empty or a `TODO`, fill it per Step 2a.
 - **Missing sections**: add them to the root agent instruction file(s). In the thin-import layout they belong in `AGENTS.md`, never the thin `CLAUDE.md`.
 - **`Key Dev Commands`**: seed it per Step 2a when a manifest exists and the document does not.
 - **Gitignore hygiene**: apply per Step 2a.
 
-**Gate**: Every missing Index entry is appended and the preamble matches the template's; the Project Overview holds no `TODO`; `.gitignore` carries both entries; `Key Dev Commands` exists when a manifest does; nothing else was created – then Step 3.
+**Gate**: Every AndThen document found has an Index entry and the preamble's first-write sentences match the template's; the Project Overview holds no `TODO`; `.gitignore` carries both entries; `Key Dev Commands` exists when a manifest does; nothing else was created – then Step 3.

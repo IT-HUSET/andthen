@@ -50,7 +50,7 @@ Ask in rounds over the frontier. Every decision whose prerequisites are settled 
 
 A decision is **contested** when no option stands out: the options sit close on the criteria that matter, the evidence is missing, or the user asks for the comparison. Close options on a two-way door are not contested, because either pick is cheap to reverse. A contested decision runs through [`trade-off.md`](references/trade-off.md) before you recommend, with its gates asked in the round where the decision sits. Its Findings Filter reviewer reads [`review-calibration.md`](../../references/review-calibration.md), whose path you pass. A question only running code settles goes to the `andthen:spike` skill, whose Spike Verdict folds back in as evidence.
 
-Shared understanding is confirmed, not inferred. Play the settled set back in a few lines – each decision with its rationale and cost, and what stays open – and ask whether that is it. In the same question, ask whether its ADRs go in `Accepted` or `Proposed` for others to sign off, with `Accepted` recommended since the user just settled them. A correction reopens the frontier.
+Shared understanding is confirmed, not inferred. Play the settled set back in a few lines – each decision with its rationale and cost, and what stays open – and ask whether that is it. Ask in the user's words, not workflow vocabulary: no step name or term from this skill. In the same question, ask whether its ADRs go in `Accepted` or `Proposed` for others to sign off, with `Accepted` recommended since the user just settled them. A correction reopens the frontier.
 
 **Gate**: every decision answered by the user or parked as open, the settled set confirmed, and the ADR status chosen.
 
@@ -58,7 +58,7 @@ Shared understanding is confirmed, not inferred. Play the settled set back in a 
 
 Record each decision at its weight:
 
-- **An ADR** for a decision with real alternatives and consequences, from [`adr-template.md`](references/adr-template.md), in the `ADRs` location, else `docs/adrs/`, numbered after the existing ADRs or from `ADR-001`. Status is the one chosen at the playback, `Proposed` in an unattended run. A `Proposed` ADR the user accepts here becomes `Accepted`, in its file and its row.
+- **An ADR** for a decision with real alternatives and consequences, from [`adr-template.md`](references/adr-template.md), in the `ADRs` location, else `docs/adrs/`, numbered after the existing ADRs or from `ADR-001`. Status is the one the user chose when confirming the settled set, `Proposed` in an unattended run. A `Proposed` ADR the user accepts here becomes `Accepted`, in its file and its row.
 - **A Still Current line** for a load-bearing choice with no real alternative: `**<Topic>**: <decision + brief rationale>` under the `Decisions` document's **Still Current**.
 - **A Pending bullet** for a decision parked as open, and in an unattended run for a choice with no real alternative, since nobody settled it.
 

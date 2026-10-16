@@ -6,7 +6,7 @@ Each story runs on its own branch in its own worktree and commits its work there
 
 A worktree carries only what HEAD held when it branched, so commit the batch's shared writes on `BASE_BRANCH` first, as one `chore` commit with no story trailers, since no one story owns them:
 
-- **Before the first batch**, resolve `Key Dev Commands` per `verification-evidence.md`, creating a missing document at its Index location. Every story then finds it and none creates it: copies written in parallel worktrees conflict at merge, or vanish with a discarded worktree.
+- **Before the first batch**, resolve `Key Dev Commands` per `verification-evidence.md`, creating it per the Index preamble when it does not exist. Every story then finds it and none creates it: copies written in parallel worktrees conflict at merge, or vanish with a discarded worktree.
 - **Before each later batch**, the bundle writes of batch discovery triage.
 - **Every batch**, its stories' rows as `status: in-progress`, so the main checkout's `plan.json` shows what is executing while the stories run elsewhere.
 
@@ -14,9 +14,10 @@ A worktree carries only what HEAD held when it branched, so commit the batch's s
 
 Create each worktree yourself – `git worktree add -b story/{id} {path} {BASE_BRANCH}` in the session temp directory – and dispatch the story into that root, with `FIS_PATH` and every other path absolute under it: a relative path resolves against the main checkout and silently edits it. Never let the agent host isolate the subagent in a worktree of its own making: its teardown removes that worktree and leaves the branch behind, outliving the merge.
 
-The dispatch carries the main checkout's root and `BASE_BRANCH`, and tells the story three things, since it reads no worktree rule and the host returns neither its branch nor its root:
+The dispatch carries the main checkout's root and `BASE_BRANCH`, and tells the story four things, since it reads no worktree rule and the host returns neither its branch nor its root:
 - Check first that `git rev-parse --show-toplevel` differs from that root and that `HEAD` is `BASE_BRANCH`'s tip, or on a resumed `story/{id}` that branch's own tip, since whatever merged after it failed has moved `BASE_BRANCH` past it. Failing either, stop, touching nothing, and return a `## Failed Story Report` saying so: the base is yours to place, and a story that resets its own hides the misplacement.
 - Edit only its own row's lines in `plan.json`, in place, leaving every other line byte-identical: a re-serialised file conflicts at merge with every sibling.
+- Keep its tidies to the files its change touches and list any other as `NOTICED BUT NOT TOUCHING`, because a tidy elsewhere can conflict with a sibling at merge and fail the story.
 - End the report with `git rev-parse HEAD` and `git rev-parse --show-toplevel`.
 
 A failed story keeps its branch and worktree, which hold its progress, so a rerun resumes on them, never beside them.

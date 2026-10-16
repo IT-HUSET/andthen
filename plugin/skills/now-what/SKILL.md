@@ -60,9 +60,11 @@ Offer the `andthen:describe` skill in `--mode codebase`; on decline, fall throug
 - **Scope and completeness.** Requirements still open (vague outcome, unnamed users, unsettled scope) → the `andthen:clarify` skill. Settled requirements – inline, a `prd.md`, a requirements file, or a tracker item → the `andthen:plan` skill whatever the size.
 - **Genuine ambiguities** – one phrasing, two skills:
   - "X vs Y", "which is better/faster", "decide between", "write an ADR" – settleable by analysis → the `andthen:decide` skill; only measurement settles it → the `andthen:spike` skill.
-  - "model the domain" – naming and term consistency → the `andthen:describe` skill in `--mode domain`; context boundaries and subdomain carving → the `andthen:architecture` skill in `--mode strategic-design`, or `--mode event-storming` on that explicit cue.
+  - "model the domain" – naming and term consistency → the `andthen:describe` skill in `--mode domain`; context boundaries and subdomain carving → the `andthen:architecture` skill in `--mode strategic-design`, or `--mode event-storming` on that explicit cue; aggregates and tactical design → `--mode event-storming` at Design Level.
 
 **Disambiguate only when needed.** When the framing is genuinely ambiguous between two shapes, ask **one** question: requirements or technical decisions (`clarify` vs `decide`), whole initiative or one slice. Then commit to the likeliest route; the downstream skill redirects if it is wrong.
+
+**Start a feature branch.** When the current branch is the remote's default branch and the work will end in a pull request, the route opens with starting a feature branch, because commits land on the current branch and the pull request opens from it. Start it the way the project's written convention for starting work says, else as `<type>/<slug>`.
 
 ### D – Mid-flow
 
@@ -77,7 +79,7 @@ When every plan story is `done` or `skipped`, read [`plan-schema.md`](../../refe
 - **`prd.md` exists, no `plan.json`** – the `andthen:decide` skill when it leaves open a design fork the `Decisions` document does not settle; else the `andthen:ui-ux-design` skill when its `Decisions Log` puts design before planning and no wireframes cover it yet; else the `andthen:plan` skill.
 - **`plan.json` with a story neither `done` nor `skipped`** – the `andthen:exec-plan` skill: on the FIS for a one-story plan, else on the plan directory.
 - **Review report present (any lens) with findings and no `## Remediation Status`** – the `andthen:implement-fix` skill.
-- **Every plan story `done` or `skipped`, and no plan review yet, or its `## Remediation Status` marks a CRITICAL or HIGH finding RESOLVED or a Fix finding PARTIALLY RESOLVED or UNRESOLVED** – the `andthen:review` skill on `<plan.json>` with `--fix`, because fixes need a reading their own session did not write.
+- **Every plan story `done` or `skipped`, and no plan review yet, or its `## Remediation Status` marks a CRITICAL or HIGH finding RESOLVED or a Fix finding PARTIALLY RESOLVED** – the `andthen:review` skill on `<plan.json>` with `--fix`, because fixes need a reading their own session did not write.
 - **Every plan story `done` or `skipped`, and the plan review has a CRITICAL or HIGH finding `DEFERRED`** – `Next: blocked –`; once the user decides, the `andthen:implement-fix` skill on the report, carrying that decision.
 - **Every plan story `done` or `skipped`, and the plan review reports a failing load-bearing check** – name the check and route to the `andthen:triage` skill with the failure and review report.
 - **Every plan story `done` or `skipped`, otherwise** – if § Shipping holds, the branch is ready: the `andthen:ship` skill. Else `Next: blocked –` with the unmet condition.
@@ -88,7 +90,7 @@ When every plan story is `done` or `skipped`, read [`plan-schema.md`](../../refe
 
 ## Output
 
-Name the workflow position, print the recommended invocation on its own line, then ask `Run it? (Y/n)`.
+Name the workflow position, print each step of the route on its own line, then ask `Run it? (Y/n)`.
 
 Two routes print in place of that format and end the run:
 
@@ -97,5 +99,5 @@ Two routes print in place of that format and end the run:
 
 ## Follow-up
 
-- **Invoke** the recommended skill, passing `REQUEST` through where its input takes it, never to the `andthen:init` skill, whose argument is a project name. When the user declines, or the request asks for a recommendation only, print the route and stop there.
+- **Run the route**: start any feature branch it opens with, then invoke the recommended skill, passing `REQUEST` through where its input takes it, never to the `andthen:init` skill, whose argument is a project name. When the user declines, or the request asks for a recommendation only, print the route and stop there.
 - **Answer "what does X do?" from the target skill's frontmatter `description`**, or its SKILL.md when the question needs flag or mode depth, then offer to invoke. Never from memory.

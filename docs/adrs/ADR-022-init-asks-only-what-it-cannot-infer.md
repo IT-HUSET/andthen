@@ -5,6 +5,8 @@ Accepted. Recorded 2026-09-25.
 
 Amended 2026-09-25: the Proportionality ask fires only when a fact is absent. A recorded `unknown` is an answer and is never asked again; the proposal sizes it as "anchor unavailable". This narrows the Decision's "absent or `unknown`".
 
+Amended 2026-10-14: the Index lists only documents that exist. The full Index cost about 6,200 characters on every turn of every session and subagent, most of it for documents a project had not created. `init` now writes the preamble, the `Agent Temp` entry, and an entry for each document it finds or seeds. The first skill that writes any other document adds its entry from the catalog in `project-document-templates.md` § Index entries, directly or through `init seed <entry>`, so default locations and entry text keep one home. This replaces the Decision's "with the full Project Document Index" and retires the 2026-09-28 `Learnings` exception: a first `Learnings` write seeds from its template like every other document. `init`'s closing summary also offers the template-backed documents not created yet. An existing full Index keeps working, because a listed document whose file is missing is created on its first write like an unlisted one.
+
 ## Context
 
 `init` is a new user's first contact with AndThen. Before any value, it asks about seven questions:

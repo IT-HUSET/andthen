@@ -101,7 +101,7 @@ _tts_notify() {
   local MESSAGE="$2"
   if command -v claude &>/dev/null; then
     local GENERATED
-    GENERATED=$(CLAUDE_TTS_NOTIFY_NESTED=1 CLAUDECODE="" claude --model claude-haiku-4-5-20251001 --no-session-persistence -p "$1" 2>/dev/null | head -1 | tr -d '\"`')
+    GENERATED=$(CLAUDE_TTS_NOTIFY_NESTED=1 CLAUDECODE="" claude --model haiku --no-session-persistence -p "$1" 2>/dev/null | head -1 | tr -d '\"`')
     [[ -n "$GENERATED" ]] && MESSAGE="$GENERATED"
   fi
 

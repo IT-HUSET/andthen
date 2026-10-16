@@ -80,7 +80,10 @@
           "label": { "type": "string", "minLength": 1 },
           "rationale": { "type": "string", "minLength": 1 },
           "members": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
-          "invariants": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          "invariants": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "root": { "type": "string", "minLength": 1 },
+          "entities": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+          "valueObjects": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
         }
       }
     }

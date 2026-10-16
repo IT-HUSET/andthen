@@ -9,6 +9,8 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 *Amended 2026-10-06: the PR body also states whether the change is a one-way or two-way door and its blast radius, linking the ADR that settled a one-way door, so the reviewer knows which changes to read slowly. It is always written, because a missing line reads as two-way, and it adds no ask.*
 
+*Amended 2026-10-15: on the remote's default branch, outside `--auto`, `ship` asks once before its first commit whether to start a feature branch, as `exec-plan` does, because the pull request opens from the current branch. The push keeps its one ask. Without a remote there is no pull request, so nothing is asked.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:

@@ -1,9 +1,9 @@
 # Testing Strategy
 
-<!-- What is true of THIS project's tests. Commands live in AGENTS.md
-     § Key Development Commands – link them, never copy them. -->
+<!-- What is true of THIS project's tests. Commands live in
+     docs/KEY_DEVELOPMENT_COMMANDS.md – link them, never copy them. -->
 
-Commands: see `AGENTS.md` § Key Development Commands → Testing (`fast`, `full`, run one test).
+Commands: see `docs/KEY_DEVELOPMENT_COMMANDS.md` § Testing (`fast`, `full`, run one test).
 
 AndThen ships prompts, not an application. What is testable is a contract stated in shipped text and the repo's Python 3 stdlib scripts that enforce it – no app to start, no browser, no service.
 

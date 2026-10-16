@@ -31,11 +31,7 @@ Route the session's durable fragments to their homes, then write the document a 
 | **Structural decision needing rationale** | "We chose X over Y because…" with real trade-offs and consequences | Recommend the `andthen:decide` skill – do not auto-create the ADR |
 | **Transient context** | Open questions, hypotheses, things tried, failed approaches, a story blocked or stopped mid-way, next-session priming | The handoff doc itself |
 
-**2. Apply durable mutations.** For each defensive-knowledge entry, resolve the `Learnings` document from the **Project Document Index**. Ends with every such entry a written bullet or a `Pending durable writes` line.
-
-- **Target present** – write one bullet per logical entry.
-- **No `Learnings` Index entry** – skip the write and list it under `Pending durable writes`, naming what is missing.
-- **`Learnings` indexed but the file missing** – create it at the path its entry names, opening with the header line the Index preamble quotes, then write the bullet.
+**2. Apply durable mutations.** Write one bullet per defensive-knowledge entry to the `Learnings` document, creating it per the Index preamble when it does not exist. Ends with every such entry a written bullet.
 
 **3. Write the handoff doc** to the Output path. Ends with the document at the stamped path holding every template heading.
 
@@ -61,7 +57,7 @@ Save to `.agent_temp/handoff/handoff-<UTC-ts>.md`, where `<UTC-ts>` is `date -u 
 - <item>
 
 ## Pending durable writes
-<omit when empty; Step 1's recommendations and Step 2's skipped writes>
+<omit when empty; Step 1's recommendations>
 
 ## Recommended next skill
 <workflow skill to run after resuming context; usually the `andthen:now-what` skill, or a specific skill when one obvious next step exists>

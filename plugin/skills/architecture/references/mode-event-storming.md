@@ -47,7 +47,7 @@ Promote contested transitions, vocabulary conflicts ("two actors mean different 
 Produce the level-appropriate output:
 - **Big Picture** → subdomain candidates anchored on pivotal-event clusters, each with a one-line rationale.
 - **Process Modeling** → workflow boundaries with the commands/events/policies they own.
-- **Design Level** → aggregate candidates with the invariants that would force their state into one transaction.
+- **Design Level** → aggregate candidates with the invariants that would force their state into one transaction, and each one's root entity, the other entities inside it, and its value objects.
 
 ### Step 7 – Emit the Board
 Project the session into the `event-storm` model from `board-models.md`, with `meta.level`, `scope`, and `source` matching the report:
@@ -55,7 +55,7 @@ Project the session into the `event-storm` model from `board-models.md`, with `m
 - every sticky with its `kind`, verbatim `label`, and timeline `order`;
 - lanes where the timeline splits by process or actor;
 - flows for the command → aggregate → event → policy chains at Process Modeling and Design Level;
-- the Step 6 candidates with their `members`, aggregates carrying their invariants;
+- the Step 6 candidates with their `members`, aggregates carrying their invariants, root, entities, and value objects;
 - unanswered questions as hotspots `attachedTo` the sticky they question.
 
 Check the candidate against `event-storm.schema.json` and `board-models.md`, and write it only when it holds, to the resumed board's file, else `event-storms/<slug>.json` under the `Models` location (see **Project Document Index**; default `docs/models/`), `<slug>` the kebab of the report's scope. A failing board is not written: print the violations and fix the board, never the level.
@@ -72,7 +72,7 @@ Event-storming-mode report must include:
 4. **Commands and Actors** _(Process Modeling and Design Level only)_ – unattributed commands flagged
 5. **Policies and Read Models** _(Process Modeling and Design Level only)_
 6. **Hotspots** – unresolved questions, conflicts, and risks
-7. **Subdomain Candidates** _(Big Picture)_, **Workflow Boundaries** _(Process Modeling)_, **or** **Aggregate Candidates** _(Design Level)_ – one section per output, anchored on pivotal events with rationale and invariants
-8. **Recommended Next Steps** – a one-line trigger condition each: Big Picture subdomain candidates → this skill in `--mode strategic-design`; Design-Level aggregate candidates → `--mode decompose`; vocabulary conflicts surfaced as hotspots → the `andthen:describe` skill in `--mode domain`
+7. **Subdomain Candidates** _(Big Picture)_, **Workflow Boundaries** _(Process Modeling)_, **or** **Aggregate Candidates** _(Design Level)_ – one section per Step 6 output, anchored on pivotal events with rationale
+8. **Recommended Next Steps** – a one-line trigger condition each: Big Picture subdomain candidates → this skill in `--mode strategic-design`; Design-Level aggregate candidates → the `andthen:plan` skill on the board, with the PRD or intent doc it was driven from when there is one; vocabulary conflicts surfaced as hotspots → the `andthen:describe` skill in `--mode domain`
 
 The board file's path is printed with the report's.

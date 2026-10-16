@@ -19,7 +19,7 @@ INSTRUCTION_FILES = ("AGENTS.md", "CLAUDE.md")
 COMMANDS_DOCUMENT = "KEY_DEVELOPMENT_COMMANDS.md"
 OVERVIEW = re.compile(r"(?ms)^##\s+Project Overview\s*$(.*?)(?=^##\s|\Z)")
 # Every later writer's creation rule lives in this one preamble sentence.
-FIRST_WRITE = re.compile(r"first skill that writes to it creates", re.I)
+FIRST_WRITE = re.compile(r"seed <name>", re.I)
 REPLY = (
     ("the photos it works on", re.compile(r"photo|picture|image", re.I)),
     ("the renaming by date", re.compile(r"renam\w*[^.\n]{0,80}\b(?:date|taken|captur|timestamp|exif)"

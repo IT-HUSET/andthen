@@ -1,7 +1,7 @@
 # Story Run
 
 - **The FIS is the source of truth – execute its intent.** Implement the whole of it. Where its detail falls short, take the best reading rather than stopping, and record the gap under `## Implementation Observations`.
-- **Surgical scope.** Every changed line traces to a FIS task, an accepted finding, the plan's simplification, or a Boy Scout tidy. A Boy Scout tidy in a file the change touches is small and behavior-preserving, or fixes an obvious small bug under a test that fails first. A larger issue someone should act on goes under `## Implementation Observations` as `NOTICED BUT NOT TOUCHING`.
+- **Surgical scope.** Every changed line traces to a FIS task, an accepted finding, the plan's simplification, or a Boy Scout tidy. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. Make every tidy you find. What no tidy can fix and someone should act on goes under `## Implementation Observations` as `NOTICED BUT NOT TOUCHING`.
 
 `Learnings` and `Tech Debt` are Project Document Index entries.
 

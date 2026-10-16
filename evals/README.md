@@ -1,6 +1,6 @@
 # Eval Harness
 
-Live evals of AndThen skills on Claude Code and Codex. Commands: `AGENTS.md` § Key Development Commands → Testing (`eval smoke`, `eval full`).
+Live evals of AndThen skills on Claude Code and Codex. Commands: `docs/KEY_DEVELOPMENT_COMMANDS.md` § Testing (`eval smoke`, `eval full`).
 
 ## A cell
 

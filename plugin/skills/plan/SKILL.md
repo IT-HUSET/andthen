@@ -72,7 +72,7 @@ Spawn one fresh reviewer subagent. Its prompt names `self-review.md` § FIS, `fi
 
 ### 8. Preflight _(skip under `--batch`)_
 
-Run `preflight.md` over the FIS even when nothing is open; each answer lands in the FIS prose that owns it.
+Run `preflight.md` over the FIS even when nothing is open. Each answer, Step 4's included, lands in the FIS prose that owns it, and a requirement-level one also reaches `prd.md` through the `andthen:clarify` skill's amendment for a `prd.md` source, because the outcome review reads the PRD, never the FIS.
 
 ### 9. Record the story _(skip under `--batch`)_
 

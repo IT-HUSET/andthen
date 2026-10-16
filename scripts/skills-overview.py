@@ -319,7 +319,7 @@ core = [("now-what", "routes you to a skill", "First-stop router – inspects pr
                      "Suites at every level, E2E included."]),
         ("visual-validation", "UI against its design", "Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks."),
         ("describe", "map code, glossary", ["Describe what a project already is: --mode codebase maps it into docs, --mode domain extracts the Ubiquitous",
-                      "Language; --model adds the typed architecture or domain model."]),
+                      "Language; --model adds the typed architecture or glossary model."]),
         ("architecture", "advice and analysis", ["Design advice grounded in CUPID / DDD, in text. review, decompose, fitness, strategic-design and event-storming",
                           "run the deep analysis, singly or chained. No code changes."]),
         ("tracker", "plan to issue tracker", ["The issue tracker: publish projects a plan bundle into a parent and one child issue per story,",

@@ -2,6 +2,7 @@
   "allowedPaths": [
     "src/**",
     "tests/**",
+    "docs/ARCHITECTURE.md",
     "docs/LEARNINGS.md",
     "docs/TECH-DEBT-BACKLOG.md",
     ".agent_temp/**"

@@ -98,8 +98,8 @@ RESOLVED_ASSUMPTION = "- ASSUMPTION: reads utf-8 - binary input would need a fla
 JUDGE_PASS = {"decisions": [{"id": "C1", "pass": True, "reason": "the work is there",
                              "evidence": "do the thing"}]}
 
-FIRST_WRITE_PREAMBLE = ("A document whose file does not exist yet reads as empty. The first skill "
-                        "that writes to it creates the file at the path its entry names.\n\n")
+FIRST_WRITE_PREAMBLE = ("Create a document that does not exist yet, and its entry here, through a "
+                        "subagent that invokes the `andthen:init` skill with `seed <name>`.\n\n")
 PASSING_ORACLE = "import sys\nsys.exit(0)\n"
 FAILING_ORACLE = "import sys\nsys.stderr.write('reconciliation failed\\n')\nsys.exit(1)\n"
 
@@ -845,11 +845,12 @@ class ValidationTest(unittest.TestCase):
             self.assertIn("does not record %s" % reply, done.stderr)
 
     def test_init_oracle_needs_the_index_and_the_commands_and_nothing_else(self):
-        """An existing repository is set up with no question: the Index names every
-        Core document, Key Dev Commands names the repository's own test command, and
-        the other five Core documents wait for their first writer. Either spelling of
-        that command passes - `make test` is the unittest run behind it - while a
-        PRODUCT.md written up front, or no commands document, fails."""
+        """An existing repository is set up with no question: the Index lists only what
+        exists - Key Dev Commands, which names the repository's own test command, and
+        Agent Temp - and the other five Core documents wait, unlisted, for their first
+        writer. Either spelling of that command passes - `make test` is the unittest run
+        behind it - while a PRODUCT.md written up front, a Product entry with no
+        document behind it, a missing Agent Temp entry, or no commands document, fails."""
         workspace = self.stage_case("init")
         fixture = cases.CASES_DIR / "init" / "fixture"
         self.assertEqual([], [(p.name, w) for p in fixture.rglob("*") if p.is_file()
@@ -861,9 +862,9 @@ class ValidationTest(unittest.TestCase):
         self.assertEqual(1, done.returncode)
         self.assertIn("no AGENTS.md or CLAUDE.md", done.stderr)
 
-        index = "".join("- **%s** – `docs/%s.md`\n  Read when it applies.\n" % (name, name.upper())
-                        for name in ("Product", "Architecture", "Key Dev Commands",
-                                     "Testing Strategy", "Decisions", "Learnings"))
+        index = ("- **Key Dev Commands** – `docs/KEY_DEVELOPMENT_COMMANDS.md`: dev, test, build,"
+                 " deploy commands. Read before running verification.\n"
+                 "- **Agent Temp** – `.agent_temp/`: scratch workspace; never ship from it.\n")
         # Every later writer's creation rule lives in the preamble alone, so an init
         # run that paraphrases it away leaves each first write improvising a shape.
         stage.write(workspace / "AGENTS.md", "# Tally\n\n## Project Document Index\n\n" + index)
@@ -884,6 +885,22 @@ class ValidationTest(unittest.TestCase):
         self.assertEqual(1, done.returncode)
         self.assertIn("PRODUCT.md exists before any skill wrote to it", done.stderr)
         (workspace / "docs" / "PRODUCT.md").unlink()
+
+        # An entry for a document nobody wrote is what the full Index carried: every
+        # turn pays for it, and its trigger opens nothing.
+        stage.write(workspace / "AGENTS.md", "# Tally\n\n## Project Document Index\n\n"
+                    + FIRST_WRITE_PREAMBLE + index
+                    + "- **Product** – `docs/PRODUCT.md`: vision. Read before proposing a feature.\n")
+        done = self.run_oracle("init", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("the Index lists Product, which does not exist yet", done.stderr)
+        stage.write(workspace / "AGENTS.md", "# Tally\n\n## Project Document Index\n\n"
+                    + FIRST_WRITE_PREAMBLE + index.split("- **Agent Temp**")[0])
+        done = self.run_oracle("init", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("has no Agent Temp entry", done.stderr)
+        stage.write(workspace / "AGENTS.md", "# Tally\n\n## Project Document Index\n\n"
+                    + FIRST_WRITE_PREAMBLE + index)
 
         stage.write(commands, "# Key Development Commands\n\n## Testing\n\n| fast | `TODO` | |\n")
         done = self.run_oracle("init", workspace)

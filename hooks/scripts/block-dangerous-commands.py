@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""PreToolUse(Bash) hook: blocks dangerous/destructive shell commands via regex matching.
+"""PreToolUse(Bash|PowerShell) hook: blocks dangerous/destructive shell commands via regex matching.
 
-NOTE: This is not an exhaustive list of dangerous commands. It covers common destructive
-patterns but cannot catch every possible risky operation. Always keep Claude Code's built-in
-permission system enabled, and add project-specific patterns to blocked-commands.json as needed.
+NOTE: The patterns are a suggested starting list, not a complete one. A command written another
+way, such as a script file or an alias, gets past any pattern list, so keep the host's permission
+rules and OS sandbox on, and add project-specific patterns to blocked-commands.json as needed.
 """
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -36,16 +37,42 @@ WRAPPER_OPTIONS = {
 # VAR=value prefixes and a path.
 CMD = (
     r"(?:^|[|(`{!]\s*|\b(?:" + "|".join(WRAPPER_OPTIONS) + r")"
-    r"\s+(?:-\S*\s+(?:[^-\s]\S*\s+)?|\d\S*\s+)*)(?:\w+=\S*\s+)*(?:\S*/)?"
+    r"\s+(?:-\S*\s+(?:[^-\s]\S*\s+)?|\d\S*\s+)*)(?:\w+=\S*\s+)*(?:\S*[/\\])?"
 )
+
+# A force push rewrites the remote's history. `push` must be git's subcommand, after only git's
+# own options (`git stash push` is not a push), and the flag must be push's own, as for rm.
+FORCE_PUSH = (
+    CMD + r"git(?:\.exe)?(?:\s+-\S+(?:\s+[^-\s]\S*)?)*\s+push\b"
+    r"(?=(?:(?!\$\(|`)[^|])*\s(?:--force(?:-with-lease|-if-includes)?\b|-[a-zA-Z]*f[a-zA-Z]*\b|\+\S))"
+)
+
+# Windows commands ignore case. PowerShell takes any unambiguous prefix of a parameter, and
+# -Recurse is the only Remove-Item parameter starting with r (rm is covered above); `$(...)` there is
+# an argument, not a nested command, so the flags are read past it. cmd.exe takes switches written
+# together (/s/q), and Git Bash users double the slash (//s) so MSYS leaves it alone.
+REMOVE_ITEM_RECURSE_FORCE = (
+    r"(?i)\b(?:remove-item|ri|del|erase|rd|rmdir)\b(?=[^|]*\s-r[a-z]*\b)(?=[^|]*\s-fo[a-z]*\b)"
+)
+CMD_DELETE_TREE = r"(?i)\b(?:rd|rmdir|del|erase)\b(?=[^|]*(?:\s//?|/)s\b)(?=[^|]*(?:\s//?|/)q\b)"
+FORMAT_DISK = (
+    r"(?i)" + CMD + r"(?:(?:diskpart|format-volume|clear-disk|initialize-disk|remove-partition)\b"
+    r"|format(?:\.com)?\s+[a-z]:)"
+)
+INVOKE_EXPRESSION = r"(?i)\|\s*iex\b|\biex\s*[($\"']|\binvoke-expression\b"
 
 HARDCODED_DEFAULTS = [
     (RM_RECURSIVE_FORCE, "Recursive force delete blocked."),
+    (REMOVE_ITEM_RECURSE_FORCE, "Recursive force delete blocked."),
+    (CMD_DELETE_TREE, "Recursive force delete blocked."),
+    (FORCE_PUSH, "Force push blocked."),
     (r":\(\)\{.*\}", "Fork bomb blocked."),
     (r"\b(curl|wget)\s+.*\|\s*(sh|bash)", "Pipe-to-shell blocked."),
+    (INVOKE_EXPRESSION, "Invoke-Expression blocked."),
     (r"\bchmod\s+777", "chmod 777 blocked."),
     (r"\bdd\s+if=.*of=/dev/", "dd to device blocked."),
     (r"\bmkfs\.", "Filesystem format blocked."),
+    (FORMAT_DISK, "Disk format blocked."),
     (CMD + r"(nc|netcat|ncat)\b", "Netcat blocked."),
     (CMD + r"socat\b", "Socat blocked."),
     (CMD + r"telnet\b", "Telnet blocked."),
@@ -62,6 +89,25 @@ HARDCODED_DEFAULTS = [
 # One pass over escapes and both quote styles, so an apostrophe inside "..." or an escaped \'
 # never pairs with a later quote and hides the command between them.
 QUOTED = re.compile(r"\\.|'[^']*'|\"(?:[^\"\\]|\\.)*\"")
+# PowerShell escapes with a backtick and doubles a quote inside its own kind ('it''s'); a
+# backslash is a path separator, so "C:\dir\" ends at its second quote.
+POWERSHELL_QUOTED = re.compile(r"`.|'(?:[^']|'')*'|\"(?:[^\"`]|`.|\"\")*\"")
+# How a shell is read: its quoting, regex flags for its case rules, and its line continuation.
+POSIX = (QUOTED, 0, re.compile(r"\\\r?\n"))
+POWERSHELL = (POWERSHELL_QUOTED, re.IGNORECASE, re.compile(r"`\r?\n"))
+# A shell's command-string argument (`sh -c '...'`, `cmd /c "..."`, `pwsh -Command "..."`) runs.
+SHELL_COMMAND_ARGUMENT = re.compile(
+    r"(?i)\b(?:bash|sh|zsh|dash|ksh|cmd|powershell|pwsh)(?:\.exe)?\s(?:[^|;&\n]*\s)?"
+    r"(?:-[a-z]*c|-command|//?[ck])\s*$"
+)
+
+
+def shells(tool_name, windows=os.name == "nt" or sys.platform in ("cygwin", "msys")):
+    """The readings a command gets. Codex runs PowerShell on Windows but names the tool Bash,
+    and Claude Code's Bash there is Git Bash, so a Windows Bash command is read both ways."""
+    if tool_name == "PowerShell":
+        return (POWERSHELL,)
+    return (POSIX, POWERSHELL) if windows else (POSIX,)
 
 
 def load_config():
@@ -120,7 +166,7 @@ def command_prefix(prefix):
     return True
 
 
-def empty_literals(cmd):
+def empty_literals(cmd, quoted=QUOTED):
     """Empty inert quoted strings but keep the quotes: their text is data, and patterns
     such as `python3 -c '` still need to see that a quoted argument follows. Escapes and
     double-quoted strings holding $ or a backtick stay, since those still execute. A quoted
@@ -128,18 +174,19 @@ def empty_literals(cmd):
     of the command once the shell drops the quotes, so it stays with the quotes dropped."""
 
     parts, previous = [], 0
-    for m in QUOTED.finditer(cmd):
+    for m in quoted.finditer(cmd):
         parts.append(cmd[previous:m.start()])
         previous = m.end()
         text = m.group(0)
-        if text[0] == "\\" or (text[0] == '"' and ("$" in text or "`" in text)):
+        if text[0] in "\\`" or (text[0] == '"' and ("$" in text or "`" in text)):
             parts.append(text)
             continue
         # Earlier quoted wrappers must already be normalized for CMD to recognize their prefix.
         before, after, inner = "".join(parts), cmd[m.end():], text[1:-1]
         command_word = command_prefix(before)
         glued = re.match(r"[\w./-]", before[-1:]) or re.match(r"[\w./'\"-]", after[:1])
-        parts.append(inner if command_word or glued or inner.startswith("-") else text[0] * 2)
+        code = command_word or glued or inner.startswith("-") or SHELL_COMMAND_ARGUMENT.search(before)
+        parts.append(inner if code else text[0] * 2)
 
     parts.append(cmd[previous:])
     return "".join(parts)
@@ -150,19 +197,20 @@ def split_commands(cmd):
     return re.split(r"\s*(?:&&|\|\||[;\n]|(?<![<>&])&(?![>&]))\s*", cmd)
 
 
-def check_command(command, patterns):
+def check_command(command, patterns, readings=(POSIX,)):
     """Check a command against all blocked patterns. Returns (blocked, message) or (False, None)."""
-    for segment in split_commands(empty_literals(command)):
-        segment = segment.strip()
-        if not segment:
-            continue
-
-        for regex, message in patterns:
-            try:
-                if re.search(regex, segment):
-                    return True, message
-            except re.error:
+    for quoted, flags, continuation in readings:
+        for segment in split_commands(empty_literals(continuation.sub(" ", command), quoted)):
+            segment = segment.strip()
+            if not segment:
                 continue
+
+            for regex, message in patterns:
+                try:
+                    if re.search(regex, segment, flags):
+                        return True, message
+                except re.error:
+                    continue
 
     return False, None
 
@@ -172,6 +220,7 @@ def main():
     try:
         data = json.load(sys.stdin)
         command = data.get("tool_input", {}).get("command", "")
+        readings = shells(data.get("tool_name"))
     except (json.JSONDecodeError, AttributeError, TypeError):
         # Malformed input - fail closed
         print("Hook error: blocking unknown command for safety", file=sys.stderr)
@@ -180,7 +229,7 @@ def main():
     if not command:
         sys.exit(0)
 
-    blocked, message = check_command(command, load_config())
+    blocked, message = check_command(command, load_config(), readings)
 
     if blocked:
         print(f"BLOCKED: {message}", file=sys.stderr)
