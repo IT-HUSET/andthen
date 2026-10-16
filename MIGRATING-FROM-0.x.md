@@ -121,8 +121,8 @@ reset item.
 | `quick-review` | `/andthen:review`. A story's own review runs the quick pass inside `/andthen:exec-plan`, applying Fix-routed findings inline as `quick-review --fix` did. The `commit <sha>` shorthand has no replacement: pin the commit with your Git tooling, then give the review its diff and changed files as explicit scope. |
 | `preflight`, Persisted Decision Blocks, `Preflight:` | Now the Preflight step that closes `/andthen:plan`, ending on the next command. There is no verdict line and no held story: in an unattended run, or when a question goes unanswered, the recommendation becomes an `ASSUMPTION:` in the FIS. |
 | `refactor` | `/andthen:simplify-code` |
-| `map-codebase` | `/andthen:describe --mode codebase` |
-| `ubiquitous-language` | `/andthen:describe --mode domain` |
+| `map-codebase` | `/andthen:describe` |
+| `ubiquitous-language` | `/andthen:domain --mode glossary` |
 | `issue-triage` | `/andthen:tracker triage` |
 | `backlog-triage` (a 1.0 release-candidate name) | `/andthen:tracker triage` |
 | `skill-review` (a 1.0 release-candidate name) | Left the plugin; it is a project-level skill for contributors to the AndThen repository. |
@@ -130,7 +130,9 @@ reset item.
 | `exec-spec`, `exec-plan [--worktree] <dir>` | `/andthen:exec-plan [--worktree] <dir>`. A plan directory runs every ready story, one fresh subagent each; a FIS path runs one story. |
 | `review --council` | Retired. The Findings Filter built into `review` pressure-tests every collected finding in its place. |
 | Deep security orchestration in `review` | `/andthen:review --mode security`, with exposure calibration. The OWASP checklists and threat-modelling orchestration are retired. |
-| `architecture` modes `advise`, `review`, `decompose`, `fitness`, `strategic-design`, `event-storming`, and deep-mode chains | Unchanged: `/andthen:architecture` with the matching `--mode`, chains included. Without `--mode`, it infers the mode from your request and asks when the request names none. |
+| `architecture` modes `advise`, `review`, `decompose`, `fitness`, and deep-mode chains | Unchanged: `/andthen:architecture` with the matching `--mode`, chains included. Without `--mode`, it infers the mode from your request and asks when the request names none. |
+| `architecture --mode strategic-design` | `/andthen:domain --mode contexts`. It classifies subdomains first when the Domain Map has none, and registers the contexts you accept in the Domain Map. |
+| `architecture --mode event-storming` | `/andthen:domain --mode event-storming`. Boards under `docs/models/event-storms/` read unchanged. |
 | `architecture --mode trade-off` | `/andthen:decide <decision>`. It interviews you over the decisions a solution needs, deepens a contested one into the weighted trade-off analysis, and writes the ADRs or Decisions lines. `--auto` stays. |
 | `e2e-test` | Retired. Drive the browser directly; the `visual-validation` skill captures and judges screens. |
 | `spike`, `simplify-code` | Unchanged: `/andthen:spike`, `/andthen:simplify-code`. |
@@ -171,11 +173,11 @@ The `ops` skill and its script are gone. The session running a plan edits `plan.
 | `now-what --no-handoff` | Ask `/andthen:now-what` for a recommendation only, without running the next skill. |
 | `handoff --no-mutate` | Ask `/andthen:handoff` for the document only. Its durable writes are idempotent, so there is nothing to opt out of. |
 | `issue-triage --limit <N>` | `/andthen:tracker triage`, with the item cap stated in the request. |
-| `map-codebase --model-only` | `/andthen:describe --mode codebase --model-only` |
+| `map-codebase --model-only` | `/andthen:describe --model-only` |
 | `triage --investigate` | `/andthen:triage --plan-only` |
 | `triage --headless` | `/andthen:triage --auto`. `--auto` is unchanged on every skill that had it: the run asks nothing, records each open decision as an `ASSUMPTION:`, and stops only on an unusable call. |
-| `ubiquitous-language --update` | `/andthen:describe --mode domain`; it merges into the existing glossary by default. |
-| `ubiquitous-language --model` | `/andthen:describe --mode domain --model-only`; `--model` now extracts the glossary first. |
+| `ubiquitous-language --update` | `/andthen:domain --mode glossary`; it merges into the existing glossary by default. |
+| `ubiquitous-language --model` | Removed. The glossary has no typed model; `/andthen:visualize` draws the `Ubiquitous Language` document itself. |
 | `simplify-code --path <path>` | Pass the path as positional scope to `/andthen:simplify-code`. |
 | `--visual` | Removed. Skills print the artifact path, and you read the markdown. |
 | `--skip-review` | Remove it. 1.0's authoring and execution review gates have no bypass. |
@@ -214,7 +216,8 @@ The `ops` skill and its script are gone. The session running a plan edits `plan.
 | Root instruction file `### Visual Validation Workflow` section | Move its content to the `Visual Validation` Index document (`docs/VISUAL-VALIDATION.md`) and delete the section, which no skill reads: an instruction file loads on every turn, and only a validator needs the capture procedure. `/andthen:visual-validation --mode setup` serves the app, proves the procedure, and writes the document. |
 | Index row `Stack` and `docs/STACK.md` | Retired; nothing reads the file. Its content belongs in the `Architecture` document (System Overview, Integration Points), `Decisions`, and the manifest and lockfile. |
 | Index row `Diagram Style Guide` | Drop the row; it retired with `excalidraw-diagram`. |
-| Index rows `Architecture Model` and `Domain Model` (`.agent_temp/models/*.json`) | Replace both with one `Models` entry, default `docs/models/`, where `/andthen:describe --model` writes committed projections. `validate-model` is retired; the model reference is the contract. The old transient files are stale and unread. |
+| Index rows `Architecture Model` and `Domain Model` (`.agent_temp/models/*.json`) | Replace both with one `Models` entry, default `docs/models/`, where `/andthen:describe --model` writes committed projections. The domain model has no successor. `validate-model` is retired; the model reference is the contract. The old transient files are stale and unread. |
+| Index row `Context Map` and `docs/CONTEXT-MAP.md` | Still read as the Domain Map. Rename the row to `Domain Map` and the file to `docs/DOMAIN-MAP.md`. With a context map JSON under `Models`, run `/andthen:domain --mode contexts` first so its subdomain types, teams, and rationales reach the Domain Map, then delete the JSON. |
 
 
 ## Installation cleanup (loose installs only)

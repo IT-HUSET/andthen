@@ -3,7 +3,7 @@
   "kind": "event-storm",
   "meta": {
     "project": "Session Hardening",
-    "generatedBy": "andthen:architecture",
+    "generatedBy": "andthen:domain",
     "date": "2026-08-28",
     "revision": "4f2c9e1",
     "level": "design-level",

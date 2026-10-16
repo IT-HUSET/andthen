@@ -7,7 +7,7 @@ Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt
 **Contents**
 
 - **[Starting work](#starting-work)**: [Choosing a path](#choosing-a-path) · [One story or several](#one-story-or-several) · [A small change](#a-small-change) · [A bug or a broken build](#a-bug-or-a-broken-build) · [An existing codebase](#an-existing-codebase) · [Product vision vs feature](#product-vision-vs-feature-clarify) · [An intent doc first](#an-intent-doc-before-the-prd) · [Revising a spec](#revising-a-spec-or-re-planning)
-- **[The design stage](#the-design-stage)**: [Technical decisions or an architecture question](#technical-decisions-or-an-architecture-question) · [Event storming](#event-storming-a-new-domain-or-a-system-to-rewrite) · [Research, design system, wireframes](#research-a-design-system-wireframes) · [A second opinion](#a-second-opinion-before-committing-to-a-decision)
+- **[The design stage](#the-design-stage)**: [Technical decisions or an architecture question](#technical-decisions-or-an-architecture-question) · [Event storming](#event-storming-a-new-domain-or-a-system-to-rewrite) · [Domain Map first](#the-domain-map-for-a-domain-heavy-project) · [Research, design system, wireframes](#research-a-design-system-wireframes) · [A second opinion](#a-second-opinion-before-committing-to-a-decision)
 - **[Running unattended](#running-unattended)**: [Unattended execution and CI chaining](#unattended-execution)
 - **[Reviewing](#reviewing)**: [Quick look, big PR, one pass](#review-phrasing-a-quick-look-a-big-pr-one-pass) · [Spec fit vs problem fit](#does-it-match-the-spec-or-does-it-solve-the-problem) · [Review, then remediate](#review-then-remediate) · [Review/fix loop](#review-and-fix-until-clean-from-a-coordinating-session)
 - **[Across people and sessions](#across-people-and-sessions)**: [Working in a team](#working-in-a-team) · [Resuming interrupted work](#resuming-interrupted-work)
@@ -123,12 +123,12 @@ Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-
 
 ```
 /andthen:init
-/andthen:describe --mode codebase      # init's closing summary offers it; run it yourself when you declined
+/andthen:describe                      # init's closing summary offers it; run it yourself when you declined
 ```
 
-**Expect.** `init` asks nothing here. It writes the Project Document Index into your root instruction file, `Key Dev Commands` from your manifest (the `fast` and `full` tiers and a run-one-test row), and the `.gitignore` entries; the first skill that writes to any other document creates it and adds its Index entry, so the Index lists only documents you have. The closing summary offers `describe --mode codebase`, the four role agents, the critical-rules starter, and documents you may want now, such as `Learnings` and `Tech Debt`. `describe` fills `Architecture` and `Key Dev Commands` from the code and adds `requirements-discovered.md` and `decisions-discovered.md`; existing documents are merged into, judgment sections kept.
+**Expect.** `init` asks nothing here. It writes the Project Document Index into your root instruction file, `Key Dev Commands` from your manifest (the `fast` and `full` tiers and a run-one-test row), and the `.gitignore` entries; the first skill that writes to any other document creates it and adds its Index entry, so the Index lists only documents you have. The closing summary offers `describe`, the four role agents, the critical-rules starter, and documents you may want now, such as `Learnings` and `Tech Debt`. `describe` fills `Architecture` and `Key Dev Commands` from the code and adds `requirements-discovered.md` and `decisions-discovered.md`; existing documents are merged into, judgment sections kept.
 
-**Elsewhere.** `now-what` routes from here. A glossary is `describe --mode domain`; refreshing a model alone is `--model-only` ([`describe`](plugin/README.md#describe)).
+**Elsewhere.** `now-what` routes from here. A glossary is `domain --mode glossary` ([`domain`](plugin/README.md#domain)); refreshing the architecture model alone is `describe --model-only` ([`describe`](plugin/README.md#describe)).
 
 ### Product vision vs feature clarify
 
@@ -139,7 +139,7 @@ Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-
 /andthen:clarify "treat this as feature scope: shared inboxes"     # override a wrong product inference
 ```
 
-**Expect.** Scope is inferred from the wording (`vision`, `positioning`, `product brief`, or a `PRODUCT.md` path mean product) and stated before the interview, so you can redirect. Product scope writes `docs/PRODUCT.md`, Proportionality facts included, and recommends bounded-context work next. Feature scope writes `docs/specs/<feature>/prd.md` and ends on the `plan` command. A hand-written `intent.md` is valid input at either scope; it is folded into the output and left as it was.
+**Expect.** Scope is inferred from the wording (`vision`, `positioning`, `product brief`, or a `PRODUCT.md` path mean product) and stated before the interview, so you can redirect. Product scope writes `docs/PRODUCT.md`, Proportionality facts included, and recommends the Domain Map next, `domain --mode contexts`. Feature scope writes `docs/specs/<feature>/prd.md` and ends on the `plan` command. A hand-written `intent.md` is valid input at either scope; it is folded into the output and left as it was.
 
 ### An intent doc before the PRD
 
@@ -188,20 +188,34 @@ Edit it freely: answer an open question in place, or leave it and it is asked ag
 
 The second prompt asks for a comparison, so that decision gets the weighted trade-off: criteria and weights for you to confirm, then `docs/research/<topic-slug>/` (design tree, research, trade-off matrix, recommendation). "Three options" sets the count (the default is five); every set includes the floor option (do nothing, or extend what exists). The third prompt is `architecture`'s `advise` mode: prose guidance sized against your `Product` document's Proportionality facts, with `decide` offered when it settles a choice worth recording. Neither changes code.
 
-**Elsewhere.** A question only measurement settles ("is A faster than B under our load?") is the `spike` skill: a throwaway on `spike/<slug>` and a verdict. Architecture review, splitting a package, bounded contexts, event storming: `architecture` in its other modes ([`architecture`](plugin/README.md#architecture)).
+**Elsewhere.** A question only measurement settles ("is A faster than B under our load?") is the `spike` skill: a throwaway on `spike/<slug>` and a verdict. Architecture review and splitting a package are `architecture` in its other modes ([`architecture`](plugin/README.md#architecture)); bounded contexts and event storming are [`domain`](plugin/README.md#domain).
 
 ### Event storming a new domain or a system to rewrite
 
 **Situation.** The domain is new to you, or you are taking over a system that needs a rewrite, and you want its events, actors, and open questions on one board before writing requirements.
 
 ```
-/andthen:architecture --mode event-storming "order fulfilment, checkout to delivery"
-/andthen:architecture --mode event-storming "order fulfilment as built, from the code"    # before a rewrite
+/andthen:domain --mode event-storming "order fulfilment, checkout to delivery"
+/andthen:domain --mode event-storming "order fulfilment as built, from the code"    # before a rewrite
 /andthen:clarify "order fulfilment v2, from the event storm .agent_temp/reviews/<report>.md"
 /andthen:visualize docs/models/event-storms/<slug>.json
 ```
 
-**Expect.** You are the domain expert: the run asks where the timeline has gaps or unclear causes, at Big Picture unless you name Process Modeling or Design Level. It writes a report under `.agent_temp/reviews/` and the board as `docs/models/event-storms/<slug>.json`, the slug taken from the scope, and a later run on the same scope continues that board. For a rewrite, storm the system as built, then the target under a second scope, and ask that run what is kept, renamed, and dropped. The report's hotspots are open questions, which makes it a good `clarify` source; `--mode strategic-design` on the same scope turns its subdomain candidates into bounded contexts, chained in one run or later from the board. `visualize` draws the board as a page.
+**Expect.** You are the domain expert: the run asks where the timeline has gaps or unclear causes, at Big Picture unless you name Process Modeling or Design Level. It writes a report under `.agent_temp/reviews/` and the board as `docs/models/event-storms/<slug>.json`, the slug taken from the scope, and a later run on the same scope continues that board. For a rewrite, storm the system as built, then the target under a second scope, and ask that run what is kept, renamed, and dropped. The report's hotspots are open questions, which makes it a good `clarify` source; `domain --mode subdomains` on the same scope classifies its subdomain candidates, then `contexts` turns them into bounded contexts, chained in one run or later from the board. `visualize` draws the board as a page.
+
+### The Domain Map for a domain-heavy project
+
+**Situation.** The business has parts that matter unequally, several teams or modules will own pieces of it, and nobody has written down which part is the competitive edge or who owns what.
+
+```
+/andthen:domain --mode subdomains,contexts,glossary "order fulfilment and billing"
+```
+
+**Expect.** `subdomains` classifies each part of the business as core, supporting, or generic, with a rationale you confirm or correct, and writes `docs/DOMAIN-MAP.md`. `contexts` proposes bounded contexts, the subdomains each owns, the owning team, and the integration pattern for each pair that exchanges data, then registers what you accept in the same file, running `subdomains` first when none are classified. `glossary` then clusters the Ubiquitous Language by those contexts; the map itself lists no terms. `clarify`, `decide`, `plan`, and `describe --model` read the map afterwards. Each mode also runs alone, on the same scope.
+
+The map is recommended first for a project with real domain depth, and never required: a library or a CRUD tool skips it.
+
+**Elsewhere.** A discovery session to feed it is [event storming](#event-storming-a-new-domain-or-a-system-to-rewrite). The modes are in [`domain`](plugin/README.md#domain).
 
 ### Research, a design system, wireframes
 

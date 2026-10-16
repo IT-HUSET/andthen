@@ -23,7 +23,7 @@ Interview the user until the requirements are shared, then write the PRD, or the
   - `Architecture` and `Decisions` – structural constraints the requirements must not contradict.
   - `Roadmap` – release phasing.
   - `Learnings` – prior traps worth probing.
-  - `Context Map` – the bounded contexts the requirements sit within.
+  - `Domain Map` – the subdomains and bounded contexts the requirements sit within. An Index entry still named `Context Map` is read as the `Domain Map`.
 - **Delegate research read-only**, one concrete question each, to a `worker` for a fact lookup or an `implementer` where sources must be weighed, returning distilled findings with sources.
 - Every dispatch is a fresh subagent: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
 
@@ -89,7 +89,7 @@ Use the host's structured user-input tool wherever it holds the turn for the ans
 
 **Answer-by-building.** A load-bearing question hinging on an empirical unknown that only runnable code settles (feasibility, performance, integration shape) goes to the `andthen:spike` skill, rather than ratifying a guess.
 
-**Settled terms land where the project keeps them.** Read the `Ubiquitous Language` document (Project Document Index) before settling a name: a synonym its rows already ban must not be re-settled under a new spelling. Record a name the user chooses or corrects in that same turn, as a glossary row where that document exists, otherwise in the output's `Decisions Log`, because a batch at the end loses what settled them. Where the vocabulary warrants a document the project does not have, offer the `andthen:describe` skill in `--mode domain`.
+**Settled terms land where the project keeps them.** Read the `Ubiquitous Language` document (Project Document Index) before settling a name: a synonym its rows already ban must not be re-settled under a new spelling. Record a name the user chooses or corrects in that same turn, as a glossary row where that document exists, otherwise in the output's `Decisions Log`, because a batch at the end loses what settled them. Where the vocabulary warrants a document the project does not have, offer the `andthen:domain` skill in `--mode glossary`.
 
 **Shared understanding is confirmed, not inferred.** Before anything is written, play the settled picture back in a few lines – outcome and end state, decisions, assumptions, what travels as Open Questions – and ask whether that is it. Ask in the user's words, not workflow vocabulary: no step name or term from this skill. Where the scope adds screens or flows no wireframes cover, ask in the same turn, as its own question, whether design runs before planning; the answer is a `Decisions Log` row. A yes opens Step 3; a correction reopens the frontier.
 

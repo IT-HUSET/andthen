@@ -61,7 +61,7 @@ Offer each item that applies, one line each:
 
 - the role agents `oracle`, `implementer`, `reviewer` and `worker`, which pin model and effort for each subagent tier;
 - the critical rules in the root instruction file, unless a policy – inline, referenced or custom – or the skip marker is already there;
-- the `andthen:describe` skill in `--mode codebase`, for an existing codebase with no filled-in `Architecture` document;
+- the `andthen:describe` skill, for an existing codebase with no filled-in `Architecture` document;
 - per-sub-project instruction files, when Step 1 found a monorepo or workspace;
 - the documents not created yet among `Product`, `Decisions`, `Learnings`, `Tech Debt`, `Roadmap` and `Ubiquitous Language`, as one line the user picks from;
 - the `andthen:testing` skill in `--mode strategy`, when Step 1 found a test suite;

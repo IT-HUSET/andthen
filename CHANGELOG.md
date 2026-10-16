@@ -6,6 +6,20 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [1.0.0-rc.7] – 2026-10-16
+
+### Added
+- **The `domain` skill and the Domain Map.** `domain` models the domain in four modes: `subdomains` classifies the business's parts as core, supporting, or generic, `contexts` maps bounded contexts and their integration patterns, `glossary` maintains the `Ubiquitous Language`, and `event-storming` runs the discovery session. The first two write `docs/DOMAIN-MAP.md`, recommended first for a domain-heavy project and never required, and `now-what` routes "model the domain" to the skill ([ADR-029](docs/adrs/ADR-029-domain-skill-and-domain-map.md)).
+
+### Changed
+- **Breaking: modeling the domain moved to the `domain` skill.** `architecture --mode strategic-design` is `domain --mode contexts`, `architecture --mode event-storming` is `domain --mode event-storming`, and `describe --mode domain` is `domain --mode glossary`. `architecture` keeps `advise`, `review`, `decompose`, and `fitness`, and `describe` loses `--mode` and only maps the codebase.
+- **Breaking: `CONTEXT-MAP.md` is `DOMAIN-MAP.md`, and `context-map.json` retires.** The Index entry is `Domain Map`, and an entry still named `Context Map` is read as it. While `context-map.json` exists, run `domain --mode contexts` so its subdomain types, teams, and rationales reach the Domain Map, then delete it. A viewer that read the JSON re-pins to the Domain Map Markdown, and one that checks an event storm's `meta.generatedBy` to `andthen:domain`. `architecture-model.json` takes a bounded context's `id` and `name` from the map's Bounded Contexts section when it has one.
+
+### Removed
+- **Breaking: the glossary's typed model is gone.** `domain --mode glossary` writes only the `Ubiquitous Language` document, which `visualize` draws directly, and each Overloaded Terms context now names a cluster heading or `Bounded Context` value exactly. Delete `glossary-model.json` and remove it from your `Models` Index entry.
+
+---
+
 ## [1.0.0-rc.6] – 2026-10-16
 
 ### Added

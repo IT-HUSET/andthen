@@ -10,17 +10,17 @@ For everyday rules and routing, see `CLAUDE.md` instead.
 
 ## One Plugin, One Marketplace
 
-**`andthen`** (`plugin/`, 20 skills) is the pipeline end to end – `init`, `now-what`, `clarify`, `decide`, `plan`, `exec-plan`, `implement-fix`, `review`, `ship`, `triage`, `testing`, `handoff`, `architecture`, `describe`, `ui-ux-design`, `visual-validation` – plus `tracker` for the issue tracker (`publish`, `triage`, `setup`) and the solo tools `spike`, `simplify-code`, `visualize`. Both marketplace files carry the one entry.
+**`andthen`** (`plugin/`, 21 skills) is the pipeline end to end – `init`, `now-what`, `clarify`, `decide`, `plan`, `exec-plan`, `implement-fix`, `review`, `ship`, `triage`, `testing`, `handoff`, `architecture`, `describe`, `domain`, `ui-ux-design`, `visual-validation` – plus `tracker` for the issue tracker (`publish`, `triage`, `setup`) and the solo tools `spike`, `simplify-code`, `visualize`. Both marketplace files carry the one entry.
 
 **Document ownership.** The plugin owns all three domain documents – scaffold, write, and read.
 
 | Document | Scaffold | Write | Read |
 |---|---|---|---|
-| Ubiquitous Language | `init` – the file and its Index entry when its summary offer is taken up | `describe --mode domain`; `clarify` adds rows as terms settle, once it exists | `clarify`, `review`'s code lens, `handoff`, `describe` |
-| Context Map | none – the first writer adds the entry | `architecture --mode strategic-design` | `clarify`, `decide`, `plan`, `describe`, `architecture --mode advise` |
-| Models (committed, `docs/models/`) | none – the first writer adds the entry | `describe --mode domain --model` (glossary model), `describe --mode codebase --model` (architecture model), `architecture --mode event-storming` / `--mode strategic-design` (boards) | `plan`, `architecture` |
+| Ubiquitous Language | `init` – on its summary offer, or `init seed` dispatched by `domain --mode glossary` on the first write | `domain --mode glossary`; `clarify` adds rows as terms settle, once it exists | `clarify`, `review`'s code lens, `handoff`, `domain`, `visualize` |
+| Domain Map | `init seed`, dispatched by `domain` on the first write | `domain --mode subdomains` and `contexts` | `clarify`, `decide`, `plan`, `describe`, `architecture`, `domain`, `now-what`, `visualize` |
+| Models (committed, `docs/models/`) | none – the first writer adds the entry | `describe --model` (architecture model), `domain --mode event-storming` (board) | `plan`, `architecture`, `domain`, `visualize` |
 
-Names stay `Ubiquitous Language` / `Context Map`: the Document Index entry, not the path, is the contract, and "context" is the most overloaded word in the agent world.
+The Document Index entry, not the path, is the contract. The map is named `Domain Map` for what it answers, the business's parts and who owns them, and not after contexts, since "context" is the most overloaded word in the agent world.
 
 **Working artifacts are branch-scoped; the requirements source – `prd.md`, or the tracker item a plan with `prd: null` came from – is the surviving product record.** `plan.json` and FIS files stay on the branch and are deleted before the merge. Under `Record: tracker` in the `Issue Tracker` document, `prd.md` goes too: the PRD's issue and one issue per story carry the record, which `tracker publish` writes from the bundle with no file or commit reference and the merge closes (ADR-028). The `ship` skill reads each FIS's Implementation Observations and lands or recommends what is worth keeping before it deletes the bundle, because the bodies go with it, then commits and opens the PR after one confirmation. The per-story commit `exec-plan` makes, staged by path, is a subject plus the `Story-ID:` and `Plan:` trailers its plan run finds it by. The why outlives the bundle in the requirements source and in the PR body `ship` writes from each FIS's Intent and Expected Outcomes, so it holds however the branch merges, squash included, and nothing links to a branch commit. The plan-level review, `implement-fix` on its report, and `now-what` hand off to it on a `Next (fresh session):` line once the plan is ready under `plan-schema.md` § Shipping. Skills never cite this document, because `ship` states the close-out.
 
@@ -87,12 +87,12 @@ The canonical assets live at `plugin/references/` – a single canonical locatio
 | `plan-schema.md` | plan, exec-plan, review, implement-fix, ship, now-what |
 | `plan.schema.json` | plan |
 | `project-document-templates.md` | describe, init |
-| `review-calibration.md` | review, architecture, decide, implement-fix |
+| `review-calibration.md` | review, architecture, domain, decide, implement-fix |
 | `self-review.md` | clarify, plan |
-| `unattended-runs.md` | plan, exec-plan, review, implement-fix, ship, triage, architecture, decide, ui-ux-design, simplify-code, tracker, testing |
+| `unattended-runs.md` | plan, exec-plan, review, implement-fix, ship, triage, architecture, domain, decide, ui-ux-design, simplify-code, tracker, testing |
 | `verification-evidence.md` | exec-plan, implement-fix, review, testing, triage, simplify-code |
 
-A single-consumer canonical lives in that skill's own `references/` instead (`docs/SKILL-AUTHORING-GUIDELINES.md` § Repository constraints). A schema lives beside its prose reference, so `plan.schema.json` stays here with `plan-schema.md`, which has several consumers, and the model schemas live in `describe` and `architecture` beside theirs.
+A single-consumer canonical lives in that skill's own `references/` instead (`docs/SKILL-AUTHORING-GUIDELINES.md` § Repository constraints). A schema lives beside its prose reference, so `plan.schema.json` stays here with `plan-schema.md`, which has several consumers, and the model schemas live in `describe` and `domain` beside theirs.
 
 
 ---
@@ -116,7 +116,7 @@ A path is a load, a bare backticked filename a mention; the authoring guidelines
 
 ## Typed Artifacts
 
-The atlas has a typed data contract with two kinds sharing one invariant core (schema canonical: `plugin/skills/describe/references/architecture-model.md`): `architecture-model.json`, produced by the `andthen:describe` skill in `--mode codebase --model` – deterministic extraction (dependency tooling, import scans, doc/manifest declarations, git change-coupling) owns nodes and edges, agent judgment is confined to clustering, naming, summaries, and tours, and every claim carries an `evidence` tag – and `glossary-model.json`, produced by the same skill in `--mode domain --model` as a 1:1 projection of the Ubiquitous Language document (contexts from its clusters, doc-anchored `ref`s, overloaded terms carrying per-context `meanings`). Each model's schema ships beside its reference as the shape contract; no shipped verb validates a model, so a producer checks its own candidate before writing. Both models are **committed projections** under the `Models` Index location (default `docs/models/`), carrying the source revision in `meta.revision` – the code and the Ubiquitous Language document are the sources of truth, and a `Context Map`, when present, owns bounded-context identity across both kinds. The two board models the `andthen:architecture` skill emits – `event-storm` and `context-map`, schema canonical `plugin/skills/architecture/references/board-models.md` – follow the same pattern.
+The architecture model has a typed data contract (schema canonical: `plugin/skills/describe/references/architecture-model.md`): `architecture-model.json`, produced by the `andthen:describe` skill with `--model` – deterministic extraction (dependency tooling, import scans, doc/manifest declarations, git change-coupling) owns nodes and edges, agent judgment is confined to clustering, naming, summaries, and tours, and every claim carries an `evidence` tag. Its schema ships beside its reference as the shape contract; no shipped verb validates a model, so a producer checks its own candidate before writing. The model is a **committed projection** under the `Models` Index location (default `docs/models/`), carrying the source revision in `meta.revision` – the code is the source of truth, and a `Domain Map` with a Bounded Contexts section, when present, owns bounded-context identity. The glossary has no typed model, because it would only repeat the Ubiquitous Language document (ADR-027, amended 2026-10-16). The one board model, `event-storm`, which the `andthen:domain` skill emits (schema canonical `plugin/skills/domain/references/board-models.md`), follows the same pattern.
 
 
 ---

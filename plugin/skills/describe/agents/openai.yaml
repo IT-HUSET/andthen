@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Describe"
-  short_description: "Map a codebase or maintain its Ubiquitous Language; --model adds the typed model"
-  default_prompt: "Describe what this project already is – --mode codebase maps it into documentation, --mode domain maintains its Ubiquitous Language; --model adds that mode's typed model, --model-only writes the model alone."
+  short_description: "Map a codebase into architecture docs; --model adds the typed architecture model"
+  default_prompt: "Describe what this project already is – map the codebase into documentation; --model adds the typed architecture model, --model-only writes the model alone. Glossary requests go to the andthen:domain skill."
 
 policy:
   allow_implicit_invocation: true

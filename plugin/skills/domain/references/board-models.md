@@ -1,13 +1,10 @@
-# Board Model Schemas (`event-storm`, `context-map`)
+# Board Model Schema (`event-storm`)
 
-Canonical schema for the two typed boards the `andthen:architecture` skill emits with its Markdown reports, distinguished by `kind`:
+Canonical schema for the typed board the `andthen:domain` skill emits in `--mode event-storming`: the session's board – stickies on a timeline, the flows between them, and the candidates the level harvests. The committed board is the session's record, the report is its write-up, and a board view draws the JSON.
 
-- **`event-storm`** – written by `--mode event-storming`: the session's board – stickies on a timeline, the flows between them, and the candidates the level harvests. The report's eight sections stay the human record; the JSON is what a board view draws.
-- **`context-map`** – written by `--mode strategic-design`: bounded contexts and the integration pattern on every relationship, one file per map (`current`, `target`, or the `registered` one the Context Map document records).
+The board follows the architecture model's conventions (`architecture-model.md`): 2-space indent, schema-document key order, POSIX repo-relative paths.
 
-Both follow the atlas models' conventions (`architecture-model.md`): 2-space indent, schema-document key order, POSIX repo-relative paths.
-
-`event-storm.schema.json` and `context-map.schema.json` beside this file (JSON Schema draft 2020-12) are the shape contract; this reference carries the semantics no schema can state.
+`event-storm.schema.json` beside this file (JSON Schema draft 2020-12) is the shape contract; this reference carries the semantics no schema can state.
 
 ## `event-storm`
 
@@ -17,7 +14,7 @@ Both follow the atlas models' conventions (`architecture-model.md`): 2-space ind
   "kind": "event-storm",
   "meta": {
     "project": "Acme Billing",
-    "generatedBy": "andthen:architecture",
+    "generatedBy": "andthen:domain",
     "date": "2026-08-12",                 // real date, YYYY-MM-DD
     "revision": "a1b2c3d",                // source's last commit, suffixed -dirty when the tree differs
     "level": "process-modeling",          // big-picture | process-modeling | design-level
@@ -46,7 +43,7 @@ Both follow the atlas models' conventions (`architecture-model.md`): 2-space ind
 
 | Collection | Field | Required | Notes |
 |---|---|---|---|
-| `meta` | `project`, `generatedBy`, `date`, `revision` | yes | As the atlas models. `generatedBy` is `andthen:architecture`. |
+| `meta` | `project`, `generatedBy`, `date`, `revision` | yes | As the architecture model. `generatedBy` is `andthen:domain`. |
 | `meta` | `level` | yes | Brandolini's level the session ran at. |
 | `meta` | `scope` | yes | One line, the report's scope. |
 | `meta` | `source` | yes | The PRD or intent path the session was driven from, or `brownfield`. |
@@ -62,44 +59,6 @@ Both follow the atlas models' conventions (`architecture-model.md`): 2-space ind
 
 **Cross-field invariants.** Ids unique per collection; `lane`, `attachedTo`, `cluster`, `flows[].from`/`to`, and `members` resolve; `order` unique within a lane (stickies without a lane form their own); `pivotal` only on events; `attachedTo` only on hotspots; `invariants`, `root`, `entities`, and `valueObjects` only on aggregates.
 
-## `context-map`
-
-```jsonc
-{
-  "schemaVersion": "1",
-  "kind": "context-map",
-  "meta": {
-    "project": "Acme Billing",
-    "generatedBy": "andthen:architecture",
-    "date": "2026-08-12",
-    "revision": "a1b2c3d",
-    "status": "target"                    // current | target | registered
-  },
-  "contexts": [
-    { "id": "billing", "name": "Billing", "purpose": "Invoicing, dunning, reconciliation.",
-      "subdomainType": "core", "codeLocation": "src/billing/", "team": "payments" }
-  ],
-  "relationships": [
-    { "from": "billing", "to": "notifications", "pattern": "published-language",
-      "direction": "upstream-downstream", "channel": "invoice events",
-      "rationale": "Notifications consume the event contract Billing publishes." }
-  ]
-}
-```
-
-| Collection | Field | Required | Notes |
-|---|---|---|---|
-| `meta` | `project`, `generatedBy`, `date`, `revision` | yes | As the atlas models. |
-| `meta` | `status` | yes | `current` and `target` are a run's report-side maps; `registered` is the accepted map the Context Map document records. |
-| `contexts[]` | `id`, `name`, `purpose`, `subdomainType` | yes | `subdomainType` is `core`, `supporting`, or `generic`. |
-| `contexts[]` | `codeLocation`, `team` | no | `codeLocation` is repo-relative. |
-| `relationships[]` | `from`, `to`, `pattern`, `direction`, `rationale` | yes | `pattern` is one of the nine below; `direction` is `upstream-downstream` (`from` upstream of `to`) or `symmetric`. |
-| `relationships[]` | `channel` | no | The integration channel, when the same pair has several. |
-
-The nine patterns: `partnership`, `shared-kernel`, `customer-supplier`, `conformist`, `anticorruption-layer`, `open-host-service`, `published-language`, `separate-ways`, `big-ball-of-mud`.
-
-**Cross-field invariants.** Ids unique; endpoints resolve; no self-relationship; the symmetric patterns (`partnership`, `shared-kernel`, `separate-ways`) carry `direction: "symmetric"`.
-
 ## Persistence
 
-Boards are checked against their schema and this reference before writing and are never hand-edited. The event storm and the registered map are committed projections under the `Models` location.
+The board is never hand-edited.

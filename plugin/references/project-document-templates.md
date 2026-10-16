@@ -17,13 +17,13 @@ A template's `>` note sits above its fenced block, states who owns that document
 - TESTING-STRATEGY.md – levels, conventions, and the before-merge bar
 - UBIQUITOUS_LANGUAGE.md – domain glossary
 - ISSUE-TRACKER.md – agent issue-tracker backend + label role mapping
-- CONTEXT-MAP.md – bounded contexts and integration patterns
+- DOMAIN-MAP.md – subdomains, bounded contexts, and integration patterns
 
 ---
 
 ## Index entries
 
-> The skill that creates a document appends that document's line below to the Index, changing the path only where the project keeps the document elsewhere, so each path below is the default location. `Key Dev Commands` points at the instruction file's § Key Development Commands instead when the project keeps its commands inline. `Agent Temp` ships in the `init` template.
+> The skill that creates a document appends that document's line below to the Index, changing the path only where the project keeps the document elsewhere, so each path below is the default location. `Key Dev Commands` points at the instruction file's § Key Development Commands instead when the project keeps its commands inline. `Agent Temp` ships in the `init` template. An Index that already has a `Context Map` entry keeps it, read as the `Domain Map`, so the skill seeding the `Domain Map` adds no second line.
 
 ```markdown
 - **Product** – `docs/PRODUCT.md`: vision, personas, non-goals (firmly rejected concepts included), Proportionality facts. Read before proposing a feature, a design, or new machinery, or triaging a request: features anchor to it, and its stage and scale size what gets built.
@@ -34,8 +34,8 @@ A template's `>` note sits above its fenced block, states who owns that document
 - **ADRs** – `docs/adrs/`. Read the ADR a decision cites before revisiting it; add one per new decision.
 - **Research** – `docs/research/`: trade-off analyses. Read when re-opening a settled trade-off; add one per new analysis.
 - **Architecture** – `docs/ARCHITECTURE.md`: components, data flow, integrations, key constraints. Read before changing a component, a boundary, or data flow.
-- **Models** – `docs/models/`: committed typed projections (`architecture-model.json`, `glossary-model.json`, `context-map.json`, `event-storms/<slug>.json`). Read when a task needs component or bounded-context boundaries. Regenerate at deliberate points; never hand-edit, since the sources stay the records.
-- **Context Map** – `docs/CONTEXT-MAP.md`: bounded contexts and integration patterns. Read before placing a feature, boundary, or integration; update when a context or its relationships change.
+- **Models** – `docs/models/`: committed typed projections (`architecture-model.json`, `event-storms/<slug>.json`). Read when a task needs component boundaries or a storming session's findings. Regenerate at deliberate points; never hand-edit, since the sources stay the records.
+- **Domain Map** – `docs/DOMAIN-MAP.md`: the parts of the business, how much each matters, and the bounded contexts that own them, with their integration patterns. Read before placing a feature, boundary, or integration; update when a subdomain, context, or relationship changes.
 - **Ubiquitous Language** – `docs/UBIQUITOUS_LANGUAGE.md`: canonical terms and the synonyms to avoid. Read before naming, renaming, or describing domain concepts; add a row when a term settles.
 - **Guidelines** – `docs/guidelines/`. Read a guideline when its condition under Project Guidelines and Standards matches the task.
 - **Review Policy** – `docs/REVIEW-POLICY.md` (optional): paths excluded from review, extra passes, verdict thresholds. Read before a review.
@@ -409,7 +409,7 @@ Commands: see `docs/KEY_DEVELOPMENT_COMMANDS.md` § Testing (`fast`, `full`, run
 
 ## UBIQUITOUS_LANGUAGE.md
 
-> Domain glossary – scaffolded by the `andthen:init` skill on confirm; extracted and maintained by the `andthen:describe` skill in `--mode domain`, clustering terms by the Context Map's bounded contexts when one exists.
+> Domain glossary – scaffolded by the `andthen:init` skill on confirm; extracted and maintained by the `andthen:domain` skill in `--mode glossary`, clustering terms by the Domain Map's bounded contexts when it has them, else by its subdomains, else by domain theme.
 
 ```markdown
 # Ubiquitous Language
@@ -491,26 +491,49 @@ Record: repo
 
 ---
 
-## CONTEXT-MAP.md
+## DOMAIN-MAP.md
 
-> Bounded contexts and the patterns that integrate them. Registered and refreshed by the `andthen:architecture` skill in `--mode strategic-design`: the accepted Target map, or the confirmed Current map when auditing, graduates here. Brownfield re-runs read it first and report drift against it. Idempotent per context and per ordered pair plus channel.
+> The parts of the business, how much each matters, and which software boundary owns each. Written by the `andthen:domain` skill: `--mode subdomains` owns Subdomains, Relationships, Worked Example, and Open Questions, and `--mode contexts` owns Bounded Contexts and Integration Patterns. Neither mode rewrites the other's sections, except that `--mode contexts` records a reclassification, an accepted one into Subdomains and a declined one under Open Questions, and rows are idempotent and never deleted. It lists no terms: the glossary holds each once.
 
 ```markdown
-# Context Map
+# Domain Map
+
+## Subdomains
+<!-- One entry per subdomain: core, supporting, or generic, why, and what it owns. -->
+
+| Subdomain | Type | Rationale | Owns |
+|-----------|------|-----------|------|
+| ...       | ...  | ...       | ...  |
+
+## Relationships
+<!-- Optional. How subdomains relate, in domain language ("a visit happens at a facility"). -->
+
+- ...
+
+## Worked Example
+<!-- Optional. Named instances, a scenario across subdomains, and the rules it shows. -->
+
+- ...
+
+## Open Questions
+<!-- A contested classification, both sides recorded, never forced into a verdict. -->
+
+- ...
 
 ## Bounded Contexts
 
-| Context | Purpose | Code location |
-|---------|---------|---------------|
-| ...     | ...     | ...           |
+| Context | Purpose | Subdomains owned | Team | Code location |
+|---------|---------|------------------|------|---------------|
+| ...     | ...     | ...              | ...  | ...           |
 
 ## Integration Patterns
 <!-- One row per ordered context pair that exchanges data. Pattern names come from the 9-pattern catalog
      (Partnership, Shared Kernel, Customer/Supplier, Conformist, Anticorruption Layer, Open Host Service,
      Published Language, Separate Ways, Big Ball of Mud). Split a multi-channel pair into one row per channel;
-     Channel stays empty for a single-channel pair. -->
+     Channel stays empty for a single-channel pair. A symmetric pattern (Partnership, Shared Kernel,
+     Separate Ways) names its peers in the two context columns, not an upstream and a downstream. -->
 
-| Upstream | Downstream | Channel | Pattern | Notes |
+| Upstream / peer | Downstream / peer | Channel | Pattern | Notes |
 |----------|------------|---------|---------|-------|
 | ...      | ...        | ...     | ...     | ...   |
 

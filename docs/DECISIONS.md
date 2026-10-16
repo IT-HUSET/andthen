@@ -14,7 +14,7 @@
 
 ## Current ADRs
 
-ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-029.
+ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-030.
 
 | ID | Title | Status | Scope |
 |----|-------|--------|-------|
@@ -29,6 +29,7 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 | [ADR-026](adrs/ADR-026-ship-skill.md) | Ship the branch with a `ship` skill | Accepted | `ship` owns the close-out on any branch: lands FIS observations, deletes the bundle, commits, one ask before push and PR; the printers hand off to it |
 | [ADR-027](adrs/ADR-027-visualize-skill.md) | Draw AndThen artifacts as checked pages with a small `visualize` skill | Accepted | Model-written self-contained HTML with inline SVG, gated by a render-and-look loop; any artifact; `now-what` drops its notes route |
 | [ADR-028](adrs/ADR-028-tracker-record.md) | Keep a feature's record in the issue tracker, opt-in per project | Accepted | `Record: repo \| tracker`; the PRD lives in the source issue, story issues carry intent and acceptance, `ship` writes the final record and the merge closes it; prose, no script |
+| [ADR-029](adrs/ADR-029-domain-skill-and-domain-map.md) | Model the domain in a `domain` skill, recorded in one Domain Map | Accepted | `domain` modes `subdomains`, `contexts`, `glossary`, `event-storming`; `DOMAIN-MAP.md` replaces `CONTEXT-MAP.md`; `context-map.json` retires; one Markdown-or-JSON rule |
 
 ## Superseded
 
@@ -97,7 +98,7 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 - **No `Stack` document**: every row of its template projected the manifest, the lockfile, an ADR, or the Architecture document's Integration Points, and adopting projects showed versions drifting from the lockfile within weeks. The baseline (language, runtime, main framework) is one sentence in the Architecture document's System Overview, a library choice with a reason is a Decisions row, a rejected one a Product non-goal, and versions stay in the manifest. Reopens if a polyglot repository with no single manifest needs an inventory the Architecture document cannot carry.
 - **Tracker setup is first-use, not an `init` gate**: `init` writes neither the file nor its Index entry; the first skill that needs the backend – a reader handed a non-GitHub URL, `tracker triage` with no remote, `tracker publish` at first publish – offers `tracker setup`, and an unattended run blocks naming the `Backend:` line to set. `Backend: none` declares that the project has no tracker: `tracker publish` and `tracker triage` end on one line saying so, naming the line to change, and run no `gh` flow. Accepted: a non-GitHub project's first unattended run blocks until the document exists. Reopens if a project needs the backend declared before any skill sees a URL.
 - **`init` wires the rules and role agents in prose, not a script**: both are one-line offers in its closing summary (ADR-022), and a taken-up offer runs the prose in `init/references/offers.md`. `wire.py` was 328 lines plus 388 test lines for work the prose does in 18, re-deriving what the agent already has in context. Reopens if an unattended `init` needs a machine-checkable wiring result.
-- **The atlas schema is for code-structure graphs only**: `ref` anchors to repo-relative paths and `evidence` makes every edge refutable against code, so a non-code graph (a workflow, a status board) follows the projection pattern – typed JSON, invariant core, its own schema – but never adds a third `kind`.
+- **The architecture-model schema is for code-structure graphs only**: `ref` anchors to repo-relative paths and `evidence` makes every edge refutable against code, so it never adds another `kind`. Any other record follows ADR-029's rule: a JSON model, with its own schema, only for facts a skill generates and nobody hand-edits that no document holds, and never a mirror of a document.
 
 ### Packaging and measurement
 

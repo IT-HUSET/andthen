@@ -106,6 +106,7 @@ _skill_assets_plan="fis-contract.md plan-schema.md plan.schema.json self-review.
 _skill_assets_exec_plan="fis-contract.md fis-mutability.md plan-schema.md unattended-runs.md verification-evidence.md"
 _skill_assets_review="fis-contract.md fis-mutability.md intent-and-rules-context.md lens-adversarial.md plan-schema.md review-calibration.md unattended-runs.md verification-evidence.md"
 _skill_assets_architecture="review-calibration.md unattended-runs.md"
+_skill_assets_domain="review-calibration.md unattended-runs.md"
 _skill_assets_decide="design-tree.md review-calibration.md unattended-runs.md"
 _skill_assets_clarify="design-tree.md self-review.md"
 _skill_assets_testing="unattended-runs.md verification-evidence.md"

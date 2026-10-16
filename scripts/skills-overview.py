@@ -308,7 +308,7 @@ link(PLAN_X, ROW_Y + BH + 2, card["plan-fis"][0], card["plan-fis"][1] - 2)
 # ------------------------------------------------ standalone skills
 y = 454
 SEC_H = 232
-band(BX, y, BW, SEC_H, "band-core", "STANDALONE", "andthen – call any time", "No pipeline or setup required; 20 skills in all")
+band(BX, y, BW, SEC_H, "band-core", "STANDALONE", "andthen – call any time", "No pipeline or setup required; 21 skills in all")
 core = [("now-what", "routes you to a skill", "First-stop router – inspects project state (init'd? greenfield? brownfield? mid-flow?) and routes to the right skill."),
         ("init", "sets up your project", ["Set up the workflow structure: CLAUDE.md / AGENTS.md with the Project Document Index, Key Dev Commands,",
                   "and one-line offers for the foundational rules guideline and the four opt-in roles below."]),
@@ -318,14 +318,16 @@ core = [("now-what", "routes you to a skill", "First-stop router – inspects pr
         ("testing", "strategy and TDD", ["Test strategy (writes the Testing Strategy document), test authoring, TDD, and the Prove-It bugfix flow.",
                      "Suites at every level, E2E included."]),
         ("visual-validation", "UI against its design", "Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks."),
-        ("describe", "map code, glossary", ["Describe what a project already is: --mode codebase maps it into docs, --mode domain extracts the Ubiquitous",
-                      "Language; --model adds the typed architecture or glossary model."]),
-        ("architecture", "advice and analysis", ["Design advice grounded in CUPID / DDD, in text. review, decompose, fitness, strategic-design and event-storming",
-                          "run the deep analysis, singly or chained. No code changes."]),
-        ("tracker", "plan to issue tracker", ["The issue tracker: publish projects a plan bundle into a parent and one child issue per story,",
-                     "triage labels and routes untriaged items, and setup writes the Issue Tracker document."]),
         ("visualize", "artifact as a page", ["Draw an AndThen artifact – a model, a board, a plan, any spec or report – as one self-contained HTML page",
                          "with inline SVG figures, rendered and looked at before it is shown."]),
+        ("architecture", "advice and analysis", ["Design advice grounded in CUPID / DDD, in text. review, decompose and fitness run the deep analysis,",
+                          "singly or chained. No code changes."]),
+        ("domain", "model the domain", ["Model the domain with you as the expert: subdomains, bounded contexts and integrations in the Domain Map,",
+                      "the Ubiquitous Language glossary, and event storming."]),
+        ("describe", "map the codebase", ["Describe what a project already is: maps the codebase into architecture docs and discovered",
+                      "requirements; --model adds the typed architecture model."]),
+        ("tracker", "plan to issue tracker", ["The issue tracker: publish projects a plan bundle into a parent and one child issue per story,",
+                     "triage labels and routes untriaged items, and setup writes the Issue Tracker document."]),
         ("spike", "build to answer", "Answer one named design question by building a throwaway runnable spike, then report a verdict – evidence, not product."),
         ("simplify-code", "less code, same result", "Behavior-preserving simplification: less complexity, less over-engineering, exact behavior kept.")]
 COLS = 7

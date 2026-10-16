@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Domain"
+  short_description: "Model the domain – subdomains, bounded contexts, glossary, event storming"
+  default_prompt: "Model the domain in one mode or a chain (subdomains, contexts, glossary, event-storming). Scope, workflow, or topic: "
+
+policy:
+  allow_implicit_invocation: true

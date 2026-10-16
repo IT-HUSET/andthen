@@ -14,7 +14,7 @@ Interview the user over the technical decisions a solution needs until each is m
 - `--output-dir` sets `OUTPUT_DIR` for trade-off artifacts, which must be writable. Absent, it is the **Project Document Index** `Research` location, else `docs/research/`.
 - `--auto` makes the run unattended: read [`unattended-runs.md`](../../references/unattended-runs.md) and follow it.
 
-`Decisions`, `ADRs`, `Product`, `Learnings`, `Architecture`, and `Context Map` are Project Document Index entries.
+`Decisions`, `ADRs`, `Product`, `Learnings`, `Architecture`, and `Domain Map` are Project Document Index entries. An Index entry still named `Context Map` is read as the `Domain Map`.
 
 ## Rules
 
@@ -33,7 +33,7 @@ Interview the user over the technical decisions a solution needs until each is m
 
 ### 1. Frame the decisions
 
-Read `Decisions`, `Learnings`, `Architecture` and `Context Map` where present, and the code `INPUT` touches. List the decision points, decomposed per `design-tree.md` where a flat list would hide the real trade-offs, and sort each:
+Read `Decisions`, `Learnings`, `Architecture` and `Domain Map` where present, and the code `INPUT` touches. List the decision points, decomposed per `design-tree.md` where a flat list would hide the real trade-offs, and sort each:
 
 - **settled** by a source you can cite – cite it;
 - **a requirement** – user-visible behaviour, scope, or a threshold users would notice – goes to the PRD through the `andthen:clarify` skill;

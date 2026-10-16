@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Architecture"
-  short_description: "Architecture advice and analysis – health review, decomposition, fitness, DDD, event storming"
-  default_prompt: "Architecture work in one mode or a chain (advise, review, decompose, fitness, strategic-design, event-storming). Scope, question, or domain: "
+  short_description: "Architecture advice and analysis – health review, decomposition, fitness"
+  default_prompt: "Architecture work in one mode or a chain (advise, review, decompose, fitness). Scope or question: "
 
 policy:
   allow_implicit_invocation: true

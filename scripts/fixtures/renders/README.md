@@ -19,14 +19,14 @@ notes go** is what that owner does with them.
 | `tradeoff` | `tradeoff.md` | `andthen:decide` | the next `andthen:decide` run |
 | `adr` | `adr.md` | `andthen:decide` | the next `andthen:decide` run |
 | `architecture-review` | `architecture-review.md` | `andthen:architecture` | the next `andthen:architecture` run in `--mode review` |
-| `strategic-design` | `strategic-design.md` | `andthen:architecture` | the next `andthen:architecture` run in `--mode strategic-design` |
+| `domain-map` | `domain-map.md` | `andthen:domain` | the next `andthen:domain` run in `--mode subdomains` or `--mode contexts`, whichever owns the annotated section |
+| `contexts` | `contexts.md` | `andthen:domain` | the next `andthen:domain` run in `--mode contexts` |
 | `fitness` | `fitness.md` | `andthen:architecture` | the next `andthen:architecture` run in `--mode fitness` |
 | `decompose` | `decompose.md` | `andthen:architecture` | the next `andthen:architecture` run in `--mode decompose` |
-| `event-storming` | `event-storming.md` | `andthen:architecture` | `andthen:architecture --mode strategic-design` (Big Picture) or `andthen:plan` on the board (Design Level) |
-| `event-storm` | `event-storm.json` | `andthen:architecture` | the next `andthen:architecture` run in `--mode event-storming` |
-| `context-map` | `context-map.json` | `andthen:architecture` | the next `andthen:architecture` run in `--mode strategic-design` |
-| `architecture-model` | `architecture-model.json` | `andthen:describe` | `andthen:architecture --mode strategic-design` or `--mode review`, or `andthen:describe --mode codebase` for model corrections and regeneration |
-| `glossary-model` | `glossary-model.json` | `andthen:describe` | `andthen:describe --mode domain` for glossary corrections, then `--model` to regenerate the projection |
+| `event-storming` | `event-storming.md` | `andthen:domain` | `andthen:domain --mode subdomains` (Big Picture) or `andthen:plan` on the board (Design Level) |
+| `event-storm` | `event-storm.json` | `andthen:domain` | the next `andthen:domain` run in `--mode event-storming` |
+| `architecture-model` | `architecture-model.json` | `andthen:describe` | `andthen:domain --mode contexts` or `andthen:architecture --mode review`, or `andthen:describe --model` for model corrections and regeneration |
+| `ubiquitous-language` | `ubiquitous-language.md` | `andthen:domain` | `andthen:domain --mode glossary`, which merges glossary corrections into the document |
 
 `visual-review-notes.md` is the notes payload in the exact shape a viewer copies or sends: the H1 names
 the owner and the artifact path, each `## Section:` block carries one section's heading verbatim, notes
@@ -38,10 +38,10 @@ always-present header fields, `review-report-mixed.md` a remediated follow-up re
 chain, carrying `Resolved chain`, `Follows`, `Remediated`, the lens-conditional sections, and the one
 `## Verdict` section a mixed report has.
 
-The four model `.json` fixtures are sample documents for a downstream renderer; nothing in this repo
+The two model `.json` fixtures are sample documents for a downstream renderer; nothing in this repo
 validates them; their shape contract is the `*.schema.json` shipped beside its prose reference in
-`plugin/skills/describe/references/` (`architecture-model`) or `plugin/skills/architecture/references/`
-(`board-models`, for the `event-storm` and `context-map` kinds). `plan.json` is also read by
+`plugin/skills/describe/references/` (`architecture-model`) or `plugin/skills/domain/references/`
+(`board-models`, for the `event-storm` kind). `plan.json` is also read by
 `tests/test_audit_cookbook.py`, which pins its `schemaVersion` against `plan.schema.json`, and by
 `evals/test_checks.py`, which runs the eval plan validator on it. Change a fixture
 and run every suite that reads it.

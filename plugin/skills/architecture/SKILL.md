@@ -1,6 +1,6 @@
 ---
-description: Architecture advice and structural analysis – design advice, health review, decomposition, fitness functions, strategic DDD, event storming. Trigger on 'how should I structure this', 'should I split this', 'architecture review'. Making and recording a decision is the andthen:decide skill; mapping the as-built codebase is the andthen:describe skill.
-argument-hint: "[--mode <mode>[,<mode>...]: advise|review|decompose|fitness|strategic-design|event-storming] [--output-dir <path>] [--auto] [scope/path]"
+description: Architecture advice and structural analysis – design advice, health review, decomposition, fitness functions. Trigger on 'how should I structure this', 'should I split this', 'architecture review'. Modeling the domain is the andthen:domain skill; making and recording a decision is the andthen:decide skill; mapping the as-built codebase is the andthen:describe skill.
+argument-hint: "[--mode <mode>[,<mode>...]: advise|review|decompose|fitness] [--output-dir <path>] [--auto] [scope/path]"
 ---
 
 # Architecture
@@ -17,22 +17,16 @@ Architecture advice and structural analysis, in one mode or a chain of modes. No
 
 | Mode | Triggers | Required input | Reference |
 |------|----------|----------------|-----------|
-| **advise** | architectural questions, greenfield design, "which pattern", "how should I structure", CUPID/DDD | the question | [`mode-advise.md`](references/mode-advise.md) |
+| **advise** | architectural questions, greenfield design, "how should I structure", CUPID, tactical DDD | the question | [`mode-advise.md`](references/mode-advise.md) |
 | **review** | "review architecture", "assess health", "analyze structure", "modularity check" | the scope path | [`mode-review.md`](references/mode-review.md) |
 | **decompose** | "should I split", "merge these", "extract package", "decomposition", "too big" | the boundary | [`mode-decompose.md`](references/mode-decompose.md) |
 | **fitness** | "fitness functions", "governance", "architectural tests", "prevent drift" | the scope path | [`mode-fitness.md`](references/mode-fitness.md) |
-| **strategic-design** | "strategic design", "subdomains", "bounded contexts", "context map", "domain map", "model the domain" | the domain or workflow scope | [`mode-strategic-design.md`](references/mode-strategic-design.md) |
-| **event-storming** | "event storming", "discover the domain", "process discovery", "pivotal events", "aggregates", "tactical design", Brandolini | the domain or workflow scope + the level, Big Picture the default, Design Level on "aggregates" or "tactical design" | [`mode-event-storming.md`](references/mode-event-storming.md) |
 
 ## Rules
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
-
-- **Gates.** At each gate the mode reference names, present the proposal back: recommendation first, a one-line rationale, the real alternatives, and room for free-form input.
-  - End the asking turn on the question, never on a report of what was produced. Use the host's structured user-input tool wherever it holds the turn for the answer, otherwise the reply.
-  - Never proceed on an unanswered gate. Suggested or preselected answers are not confirmation, and neither is detailed `INPUT` – the *implicit confirmation from detailed input* failure mode.
 - Every dispatch is a fresh subagent: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
-- A project document a run has to create – `Context Map` on registration, `Product` on the first Proportionality answer – is seeded through a `worker` subagent that invokes the `andthen:init` skill with `seed <Index entry>` and the content to seed, keeping the templates out of this run's context.
+- A project document a run has to create – `Product` on the first Proportionality answer – is seeded through a `worker` subagent that invokes the `andthen:init` skill with `seed <Index entry>` and the content to seed, keeping the templates out of this run's context.
 - Recommend from fit for this project, never from popularity or novelty.
 
 ## Workflow
@@ -45,15 +39,12 @@ Architecture advice and structural analysis, in one mode or a chain of modes. No
    - `Learnings`.
    - `Decisions` – its ADR index and Still Current notes are settled choices, plus the ADRs it points at. A recommendation that reopens one names it and says what new evidence reopens it.
    - `Architecture` when present – the system-shape baseline for `review` / `decompose` / `fitness`.
-   - `Context Map` when present – read before any boundary or integration judgment.
-   - **Anchor on the `Product` document's Proportionality facts.** Drop or flag every component the design proposes and every subdomain classification they do not carry or a standing technical non-goal forbids, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). When the facts are absent, ask for all three in one question before you recommend, and write the answers into its Proportionality section, `unknown` for one left unanswered. An unattended run skips the question, writes nothing to `Product`, and says the anchor was unavailable.
-   - `architecture-model.json` under `Models` when it exists, in `strategic-design` – keep its context ids and names consistent with the accepted Context Map; align them or surface the divergence.
+   - `Domain Map` when present – read before any boundary or integration judgment. An Index entry still named `Context Map` is read as the `Domain Map`.
+   - **Anchor on the `Product` document's Proportionality facts.** Drop or flag every component the design proposes that they do not carry or a standing technical non-goal forbids, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). When the facts are absent, ask for all three in one question before you recommend, and write the answers into its Proportionality section, `unknown` for one left unanswered. An unattended run skips the question, writes nothing to `Product`, and says the anchor was unavailable.
 
    Then read each selected mode's reference from the Mode table and what it needs below – the deduplicated union for a chain, nothing beyond it:
    - Every mode: [`architecture-calibration.md`](references/architecture-calibration.md).
-   - `review`, `decompose`, `fitness`, `strategic-design`: [`review-calibration.md`](../../references/review-calibration.md).
-   - `review`, `decompose`, `fitness`: [`review-output.md`](references/review-output.md).
-   - `strategic-design` and `event-storming`: [`board-models.md`](references/board-models.md) and the schema of the board each emits, [`context-map.schema.json`](references/context-map.schema.json) or [`event-storm.schema.json`](references/event-storm.schema.json).
+   - `review`, `decompose`, `fitness`: [`review-calibration.md`](../../references/review-calibration.md) and [`review-output.md`](references/review-output.md).
 
    **Gate**: each selected mode's reference and its loads read.
 
@@ -63,7 +54,7 @@ Architecture advice and structural analysis, in one mode or a chain of modes. No
 
 4. **Filter the findings.** The filter runs over every finding and recommendation rationale. Spawn a fresh reviewer subagent. It reads `review-calibration.md` § Findings Filter and `architecture-calibration.md`, whose paths its prompt names, and runs the filter as `Findings Filter reviewing architecture findings and recommendations`. Its prompt carries:
 
-   - the decision, codebase, or domain under review, with the project's description, scale, stage, and primary language;
+   - the decision or codebase under review, with the project's description, scale, stage, and primary language;
    - the mode and scope – a chain lists its modes in declared order, each finding tagged with the mode that produced it, so the filter applies the right reasoning to each;
    - these questions:
      1. Is this finding or recommendation based on computed metrics, collected evidence, or a named framework – or on opinion?
@@ -77,7 +68,7 @@ Architecture advice and structural analysis, in one mode or a chain of modes. No
 
    **Gate**: the report presented, and for an analysis mode written to its file with the path printed.
 
-6. **Record learnings.** After `strategic-design`, `decompose`, or `event-storming`, append emerging traps or anti-patterns to the `Learnings` document, admitting each against its header note.
+6. **Record learnings.** After `decompose`, append emerging traps or anti-patterns to the `Learnings` document, admitting each against its header note.
 
    **Gate**: each appended trap admitted against the header note, or none.
 
@@ -85,7 +76,7 @@ Architecture advice and structural analysis, in one mode or a chain of modes. No
 
 A multi-mode invocation produces **one combined report**, never a file per mode: one Executive Summary for the chain, one merged `How to Read This Report` legend, then the per-mode sections in declared order, each labeled with its mode and otherwise intact.
 
-An analysis-mode report is one file in `OUTPUT_DIR`, named `<scope-or-topic>-architecture-<agent>-<YYYY-MM-DD>.md` for the package, module, domain, or topic analysed. `<agent>` is the executing agent's short name (`claude`, `codex`, else `agent`), and a colliding name takes `-2`, `-3`, …. Print its path relative to the project root.
+An analysis-mode report is one file in `OUTPUT_DIR`, named `<scope-or-topic>-architecture-<agent>-<YYYY-MM-DD>.md` for the package, module, or topic analysed. `<agent>` is the executing agent's short name (`claude`, `codex`, else `agent`), and a colliding name takes `-2`, `-3`, …. Print its path relative to the project root.
 
 ## Follow-up
 

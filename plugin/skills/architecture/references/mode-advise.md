@@ -1,6 +1,6 @@
 # Architecture – Advise Mode
 
-Guidance for architectural questions, greenfield design, refactors, and mentoring, as text. A question that needs a full context map or a discovery session moves into the mode that owns it (`strategic-design`, `event-storming`) rather than answering shallower. Glossary operationalization is the `andthen:describe` skill in `--mode domain`.
+Guidance for architectural questions, greenfield design, refactors, and mentoring, as text. A question that needs a context map, a discovery session, or glossary work goes to the `andthen:domain` skill in `--mode contexts`, `--mode event-storming`, or `--mode glossary` rather than being answered shallower.
 
 ## Rules
 

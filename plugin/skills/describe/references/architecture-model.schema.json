@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "andthen:architecture-model.schema.json",
-  "title": "AndThen atlas model (architecture-model, glossary-model)",
-  "description": "Machine form of architecture-model.md beside it, for both atlas kinds. Carries every invariant JSON Schema can state; id uniqueness, reference resolution, the ref rule, and the meanings contextId rules are stated by that reference and are the producer's to check.",
+  "title": "AndThen architecture model",
+  "description": "Machine form of architecture-model.md beside it. Carries every invariant JSON Schema can state; id uniqueness, reference resolution, and the ref rule are stated by that reference and are the producer's to check.",
   "type": "object",
   "required": ["schemaVersion", "kind", "meta", "contexts", "nodes", "edges"],
   "properties": {
@@ -12,7 +12,7 @@
     },
     "kind": {
       "description": "The discriminator consumers key on before inspecting anything else.",
-      "enum": ["architecture-model", "glossary-model"]
+      "const": "architecture-model"
     },
     "meta": {
       "type": "object",
@@ -54,7 +54,7 @@
           "id": { "$ref": "#/$defs/id" },
           "name": { "type": "string", "minLength": 1 },
           "contextId": { "$ref": "#/$defs/id" },
-          "kind": { "type": "string" },
+          "kind": { "enum": ["module", "package", "service", "component", "store", "entrypoint", "external"] },
           "ref": { "type": "string", "minLength": 1 },
           "summary": { "type": "string" },
           "metrics": {
@@ -66,26 +66,6 @@
               "churn": { "$ref": "#/$defs/count" },
               "fanIn": { "$ref": "#/$defs/count" },
               "fanOut": { "$ref": "#/$defs/count" }
-            }
-          },
-          "avoid": {
-            "description": "glossary-model only. Omit the key when there are none, never [].",
-            "type": "array",
-            "minItems": 1,
-            "items": { "type": "string", "minLength": 1 }
-          },
-          "meanings": {
-            "description": "glossary-model only: per-context meanings of an overloaded term.",
-            "type": "array",
-            "minItems": 2,
-            "items": {
-              "type": "object",
-              "required": ["contextId", "label", "meaning"],
-              "properties": {
-                "contextId": { "$ref": "#/$defs/id" },
-                "label": { "type": "string", "minLength": 1 },
-                "meaning": { "type": "string", "minLength": 1 }
-              }
             }
           }
         }
@@ -129,19 +109,6 @@
           }
         }
       }
-    }
-  },
-  "if": { "properties": { "kind": { "const": "glossary-model" } } },
-  "then": {
-    "properties": {
-      "nodes": { "items": { "properties": { "kind": { "enum": ["entity", "action", "state", "policy"] } } } },
-      "edges": { "maxItems": 0, "description": "v1 defines no glossary edge kinds." }
-    }
-  },
-  "else": {
-    "properties": {
-      "nodes": { "items": { "properties": { "kind": {
-        "enum": ["module", "package", "service", "component", "store", "entrypoint", "external"] } } } }
     }
   },
   "$defs": {

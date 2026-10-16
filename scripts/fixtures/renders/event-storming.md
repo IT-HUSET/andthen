@@ -22,4 +22,4 @@ One pivotal event – `SessionIssued` – separates credential handling from eve
 
 ## Recommended Next Steps
 
-- `andthen:architecture --mode strategic-design` – the two candidates are ready to be drawn as contexts.
+- `andthen:domain --mode subdomains` – the two candidates are ready to be classified as subdomains.

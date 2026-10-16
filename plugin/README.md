@@ -1,6 +1,6 @@
 # AndThen Plugin
 
-Lightweight agentic software engineering for AI coding agents, spec-driven when the work needs a spec. This is the reference for the 20 skills: what to type, what comes back, and what might surprise you. For recipes, see [`COOKBOOK.md`](../COOKBOOK.md). For the workflow overview, see the [main README](../README.md).
+Lightweight agentic software engineering for AI coding agents, spec-driven when the work needs a spec. This is the reference for the 21 skills: what to type, what comes back, and what might surprise you. For recipes, see [`COOKBOOK.md`](../COOKBOOK.md). For the workflow overview, see the [main README](../README.md).
 
 ## Installation
 
@@ -24,8 +24,9 @@ Markdown documents are the sources of truth. Typed models (JSON) are committed p
 | Aspect | Source of truth | Committed projection |
 |---|---|---|
 | Product intent | `PRODUCT.md`, including its Proportionality facts | none |
-| Domain language | `UBIQUITOUS_LANGUAGE.md` (glossary only) | `glossary-model.json` via `describe --mode domain --model` |
-| System structure | the code (`ARCHITECTURE.md` is prose orientation) | `architecture-model.json` via `describe --mode codebase --model` |
+| Domain structure | `DOMAIN-MAP.md`: subdomains, bounded contexts, integration patterns, no terms | none |
+| Domain language | `UBIQUITOUS_LANGUAGE.md` (glossary only) | none |
+| System structure | the code (`ARCHITECTURE.md` is prose orientation) | `architecture-model.json` via `describe --model` |
 
 Projections live under the `Models` Index location (default `docs/models/`) and record the commit they describe in `meta.revision`, suffixed `-dirty` when the working tree differs.
 
@@ -53,13 +54,13 @@ Projections live under the `Models` Index location (default `docs/models/`) and 
 
 Every skill works standalone. The cookbook covers [how the workflow fits together](../COOKBOOK.md#how-the-workflow-fits-together) and runnable sequences such as [one story or several](../COOKBOOK.md#one-story-or-several), [a small change](../COOKBOOK.md#a-small-change), and [unattended execution](../COOKBOOK.md#unattended-execution).
 
-**Questions.** `clarify`, `decide`, `plan`, `exec-plan`, `architecture`, `tracker triage`, and `ship` stop and wait for your answer, each question with a recommended answer. They never replace a question with a silent assumption unless you pass `--auto`.
+**Questions.** `clarify`, `decide`, `plan`, `exec-plan`, `architecture`, `domain`, `tracker triage`, and `ship` stop and wait for your answer, each question with a recommended answer. They never replace a question with a silent assumption unless you pass `--auto`.
 
 **Unattended runs (`--auto`).** The flag makes a run ask nothing. It records each open decision as `ASSUMPTION: <what> – <what would change it>`, skips any action that needs your consent, and stops with `BLOCKED: <what is needed>` when the call is unusable. Only the flag does this, never how the run was launched, and the run passes it on to every skill it invokes. `clarify` has no unattended form, because the interview is the skill.
 
 **Fresh sessions.** `plan` on several stories and `exec-plan` work best in a clean session. Each step of the pipeline – `clarify`, `decide`, `ui-ux-design`, `plan`, `exec-plan`, `review` – ends on one `Next (fresh session):` command, never a menu, and skips a step with nothing to do. Every skill recommendation includes the full invocation in your host's syntax, with its target or request and required arguments, ready to paste. `handoff` compacts a session that has to end mid-work.
 
-**Proportionality.** `clarify`, `decide`, `plan`, and `architecture` size proposals against the stage, scale, and technical non-goals in your `PRODUCT.md`. If they are missing, the first of these skills you run asks once and records the answers (`unknown` for anything left open). Every set of alternatives includes a do-nothing or extend-what-exists option.
+**Proportionality.** `clarify`, `decide`, `plan`, `architecture`, and `domain` size proposals against the stage, scale, and technical non-goals in your `PRODUCT.md`. If they are missing, the first of these skills you run asks once and records the answers (`unknown` for anything left open). Every set of alternatives includes a do-nothing or extend-what-exists option.
 
 **Tracker input.** `clarify` and `plan` accept an issue URL as a requirements source, `triage` as scope, and `review` a PR. Only `tracker` writes to the tracker. Fetching uses the optional `Issue Tracker` document (`docs/ISSUE-TRACKER.md`), or `gh` for GitHub URLs. A URL on another host offers `tracker setup` first.
 
@@ -86,7 +87,8 @@ You rarely need flags. Describe what you want and the skill picks its mode or le
 | [`testing`](#testing) | Test strategy, authoring, TDD, prove-it |
 | [`handoff`](#handoff) | Write a resume document for a fresh session |
 | [`architecture`](#architecture) | Design advice and structural analysis |
-| [`describe`](#describe) | Map a codebase or extract its glossary |
+| [`domain`](#domain) | Domain Map, glossary, event storming |
+| [`describe`](#describe) | Map an existing codebase |
 | [`ui-ux-design`](#ui-ux-design) | UX research, design systems, wireframes |
 | [`visual-validation`](#visual-validation) | Check built UI against designs |
 | [`visualize`](#visualize) | Draw an artifact as a checked HTML page |
@@ -104,7 +106,7 @@ Sets up the workflow structure for new projects, partial setups, and existing co
 
 - **You get**: the root instruction file(s) with the Project Document Index, listing the documents the project already has, `Key Dev Commands` when the project has a manifest (the `fast` and `full` check tiers plus a run-one-test row), and `.gitignore` entries for `.agent_temp/` and review reports. A partial setup gets only what is missing.
 - **Options**: `seed <Index entry>` creates one missing document from its template and adds its Index entry. Skills use it internally.
-- **Good to know**: every other document (`Product`, `Architecture`, `Testing Strategy`, `Decisions`, `Learnings`) is created, and its entry added, later by the first skill that writes to it. The closing summary offers the rest, one line each: role agents, critical rules, documents to create now (`Product`, `Decisions`, `Learnings`, `Tech Debt`, `Roadmap`, `Ubiquitous Language`), `describe --mode codebase` for existing code without a filled-in `Architecture` document, `testing --mode strategy`, and `visual-validation --mode setup`. An offer you ignore writes nothing. Reports are gitignored by default; delete that `.gitignore` line to commit them.
+- **Good to know**: every other document (`Product`, `Architecture`, `Testing Strategy`, `Decisions`, `Learnings`) is created, and its entry added, later by the first skill that writes to it. The closing summary offers the rest, one line each: role agents, critical rules, documents to create now (`Product`, `Decisions`, `Learnings`, `Tech Debt`, `Roadmap`, `Ubiquitous Language`), `describe` for existing code without a filled-in `Architecture` document, `testing --mode strategy`, and `visual-validation --mode setup`. An offer you ignore writes nothing. Reports are gitignored by default; delete that `.gitignore` line to commit them.
 
 ```bash
 /andthen:init
@@ -339,44 +341,59 @@ Compacts the conversation into a document a fresh session can resume from cold.
 
 ### `architecture`
 
-`[--mode <mode>[,<mode>...]: advise|review|decompose|fitness|strategic-design|event-storming] [--output-dir <path>] [--auto] [scope/path]`
+`[--mode <mode>[,<mode>...]: advise|review|decompose|fitness] [--output-dir <path>] [--auto] [scope/path]`
 
 Design guidance and structural analysis. It never changes code. The mode is inferred from your request or named with `--mode`.
 
-- **You get**: `advise` returns text only. The five analysis modes write one report to `reviews/` under the Agent Temp location (or `--output-dir`). A chain such as `--mode review,fitness` produces one combined report.
+- **You get**: `advise` returns text only. The three analysis modes write one report to `reviews/` under the Agent Temp location (or `--output-dir`). A chain such as `--mode review,fitness` produces one combined report.
 - **Options**:
   - `advise`: design guidance, grounded in CUPID, DDD, deep modules, and Locality of Behaviour.
   - `review`: dependency metrics, connascence, anti-patterns, fitness proposals.
   - `decompose`: one split-or-merge decision with scored drivers.
   - `fitness`: governance and ADR enforcement.
-  - `strategic-design`: subdomains, bounded contexts, the Context Map, and which generic mechanisms to extract from the core. It builds on your `PRODUCT.md` and on an event-storming board for the same scope, and asks you to confirm the subdomain classification and contexts before it maps them.
-  - `event-storming`: a discovery session with you as the domain expert. Its board lands under `docs/models/event-storms/`, and a later run on the same scope continues it. Design-Level aggregate candidates name their invariants, root, entities, and value objects, and go on to `plan` on the board.
-- **Good to know**: `strategic-design` registers only the map you accept, into the `Context Map` document and `context-map.json`. An unattended run skips that step and reports the map unregistered. A decision to settle and record goes to `decide`.
+- **Good to know**: modeling the domain (subdomains, bounded contexts, event storming) is [`domain`](#domain). A decision to settle and record goes to `decide`.
 
 ```bash
 /andthen:architecture "should I use event sourcing for the order domain?"   # advise, text only
 /andthen:architecture --mode review,fitness src/                            # one combined report
-/andthen:architecture "map the bounded contexts"                            # strategic-design, writes the Context Map
+```
+
+### `domain`
+
+`[--mode <mode>[,<mode>...]: subdomains|contexts|glossary|event-storming] [--output-dir <path>] [--auto] [scope/path]`
+
+Models the domain with you as the domain expert. It never changes code. The mode is inferred from your request or named with `--mode`, and a comma-separated chain runs in order.
+
+- **You get**: each mode writes one record. `subdomains` and `contexts` write the `Domain Map` (default `docs/DOMAIN-MAP.md`), `glossary` the `Ubiquitous Language`, and `event-storming` a board under `docs/models/event-storms/`. A `contexts` or `event-storming` run also writes a report to `reviews/` under the Agent Temp location (or `--output-dir`).
+- **Options**:
+  - `subdomains`: classifies the business's parts as core, supporting, or generic, with a rationale each. The Domain Map's Subdomains, Relationships, Worked Example, and Open Questions hold it, and you confirm the classification before it is written.
+  - `contexts`: bounded contexts, the subdomains each owns, the owning team, and the integration patterns between them, current and target for existing code. You confirm the contexts, then the Bounded Contexts and Integration Patterns sections are registered. With no classified subdomains it runs `subdomains` first.
+  - `glossary`: extracts the `Ubiquitous Language`, merging into curated terms and clustering them by the Domain Map's bounded contexts when it has them.
+  - `event-storming`: a discovery session at Big Picture (the default), Process Modeling, or Design Level for aggregates. A later run on the same scope continues the board. Subdomain candidates go on to `subdomains`, and Design-Level aggregate candidates, with their invariants, root, entities, and value objects, to `plan`.
+- **Good to know**: the Domain Map is recommended first for a domain-heavy project and never required; a library or CRUD tool skips it. The map lists no terms, because the glossary holds each term once. Under `--auto`, `subdomains` writes nothing and prints its proposal, and `contexts` skips registration.
+
+```bash
+/andthen:domain --mode subdomains "order fulfilment"       # classify, write the Domain Map
+/andthen:domain --mode contexts                            # bounded contexts and integrations
+/andthen:domain --mode glossary                            # build or refresh the glossary
+/andthen:domain --mode event-storming "checkout to delivery"
 ```
 
 ### `describe`
 
-`[--mode codebase|domain] [--model] [--model-only] [output directory (codebase) or scope (domain)]`
+`[--model] [--model-only] [output directory]`
 
-Documents what a project already is, without modifying code. The mode is inferred from your phrasing; `--mode` wins. If neither decides, it asks once: codebase (preselected), domain, or both.
+Documents what a project already is, without modifying code. A glossary request is [`domain`](#domain).
 
-- **You get**:
-  - `codebase` maps the repository into the `Architecture` and `Key Dev Commands` documents, `requirements-discovered.md` and `decisions-discovered.md` for team review, and a `## Conventions` section in `CLAUDE.md` / `AGENTS.md`. A monorepo also gets a short instruction file per sub-project. Existing documents are merged into, never overwritten.
-  - `domain` extracts the `Ubiquitous Language` glossary, merging into curated terms.
+- **You get**: the repository mapped into the `Architecture` and `Key Dev Commands` documents, `requirements-discovered.md` and `decisions-discovered.md` for team review, and a `## Conventions` section in `CLAUDE.md` / `AGENTS.md`. A monorepo also gets a short instruction file per sub-project. Existing documents are merged into, never overwritten.
 - **Options**:
-  - `--model` also writes the typed model under the `Models` location: `architecture-model.json` from the code, or `glossary-model.json` from the glossary.
+  - `--model` also writes the typed model, `architecture-model.json`, under the `Models` location. A bounded context takes its `id` and `name` from the Domain Map's Bounded Contexts section when it has one.
   - `--model-only` writes just the model, no documentation. It is the refresh path.
-- **Good to know**: `plan` and `architecture` read the architecture model.
+- **Good to know**: `plan`, `architecture`, and `domain --mode contexts` read the architecture model.
 
 ```bash
-/andthen:describe                                        # not sure? it asks: codebase, domain, or both
-/andthen:describe --mode domain                          # build or refresh the glossary
-/andthen:describe --mode codebase --model-only           # refresh the Architecture Model alone
+/andthen:describe                                        # map the codebase
+/andthen:describe --model-only                           # refresh the Architecture Model alone
 ```
 
 ### `ui-ux-design`
@@ -412,7 +429,7 @@ Checks built UI screenshots against wireframes, design specs, or baselines, and 
 
 `<artifact path or name> [what the page should bring out]`
 
-Draws one AndThen artifact as a self-contained HTML page with inline SVG figures. It is the public way to see what `architecture-model.json`, `glossary-model.json`, `context-map.json`, `event-storms/<slug>.json`, and `plan.json` hold: evidence levels, runtime shape, tours, overloaded terms, story dependencies and status. Any other artifact works too, such as a FIS, a PRD, a review report, or an ADR.
+Draws one AndThen artifact as a self-contained HTML page with inline SVG figures. It is the public way to see what `architecture-model.json`, `event-storms/<slug>.json`, and `plan.json` hold: evidence levels, runtime shape, tours, story dependencies and status. Any other artifact works too, such as the Domain Map, the glossary, a FIS, a PRD, a review report, or an ADR.
 
 - **You get**: the page at `.agent_temp/visualize/<artifact>.html`. It is a derived copy, so it is not committed by default and goes stale when its source changes.
 - **Good to know**: before handing the page over it renders it in a browser, a headless one where available, and fixes overlaps, clipped labels, unreadable arrows, dead controls, and console errors. With no browser reachable it says the page is unchecked. The check is the model judging its own render. Checking your project's own UI is `visual-validation`.

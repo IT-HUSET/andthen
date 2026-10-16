@@ -1,4 +1,4 @@
-# Architecture – Event Storming Mode
+# Domain – Event Storming Mode
 
 Run a Brandolini event-storming session as a discovery technique. The mode produces a textual report and the typed board it describes (`board-models.md`, kind `event-storm`).
 
@@ -27,9 +27,9 @@ External systems earn a sticky when the integration is itself a step on the time
 Confirm the topic and Brandolini's level – Big Picture, Process Modeling, or Design Level. Two paths:
 
 - **Greenfield** – drive the session from a PRD, a hand-written `intent.md`, or the user's narrative description of the workflow. Keep the timeline shallow and surface hotspots aggressively, because the goal is to find the questions.
-- **Brownfield** – drive the session from observed behaviour: existing endpoints, message contracts, persisted entities, and the `andthen:describe` skill's `--mode codebase` outputs when available. Pivotal events often surface as cross-context API calls or transactional boundaries that look arbitrary in code but are load-bearing in the domain.
+- **Brownfield** – drive the session from observed behaviour: existing endpoints, message contracts, persisted entities, and the `andthen:describe` skill's codebase outputs when available. Pivotal events often surface as cross-context API calls or transactional boundaries that look arbitrary in code but are load-bearing in the domain.
 
-A board already under `Models` for the scope holds the user's earlier answers, so the session resumes it and changes it rather than replacing it.
+A board already under `Models` for the scope holds the user's earlier answers, so the session resumes it and changes it rather than replacing it. The `Domain Map`'s Subdomains and Bounded Contexts, when it has them, are scope input.
 
 ### Step 2 – Harvest Events
 Walk the domain chronologically, listing orange events in past tense, one per line. An unexplained gap in the timeline is a question to the user. An unanswered one is a purple hotspot, never a guess.
@@ -73,6 +73,6 @@ Event-storming-mode report must include:
 5. **Policies and Read Models** _(Process Modeling and Design Level only)_
 6. **Hotspots** – unresolved questions, conflicts, and risks
 7. **Subdomain Candidates** _(Big Picture)_, **Workflow Boundaries** _(Process Modeling)_, **or** **Aggregate Candidates** _(Design Level)_ – one section per Step 6 output, anchored on pivotal events with rationale
-8. **Recommended Next Steps** – a one-line trigger condition each: Big Picture subdomain candidates → this skill in `--mode strategic-design`; Design-Level aggregate candidates → the `andthen:plan` skill on the board, with the PRD or intent doc it was driven from when there is one; vocabulary conflicts surfaced as hotspots → the `andthen:describe` skill in `--mode domain`
+8. **Recommended Next Steps** – a one-line trigger condition each: Big Picture subdomain candidates → this skill in `--mode subdomains`; Design-Level aggregate candidates → the `andthen:plan` skill on the board, with the PRD or intent doc it was driven from when there is one; vocabulary conflicts surfaced as hotspots → this skill in `--mode glossary`
 
 The board file's path is printed with the report's.

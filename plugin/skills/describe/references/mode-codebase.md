@@ -4,14 +4,14 @@ Map an existing codebase into structured documentation and discovered implicit r
 
 ## Rules
 
-`Learnings`, `Architecture`, `Key Dev Commands`, `Context Map`, `ADRs`, and `Models` are Project Document Index entries. Read `Learnings`, when it exists, before starting.
+`Learnings`, `Architecture`, `Key Dev Commands`, `Domain Map`, `ADRs`, and `Models` are Project Document Index entries. An Index entry still named `Context Map` is read as the `Domain Map`. Read `Learnings`, when it exists, before starting.
 
 - **Discovery, not invention.**
 - **Merge, never overwrite.** `Architecture` and `Key Dev Commands` are derived documents: an existing one is merged per the **Regeneration contract** in `project-document-templates.md`. Name any `<NAME>.discovered.md` pair it produces in the completion summary.
 
 ## Workflow
 
-`MODEL_ONLY` runs Step 1 and Step 2a's model emission only, skipping every documentation output and Steps 3 and 4. Existing `Architecture` and `Context Map` documents inform clustering.
+`MODEL_ONLY` runs Step 1 and Step 2a's model emission only, skipping every documentation output and Steps 3 and 4. Existing `Architecture` and `Domain Map` documents inform clustering.
 
 ### 1. Survey
 

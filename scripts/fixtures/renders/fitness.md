@@ -25,5 +25,5 @@ A PR-level test injects a 503 from the audit store and asserts sign-in still ret
 
 ## Prioritized Implementation Roadmap
 
-1. L1 import-boundary check – cheapest, and it closes the leak named in strategic design.
+1. L1 import-boundary check – cheapest, and it closes the leak named in the contexts analysis.
 2. L2 audit fault injection – needs a fault-injection harness first.

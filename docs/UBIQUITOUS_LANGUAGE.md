@@ -43,10 +43,9 @@
 | Floor option | The smallest option that still satisfies the stated criteria – do nothing, or extend what exists – carried by every alternative set. | do-nothing baseline, minimal alternative, null option |
 | Preflight | Closing step of the `andthen:plan` skill: each open item asked in one sitting with a recommendation and answered into the FIS; exec-side pre-run checks are admission. | decision closure, convergence gate, closure verdict |
 | Non-Goals | The `PRODUCT.md` section of product-level scope boundaries, firmly rejected concepts included as dated bullets – checked at the concept level before one is re-proposed. | Out of Scope Registry, rejection log |
-| Context Map | The `docs/CONTEXT-MAP.md` document of bounded contexts and their integration patterns, registered by the `andthen:architecture` skill in `--mode strategic-design`. | context diagram |
-| Atlas model | Either typed model the `andthen:describe` skill emits under `--model` – Architecture Model or Glossary Model – committed under the `Models` location. | atlas view, 3D view |
-| Architecture Model | The `andthen:describe` skill's typed `architecture-model.json`: a committed projection of the code – contexts, `ref`-anchored nodes, evidence-tagged edges. | dependency dump, code map |
-| Glossary Model | The `andthen:describe` skill's typed `glossary-model.json`: a committed projection of the Ubiquitous Language – contexts, term nodes, overloaded meanings. | domain model, glossary dump, term map |
+| Domain Map | The `docs/DOMAIN-MAP.md` document of subdomains, bounded contexts, and integration patterns, written by the `andthen:domain` skill's `subdomains` and `contexts` modes; it lists no terms. | context map file |
+| Subdomain | A part of the business classified core, supporting, or generic, recorded in the Domain Map's Subdomains section. | domain area, business module |
+| Architecture Model | The `andthen:describe` skill's typed `architecture-model.json`: a committed projection of the code – contexts, `ref`-anchored nodes, evidence-tagged edges – under the `Models` location. | atlas model, dependency dump, code map |
 | Single-session rule | The `andthen:plan` skill's story-sizing rule: a story plus its FIS must fit one fresh-context exec run. | story budget |
 | One-way / two-way door | A decision or change that is costly / cheap to reverse; the `andthen:decide` skill labels each decision, ADRs record it, and the `andthen:ship` skill states it in the PR body. | Type 1 / Type 2 decision, irreversible / reversible decision |
 | Canonical triage roles | `tracker triage`'s fixed label set – states `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; categories `bug`, `enhancement`. | triage statuses |

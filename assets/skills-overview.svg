@@ -250,7 +250,7 @@
 <rect x="24" y="454" width="1112" height="232" rx="14" class="band-core"/>
 <text x="46" y="480" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">STANDALONE</text>
 <text x="46" y="504" class="t1" font-size="16" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="600">andthen – call any time</text>
-<text x="46" y="523" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">No pipeline or setup required; 20 skills in all</text>
+<text x="46" y="523" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">No pipeline or setup required; 21 skills in all</text>
 <g class="hot" tabindex="0" data-hotspot="now-what">
 <rect x="46" y="542" width="144" height="46" rx="7" class="core"/>
 <text x="118" y="562" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">now-what</text>
@@ -314,15 +314,15 @@
 <text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks.</text>
 </g>
 </g>
-<g class="hot" tabindex="0" data-hotspot="describe">
+<g class="hot" tabindex="0" data-hotspot="visualize">
 <rect x="970" y="542" width="144" height="46" rx="7" class="core"/>
-<text x="1042" y="562" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">describe</text>
-<text x="1042" y="577" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">map code, glossary</text>
+<text x="1042" y="562" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">visualize</text>
+<text x="1042" y="577" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">artifact as a page</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
-<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · describe</text>
-<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Describe what a project already is: --mode codebase maps it into docs, --mode domain extracts the Ubiquitous</text>
-<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Language; --model adds the typed architecture or glossary model.</text>
+<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · visualize</text>
+<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Draw an AndThen artifact – a model, a board, a plan, any spec or report – as one self-contained HTML page</text>
+<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">with inline SVG figures, rendered and looked at before it is shown.</text>
 </g>
 </g>
 <g class="hot" tabindex="0" data-hotspot="architecture">
@@ -332,14 +332,36 @@
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
 <text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · architecture</text>
-<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Design advice grounded in CUPID / DDD, in text. review, decompose, fitness, strategic-design and event-storming</text>
-<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">run the deep analysis, singly or chained. No code changes.</text>
+<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Design advice grounded in CUPID / DDD, in text. review, decompose and fitness run the deep analysis,</text>
+<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">singly or chained. No code changes.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="domain">
+<rect x="200" y="598" width="144" height="46" rx="7" class="core"/>
+<text x="272" y="618" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">domain</text>
+<text x="272" y="633" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">model the domain</text>
+<g class="d">
+<rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · domain</text>
+<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Model the domain with you as the expert: subdomains, bounded contexts and integrations in the Domain Map,</text>
+<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">the Ubiquitous Language glossary, and event storming.</text>
+</g>
+</g>
+<g class="hot" tabindex="0" data-hotspot="describe">
+<rect x="354" y="598" width="144" height="46" rx="7" class="core"/>
+<text x="426" y="618" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">describe</text>
+<text x="426" y="633" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">map the codebase</text>
+<g class="d">
+<rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
+<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · describe</text>
+<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Describe what a project already is: maps the codebase into architecture docs and discovered</text>
+<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">requirements; --model adds the typed architecture model.</text>
 </g>
 </g>
 <g class="hot" tabindex="0" data-hotspot="tracker">
-<rect x="200" y="598" width="144" height="46" rx="7" class="core"/>
-<text x="272" y="618" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">tracker</text>
-<text x="272" y="633" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">plan to issue tracker</text>
+<rect x="508" y="598" width="144" height="46" rx="7" class="core"/>
+<text x="580" y="618" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">tracker</text>
+<text x="580" y="633" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">plan to issue tracker</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
 <text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · tracker</text>
@@ -347,21 +369,10 @@
 <text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">triage labels and routes untriaged items, and setup writes the Issue Tracker document.</text>
 </g>
 </g>
-<g class="hot" tabindex="0" data-hotspot="visualize">
-<rect x="354" y="598" width="144" height="46" rx="7" class="core"/>
-<text x="426" y="618" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">visualize</text>
-<text x="426" y="633" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">artifact as a page</text>
-<g class="d">
-<rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
-<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · visualize</text>
-<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Draw an AndThen artifact – a model, a board, a plan, any spec or report – as one self-contained HTML page</text>
-<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">with inline SVG figures, rendered and looked at before it is shown.</text>
-</g>
-</g>
 <g class="hot" tabindex="0" data-hotspot="spike">
-<rect x="508" y="598" width="144" height="46" rx="7" class="core"/>
-<text x="580" y="618" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">spike</text>
-<text x="580" y="633" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">build to answer</text>
+<rect x="662" y="598" width="144" height="46" rx="7" class="core"/>
+<text x="734" y="618" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">spike</text>
+<text x="734" y="633" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">build to answer</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
 <text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · spike</text>
@@ -369,9 +380,9 @@
 </g>
 </g>
 <g class="hot" tabindex="0" data-hotspot="simplify-code">
-<rect x="662" y="598" width="144" height="46" rx="7" class="core"/>
-<text x="734" y="618" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">simplify-code</text>
-<text x="734" y="633" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">less code, same result</text>
+<rect x="816" y="598" width="144" height="46" rx="7" class="core"/>
+<text x="888" y="618" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">simplify-code</text>
+<text x="888" y="633" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">less code, same result</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
 <text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · simplify-code</text>

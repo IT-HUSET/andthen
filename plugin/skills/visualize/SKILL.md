@@ -1,5 +1,5 @@
 ---
-description: Draw an AndThen artifact as one self-contained HTML page with inline SVG figures, rendered and looked at before it is shown – the architecture or glossary model, a context map, an event storm, a plan, or any spec, report, or ADR. Trigger on 'visualize', 'draw the model', 'show the plan as a diagram'. Checking the project's own UI is the andthen:visual-validation skill.
+description: Draw an AndThen artifact as one self-contained HTML page with inline SVG figures, rendered and looked at before it is shown – the architecture model, the glossary, the Domain Map, an event storm, a plan, or any spec, report, or ADR. Trigger on 'visualize', 'draw the model', 'show the plan as a diagram'. Checking the project's own UI is the andthen:visual-validation skill.
 argument-hint: "<artifact path or name> [what the page should bring out]"
 ---
 
@@ -19,7 +19,7 @@ Draw one AndThen artifact as a self-contained HTML page whose figures are inline
 
 ## Workflow
 
-1. **Read the artifact.** For JSON whose `kind` is `architecture-model`, `glossary-model`, `context-map`, or `event-storm`, or a `plan.json`, read [`json-artifacts.md`](references/json-artifacts.md) for the field meanings the names do not carry. **Gate**: each figure the page will carry is chosen, with the fields it draws.
+1. **Read the artifact.** For JSON whose `kind` is `architecture-model` or `event-storm`, or a `plan.json`, read [`json-artifacts.md`](references/json-artifacts.md) for the field meanings the names do not carry. The Domain Map is Markdown and lists no terms, so show a subdomain's terms from its owning context's glossary cluster, or from its own cluster before the map has contexts. **Gate**: each figure the page will carry is chosen, with the fields it draws.
 
 2. **Write the page** as `visualize/<artifact-stem>.html` under the location the `Agent Temp` Index entry names, default `.agent_temp/`. Keep it out of the committed docs, because it is a derived copy that drifts from its source.
 

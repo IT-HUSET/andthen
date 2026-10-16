@@ -17,11 +17,11 @@ What AndThen enforces, so you don't have to:
 - **Specs don't go stale.** The plan and its specs belong to one branch and are deleted before the merge. The requirements document (`prd.md`) is what stays, or its issue when you keep requirements in the tracker.
 - **Process is sized to the work.** A change you can state in one sentence skips the specs entirely (`implement-fix`).
 
-It is one plugin, `andthen`, with 20 skills and no runtime of its own to install. There is no CLI to install and no tool directory to commit: skills find your specs and docs through an index in `CLAUDE.md` / `AGENTS.md`.
+It is one plugin, `andthen`, with 21 skills and no runtime of its own to install. There is no CLI to install and no tool directory to commit: skills find your specs and docs through an index in `CLAUDE.md` / `AGENTS.md`.
 
 <p align="center">
   <!-- pre-release: the raw link targets develop; point it at IT-HUSET/andthen/raw/main when 1.0 merges -->
-  <a href="https://github.com/IT-HUSET/andthen/raw/develop/assets/skills-overview.svg"><img src="assets/skills-overview.svg" alt="AndThen skills and workflow – the idea-to-merge chain (optional clarify, decide and ui-ux-design, then plan, exec-plan, review, implement-fix and ship) with where you take part: the interviews of clarify, decide and plan, three numbered gates (PRD, ADRs, PR), and two optional reads (the FIS files, the review report), the hand-off artifacts (intent.md or a short note, prd.md, ADRs, plan.json with a FIS per story), the twelve standalone skills, and the four opt-in subagent roles"></a>
+  <a href="https://github.com/IT-HUSET/andthen/raw/develop/assets/skills-overview.svg"><img src="assets/skills-overview.svg" alt="AndThen skills and workflow – the idea-to-merge chain (optional clarify, decide and ui-ux-design, then plan, exec-plan, review, implement-fix and ship) with where you take part: the interviews of clarify, decide and plan, three numbered gates (PRD, ADRs, PR), and two optional reads (the FIS files, the review report), the hand-off artifacts (intent.md or a short note, prd.md, ADRs, plan.json with a FIS per story), the thirteen standalone skills, and the four opt-in subagent roles"></a>
   <br><sub>Click the figure for the interactive version: hover a skill, artifact, or role to see what it does.</sub>
 </p>
 
@@ -134,7 +134,7 @@ The eight skills most work starts from:
 | `review` | Reviews code, spec conformance, security, or the outcome against the PRD; also reviews PRs |
 | `handoff` | Writes a document a fresh session can resume from when a session has to end mid-work |
 
-The other twelve are `implement-fix`, `ship`, `triage`, `testing`, `architecture`, `describe`, `ui-ux-design`, `visual-validation`, `visualize`, `tracker`, `spike`, and `simplify-code`. The [skill reference](plugin/README.md#skills) covers all 20 skills, with every flag and mode.
+The other thirteen are `implement-fix`, `ship`, `triage`, `testing`, `architecture`, `describe`, `domain`, `ui-ux-design`, `visual-validation`, `visualize`, `tracker`, `spike`, and `simplify-code`. The [skill reference](plugin/README.md#skills) covers all 21 skills, with every flag and mode.
 
 
 ## Installation

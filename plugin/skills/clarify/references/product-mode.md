@@ -16,4 +16,4 @@ Deltas to the `andthen:clarify` skill's steps at product scope; everything the b
 
 **Step 7 does not run** – the tracker holds a feature's PRD, and the `Product` document stays in the repo.
 
-**Follow-up** – the `Next (fresh session):` line is the `andthen:architecture` skill in `--mode strategic-design`, deriving bounded contexts from the vision.
+**Follow-up** – the `Next (fresh session):` line is the `andthen:domain` skill in `--mode contexts`, deriving subdomains and bounded contexts from the vision.

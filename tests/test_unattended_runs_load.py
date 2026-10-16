@@ -55,7 +55,7 @@ PATH = "../../references/unattended-runs.md"
 LOAD = f"`--auto` makes the run unattended: read [`unattended-runs.md`]({PATH}) and follow it."
 RETIRED_TRIGGER = "This run is unattended: no one can answer until it ends."
 RETIRED_OPT_IN = re.compile(r"headless[\s-]*first", re.I)
-UNATTENDED = {"architecture", "decide", "exec-plan", "implement-fix", "review", "simplify-code",
+UNATTENDED = {"architecture", "decide", "domain", "exec-plan", "implement-fix", "review", "simplify-code",
               "plan", "ship", "tracker", "triage", "ui-ux-design"}
 
 
