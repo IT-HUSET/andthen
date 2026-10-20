@@ -19,8 +19,7 @@ Re-read `plan.json` before each batch and take its wave, the stories now depende
 
 **Dispatch** a fresh implementer subagent that invokes the `andthen:exec-plan` skill on `{FIS_PATH}`, telling it it is a story subagent of an `andthen:exec-plan` plan run, with:
 - `--auto`, whether or not this run carries it, since nobody is watching a story subagent;
-- `--no-full-tier`, since the full tier it defers is Step 3's;
-- `--tdd` when this run received it.
+- `--no-full-tier`, since the full tier it defers is Step 3's.
 
 The FIS names its own plan, so no further argument passes. The subagent owns the story whole, down to the commit of its code and its row, so add no second review.
 

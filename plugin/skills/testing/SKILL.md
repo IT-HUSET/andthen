@@ -1,6 +1,6 @@
 ---
-description: Test strategy, coverage, test authoring, and test-first (red-green-refactor) discipline, including the Prove-It bugfix flow and FIS scenario → test mapping – suites at every level, E2E included. Trigger on 'write tests for this', 'TDD this', 'prove it with a test'.
-argument-hint: "[--mode strategy|tdd|prove-it] [target/scope]"
+description: Test strategy, coverage, and test authoring (test-first where required), including the Prove-It bugfix flow and FIS scenario → test mapping – suites at every level, E2E included. Trigger on 'write tests for this', 'TDD this', 'prove it with a test'.
+argument-hint: "[--mode strategy|prove-it] [target/scope]"
 ---
 
 # Testing
@@ -9,17 +9,15 @@ Prove behavior with the smallest tests that prove it.
 
 ## Input
 
-`$ARGUMENTS` minus flags is the target or scope. `--mode strategy|tdd|prove-it` picks the mode, else the request's wording does; with neither, or when unclear, the mode is `write`.
+`$ARGUMENTS` minus flags is the target or scope. `--mode strategy|prove-it` picks the mode, else the request's wording does; with neither, or when unclear, the mode is `write`.
 
-- `write` (default) – author tests for existing behavior, retrofitted.
-- `tdd` – drive new behavior test-first: red → green → refactor.
+- `write` (default) – author tests for behavior.
 - `prove-it` – the bugfix flow: a failing test reproduces the defect before any production change.
 - `strategy` – author the project's `Testing Strategy` document. It writes no tests.
 
 Read and follow:
 
 - `strategy`: [`levels-and-strategy.md`](references/levels-and-strategy.md), and for a question it asked that no one answered, [`unattended-runs.md`](../../references/unattended-runs.md) § Recording an assumption.
-- `tdd` or `strategy`: [`tdd-discipline.md`](references/tdd-discipline.md).
 - `prove-it` or `strategy`: [`prove-it-pattern.md`](references/prove-it-pattern.md).
 - Every mode, before choosing or binding a test command: [`verification-evidence.md`](../../references/verification-evidence.md).
 
@@ -30,9 +28,10 @@ Read and follow:
 `Testing Strategy` and `Key Dev Commands` are Project Document Index entries.
 
 - **Prove-It before claiming a fix**: a failing test that goes green is the only proof.
+- **Test-first where required**: where the request or the `Testing Strategy` document requires test-first, each test runs red, failing because the behavior it proves is missing, before the code that turns it green.
 - **The `Testing Strategy` document** (default `docs/TESTING-STRATEGY.md`) names this project's levels, fixtures, before-merge bar, and gotchas, never commands: those stay in `Key Dev Commands`. A convention it states is never re-derived from general testing theory.
 - **A missing document**, or one silent on the level or convention in question, is named the way `verification-evidence.md` names a missing command. Apply the defaults below, and wherever the test work is reported, say what was missing and that the defaults stood in, because silent defaults read to the next agent as this project's own decisions.
-- **Falsifiability** – removing the protected behavior makes its owning test fail. Before declaring coverage done, break the implementation and watch each test go red (a mutation tool the project already runs, scoped to the changed files, does this: each surviving mutant is a missing assertion); the retrofit `write` path is where this slips most. Three shapes cause it:
+- **Falsifiability** – removing the protected behavior makes its owning test fail. Before declaring coverage done, break the implementation and watch each test go red (a mutation tool the project already runs, scoped to the changed files, does this: each surviving mutant is a missing assertion); tests written after their code are where this slips most. Three shapes cause it:
   - **Tautological assertion** – the expected value comes from the code under test: its output, its logic re-derived, or a stub's canned value asserted back. Take it from the requirement or a hand-worked example; a characterization test (`prove-it-pattern.md`) pins current output on purpose and goes once the fix lands.
   - **Vacuous assertion** – it never runs (an un-awaited async test, a callback never called, a loop over an empty collection, a swallowed assertion error) or checks nothing a bug would change (a not-null where any value passes, an absence check on a fixture without the value).
   - **Success-only double** – a mock or fake that only succeeds, so the caller's error paths never run. Give it the real dependency's failure modes – errors, timeouts, empty or partial results, constraint violations – or use the real dependency.
@@ -78,4 +77,4 @@ Read and follow:
 
 ## Output
 
-Behavior covered, the level chosen and why, key tests added or updated, the red failure or green-parity evidence quoted for `tdd` and `prove-it`, each tidy with its file, the document path and sections written for `strategy`, pass/fail counts where available, and remaining critical gaps.
+Behavior covered, the level chosen and why, key tests added or updated, the red failure quoted for each test written test-first and for `prove-it`, each tidy with its file, the document path and sections written for `strategy`, pass/fail counts where available, and remaining critical gaps.

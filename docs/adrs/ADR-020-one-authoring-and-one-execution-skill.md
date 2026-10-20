@@ -125,6 +125,7 @@ The floor option leads on the weighted total, 400 to 380, because this decision 
 ## Settled open points
 
 - `--tdd` passes through on a plan run. Before the merge `exec-plan` dropped it, and no reason was recorded.
+  *Amended 2026-10-20: `--tdd` is retired; see Still Current "Test-first is a project convention, not a flag".*
 - `--worktree` on a FIS is ignored and reported, per Still Current "No edge-case knobs, no strictness blocks".
 - An unattended `OVERSIZE:` from a written source proceeds as one story. DartClaw's `spec-and-implement` depends on that.
 - Eval case directories keep their names.

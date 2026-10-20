@@ -297,11 +297,11 @@
 <g class="hot" tabindex="0" data-hotspot="testing">
 <rect x="662" y="542" width="144" height="46" rx="7" class="core"/>
 <text x="734" y="562" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">testing</text>
-<text x="734" y="577" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">strategy and TDD</text>
+<text x="734" y="577" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">strategy and tests</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
 <text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · testing</text>
-<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Test strategy (writes the Testing Strategy document), test authoring, TDD, and the Prove-It bugfix flow.</text>
+<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Test strategy (writes the Testing Strategy document), test authoring, test-first where required, and the Prove-It bugfix flow.</text>
 <text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Suites at every level, E2E included.</text>
 </g>
 </g>

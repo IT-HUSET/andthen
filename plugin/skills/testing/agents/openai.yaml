@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Testing"
-  short_description: "Test strategy, authoring, and red-green-refactor discipline"
-  default_prompt: "Test work – strategy, coverage, authoring, or test-first (red-green-refactor). Target or scenario: "
+  short_description: "Test strategy, authoring, and the Prove-It bugfix flow"
+  default_prompt: "Test work – strategy, coverage, authoring, or a Prove-It bugfix. Target or scenario: "
 
 policy:
   allow_implicit_invocation: true

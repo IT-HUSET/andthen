@@ -84,7 +84,7 @@ You rarely need flags. Describe what you want and the skill picks its mode or le
 | [`implement-fix`](#implement-fix) | Small change or review fixes, no FIS |
 | [`ship`](#ship) | Close out the branch and open the PR |
 | [`triage`](#triage) | Diagnose and fix failures |
-| [`testing`](#testing) | Test strategy, authoring, TDD, prove-it |
+| [`testing`](#testing) | Test strategy, authoring, prove-it |
 | [`handoff`](#handoff) | Write a resume document for a fresh session |
 | [`architecture`](#architecture) | Design advice and structural analysis |
 | [`domain`](#domain) | Domain Map, glossary, event storming |
@@ -179,14 +179,14 @@ Writes the Feature Implementation Specification (FIS): the blueprint a fresh ses
 
 ### `exec-plan`
 
-`[--auto] [--tdd] [--worktree] [--no-full-tier] <path-to-fis | plan directory>`
+`[--auto] [--worktree] [--no-full-tier] <path-to-fis | plan directory>`
 
 Implements one FIS in the current session, or runs a plan directory, giving each ready story to a fresh subagent. Either way it runs the project's checks and every proof the FIS names, has a fresh reviewer check the change, and completes a story only on executed proof.
 
 Run a plan one story per fresh session, as `plan` and each story run print it: you read every result and can adjust the next story's FIS before it runs. The plan directory runs every story without stopping, for unattended or parallel execution, and runs the full tier once on the final tree where story by story runs it per story.
 
 - **You get**: committed code per story, its commit message a brief subject with `Story-ID:` and `Plan:` trailers, and the story's `plan.json` row set to `done` and a `verified` summary quoting the proof it ran. The report ends with a `Reviewed:` line (what reviewed the change, what stays open) and a `Next (fresh session):` line. Each story then gets one `simplify-code` pass over its code, as its own `refactor` commit, before the next story runs (under `--worktree`, one per batch). Open findings are recorded in the FIS under `## Implementation Observations`.
-- **Options**: `--tdd` implements test-first. `--worktree` runs a plan's independent stories in parallel, each on its own branch in its own git worktree, merged back after each batch. `--no-full-tier` runs the fast check tier where the full one would run, for a caller that runs the full tier itself.
+- **Options**: `--worktree` runs a plan's independent stories in parallel, each on its own branch in its own git worktree, merged back after each batch. `--no-full-tier` runs the fast check tier where the full one would run, for a caller that runs the full tier itself.
 - **Good to know**:
   - On the remote's default branch it first asks whether to start a feature branch, because every story commits to the current branch. An unattended run stays where it is.
   - A direct story run asks before building on dependency stories that are not `done`. An unattended run stops.
@@ -201,7 +201,6 @@ Run a plan one story per fresh session, as `plan` and each story run print it: y
 
 ```bash
 /andthen:exec-plan docs/specs/data-export/s01-data-export.md
-/andthen:exec-plan --tdd docs/specs/dashboard/s01-project-setup.md
 /andthen:exec-plan docs/specs/dashboard/
 /andthen:exec-plan --worktree docs/specs/dashboard/   # independent stories in parallel, one worktree each
 ```
@@ -312,16 +311,17 @@ Investigates, diagnoses, and fixes build failures, configuration errors, runtime
 
 ### `testing`
 
-`[--mode strategy|tdd|prove-it] [target/scope]`
+`[--mode strategy|prove-it] [target/scope]`
 
 Test strategy, coverage, and test authoring. With no mode it writes tests for the scope.
 
 - **You get**: tests at any level, E2E included, following the conventions in your `Testing Strategy` document.
 - **Options**:
   - `strategy` writes `docs/TESTING-STRATEGY.md`, sized to your product's stage and scale. It asks the decisions code cannot answer, such as high-risk areas, E2E journeys, and coverage gates, each with a recommendation. It writes no tests.
-  - `tdd` drives red, green, refactor one behavior at a time.
   - `prove-it` is the bugfix flow: a failing test reproduces the defect before any production change.
-- **Good to know**: a test is never deleted, disabled, or weakened to make a build green.
+- **Good to know**:
+  - Test-first applies wherever your `Testing Strategy` document or your request requires it, and each test is shown failing for the missing behavior before the code that passes it. `exec-plan` stories follow it too, and a plan run's stories take it only from the `Testing Strategy` document.
+  - A test is never deleted, disabled, or weakened to make a build green.
 
 ```bash
 /andthen:testing --mode strategy                      # write docs/TESTING-STRATEGY.md

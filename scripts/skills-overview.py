@@ -315,7 +315,7 @@ core = [("now-what", "routes you to a skill", "First-stop router – inspects pr
         ("handoff", "resume next session", "Compact the conversation into a document a fresh session resumes from; durable fragments go to the Learnings document."),
         ("triage", "debug and fix", ["Investigate, diagnose, and fix build failures, config errors, runtime bugs, regressions, test failures.",
                     "A reproducible bug gets a failing test before the fix. No spec, no plan state."]),
-        ("testing", "strategy and TDD", ["Test strategy (writes the Testing Strategy document), test authoring, TDD, and the Prove-It bugfix flow.",
+        ("testing", "strategy and tests", ["Test strategy (writes the Testing Strategy document), test authoring, test-first where required, and the Prove-It bugfix flow.",
                      "Suites at every level, E2E included."]),
         ("visual-validation", "UI against its design", "Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks."),
         ("visualize", "artifact as a page", ["Draw an AndThen artifact – a model, a board, a plan, any spec or report – as one self-contained HTML page",

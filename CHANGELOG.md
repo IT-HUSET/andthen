@@ -14,6 +14,9 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`exec-plan` simplifies each story before the next one runs.** `simplify-code` runs after every story's commit, or once per batch under `--worktree`, as its own `refactor` commit, so the next story and your read between stories meet tidied code. The single pass at the end of a plan is gone.
 - **PRD acceptance criteria are EARS rules.** `clarify` writes each feature's criteria as `While <precondition>, when <trigger>, the <system name> shall <response>` and its error cases as `If <condition>, then the <system name> shall <response>`, replacing the separate Validation and Error Handling lists, so `plan`'s self-review checks each error case has a scenario.
 
+### Removed
+- **Breaking: `testing --mode tdd` and `exec-plan --tdd` are gone; test-first is a project convention.** Require it in your `Testing Strategy` document (`testing --mode strategy` asks) or in the request, and every test written under it is shown failing for the missing behavior, with the failure quoted, before the code that passes it. A plan run's stories take it only from the `Testing Strategy` document. Prove-It for bugfixes and `implement-fix`'s test-first are unchanged.
+
 ---
 
 ## [1.0.0-rc.7] – 2026-10-16

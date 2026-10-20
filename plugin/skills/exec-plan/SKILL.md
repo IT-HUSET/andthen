@@ -1,6 +1,6 @@
 ---
 description: Execute a FIS, or a plan directory with one fresh subagent per story (`--worktree` runs independent stories in parallel) – implement, verify against its own proofs, review, complete on executed proof. Trigger on 'implement this FIS', 'execute the plan', 'run the stories in parallel'.
-argument-hint: "[--auto] [--tdd] [--worktree] [--no-full-tier] <path-to-fis | plan directory>"
+argument-hint: "[--auto] [--worktree] [--no-full-tier] <path-to-fis | plan directory>"
 ---
 
 # Execute Feature Implementation Specification
@@ -12,7 +12,6 @@ Execute a FIS, or a plan with one fresh subagent per story, verify against its p
 `$ARGUMENTS`, minus flags, is a FIS (`FIS_FILE_PATH`), or a plan directory or its `plan.json` (`PLAN_DIR` is the directory).
 
 - `--auto` makes the run unattended: read [`unattended-runs.md`](../../references/unattended-runs.md) and follow it.
-- `--tdd` writes tests first.
 - `--worktree` runs a plan run's ready stories in parallel worktrees.
 - `--no-full-tier` runs the fast tier where the run would run the full one, for a caller that runs the full tier on the final tree.
 
