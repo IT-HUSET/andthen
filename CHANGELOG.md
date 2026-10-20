@@ -6,7 +6,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [Unreleased]
+## [1.0.0-rc.8] – 2026-10-20
 
 ### Changed
 - **A several-story plan runs one story per session by default.** `plan` closes on `exec-plan` for the first dependency-ready story's FIS, `--auto` included, and each story run names the next, so you read every result and can adjust the next story before it runs. `now-what` routes an active plan the same way. `exec-plan` on the plan directory stays the route for unattended or parallel (`--worktree`) runs, and runs the full tier once on the final tree where story by story runs it per story.
