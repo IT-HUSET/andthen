@@ -19,7 +19,9 @@ It ships to Claude Code and Codex CLI as one marketplace plugin – one shared `
 
 ## Project Document Index
 
-Each document here is read whole whenever its trigger matches, so keep them short and trim stale entries when you append. When an append would make a document too long to read whole, split it into topic files beside it (**shards**) and leave one pointer line per shard in it, as `Decisions` is over `adrs/`. Judge the length by reading, never by a count. Open a shard only when the task names its topic. Entry names are how skills refer to these documents; keep them stable.
+Read a document whole when its trigger matches. When you append, prune stale entries, and split one still too long into topic files beside it (**shards**), leaving a pointer line per shard in the original; open a shard only when the task names its topic. Skills cite entries by name, so keep names stable.
+
+Create a missing document and its entry here from `project-document-templates.md` when that file is loaded, else through a subagent that invokes the `andthen:init` skill with `seed <name>`.
 
 - **Product** – `docs/PRODUCT.md`: goals, non-goals, principles, and Proportionality facts; the principles and facts assess added machinery. Read before proposing or changing product scope, skills, workflows, or architecture; update when goals, non-goals, or scale facts change.
 - **Architecture** – `docs/ARCHITECTURE.md`. Read for architecture-touching changes: skill structure, shared references, install-time propagation.
