@@ -17,7 +17,7 @@ Re-read `plan.json` before each batch and take its wave, the stories now depende
 - **Without `--worktree`**, run the wave one story at a time, because a shared tree shares one test run.
 - **With `--worktree`**, dispatch a batch of the wave at once, up to what you can triage in one re-read (about five), and merge every return before the next batch, so dependents branch from a base holding what they depend on.
 
-**Dispatch** a fresh implementer subagent that invokes the `andthen:exec-plan` skill on `{FIS_PATH}`, telling it a plan run dispatched it, with:
+**Dispatch** a fresh implementer subagent that invokes the `andthen:exec-plan` skill on `{FIS_PATH}`, telling it it is a story subagent of an `andthen:exec-plan` plan run, with:
 - `--auto`, whether or not this run carries it, since nobody is watching a story subagent;
 - `--no-full-tier`, since the full tier it defers is Step 3's;
 - `--tdd` when this run received it.
@@ -28,7 +28,7 @@ The FIS names its own plan, so no further argument passes. The subagent owns the
 
 **Containment.** Report a failed story's dependents `skipped`, with `blocked_by`, in the run report only: their rows stay unchanged, because `skipped` is terminal and they would never run again. An unattended run continues independent stories only where the failed changes are provably isolated – always so under `--worktree`, where they never left the story's worktree – and stops otherwise. Never start a second writer over a failed story's unfinished edits.
 
-**Batch discovery triage.** After each batch, route a discovery that affects an unstarted story into its FIS before dispatch: a scope-preserving constraint under `## Discovered Requirements`, a contract change as a decision – asked, or in an unattended run its recommendation recorded per `unattended-runs.md` § Recording an assumption.
+**Between stories.** After each story, or each batch under `--worktree`, take both steps of `between-stories.md` before the next dispatch or Step 3.
 
 ## Step 3: Final verification
 
@@ -41,7 +41,7 @@ Each repair round of a red gate is a fresh implementer subagent that invokes the
 
 A round that turns nothing green, changes anything outside the repository, or returns malformed output fails the run with the open checks and the affected stories. A repair writes no `plan.json` row: a red run gate blocks the run's success claim, not evidence already executed.
 
-Commit a repair per the commit rule, under the owning story's trailers. Once the gate is green, simplify when the skill's Workflow step 2 applies. Report any other change by path, as pending the user's commit.
+Commit a repair per the commit rule, under the owning story's trailers. Report any other change by path, as pending the user's commit.
 
 ## Step 4: Aggregate report
 
@@ -53,4 +53,4 @@ Where any story failed or was skipped, add `Completed`, `Failed`, `Skipped`, and
 
 Leave `plan.json` and the FIS files in place: the `andthen:ship` skill deletes them when the plan's branch ships.
 
-**The plan-level review is not yours**: after every story's report this is the run's most loaded context. End with exactly one `Next (fresh session):` line carrying it on `{PLAN_PATH}`, plus `--auto` in an unattended run. Under `--no-full-tier` the line opens with running the full tier first. Scope it to the `done` stories, because a review over the whole plan raises gap findings against stories nobody implemented: where any story failed or was skipped, name the `done` ids after `{PLAN_PATH}`. Where none is `done`, print `Next: no completed stories – nothing to review.` instead.
+**The plan-level review is not yours**: after every story's report this is the run's most loaded context. End with exactly one `Next (fresh session):` line carrying it on `{PLAN_PATH}`, plus `--auto` in an unattended run. Where the person stopped the run on a revision at triage, end on the skill's Follow-up revision line instead, because a review of the old spec would be spent. Under `--no-full-tier` the line opens with running the full tier first. Scope it to the `done` stories, because a review over the whole plan raises gap findings against stories nobody implemented: where any story failed or was skipped, name the `done` ids after `{PLAN_PATH}`. Where none is `done`, print `Next: no completed stories – nothing to review.` instead.

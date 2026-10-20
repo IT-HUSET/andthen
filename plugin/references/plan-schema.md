@@ -68,7 +68,7 @@ The path is repo-root-relative POSIX, with no leading `./` or trailing slash, re
 
 `andthen:plan` owns durable planning fields and initializes new stories to `pending`, `fis: null`, and `completedTaskIds: []`.
 
-Runtime state is `status`, `verified`, `fis`, and `completedTaskIds`. **The session executing a story writes its row** – a direct `andthen:exec-plan` run, or the story subagent a plan run dispatched. A plan run writes only under `--worktree`: the batch's rows as `in-progress`, committed before the batch branches, while no story copy exists yet. Authoring keeps one writer: the `andthen:plan` breakdown session writes the plan, and its story subagents report and never write it. Never put two writers on one copy of the file at once: racing writers lose a row.
+Runtime state is `status`, `verified`, `fis`, and `completedTaskIds`. **The session executing a story writes its row** – a direct `andthen:exec-plan` story run, or the dispatched story run of a plan run. A plan run writes only under `--worktree`: the batch's rows as `in-progress`, committed before the batch branches, while no story copy exists yet. Authoring keeps one writer: the `andthen:plan` breakdown session writes the plan, and its story subagents report and never write it. Never put two writers on one copy of the file at once: racing writers lose a row.
 
 Statuses: `pending` until execution starts, with `fis` recording whether the FIS exists; `in-progress` once execution starts, and still after a failure, which lives in the run report; `done`, written with `verified`; `skipped`, set only by hand. `done` and `skipped` are terminal for execution.
 

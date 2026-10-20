@@ -111,7 +111,7 @@ On a baseline, validate the *merged* document rather than the delta alone, so de
 
 - [ ] Every applicable template section present, complete, and self-consistent: no contradictions, no undefined vague terms, criteria testable.
 - [ ] `> **Source**:` names the resolved requirements source.
-- [ ] Every user story has testable acceptance criteria; every feature names its error handling; every non-functional requirement has a threshold.
+- [ ] Every user story has testable acceptance criteria; every feature's Acceptance Criteria take the template's EARS shape, its `If` rules included; every non-functional requirement has a threshold.
 - [ ] **Success Metrics are outcomes, not outputs**: every row has a baseline (or `unknown`), a target, and how it is observed.
 - [ ] **Problem-solution fit, both ways**: every pain or outcome in `Problem Definition`, `Success Metrics`, and the user stories' "so that" clauses is served by a `Feature Specifications` row, a `Non-Functional Requirements` threshold, or a `Scope > In Scope` capability, and every such item traces back to one. Add a feature or drop the pain; drop an orphan or justify it in `Problem Definition` (solutionism).
 - [ ] **Executive Summary derives, not declares**, per the template's Summary-not-source contract.
@@ -142,7 +142,8 @@ With `Record: tracker` in the `Issue Tracker` document, invoke the `andthen:trac
 
 Close on one `Next (fresh session):` line for the first case that applies, never a menu: the PRD carries the interview forward. A run another skill invoked prints none, because its caller owns the next step.
 
-- **An answer the plan already carries** – an amendment whose decision the FIS beside the PRD already states, as a Preflight answer does – the `andthen:exec-plan` skill on that plan's directory.
+- **An answer the plan already carries** – an amendment whose decision the FIS beside the PRD already states, as a Preflight answer does – the `andthen:exec-plan` skill on the FIS of that plan's first dependency-ready story.
+- **A started plan the amendment changes** – a `plan.json` beside the PRD with a story past `pending` – the `andthen:plan` skill on `"story <id> of <plan.json> – <what the amendment changed, and the FIS's Discovered Requirements>; revise its FIS"` for the first `pending` story it changes, because planning the PRD again rewrites `plan.json` over the stories already run, and `plan` never reads the old FIS.
 - **An open design fork** – a technical decision the PRD leaves open in its `Decisions Log`, `Constraints & Assumptions`, or `Open Questions` and the `Decisions` document does not settle, that binds beyond this work or is costly to reverse; or a `Decisions Log` row superseding a constraint or ADR the `Decisions` document records (downstream skills read that document as settled, so a reversal needs an ADR, not a PRD row) – the `andthen:decide` skill on `<prd-dir>`, naming the fork.
 - **Design first** – the `Decisions Log` puts design before planning and no wireframes cover it yet – the `andthen:ui-ux-design` skill on `<prd-dir>`, naming the modes it lacks, design-system before wireframes.
 - **Otherwise** – the `andthen:plan` skill on `<prd-dir>`, whatever the size: the story count is `plan`'s call.

@@ -77,7 +77,7 @@ When every plan story is `done` or `skipped`, read [`plan-schema.md`](../../refe
 
 - **`intent.md` present, no sibling `prd.md` or `plan.json`** – the `andthen:clarify` skill, which folds it into the PRD.
 - **`prd.md` exists, no `plan.json`** – the `andthen:decide` skill when it leaves open a design fork the `Decisions` document does not settle; else the `andthen:ui-ux-design` skill when its `Decisions Log` puts design before planning and no wireframes cover it yet; else the `andthen:plan` skill.
-- **`plan.json` with a story neither `done` nor `skipped`** – the `andthen:exec-plan` skill: on the FIS for a one-story plan, else on the plan directory.
+- **`plan.json` with a story neither `done` nor `skipped`** – the `andthen:exec-plan` skill on the FIS of the first dependency-ready story in source order; with none, on the plan directory.
 - **Review report present (any lens) with findings and no `## Remediation Status`** – the `andthen:implement-fix` skill.
 - **Every plan story `done` or `skipped`, and no plan review yet, or its `## Remediation Status` marks a CRITICAL or HIGH finding RESOLVED or a Fix finding PARTIALLY RESOLVED** – the `andthen:review` skill on `<plan.json>` with `--fix`, because fixes need a reading their own session did not write.
 - **Every plan story `done` or `skipped`, and the plan review has a CRITICAL or HIGH finding `DEFERRED`** – `Next: blocked –`; once the user decides, the `andthen:implement-fix` skill on the report, carrying that decision.

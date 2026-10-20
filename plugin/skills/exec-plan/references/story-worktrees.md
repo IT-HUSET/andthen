@@ -7,7 +7,7 @@ Each story runs on its own branch in its own worktree and commits its work there
 A worktree carries only what HEAD held when it branched, so commit the batch's shared writes on `BASE_BRANCH` first, as one `chore` commit with no story trailers, since no one story owns them:
 
 - **Before the first batch**, resolve `Key Dev Commands` per `verification-evidence.md`, creating it per the Index preamble when it does not exist. Every story then finds it and none creates it: copies written in parallel worktrees conflict at merge, or vanish with a discarded worktree.
-- **Before each later batch**, the bundle writes of batch discovery triage.
+- **Before each later batch**, the bundle writes of discovery triage.
 - **Every batch**, its stories' rows as `status: in-progress`, so the main checkout's `plan.json` shows what is executing while the stories run elsewhere.
 
 ## Setup and dispatch

@@ -47,7 +47,7 @@ Read by condition:
 
 ### 4. Settle the intent
 
-Lock the Intent and Expected Outcomes before any scenario, from the source's goal and the story's scope. Ask what the source leaves open at requirements altitude – the outcome or end state, an actor, a threshold, an unhappy path the intent turns on – in one round per `preflight.md`'s sitting, each with its recommendation. With no PRD or intent doc upstream, the drafted Intent and Expected Outcomes open the round as its first recommendation: an anchor the user never saw is a guess every scenario inherits. A source too thin to draft them is requirements work: the run stops and closes on the `andthen:clarify` skill.
+Lock the Intent and Expected Outcomes before any scenario, from the PRD's Problem Statement, Target Users, Desired Outcome and Success Metrics, else the source's goal, and from the story's scope. Ask what the source leaves open at requirements altitude – the outcome or end state, an actor, a threshold, an unhappy path the intent turns on – in one round per `preflight.md`'s sitting, each with its recommendation. With no PRD or intent doc upstream, the drafted Intent and Expected Outcomes open the round as its first recommendation: an anchor the user never saw is a guess every scenario inherits. A source too thin to draft them is requirements work: the run stops and closes on the `andthen:clarify` skill.
 
 ### 5. Write the FIS
 

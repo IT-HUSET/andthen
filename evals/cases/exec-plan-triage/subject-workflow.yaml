@@ -1,0 +1,14 @@
+name: andthen-exec-plan-triage-subject
+description: Execute one story FIS of a committed two-story plan, unattended.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: exec-plan
+    name: Execute the story
+    skill: andthen:exec-plan
+    prompt: "prompt.md"
+    outputs:
+      completion:
+        format: text

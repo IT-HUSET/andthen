@@ -6,6 +6,16 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [Unreleased]
+
+### Changed
+- **A several-story plan runs one story per session by default.** `plan` closes on `exec-plan` for the first dependency-ready story's FIS, `--auto` included, and each story run names the next, so you read every result and can adjust the next story before it runs. `now-what` routes an active plan the same way. `exec-plan` on the plan directory stays the route for unattended or parallel (`--worktree`) runs, and runs the full tier once on the final tree where story by story runs it per story.
+- **A story run carries its discoveries into the stories still to run, and asks before the next one builds on a spec they contradict.** A direct `exec-plan` story run appends each constraint that affects an unstarted story to that FIS and commits it with the story; a plan run does the same after each story, or each batch under `--worktree`. A contradicted FIS or a scope change is asked about, and a yes makes the `Next (fresh session):` line the `plan` revision of that FIS or the `clarify` PRD amendment; `--auto` decides, records its reading in the appended requirement, and continues. The next story attests each constraint it inherited over its proof. `clarify` amending a started plan's PRD now routes to the `plan` revision of the first unstarted story it changes.
+- **`exec-plan` simplifies each story before the next one runs.** `simplify-code` runs after every story's commit, or once per batch under `--worktree`, as its own `refactor` commit, so the next story and your read between stories meet tidied code. The single pass at the end of a plan is gone.
+- **PRD acceptance criteria are EARS rules.** `clarify` writes each feature's criteria as `While <precondition>, when <trigger>, the <system name> shall <response>` and its error cases as `If <condition>, then the <system name> shall <response>`, replacing the separate Validation and Error Handling lists, so `plan`'s self-review checks each error case has a scenario.
+
+---
+
 ## [1.0.0-rc.7] – 2026-10-16
 
 ### Added

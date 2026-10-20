@@ -21,7 +21,7 @@ It is one plugin, `andthen`, with 21 skills and no runtime of its own to install
 
 <p align="center">
   <!-- pre-release: the raw link targets develop; point it at IT-HUSET/andthen/raw/main when 1.0 merges -->
-  <a href="https://github.com/IT-HUSET/andthen/raw/develop/assets/skills-overview.svg"><img src="assets/skills-overview.svg" alt="AndThen skills and workflow – the idea-to-merge chain (optional clarify, decide and ui-ux-design, then plan, exec-plan, review, implement-fix and ship) with where you take part: the interviews of clarify, decide and plan, three numbered gates (PRD, ADRs, PR), and two optional reads (the FIS files, the review report), the hand-off artifacts (intent.md or a short note, prd.md, ADRs, plan.json with a FIS per story), the thirteen standalone skills, and the four opt-in subagent roles"></a>
+  <a href="https://github.com/IT-HUSET/andthen/raw/develop/assets/skills-overview.svg"><img src="assets/skills-overview.svg" alt="AndThen skills and workflow – the idea-to-merge chain (optional clarify, decide and ui-ux-design, then plan, exec-plan, review, implement-fix and ship) with where you take part: the interviews of clarify, decide and plan, three numbered gates (PRD, ADRs, PR), and three reads (the FIS files, each story's report, the review report), the hand-off artifacts (intent.md or a short note, prd.md, ADRs, plan.json with a FIS per story), the thirteen standalone skills, and the four opt-in subagent roles"></a>
   <br><sub>Click the figure for the interactive version: hover a skill, artifact, or role to see what it does.</sub>
 </p>
 
@@ -66,7 +66,7 @@ The path through the workflow:
 1. **`clarify`** (optional) interviews you and writes the PRD. Skip it when the requirements already exist, in your head, an issue, or a document. A rule of thumb: if you can't list three concrete acceptance criteria, you have an idea, not requirements.
 2. **`decide`** (optional) settles a technical choice that reaches beyond this work or is costly to reverse, and records it as an architecture decision record (ADR). **`ui-ux-design`** (optional) designs new screens first when you choose that.
 3. **`plan`** writes the specs. It decides whether the work is one story or several.
-4. **`exec-plan`** builds the stories. For each one it writes the code and tests, runs every check, has a fresh subagent review it, and commits.
+4. **`exec-plan`** builds the stories, one per fresh session. For each one it writes the code and tests, runs every check, has a fresh subagent review it, carries what it learned into the stories still to run, commits, and simplifies the result. Between stories you read the result and can adjust the next story's FIS before it runs.
 5. **`review --fix`** reviews the finished work as a whole and applies the findings it marks `Fix`. Findings marked `Note` are left for you to decide. A clean review ends on a `Next (fresh session):` line for `ship`.
 6. **`ship`** lands what each story's `Implementation Observations` hold worth keeping, deletes `plan.json` and the FIS files, commits, and shows the PR title and body (a merge request on GitLab). It pushes and opens it after your one yes. The PR body states the change's intent, outcomes, and proof, in your PR template when you have one. With `prd.md`, it is where the stories' intent outlives the FIS files, however you merge.
 
@@ -85,21 +85,24 @@ Every step ends by printing the full next command to paste, including its target
 
 ### From a PRD
 
-`plan` splits a written source (a PRD, a requirements file, an issue) into as many stories as it needs, often just one. `exec-plan` then takes the whole plan directory:
+`plan` splits a written source (a PRD, a requirements file, an issue) into as many stories as it needs, often just one. `exec-plan` then takes one story per session, and each run prints the next:
 
 ```bash
 /andthen:clarify "users should be able to export their data"   # interviews you, writes docs/specs/data-export/prd.md
 /andthen:plan docs/specs/data-export/                          # fresh session: plan.json and one FIS per story
-/andthen:exec-plan docs/specs/data-export/                     # fresh session: builds every story, one subagent each
-/andthen:review --fix docs/specs/data-export/plan.json   # fresh session: the Next line exec-plan printed
+/andthen:exec-plan docs/specs/data-export/s01-export-request.md   # fresh session: the Next line plan printed
+/andthen:exec-plan docs/specs/data-export/s02-export-download.md  # fresh session: the Next line S01 printed
+/andthen:review --fix docs/specs/data-export/plan.json   # fresh session: the Next line the last story printed
 /andthen:ship docs/specs/data-export/plan.json           # fresh session: the Next line review printed
 ```
+
+To build every story without stopping, from CI or in parallel worktrees, run `exec-plan` on the plan directory instead (`--auto`, `--worktree`). It gives each story a fresh subagent and runs the full check tier once on the final tree, where story by story runs it once per story.
 
 Each review mode (lens) checks one thing: `code` the code itself, `gap` whether it matches its source and specs, `security` its vulnerabilities, and `outcome` whether the feature solves the problem the PRD describes. `review` picks the lenses the plan supports, so paste the line `exec-plan` printed.
 
 ### Where you take part
 
-You answer when `clarify` and `decide` interview you and when `plan` asks its preflight questions; otherwise the workflow runs on its own. Three points need your sign-off, because what they hold outlives the branch:
+You answer when `clarify` and `decide` interview you and when `plan` asks its preflight questions. Between stories you read the one that just ran, its report and any FIS it changed for the stories ahead, and adjust the next story before it runs ([revising a spec](COOKBOOK.md#revising-a-spec-or-re-planning)). Three points need your sign-off, because what they hold outlives the branch:
 
 - **After `clarify`** – read `prd.md`. Every story is cut from it, and it is the one planning file that survives the merge, unless your requirements live in the tracker.
 - **After `decide`**, when it ran – read the ADRs. Every later skill treats them as settled.

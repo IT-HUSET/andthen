@@ -57,13 +57,8 @@ Integrate each answer yourself where it is owned:
 - Cross-story contract → `sharedDecisions`.
 - Story-local → its FIS.
 
-A stop Preflight settles for a person's look lives in the follow-up line, never a plan status.
-
 **Gate**: every item decided or assumed; every story has a FIS.
 
 ## Follow-up
 
-Close on Preflight's Ending, when it ran, with the `plan.json` path before its one `Next (fresh session):` line, for the first case that applies. `<PLAN_DIR>` is `OUTPUT_DIR`, relative to the project root.
-
-- **Preflight settled a stop for a person's look** – the `andthen:exec-plan` skill on that story's FIS path (its dependencies first); look at the result, then run it on `<PLAN_DIR>`.
-- **Otherwise** – the `andthen:exec-plan` skill on `<PLAN_DIR>`, with `--worktree` to run independent stories in parallel, one worktree each, when the dependency graph lets two or more stories run at once.
+Close on Preflight's Ending, when it ran, with the `plan.json` path before its one `Next (fresh session):` line: the `andthen:exec-plan` skill on the first dependency-ready story's FIS, relative to the project root. Each direct story run names the next, so a person reads every result, and any stop Preflight settled for their look, before the next story runs.

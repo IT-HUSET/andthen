@@ -1,0 +1,7 @@
+{
+  "criteria": [
+    {"id": "TRIAGE_REACHES_THE_NEXT_FIS", "intent": "the story report names S02's FIS (docs/specs/count-summary/s02-write-run-summary.md) as a FIS the run changed, and says why: the finished story's recorded constraint, that the count excludes ledger lines the run skips, affects an unstarted story, so it was appended to S02's Discovered Requirements before the story's row was written, and S02's own scenarios and Expected Outcomes were left as written"},
+    {"id": "TRIAGE_NAMES_THE_REVISION", "intent": "the report says S02's FIS needs a revision that folds the constraint in, because the constraint contradicts one of its scenarios; names the route as the plan skill on `story S02 of docs/specs/count-summary/plan.json`; the bullet appended to S02's FIS carries the run's resolution of the contradiction in its Interpretation, the reading chosen and why (an `ASSUMPTION:` line there counts); and, because an unattended run decides and continues instead of waiting on the revision, its `Next (fresh session):` line is the exec-plan skill on S02's FIS rather than a plan revision, a plan-level review, or a bare success claim"},
+    {"id": "EXEC_PLAN_REPORT_ACCOUNTABILITY", "intent": "the story report, the diff, the commits, the executed proof lines it quotes, and the story's verified record support the same completion claim, with no unevidenced success and no failure left unreported"}
+  ]
+}

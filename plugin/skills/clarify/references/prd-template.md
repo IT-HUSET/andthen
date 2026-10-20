@@ -94,19 +94,13 @@ How the Desired Outcome will be known to have happened. Outcomes, not outputs: "
 #### FR1: [Feature Name]
 **Description**: [What capability is required]
 
-**Acceptance Criteria**:
-- [ ] [Observable outcome]
-- [ ] [Observable outcome]
+**Acceptance Criteria** – one EARS rule each, its `While` and `when` clauses optional, with an `If` rule for each unwanted condition (invalid input, a limit, a failure, an unavailable dependency) or a line saying it has none:
+- [ ] [While <precondition>, when <trigger>, the <system name> shall <observable response>]
+- [ ] [If <unwanted condition>, then the <system name> shall <observable response>]
 
 **Inputs / Outputs**:
 - **Inputs**: [user input, events, upstream data, parameters]
 - **Outputs**: [UI state, records, API responses, side effects]
-
-**Validation**:
-- [Validation rules, limits, rejection conditions]
-
-**Error Handling**:
-- [Failures, invalid inputs, unavailable dependencies]
 
 **Priority**: Must / Should / Could and P0 / P1 / P2
 
@@ -135,6 +129,8 @@ How the Desired Outcome will be known to have happened. Outcomes, not outputs: "
 
 
 ## Edge Cases
+
+Cases no single feature owns; a feature's own unwanted conditions are its `If` rules.
 
 | Scenario | Expected Behavior | Recovery Path |
 |----------|-------------------|---------------|

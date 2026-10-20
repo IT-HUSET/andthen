@@ -1,5 +1,5 @@
 <svg viewBox="0 0 1160 892" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ttl" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
-<title id="ttl">AndThen skills and workflow – the one workflow with its three human gates and two optional reads, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>
+<title id="ttl">AndThen skills and workflow – the one workflow with its three human gates and three optional reads, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>
 <style>
 .bg{fill:#FBF8F3}
 .t1{fill:#1A140E}.t2{fill:#5E564C}.t3{fill:#6F665B}
@@ -58,7 +58,7 @@
 <rect x="24" y="84" width="1112" height="226" rx="14" class="band-flow"/>
 <text x="46" y="110" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">THE WORKFLOW</text>
 <text x="46" y="134" class="t1" font-size="16" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="600">Idea to merged: you decide, agents build</text>
-<text x="46" y="153" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Your part: answer the interviews and sign off at the three gates; the chain runs the rest.</text>
+<text x="46" y="153" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Your part: answer the interviews, read each story's result, sign off at the three gates.</text>
 <text x="46" y="169" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Every step reads what the step before it wrote and closes on the printed next command.</text>
 <text x="46" y="185" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">clarify and the design stage are optional: decide when a choice binds beyond the work,</text>
 <text x="46" y="201" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">UI design where a screen has none.</text>
@@ -76,7 +76,7 @@
 <text x="628" y="180" class="cp-t" font-size="9.375" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="700">3</text>
 <text x="644" y="181" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">PR / MR: settle open Notes, read ship's recommendations, approve push</text>
 <circle cx="628" cy="193" r="4.1" class="cp-ring"/>
-<text x="644" y="197" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">worth a read: the FIS files, the review report</text>
+<text x="644" y="197" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">worth a read: the FIS files, each story's report, the review report</text>
 <g class="hot" tabindex="0" data-hotspot="clarify">
 <rect x="46" y="236" width="100" height="44" rx="7" class="pre"/>
 <text x="96" y="255" class="pre-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">clarify</text>
@@ -135,15 +135,16 @@
 <g class="hot" tabindex="0" data-hotspot="exec-plan">
 <rect x="486" y="236" width="150" height="44" rx="9" class="exec"/>
 <text x="561" y="256" class="exec-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">exec-plan</text>
-<text x="561" y="271" class="exec-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">FIS or plan directory</text>
+<text x="561" y="271" class="exec-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">one story per session</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
 <text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · exec-plan</text>
-<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Implement one FIS where it is invoked: the tasks, the proofs and the full tier, one fresh reviewer subagent, the fixes, the verified line.</text>
-<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">On a plan directory: one fresh exec-plan subagent per ready story, the full tier and one simplify-code pass, then a Next (fresh session): line for the plan review.</text>
+<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">One story per fresh session: the tasks, the proofs and the full tier, one fresh reviewer subagent, the fixes, the verified line, then the next story's line.</text>
+<text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">On a plan directory, unattended or parallel: one fresh exec-plan subagent per ready story, a simplify-code pass per story, the full tier once, then the plan review line.</text>
 </g>
 </g>
 <line x1="642" y1="258" x2="654" y2="258" class="arrow" marker-end="url(#ah)"/>
+<circle cx="648" cy="224" r="5.5" class="cp-ring"/>
 <g class="hot" tabindex="0" data-hotspot="review">
 <rect x="660" y="236" width="224" height="44" rx="9" class="tail"/>
 <text x="772" y="256" class="tail-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">review</text>

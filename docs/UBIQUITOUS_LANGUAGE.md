@@ -30,6 +30,8 @@
 | plan.json | Local typed runtime plan written by the `andthen:plan` skill and read by execution, review, and routing skills; runtime state is written by the session executing each story. | plan.md, markdown plan, plan table, ledger |
 | Story | Vertical, bounded, verifiable unit in `plan.json` that maps 1:1 to a FIS. | task, ticket, work item |
 | Wave | The stories dependency-ready at one point of a plan run (`plan-schema.md` § Execution semantics), derived from `dependsOn` and never stored. | dependency-ready batch, phase, batch field |
+| Plan run | An `andthen:exec-plan` run on a plan directory or its `plan.json`, dispatching each ready story as a story run and owning the final gate (`plan-run.md`). | plan execution, orchestrated run |
+| Story run | An `andthen:exec-plan` run on one FIS (`story.md`): dispatched when it runs as a story subagent of an exec-plan plan run, as its request says, else direct. | FIS run, direct FIS execution, a story run no plan run dispatched |
 | sourceRefs | `plan.json` story field for PRD feature IDs, anchors, and upstream requirement references that seed FIS context; Markdown label `Source refs`. | Source Refs, citations |
 | assetRefs | `plan.json` story field for wireframes, ADRs, design-system references, or other upstream assets the FIS author needs; Markdown label `Asset refs`. | Asset Refs |
 | bindingConstraints | `plan.json` top-level array of pointers (`featureId` + PRD `anchor`) to the spans that bind the plan; Markdown/prose section `Binding Constraints`. | hard requirements |
@@ -58,7 +60,7 @@
 | Subjective Finding | Review or visual-validation finding that requires judgment rather than a binary check. | review issue |
 | Boy Scout tidy | A behavior-preserving fix in an edited function or doc section, or a minor one elsewhere, or an obvious small bug in an edited function fixed under a failing test; named in the report. | drive-by refactor, cleanup pass |
 | NOTICED BUT NOT TOUCHING | Report label for an issue no tidy can fix and the task did not ask for, that someone should act on. | out-of-scope notes, FYI |
-| Verification tier | `Key Dev Commands` tier: `fast` for each plan story; `full` for direct FIS execution or a plan run at convergence. | quick tests, full suite |
+| Verification tier | `Key Dev Commands` tier: `fast` for each plan story; `full` for a direct story run or a plan run at convergence. | quick tests, full suite |
 | Traceability Gate | Requirement that tests and motivated code changes trace to FIS requirements or explicitly appended discovered requirements. | trace check |
 | Discovered Requirement | Requirement found during execution and appended through the sanctioned FIS channel before dependent tests or code are written. | inferred requirement |
 | Finding | Concrete review issue with severity, evidence, and remediation guidance. | comment, issue |

@@ -133,7 +133,7 @@ H = 892
 PANEL_Y = H - PANEL_H - 24
 
 out.append(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ttl" font-family="{SANS}">')
-out.append('<title id="ttl">AndThen skills and workflow – the one workflow with its three human gates and two optional reads, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>')
+out.append('<title id="ttl">AndThen skills and workflow – the one workflow with its three human gates and three optional reads, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>')
 out.append('''<style>
 .bg{fill:#FBF8F3}
 .t1{fill:#1A140E}.t2{fill:#5E564C}.t3{fill:#6F665B}
@@ -196,7 +196,7 @@ text(BX + 22, PANEL_Y + 70, "Inside the README this image is static – click it
 # ------------------------------------------------ the workflow
 y = 84
 band(BX, y, BW, 226, "band-flow", "THE WORKFLOW", "Idea to merged: you decide, agents build",
-     ["Your part: answer the interviews and sign off at the three gates; the chain runs the rest.",
+     ["Your part: answer the interviews, read each story's result, sign off at the three gates.",
       "Every step reads what the step before it wrote and closes on the printed next command.",
       "clarify and the design stage are optional: decide when a choice binds beyond the work,",
       "UI design where a screen has none."])
@@ -209,7 +209,7 @@ text(LGX, y + 26, "HUMAN-IN-THE-LOOP CHECKPOINTS", "kick", 11, family=MONO, spac
 for i, (n, ln) in enumerate([("ask", "you answer: clarify and decide interview you, plan asks its preflight questions"),
                              (1, "read prd.md"), (2, "read the ADRs, when decide ran"),
                              (3, "PR / MR: settle open Notes, read ship's recommendations, approve push"),
-                             (None, "worth a read: the FIS files, the review report")]):
+                             (None, "worth a read: the FIS files, each story's report, the review report")]):
     if n == "ask":
         bubble(LGX + 8, y + 44 + i * 16)
     else:
@@ -236,11 +236,11 @@ PLAN_X = f.box(140, key="plan", label="plan", cls="step", sub="one story or seve
                body=["The FIS for the work, from a PRD, a description, a file or an issue URL – one story, or plan.json plus a FIS per story when it needs several.",
                      "Several stories get one fresh authoring subagent each and one cross-cutting review. Self-review, preflight questions, then the exec-plan line."])
 f.arrow(read=True)
-f.box(150, key="exec-plan", label="exec-plan", cls="exec", sub="FIS or plan directory",
+f.box(150, key="exec-plan", label="exec-plan", cls="exec", sub="one story per session",
       kicker="andthen · exec-plan",
-      body=["Implement one FIS where it is invoked: the tasks, the proofs and the full tier, one fresh reviewer subagent, the fixes, the verified line.",
-            "On a plan directory: one fresh exec-plan subagent per ready story, the full tier and one simplify-code pass, then a Next (fresh session): line for the plan review."])
-f.arrow()
+      body=["One story per fresh session: the tasks, the proofs and the full tier, one fresh reviewer subagent, the fixes, the verified line, then the next story's line.",
+            "On a plan directory, unattended or parallel: one fresh exec-plan subagent per ready story, a simplify-code pass per story, the full tier once, then the plan review line."])
+f.arrow(read=True)
 f.box(224, key="review", label="review", cls="tail", sub="code · gap · security · outcome",
       kicker="andthen · review",
       body=["Proof-led code / gap / security / outcome review over the plan – outcome when it names a PRD – and PR review; a story's own review is one",
