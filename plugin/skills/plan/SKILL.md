@@ -32,7 +32,7 @@ Read what the request points to. Fetch a tracker item as the `Issue Tracker` doc
 
 Open code only where a decision, a `Proof` binding or a rename's inventory needs it. A `Decisions` row narrows the options; a request contradicting one is recorded in the FIS's Constraints for the user to reconcile, never Stop-the-Line, never asked, and never edited into `Decisions`. A needed decision nothing settles is a Preflight item recommending the `andthen:decide` skill. Screens the source adds that neither the `Wireframes` document covers nor a recorded answer settles are asked in the requirement round, recommending the `andthen:ui-ux-design` skill first: accepted, the run stops and closes on it. An unattended run never stops here: it specifies the screens from the source.
 
-Flag or drop what the `Product` document's Proportionality facts do not carry, or a Non-Goal forbids, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). Absent facts license no imagined scale: ask all three in the requirement round and write the answers into that section, `unknown` for one left open. An unattended run skips the question.
+**Anchor on the `Product` document's Proportionality facts.** Drop or flag what they do not carry or a Non-Goal forbids, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). Absent or `unknown` facts are no licence to size against imagined scale. When the facts are absent, ask for all three in the requirement round, and write the answers into its Proportionality section, `unknown` for one left unanswered. An unattended run skips the question.
 
 ### 3. One story or several
 
