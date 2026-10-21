@@ -6,9 +6,15 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [Unreleased]
+## [1.0.0-rc.8] – 2026-10-20
 
 ### Changed
+- **A follow-up `review` after fixes covers only what changed.** When the latest report on the target carries `**Remediated**:`, the follow-up reviews `git diff <its Revision>`, the callers of the code it changes, and that report's open findings, instead of the whole target again.
+- **`plan` flags a story as oversize past about 12 tasks**, down from 18, because a 16-task story ran 629 turns at up to 805k tokens of context.
+- **`implement-fix` delegates a large Fix set and recommends on the rest.** Past about 4 Fix findings or 3 files it hands each area group to a fresh `implementer` subagent and verifies the combined diff itself; an attended run ends with a `Recommend:` line on each open Note and decision.
+- **`exec-plan` dispatches its subagents in the foreground** and awaits them within its turn, because a subagent is never woken by its own background children and its ended turn hands back unfinished work.
+- **The CRITICAL-RULES guideline `init` installs covers waiting and shell traps**: wait without outliving the prompt cache (a subagent runs what it awaits in the foreground), quote `=`-leading words and globs under zsh, and keep a subagent's `name` to `[A-Za-z0-9_-]`.
+- **A handoff lists the session's uncommitted paths** in "Where we are".
 - **The `context-hint.py` Stop hook shows you the size instead of blocking the stop.** It prints a `systemMessage`, so no model turn is spent on it, and adds "hand remaining pinned work to a subagent". It fires in any interactive session (the transcript's `entrypoint`, not a second prompt) and waits while background tasks are in flight. `block-dangerous-commands.py` now refuses `python3 -I -c` and other flag-before-`-c` forms, skips heredoc bodies, and names the fix in its message.
 - **`ship`'s pull request says where a person must read closely**: the files where an error does the most harm, choices no check can judge, and what the proof left unchecked, such as skipped checks and work committed or fixed after the latest review, or that no review ran. This replaces marking unreviewed commits in the publish question, which missed the fixes `ship` itself commits. Where reverting the merge would not undo the change, the body says what does.
 - **A review finding names every place its defect occurs in the reviewed scope**, so one fix round, which edits only the files findings name, reaches every instance instead of leaving the rest for another review.
@@ -17,12 +23,6 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`simplify-code` re-runs the checks its baseline ran**, instead of scoping tests to the changed paths, so a regression outside them shows against the baseline.
 - **An explicit request for a partitioned `review` fans out even on a small diff**, where a small diff used to be reviewed inline anyway.
 - **The `review` code lens judges resilience against the `Product` document's Proportionality facts**, flagging a dependency whose failure mode is unstated, instead of requiring a fixed set of timeout, retry, and circuit-breaker patterns.
-
----
-
-## [1.0.0-rc.8] – 2026-10-20
-
-### Changed
 - **A several-story plan runs one story per session by default.** `plan` closes on `exec-plan` for the first dependency-ready story's FIS, `--auto` included, and each story run names the next, so you read every result and can adjust the next story before it runs. `now-what` routes an active plan the same way. `exec-plan` on the plan directory stays the route for unattended or parallel (`--worktree`) runs, and runs the full tier once on the final tree where story by story runs it per story.
 - **A story run carries its discoveries into the stories still to run, and asks before the next one builds on a spec they contradict.** A direct `exec-plan` story run appends each constraint that affects an unstarted story to that FIS and commits it with the story; a plan run does the same after each story, or each batch under `--worktree`. A contradicted FIS or a scope change is asked about, and a yes makes the `Next (fresh session):` line the `plan` revision of that FIS or the `clarify` PRD amendment; `--auto` decides, records its reading in the appended requirement, and continues. The next story attests each constraint it inherited over its proof. `clarify` amending a started plan's PRD now routes to the `plan` revision of the first unstarted story it changes.
 - **`exec-plan` simplifies each story before the next one runs.** `simplify-code` runs after every story's commit, or once per batch under `--worktree`, as its own `refactor` commit, so the next story and your read between stories meet tidied code. The single pass at the end of a plan is gone.

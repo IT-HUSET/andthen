@@ -4,7 +4,7 @@
 
 **Shipping.** The plan's branch is ready once every story is `done` or `skipped` (cut from scope), and its plan-level review over the `done` stories leaves no CRITICAL or HIGH finding open and no load-bearing check failing. A `DEFERRED` finding is still open: a deferral names a blocker, it does not accept the risk.
 
-**Machine form.** `plan.schema.json` (JSON Schema draft 2020-12) owns the shape invariants. The skill that authors a plan checks its candidate against it before writing.
+**Machine form.** `plan.schema.json` (JSON Schema draft 2020-12) owns the shape invariants. The skill that authors a plan checks its candidate by reading it against the schema before writing.
 
 ## Document Shape
 

@@ -382,7 +382,7 @@ decision. Finish with the final verdict, the report paths, and the remaining Not
 DEFERRED findings.
 ```
 
-**Expect.** One full review, then follow-up reviews: each a full `review` run on the same lenses with its own report and verdict, a `Follows` header naming the report before it, and a summary of which of that report's open findings are now resolved or still open.
+**Expect.** One full review, then follow-up reviews: each a `review` run on the same lenses with its own report and verdict, scoped to the fix diff since the report before it, that code's callers, and the report's open findings, a `Follows` header naming the report before it, and a summary of which of that report's open findings are now resolved or still open.
 
 The loop ends on the hand-off, never on the verdict or a severity count: a `Note` no fix round may apply can hold readiness at Needs Fixes, so "until Ready" or "until no MEDIUM remains" may never terminate, while the `Next` line asks for another review only after a round fixed a CRITICAL or HIGH finding or left a fix partial. A blocked CRITICAL or HIGH fix is deferred and escalated, which is the "needs a decision" stop. Both come back to you with the last report.
 
