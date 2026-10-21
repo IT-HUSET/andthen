@@ -27,8 +27,6 @@ Write `OUTPUT_DIR/plan.json` per `plan-schema.md`, with its two optional arrays:
 - `sharedDecisions`: one entry per real cross-story contract, an interface, name or abstraction two stories must agree on. Zero or one is normal, and an invented entry binds every story downstream.
 - `bindingConstraints`: a pointer to each at-risk "must" or "must not" span in the source, never its text.
 
-Check each candidate against `plan.schema.json`, and never write one that fails.
-
 ### 4. Author the FIS
 
 Launch, in source order, stories whose `dependsOn` stories already have their FIS, about five per batch so one re-read verifies it, and recompute after each batch. For each story, spawn a fresh implementer subagent that invokes the `andthen:plan` skill with `--auto --batch story {story_id} of {OUTPUT_DIR}/plan.json`, `--auto` because nobody watches a story subagent. It returns the `--batch` report: the FIS path, `PHANTOM_SCOPE` entries, any `OVERSIZE:` line, and its open items.

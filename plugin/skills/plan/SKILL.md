@@ -30,7 +30,7 @@ Read what the request points to. Fetch a tracker item as the `Issue Tracker` doc
 
 ### 2. Orient
 
-Open code only where a decision, a `Proof` binding or a rename's inventory needs it. Read the Index documents whose trigger matches. A `Decisions` row narrows the options; a request contradicting one is recorded in the FIS's Constraints for the user to reconcile, never Stop-the-Line, never asked, and never edited into `Decisions`. A needed decision nothing settles is a Preflight item recommending the `andthen:decide` skill. Screens the source adds that neither the `Wireframes` document covers nor a recorded answer settles are asked in the requirement round, recommending the `andthen:ui-ux-design` skill first: accepted, the run stops and closes on it. An unattended run never stops here: it specifies the screens from the source.
+Open code only where a decision, a `Proof` binding or a rename's inventory needs it. A `Decisions` row narrows the options; a request contradicting one is recorded in the FIS's Constraints for the user to reconcile, never Stop-the-Line, never asked, and never edited into `Decisions`. A needed decision nothing settles is a Preflight item recommending the `andthen:decide` skill. Screens the source adds that neither the `Wireframes` document covers nor a recorded answer settles are asked in the requirement round, recommending the `andthen:ui-ux-design` skill first: accepted, the run stops and closes on it. An unattended run never stops here: it specifies the screens from the source.
 
 Flag or drop what the `Product` document's Proportionality facts do not carry, or a Non-Goal forbids, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). Absent facts license no imagined scale: ask all three in the requirement round and write the answers into that section, `unknown` for one left open. An unattended run skips the question.
 
@@ -47,11 +47,11 @@ Read by condition:
 
 ### 4. Settle the intent
 
-Lock the Intent and Expected Outcomes before any scenario, from the PRD's Problem Statement, Target Users, Desired Outcome and Success Metrics, else the source's goal, and from the story's scope. Ask what the source leaves open at requirements altitude – the outcome or end state, an actor, a threshold, an unhappy path the intent turns on – in one round per `preflight.md`'s sitting, each with its recommendation. With no PRD or intent doc upstream, the drafted Intent and Expected Outcomes open the round as its first recommendation: an anchor the user never saw is a guess every scenario inherits. A source too thin to draft them is requirements work: the run stops and closes on the `andthen:clarify` skill.
+Lock the Intent and Expected Outcomes before any scenario, from the PRD's Problem Statement, Target Users, Desired Outcome and Success Metrics, else the source's goal, and from the story's scope. Ask what the source leaves open at requirements altitude – the outcome or end state, an actor, a threshold, an unhappy path the intent turns on – in one round per `preflight.md`'s sitting. With no PRD or intent doc upstream, the drafted Intent and Expected Outcomes open the round as its first recommendation: an anchor the user never saw is a guess every scenario inherits. A source too thin to draft them is requirements work: the run stops and closes on the `andthen:clarify` skill.
 
 ### 5. Write the FIS
 
-Walk the existing tests, suites and fixtures first. A `Proof` binds only an existing target (`fis-contract.md` § Proof Binding). With no match, leave the scenario unbound with complete Given/When/Then, and give its implementing task a `cmd:` or `inspect:` Verify. Tag each scenario with its Expected Outcomes. Write the FIS from `fis-template.md` to the destination in Output, held to `fis-authoring-guidelines.md`.
+With no existing test to bind, leave the scenario unbound with complete Given/When/Then, and give its implementing task a `cmd:` or `inspect:` Verify. Write the FIS from `fis-template.md` to the destination in Output, held to `fis-authoring-guidelines.md`.
 
 ### 6. Check its size
 
@@ -65,10 +65,7 @@ For a plan story, recommend decomposing it in its plan. Standalone, recommend sl
 
 ### 7. Self-review _(skip under `--batch`)_
 
-Spawn one fresh reviewer subagent. Its prompt names `self-review.md` § FIS, `fis-authoring-guidelines.md` and `fis-contract.md` by absolute path, the saved FIS, and its intent anchors: the `sourceRefs` spans or the intent doc, and the `Product` document. Without nested subagents, run it in context. It is one pass: its `Applied:` edits are already in the FIS and are not re-reviewed.
-
-- A `Notes:` entry with `blocks: no` becomes an `ASSUMPTION:` line, a constraint, or a follow-up note.
-- Any other `blocks:` value, and every `Scope trades:` Note, is a Preflight item.
+Spawn one fresh reviewer subagent. Its prompt names `self-review.md` § FIS, `fis-authoring-guidelines.md` and `fis-contract.md` by absolute path, the saved FIS, and its intent anchors: the `sourceRefs` spans or the intent doc, and the `Product` document. Without nested subagents, run it in context. It is one pass: its `Applied:` edits are already in the FIS and are not re-reviewed. A `Notes:` entry with `blocks: no` becomes an `ASSUMPTION:` line, a constraint, or a follow-up note.
 
 ### 8. Preflight _(skip under `--batch`)_
 
