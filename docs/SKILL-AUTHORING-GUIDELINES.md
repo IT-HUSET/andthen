@@ -167,7 +167,7 @@ Read the target with everything that loads beside it – its references, the pro
 
 ### Failure modes
 
-Measure against what one load pays for, since a link pulls its whole target into every consumer.
+Measure against what one load pays for, since a link pulls its whole target into every consumer. Walk the load sites of the whole invoked path, every unconditional step of the invoked skill included, never a FIS read-set or only the files a change adds.
 
 - **Duplication** – one meaning stated twice. On one loaded path it costs every load, and across skills a paraphrase drifts from its siblings.
 - **Sediment** – seams of add-only edits: bolted-on sentences, doubled altitude, contradictions, history phrasing ("now", "no longer", "instead of", a diff against text the model never saw).
@@ -180,7 +180,7 @@ List every branch and aspect in scope with the verdict its allowance sets: keep,
 
 - An edge case the user can prompt is cut, however well tested. A test or rubric grading a sentence is no reason to keep it, and the eval of a cut branch changes or retires in the same commit.
 - Doubt about a rare case cuts it. A failure on a common path brings it back as one sentence.
-- A cut names its keeper: where the behaviour still comes from on the loaded path, such as a kept row, a loaded reference, the host prompt, or the model's own default. A keeper is text the running agent will have loaded, so a dispatched skill's body, an unshipped note, a project document, or a README is none. A cut without a keeper is a decision, named in the commit message.
+- A cut names its keeper: where the behaviour still comes from on the loaded path, such as a kept row, a loaded reference, the host prompt, or the model's own default. A keeper is text the running agent will have loaded on every run path that loaded the cut text (mode, flag, attended or unattended, fresh or re-run, dispatched), so a dispatched skill's body, an unshipped note, a project document, or a README is none. A cut without a keeper is a decision, named in the commit message.
 - A move goes to the file that already owns the fact, loaded before the first step that needs it on every invocation that reached it. A gate moves only with its whole step, and a fail-fast check stays in the body, because position is part of their contract.
 - Packing is not a cut: a list collapsed into a paragraph keeps every instruction, harder to find. A reshape that pulls data out of prose or splits a packed sentence is a fix, and its markup does not count against the size.
 

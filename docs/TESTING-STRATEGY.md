@@ -40,4 +40,8 @@ Sized to an experimental release candidate with one maintainer: the `fast` tier 
 
 - A script that greps the tree for patterns it polices matches its own source, so it skips its own file.
 - `bash scripts/install-skills.sh` without a flag conflicts with the local Codex plugin; only `--validate-only` and `--claude-user --dry-run` are safe.
+- On Windows:
+  - a bare `bash` in `subprocess.run` resolves to the System32 WSL stub, so resolve it with `shutil.which("bash")`;
+  - the default read encoding is cp1252, so pass `encoding=` on every read;
+  - user files arrive CRLF, so normalise `\r\n` before hashing bytes or `$`-anchoring.
 - The shipped-surface budget (`tests/surface-budget.json`) counts words, so an equal-length rewrite passes – it catches accretion, not a bad instruction.

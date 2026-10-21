@@ -69,6 +69,7 @@ One remote: `origin` is the public repo (`IT-HUSET/andthen`). `main` carries the
 - Every shipped skill is user-invocable, so a skill change updates `README.md`, `plugin/README.md`, and `CHANGELOG.md` on their index entries' terms.
 - Tests live in `tests/`, one file per script they prove, never under `plugin/`: both hosts install the plugin directory wholesale, so a test placed there ships.
 - Adding, renaming, or removing a shared canonical in `plugin/references/` updates `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table and, in `scripts/install-skills.py`, `_canonical_assets` and the `_skill_assets_*` array of every consuming skill.
+- Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`. Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
 - Release-time flips carry a `pre-release:` comment at their site, each stating its own flip. Releasing 1.0 starts with tagging `v0.40.4` on `origin` (the only ref back to 0.x) and ends with `rg 'pre-release:'` returning nothing.
 - Before a release, re-check each role template's model and effort pin (`plugin/skills/init/templates/agents/`) against both providers' current lineups: the pins are recommendations as of their last change (`docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Durable principles).
 

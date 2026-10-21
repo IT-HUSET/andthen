@@ -17,7 +17,7 @@ Run from the repo root. `{file}` is a dotted module path (not a slash path); `{t
 | plan check | `python3 evals/validate_plan.py docs/temp/specs/<feature>/plan.json` | Stdlib schema check of one `plan.json`: `OK:` or one `ERROR:` line per violation; `jsonschema` is not installed |
 
 - Run `bash scripts/install-skills.sh` only with a flag here, because bare it conflicts with the local Codex plugin. `--validate-only` and `--claude-user --dry-run` install nothing; run the latter on its own when you touch user-tier packaging.
-- To refresh your own installs from this checkout, run `python3 scripts/andthen-plugins.py --path .` (`--claude-only`, `--codex-only`, `--dry-run` narrow it). It uninstalls and reinstalls on both hosts and diffs the cache against `plugin/`, because both hosts cache by version and an in-place update keeps the stale copy. It skips plugins the manifest no longer lists and what `init` copied into your home folder (output style, role agents, critical rules).
+- To refresh your own installs from this checkout, run `python3 scripts/andthen-plugins.py --path .` (`--claude-only`, `--codex-only`, `--dry-run` narrow it), never a copy under another plugin name, because the name is the `andthen:` namespace and a renamed copy's skills call the installed release's. It uninstalls and reinstalls on both hosts and diffs the cache against `plugin/`, because both hosts cache by version and an in-place update keeps the stale copy. It skips plugins the manifest no longer lists and what `init` copied into your home folder (output style, role agents, critical rules).
 - Read `evals/README.md` before running an eval or authoring a case, and `AGENTS.md` § General Principles for the Codex gate and the no-edit rule while a tier runs.
 
 ## Release
