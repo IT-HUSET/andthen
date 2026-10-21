@@ -48,7 +48,7 @@ Save to `.agent_temp/handoff/handoff-<UTC-ts>.md`, where `<UTC-ts>` is `date -u 
 <FOCUS, or "Resume current mid-flow work" if empty>
 
 ## Where we are
-<active feature, artifact, and phase, by path>
+<active feature, artifact, and phase, by path; each uncommitted path this session changed, with the change in a few words>
 
 ## Open questions
 - <each tied to a concrete next action where possible>
