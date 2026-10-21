@@ -50,7 +50,7 @@ Each finding names the span (file and line), the guideline rule it fails, and wh
 
 One row per branch and aspect in scope: the span, its aspect, its skeleton section on a bundle, and the verdict its allowance sets.
 A cut row carries the characters it frees and its keeper, or `decision`.
-The ledger is the rewrite's plan, and a row becomes a finding only where a change adds text past its allowance.
+The ledger is the rewrite's plan, and text past its allowance is a finding only where a change adds it, or it is a truism or a span the guideline's `What no longer belongs` catalogue names.
 A ledger without a cut on a body written before the current model generation is the reviewer under-firing, so re-walk it before reporting `Ready`.
 
 ### 4. Leading-word probe
@@ -70,7 +70,7 @@ Report the `Filter summary` line and each withdrawal's falsifier.
 
 - CRITICAL – an instruction conflict, or a parsed contract dropped, broken, or contradicted: a dispatch naming a skill or argument that does not exist, a parsed token misspelt.
 - HIGH – text a change adds past its allowance, a trigger-surface defect, a phase without a gate, a procedure at a dispatch site.
-- MEDIUM – a rule paraphrased across files, a rule against the model's default without its reason, an anchoring example, data in running prose, a step or rule whose three or more instructions run as one paragraph, a task-start document entry no longer true.
+- MEDIUM – a rule paraphrased across files, a rule against the model's default without its reason, a truism or catalogue span no change adds, data in running prose, a step or rule whose three or more instructions run as one paragraph, a task-start document entry no longer true.
 - LOW – a paragraph carrying several concerns, a packed sentence, a source line holding more than one sentence, a leading word not reused, a missing table of contents, an unqualified tool name.
 
 The readiness line is `Blocked` on any CRITICAL, else `Needs Fixes` on any HIGH or three or more MEDIUM, else `Ready`.

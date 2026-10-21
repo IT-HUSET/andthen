@@ -6,17 +6,24 @@ How to write a prompt-like file – a skill bundle, a reference, an agent defini
 
 Before you write a line, and again when you review one, ask: **would the reading agent do the right thing without it?** Right means an outcome that serves the file's purpose, not the steps you would take. If it would, the line is not written, and an existing one is cut. When unsure, assume it would, unless the failure would be destructive or silent.
 
-The agent cannot get right what only the author knows, so keep it: the product and audience, environment facts, the quality bar, contracts and their mechanics, the hard judgment calls, and the reason behind a rule that runs against the model's default. That is context, and context is never cruft. Cut restated defaults, behaviour the model shows unprompted (planning, thoroughness, tool use, testing, reading docs, where to look in a repository, telling a pre-existing failure from a regression), and workarounds for failures current models no longer have. Justify a cut by the pattern it removes, never by its length.
+The agent cannot get right what only the author knows, so keep it: the product and audience, environment facts, the quality bar, contracts and their mechanics, the hard judgment calls, and the reason behind a rule that runs against the model's default.
+That is context, and context is never cruft.
+Cut restated defaults, behaviour the model shows unprompted (planning, thoroughness, tool use, testing, reading docs, where to look in a repository, telling a pre-existing failure from a regression), and workarounds for failures current models no longer have.
+The commonest sign is a truism: a line or list item that would read the same in any team's version of the file and changes nothing a run does, such as "handle errors gracefully" or "cover the edge cases".
+Justify a cut by the pattern it removes, never by its length.
 
 Length buys no compliance, and restating the repository's own docs lowers task success. Conflicting instructions collapse compliance, make Astra pause, and make Claude spend effort reconciling them. Past roughly 150–200 live instructions on the loaded path, adherence drops and earlier instructions win.
 
 ### What no longer belongs
 
-Each was written for models that needed it, and is neutral at best on current ones.
+Each was written for models that needed it, and on current ones at best dilutes the rules that matter.
 
-- **Pressure language** – MUST, NEVER, CRITICAL over-apply and set an anxious register. A hedge ("try to", "if possible") on a real requirement reads as permission to skip it. Emphasis is a tested fix for one underweighted instruction, never a register.
+- **Pressure language** – MUST, NEVER, CRITICAL over-apply and set an anxious register.
+  A hedge ("try to", "if possible") on a real requirement reads as permission to skip it.
+  Emphasis, in capitals or bold, is a tested fix for one underweighted instruction, never a register.
 - **Thinking scaffolds** – "think step by step", "plan first", "be thorough" cause over-planning; depth is an effort setting. Never ask a model to show its reasoning, which Fable 5.1 can refuse.
-- **Step choreography for judgment work** – micro-steps where the model's own plan does better. Spell out a sequence only for a narrow bridge where one alone is safe: destructive commands, migrations, auth.
+- **Step choreography for judgment work** – micro-steps, a fixed order of topics, or tool mechanics the host already handles, where the model's own plan does better.
+  Spell out a sequence only for a narrow bridge where one alone is safe: destructive commands, migrations, auth.
 - **Prohibitions without provenance** – a "never" against a failure the model would not make anchors it toward that failure. Keep one that encodes a real constraint or a reproduced failure, with its reason, and rewrite the rest as the wanted behaviour plus a check.
 - **Anchoring examples** – the model copies an example's length, tone, and structure. Use examples only to pin a format-sensitive output shape: several, varied, labelled illustrative.
 - **Numeric output shaping** – word caps, "at most five bullets", "be concise". State the audience and the outcome.
@@ -32,7 +39,9 @@ Each was written for models that needed it, and is neutral at best on current on
 - **Altitude** – state the outcome, the constraints, and how success is verified.
 - **A reason in one clause**, only where the rule runs against the model's default, because there a bare rule is followed rigidly or rationalised away.
 - **Scope stated** – current models apply a rule exactly as scoped. "Report only high-severity findings" loses recall, so ask for every finding with a severity and filter downstream.
-- **Leading words** – name a load-bearing rule with a term that already carries pretraining weight (*Chesterton's Fence*, *Stop-the-Line*, *Boy Scout rule*), in place of its explanation, and reuse it verbatim everywhere. Keep only what the project adds to its common meaning, settled by asking the cheapest model cold. Coin a term only where plain words fail, and keep one term per concept.
+- **Leading words** – name a load-bearing rule or technique with a term that already carries pretraining weight (*Chesterton's Fence*, *Stop-the-Line*, *Boy Scout rule*), in place of its explanation, and reuse it verbatim everywhere.
+  Keep only what the project adds to its common meaning, settled by asking the cheapest model cold.
+  Coin a term only where plain words fail, and keep one term per concept.
 - **Gates over steps** – a phase ends on an observable that shows it done ("every modified model accounted for"), and a gate restating its step is cut. Visible later phases pull toward premature completion. Sharpen the current gate first, and hide later phases behind a fresh subagent only when runs show rushing.
 - **Dispatch sites** – a delegating step names the skill the subagent invokes, fresh or in-session context, the values it cannot derive as that skill's arguments, and the return shape the caller parses. It names the target in words and passes only switches such as `--fix`, `--quick`, and `--auto` as flags, never a mode or lens the invoked skill resolves from its target. The loaded skill is the **Single Authority**, and a hand-rolled prompt is a second copy that drifts. GPT models delegate in parallel only when told to.
 - **Prose for one rule, a list for several** – a rule is one sentence with its reason.
