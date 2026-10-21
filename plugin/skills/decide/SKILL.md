@@ -46,7 +46,7 @@ The first round of questions opens with the list and its sorting, so the user ca
 
 ### 2. Interview
 
-Ask in rounds over the frontier. Every decision whose prerequisites are settled goes in this round, and one that depends on an open answer waits for the next, so no answer is guessed before it is heard. Probe a load-bearing answer before accepting it: what it costs, what breaks at 10x, what reversing it later takes.
+Ask in rounds over the frontier. Every decision whose prerequisites are settled goes in this round, and one that depends on an open answer waits for the next, so no answer is guessed before it is heard. When the user wants the questions to hand to someone else, list them all in the reply and start each follow-up with the earlier answer it assumes. Probe a load-bearing answer before accepting it: what it costs, what breaks at 10x, what reversing it later takes.
 
 A decision is **contested** when no option stands out: the options sit close on the criteria that matter, the evidence is missing, or the user asks for the comparison. Close options on a two-way door are not contested, because either pick is cheap to reverse. A contested decision runs through [`trade-off.md`](references/trade-off.md) before you recommend, with its gates asked in the round where the decision sits. Its Findings Filter reviewer reads [`review-calibration.md`](../../references/review-calibration.md), whose path you pass. A question only running code settles goes to the `andthen:spike` skill, whose Spike Verdict folds back in as evidence.
 

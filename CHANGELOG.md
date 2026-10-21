@@ -6,6 +6,14 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [Unreleased]
+
+### Changed
+- **`clarify` and `decide` can ask every question at once for someone else to answer.** Ask for the complete set to pass on, to a colleague or as an issue reply, and you get one list with each follow-up naming the earlier answer it assumes; paste the answers back, or point the run at the issue, to continue.
+- **A GitHub issue is read with its comments.** `clarify`, `plan`, `triage`, `tracker triage`, and `review`'s gap and outcome lenses fetch an issue with `gh issue view --comments`, so answers and decisions made in the thread reach the run instead of only the issue body.
+
+---
+
 ## [1.0.0-rc.8] – 2026-10-20
 
 ### Changed

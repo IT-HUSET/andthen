@@ -130,7 +130,7 @@ The eight skills most work starts from:
 |---|---|
 | `init` | Sets up a project: the document index in `CLAUDE.md` / `AGENTS.md`, the project's test commands, and offers for the optional extras |
 | `now-what` | Reads your project state and routes you to the right skill |
-| `clarify` | Interviews you about an idea and writes the PRD; `--brief` stops at a shorter `intent.md` you can share first |
+| `clarify` | Interviews you about an idea and writes the PRD; `--brief` stops at a shorter `intent.md` you can share first, and asking for all its questions at once gives you a list to hand to a colleague or post on the issue |
 | `decide` | Settles technical choices with you and records them as ADRs |
 | `plan` | Decides whether the work is one story or several, and writes one FIS per story plus the `plan.json` that tracks them |
 | `exec-plan` | Builds one FIS, or every story in a plan, each proven by its checks and reviewed by a fresh subagent |

@@ -6,7 +6,7 @@ Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt
 
 **Contents**
 
-- **[Starting work](#starting-work)**: [Choosing a path](#choosing-a-path) · [One story or several](#one-story-or-several) · [A small change](#a-small-change) · [A bug or a broken build](#a-bug-or-a-broken-build) · [An existing codebase](#an-existing-codebase) · [Product vision vs feature](#product-vision-vs-feature-clarify) · [An intent doc first](#an-intent-doc-before-the-prd) · [Revising a spec](#revising-a-spec-or-re-planning)
+- **[Starting work](#starting-work)**: [Choosing a path](#choosing-a-path) · [One story or several](#one-story-or-several) · [A small change](#a-small-change) · [A bug or a broken build](#a-bug-or-a-broken-build) · [An existing codebase](#an-existing-codebase) · [Product vision vs feature](#product-vision-vs-feature-clarify) · [An intent doc first](#an-intent-doc-before-the-prd) · [Questions for someone else](#questions-for-someone-else-to-answer) · [Revising a spec](#revising-a-spec-or-re-planning)
 - **[The design stage](#the-design-stage)**: [Technical decisions or an architecture question](#technical-decisions-or-an-architecture-question) · [Event storming](#event-storming-a-new-domain-or-a-system-to-rewrite) · [Domain Map first](#the-domain-map-for-a-domain-heavy-project) · [Research, design system, wireframes](#research-a-design-system-wireframes) · [A second opinion](#a-second-opinion-before-committing-to-a-decision)
 - **[Running unattended](#running-unattended)**: [Unattended execution and CI chaining](#unattended-execution)
 - **[Reviewing](#reviewing)**: [Quick look, big PR, one pass](#review-phrasing-a-quick-look-a-big-pr-one-pass) · [Spec fit vs problem fit](#does-it-match-the-spec-or-does-it-solve-the-problem) · [Review, then remediate](#review-then-remediate) · [Review/fix loop](#review-and-fix-until-clean-from-a-coordinating-session)
@@ -157,6 +157,19 @@ Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-
 Edit it freely: answer an open question in place, or leave it and it is asked again. The second run takes the file as baseline, folds every section into the PRD, and asks only what the edits opened or left open. A second `--brief` run amends the intent doc instead. A subject that is not this product's feature is not anchored to `PRODUCT.md` or the architecture.
 
 **Elsewhere.** Feature scope only; at product scope `PRODUCT.md` is already the one document. A directory that already holds a `prd.md` gets no intent doc. One story the intent doc already settles needs no PRD: `plan` takes the directory.
+
+### Questions for someone else to answer
+
+**Situation.** The answers sit with someone outside the session – whoever filed the issue, a colleague, a customer – and you want every question in one message they can reply to.
+
+```
+/andthen:clarify "https://github.com/org/repo/issues/42 – give me the complete set of questions as one list I can paste into a reply"
+/andthen:clarify "https://github.com/org/repo/issues/42 – the reporter answered in the issue comments"
+```
+
+**Expect.** One numbered list, each question with a recommended answer and each follow-up naming the earlier answer it assumes, and the turn ends there. Ask for another language in the same line, and post the list yourself. The second run reads the answers, reopens only the follow-ups built on an answer that went the other way, and plays the settled picture back for you to confirm before it writes the PRD.
+
+**Elsewhere.** To share your framing as a document they answer inside, use [an intent doc](#an-intent-doc-before-the-prd) instead. `decide` takes the same request for technical choices.
 
 ### Revising a spec or re-planning
 

@@ -54,7 +54,7 @@ Projections live under the `Models` Index location (default `docs/models/`) and 
 
 Every skill works standalone. The cookbook covers [how the workflow fits together](../COOKBOOK.md#how-the-workflow-fits-together) and runnable sequences such as [one story or several](../COOKBOOK.md#one-story-or-several), [a small change](../COOKBOOK.md#a-small-change), and [unattended execution](../COOKBOOK.md#unattended-execution).
 
-**Questions.** `clarify`, `decide`, `plan`, `exec-plan`, `architecture`, `domain`, `tracker triage`, and `ship` stop and wait for your answer, each question with a recommended answer. They never replace a question with a silent assumption unless you pass `--auto`.
+**Questions.** `clarify`, `decide`, `plan`, `exec-plan`, `architecture`, `domain`, `tracker triage`, and `ship` stop and wait for your answer, each question with a recommended answer. They never replace a question with a silent assumption unless you pass `--auto`. Ask `clarify` or `decide` for the complete set of questions to pass on, to a colleague or as a reply on an issue, and you get them in one list, each follow-up naming the earlier answer it assumes. Paste the answers back, or point the run at the issue, to continue ([recipe](../COOKBOOK.md#questions-for-someone-else-to-answer)).
 
 **Unattended runs (`--auto`).** The flag makes a run ask nothing. It records each open decision as `ASSUMPTION: <what> – <what would change it>`, skips any action that needs your consent, and stops with `BLOCKED: <what is needed>` when the call is unusable. Only the flag does this, never how the run was launched, and the run passes it on to every skill it invokes. `clarify` has no unattended form, because the interview is the skill.
 
