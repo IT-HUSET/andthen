@@ -58,7 +58,7 @@ Slice the plan into partitions per `large-diff-fanout.md` only when the fan-out 
 - **Large surface** – ≥20 changed files, ≥1000 changed LOC excluding generated/vendor/lockfile noise, or 3+ top-level packages/modules/app entry points.
 - The caller asked for a partitioned review explicitly.
 
-Fan-out is the skill's one automatic cost multiplier, so it fires on surface size alone, never on phrasing. A caller who asks to keep it inline suppresses it, and the report line is contract: `Fan-out suppressed; inline review over <N>-file diff`.
+A caller who asks to keep it inline suppresses it, and the report line is contract: `Fan-out suppressed; inline review over <N>-file diff`.
 
 **Gate**: coverage plan exists and high-risk surfaces have falsifiers assigned.
 

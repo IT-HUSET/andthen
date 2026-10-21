@@ -18,7 +18,7 @@ Prove behavior with the smallest tests that prove it.
 Read and follow:
 
 - `strategy`: [`levels-and-strategy.md`](references/levels-and-strategy.md), and for a question it asked that no one answered, [`unattended-runs.md`](../../references/unattended-runs.md) § Recording an assumption.
-- `prove-it` or `strategy`: [`prove-it-pattern.md`](references/prove-it-pattern.md).
+- `prove-it`: [`prove-it-pattern.md`](references/prove-it-pattern.md).
 - Every mode, before choosing or binding a test command: [`verification-evidence.md`](../../references/verification-evidence.md).
 
 ## Rules
@@ -29,7 +29,7 @@ Read and follow:
 
 - **Prove-It before claiming a fix**: a failing test that goes green is the only proof.
 - **Test-first where required**: where the request or the `Testing Strategy` document requires test-first, each test runs red, failing because the behavior it proves is missing, before the code that turns it green.
-- **The `Testing Strategy` document** (default `docs/TESTING-STRATEGY.md`) names this project's levels, fixtures, before-merge bar, and gotchas, never commands: those stay in `Key Dev Commands`. A convention it states is never re-derived from general testing theory.
+- **The `Testing Strategy` document** (default `docs/TESTING-STRATEGY.md`) names this project's levels, fixtures, before-merge bar, and gotchas. A convention it states is never re-derived from general testing theory.
 - **A missing document**, or one silent on the level or convention in question, is named the way `verification-evidence.md` names a missing command. Apply the defaults below, and wherever the test work is reported, say what was missing and that the defaults stood in, because silent defaults read to the next agent as this project's own decisions.
 - **Falsifiability** – removing the protected behavior makes its owning test fail. Before declaring coverage done, break the implementation and watch each test go red (a mutation tool the project already runs, scoped to the changed files, does this: each surviving mutant is a missing assertion); tests written after their code are where this slips most. Three shapes cause it:
   - **Tautological assertion** – the expected value comes from the code under test: its output, its logic re-derived, or a stub's canned value asserted back. Take it from the requirement or a hand-worked example; a characterization test (`prove-it-pattern.md`) pins current output on purpose and goes once the fix lands.
@@ -51,7 +51,7 @@ Read and follow:
    - **"Integration" that is E2E** – crosses services, a browser, or a queue. Split it into contract tests at each boundary plus per-service integration.
    - **"E2E" that is unit** – asserts a value that never leaves the backend. Demote it.
 
-   Rank what to cover by the blast radius of a silent failure and by change frequency. A global coverage percentage as a target is a vanity metric; uncovered changed lines are a real signal. Refuse coverage theatre: tests that fail Falsifiability, above. Gate: each planned test names its level, and no label disagrees with its boundaries.
+   Rank what to cover by the blast radius of a silent failure and by change frequency. A global coverage percentage as a target is a vanity metric; uncovered changed lines are a real signal. Gate: each planned test names its level, and no label disagrees with its boundaries.
 
 3. **Author**, following the mode's reference where it has one. Every mode follows the design below. Canon, assumed known: GOOS (Freeman & Pryce), Dodds' Testing Trophy, Farley's diagnosability and friction-as-feedback, Beck's Test Desiderata.
 
@@ -63,11 +63,11 @@ Read and follow:
 
    **An Arrange block outgrowing Act and Assert combined** means one of three things. Stubs stand where real collaborators belong: use them, promoting to integration when they cross a boundary. The unit carries too many responsibilities: split it. Or the setup belongs in a named fixture (`a_customer_with_overdue_invoices`, not `setup_db_with_data_3`).
 
-   **Mocks.** Mock at system edges only – filesystem, network, clock, randomness. Your own services run real. A repository may be an in-memory fake for its callers, and is itself proved against the real engine. Never mock the unit under test: needing to means the unit was mis-identified.
+   **Mocks.** Mock at system edges only – filesystem, network, clock, randomness. A repository may be an in-memory fake for its callers. Never mock the unit under test: needing to means the unit was mis-identified.
 
    **Snapshots** need explicit per-file updates, never `--update-all`, because bugs sail through rubber-stamped updates.
 
-4. **Prove.** Break the implementation per Falsifiability and watch each test go red. Reuse the project's framework; any new tool must run in CI without extra ceremony. The run-one-test row of `Key Dev Commands` is the invocation a scenario `Proof` binds to. Gate: every test went red with its behavior removed, then green with it restored.
+4. **Prove.** A new test tool must run in CI without extra ceremony. The run-one-test row of `Key Dev Commands` is the invocation a scenario `Proof` binds to. Gate: every test went red with its behavior removed, then green with it restored.
 
    **FIS scenario → test mapping:**
    - Reuse a bound `**Proof**:` only when its target resolves and runs; its annotated state then overrides the mode's initial state.

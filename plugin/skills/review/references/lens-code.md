@@ -27,7 +27,7 @@ Run only the dimensions the changed scope touches.
 2. **Architecture**
    - **Baseline** – when the `Architecture` document (**Project Document Index**) exists it is the system-shape baseline, and drift from its component boundaries or patterns is an architectural finding, not a code-quality nit.
    - **Shape** – CUPID (Terhorst-North) is the rubric, reported as observations rather than scores. DDD vocabulary – bounded contexts, aggregate invariants, anti-corruption layers at external seams, anemic model – applies only where the project is domain-shaped; applied to a project with no domain model it produces false findings.
-   - **Resilience** – every external dependency has a timeout, retry policy, circuit breaker or bulkhead, and graceful degradation when the dependency is down; an unstated failure mode is the finding.
+   - **Resilience** – an external dependency's failure mode is stated and handled in proportion to the `Product` document's Proportionality facts; an unstated one is the finding.
    - **Change safety** – migration reversibility, versioning for breaking contracts, a rollback path for the deployed shape.
    - **Trade-offs** – one recorded in an ADR or the Decisions register is not a finding; an undocumented one is.
 3. **Scale** – when the change touches a query, a collection walk, a request or foreground path, or a data-volume boundary. Selectors: N+1 with no index or pagination, unbounded result sets, algorithmic growth against production cardinality, long foreground work, resource contention. Cardinality is anchored on the `Product` document's Proportionality Scale fact (**Project Document Index**), a stated requirement, or a reachable exhaustion path; unanchored, the observation is LOW at most – speculation, not a defect – and an absent or `unknown` fact is no licence to size against imagined scale.
@@ -45,4 +45,4 @@ Project build, test, lint/type, and format checks are review evidence, per `veri
 
 ## Findings Output
 
-Obsolete files, unmotivated complexity, and cleanup candidates are findings too. A pre-existing-issue disclaimer anywhere in a changed file is a HIGH finding when the issue is a correctness or security defect. The report's `<feature>` token is the feature or primary changed-area name (`payments`, `auth-refresh`); the target is source code, so the report never sits beside it.
+Obsolete files, unmotivated complexity, and cleanup candidates are findings too. A pre-existing-issue disclaimer anywhere in a changed file is a HIGH finding when the issue is a correctness or security defect.

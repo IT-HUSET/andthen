@@ -55,7 +55,3 @@ Thresholds are `review-verdict.md` § Gap mode. Score each dimension:
 | **Completeness** | 10: no stubs/TODOs, all features present. 9: trivial TODOs only. 1: mostly stubs. |
 | **Wiring** | 10: all components wired, verified via build/tests. 8: all critical paths wired, minor integration gaps. 2: significant unwired code. |
 
-
-## Findings Output
-
-The report's `<feature>` token is the baseline's feature name (from the spec, FIS, or plan path); the baseline supplies the spec directory the report may sit in, never beside the implementation.

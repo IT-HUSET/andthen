@@ -1,6 +1,6 @@
 # Between Stories
 
-A direct story run and a plan run take these two steps themselves, the plan run as orchestrator, where their procedure calls them. A dispatched story run never does: its plan run takes them for it.
+A dispatched story run never takes these steps: its plan run takes them for it.
 
 ## Discovery triage
 

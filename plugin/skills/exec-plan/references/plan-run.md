@@ -21,7 +21,7 @@ Re-read `plan.json` before each batch and take its wave, the stories now depende
 - `--auto`, whether or not this run carries it, since nobody is watching a story subagent;
 - `--no-full-tier`, since the full tier it defers is Step 3's.
 
-The FIS names its own plan, so no further argument passes. The subagent owns the story whole, down to the commit of its code and its row, so add no second review.
+The FIS names its own plan, so no further argument passes. The subagent owns the story whole, so add no second review.
 
 **Return.** It returns a completion report or a `## Failed Story Report`. A completion counts only once the re-read `plan.json` shows its row `done`; otherwise the story failed. Under `--worktree` that is the copy in the story's worktree, read before the merge, which then brings the row to the main checkout.
 

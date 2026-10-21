@@ -13,6 +13,9 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **A review finding names every place its defect occurs in the reviewed scope**, so one fix round, which edits only the files findings name, reaches every instance instead of leaving the rest for another review.
 - **`implement-fix` with nothing to fix still re-checks every finding**: when every finding is routed Note or demoted, the run reports each one's status and escalates a blocked CRITICAL or HIGH finding instead of skipping that step.
 - **`plan` asks when a request contradicts a recorded decision**: the contradiction goes to Preflight with a recommendation, where before it sat in the FIS's Constraints unasked.
+- **`simplify-code` re-runs the checks its baseline ran**, instead of scoping tests to the changed paths, so a regression outside them shows against the baseline.
+- **An explicit request for a partitioned `review` fans out even on a small diff**, where a small diff used to be reviewed inline anyway.
+- **The `review` code lens judges resilience against the `Product` document's Proportionality facts**, flagging a dependency whose failure mode is unstated, instead of requiring a fixed set of timeout, retry, and circuit-breaker patterns.
 
 ---
 

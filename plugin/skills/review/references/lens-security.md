@@ -62,4 +62,4 @@ Two shapes get over-escalated on category rather than exposure, and both are MED
 - **A missing CSRF check on `/admin/internal/cache-flush`** – admin SSO and a corporate VPN in front of it, and the effect is flushing an in-memory cache. Two trust gates and a low-impact sink make it a hardening gap, not a CRITICAL; the same missing check on a public state-changing endpoint is one.
 - **A transitive CVE in the lockfile whose affected function the project never calls** – name the dependency and recommend the bump, but severity follows a traced call path, not the advisory's own rating. Trace one and the finding is HIGH.
 
-A pre-existing-issue disclaimer covering an auth, injection, or secret issue anywhere in a changed file is a finding here, HIGH by default. The report's `<feature>` token is the feature or primary changed-area name (`payments`, `auth-refresh`, `webhook-handler`); the target is source code, so the report never sits beside it.
+A pre-existing-issue disclaimer covering an auth, injection, or secret issue anywhere in a changed file is a finding here, HIGH by default.
