@@ -30,9 +30,9 @@ Read what the request points to. Fetch a tracker item as the `Issue Tracker` doc
 
 ### 2. Orient
 
-Open code only where a decision, a `Proof` binding or a rename's inventory needs it. A `Decisions` row narrows the options; a request contradicting one is recorded in the FIS's Constraints for the user to reconcile, never Stop-the-Line, never asked, and never edited into `Decisions`. A needed decision nothing settles is a Preflight item recommending the `andthen:decide` skill. Screens the source adds that neither the `Wireframes` document covers nor a recorded answer settles are asked in the requirement round, recommending the `andthen:ui-ux-design` skill first: accepted, the run stops and closes on it. An unattended run never stops here: it specifies the screens from the source.
+Open code only where a decision, a `Proof` binding or a rename's inventory needs it. A `Decisions` row narrows the options; a request contradicting one is a Preflight item, never edited into `Decisions`. A needed decision nothing settles is a Preflight item recommending the `andthen:decide` skill. Screens the source adds that neither the `Wireframes` document covers nor a recorded answer settles are asked in the requirement round, recommending the `andthen:ui-ux-design` skill first: accepted, the run stops and closes on it. An unattended run never stops here: it specifies the screens from the source.
 
-**Anchor on the `Product` document's Proportionality facts.** Drop or flag what they do not carry or a Non-Goal forbids, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). Absent or `unknown` facts are no licence to size against imagined scale. When the facts are absent, ask for all three in the requirement round, and write the answers into its Proportionality section, `unknown` for one left unanswered. An unattended run skips the question.
+**Anchor on the `Product` document's Proportionality facts.** Drop or flag what they do not carry or a standing technical non-goal forbids, or what the `Product` document's Non-Goals rule out, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). Absent or `unknown` facts are no licence to size against imagined scale. When the facts are absent, ask for all three in the requirement round, and write the answers into its Proportionality section, `unknown` for one left unanswered. An unattended run skips the question, writes nothing to `Product`, and says the anchor was unavailable.
 
 ### 3. One story or several
 
@@ -51,7 +51,7 @@ Lock the Intent and Expected Outcomes before any scenario, from the PRD's Proble
 
 ### 5. Write the FIS
 
-With no existing test to bind, leave the scenario unbound with complete Given/When/Then, and give its implementing task a `cmd:` or `inspect:` Verify. Write the FIS from `fis-template.md` to the destination in Output, held to `fis-authoring-guidelines.md`.
+With no existing test to bind, leave the scenario unbound with complete Given/When/Then, and give its implementing task a Verify in one of `fis-contract.md`'s Runnable Proof Forms. Write the FIS from `fis-template.md` to the destination in Output, held to `fis-authoring-guidelines.md`.
 
 ### 6. Check its size
 

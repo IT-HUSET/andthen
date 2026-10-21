@@ -2,7 +2,7 @@
 
 A contested decision gets researched options compared against weighted criteria, so its recommendation rests on evidence rather than a first reading. `COUNT` is the number of alternatives compared – 5 unless the request names one ("compare three options").
 
-## Gates
+## Rules
 
 An unattended run infers both gates' answers from `INPUT` conservatively, records them in the report under labeled sections (*Decision Context*, *Criteria + Weights*), and lists the open questions.
 

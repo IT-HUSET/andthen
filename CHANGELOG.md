@@ -12,6 +12,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`ship`'s pull request says where a person must read closely**: the files where an error does the most harm, choices no check can judge, and what the proof left unchecked, such as skipped checks and work committed or fixed after the latest review, or that no review ran. This replaces marking unreviewed commits in the publish question, which missed the fixes `ship` itself commits. Where reverting the merge would not undo the change, the body says what does.
 - **A review finding names every place its defect occurs in the reviewed scope**, so one fix round, which edits only the files findings name, reaches every instance instead of leaving the rest for another review.
 - **`implement-fix` with nothing to fix still re-checks every finding**: when every finding is routed Note or demoted, the run reports each one's status and escalates a blocked CRITICAL or HIGH finding instead of skipping that step.
+- **`plan` asks when a request contradicts a recorded decision**: the contradiction goes to Preflight with a recommendation, where before it sat in the FIS's Constraints unasked.
 
 ---
 

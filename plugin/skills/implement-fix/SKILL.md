@@ -28,7 +28,7 @@ Turn a review report's findings, or a small request, into the smallest verified 
 
 For a report, read [`review-calibration.md`](../../references/review-calibration.md).
 
-From the report, take its `**Review mode**:` and `**Resolved chain**:` header lines, its `Intent Context:` line, the targets it names, and each finding with the fields of `review-calibration.md` § Structured Finding Contract.
+From the report, take its `Intent Context:` line, the targets it names, and each finding with the fields of `review-calibration.md` § Structured Finding Contract.
 
 **Scope guard.** A request describing a plan, a PRD, a FIS, or anything plainly beyond a small change stops here. Route it to the `andthen:plan` skill then the `andthen:exec-plan` skill, with the `andthen:clarify` skill first when its requirements are still open.
 
