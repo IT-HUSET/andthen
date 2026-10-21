@@ -45,8 +45,10 @@ def matches(pattern, paths):
     return [p for p in paths if any(fnmatch.fnmatch(p, c) for c in candidates)]
 
 
-def evaluate(check, workspace, changed, case_dir):
-    """Run every key of one check.json against the workspace and its diff."""
+def evaluate(check, workspace, changed, case_dir, candidate=None):
+    """Run every key of one check.json against the workspace and its diff.
+    `candidate` is the run's staged copy, handed to commands and the oracle as
+    ANDTHEN_CANDIDATE."""
     files = workspace_files(workspace)
     results = []
     for key, wanted in (("requiredArtifacts", True), ("forbiddenArtifacts", False)):
@@ -65,12 +67,12 @@ def evaluate(check, workspace, changed, case_dir):
                                else "%d changed path(s) within allowedPaths" % len(changed)))
     results.extend(_text(check, workspace, files))
     for index, command in enumerate(check.get("commands", [])):
-        results.append(_run("commands", index, command, workspace, True))
+        results.append(_run("commands", index, command, workspace, True, candidate))
     if check.get("oracle"):
         # Resolved against the case directory and never copied into the workspace:
         # an oracle the subject can read is an oracle it can satisfy.
         results.append(_run("oracle", 0, [sys.executable, str(case_dir / check["oracle"])],
-                            workspace, False))
+                            workspace, False, candidate))
     return results
 
 
@@ -97,13 +99,18 @@ def _text(check, workspace, files):
     return results
 
 
-def _run(key, index, command, cwd, shell):
+def _run(key, index, command, cwd, shell, candidate=None):
     # Decoded leniently rather than with `text=True`: a fixture test or oracle
     # can print a non-UTF-8 byte, and a strict decode would raise out of the
     # evaluator and turn a subject FAIL into a harness ERROR.
     # ANDTHEN_ROOT lets a check run the tree's own scripts: the workspace has
-    # no fixed path back to the tree (Claude cells stage no `candidate/`).
+    # no fixed path back to the tree. It stays frozen with evals/ for a run;
+    # plugin/ does not, so anything of the candidate a check reads comes from
+    # ANDTHEN_CANDIDATE, the copy this run staged.
     env = dict(os.environ, ANDTHEN_ROOT=str(REPO_ROOT))
+    env.pop("ANDTHEN_CANDIDATE", None)
+    if candidate is not None:
+        env["ANDTHEN_CANDIDATE"] = str(candidate)
     try:
         done = subprocess.run(command, cwd=str(cwd), shell=shell, env=env,
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE,

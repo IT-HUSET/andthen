@@ -40,7 +40,7 @@ def main(argv=None):
         sys.stderr.write(error + "\n")
         return 1
     changed, touched = stage.stage_diff(run, workspace)
-    results = checks.evaluate(check, workspace, changed, case_dir)
+    results = checks.evaluate(check, workspace, changed, case_dir, run / "candidate")
     stage.write(run / "checks.json", json.dumps(results, indent=2) + "\n")
     # DartClaw keeps a bash step's stderr in the run record as `checks.stderr`,
     # which is where a PASS or a FAIL now shows, since the exit code no longer

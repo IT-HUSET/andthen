@@ -1,10 +1,10 @@
 """Run-directory staging, candidate registration, dispatch, run-record readers.
 
-Every cell runs a snapshot of the working tree's plugin, staged as candidate/,
-and none of the operator's own configuration. A Claude cell keeps the parent
-environment, which is where its login resolves, but DartClaw spawns it with
-project-only setting sources, so ~/.claude/CLAUDE.md, the output style and user
-MCP servers stay out; the candidate arrives through `--plugin-dir`, and the
+Every cell runs a snapshot of the working tree's plugin, staged once per tier
+and copied into the cell as candidate/, and none of the operator's own
+configuration. A Claude cell keeps the parent environment, which is where its
+login resolves, but DartClaw spawns it with project-only setting sources, so
+~/.claude/CLAUDE.md, the output style and user MCP servers stay out; the candidate arrives through `--plugin-dir`, and the
 role agents `init` installs arrive as the workspace's project agents.
 
 Codex needs more. DartClaw pins Codex's CODEX_HOME to
@@ -76,6 +76,9 @@ STAGING = Path(tempfile.gettempdir()).resolve() / "andthen-evals"
 # find it, so both are staged beside it. andthen@andthen is enabled.
 CANDIDATE_ASSETS = ("plugin", ".claude-plugin/marketplace.json",
                     ".agents/plugins/marketplace.json")
+
+# Under STAGING: a tier's one staged candidate, named like a cell by its stamp.
+CANDIDATES = "_candidates"
 
 # The role agents `init` installs, from the candidate. A subject without them ran
 # its critics as general-purpose at high effort, so a Claude cell gets them as
@@ -233,11 +236,38 @@ def _digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def stage_candidate(run):
+def new_candidate_dir():
+    """Where a tier stages its one candidate, under STAGING so it is outside this
+    repo and swept when a killed tier leaves it behind."""
+    path = STAGING / CANDIDATES / ("%s-%s" % (time.strftime(STAMP_TIME), uuid.uuid4().hex[:8]))
+    path.mkdir(parents=True)
+    return path
+
+
+def stage_candidate(dest, source=None):
+    """Copies the candidate assets of `source` (default: the working tree) into
+    `dest`. A tier calls it once on the tree, before its first cell, so plugin/
+    is free to edit from then on; each cell then copies that staged copy into its
+    own run/candidate, so every cell of the tier runs the same bytes."""
+    source = source or REPO_ROOT
     for rel in CANDIDATE_ASSETS:
-        source, target = REPO_ROOT / rel, run / "candidate" / rel
+        src, target = source / rel, dest / rel
         target.parent.mkdir(parents=True, exist_ok=True)
-        (shutil.copytree if source.is_dir() else shutil.copy2)(str(source), str(target))
+        if src.is_dir():
+            shutil.copytree(str(src), str(target),
+                            ignore=shutil.ignore_patterns("__pycache__", ".DS_Store"))
+        else:
+            shutil.copy2(str(src), str(target))
+
+
+def candidate_digest(path):
+    """sha256 over every file's relative path and bytes, so two runs compare as
+    the same candidate exactly when they ran the same content."""
+    digest = hashlib.sha256()
+    for file in sorted(p for p in path.rglob("*") if p.is_file()):
+        digest.update(file.relative_to(path).as_posix().encode("utf-8") + b"\0")
+        digest.update(file.read_bytes() + b"\0")
+    return digest.hexdigest()
 
 
 def stage_workflows(run, case_dir):
@@ -310,6 +340,9 @@ def sweep(root=None, keep=KEEP, now=None):
         began = time.mktime(time.strptime(STAMP.fullmatch(cell.name).group(1), STAMP_TIME))
         return now - began > 2 * TIMEOUT
 
+    for orphan in STAGING.glob(CANDIDATES + "/*"):
+        if STAMP.fullmatch(orphan.name) and stale(orphan):
+            shutil.rmtree(str(orphan), ignore_errors=True)
     for cell in STAGING.glob("*/*/*"):
         if cell.is_dir() and STAMP.fullmatch(cell.name) and stale(cell):
             try:

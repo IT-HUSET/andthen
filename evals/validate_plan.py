@@ -16,11 +16,19 @@ violation otherwise.
 """
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
 SCHEMA_PATH = Path(__file__).resolve().parent.parent / "plugin" / "references" / "plan.schema.json"
+
+
+def schema_path():
+    """A cell's checks set ANDTHEN_CANDIDATE to the candidate that cell ran, so
+    an edit to plugin/ after staging cannot change the oracle mid-run."""
+    candidate = os.environ.get("ANDTHEN_CANDIDATE")
+    return Path(candidate) / "plugin" / "references" / "plan.schema.json" if candidate else SCHEMA_PATH
 
 KNOWN_KEYWORDS = {"$schema", "$id", "title", "description", "$defs", "$ref", "type",
                   "enum", "const", "required", "properties", "additionalProperties",
@@ -109,7 +117,8 @@ def main(argv=None):
     except (OSError, json.JSONDecodeError) as exc:
         sys.stderr.write(f"ERROR: {path} - cannot read or parse - {exc}\n")
         return 1
-    schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    schema_file = schema_path()
+    schema = json.loads(schema_file.read_text(encoding="utf-8"))
     errors = []
     validate_instance(doc, schema, schema, "plan", errors)
     stories = doc.get("stories") if isinstance(doc, dict) else None
@@ -121,7 +130,7 @@ def main(argv=None):
         sys.stderr.write(f"ERROR: {path} - {error}\n")
     if errors:
         return 1
-    print(f"OK: {path} validates against {SCHEMA_PATH.name}")
+    print(f"OK: {path} validates against {schema_file.name}")
     return 0
 
 
