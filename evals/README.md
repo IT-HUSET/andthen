@@ -26,13 +26,17 @@ Size a case to what `stage.py` enforces: `TURN_TIMEOUT` gives one step an hour a
 
 `subject/` is the vendored subject application every cell starts from: one project's documents and one real suite, so a review has real code and the Intent, Learnings, and tech-debt anchors a skill reads are present. A case either starts from it unchanged, stages its `overlay/` over it, or replaces it with a whole `fixture/` workspace when the prompt needs a different project; validation refuses a case carrying both directories.
 
+A cell runs with `SHELL=/bin/bash`, so the operator's login shell does not change a result. The `init` cases also get a scratch `HOME` holding only Claude's login, because the skill inspects `~/.claude/agents` and `~/.codex` and the operator's machine would pick its branch.
+
 `subject-defects.md` records the deliberate flaws a case pins its expectation to. It sits beside the app, never inside it, because a subject that can read the answer key can satisfy it.
 
 ## Running and reading
 
 - **Run cells in parallel, never in rounds.** The harness runs a case once per invocation, so repeat a case with concurrent invocations; each sequential round waits on its slowest cell, and five rounds of the four `spec` cases took 40 minutes (2026-09-29).
+- **Act on each cell's `result.json` as it lands** and re-run a failure while the other cells still run, instead of polling until the whole invocation ends (40 minutes lost on 2026-10-21).
 - A tier start keeps the newest three runs per case and provider under `.agent_temp/evals/` and deletes the rest, so rename a cell's directory to keep it.
-- **An `exec-plan` ERROR at the hour mark with `Turn boundary held` in `stderr.log` is the host, not the skill.** A story subagent's background reviewer reports back to that subagent, but DartClaw still counts it as outstanding at the top level and holds the finished turn until `TURN_TIMEOUT`, so the checks never run. Re-run the cell; the work itself finished in minutes (2026-10-02, 2026-10-03).
+- **`Turn boundary held` followed by `stalled for 300s` in a cell's `stderr.log` is the host hang, not the skill.** A story subagent's background reviewer reports back to that subagent, but DartClaw still counts it as outstanding at the top level and holds the finished turn until `TURN_TIMEOUT`, so the checks never run. The signature shows about five minutes in: kill that cell and re-run it now, because the work itself finished in minutes and the hour mark only turns it into an ERROR (2026-10-02, 2026-10-03, 2026-10-21).
+- **An ERROR saying the subject "wrote no output and said nothing" is a run that ended without its answer**, not a skill FAIL. Re-run it.
 - **A Codex ERROR in seconds with `not enabled` in the rollout's `task_complete` error is the API rejecting the model**, before any turn ran. Re-run it (2026-10-03).
 - **A criterion that turns on host behaviour says so in its rubric.** `plan-asks` depends on Codex's `request_user_input_async` returning without blocking and on that host's `<collaboration_mode>` text – both upstream, so the case can flip with no edit on our side.
 - **Count a subject's tool calls from parsed rollout records, never by substring.** Filter the subject rollout's `type == "function_call"` and `type == "custom_tool_call"` entries (Codex 0.155.1 records every call as the latter). A name grep over a cell's evidence also matches the tool schema, the host's developer message, and the judge's own files, and the judge grades the reply, so its rationale is silent on whether a call happened. A plausible wrong count cost an hour and a wrong recommendation (2026-09-28).
