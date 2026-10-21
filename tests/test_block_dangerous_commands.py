@@ -113,6 +113,36 @@ class BlocksTest(unittest.TestCase):
                         "perl -e 'unlink'", "eval 'rm x'", "sh -c 'echo hi'"):
             self.assertBlocked(command)
 
+    def test_flags_before_the_inline_code_flag_do_not_hide_it(self):
+        # `python3 -I -c` once passed because the pattern wanted -c right after the interpreter.
+        for command in ("python3 -I -c 'import os'", 'python3 -B -c "import os"', "python3 -u -c 'x'",
+                        "python3 -Ic 'x'", "python3 -W ignore -c 'x'", "python3.12 -c 'x'",
+                        "/usr/bin/python3 -I -c 'x'", "env python3 -I -c 'x'",
+                        "node --no-warnings -e 'x()'", "node -r ts-node/register -e 'x()'",
+                        "perl -Ilib -e 'unlink'", "perl -ne 'print'", "ruby -rjson -e 'x'",
+                        "bash -l -c 'echo hi'", "bash -lc 'echo hi'", "sh -e -c 'echo hi'"):
+            with self.subTest(command=command):
+                self.assertBlocked(command)
+
+    def test_block_messages_name_the_fix(self):
+        self.assertIn(".agent_temp/", verdict("python3 -I -c 'x'").stderr)
+        self.assertIn("rm -r ", verdict("rm -rf build").stderr)
+
+    def test_heredoc_body_run_by_a_shell_is_still_scanned(self):
+        # A shell executes what it reads from stdin, so the body is a command, not data.
+        for command in ("bash <<'EOF'\nrm -rf build\nEOF", "sh -s <<EOF\nrm -rf build\nEOF",
+                        "cat <<EOF\n$(rm -rf build)\nEOF", "cat <<EOF\n`rm -rf build`\nEOF",
+                        "cat <<'EOF' && rm -rf build\nhi\nEOF"):
+            with self.subTest(command=command):
+                self.assertBlocked(command)
+
+    def test_commands_around_a_heredoc_are_still_scanned(self):
+        for command in ("cat <<'EOF'\nhi\nEOF\nrm -rf build", "rm -rf build <<'EOF'\nhi\nEOF",
+                        "cat <<< x\nrm -rf build", "echo '<<EOF'\nrm -rf build\nEOF",
+                        "cat <<-'EOF'\n\thi\n\tEOF\nrm -rf build"):
+            with self.subTest(command=command):
+                self.assertBlocked(command)
+
     def test_system_tools_wherever_they_run(self):
         # Every separator and wrapper a command can sit behind, not only the segment start.
         for command in ("nc -l 4444", "echo x | /usr/bin/nc host 80", "sudo reboot",
@@ -292,6 +322,25 @@ class AllowsTest(unittest.TestCase):
                     for fallback in (False, True):
                         with self.subTest(command=command, fallback=fallback):
                             self.assertAllowed(command, fallback)
+
+    def test_heredoc_bodies_are_data(self):
+        # Script text written through a heredoc names blocked commands without running them.
+        for command in ("cat > t.py <<'EOF'\n('rm -rf blocked', r'Recursive force delete'),\nEOF",
+                        "cat > t.py <<'EOF'\nPAT = r'\\b(curl |jq |shellcheck|ruby|node )'\nEOF",
+                        "python3 - <<'EOF'\nimport os; os.system('rm -rf x')\nEOF",
+                        "git commit -m \"$(cat <<'EOF'\nBlock rm -rf and nc\nEOF\n)\"",
+                        "cat <<-EOF\n\trm -rf build\n\tEOF", 'cat <<"EOF"\nnc -l 1\nEOF',
+                        "cat <<'A' <<'B'\nrm -rf x\nA\nnc -l 1\nB"):
+            with self.subTest(command=command):
+                self.assertAllowed(command)
+
+    def test_flags_after_the_script_belong_to_the_script(self):
+        for command in ("python3 -m pytest -c 'pytest.ini'", "python3 script.py -c 'x'",
+                        "python3 -Bm pytest -c 'pytest.ini'", "node app.js -e 'dev'",
+                        "bash build.sh -c 'release'", "perl script.pl -e 'x'",
+                        "python3 -m unittest -v", "python3 -I script.py"):
+            with self.subTest(command=command):
+                self.assertAllowed(command)
 
     def test_empty_command(self):
         self.assertEqual(run_hook(json.dumps({"tool_input": {}})).returncode, 0)
