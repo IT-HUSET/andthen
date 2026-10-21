@@ -36,7 +36,7 @@ Open code only where a decision, a `Proof` binding or a rename's inventory needs
 
 ### 3. One story or several
 
-A description, a plan story, and a written source the user asks to keep as one story are one story each, and step 6 still asks past its limit. Otherwise only a written source breaks down, since story briefs point into it: it is one story when one vertical slice, in one module where boundaries are strong, fits a fresh-context exec run with headroom, about 18 tasks.
+A description, a plan story, and a written source the user asks to keep as one story are one story each, and step 6 still asks past its limit. Otherwise only a written source breaks down, since story briefs point into it: it is one story when one vertical slice, in one module where boundaries are strong, fits a fresh-context exec run with headroom, about 12 tasks.
 
 Read by condition:
 
@@ -55,7 +55,7 @@ With no existing test to bind, leave the scenario unbound with complete Given/Wh
 
 ### 6. Check its size
 
-Past about 18 tasks, or past the guidelines' word size once trimmed, the FIS no longer fits one run. Emit:
+Past about 12 tasks, or past the guidelines' word size once trimmed, the FIS no longer fits one run. Emit:
 
 ```
 OVERSIZE: {fis_path} – {N} lines, {W} words, {T} tasks. Recommendation: {recommendation}

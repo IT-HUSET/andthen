@@ -28,7 +28,7 @@ Execute a FIS, or a plan with one fresh subagent per story, verify against its p
 
   Stopping on what an earlier rung answers is the dominant cause of premature aborts in unattended runs.
 - **The commit rule: commit only your own changes.** Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged. A file that also holds someone else's change stays uncommitted and goes in the report.
-- **Every dispatch is a fresh subagent**: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt. Await each required result, because a progress message is not completion, and keep failed or partial evidence.
+- **Every dispatch is a fresh subagent**: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt. Dispatch in the foreground (`run_in_background: false` on Claude Code) and await each required result within your turn, because a progress message is not completion and a subagent's ended turn hands its run back. Keep failed or partial evidence.
 
 ## Workflow
 
@@ -63,7 +63,7 @@ A failed story's route out is the `andthen:review` skill with `--fix` over the s
 Close on one `Next (fresh session):` line. A dispatched story run prints none, and a plan run closes per `plan-run.md` Step 4. A direct story run takes the first case that applies:
 
 - **The story failed** – its route out.
-- **The person chose a revision at triage** – the `andthen:clarify` skill's amendment on the PRD for a scope change, else the `andthen:plan` skill on `"story <id> of <plan.json> – <the discovery, and the FIS's other Discovered Requirements>; revise its FIS"` for the first story whose FIS needs it, since `plan` writes from its request and never reads the old FIS.
+- **The person chose a revision at triage** (never in an unattended run) – the `andthen:clarify` skill's amendment on the PRD for a scope change, else the `andthen:plan` skill on `"story <id> of <plan.json> – <the discovery, and the FIS's other Discovered Requirements>; revise its FIS"` for the first story whose FIS needs it, since `plan` writes from its request and never reads the old FIS.
 - **A dependency-ready story is left** – this skill on the first such story's FIS.
 - **Every story is `done` or `skipped`** – the plan-level review.
 - **Otherwise** – this skill on the plan directory.

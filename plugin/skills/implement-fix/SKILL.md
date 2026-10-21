@@ -52,7 +52,7 @@ An upstream `Routing: Fix` demotes here too. Intent that *withholds* the decisio
 
 **Route.** `Routing: Note` is a negative authorization boundary. It becomes an edit objective only through explicit user direction, changed governing Intent, or the unattended disposition below, never through a nearby Fix. Reconstruct an untagged finding's route against the Fix bar in `review-calibration.md` § Structured Finding Contract. A field that bar needs and you cannot establish routes the finding `SURFACED`. Severity sets priority and escalation only, and neither it, triviality, nor locality makes a finding Fix-eligible.
 
-**Unattended, decide what an attended run lists for the user**, because nobody reads that list. Each Note and `NOTICED BUT NOT TOUCHING:` item takes one disposition, with your recommendation on record:
+**Decide each Note and `NOTICED BUT NOT TOUCHING:` item's disposition in both modes**, with your recommendation on record. Unattended, apply it, because nobody reads the list an attended run returns. Attended, edit no Note and list each open Note and decision with a `Recommend:` line, so the user answers "go". The dispositions:
 
 - **Fix** – it joins the fixable set when you would make the change unasked: it holds against the anchor above, sits inside the reviewed surface (the whole surface on a remediation pass, else the files the change touches), has one determined remedy this round can prove, and settles no decision the project holds open.
 - **Defer** – against a blocker below, with the recommended remedy.
@@ -87,6 +87,8 @@ Acknowledge an observational finding, where the reviewer confirmed something pas
 ### Phase 4: Implement and Re-Check
 
 Read [`verification-evidence.md`](../../references/verification-evidence.md) for a Fix set.
+
+**Past about 4 Fix findings or 3 files**, hand the Phase 3 rows grouped by touched area, one group at a time, to a fresh subagent in this tree that applies them test-first through the `andthen:testing` skill and verifies its group. It is the installed `implementer` role agent when available, else a generic inherited subagent, and never invokes this skill, which would re-dispatch and overwrite the report's `## Remediation Status`. Dispatch it in the foreground (`run_in_background: false` on Claude Code) and take its changed paths and check evidence as the return. Where no subagent can be spawned, apply the groups yourself, step 2 included. Then run steps 1 and 3–6 yourself over the combined diff.
 
 1. **Trace test** against the pre-mutation baseline: each remediation hunk maps to a Fix row or is a Boy Scout tidy. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. A tidy never does a finding's work unless that finding is routed Fix this round. Edit any other hunk back before verification and surface it. Leave changes already in the baseline untouched.
 2. **Test first where a fix adds a branch**, through the `andthen:testing` skill: a failing test that proves what the finding asks for precedes the change, Prove-It for a defect. Tests alongside are for structural changes only, such as renames, reorganization, and declarations. Test-after is forbidden, because it proves what the code does, not what the finding asked for.

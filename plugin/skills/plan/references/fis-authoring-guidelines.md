@@ -71,5 +71,5 @@ Every scenario and Structural Criterion traces to a plan story's scope, a source
 ## Self-Check
 
 - **Task ↔ Scenario coverage** – every task's `SATISFIES` names ≥1 existing `S<NN>` or `SC<NN>`: a task naming nothing is unproven scope, one naming a missing target is broken wiring.
-- **Verify lines stay unrun** – they are exec-time checks; authoring proves the design of the surface, never its result. A `cmd:` absence check inverts its search's exit: no match exits 1.
+- **Verify lines stay unrun** – they are exec-time checks; authoring proves the design of the surface, never its result. A `cmd:` absence check is `test -z "$(<search>)"`, which exits 1 on a match, since `! a | grep -qv b` misreads the pipeline's status.
 - **Prose-vs-Verify scope** – "rename all X" gets a Verify enforcing that whole scope, not a sample.

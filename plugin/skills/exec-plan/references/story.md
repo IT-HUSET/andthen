@@ -18,7 +18,7 @@ Read `Learnings` and the `Tech Debt` item for the story's area.
 
 **Baseline the tree before the first edit**, because the worktree may be shared. What `git status` shows then is foreign, except on a re-run of this story the changes implementing its FIS tasks. Never revert, stash, or stage a foreign change. Then set the row's `status` to `in-progress`, before the first task edit, so a reader of `plan.json` sees the story executing.
 
-- **Tasks in FIS order**, each passing its `Verify` before the next.
+- **Tasks in FIS order, implemented yourself** (`plan` sizes a story to one run), each passing its `Verify` before the next.
 - **Tests go through the `andthen:testing` skill** for every unbound scenario, each written before the code it proves wherever the `Testing Strategy` document or the request requires test-first. A task that fixes a defect, and any defect surfaced mid-run, takes a failing test that proves the defect: it precedes the fix and stays as the regression guard.
 - **UI work with no design contract in the FIS** writes one to `.agent_temp/ui-spec-<feature>.md` before the first screen is built, sourced from the design system, then the UX guidelines, then defaults.
 - **The FIS changes only as `fis-mutability.md` allows.** A pivot records its ADR with the `andthen:decide` skill before the amendment.
