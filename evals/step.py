@@ -52,6 +52,13 @@ def main(argv=None):
 
     context = stage.run_context(run)
     settled, outputs = stage.step_outputs(context)
+    messages = dict((step, stage.assistant_messages(
+        run, context.get("%s.sessionId" % step))) for step in settled)
+    if not outputs and not any(messages.values()):
+        # The judge would fail every criterion on absent evidence: a false FAIL for a
+        # run that ended without its answer. The cell is an ERROR to re-run.
+        sys.stderr.write("the subject wrote no output and said nothing; re-run the cell\n")
+        return 1
     artifacts, omitted = stage.changed_text(workspace, touched)
     stage.write(run / stage.REQUEST, json.dumps({
         "rubric": cases.load_json(case_dir / "rubric.json")[0],
@@ -60,8 +67,7 @@ def main(argv=None):
         "omitted": omitted,
         "diff": cases.read_text(run / "diff.patch"),
         "outputs": outputs,
-        "messages": dict((step, stage.assistant_messages(
-            run, context.get("%s.sessionId" % step))) for step in settled),
+        "messages": messages,
     }, indent=2) + "\n")
     return 0
 

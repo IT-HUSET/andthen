@@ -1100,7 +1100,9 @@ class RunnerTest(unittest.TestCase):
             stage.write(run / "stderr.log", "")
             if kv is not None:
                 stage.write(run / "data" / "standalone" / "kv.json", json.dumps(kv))
-            data = dict(outputs or {})
+            # A subject that wrote nothing is an ERROR (step.py), so a double that
+            # leaves no outputs behind would never reach the judge.
+            data = dict({"summary": "done"} if outputs is None else outputs)
             self.context(run, data)
             subject(workspace)
             with contextlib.redirect_stderr(io.StringIO()):
@@ -1208,6 +1210,50 @@ class RunnerTest(unittest.TestCase):
         self.assertNotIn("credentials_required", config)
         self.assertNotIn("HOME=", wrapper.read_text(encoding="utf-8"))
 
+    def test_the_claude_allow_list_names_no_tool_dontask_denies_anyway(self):
+        """EnterWorktree and ExitWorktree ask for approval whatever the allow-list
+        says, and a headless cell has nobody to ask, so listing them promised a
+        bound-tools path the cell could never take (spike-isolation, 3 of 3 runs)."""
+        self.assertNotIn("Worktree", stage.PROVIDER_BLOCK["claude"])
+
+    def test_a_cell_runs_under_bash_whatever_shell_the_operator_has(self):
+        """The Bash tool follows $SHELL, and zsh differs from bash on `echo ===`
+        and unmatched globs, so a result would depend on the operator's login shell."""
+        run = self.run_dir()
+        with mock.patch.dict(os.environ, {"SHELL": "/bin/zsh"}):
+            for provider in ("claude", "codex"):
+                self.assertEqual("/bin/bash", stage.dispatch_env(run, provider)["SHELL"])
+
+    def test_a_cell_whose_skill_inspects_the_home_directory_gets_a_scratch_one(self):
+        """`init` looks at ~/.claude/agents and ~/.codex, so its branch depended on
+        the machine. The scratch HOME holds only what the login needs: the account
+        file and, on macOS, the keychains. Other cells keep the operator's HOME."""
+        real = pathlib.Path(tempfile.mkdtemp(dir=str(self.tmp)))
+        write_tree(real, {".claude.json": "{}", ".claude/agents/oracle.md": "x",
+                          ".codex/agents/oracle.toml": "x", "Library/Keychains/login.keychain-db": "x"})
+        run = self.run_dir()
+        seen = {}
+
+        def fake_run(command, **kwargs):
+            seen.update(kwargs["env"])
+            return mock.Mock(returncode=0, stdout="", stderr="")
+
+        for name in ("init", "init-empty", "review"):
+            seen.clear()
+            with mock.patch.dict(os.environ, {"HOME": str(real)}), \
+                    mock.patch.object(stage.subprocess, "run", fake_run):
+                stage.dispatch(run, "claude", run / "dartclaw.yaml", "wf", run / "workspace",
+                               {"case_dir": cases.CASES_DIR / name})
+            if name == "review":
+                self.assertEqual(str(real), seen["HOME"])
+                continue
+            home = pathlib.Path(seen["HOME"])
+            self.assertEqual(run / "home", home)
+            self.assertTrue((home / ".claude.json").exists())
+            self.assertTrue((home / "Library/Keychains/login.keychain-db").exists())
+            self.assertFalse((home / ".claude/agents").exists())
+            self.assertFalse((home / ".codex").exists())
+
     def test_claude_wrapper_preserves_paths_and_forwarded_arguments(self):
         """Candidate loading and restored login paths survive shell parsing;
         quoted path characters never split argv or become shell syntax."""
@@ -1257,7 +1303,7 @@ class RunnerTest(unittest.TestCase):
         CODEX_HOME it pins from the operator's ~/.codex, so a Codex cell gets
         its own HOME."""
         run = self.run_dir()
-        self.assertEqual(dict(os.environ), stage.dispatch_env(run, "claude"))
+        self.assertEqual(dict(os.environ, SHELL="/bin/bash"), stage.dispatch_env(run, "claude"))
         codex = stage.dispatch_env(run, "codex")
         self.assertEqual(str(run / "home"), codex["HOME"])
         self.assertEqual(str(run / "provider"), codex["CODEX_HOME"])
@@ -1429,6 +1475,7 @@ class RunnerTest(unittest.TestCase):
         case = self.make_case({"requiredArtifacts": ["work.md"]})
         run = self.run_dir()
         workspace = stage.stage_workspace(run, case)
+        self.context(run, {"summary": "done"})
         code, log = evaluate(case, run)
         self.assertEqual(0, code)
         self.assertIn("checks: FAIL", log)
@@ -1465,6 +1512,27 @@ class RunnerTest(unittest.TestCase):
         self.assertFalse((run / "checks.json").is_file())
         self.assertFalse((run / stage.REQUEST).is_file())
 
+    def test_a_subject_that_wrote_and_said_nothing_is_error_not_a_fail(self):
+        """A judge handed a request with no outputs and no messages fails every
+        criterion on "absent evidence", a false skill FAIL for what is a subject
+        run that ended without its answer (2026-10-19 exec-plan-worktree, a
+        Claude turn that closed in text without the structured call). The checks
+        step refuses to write the request, so the cell is an ERROR to re-run."""
+        case = self.make_case({})
+        run = self.run_dir()
+        stage.stage_workspace(run, case)
+        self.context(run, {})
+        with contextlib.redirect_stderr(io.StringIO()) as log:
+            code = step.main(["--case", str(case), "--run", str(run)])
+        self.assertEqual(1, code)
+        self.assertIn("wrote no output and said nothing", log.getvalue())
+        self.assertFalse((run / stage.REQUEST).is_file())
+
+        self.context(run, {"summary": "done"})
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(0, step.main(["--case", str(case), "--run", str(run)]))
+        self.assertTrue((run / stage.REQUEST).is_file())
+
     def test_a_failing_check_still_gets_a_verdict_and_still_fails_the_cell(self):
         """The cheapest layer must not veto the most valuable one: three live
         runs of a since-retired case failed one wording check with the skill
@@ -1497,7 +1565,8 @@ class RunnerTest(unittest.TestCase):
         """One cell whose subject left `work.md` saying `the widget trims
         whitespace` and whose judge step answered `answer`; that text and any
         declared `outputs` are the only retained material a PASS may quote."""
-        data = {"s1.status": "completed", "s1.sessionId": subject_session}
+        # The bare `summary` is the subject's answer; a run without one is an ERROR (step.py).
+        data = {"s1.status": "completed", "s1.sessionId": subject_session, "summary": "done"}
         data.update(outputs or {})
         return self.drive(
             {}, lambda workspace: stage.write(workspace / "work.md", work),
@@ -1957,7 +2026,7 @@ class RunnerTest(unittest.TestCase):
         written = json.loads((run / "result.json").read_text(encoding="utf-8"))
         self.assertEqual(cell["tokens"], written["tokens"])
 
-        cell, _ = self.drive({}, outputs={"s1.sessionId": "subj-2"})
+        cell, _ = self.drive({}, outputs={"s1.sessionId": "subj-2", "summary": "done"})
         self.assertEqual({"subject": None, "judge": None}, cell["tokens"])
 
     def test_session_records_read_from_either_dartclaw_layout(self):

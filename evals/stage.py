@@ -41,6 +41,12 @@ CREDENTIALS = {"codex": Path.home() / ".codex/auth.json"}
 # whole and is kept from the operator's configuration by its setting sources.
 ENV_KEYS = ("PATH", "USER", "LOGNAME", "TMPDIR", "LANG", "LC_ALL", "SHELL", "TERM")
 
+# Cases whose skill inspects the home directory (`init` lists ~/.claude/agents and ~/.codex),
+# so the operator's machine would pick their branch. They run under a scratch HOME holding
+# only what Claude's login needs: the account file, the macOS keychains, the Linux credentials.
+HOME_PROBING_CASES = ("init", "init-empty")
+LOGIN_PATHS = (".claude.json", "Library/Keychains", ".claude/.credentials.json")
+
 # One dispatch carries subject, checks and judge, so the turn ceiling and the
 # cell's wall are not one number: a subject turn keeps its hour, and the wall
 # adds the tail's own declared timeouts (1800 + 900) on top. A wall covering only
@@ -129,7 +135,7 @@ PROVIDER_BLOCK = {
     "claude": ("    auth: auto\n    inherit_user_settings: false\n"
                "    pool_size: 1\n    permissionMode: dontAsk\n"
                "    permissions:\n      allow: [Bash, Read, Glob, Grep, Write, Edit, "
-               "NotebookEdit, Skill, Agent, TodoWrite, EnterWorktree, ExitWorktree]\n"
+               "NotebookEdit, Skill, Agent, TodoWrite]\n"
                "    settings:\n      additionalDirectories:\n        - {candidate}/plugin\n"
                "        - {request}\n"),
     # Codex's workspace-write sandbox keeps .git read-only, and an executor
@@ -421,16 +427,32 @@ def dartclaw_binary():
     return {"path": path, "version": version, "error": None}
 
 
-def dispatch_env(run, provider):
+def scratch_home(run):
+    """run/home with symlinks to the real HOME's LOGIN_PATHS and nothing else."""
+    real, home = Path(os.environ.get("HOME") or Path.home()), run / "home"
+    for rel in LOGIN_PATHS:
+        if (real / rel).exists() and not (home / rel).exists():
+            (home / rel).parent.mkdir(parents=True, exist_ok=True)
+            (home / rel).symlink_to(real / rel)
+    return home
+
+
+def dispatch_env(run, provider, scratch=False):
     """The operator's own for Claude, whose login resolves from it while its
-    setting sources keep the rest out. Not for Codex: DartClaw builds the
+    setting sources keep the rest out, except HOME for a `scratch` cell and SHELL
+    for every cell: bash, because the Bash tool follows it and zsh differs on
+    `echo ===` and unmatched globs. Not for Codex: DartClaw builds the
     CODEX_HOME it pins by mirroring the operator's ~/.codex plugin tables, so a Codex cell gets
     an empty HOME and the candidate it registered stands alone. The judge step's
     `claude` spawn still needs the operator's real environment, which is what
     _claude_wrapper restores for that one process."""
     if provider != "codex":
-        return dict(os.environ)
+        env = dict(os.environ, SHELL="/bin/bash")
+        if scratch:
+            env["HOME"] = str(scratch_home(run))
+        return env
     env = dict((key, os.environ[key]) for key in ENV_KEYS if key in os.environ)
+    env["SHELL"] = "/bin/bash"
     env["HOME"] = str(run / "home")
     env["CLAUDE_CONFIG_DIR"] = env["CODEX_HOME"] = str(run / "provider")
     return env
@@ -443,7 +465,8 @@ def dispatch(run, provider, config, name, workspace, variables):
     workspace the evaluator reads. The tail's steps read `variables` through
     --var; a bash step's environment is allowlisted down to PATH and its
     neighbours, so a path cannot reach the checks step any other way."""
-    env = dispatch_env(run, provider)
+    scratch = Path(str(variables.get("case_dir", ""))).name in HOME_PROBING_CASES
+    env = dispatch_env(run, provider, scratch)
     command = ["dartclaw-workflow", "--config", str(config), "run", name,
                "--inline", "--force", "--json", "--approvals", "auto"]
     for key, value in variables.items():
