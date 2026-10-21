@@ -13,7 +13,7 @@ The deliverable is the `Visual Validation` document at its **Project Document In
 
 Start from what the project already states: the `Key Dev Commands` document's run and test rows, the browser or screenshot tooling the environment provides, the `Wireframes` and `Design System` locations, and any `Visual Validation Workflow` section in the root agent instruction file.
 
-A serve command or capture step that was not run successfully in this session does not go in the document. Serve the app, capture one route at one breakpoint with the tooling in scope, and open the image – a 404, a blank page, or unloaded fonts means the procedure is wrong. What cannot be proved is left out with the reason. An app that cannot be served at all stops setup.
+A serve command or capture step that was not run successfully in this session does not go in the document. What cannot be proved is left out with the reason. An app that cannot be served at all stops setup.
 
 **Gate**: one route at one breakpoint is captured and its image opened without a 404, blank page, or unloaded fonts, or setup has stopped.
 

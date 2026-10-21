@@ -1,6 +1,6 @@
 # UI/UX – Design System Mode
 
-Turn feature requirements into a focused design system: essential visual language, design tokens, component styles, and documentation. Start minimal – essential tokens and components only, never premature complexity.
+Turn feature requirements into a focused design system: essential visual language, design tokens, component styles, and documentation.
 
 Bound from `ARGUMENTS`:
 
@@ -12,13 +12,13 @@ Bound from `ARGUMENTS`:
 
 ### Phase 1: Input analysis
 
-When `CONCEPT_DIR` is given, verify it exists and catalog its contents (mockups, brand guidelines, an existing design system).
-
 Extract from `REQUIREMENTS` the components needed, the visual hierarchy, and the brand, platform, and accessibility requirements.
 
 ### Phase 2: Design research
 
 Skip it when `CONCEPT_DIR` holds sufficient design direction. Otherwise research with parallel implementer subagents, each returning a findings summary per topic. Save the research to `<project_root>/.agent_temp/research/design/` only when it is substantial.
+
+**Gate**: the component list and visual direction are settled.
 
 ### Phase 3: Design tokens
 
@@ -34,7 +34,7 @@ Give the system an intentional visual direction – typography with character, c
 
 ### Phase 4: Component styles
 
-From Phase 1's requirements, list only the components actually needed. Each component's base and variant styles reference design tokens, never hardcoded values; components stay minimal and composable.
+From Phase 1's requirements, list only the components actually needed. Each component's base and variant styles reference design tokens; components stay minimal and composable.
 
 **Gate**: no hardcoded value remains in `components.css`.
 
@@ -42,7 +42,7 @@ From Phase 1's requirements, list only the components actually needed. Each comp
 
 **`OUTPUT_DIR/DESIGN.md`**, in the DESIGN.md format: machine-readable YAML front matter, then a human-readable markdown body.
 
-The front matter, delimited by `---` fences, is the canonical token source, keyed by category:
+The front matter, delimited by `---` fences, is keyed by category:
 
 - `colors:` – role → CSS color value (hex, rgb, oklch)
 - `typography:` – named text style → `family`, `size`, `weight`, `lineHeight`, `letterSpacing`

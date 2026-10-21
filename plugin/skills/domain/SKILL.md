@@ -30,13 +30,12 @@ Loads beyond the mode's reference:
 ## Rules
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
-- `Domain Map` and `Ubiquitous Language` are Project Document Index entries. An Index entry still named `Context Map` is read as the `Domain Map`.
+- `Domain Map` (default `docs/DOMAIN-MAP.md`) and `Ubiquitous Language` (default `docs/UBIQUITOUS_LANGUAGE.md`) are Project Document Index entries. An Index entry still named `Context Map` is read as the `Domain Map`.
 - **Gates.** At each gate the mode reference names, present the proposal back: recommendation first, a one-line rationale, the real alternatives, and room for free-form input.
   - The asking turn ends on the question, never on a report of what was produced: use the host's structured user-input tool wherever it holds the turn for the answer, otherwise the reply.
   - Never proceed on an unanswered gate. A suggested or preselected answer is not confirmation, and neither is detailed `INPUT`: recording assumptions because the prompt seemed complete is the *implicit confirmation from detailed input* failure mode.
 - Every dispatch is a fresh subagent: the installed role agent it names (`reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
 - A project document a run has to create – `Domain Map` or `Ubiquitous Language` on its first write, `Product` on the first Proportionality answer – is seeded through a `worker` subagent that invokes the `andthen:init` skill with `seed <Index entry>` and the content to seed, keeping the templates out of this run's context.
-- Recommend from fit for this project, never from popularity or novelty.
 
 ## Workflow
 
@@ -62,7 +61,7 @@ Loads beyond the mode's reference:
 
    **Gate**: mode work complete, its record written or, under `--auto`, its proposal printed.
 
-4. **Filter the findings.** The filter runs over the findings and recommendations of `contexts` and `event-storming`, never over what the user confirmed at a gate, so a confirmed classification or context list is never downgraded or withdrawn. Spawn a fresh reviewer subagent. It reads [`review-calibration.md`](../../references/review-calibration.md) § Findings Filter and `domain-calibration.md`, whose paths its prompt names, and runs the filter as `Findings Filter reviewing domain findings and recommendations`. Its prompt carries:
+4. **Filter the findings.** The filter runs over the findings and recommendations of `contexts` and `event-storming`, never over what the user confirmed at a gate. Spawn a fresh reviewer subagent. It reads [`review-calibration.md`](../../references/review-calibration.md) § Findings Filter and `domain-calibration.md`, whose paths its prompt names, and runs the filter as `Findings Filter reviewing domain findings and recommendations`. Its prompt carries:
 
    - the domain under review, with the project's description and primary language, and its scale and stage from the `Product` document's Proportionality facts when present;
    - the mode and scope, a chain's findings each tagged with the mode that produced it;

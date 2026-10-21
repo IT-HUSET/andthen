@@ -12,8 +12,6 @@ Add Relationships (how subdomains relate, in domain language) and a Worked Examp
 **Gate**: the classification, confirmed or corrected by the user before Step 2 writes it, because whether a capability sets the business apart is the user's knowledge and the code does not carry it. An unattended run writes nothing: it prints the proposal with each assumption as an `ASSUMPTION:` line.
 
 ### Step 2 – Write the Domain Map
-Resolve the `Domain Map` location from the **Project Document Index** (default: `docs/DOMAIN-MAP.md`).
-
 - Write Subdomains, Open Questions when Step 1 found a contested call, and Relationships and Worked Example when Step 1 produced them. A missing section this mode owns is added under its own heading.
 - Update rows in place, never delete, and leave every section this mode does not own byte-identical, hand-curated ones included.
 

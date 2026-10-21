@@ -33,9 +33,9 @@ Every dispatch is a fresh subagent: the installed role agent it names (`implemen
 
 Validating a built UI is not a mode here: route "UX review", "validate this UI", or "design compliance check" to the `andthen:visual-validation` skill.
 
-When exactly one mode's triggers match `ARGUMENTS`, proceed in that mode and say in one line which mode and why, so the user can redirect: mode selection is cheap and reversible, so a named, correctable choice beats a blocking menu.
+When exactly one mode's triggers match `ARGUMENTS`, proceed in that mode and say in one line which mode and why, so the user can redirect.
 
-Ask only when no mode matches, when two or more match with no dominant intent, or when the detected mode's required input is missing. Present the table's rows one line each, and ask what the user wants to accomplish and what inputs they have. A missing input scopes the ask to that input, not the full menu.
+Ask only when no mode matches, when two or more match with no dominant intent, or when the detected mode's required input is missing. A missing input scopes the ask to that input, not the full menu.
 
 **Multi-mode**: a request naming several modes in order ("research, then a design system, then wireframes") runs them in that order, sharing context. Research insights feed design-system decisions, and the design-system mode's `OUTPUT_DIR` binds the wireframes mode's `DESIGN_DIR`, so the wireframes use the tokens just written.
 
@@ -49,7 +49,7 @@ Read the mode's reference and follow it; each declares its own phases and output
 - wireframes: [`mode-wireframes.md`](references/mode-wireframes.md).
 - research: below.
 
-**Research** understands users, flows, pain points, and constraints, and defines the information architecture. It reads feature requirements, PRDs, or a problem statement (required); existing product, competitors, or domain benchmarks (optional); and user-facing constraints (accessibility, localization, device targets). It outputs:
+**Research** understands users, flows, pain points, and constraints, and defines the information architecture. It outputs:
 
 - **Job-to-be-done** – one sentence: what the interface must make easy.
 - **Primary journeys** – the 2–5 flows carrying most of the value, each an ordered list of user intents and system responses.

@@ -15,14 +15,13 @@ Validate built UI against its design references, listing the differences before 
 
 ## Rules
 
-- Inspect and capture within the current git root.
 - `Visual Validation`, `Wireframes`, `Design System`, and `Key Dev Commands` are Project Document Index entries.
 
 ## Workflow
 
 ### 1. Scope and references
 
-Read the `Visual Validation` document (default `docs/VISUAL-VALIDATION.md`) first. Its procedure replaces the fallback in Steps 1 and 2, gates included; the Evidence rule, Step 3 with its gate, and the Output hold either way. A missing document is not an error: the fallback stands in.
+Read the `Visual Validation` document (default `docs/VISUAL-VALIDATION.md`) first. Its procedure replaces the fallback in Steps 1 and 2, gates included; the Evidence rule, Step 3 with its gate, and the Output hold either way.
 
 Scope is the states the work under validation touched, non-default states included, at the breakpoints the project names. With no change named, it is the states users depend on.
 

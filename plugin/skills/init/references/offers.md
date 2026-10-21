@@ -1,6 +1,6 @@
 # Offers
 
-The procedures behind Step 3's offers. Work only the section of the offer the user took up, or, for the critical rules, declined.
+The procedures behind Step 3's offers.
 
 ## Role agents
 

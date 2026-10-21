@@ -5,8 +5,6 @@ Discover or audit the software half of the domain: bounded contexts, the subdoma
 ## Workflow
 
 ### Step 1 – Baseline
-On brownfield, the registered `Domain Map` is the baseline Step 5 reports drift against.
-
 Read the classification from the `Domain Map`'s Subdomains section. Under `--auto` the earlier `subdomains` proposal stands in for it, in the report only.
 
 Report any divergence between the context ids and names in `architecture-model.json` under `Models` and the accepted map.
@@ -14,7 +12,7 @@ Report any divergence between the context ids and names in `architecture-model.j
 ### Step 2 – Bounded Context Discovery and Sizing
 Propose bounded contexts. For each context: name, purpose (one sentence), the subdomains it owns, the owning team (or "to be determined"), and the sizing rationale. Apply the calibration's bounded-context and sizing heuristics; when sizing is contested, its cognitive-load ceiling settles it.
 
-For any single context that needs deeper scrutiny, fill the Bounded Context Canvas (DDD Crew, Tune) as a per-context appendix when the report's main Bounded Contexts table cannot carry enough detail.
+Fill the Bounded Context Canvas (DDD Crew, Tune) as a per-context appendix for a context the report's Bounded Contexts table cannot carry.
 
 For brownfield: name observed contexts (modules, services, packages) and note the gap to the target context list – what is currently merged but should split, what is currently scattered but should consolidate.
 
@@ -45,9 +43,8 @@ Synthesize: which subdomains warrant immediate investment (core), which generic 
 
 Distil the accepted map into the `Domain Map` document – the durable record later runs and other skills read first. Registration graduates the **accepted Target** map (or **Current**, when a brownfield audit confirms it is the intended shape) into the document.
 
-Gate on explicit user acceptance, because the map has organizational implications the user owns. An unattended run skips this step rather than inferring the acceptance. Nothing is registered, and the completion summary carries `domain map not registered – needs acceptance`.
+Gate on explicit user acceptance, because the map has organizational implications the user owns. An unattended run skips this step, and its completion summary carries `domain map not registered – needs acceptance`.
 
-- Resolve the `Domain Map` location from the **Project Document Index** (default: `docs/DOMAIN-MAP.md`).
 - Write the **Bounded Contexts** rows (each with its Subdomains owned and Team) and the **Integration Patterns** rows from the accepted map. A Bounded Contexts table without the Subdomains owned or Team column gains it.
 - Edit no section `subdomains` owns, except to write an accepted reclassification into Subdomains and a declined one under Open Questions. Leave every other section of a hand-curated map byte-identical.
 - **Idempotent per context and per pair plus channel.** When a row for the same context, or the same pair over the same channel, already exists, update its fields in place and add no duplicate. A pair's new channel is a new row, never an overwrite of the existing one. Name the existing row's channel at that point if it was blank. Never delete, because the record is cumulative and its lineage is load-bearing.

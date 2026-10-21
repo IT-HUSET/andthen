@@ -17,7 +17,7 @@ Write the root agent instruction file(s) and the defaults the AndThen skills rel
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
-- **Non-destructive** – preserve existing content; replace only what the user explicitly selects.
+- **Non-destructive** – preserve existing content; beyond the defaults Step 2b applies, replace only what the user explicitly selects.
 
 ## Workflow
 

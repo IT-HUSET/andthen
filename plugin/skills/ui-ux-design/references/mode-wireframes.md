@@ -25,10 +25,6 @@ Extract every page and screen from `REQUIREMENTS`, including modal and overlay s
 ## Total: [N] wireframes required
 ```
 
-#### 1.2 Key patterns
-
-Note the navigation structure, key content blocks and their hierarchy, primary user actions and CTA placement, and responsive requirements (mobile, tablet, desktop).
-
 **Gate**: `page-inventory.md` lists every page and distinct state.
 
 ### Phase 2: Wireframe creation
@@ -64,7 +60,7 @@ Screenshots land at `OUTPUT_DIR/screenshots/[page]-[viewport].png`, overriding i
 
 #### 3.2 Refinement
 
-Fix hidden or overlapping content, missing navigation, and horizontal scroll on mobile first, by adjusting CSS (gap, overflow, min-height, breakpoint rules). Note spacing and decorative overlap and continue. Then improve unclear sections, add missing elements, and make the pages consistent.
+Fix hidden or overlapping content, missing navigation, and horizontal scroll on mobile first. Note spacing and decorative overlap and continue. Then make the pages consistent.
 
 **Gate**: the report holds no P1 or P2 finding and no `not judged` region for any page and viewport, or validation is reported as not run.
 

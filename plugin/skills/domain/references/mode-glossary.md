@@ -1,10 +1,6 @@
 # Domain – Glossary Mode
 
-Read the codebase, docs, and conversation as source material without modifying them. Write only the `Ubiquitous Language` document.
-
-## Rules
-
-`Product` and `Architecture` are Project Document Index entries.
+Read the codebase, docs, and conversation as source material.
 
 ## Workflow
 
@@ -12,7 +8,7 @@ Read the codebase, docs, and conversation as source material without modifying t
 
 Read the existing `Ubiquitous Language` document when one exists. Merge into it by default: a full regenerate discards curated terms, so it happens only when the user asks for one.
 
-Explore for domain-relevant sources, focused on `INPUT` when it is given, including the `Product`, `Architecture`, and `Domain Map` documents. On a large codebase, spawn `worker` subagents whose prompts carry the source areas to scan and a read-only scope.
+Explore for domain-relevant sources, focused on `INPUT` when it is given, including the `Product` document. On a large codebase, spawn `worker` subagents whose prompts carry the source areas to scan and a read-only scope.
 
 **Gate**: every source area in scope is scanned.
 
@@ -36,7 +32,7 @@ Group the `## [Domain Cluster]` headings by the `Domain Map`'s bounded contexts 
 
 Write each `## Overloaded Terms` context exactly as a cluster heading or `Bounded Context` value spells it, so a reader can join each meaning to its context.
 
-Write the `Ubiquitous Language` document (default `docs/UBIQUITOUS_LANGUAGE.md`) keeping its shape: cluster tables, then `## Overloaded Terms`.
+Write the `Ubiquitous Language` document keeping its shape: cluster tables, then `## Overloaded Terms`.
 
 **Gate**: the glossary is written with every cluster table and `## Overloaded Terms`.
 

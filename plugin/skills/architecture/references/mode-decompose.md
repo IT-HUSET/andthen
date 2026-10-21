@@ -10,7 +10,7 @@ Identify what is being split or merged. Map all coupling points crossing the pro
 
 ### Step 2 – Score Drivers
 
-Score Ford/Richards' six disintegration drivers and four integration drivers. Each gets **Strong / Moderate / Weak / N/A** with evidence, never an unsupported score.
+Score Ford/Richards' six disintegration drivers and four integration drivers. Each gets **Strong / Moderate / Weak / N/A** with its evidence.
 
 Qualifiers that decide whether a driver counts:
 - Service scope and function is **never sufficient alone** – it needs a second driver.

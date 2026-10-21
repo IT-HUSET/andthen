@@ -40,11 +40,11 @@ Reach a recommendation through these checks, stopping at the first that settles 
 5. **Classify and recommend** – one category (`bug` / `enhancement`) and one recommended state. Ambiguity, a missing repro, or an open product question only a human can answer routes to `needs-info` or `ready-for-human`, not a guessed `ready-for-agent`.
 6. **Confirm** – present the category, recommended state, and one-line rationale: recommendation first, real alternatives after, room for free-form input. The asking turn ends on the question, never on a report of what was produced: use the host's structured user-input tool wherever it holds the turn for the answer, otherwise the reply. A suggested or preselected answer is not confirmation.
 
-   An unattended run follows `unattended-runs.md` and applies only **safe transitions**: `needs-info` or `ready-for-human`, as a comment and the matching label. It never applies `wontfix`, which rejects a concept and writes the `Product` document, never promotes to `ready-for-agent`, and never auto-closes a redundancy-check duplicate. It reports all three as recommendations, a close recommendation with its pointer comment.
+   An unattended run applies only **safe transitions**: `needs-info` or `ready-for-human`, as a comment and the matching label. It never applies `wontfix`, which rejects a concept and writes the `Product` document, never promotes to `ready-for-agent`, and never auto-closes a redundancy-check duplicate. It reports all three as recommendations, a close recommendation with its pointer comment.
 7. **Apply** the ratified outcome, in order:
    - **Labels** – `add label` for category and state per the role mapping, and `remove label` `needs-triage`. On the GitHub default backend a fresh repo lacks the custom role labels, and `add label` errors on an undefined one: on that error, create it with `gh label create <name>` and retry. Never pass `--force`, which would repaint an existing label's color and description. A mapped non-GitHub backend pre-provisions its role labels instead; surface an unmapped or missing role label at tracker resolution.
    - **Rationale comment** – `comment` with the rationale and any pointer, for every outcome.
-   - **Agent brief** (`ready-for-agent` only) – `edit body` to append a clearly delimited `## Agent Brief` section authored per `agent-brief.md`. On re-triage, replace that section in place, so it stays idempotent.
+   - **Agent brief** (`ready-for-agent` only) – `edit body` to append an `## Agent Brief` section authored per `agent-brief.md`. On re-triage, replace that section in place, so it stays idempotent.
 
 **Gate**: every item in the working set has a ratified category and state, its labels and comment applied, and, where `ready-for-agent`, its agent brief in the issue body.
 
@@ -56,7 +56,7 @@ A `wontfix` rejects a *concept*, so append it to the `Product` document's **Non-
 
 ## Output
 
-Per item: number or identifier, category, recommended (or applied) state, one-line rationale, and any pointer (existing implementation, registry entry, or the agent brief in the body).
+Per item: number or identifier, category, recommended (or applied) state, one-line rationale, and any pointer (existing implementation, `Product` Non-Goals bullet, or the agent brief in the body).
 
 ## Follow-up
 

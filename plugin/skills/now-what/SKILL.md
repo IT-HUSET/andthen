@@ -18,7 +18,6 @@ Inspect project state and route the user to the one AndThen skill that fits next
 - **Detect first, ask second.** Ask only what state cannot reveal: the user's actual idea or framing.
 - **Two questions at most, never a menu.** One to hear the idea, one to disambiguate, then commit.
 - **One handoff per invocation.** For a sequenced route, recommend the first hop and have the user invoke the `andthen:now-what` skill again; never auto-chain.
-- **One line per recommended skill.**
 - **Use the user's words, not workflow vocabulary.** A first-time user does not know "FIS" or "PRD": introduce the term at handoff.
 
 ## Workflow

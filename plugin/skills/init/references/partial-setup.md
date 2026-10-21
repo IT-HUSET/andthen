@@ -4,7 +4,7 @@ Repairing a project that already has `CLAUDE.md` and/or `AGENTS.md`: the default
 
 ## Host files
 
-If both `CLAUDE.md` and `AGENTS.md` exist without the thin import, the conversion to the Step 2a layout is an offer: merge any CLAUDE.md-only content into `AGENTS.md`, then rewrite `CLAUDE.md` to `@AGENTS.md` plus a `## Claude Code` section for genuinely Claude-specific instructions. Convert only on confirmation. Declined, preserve per-host ownership and apply only the choices confirmed for each host.
+If both `CLAUDE.md` and `AGENTS.md` exist without the thin import, the conversion to the Step 2a layout is an offer: merge any CLAUDE.md-only content into `AGENTS.md`, then rewrite `CLAUDE.md` to `@AGENTS.md` plus a `## Claude Code` section for genuinely Claude-specific instructions. Declined, preserve per-host ownership and apply only the choices confirmed for each host.
 
 If only one exists, repair that file, and offer the missing counterpart for cross-agent portability. Both offers go to Step 3.
 

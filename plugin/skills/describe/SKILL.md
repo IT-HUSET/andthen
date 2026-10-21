@@ -17,7 +17,7 @@ Describe documents what a project already is and never modifies its code.
 ## Rules
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
-- Every dispatch is a fresh subagent: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
+- Every dispatch is a fresh subagent: the installed role agent it names (`worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
 
 ## Workflow
 
