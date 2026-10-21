@@ -1,0 +1,11 @@
+{
+  "allowedPaths": [
+    ".agent_temp/**",
+    "docs/specs/csv-export/*-code-review-*.md",
+    "docs/LEARNINGS.md"
+  ],
+  "commands": [
+    "test \"$(ls docs/specs/csv-export/*-code-review-*.md | wc -l)\" -ge 2",
+    "git diff --quiet HEAD -- docs/specs/csv-export/csv-export-andthen-code-review-claude-2026-10-19.md"
+  ]
+}

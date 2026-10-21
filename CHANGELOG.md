@@ -9,6 +9,8 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ## [Unreleased]
 
 ### Changed
+- **`ship`'s pull request says where a person must read closely**: the files where an error does the most harm, choices no check can judge, and what the proof left unchecked, such as skipped checks and work committed or fixed after the latest review, or that no review ran. This replaces marking unreviewed commits in the publish question, which missed the fixes `ship` itself commits. Where reverting the merge would not undo the change, the body says what does.
+- **A review finding names every place its defect occurs in the reviewed scope**, so one fix round, which edits only the files findings name, reaches every instance instead of leaving the rest for another review.
 - **`clarify` and `decide` can ask every question at once for someone else to answer.** Ask for the complete set to pass on, to a colleague or as an issue reply, and you get one list with each follow-up naming the earlier answer it assumes; paste the answers back, or point the run at the issue, to continue.
 - **A GitHub issue is read with its comments.** `clarify`, `plan`, `triage`, `tracker triage`, and `review`'s gap and outcome lenses fetch an issue with `gh issue view --comments`, so answers and decisions made in the thread reach the run instead of only the issue body.
 

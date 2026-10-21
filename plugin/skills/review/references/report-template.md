@@ -39,7 +39,7 @@ Filter summary: {{N}} validated, {{N}} downgraded, {{N}} withdrawn
 
 - **Reviewer**: {{reviewer}}
 - **Confidence**: {{0|25|50|75|100}}
-- **Location**: `{{path:line}}`
+- **Location**: {{`path:line` for each occurrence in the reviewed scope}}
 - **Scope relation**: {{primary|secondary|pre_existing}}
 - **Finding**: {{what is wrong}}
 - **Threatened assumption or invariant**: {{…}}

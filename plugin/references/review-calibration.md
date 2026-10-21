@@ -41,7 +41,7 @@ Every finding carries:
 - `suggested_fix`
 - `verification_needed`
 
-A finding that does not name the behavior, its location, the cause, the impact, and how to verify is not actionable.
+A finding is actionable only when it names the behavior, every location in the reviewed scope where it occurs, the cause, the impact, and how to verify, because a fix round edits only the files findings name.
 
 Reports render the same fields as prose labels (`Threatened assumption or invariant`, `Scope relation`), or in the finding's heading where a report template puts one there (`severity`). A snake_case name and its prose label name one field, not two.
 

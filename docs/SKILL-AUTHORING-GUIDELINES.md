@@ -35,8 +35,13 @@ Each was written for models that needed it, and is neutral at best on current on
 - **Leading words** – name a load-bearing rule with a term that already carries pretraining weight (*Chesterton's Fence*, *Stop-the-Line*, *Boy Scout rule*), in place of its explanation, and reuse it verbatim everywhere. Keep only what the project adds to its common meaning, settled by asking the cheapest model cold. Coin a term only where plain words fail, and keep one term per concept.
 - **Gates over steps** – a phase ends on an observable that shows it done ("every modified model accounted for"), and a gate restating its step is cut. Visible later phases pull toward premature completion. Sharpen the current gate first, and hide later phases behind a fresh subagent only when runs show rushing.
 - **Dispatch sites** – a delegating step names the skill the subagent invokes, fresh or in-session context, the values it cannot derive as that skill's arguments, and the return shape the caller parses. It names the target in words and passes only switches such as `--fix`, `--quick`, and `--auto` as flags, never a mode or lens the invoked skill resolves from its target. The loaded skill is the **Single Authority**, and a hand-rolled prompt is a second copy that drifts. GPT models delegate in parallel only when told to.
-- **Prose for behaviour, lists for data** – a rule is one sentence with its reason. Data is what the model looks up – a token mapped to an action, a route by flag or host, a return shape – and takes a list, one key per item. A table cell is a phrase; `tests/test_table_legibility.py` fails one over 200 chars.
+- **Prose for one rule, a list for several** – a rule is one sentence with its reason.
+  A step or rule carrying three or more instructions is a lead line plus one bullet per instruction, because a paragraph hides each instruction.
+  Data is what the model looks up – a token mapped to an action, a route by flag or host, a return shape – and takes a list, one key per item.
+  A table cell is a phrase; `tests/test_table_legibility.py` fails one over 200 chars.
 - **Plain sentences** – one condition and one action per sentence, in common words, imperative for instructions and descriptive for definitions. The actor is you unless the sentence names another. Split a sentence holding two or more of `:`, `;` and ` – `, unless it is a data line. Cut filler and mannered turns: an aphorism, a clause restating the one before, a contrast written for rhythm. Shorten by selecting, never by packing clauses.
+- **One sentence per source line** (semantic line breaks), in paragraphs and list items alike.
+  Markdown renders the paragraph unchanged, and a diff shows the sentence that changed instead of a rewritten paragraph.
 - **Contrast only a named failure** – write "X, not Y" only where Y is behaviour a recorded run produced.
 - **One concern per paragraph**, so an "otherwise" never reaches back past its condition. Layout adds markup, never instructions, so it does not count against concision.
 - **Bind shared names once**, in a line such as "`Learnings` and `Tech Debt` are Project Document Index entries", then use the bare names.
@@ -109,7 +114,7 @@ The only text seen before the skill fires, loaded every turn. Codex trims descri
 | Opening lines | Purpose |
 | `## Input` | `$ARGUMENTS` and the flags |
 | `## Rules` | Standing rules for the whole run, a few lines |
-| `## Workflow` | Numbered steps in run order, each ending on its gate; a branch loads its reference at the step |
+| `## Workflow` | Steps in run order, each ending on its gate, a step longer than one line under a `### N. Name` heading; a branch loads its reference at the step |
 | `## Output` | What is written where, and the shapes other files parse |
 | `## Follow-up` | The one next command |
 

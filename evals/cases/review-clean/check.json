@@ -1,0 +1,10 @@
+{
+  "requiredArtifacts": [
+    "**/*-code-review-*.md"
+  ],
+  "allowedPaths": [
+    ".agent_temp/**",
+    "**/*-code-review-*.md",
+    "docs/LEARNINGS.md"
+  ]
+}
