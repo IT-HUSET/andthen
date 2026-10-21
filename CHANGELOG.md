@@ -9,6 +9,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ## [Unreleased]
 
 ### Changed
+- **The `context-hint.py` Stop hook shows you the size instead of blocking the stop.** It prints a `systemMessage`, so no model turn is spent on it, and adds "hand remaining pinned work to a subagent". It fires in any interactive session (the transcript's `entrypoint`, not a second prompt) and waits while background tasks are in flight. `block-dangerous-commands.py` now refuses `python3 -I -c` and other flag-before-`-c` forms, skips heredoc bodies, and names the fix in its message.
 - **`ship`'s pull request says where a person must read closely**: the files where an error does the most harm, choices no check can judge, and what the proof left unchecked, such as skipped checks and work committed or fixed after the latest review, or that no review ran. This replaces marking unreviewed commits in the publish question, which missed the fixes `ship` itself commits. Where reverting the merge would not undo the change, the body says what does.
 - **A review finding names every place its defect occurs in the reviewed scope**, so one fix round, which edits only the files findings name, reaches every instance instead of leaving the rest for another review.
 - **`implement-fix` with nothing to fix still re-checks every finding**: when every finding is routed Note or demoted, the run reports each one's status and escalates a blocked CRITICAL or HIGH finding instead of skipping that step.

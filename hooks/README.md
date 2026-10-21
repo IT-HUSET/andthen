@@ -9,7 +9,7 @@ Standalone Claude Code hooks; `block-dangerous-commands.py` and `context-hint.py
 | `block-dangerous-commands.py` | PreToolUse | `Bash\|PowerShell` | Blocks destructive shell commands (rm -rf, force push, fork bombs, pipe-to-shell, etc.), including their Windows forms |
 | `notify.sh` | UserPromptSubmit, Stop, Notification | -- | Desktop notifications when Claude finishes or needs attention |
 | `notify-elevenlabs.sh` | UserPromptSubmit, Stop, Notification | -- | Voice notifications via ElevenLabs TTS API |
-| `context-hint.py` | Stop | -- | Tells the agent the session's context size past a threshold, so it can suggest a fresh session (Claude Code and Codex) |
+| `context-hint.py` | Stop | -- | Shows you the session's context size past a threshold, so you can start a fresh session (Claude Code and Codex) |
 
 Claude Code re-reads the project-root `CLAUDE.md` after compaction on its own, so no hook is needed to keep project rules in context.
 
@@ -157,11 +157,11 @@ No config file. Requires `ELEVENLABS_API_KEY` env var and `curl`. See [ElevenLab
 
 ### context-hint.py
 
-The model cannot see how large its context has grown, and long interactive sessions get worse well before the window fills. When the agent is about to end its turn, this hook reads the size of the last request from the session transcript. Past the threshold it blocks the stop once, telling the model the size, and the model adds one closing line: continue here, or start a fresh session after writing a handoff, or nothing when it is mid-task and should go on. You decide.
+The model cannot see how large its context has grown, and long interactive sessions get worse well before the window fills. When the agent is about to end its turn, this hook reads the size of the last request from the session transcript. Past the threshold it shows you a message with the size, suggesting a fresh session after a handoff and handing remaining pinned work to a subagent. The message goes to you through the Stop hook's `systemMessage`, so the model takes no turn on it. You decide.
 
 - **Threshold**: `CONTEXT_HINT_THRESHOLD` tokens, default `200000`, one absolute number on both hosts, because the decline tracks tokens rather than the window size. The hint fires on crossing it and again at every further 50k. A compacted session reads small again, so the hint returns once it regrows past the threshold.
-- **Silent** below the threshold, while the agent is already continuing because of a Stop hook, and in a run with a single prompt (headless, `--auto`, or otherwise unattended). Claude Code subagents end on `SubagentStop`, so they never reach it.
-- **Cost**: each firing is one extra model turn. One small state file per session in `$TMPDIR`.
+- **Silent** below the threshold, while the agent is already continuing because of a Stop hook, while the Stop input lists in-flight `background_tasks` (the turn only ends to wait for them), and in an unattended run, read from the transcript's `entrypoint` (`sdk-*`, `mcp`) or, on Codex, its session source (`exec`, `mcp`, a subagent). Claude Code subagents end on `SubagentStop`, so they never reach it.
+- **Cost**: no model turn. One small state file per session in `$TMPDIR`.
 - **Fails open**: any error prints nothing and lets the stop through.
 
 No config file. Python 3 standard library only. Set the threshold in your shell profile, or for Claude Code in the settings `env` block, as for [ElevenLabs](#elevenlabs-setup).
