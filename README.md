@@ -124,20 +124,21 @@ The [Cookbook](COOKBOOK.md) has a recipe for each situation, starting with [choo
 
 ## Core skills
 
-The eight skills most work starts from:
+The nine skills most work starts from:
 
 | Skill | What it does |
 |---|---|
 | `init` | Sets up a project: the document index in `CLAUDE.md` / `AGENTS.md`, the project's test commands, and offers for the optional extras |
 | `now-what` | Reads your project state and routes you to the right skill |
 | `clarify` | Interviews you about an idea and writes the PRD; `--brief` stops at a shorter `intent.md` you can share first, and asking for all its questions at once gives you a list to hand to a colleague or post on the issue |
+| `domain` | Models the domain with you as the expert: subdomains and bounded contexts in a Domain Map, the glossary of shared terms, and event storming |
 | `decide` | Settles technical choices with you and records them as ADRs |
 | `plan` | Decides whether the work is one story or several, and writes one FIS per story plus the `plan.json` that tracks them |
 | `exec-plan` | Builds one FIS, or every story in a plan, each proven by its checks and reviewed by a fresh subagent |
 | `review` | Reviews code, spec conformance, security, or the outcome against the PRD; also reviews PRs |
 | `handoff` | Writes a document a fresh session can resume from when a session has to end mid-work |
 
-The other thirteen are `implement-fix`, `ship`, `triage`, `testing`, `architecture`, `describe`, `domain`, `ui-ux-design`, `visual-validation`, `visualize`, `tracker`, `spike`, and `simplify-code`. The [skill reference](plugin/README.md#skills) covers all 21 skills, with every flag and mode.
+The other twelve are `implement-fix`, `ship`, `triage`, `testing`, `architecture`, `describe`, `ui-ux-design`, `visual-validation`, `visualize`, `tracker`, `spike`, and `simplify-code`. The [skill reference](plugin/README.md#skills) covers all 21 skills, with every flag and mode.
 
 
 ## Installation
