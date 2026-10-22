@@ -1,13 +1,9 @@
 # Project Learnings
 
-<!-- Traps only, one bullet each: `- **{title}** – …`, trap + pointer; postmortem depth lives in
-     an ADR. An entry is admitted only if a frontier model does not already
-     know it, the code and git history do not already carry it, and it outlives the current
-     initiative. Read the document and append the bullet yourself, under the fitting topic: no
-     reworded duplicate of an entry already here, and keep the document short – trim stale
-     entries when you append. Delete entries once encoded as checks or stale. A topic that
-     outgrows this index moves to `learnings/<topic-slug>.md` and leaves one pointer line here;
-     open a shard only when the task names its topic. -->
+<!-- Traps only, one bullet each: `- **<title>** – <trap + fix>`. Admit a trap only if a frontier
+     model doesn't know it, the code and git history don't carry it, and it outlives the current
+     initiative; an initiative-only trap goes in that initiative's PRD, plan, or FIS. Before
+     appending, check for a reworded duplicate. Delete an entry once a check encodes it. -->
 
 ## Agent Workflows
 

@@ -1,16 +1,8 @@
 # Decisions
 
-<!-- Maintenance:
-     - The `andthen:decide` skill auto-registers ADRs (appends to Current
-       ADRs; moves prior rows to Superseded on supersession). Idempotent on
-       ADR ID.
-     - "Still Current" captures load-bearing choices that don't warrant a full
-       ADR. Promote via the `andthen:decide` skill if the choice becomes contested.
-       State each as it holds now: when a later choice changes one, rewrite
-       it in place or delete it – this is not a log.
-     - Status enum (Current ADRs): Proposed | Accepted | Deprecated.
-       Superseded decisions move to the dedicated table; Rejected decisions
-       stay only in the ADR file itself (not indexed). -->
+<!-- One Current ADRs row per ADR, keyed on its ID; the `andthen:decide` skill writes them.
+     Status: Proposed | Accepted | Deprecated. A superseded row moves to Superseded; a rejected
+     ADR leaves the index, and its file keeps the record. -->
 
 ## Current ADRs
 
@@ -33,16 +25,16 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 
 ## Superseded
 
-<!-- Move prior rows here when a new ADR supersedes them. Never delete –
-     the lineage is load-bearing context for agents reading the codebase. -->
+<!-- Never delete a superseded row: its lineage tells agents why the code is shaped as it is. -->
 
 | Prior Decision | Superseded By | Notes |
 |----------------|---------------|-------|
 
 ## Still Current
 
-<!-- Load-bearing decisions that don't warrant a full ADR. One bullet each.
-     Format: **<Topic>**: <decision + brief rationale>. -->
+<!-- Load-bearing choices that don't warrant an ADR, one bullet each:
+     `- **<Topic>**: <decision + brief rationale>`. State each as it holds now, rewriting or
+     deleting it when a later choice changes it; promote a contested one to an ADR. -->
 
 ### Workflow and skills
 
@@ -96,7 +88,7 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 
 ### Project documents
 
-- **Durable documents carry no size ceilings**: Index entries are name and location, then the read/update trigger – no size number: a count cannot tell necessary explanation from dispensable text, which is why the ceilings, their `hard` form, `prune`, and the admission regexes all retired. Documents are read whole and so stay short; one that outgrows that becomes an index over topic files beside it, one pointer line each, a shard opened when the task names its topic – by hand, with no verb or size check. The numbers that are load-bearing live where they are used: the FIS oversize threshold in `plan` and the authoring guidelines, the 200-character glossary row rule in the Ubiquitous Language header. Reopens on a document-growth failure the read-whole convention did not prevent.
+- **Durable documents carry no size ceilings**: Index entries are name and location, then the read/update trigger – no size number: a count cannot tell necessary explanation from dispensable text, which is why the ceilings, their `hard` form, `prune`, and the admission regexes all retired. Documents are read whole and so stay short. An entry's trigger may name the part to read only for history or user-facing reference that pruning would damage, never for a document a task is checked against, where a partial read misses silently. One that outgrows that becomes an index over topic files beside it, one pointer line each, a shard opened when the task names its topic – by hand, with no verb or size check. The numbers that are load-bearing live where they are used: the FIS oversize threshold in `plan` and the authoring guidelines, the 200-character glossary row rule in the Ubiquitous Language header. Reopens on a document-growth failure the read-whole convention did not prevent, or a part read that missed what the task needed.
 - **The Index entry catalog carries no Product Backlog or Changelog entry**: each entry is the location its first writer creates the document at (ADR-022), so an entry no skill writes or reads is dead weight. No skill reads a backlog – a deferral stays in its PRD's `Scope > Out of Scope`, a put-off fix in Tech Debt – and a changelog would need a completion clause in `exec-plan` and `implement-fix`, not an Index entry. A project that keeps either adds its own entry.
 - **No `Stack` document**: every row of its template projected the manifest, the lockfile, an ADR, or the Architecture document's Integration Points, and adopting projects showed versions drifting from the lockfile within weeks. The baseline (language, runtime, main framework) is one sentence in the Architecture document's System Overview, a library choice with a reason is a Decisions row, a rejected one a Product non-goal, and versions stay in the manifest. Reopens if a polyglot repository with no single manifest needs an inventory the Architecture document cannot carry.
 - **Tracker setup is first-use, not an `init` gate**: `init` writes neither the file nor its Index entry; the first skill that needs the backend – a reader handed a non-GitHub URL, `tracker triage` with no remote, `tracker publish` at first publish – offers `tracker setup`, and an unattended run blocks naming the `Backend:` line to set. `Backend: none` declares that the project has no tracker: `tracker publish` and `tracker triage` end on one line saying so, naming the line to change, and run no `gh` flow. Accepted: a non-GitHub project's first unattended run blocks until the document exists. Reopens if a project needs the backend declared before any skill sees a URL.
@@ -118,6 +110,4 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 
 ## Pending
 
-<!-- Decisions under discussion, awaiting acceptance. Typically populated by
-     the `andthen:decide` skill when a recommendation hasn't yet been
-     accepted as an ADR. -->
+<!-- Decisions under discussion, not yet accepted. -->

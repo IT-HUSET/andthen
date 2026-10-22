@@ -168,15 +168,9 @@ _No tech debt recorded yet._
 ```markdown
 # Decisions
 
-<!-- Maintenance:
-     - The `andthen:decide` skill auto-registers
-       ADRs (appends to Current ADRs; moves prior rows to Superseded on
-       supersession). Idempotent on ADR ID.
-     - "Still Current" captures load-bearing choices that don't warrant a full
-       ADR. Promote via the `andthen:decide` skill if the choice becomes contested.
-     - Status enum (Current ADRs): Proposed | Accepted | Deprecated.
-       Superseded decisions move to the dedicated table; Rejected decisions
-       stay only in the ADR file itself (not indexed). -->
+<!-- One Current ADRs row per ADR, keyed on its ID; the `andthen:decide` skill writes them.
+     Status: Proposed | Accepted | Deprecated. A superseded row moves to Superseded; a rejected
+     ADR leaves the index, and its file keeps the record. -->
 
 ## Current ADRs
 
@@ -186,8 +180,7 @@ _No tech debt recorded yet._
 
 ## Superseded
 
-<!-- Move prior rows here when a new ADR supersedes them. Never delete –
-     the lineage is load-bearing context for agents reading the codebase. -->
+<!-- Never delete a superseded row: its lineage tells agents why the code is shaped as it is. -->
 
 | Prior Decision | Superseded By | Notes |
 |----------------|---------------|-------|
@@ -195,16 +188,15 @@ _No tech debt recorded yet._
 
 ## Still Current
 
-<!-- Load-bearing decisions that don't warrant a full ADR. One bullet each.
-     Format: **<Topic>**: <decision + brief rationale>. -->
+<!-- Load-bearing choices that don't warrant an ADR, one bullet each:
+     `- **<Topic>**: <decision + brief rationale>`. State each as it holds now, rewriting or
+     deleting it when a later choice changes it; promote a contested one to an ADR. -->
 
 - ...
 
 ## Pending
 
-<!-- Decisions under discussion, awaiting acceptance. Typically populated by
-     the `andthen:decide` skill when a
-     recommendation hasn't yet been accepted as an ADR. -->
+<!-- Decisions under discussion, not yet accepted. -->
 
 - ...
 ```
@@ -263,19 +255,15 @@ _No tech debt recorded yet._
 ```markdown
 # Project Learnings
 
-<!-- Traps only, one bullet each: `- **{title}** – …` trap + pointer; postmortem depth lives in
-     an ADR. An entry is admitted only if a frontier model does not already
-     know it, the code and git history do not already carry it, and it outlives the current
-     initiative – anything else belongs in that initiative's PRD, plan, or FIS. Read the document
-     before appending, so a reworded duplicate of an entry it already carries never lands; keep
-     the document short and trim stale entries as you go. Delete entries once encoded as checks
-     or stale. A topic that outgrows this index moves to `learnings/<topic-slug>.md` and leaves
-     one pointer line here; open a shard only when the task names its topic. -->
+<!-- Traps only, one bullet each: `- **<title>** – <trap + fix>`. Admit a trap only if a frontier
+     model doesn't know it, the code and git history don't carry it, and it outlives the current
+     initiative; an initiative-only trap goes in that initiative's PRD, plan, or FIS. Before
+     appending, check for a reworded duplicate. Delete an entry once a check encodes it. -->
 
 ## [Topic Area 1]
 <!-- e.g. "Language Traps", "Framework Patterns", "API Quirks", "Deployment", etc. -->
 
-- **[Trap/insight]**: [Description] _(context/version)_
+- **[Trap]** – [what goes wrong, and the fix]
 
 ## Error Patterns
 <!-- Log recurring errors. Deterministic errors (bad schema, wrong type) → conclude immediately.

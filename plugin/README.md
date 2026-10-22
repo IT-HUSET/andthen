@@ -10,7 +10,7 @@ Install steps for Claude Code, Codex CLI, and other agents live in the [main REA
 
 Skills read your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and generic agents) for two things:
 
-- **Project Document Index**: a list that maps each document the project has (specs, plans, decisions, testing strategy) to its location and says when to read it, so skills know where to read and write. Documents are read whole, so keep them short.
+- **Project Document Index**: a list that maps each document the project has (specs, plans, decisions, testing strategy) to its location and says when to read it, so skills know where to read and write. Documents are read whole, so keep them short; an entry's trigger may name the part to read only for history or reference that no task is checked against, such as a changelog.
 - **Project-Specific Guidelines and Rules**: your own conventions and workflow notes.
 
 Skills name documents and folders by their Index entry (Specs & Plans, Agent Temp, Research, Models, Tech Debt, Learnings). The Index lists only documents that exist: the skill that first writes one creates it at its default path and adds its entry. The `fast` and `full` check tiers are rows of the `Key Dev Commands` document.

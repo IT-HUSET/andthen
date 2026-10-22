@@ -14,7 +14,7 @@ _**TODO**: What the project does, for whom, its core proposition and main archit
 
 ## Project Document Index
 
-Read a document whole when its trigger matches, because a grep finds only what you already suspect and misses traps and settled decisions. When you append, prune stale entries, and split one still too long into topic files beside it (**shards**), leaving a pointer line per shard in the original; open a shard only when the task names its topic. Skills cite entries by name, so keep names stable.
+Read a document whole when its trigger matches, because a grep finds only what you already suspect and misses traps and settled decisions. A trigger may instead name the part to read, but only for history or reference that no task is checked against. When you append, prune stale entries, and split one still too long into topic files beside it (**shards**), leaving a pointer line per shard in the original; open a shard only when the task names its topic. Skills cite entries by name, so keep names stable.
 
 Create a missing document and its entry here from `project-document-templates.md` when that file is loaded, else through a subagent that invokes the `andthen:init` skill with `seed <name>`.
 
