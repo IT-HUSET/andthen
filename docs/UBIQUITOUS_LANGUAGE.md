@@ -37,7 +37,9 @@
 | bindingConstraints | `plan.json` top-level array of pointers (`featureId` + PRD `anchor`) to the spans that bind the plan; Markdown/prose section `Binding Constraints`. | hard requirements |
 | sharedDecisions | `plan.json` top-level array of inter-story interface or design contracts referenced by producing and consuming stories; Markdown/prose section `Shared Decisions`. | cross-story notes |
 | FIS Provenance | The FIS header pair `**Plan**:` / `**Story-ID**:` tying a FIS to its plan and story; not the story field `provenance`, which says why no source covers it. | provenance header |
-| Spike | Throwaway runnable code the `andthen:spike` skill builds on a `spike/<slug>` branch to answer one named design question. | prototype, PoC branch |
+| Wireframe | Lo-fi, static grayscale HTML layout of one page or state from the `andthen:ui-ux-design` skill's wireframes mode: structure and hierarchy, never visual design. | lo-fi mockup, sketch |
+| Mockup | Hi-fi, clickable HTML pages from the `andthen:ui-ux-design` skill's mockups mode, built on the project's design system; the visual reference for what gets built. | hi-fi wireframe, UI prototype, prototype |
+| Spike | Throwaway runnable code the `andthen:spike` skill builds on a `spike/<slug>` branch to answer one named design question; a verdict, never screens to review (a Mockup) or shippable code. | prototype, PoC branch |
 | Spike Verdict | The block the `andthen:spike` skill prints answering its one question. | spike result |
 | Agent Brief | The `ready-for-agent` handoff block `tracker triage` appends to an issue body. | handoff comment |
 | Tracker resolution | Resolving the `Issue Tracker` document before any issue operation, stated once in the `andthen:tracker` skill. | backend switch |
@@ -117,4 +119,5 @@
 | context | Domain design | Bounded Context in DDD | Project discovery | Project context loaded from root agent instructions |
 | state | Workflow artifact | Runtime fields in the schema v2 `plan.json` governing the story – a standalone feature has a one-story plan of its own | Plan status | `stories[].status` values inside `plan.json` |
 | issue | GitHub integration | A GitHub issue read as a requirements or scope source | Review | A finding; prefer Finding |
+| prototype | A request about screens or flows | A Mockup, from the `andthen:ui-ux-design` skill | A request about technical feasibility | A Spike, from the `andthen:spike` skill; when unclear, ask |
 | asset | Install system | Shared Plugin Asset under `plugin/references/` | Plan schema | `assetRefs` pointing to upstream assets |
