@@ -45,6 +45,7 @@ The fields whose *meaning* prose has to state:
 | `verified` | `{at, summary}`, written with `done` and never without it; `at` a UTC ISO-8601 minute. |
 | `provenance` | Why no `sourceRefs` entry covers the story, or `null`. |
 | `sequencing` | Residual dependency rationale, or `null`. |
+| `shipped` | Top-level `{at, pr}`, written by `ship` when a ready plan's bundle stays, kept or untracked: `at` a UTC ISO-8601 minute, `pr` the PR's URL or `null`. A plan carrying it is a shipped record. |
 
 ## FIS identity
 

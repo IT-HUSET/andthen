@@ -436,7 +436,7 @@ Backend: GitHub
 Record: repo
 <!-- Where a feature's requirements record lives after the merge: repo (prd.md stays; the default when
      this line is absent) or tracker (the PRD lives in its issue, child issues keep each story's record,
-     and ship deletes prd.md with the plan). -->
+     and ship deletes prd.md with the plan once the issues are published, unless the user keeps the bundle). -->
 
 ## Operation Table
 <!-- Non-GitHub backends only. Map every abstract operation to the backend's concrete command/API call.

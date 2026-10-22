@@ -49,7 +49,7 @@ At product scope, read [`product-mode.md`](references/product-mode.md) and [`pro
 
 Never write over an existing `prd.md`: a resolved directory holding one from this `SOURCE_ID` takes the amendment branch, or prints its path and stops when `INPUT` carries no decision, gaps, or notes, and one from another source takes the first free numeric suffix.
 
-- **Directory holding `prd.md`, or that `prd.md` itself** – amend it. A decision the user settled (a threshold, a changed rule) is edited straight in; supplied gaps or notes run Step 2 first, and the user's answers are edited in. Edit only the rows and sections they touch, keeping `Source`, location, and every unrelated line, then run Steps 4–5 bounded to the touched scope. The PRD is the canonical requirement. `OUTPUT_DIR`: the PRD's directory.
+- **Directory holding `prd.md`, or that `prd.md` itself** – amend it. A decision the user settled (a threshold, a changed rule) is edited straight in; supplied gaps or notes run Step 2 first, and the user's answers are edited in. Edit only the rows and sections they touch, keeping `Source`, location, and every unrelated line except a `**Shipped**` header line, which goes because the amendment is unshipped work, then run Steps 4–5 bounded to the touched scope. The PRD is the canonical requirement. `OUTPUT_DIR`: the PRD's directory.
 - **Directory or file holding an `intent.md`** – a baseline stating what its author knew, not a finished artifact: Step 3 folds its sections into the PRD, and the interview still runs. Read `intent-template.md` for its shape. `OUTPUT_DIR`: that directory.
 - **Other directory** – `OUTPUT_DIR`: that directory.
 - **Other file path** – `OUTPUT_DIR`: root + lowercase kebab-case stem.

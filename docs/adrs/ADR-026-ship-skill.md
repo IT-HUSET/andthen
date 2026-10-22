@@ -11,6 +11,8 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 *Amended 2026-10-15: on the remote's default branch, outside `--auto`, `ship` asks once before its first commit whether to start a feature branch, as `exec-plan` does, because the pull request opens from the current branch. The push keeps its one ask. Without a remote there is no pull request, so nothing is asked.*
 
+*Amended 2026-10-21: `ship` no longer deletes the bundle unasked. Deletion is asked inside the one existing question, step 5 for a ready plan and step 1's ship-anyway question while the plan is not ready, and the recommendation is delete for a ready plan, keep otherwise. The reason is that the maintainer wants the option of keeping specs as a record past the merge. A ready plan whose bundle stays, kept or untracked, carries `shipped: {at, pr}` in `plan.json` unless the push is declined, and a deletion stamps a `> **Shipped**:` header line into the `prd.md` it keeps, because a squash merge erases the deletion and file content survives it. Either way `now-what` reads the bundle as a record and not as mid-flow work. With no remote the bundle question is the only ask, and `--auto` takes the recommendation and records an `ASSUMPTION:` line.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:

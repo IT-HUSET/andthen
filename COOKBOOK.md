@@ -401,7 +401,7 @@ While a plan runs, the tracker is a projection of the plan, never a second sourc
 4. **Inner loop, once per story** – claim the story's issue by assigning it to yourself, branch (`{type}/{story-id}-{slug}`) → `exec-plan`, its quick review included → PR with `Closes #N`. Merge closes the issue natively.
 5. **State** – `plan.json` is agent truth while the plan governs; the tracker is the human projection (re-run `tracker publish` to refresh it). Under the default `Record: repo`, `prd.md` outlives the bundle; the issues and PRs are the per-story record.
 
-**Requirements only in the tracker.** Set `Record: tracker` in the `Issue Tracker` document. `clarify` then saves the PRD to its issue, `plan <issue-url>` copies it back into the bundle, and `ship` publishes the issues a last time for the merge to close, and deletes `prd.md` with the bundle, so nothing requirements-shaped stays in the repo after the merge.
+**Requirements only in the tracker.** Set `Record: tracker` in the `Issue Tracker` document. `clarify` then saves the PRD to its issue, `plan <issue-url>` copies it back into the bundle, and `ship` publishes the issues a last time for the merge to close. When you delete the bundle, `prd.md` goes with it, so nothing requirements-shaped stays in the repo after the merge.
 
 A single story is the same flow with a different argument:
 
@@ -412,7 +412,7 @@ A single story is the same flow with a different argument:
 | Build + prove | `exec-plan` → `review --fix` → `ship` | same; PR body `Closes #42` |
 | Status | branch + PR | native: branch name / PR link moves the issue, merge closes it |
 | Record after merge | `prd.md` and the PR, whose body states each story's intent, outcomes, and proof | the issues and the PR |
-| Close-out | `ship`, once the plan-level review's `Next (fresh session):` line names it: Observations land in `Learnings`, the rest is recommended, then `plan.json` and the FIS files are deleted before the plan's branch merges; `prd.md` stays | same; under `Record: tracker`, the issues are refreshed first and the merge closes them, and `prd.md` goes too |
+| Close-out | `ship`, once the plan-level review's `Next (fresh session):` line names it: Observations land in `Learnings`, the rest is recommended, then the one question asks whether to delete `plan.json` and the FIS files (recommended) before the plan's branch merges; `prd.md` stays | same; under `Record: tracker`, the issues are refreshed first and the merge closes them, and a deletion takes `prd.md` too |
 
 Under `Record: repo`, a PRD leaves `prd.md` behind as the requirements record; any other source leaves only the request itself. Concurrent stories need no shared state file: `plan.json` is the one state owner, and per-story FIS prose is frozen.
 
@@ -475,7 +475,7 @@ Reference for [the workflow](README.md#the-workflow): what each step reads and w
 | Plan | `plan` | a description, a `prd.md` (or its directory), a requirements file, a tracker issue | `plan.json` – the stories, their dependencies and status – plus one FIS per story |
 | Build | `exec-plan`, on a FIS or the plan directory | `plan.json` and the FIS | the code, one commit per story with `Story-ID:` and `Plan:` trailers, each story `done` in `plan.json` |
 | Review and fix | `review --fix` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json`, and the fixes |
-| Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle deleted; `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation |
+| Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle deleted, or kept and marked `shipped`; `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation |
 
 `plan` sizes the work before it writes a FIS. When a story still turns out too big for one run, it offers to split it – in the same run for a written source, through `clarify` for a description. `review --fix` is one review and one fix round; when it fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it prints a follow-up review as its `Next (fresh session):` line. Once the plan's stories are all `done` or `skipped` (cut from scope) and nothing CRITICAL or HIGH is open, its `Next (fresh session):` line runs `ship` instead; `implement-fix` run on the report closes the same way.
 
@@ -496,8 +496,8 @@ Design comes in before the spec, on your answer: `clarify` asks, with the closin
 | any short source – `intent.md` is one shape | anyone, by hand; `clarify --brief` writes `intent.md` | `clarify`, `plan`, `now-what`, `architecture` | superseded – `clarify` folds it into `prd.md`, `plan` into the FIS |
 | `PRODUCT.md` | the first of `clarify`, `decide`, `plan`, `architecture` to ask its Proportionality facts, or `clarify` at product scope | every proposal skill, as the proportionality anchor | durable |
 | `prd.md` | `clarify` | `plan`, `review --mode gap,outcome` | survives the merge – the product record |
-| `plan.json` | `plan`; runtime state by the session executing each story (under `--worktree`, by the plan run before each batch) | `exec-plan`, `review`, `now-what`, `tracker`, `ship` | branch-scoped – deleted by `ship` before the merge |
-| FIS (one per story) | `plan`, one fresh subagent per story when there are several | `exec-plan`, `review`, `ship` | branch-scoped – deleted by `ship` before the merge |
+| `plan.json` | `plan`; runtime state by the session executing each story (under `--worktree`, by the plan run before each batch) | `exec-plan`, `review`, `now-what`, `tracker`, `ship` | branch-scoped – deleted by `ship` before the merge unless you keep it |
+| FIS (one per story) | `plan`, one fresh subagent per story when there are several | `exec-plan`, `review`, `ship` | branch-scoped – deleted by `ship` before the merge unless you keep it |
 | Review report | `review` | `implement-fix` | one run's working file – ignored by default, committed once the project drops its `.gitignore` line |
 | `LEARNINGS.md`, `DECISIONS.md` | `decide` (ADR rows, Still Current lines), `ship` at close-out (it writes `Learnings` and recommends `Decisions`), and the agents that read them after triage | every skill at task start | durable |
 
@@ -506,7 +506,7 @@ Design comes in before the spec, on your answer: `clarify` asks, with the closin
 - **Outer loop, once per initiative** – `clarify`, then `plan`: what and why, then a FIS per story.
 - **Inner loop, once per story** – `exec-plan`: build one story and prove it, review included, then on a team its PR into the milestone branch. Run it one story per session and read each result before the next. On the plan directory `exec-plan` runs this loop for you without stopping, one story at a time in the shared tree, or independent stories in parallel under `--worktree`, one worktree each.
 
-**When the PR opens.** `ship` opens it, after one confirmation. The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR. On a team, `ship` on a story branch opens the story PR and keeps the bundle, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it.
+**When the PR opens.** `ship` opens it, after one confirmation. The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR. On a team, `ship` on a story branch opens the story PR and asks whether to keep the bundle, recommending keeping it, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it.
 
 This is a scope-and-cadence split, not the DevEx sense of inner loop (edit-build-test) versus outer loop (CI/CD). A third motion, the **knowledge cycle**, is not a loop: FIS `Implementation Observations` graduate into `LEARNINGS.md` at close-out through `ship`, which recommends the `DECISIONS.md` lines, recurring review traps become lint rules or tests, and settled trade-offs become ADRs.
 
@@ -718,7 +718,7 @@ Three things the report does not spell out. The reviewer was a fresh subagent, s
 
 ### Turn 4 – ship S01 *(session C continues)*
 
-`ship` on the story branch opens the PR to `1.2` and, with stories still to run, keeps the bundle. The PR body takes S01's intent and outcomes from the FIS and its proof from the `verified` line and the review, so the *why* survives the FIS's deletion however the PR merges. Its head reads:
+`ship` on the story branch opens the PR to `1.2` and, with stories still to run, asks whether to keep the bundle, recommending keeping it. The PR body takes S01's intent and outcomes from the FIS and its proof from the `verified` line and the review, so the *why* survives the FIS files' later deletion however the PR merges. Its head reads:
 
 ```
 ## Send an invitation (S01)
@@ -778,6 +778,6 @@ It ends on a `Next (fresh session):` line for `ship`, which runs on `1.2` as the
 /andthen:ship docs/specs/workspace-invitations/plan.json
 ```
 
-It lands what belongs in `Learnings` from each FIS's `## Implementation Observations` and recommends the rest, including the PRD edit S02's Drift Note names, because the Drift Notes and cited ADRs go with the files. It then deletes `plan.json` and the FIS files (`prd.md` stays), commits, shows the `1.2` → `main` PR title and body, and asks once before it pushes.
+It lands what belongs in `Learnings` from each FIS's `## Implementation Observations` and recommends the rest, including the PRD edit S02's Drift Note names, because the Drift Notes and cited ADRs go with the files. It then commits, shows the `1.2` → `main` PR title and body, and asks once before it pushes, in the same question asking whether to delete `plan.json` and the FIS files (`prd.md` stays), recommending deletion.
 
 **What survives.** `prd.md`, the tests, the PRs whose bodies state each story's intent, outcomes, and proof, and on a team the issues.

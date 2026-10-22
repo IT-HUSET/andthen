@@ -50,6 +50,6 @@ Where any story failed or was skipped, add `Completed`, `Failed`, `Skipped`, and
 
 **Notes rollup**: each completed story's open findings and Drift Notes, or `none`, every stale upstream target they name with a recommend-only reconciliation.
 
-Leave `plan.json` and the FIS files in place: the `andthen:ship` skill deletes them when the plan's branch ships.
+Leave `plan.json` and the FIS files in place: the `andthen:ship` skill deletes or keeps them, on the user's answer, when the plan's branch ships.
 
 **The plan-level review is not yours**: after every story's report this is the run's most loaded context. End with exactly one `Next (fresh session):` line carrying it on `{PLAN_PATH}`, plus `--auto` in an unattended run. Where the person stopped the run on a revision at triage, end on the skill's Follow-up revision line instead, because a review of the old spec would be spent. Under `--no-full-tier` the line opens with running the full tier first. Scope it to the `done` stories, because a review over the whole plan raises gap findings against stories nobody implemented: where any story failed or was skipped, name the `done` ids after `{PLAN_PATH}`. Where none is `done`, print `Next: no completed stories – nothing to review.` instead.

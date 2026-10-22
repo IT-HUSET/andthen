@@ -102,6 +102,16 @@
           "properties": { "fis": { "type": "string" } }
         }
       }
+    },
+    "shipped": {
+      "type": "object",
+      "required": ["at", "pr"],
+      "additionalProperties": false,
+      "description": "Written by ship when a ready plan's bundle stays, kept or untracked: the plan is a shipped record.",
+      "properties": {
+        "at": { "type": "string", "minLength": 1 },
+        "pr": { "type": ["string", "null"], "minLength": 1 }
+      }
     }
   },
   "$defs": {

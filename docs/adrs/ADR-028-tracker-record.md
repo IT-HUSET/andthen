@@ -7,6 +7,8 @@ Extends ADR-026: `ship` gains the final tracker refresh. It reverses one recorde
 
 *Amended 2026-10-06: the projection moves from `tracker.py` into the `tracker` skill's prose, and the script goes. It had grown to 377 lines and 448 test lines of bookkeeping the agent does by reading, namely marker search, numbering in two passes, sealing, and a hash per section, and every defect still open after review sat in that code. The parent's numbered `## Stories` checklist now names the children, and a search runs only for a story it does not link yet. A closed issue is the shipped record, so the merge's closing links replace `--seal`. `publish` previews what each write changes and asks once, which replaces the hash. Issues an earlier release candidate published are not found again. The `ops` script and `wire.py` were retired for prose the same way.*
 
+*Amended 2026-10-21: `ship` deletes the bundle only when the user chooses it (ADR-026, amended the same day). The deletion still waits for the publish: under `Record: tracker` it removes `prd.md` too once the issues are published, and without a publish the bundle stays for the next run.*
+
 ## Context
 
 **Some teams want no requirements documents in the repo.** Their PRDs and stories live in GitHub issues, and the issues plus the PR are the lasting record. AndThen supports half of that today. `plan <issue-url>` reads an issue as its requirements, the gap lens reads that URL as its baseline, and `ship` writes the PR body and deletes `plan.json` and the FIS files before the merge (ADR-026). Three gaps remain:

@@ -14,7 +14,7 @@ What AndThen enforces, so you don't have to:
 
 - **Nothing is done on the agent's word.** A story is marked done only with a quoted line from the check that proved it, written by the session that ran the check.
 - **The code is reviewed by an agent that didn't write it.** Every story gets a review from a fresh subagent that checks it against its spec.
-- **Specs don't go stale.** The plan and its specs belong to one branch and are deleted before the merge. The requirements document (`prd.md`) is what stays, or its issue when you keep requirements in the tracker.
+- **Specs don't go stale.** The plan and its specs belong to one branch and are deleted before the merge unless you keep them as a record. The requirements document (`prd.md`) is what stays, or its issue when you keep requirements in the tracker.
 - **Process is sized to the work.** A change you can state in one sentence skips the specs entirely (`implement-fix`).
 
 It is one plugin, `andthen`, with 21 skills and no runtime of its own to install. There is no CLI to install and no tool directory to commit: skills find your specs and docs through an index in `CLAUDE.md` / `AGENTS.md`.
@@ -68,7 +68,7 @@ The path through the workflow:
 3. **`plan`** writes the specs. It decides whether the work is one story or several.
 4. **`exec-plan`** builds the stories, one per fresh session. For each one it writes the code and tests, runs every check, has a fresh subagent review it, carries what it learned into the stories still to run, commits, and simplifies the result. Between stories you read the result and can adjust the next story's FIS before it runs.
 5. **`review --fix`** reviews the finished work as a whole and applies the findings it marks `Fix`. Findings marked `Note` are left for you to decide. A clean review ends on a `Next (fresh session):` line for `ship`.
-6. **`ship`** lands what each story's `Implementation Observations` hold worth keeping, deletes `plan.json` and the FIS files, commits, and shows the PR title and body (a merge request on GitLab). It pushes and opens it after your one yes. The PR body states the change's intent, outcomes, and proof, in your PR template when you have one. With `prd.md`, it is where the stories' intent outlives the FIS files, however you merge.
+6. **`ship`** lands what each story's `Implementation Observations` hold worth keeping, commits, and shows the PR title and body (a merge request on GitLab). It pushes and opens it after your one yes, and that question also asks whether to delete `plan.json` and the FIS files. The PR body states the change's intent, outcomes, and proof, in your PR template when you have one. With `prd.md`, it is where the stories' intent outlives deleted FIS files, however you merge.
 
 Every step ends by printing the full next command to paste, including its target and required arguments. Not sure where you are? `/andthen:now-what` reads your project state and sends you to the right skill.
 

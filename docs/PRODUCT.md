@@ -26,7 +26,7 @@ The rule covers existing design in scope, not only proposals: simplify or remove
 
 - A mandatory methodology, a fixed project layout, or a rigid input format.
 - Replacing coding agents, execution platforms, or project-management systems.
-- Keeping specs in sync with code after merge. `plan.json` and each FIS govern one branch and are deleted before its merge; the Product document, PRDs, Learnings, and Decisions stay. A spec maintained past merge is a second record of what the code already states.
+- Keeping specs in sync with code after merge. `plan.json` and each FIS govern one branch, and `ship` deletes them before its merge unless the user keeps them as an unmaintained record; the Product document, PRDs, Learnings, and Decisions stay. A spec maintained past merge is a second record of what the code already states.
 
 ## Proportionality
 
