@@ -5,8 +5,7 @@ Turn feature requirements into simple HTML wireframes that capture the key layou
 Bound from `ARGUMENTS`:
 
 - `REQUIREMENTS` – required: an inline description, a file path, or a PRD reference.
-- `DESIGN_DIR` – optional: a design system directory or concept inputs, noted when it exists.
-- `OUTPUT_DIR` – the `Wireframes` document location (default `docs/wireframes`).
+- `OUTPUT_DIR` – `<Wireframes location>/<feature>/` (default location `docs/wireframes`), the feature named as `REQUIREMENTS` names it.
 
 **100% page coverage**: an un-wireframed page becomes an un-designed surface downstream, so every distinct page and state in the inventory gets its own wireframe.
 

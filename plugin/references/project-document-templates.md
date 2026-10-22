@@ -39,7 +39,8 @@ A template's `>` note sits above its fenced block, states who owns that document
 - **Ubiquitous Language** – `docs/UBIQUITOUS_LANGUAGE.md`: canonical terms and the synonyms to avoid. Read before naming, renaming, or describing domain concepts; add a row when a term settles.
 - **Guidelines** – `docs/guidelines/`. Read a guideline when its condition under Project Guidelines and Standards matches the task.
 - **Review Policy** – `docs/REVIEW-POLICY.md` (optional): paths excluded from review, extra passes, verdict thresholds. Read before a review.
-- **Wireframes** – `docs/wireframes/` (HTML or images). Read before building or validating a screen; update when a flow changes.
+- **Wireframes** – `docs/wireframes/`: one folder per feature (HTML or images). Read before building or validating a screen; update when a flow changes.
+- **Mockups** – `docs/mockups/`: one folder per feature of clickable pages built on the design system, frozen once written. Read before building or validating a screen; a Mockup outranks its wireframe.
 - **Design System** – `docs/design-system/`: `DESIGN.md` is canonical (tokens and rationale), `showcase.html` renders it. Read before writing UI markup or styles; update when a token or component is added.
 - **Visual Validation** – `docs/VISUAL-VALIDATION.md`: how the UI is served and captured (serve command, capture tooling, routes and states, breakpoints, reference locations). Read before capturing a screen.
 - **Learnings** – `docs/LEARNINGS.md`. Read at task start; add a bullet when bitten by a non-obvious failure.

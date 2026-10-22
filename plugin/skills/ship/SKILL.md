@@ -1,5 +1,5 @@
 ---
-description: Ship the current branch – land the plan's FIS Implementation Observations worth keeping, delete or keep its bundle, commit, then push and open the pull request on one ask. Trigger on 'ship it', 'open the PR', 'close out the plan'.
+description: Ship the current branch – land the plan's FIS Implementation Observations worth keeping, delete or keep its bundle and design folders, commit, then push and open the pull request on one ask. Trigger on 'ship it', 'open the PR', 'close out the plan'.
 argument-hint: "[--auto] [plan.json path] [notes for the pull request]"
 ---
 
@@ -15,7 +15,7 @@ A branch carrying a plan bundle – `plan.json` and the FIS files beside it – 
 - `--auto` makes the run unattended: read [`unattended-runs.md`](../../references/unattended-runs.md) and follow it.
 - A branch with a plan bundle: read [`plan-schema.md`](../../references/plan-schema.md), whose § Shipping says when the plan is ready.
 
-`Learnings`, `Decisions`, `Issue Tracker`, and `Visual Validation` are **Project Document Index** entries.
+`Learnings`, `Decisions`, `Issue Tracker`, `Visual Validation`, `Wireframes`, and `Mockups` are **Project Document Index** entries.
 
 ## Rules
 
@@ -94,14 +94,16 @@ Put what the merge decision needs first and fold per-story detail below it, beca
   While the plan is not ready, those are only the open issues of stories `done` or `skipped`, so the parent and the unfinished stories stay open for a later ship.
 - Ask once whether to push and open it, and end the turn on the question.
   For a ready plan's tracked bundle, the same question asks whether to delete it, recommending deletion.
-  With no remote, ask only about the bundle, except under `Record: tracker`, where it waits for a publish.
+  It also names each feature folder under the `Wireframes` or `Mockups` locations that the branch added or the plan cites (`assetRefs`, its FIS files), never a location itself, and asks whether to delete them.
+  Recommend deleting them, except keeping them while the plan is not ready or the branch changed nothing outside design and spec folders, because their build is still to come.
+  With no remote, ask only about the bundle and those folders, except under `Record: tracker`, where it waits for a publish.
   Offer screenshots or a recording for a visible UI change the request said nothing about.
 - On a yes under `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, and add the closing links from the issues it reports.
 - On a delete, commit the deletion before the push: `plan.json`, its FIS files, and any `intent.md` beside them go, and the requirements file its `prd` names stays.
   A `prd.md` that stays gains a `> **Shipped**: <UTC ISO-8601 minute>` header line in the same commit, so later runs read it as a record.
   Under `Record: tracker` in the `Issue Tracker` document, that file goes too once the issues are published, because they then carry the record.
   Without a publish under `Record: tracker`, the bundle stays for the next run, because the issue bodies are written from it.
-- With the deletion, repoint each committed link into a deleted file at what survives it, such as the requirements file, its issue, or an ADR, because a dead link fails silently.
+- With either deletion, repoint each committed link into a deleted file at what survives it, such as the requirements file, its issue, or an ADR, because a dead link fails silently.
   A branch commit is no such target, because a squash merge leaves it out of the base branch.
 - When a ready plan's bundle stays, kept or untracked, write its `shipped` marker unless the user declines the push, so later runs read the plan as a record.
   A tracked one is committed before any push, then once the pull request opens its `pr` is set, committed, and pushed.
@@ -110,13 +112,13 @@ Put what the merge decision needs first and fold per-story detail below it, beca
   Attach each image through an upload the host accepts, else list it for the user to attach.
 - Under `--auto`, stop before anything leaves the machine.
 
-**Gate**: no push before any bundle deletion or tracked `shipped` marker is committed, and the pull request's URL, or its title, body, and the commands still to run to open it.
+**Gate**: no push before any bundle or design-folder deletion or tracked `shipped` marker is committed, and the pull request's URL, or its title, body, and the commands still to run to open it.
 
 ## Output
 
 Report:
 
 - each `Learnings` bullet written, each recommendation, and each observation judged not worth keeping, with its reason;
-- the commits made, and the bundle files deleted or the bundle kept, with the `ASSUMPTION:` line of an unattended run;
+- the commits made, the bundle files and design folders deleted, and the bundle or each design folder kept, with the `ASSUMPTION:` line of an unattended run;
 - each change left uncommitted, each file left in the bundle's directory, because a later `now-what` reads it as work in progress once no record is left beside it, and whether the plan was marked `shipped`;
 - the pull request's URL, each issue published, and each image left for the user to attach, or its title, body, and the commands still to run.

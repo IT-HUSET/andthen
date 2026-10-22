@@ -19,7 +19,7 @@ Write the FIS an unattended executor runs without asking: one story, or a `plan.
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
 - An out-of-scope observation is `NOTICED BUT NOT TOUCHING:`.
-- `Product`, `Decisions`, `Wireframes`, `Design System`, `Issue Tracker` and `Specs & Plans` are Project Document Index entries.
+- `Product`, `Decisions`, `Wireframes`, `Mockups`, `Design System`, `Issue Tracker` and `Specs & Plans` are Project Document Index entries.
 - Every dispatch is a fresh subagent: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
 
 ## Workflow
@@ -30,7 +30,7 @@ Read what the request points to. Fetch a tracker item as the `Issue Tracker` doc
 
 ### 2. Orient
 
-Open code only where a decision, a `Proof` binding or a rename's inventory needs it. A `Decisions` row narrows the options; a request contradicting one is a Preflight item, never edited into `Decisions`. A needed decision nothing settles is a Preflight item recommending the `andthen:decide` skill. Screens the source adds that neither the `Wireframes` document covers nor a recorded answer settles are asked in the requirement round, recommending the `andthen:ui-ux-design` skill first: accepted, the run stops and closes on it. An unattended run never stops here: it specifies the screens from the source.
+Open code only where a decision, a `Proof` binding or a rename's inventory needs it. A `Decisions` row narrows the options; a request contradicting one is a Preflight item, never edited into `Decisions`. A needed decision nothing settles is a Preflight item recommending the `andthen:decide` skill. Screens the source adds that no `Wireframes` or `Mockups` document covers and no recorded answer settles are asked in the requirement round, recommending the `andthen:ui-ux-design` skill first: accepted, the run stops and closes on it. An unattended run never stops here: it specifies the screens from the source.
 
 **Anchor on the `Product` document's Proportionality facts.** Drop or flag what they do not carry or a standing technical non-goal forbids, or what the `Product` document's Non-Goals rule out, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). Absent or `unknown` facts are no licence to size against imagined scale. When the facts are absent, ask for all three in the requirement round, and write the answers into its Proportionality section, `unknown` for one left unanswered. An unattended run skips the question, writes nothing to `Product`, and says the anchor was unavailable.
 

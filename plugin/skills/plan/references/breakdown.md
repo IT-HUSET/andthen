@@ -6,7 +6,7 @@ Turn a written source into `plan.json` per `plan-schema.md` and one reviewed, pr
 
 ### 1. Read the source
 
-`OUTPUT_DIR` is the directory the skill's Output names for the source. Route each asset the stories build on – beside the source, or at the `Decisions`, `Design System` and `Wireframes` entries – to the `assetRefs` of the stories that need it, so no story's spec re-reads every ADR. Module and context boundaries are in the `Models` Index entry's `architecture-model.json` and the `Domain Map` document, where present. An Index entry still named `Context Map` is read as the `Domain Map`.
+`OUTPUT_DIR` is the directory the skill's Output names for the source. Route each asset the stories build on – beside the source, or at the `Decisions`, `Design System`, `Mockups` and `Wireframes` entries – to the `assetRefs` of the stories that need it, so no story's spec re-reads every ADR. Module and context boundaries are in the `Models` Index entry's `architecture-model.json` and the `Domain Map` document, where present. An Index entry still named `Context Map` is read as the `Domain Map`.
 
 Ask every gap the cut or a story's intent turns on, at requirements altitude – the outcome or user-visible end state, an actor, a threshold, an unhappy path – in one round per `preflight.md`'s sitting before any story is authored, since story subagents cannot ask. An answer is a requirement the stories are cut from: it goes into `prd.md` through the `andthen:clarify` skill's amendment for a `prd.md` source, else into `sharedDecisions` or the story's brief, since those are all a story subagent reads.
 

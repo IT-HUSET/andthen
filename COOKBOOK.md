@@ -231,7 +231,7 @@ The map is recommended first for a project with real domain depth, and never req
 
 **Elsewhere.** A discovery session to feed it is [event storming](#event-storming-a-new-domain-or-a-system-to-rewrite). The modes are in [`domain`](plugin/README.md#domain).
 
-### Research, a design system, wireframes
+### Research, a design system, wireframes, mockups
 
 **Situation.** UI work is coming: nobody has said who uses it, no shared tokens exist, or the FIS should not invent the screens.
 
@@ -239,6 +239,7 @@ The map is recommended first for a project with real domain depth, and never req
 /andthen:ui-ux-design "user research for the export flow: who exports, when, what they do with the file"
 /andthen:ui-ux-design "create a design system from docs/specs/workspace-invitations/prd.md"
 /andthen:ui-ux-design "wireframe the invitation flow from docs/specs/workspace-invitations/prd.md"
+/andthen:ui-ux-design "mockups of the invitation flow from docs/specs/workspace-invitations/prd.md"
 /andthen:ui-ux-design "research, then a design system, then wireframes for the onboarding flow in docs/specs/onboarding/prd.md"
 ```
 
@@ -246,9 +247,10 @@ The map is recommended first for a project with real domain depth, and never req
 
 - `research` returns in the conversation, no file: the job-to-be-done, two to five journeys, an IA sketch, constraints, and open questions (`clarify` input).
 - `design-system` writes `docs/design-system/DESIGN.md` (token front matter plus rationale), `tokens.css`, and `showcase.html`. Push back on a bland result: deliberate visual direction is the mode's bar.
-- `wireframes` writes grayscale HTML with full page coverage under `docs/wireframes/`, an `index.html` hub and a `page-inventory.md`, validated through `visual-validation`.
+- `wireframes` writes grayscale HTML with full page coverage under `docs/wireframes/<feature>/`, an `index.html` hub and a `page-inventory.md`, validated through `visual-validation`.
+- `mockups` needs the design system and writes clickable pages styled from it under `docs/mockups/<feature>/`: realistic text, working dialogs, tabs, and error states, an inventory of flows, a list of what the design system lacked, and the `DESIGN.md` they were built on. It validates them for contrast, off-token values, and dead links. Asking for screens without naming a level gets mockups once a design system exists.
 
-Naming modes in order, as in the last prompt, runs them in that order sharing context; there is no chain flag. A run from a PRD closes on the `plan` command; `plan` cites the wireframes and `exec-plan` builds to them.
+Naming modes in order, as in the last prompt, runs them in that order sharing context; there is no chain flag. A run from a PRD closes on the `plan` command; `plan` cites the mockups or wireframes, `exec-plan` builds to them, and `visual-validation` judges the build against the mockups first. `ship` offers to delete the feature's design folders once it is built.
 
 **Elsewhere.** Validating a built screen is `visual-validation`, not a design mode. Questions about requirements rather than interaction are `clarify` territory.
 
@@ -471,7 +473,7 @@ Reference for [the workflow](README.md#the-workflow): what each step reads and w
 |---|---|---|---|
 | Setup, once per project | `init` | the repository | the Project Document Index in `CLAUDE.md` / `AGENTS.md`, `Key Dev Commands`, the `.gitignore` entries; every other document on its first write |
 | Requirements, optional | `clarify` | your idea, or a source from anywhere – a pasted note, a tracker issue, an `intent.md` | `prd.md` – what to build and why |
-| Design, optional | `decide`, `ui-ux-design` | the PRD or the request | ADRs and Decisions lines; a design system or wireframes |
+| Design, optional | `decide`, `ui-ux-design` | the PRD or the request | ADRs and Decisions lines; a design system, wireframes, or mockups |
 | Plan | `plan` | a description, a `prd.md` (or its directory), a requirements file, a tracker issue | `plan.json` – the stories, their dependencies and status – plus one FIS per story |
 | Build | `exec-plan`, on a FIS or the plan directory | `plan.json` and the FIS | the code, one commit per story with `Story-ID:` and `Plan:` trailers, each story `done` in `plan.json` |
 | Review and fix | `review --fix` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json`, and the fixes |
@@ -481,13 +483,13 @@ Reference for [the workflow](README.md#the-workflow): what each step reads and w
 
 ### The design stage and ADRs
 
-Two skills settle what the requirements left open, neither changing code: `decide` (a technical interview, a weighted trade-off where a choice is contested, ADRs) and `ui-ux-design` (research, design systems, wireframes). `architecture` advises, and its analysis modes can feed a decision first. An ADR comes in at three points, on one test – the choice binds beyond this work or is costly to reverse:
+Two skills settle what the requirements left open, neither changing code: `decide` (a technical interview, a weighted trade-off where a choice is contested, ADRs) and `ui-ux-design` (research, design systems, wireframes, mockups). `architecture` advises, and its analysis modes can feed a decision first. An ADR comes in at three points, on one test – the choice binds beyond this work or is costly to reverse:
 
 - **Before the spec** – `clarify` makes `decide` its closing command when the PRD leaves such a fork open.
 - **While specifying** – a fork only the spec surfaces is a Preflight question; you answer it into the FIS, and the ADR is recommended as its record. That `decide` run records your answer without asking it again and closes on `exec-plan`.
 - **While building** – a real pivot in `exec-plan` records one before the FIS changes.
 
-Design comes in before the spec, on your answer: `clarify` asks, with the closing summary you confirm, whether new screens no wireframes cover are designed first, and `plan` asks the same when its source skipped `clarify`. Either way `ui-ux-design` closes on `plan`.
+Design comes in before the spec, on your answer: `clarify` asks, with the closing summary you confirm, whether new screens no wireframes or mockups cover are designed first, and `plan` asks the same when its source skipped `clarify`. Either way `ui-ux-design` closes on `plan`.
 
 ### The artifacts – where each comes from, who reads it, how long it lives
 

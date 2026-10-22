@@ -89,7 +89,7 @@ You rarely need flags. Describe what you want and the skill picks its mode or le
 | [`architecture`](#architecture) | Design advice and structural analysis |
 | [`domain`](#domain) | Domain Map, glossary, event storming |
 | [`describe`](#describe) | Map an existing codebase |
-| [`ui-ux-design`](#ui-ux-design) | UX research, design systems, wireframes |
+| [`ui-ux-design`](#ui-ux-design) | UX research, design systems, wireframes, clickable mockups |
 | [`visual-validation`](#visual-validation) | Check built UI against designs |
 | [`visualize`](#visualize) | Draw an artifact as a checked HTML page |
 | [`tracker`](#tracker) | Publish plans, triage incoming issues |
@@ -117,7 +117,7 @@ Sets up the workflow structure for new projects, partial setups, and existing co
 
 `[brief description of what you want to do]`
 
-Inspects project state and hands off to the skill that fits. Settled requirements go to `plan`, whatever their size. Open requirements go to `clarify`. A finished plan without a plan-level review goes to `review`; a failing load-bearing check goes to `triage`. Shipping readiness follows the canonical plan contract. A shipped plan bundle is a record, not work in progress: one whose `plan.json` carries `shipped`, or one whose `prd.md` `ship` stamped `Shipped` when it deleted the plan. Wireframes and a design system count as work in progress only until they are implemented and visually validated, or merged into the default branch.
+Inspects project state and hands off to the skill that fits. Settled requirements go to `plan`, whatever their size. Open requirements go to `clarify`. A finished plan without a plan-level review goes to `review`; a failing load-bearing check goes to `triage`. Shipping readiness follows the canonical plan contract. A shipped plan bundle is a record, not work in progress: one whose `plan.json` carries `shipped`, or one whose `prd.md` `ship` stamped `Shipped` when it deleted the plan. Wireframes, mockups, and a design system count as work in progress only until they are implemented and visually validated, or merged into the default branch.
 
 - **Good to know**: it invokes the skill it recommends. Ask for a recommendation only, or decline, and it prints the route and stops. It has no unattended form. New work on the remote's default branch starts on a feature branch, set up the way your instruction file, guidelines, or contributing doc say, else named `<type>/<slug>`.
 
@@ -135,7 +135,7 @@ The requirements skill. It interviews you in rounds about gaps, edge cases, scop
 - **You get**: a self-contained PRD with a problem definition and success metrics. Settled domain terms go to the `Ubiquitous Language` document when one exists, and concepts you explicitly reject to the `Product` document's Non-Goals.
 - **Options**: `--brief` stops at `intent.md` (problem, outcome, affected systems, constraints, open questions, plus a decisions log). Edit or share it, then run `clarify` on its directory: only what is still open is asked. Product scope ignores the flag.
 - **Tracker record**: with `Record: tracker` in the `Issue Tracker` document, it asks once and then saves the PRD to its issue, creating one when the input was not an issue. `plan` on that issue takes the PRD back, so the local `prd.md` is optional to keep. `clarify` on the issue amends it.
-- **Good to know**: every run asks at least one round and waits for real answers, even when your input looks complete. You confirm the settled picture before anything is written; when the scope adds screens no wireframes cover, that question also asks whether design comes first. It closes on one next step: `decide` if a design fork binds beyond the work, then `ui-ux-design` if you chose design first, otherwise `plan`. An amendment that changes a plan already being executed closes on `plan` revising the first unstarted story it changes, not on planning the PRD again.
+- **Good to know**: every run asks at least one round and waits for real answers, even when your input looks complete. You confirm the settled picture before anything is written; when the scope adds screens no wireframes or mockups cover, that question also asks whether design comes first. It closes on one next step: `decide` if a design fork binds beyond the work, then `ui-ux-design` if you chose design first, otherwise `plan`. An amendment that changes a plan already being executed closes on `plan` revising the first unstarted story it changes, not on planning the PRD again.
 
 ```bash
 /andthen:clarify "users should be able to export their data"
@@ -282,9 +282,9 @@ Closes out the current branch and opens its pull request (a merge request on Git
 - **Good to know**:
   - It asks before the push, showing the base branch, the commits leaving, and the PR title and body. On the remote's default branch it first asks whether to start a feature branch, unless the run is unattended. Commits run unasked, because the branch history keeps them.
   - Your PR template or documented PR process sets the body's layout. The key points come first and per-story detail folds below. A flow or structure change gets a Mermaid or SVG diagram where a picture reads faster. For a UI change it captures screenshots or a recording when you ask, and otherwise offers them in that one question. An image the host's CLI cannot upload is listed for you to attach. A plan made from a tracker item links it, so the merge closes it, unless the plan is not ready.
-  - `--auto` stops before anything leaves the machine and prints the push and PR commands with the title and body. It takes the recommendation on the bundle (delete, for a ready plan) and records an `ASSUMPTION:` line in its report.
+  - `--auto` stops before anything leaves the machine and prints the push and PR commands with the title and body. It takes the recommendation on the bundle (delete, for a ready plan) and on the design folders and records an `ASSUMPTION:` line in its report.
   - It writes only `Learnings` bullets and recommends the rest: a `Decisions` line or a `decide` run for a design change no record holds, and any upstream document edit.
-  - For a ready plan, the one question before the push also asks whether to delete the bundle, recommending deletion; with no remote, it asks only about that. On a delete, `plan.json`, the FIS files, and any `intent.md` go, and `prd.md` gains a `> **Shipped**:` header line so `now-what` reads it as a record; a later `clarify` amendment removes it. `prd.md` stays unless the `Issue Tracker` document sets `Record: tracker`. `prd.md` or the issues, and the PR body, then carry the stories' intent, so a squash merge loses none of it.
+  - For a ready plan, the one question before the push also asks whether to delete the bundle, recommending deletion; with no remote, it asks only about that. The same question names the feature folders under the wireframes and mockups locations that the branch added or the plan cites, recommending deletion unless the plan is unfinished or the branch holds only design and specs; kept folders are listed in the report. On a delete, `plan.json`, the FIS files, and any `intent.md` go, and `prd.md` gains a `> **Shipped**:` header line so `now-what` reads it as a record; a later `clarify` amendment removes it. `prd.md` stays unless the `Issue Tracker` document sets `Record: tracker`. `prd.md` or the issues, and the PR body, then carry the stories' intent, so a squash merge loses none of it.
   - A ready plan whose bundle stays, kept or untracked by git, gets a top-level `shipped: {at, pr}` field in `plan.json` unless you decline the push. A tracked one commits it before the push; `pr` is the PR's URL once it opens, else null. `now-what` treats a plan carrying `shipped`, its FIS files, and its requirements file as a shipped record, not mid-flow.
   - Under `Record: tracker`, the one question also shows what `tracker publish` will write to the issues: on a yes it publishes before the push, and the PR closes each issue, which makes it the record. While the plan is not ready, a ship closes only finished stories' issues, leaving the parent and unfinished stories open. A deleted bundle goes before the push, after the publish, so it stays for the next run when nothing was published.
   - Open work (a plan not ready, an open CRITICAL or HIGH finding) is named and asked about once. While the plan is not ready, the same question asks whether to keep the bundle, recommending keeping it and opening the PR without the close-out, the per-story PR case on a team.
@@ -404,13 +404,14 @@ Documents what a project already is, without modifying code. A glossary request 
 
 `[--auto] [inputs/path]`
 
-UX research, design systems, and wireframes, singly or chained. The mode is inferred from your phrasing.
+UX research, design systems, wireframes, and clickable mockups, singly or chained. The mode is inferred from your phrasing.
 
-- **You get**: `research` (journey maps, information architecture, competitive analysis, flows), `design-system` (tokens, component styles, style guide) in `docs/design-system`, or `wireframes` (screen layouts) in `docs/wireframes`. The Index can name other locations.
-- **Good to know**: design-system and wireframes need requirements as text, a file, or a PRD, and ask for them when missing. Name several modes in order and they run in that order, with each mode's output feeding the next (wireframes use the tokens just written). It closes on one next step: `clarify` for questions research left open, else `plan` on the requirements a design system or wireframes were drawn from. Checking a built UI is `visual-validation`, not this skill.
+- **You get**: `research` (journey maps, information architecture, competitive analysis, flows), `design-system` (tokens, component styles, style guide) in `docs/design-system`, `wireframes` (grayscale screen layouts) in `docs/wireframes/<feature>/`, or `mockups` (clickable pages styled from the design system, validated for contrast, off-token values, and dead links) in `docs/mockups/<feature>/`. The Index can name other locations.
+- **Good to know**: design-system, wireframes, and mockups need requirements as text, a file, or a PRD, and ask for them when missing. Asking for screens without naming a level gets mockups when the project has a design system, else wireframes; mockups asked for without one get wireframes and a note to create the design system first. Mockups read the feature's wireframes when they exist, and open from disk with their styles copied in, so you can send the folder to a customer. Name several modes in order and they run in that order, with each mode's output feeding the next (mockups use the design system just written). It closes on one next step: `clarify` for questions research left open, else `plan` on the requirements the design was drawn from. Checking a built UI is `visual-validation`, not this skill.
 
 ```bash
 /andthen:ui-ux-design "wireframe the dashboard screens"
+/andthen:ui-ux-design "mockups of the dashboard" docs/specs/dashboard/prd.md
 /andthen:ui-ux-design "create a design system" docs/specs/dashboard/prd.md
 ```
 
@@ -418,7 +419,7 @@ UX research, design systems, and wireframes, singly or chained. The mode is infe
 
 `[--mode setup] [<screens-or-states-to-validate>] [design-reference/baseline]`
 
-Checks built UI screenshots against wireframes, design specs, or baselines, and runs visual regression checks. For each screen, state, and viewport it lists the differences from the reference before deciding pass or fail.
+Checks built UI screenshots against mockups, wireframes, design specs, or baselines, and runs visual regression checks. A screen with a mockup is judged against it, layout included, except that colours, type, and sizes follow the current design system. For each screen, state, and viewport it lists the differences from the reference before deciding pass or fail.
 
 - **You get**: one finding line per region judged. A P1 Critical or P2 Major finding blocks: a caller such as `exec-plan` gates completion on it, and after the fix the affected screens are recaptured and the second verdict recorded beside the first. P3 is reported, not gated. An unreadable image is `not judged`, never passed.
 - **Options**: `--mode setup` runs once per project. It serves the app, proves the capture procedure with a trial capture, and writes the `Visual Validation` document (`docs/VISUAL-VALIDATION.md`) with serve command, capture tooling, routes, states, breakpoints, and reference locations. Only what ran successfully is written down.
@@ -426,7 +427,7 @@ Checks built UI screenshots against wireframes, design specs, or baselines, and 
 
 ```bash
 /andthen:visual-validation --mode setup                  # write docs/VISUAL-VALIDATION.md
-/andthen:visual-validation "checkout screen, mobile and desktop" docs/wireframes/
+/andthen:visual-validation "checkout screen, mobile and desktop" docs/mockups/checkout/
 ```
 
 ### `visualize`

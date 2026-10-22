@@ -225,7 +225,7 @@ f.arrow(gate=1)
 # decide sits below, where its link to the ADRs card leaves the stack
 DECIDE_X = f.stack(128, [
     dict(key="ui-ux-design", label="ui-ux-design", kicker="andthen · ui-ux-design",
-         body=["UX research, design systems, and wireframes – singly or chained. Validating the built UI is visual-validation."]),
+         body=["UX research, design systems, wireframes, and clickable mockups – singly or chained. Validating the built UI is visual-validation."]),
     dict(key="decide", label="decide", asks=True, kicker="andthen · decide",
          body=["Interviews you over the decisions a technical solution needs, recommends each, and deepens a contested one into a weighted trade-off.",
                "Writes ADRs and Decisions lines. Optional: when a choice binds beyond the work or is costly to reverse."]),
@@ -317,7 +317,7 @@ core = [("now-what", "routes you to a skill", "First-stop router – inspects pr
                     "A reproducible bug gets a failing test before the fix. No spec, no plan state."]),
         ("testing", "strategy and tests", ["Test strategy (writes the Testing Strategy document), test authoring, test-first where required, and the Prove-It bugfix flow.",
                      "Suites at every level, E2E included."]),
-        ("visual-validation", "UI against its design", "Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks."),
+        ("visual-validation", "UI against its design", "Validate screenshots and built UI against mockups, wireframes, design specs, and baselines; visual regression checks."),
         ("visualize", "artifact as a page", ["Draw an AndThen artifact – a model, a board, a plan, any spec or report – as one self-contained HTML page",
                          "with inline SVG figures, rendered and looked at before it is shown."]),
         ("architecture", "advice and analysis", ["Design advice grounded in CUPID / DDD, in text. review, decompose and fitness run the deep analysis,",

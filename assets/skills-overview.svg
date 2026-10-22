@@ -99,7 +99,7 @@
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
 <text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · ui-ux-design</text>
-<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">UX research, design systems, and wireframes – singly or chained. Validating the built UI is visual-validation.</text>
+<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">UX research, design systems, wireframes, and clickable mockups – singly or chained. Validating the built UI is visual-validation.</text>
 </g>
 </g>
 <g class="hot" tabindex="0" data-hotspot="decide">
@@ -312,7 +312,7 @@
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
 <text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">andthen · visual-validation</text>
-<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks.</text>
+<text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Validate screenshots and built UI against mockups, wireframes, design specs, and baselines; visual regression checks.</text>
 </g>
 </g>
 <g class="hot" tabindex="0" data-hotspot="visualize">

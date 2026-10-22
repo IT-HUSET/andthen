@@ -8,7 +8,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ## [1.0.0-rc.8] – 2026-10-20
 
+### Added
+- **`ui-ux-design` writes clickable mockups.** A new `mockups` mode builds hi-fi pages of every page and flow from your design system into `docs/mockups/<feature>/`, with realistic text, working in-page interactions, a design-system gap list, and validation for contrast, off-token values, and dead links. Asking for screens without naming a level gets mockups once a design system exists, else wireframes; a new `Mockups` Index entry holds the location.
+
 ### Changed
+- **Breaking: wireframes go to `docs/wireframes/<feature>/`**, one folder per feature, so a second run no longer overwrites the first's hub and inventory. Earlier flat wireframe folders stay where they are.
+- **`visual-validation` judges built UI against its mockup first**, layout included, then against wireframes; colours, type, and sizes follow the current design system. `plan`, `now-what`, `clarify`, and `decide` treat mockups as they treat wireframes.
+- **`ship` offers to delete the feature's design folders** in its one question, recommending deletion unless the plan is unfinished or the branch holds only design and specs.
 - **A follow-up `review` after fixes covers only what changed.** When the latest report on the target carries `**Remediated**:`, the follow-up reviews `git diff <its Revision>`, the callers of the code it changes, and that report's open findings, instead of the whole target again.
 - **`plan` flags a story as oversize past about 12 tasks**, down from 18, because a 16-task story ran 629 turns at up to 805k tokens of context.
 - **`implement-fix` delegates a large Fix set and recommends on the rest.** Past about 4 Fix findings or 3 files it hands each area group to a fresh `implementer` subagent and verifies the combined diff itself; an attended run ends with a `Recommend:` line on each open Note and decision.

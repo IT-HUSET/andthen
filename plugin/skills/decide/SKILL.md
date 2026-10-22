@@ -73,6 +73,6 @@ Close on one `Next (fresh session):` line for the first case that applies, never
 - **A requirement went to the PRD** – the `andthen:clarify` skill on `<prd-dir>` with: `<the requirements>`.
 - **Every decision recorded is one the FIS already states** – the `andthen:exec-plan` skill on that FIS.
 - **The run served a plan or FIS** – the `andthen:plan` skill on the FIS, or on `story <id> of <plan.json>` for a story the decisions change (never the plan directory, which re-plans whole), with the recorded decisions as what changed.
-- **The run served a PRD whose `Decisions Log` puts design before planning, and no wireframes cover it yet** – the `andthen:ui-ux-design` skill on `<prd-dir>`, naming the modes it lacks, design-system before wireframes.
+- **The run served a PRD whose `Decisions Log` puts design before planning, and no wireframes or Mockups cover it yet** – the `andthen:ui-ux-design` skill on `<prd-dir>`, requesting the design-system mode first where the project has none.
 - **The run served a PRD** – the `andthen:plan` skill on `<prd-dir>`.
 - **Otherwise** – the recorded paths, and no line.
