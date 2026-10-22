@@ -34,11 +34,11 @@ Reopens if a host offers a non-blocking channel that does reliably deliver.
 
 The old wording keyed an assumption on a question "nobody answered", which the run certifies about itself: Codex closed the `plan` case with "Unanswered choices … are recorded as assumptions in the specs", having asked nothing. Asked-then-unanswered is a fact about the transcript, so it can be checked, but only if "asked" means the run stopped for the answer: a question sent down a channel the run continued past satisfied the weaker reading, which is how six Codex cells wrote their own choice into the specs.
 
-The canonical rule in `unattended-runs.md` already said "one it continued past was not asked, however the question was sent", but that file loads only under `--auto`, so attended runs read `preflight.md`'s weaker restatement; the two are now one clause pinned in both files. `preflight.md` gates its fallback the same way and has the asking reply answer nothing (no default listed, no assumption written), since a question behind its own recorded answer reads as settled.
+The canonical rule in `unattended-runs.md` already said "one it continued past was not asked, however the question was sent", but that file loads only under `--auto`, so attended runs read `preflight.md`'s weaker restatement; the two are now one clause pinned in both files. `preflight.md` gates its fallback the same way; its asking reply answers nothing because a question behind its own recorded answer reads as settled.
 
 ## A decision never stops a run
 
-`BLOCKED:` is defined once in `unattended-runs.md`. A run reads an older plan's `blocked` row as `pending`. The dropped markers and per-skill trigger lists had no reader: nothing parsed them, and DartClaw reads its own step-outcome envelope.
+`BLOCKED:` is defined once in `unattended-runs.md`. The dropped markers and per-skill trigger lists had no reader: nothing parsed them, and DartClaw reads its own step-outcome envelope.
 
 Reopens if an orchestrator needs a stop reason beyond `BLOCKED:` versus failure.
 
@@ -58,15 +58,15 @@ Reopens on evidence that a fresh-session review misses cross-story defects the r
 
 ## A plan runs story by story by default
 
-Adopted 2026-10-17. A story run carries each discovery that affects an unstarted story into that FIS before its commit, as a plan run does between stories, and commits it, because the next run treats an uncommitted edit to its own FIS as foreign. Story by story pays one full tier per story where a plan run pays one on the final tree. `plan --auto` prints the first story too, since `--auto` makes the authoring run unattended, not the execution, and a runner that chains `Next` lines still finishes the plan.
+Adopted 2026-10-17. Discoveries go into the unstarted FIS before the story's commit, as a plan run does between stories, because the next run treats an uncommitted edit to its own FIS as foreign. Story by story pays one full tier per story where a plan run pays one on the final tree. `plan --auto` prints the first story because `--auto` makes the authoring run unattended, not the execution, and a runner that chains `Next` lines still finishes the plan.
 
-The pause is where a person adjusts the spec ahead (2026-10-19): a yes to a contradicting or scope-changing discovery makes the `Next` line that revision, `plan` with the discovery in its request (since `plan` has no re-entry handling), or `clarify`'s amendment. The next story attests each inherited Discovered Requirement over its proof, so its reviewer checks it.
+The pause is where a person adjusts the spec ahead (2026-10-19): a yes to a contradicting or scope-changing discovery makes the `Next` line that revision, `plan` with the discovery in its request (since `plan` has no re-entry handling), or `clarify`'s amendment. Attesting inherited Discovered Requirements puts them in front of the next story's reviewer.
 
 Reopens on evidence that the pause between stories catches nothing a plan run's discovery triage would not.
 
 ## Each story is simplified before the next builds on it
 
-Adopted 2026-10-18, replacing the once-per-plan pass in place since rc.4. A story run simplifies after its commit, a plan run after each story. An agent adds code but never volunteers repair. The premise changed, not the evidence: the once-per-plan pass assumed no reader between stories, which the story-by-story default ended. Its cost argument stands, one pass per story. Its duplication argument holds only for parallel siblings, which the batch pass sees merged, because a sequential pass sees every earlier story in the tree. `implement-fix` skips it because its trace test edits back any hunk no finding maps.
+Adopted 2026-10-18, replacing the once-per-plan pass in place since rc.4. A story run simplifies after its commit, a plan run after each story. The pass runs per story because an agent adds code but never volunteers repair. The premise changed, not the evidence: the once-per-plan pass assumed no reader between stories, which the story-by-story default ended. Its cost argument stands, one pass per story. Its duplication argument holds only for parallel siblings, which the batch pass sees merged, because a sequential pass sees every earlier story in the tree. `implement-fix` skips it because its trace test edits back any hunk no finding maps.
 
 Reopens on shipped duplication where an earlier story's code repeats a helper a later story added: that story's pass may not edit the earlier code, so only the reader and the plan-level review catch it.
 
@@ -88,7 +88,7 @@ A worktree comes from `git worktree add`, one per story of a batch of the wave, 
 
 ## The `ops` skill and its script are retired
 
-No script and no reconciliation code close the 0.14.4 concurrent-writer collision (`e5202ed`): no copy of the file has two writers at once. A story run of `exec-plan` (direct on a FIS, or a plan run's story subagent) loads neither `plan-schema.md` nor `plan.schema.json` and writes its row from `story.md` alone: `status: in-progress` before its first edit, then at Step 4 `fis`, `completedTaskIds`, `verified: {at, summary}`, and `status: done`. Under `--worktree` the row is edited in place (2026-09-29): a review found no silent rule whose absence yields a row that fails validation or is misread (serialisation layout is valid either way, only two hand-started direct runs in one tree could race), and each story run loads about 620 fewer words. Reopens if a story-written row fails validation or is misread on a recorded run.
+The one-writer rule closes the 0.14.4 concurrent-writer collision (`e5202ed`) without reconciliation code, since no copy of the file has two writers at once. A story run of `exec-plan` (direct on a FIS, or a plan run's story subagent) writes `status: in-progress` before its first edit, then at Step 4 `fis`, `completedTaskIds`, `verified: {at, summary}`, and `status: done`. Under `--worktree` the row is edited in place (2026-09-29): a review found no silent rule whose absence yields a row that fails validation or is misread (serialisation layout is valid either way, only two hand-started direct runs in one tree could race), and each story run loads about 620 fewer words. Reopens if a story-written row fails validation or is misread on a recorded run.
 
 No script parses an agent-read document (FIS, Index, Key Dev Commands, Learnings) for meaning: each parser pinned its document's shape (the Index could not stop being a table, a FIS bullet could not gain a word before its id), and that cost was paid on every edit of the document. No validator for plans or models: none caught anything on a recorded run, a dangling FIS pointer surfaces when the FIS is opened, and producers check their candidate against the schema shipped beside its reference. Reopens on a run where a hand-written row breaks execution or a consumer refuses a model.
 
@@ -100,13 +100,13 @@ Reopens on a recorded re-run that loses or duplicates work.
 
 ## Unattended remediation dispositions Notes on its own recommendation; attended remediation asks before any Tech Debt write
 
-A deferred Note carries the recommended remedy. The reviewer's `Fix` bar is unchanged, but an unattended run has nobody to answer the list an interactive `implement-fix` returns, and 1.0 runs left `Note` and `NOTICED BUT NOT TOUCHING` items piling up unread. `--auto` is the approval for the unattended backlog writes. An attended run lists every `DEFERRED` finding with its blocker and remedy, because the backlog should not grow without a human choosing it (2026-09-29). `review` reads a story's recorded open items as it reads earlier reports.
+The reviewer's `Fix` bar is unchanged, but an unattended run has nobody to answer the list an interactive `implement-fix` returns, and 1.0 runs left `Note` and `NOTICED BUT NOT TOUCHING` items piling up unread. An attended run lists every `DEFERRED` finding with its blocker and remedy, because the backlog should not grow without a human choosing it (2026-09-29).
 
 Reopens if an eval shows it applying marginal observations.
 
 ## A change tidies what it finds
 
-A tidy is a behavior-preserving fix in a function or doc section the change edits, or a minor mechanical or check-covered one elsewhere, or an obvious small bug in an edited function fixed under a test. An item goes to `NOTICED BUT NOT TOUCHING` only when someone should act on it. The 0.15.1 default of surface-don't-fix sent a smell the implementer could fix in one edit through three passes: recorded in the FIS, read back by the review as a finding (a "did not touch" note inside the change is a MEDIUM finding by `review-calibration.md` rule 7), then applied by the fix round. Rule 7's radius matches the tidy's. The never-a-tidy list dates from 2026-10-03.
+A tidy is a behavior-preserving fix in a function or doc section the change edits, or a minor mechanical or check-covered one elsewhere, or an obvious small bug in an edited function fixed under a test. The 0.15.1 default of surface-don't-fix sent a smell the implementer could fix in one edit through three passes: recorded in the FIS, read back by the review as a finding (a "did not touch" note inside the change is a MEDIUM finding by `review-calibration.md` rule 7), then applied by the fix round. Rule 7's radius matches the tidy's. The never-a-tidy list dates from 2026-10-03.
 
 Widened from the files the change touches (2026-10-15), because reports still filled with minor issues a behavior-preserving edit could clear. A parallel story's own-files limit exists because a tidy elsewhere can conflict with a sibling at merge.
 

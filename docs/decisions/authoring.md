@@ -18,13 +18,13 @@ Reopens on a run where an executed unattended assumption shipped behaviour the p
 
 Contract-owned forks asked by rule: `plan`'s uncovered screens and its slice-or-keep question, and whether `exec-plan` and `ship` start a feature branch before committing on the remote's default branch.
 
-On 2026-09-24 three rounds of per-case asking rules moved the `plan` eval to 1 of 5. A fixture with one fork that has no defensible default passed on the first two runs with no skill change, and the third failed only on a rubric that contradicted the skill. That is why an asking eval's rubric never requires a question a capable model can default.
+On 2026-09-24 three rounds of per-case asking rules moved the `plan` eval to 1 of 5. A fixture with one fork that has no defensible default passed on the first two runs with no skill change, and the third failed only on a rubric that contradicted the skill. The asking-eval rubric rule comes from that third run.
 
 Reopens on a run where a fork with no defensible default shipped as an assumption.
 
 ## Scope trades are a self-review Note and a preflight question, not a skill
 
-Never blocking, because the design meets the requirements as written. The reviewer is the only agent holding both the design and the whole PRD, so a separate skill would only add surface.
+Trade Notes never block, because the design meets the requirements as written. The reviewer is the only agent holding both the design and the whole PRD, so a separate skill would only add surface.
 
 Reopens if trade Notes go unanswered in practice.
 
@@ -42,7 +42,7 @@ No revise-in-place, live-work guard, or regeneration that keeps story state. The
 
 The reason is signal and drift, not execution cost: reading a 6,000-word FIS is 2–5% of an `exec-plan` run, whose cost is turns × context. **Need-to-know** and by-reference `Verify` coverage are the authoring rules that carry it.
 
-Tried and dropped: a reviewer cut duty, a contradiction class in the self-review, lifting the Architecture Decision line cap (the section doubled).
+Also tried and dropped: a contradiction class in the self-review, lifting the Architecture Decision line cap (the section doubled).
 
 Reopens if an executor starts handing FIS excerpts to workers.
 
