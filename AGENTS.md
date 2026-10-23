@@ -19,7 +19,9 @@ It ships to Claude Code and Codex CLI as one marketplace plugin – one shared `
 
 ## Project Document Index
 
-Read a document whole when its trigger matches, because a search finds only what you already suspect and misses the trap or settled decision you didn't. A trigger may instead name the part to read, but only for history or reference that no task is checked against. When you append, prune stale entries, and split one still too long into topic files beside it (**shards**), leaving a pointer line per shard in the original; open a shard only when the task names its topic. Skills cite entries by name, so keep names stable.
+Read a document whole when its trigger matches, because a search finds only what you already suspect and misses the trap or settled decision you didn't. A trigger may instead name the part to read, but only for history or reference that no task is checked against.
+When you append, prune stale entries, and split one still too long into topic files beside it (**shards**), leaving a pointer line per shard in the original; open a shard only when the task names its topic.
+Skills cite entries by name, so keep names stable.
 
 Create a missing document and its entry here from `project-document-templates.md` when that file is loaded, else through a subagent that invokes the `andthen:init` skill with `seed <name>`.
 
@@ -28,7 +30,12 @@ Create a missing document and its entry here from `project-document-templates.md
 - **Specs & Plans** – `docs/temp/specs/<feature>/`: local working specs, never committed (`docs/temp` is gitignored), holding a PRD, `plan.json`, and one FIS per story, co-located per feature and written by the `clarify` and `plan` skills. Read the governing FIS before implementing a story, and resolve the plan path from this entry. Update the plan and FIS as execution proceeds, never the PRD. `plan.json` has one writer per copy at a time – the session executing a story writes its row, and a `plan` breakdown's story subagents never write it. An oversized FIS is a story too big: decompose it (`OVERSIZE:`), never trim it.
 - **Key Dev Commands** – `docs/KEY_DEVELOPMENT_COMMANDS.md`: the test tiers, the run-one-test row, the live evals, the shipped-surface word count, and the install-script cautions. Read before running any check; its rows are executed verbatim. Update when a command changes.
 - **Testing Strategy** – `docs/TESTING-STRATEGY.md`: levels in use, the stdlib-unittest and prompt-contract conventions, the before-merge bar, known gotchas. Read before authoring a test; update when a convention changes.
-- **Changelog** – `CHANGELOG.md`. Read the section you write under before writing an entry. Write one when a release changes what a user runs, gets, or must do: a skill, flag, artifact, or install step added, removed, or behaving differently. Skip a change that leaves behavior as it was, such as doc wording, a figure, layout, or an internal refactor, because every extra bullet buries the ones an upgrading user needs. A change to something the release already lists reworks that bullet rather than adding one. Bullets stay tight (bold lead plus one or two sentences). On a `feat/<version>` branch, write under `## [<version>]`, never `[Unreleased]`; if that heading is absent, the version bump below creates it.
+- **Changelog** – `CHANGELOG.md`. Read the section you write under before writing an entry.
+  Write one when a release changes what a user runs, gets, or must do: a skill, flag, artifact, or install step added, removed, or behaving differently.
+  Skip a change that leaves behavior as it was, such as doc wording, a figure, layout, or an internal refactor, because every extra bullet buries the ones an upgrading user needs.
+  A change to something the release already lists reworks that bullet rather than adding one.
+  Bullets stay tight (bold lead plus one or two sentences).
+  On a `feat/<version>` branch, write under `## [<version>]`, never `[Unreleased]`; the version bump (see Plugin manifests) opens that heading.
 - **Plugin reference** – `plugin/README.md`: canonical user-facing reference for every shipped skill. Read the skill's section and every line naming it before changing or describing its behavior; update when a flag, mode, or edge case changes.
 - **Public intro** – `README.md`: the front door, about 2k words – what AndThen is, install, setup, the first feature, and the nine core skills; everything deeper is one link away in the Cookbook. Update when a user-invocable skill is added, renamed, or removed – the shipped skill count, and a row when it is one of the nine – and regenerate its figure (`python3 scripts/skills-overview.py` writes `assets/skills-overview.svg`).
 - **Cookbook** – `COOKBOOK.md`: task-oriented recipes, how the workflow fits together (steps, artifacts, loops, terms), team work, the framework comparison, and the continuous worked example. Read the recipes for the workflow you describe before describing it to users; update when a skill, option, or artifact a recipe names changes – `scripts/audit-cookbook.py` fails CI on a stale reference.
@@ -40,7 +47,7 @@ Create a missing document and its entry here from `project-document-templates.md
 - **Research** – `docs/temp/research/`: working research artifacts, transient and not shipped. Read when re-opening that investigation; write when a task produces durable research.
 - **Learnings** – `docs/LEARNINGS.md`. Read at task start for skill, packaging, or agent-workflow changes; add a bullet when bitten by a non-obvious failure.
 - **Decisions** – `docs/DECISIONS.md`: ADR index and Still Current notes. Read before proposing or changing a design or architecture choice; settled decisions are not relitigated without new evidence.
-- **Plugin manifests** – `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`: install metadata for the plugin on both hosts. Write all four together on an install-metadata change. A version bump sets one version in `CHANGELOG.md`, the `andthen` entry of `.claude-plugin/marketplace.json`, and both `plugin.json` files (`.agents/plugins/marketplace.json` carries none), and renames `## [Unreleased]` to `## [<version>] – <today's date>`, in one commit titled with the version; CI fails on skew.
+- **Plugin manifests** – `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`: install metadata for the plugin on both hosts. Write all four together on an install-metadata change. A version bump sets one version in `CHANGELOG.md`, the `andthen` entry of `.claude-plugin/marketplace.json`, and both `plugin.json` files (`.agents/plugins/marketplace.json` carries none), and opens `## [<version>]` in `CHANGELOG.md`, renaming `## [Unreleased]` when present, in one commit titled with the version; CI fails on skew and reads only the bracketed version, so the heading's date can wait for the tag. The bump is the first commit of a `feat/<version>` branch, else it happens at release.
 - **Agent Temp** – `.agent_temp/`: scratch workspace for reviews, research, and QA; never ship from it.
 
 ---
@@ -52,15 +59,19 @@ Create a missing document and its entry here from `project-document-templates.md
 - Before a refactor beyond a Boy Scout tidy, a design change to a skill or the architecture, or a change in `plugin/references/`, get a second opinion from an `oracle` subagent (the decision, its reasoning, the rejected alternatives); afterwards, review the change in a subagent as the next section routes it. This standing rule is the user's ask.
 - On Codex only the smoke set is a gate. Any other Codex failure, `plan-asks` included, is a host-behaviour report until reproduced, never a reason to reword a skill: two sessions once lost hours rewording against an upstream cause. Read `evals/README.md` before acting on an eval result.
 - While an eval tier runs, edit nothing in `evals/`, because running cells read its cases, subject, and harness from this tree. `plugin/` is editable once the run prints `candidate staged:`, because every cell and its checks read that staged copy.
-- The repo's Bash hook blocks inline interpreters (`python3 -c`, `sh -c`, `eval`) and `rm -rf`: write a script under `.agent_temp/` and run it by path, and delete with `rm -r`.
-- Before editing `plugin/` while another session's uncommitted changes sit there, or before launching a side session on it, write which files each session owns under `## Constraints` in the feature's `intent.md` (`docs/temp/specs/<feature>/`), because five sessions on `plugin/` once ended in a 21-file consolidation.
+- The repo's Bash hook blocks inline interpreters (`python3 -c`, `sh -c`, `eval`) and `rm -rf`.
+  Write a script under `.agent_temp/` and run it by path, and delete with `rm -r`.
+- Before editing `plugin/` while another session's uncommitted changes sit there, or before launching a side session on it, write which files each session owns in `.agent_temp/session-ownership.md`, because five sessions on `plugin/` once ended in a 21-file consolidation.
+  The file is gitignored and every session in this tree reads it.
+  A side session in its own worktree gets its owned files in its launch prompt.
 
 ### Skill, Prompt and Intent Engineering Rules
 
 Prompt-like text is written for frontier agents, and the **Skill-authoring guidelines** hold its craft, including how to change a skill without accreting text.
 
 - Shipped skills and references cite nothing outside `plugin/`, such as this repo's `docs/`, ADRs, or `AGENTS.md`, because only `plugin/` ships: state what a skill needs in the skill or a shared reference. A file in the user's project, such as a default `docs/PRODUCT.md`, is not such a citation. No external URLs unless explicitly asked.
-- Review a changed skill, reference, or other prompt-like file with the `skill-review` skill – project-level, not shipped (`.claude/skills/skill-review/`, symlinked at `.agents/skills/` for Codex; ADR-021). It outranks the `andthen:review` skill for those files: a mixed change runs `skill-review` over its prompt-like files and leaves only scripts and tests to `andthen:review`. Rerun `skill-review` only over a fix diff that resolved a CRITICAL or HIGH finding.
+- Review a changed skill, reference, or other prompt-like file with the `skill-review` skill – project-level, not shipped (`.claude/skills/skill-review/`, symlinked at `.agents/skills/` for Codex; ADR-021). It outranks the `andthen:review` skill for those files: a mixed change runs `skill-review` over its prompt-like files and leaves only scripts and tests to `andthen:review`.
+  After a `--fix`, rerun `skill-review` only when it resolved a CRITICAL or HIGH finding, and only over the fix diff.
 
 ### Git Remotes
 
@@ -71,7 +82,8 @@ One remote: `origin` is the public repo (`IT-HUSET/andthen`). `main` carries the
 - Every shipped skill is user-invocable, so a skill change updates `README.md`, `plugin/README.md`, and `CHANGELOG.md` on their index entries' terms.
 - Tests live in `tests/`, one file per script they prove, never under `plugin/`: both hosts install the plugin directory wholesale, so a test placed there ships.
 - Adding, renaming, or removing a shared canonical in `plugin/references/` updates `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table and, in `scripts/install-skills.py`, `_canonical_assets` and the `_skill_assets_*` array of every consuming skill.
-- Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`. Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
+- Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`.
+  Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
 - Release-time flips carry a `pre-release:` comment at their site, each stating its own flip. Releasing 1.0 starts with tagging `v0.40.4` on `origin` (the only ref back to 0.x) and ends with `rg 'pre-release:'` returning nothing.
 - Before a release, re-check each role template's model and effort pin (`plugin/skills/init/templates/agents/`) against both providers' current lineups: the pins are recommendations as of their last change (`docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Durable principles).
 

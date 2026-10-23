@@ -13,6 +13,8 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 *Amended 2026-10-21: `ship` no longer deletes the bundle unasked. Deletion is asked inside the one existing question, step 5 for a ready plan and step 1's ship-anyway question while the plan is not ready, and the recommendation is delete for a ready plan, keep otherwise. The reason is that the maintainer wants the option of keeping specs as a record past the merge. A ready plan whose bundle stays, kept or untracked, carries `shipped: {at, pr}` in `plan.json` unless the push is declined, and a deletion stamps a `> **Shipped**:` header line into the `prd.md` it keeps, because a squash merge erases the deletion and file content survives it. Either way `now-what` reads the bundle as a record and not as mid-flow work. With no remote the bundle question is the only ask, and `--auto` takes the recommendation and records an `ASSUMPTION:` line.*
 
+*Amended 2026-10-22: a declined push also leaves the bundle undeleted. The deletion, the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead, with no remote, or under `--auto`, which writes `pr` as null. Until then the bundle (a `superseded/` folder included), `prd.md`, `plan.json`, and design folders stay as they were for the next `ship` run.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:

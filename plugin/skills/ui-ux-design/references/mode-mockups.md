@@ -15,7 +15,7 @@ A Mockup folder is frozen and standalone: it links nothing outside itself, so it
 
 ### Phase 1: Inventory
 
-Record in `OUTPUT_DIR/inventory.md` every page and distinct state the feature needs, and every flow as the ordered pages and interactions a user walks through it.
+Record in `OUTPUT_DIR/inventory.md` every page and distinct state the feature needs, every flow as the ordered pages and interactions a user walks through it, and the shared navigation and page chrome.
 Read `WIREFRAMES` as input when present; the Mockups may change its layout without listing the changes, and its folder stays untouched.
 
 **Gate**: every page, state, and flow the requirements imply is in the inventory.
@@ -25,6 +25,7 @@ Read `WIREFRAMES` as input when present; the Mockups may change its layout witho
 #### 2.1 Mockup principles
 
 - Copy `tokens.css`, `components.css`, and the assets the pages use from `DESIGN_DIR` into `OUTPUT_DIR`, and style every page from them, so it renders from disk with no server.
+- Without `tokens.css` in `DESIGN_DIR`, write it into `OUTPUT_DIR` from `DESIGN.md`'s front matter.
 - Write realistic text drawn from `REQUIREMENTS`, and a labelled placeholder for each image.
 - Link the pages so every inventory flow can be walked, and make the interactions it needs work in-page: dialogs, tabs, error and empty states, a form advancing a step. Store no data and run no data logic.
 - Build what the design system lacks from its tokens, and report it.
@@ -33,7 +34,7 @@ Read `WIREFRAMES` as input when present; the Mockups may change its layout witho
 
 The pages are independent, so fan out one implementer subagent per inventory page, concurrently.
 Each gets its page only and never re-enters this mode, because a child re-entering it would rebuild the inventory and re-run validation once per page.
-Give each one 2.1 verbatim, the copied stylesheet paths, its `OUTPUT_DIR/[page-name].html` target, the page's purpose and content, and its links and interactions from the inventory's flows.
+Give each one 2.1 verbatim, the shared navigation and page chrome verbatim, the copied stylesheet paths, its `OUTPUT_DIR/[page-name].html` target, the page's purpose and content, and its links and interactions from the inventory's flows.
 It writes that page and returns the path and what it built beyond the design system, which you list in `OUTPUT_DIR/design-system-gaps.md`.
 
 **Gate**: every page in the inventory has a Mockup.

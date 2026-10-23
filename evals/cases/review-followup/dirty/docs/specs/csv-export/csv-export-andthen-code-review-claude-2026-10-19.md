@@ -2,7 +2,7 @@
 
 **Review mode**: code
 **Target**: paths src/reporter/cli.py, src/reporter/pipeline.py, src/reporter/retry.py
-**Revision**: 9d4e1b7
+**Revision**: @@BASELINE@@
 **Remediated**: fixes applied after this verdict – see `## Remediation Status`
 
 ## Executive Summary

@@ -66,7 +66,7 @@ The path through the workflow:
 1. **`clarify`** (optional) interviews you and writes the PRD. Skip it when the requirements already exist, in your head, an issue, or a document. A rule of thumb: if you can't list three concrete acceptance criteria, you have an idea, not requirements.
 2. **`decide`** (optional) settles a technical choice that reaches beyond this work or is costly to reverse, and records it as an architecture decision record (ADR). **`ui-ux-design`** (optional) designs new screens first when you choose that.
 3. **`plan`** writes the specs. It decides whether the work is one story or several.
-4. **`exec-plan`** builds the stories, one per fresh session. For each one it writes the code and tests, runs every check, has a fresh subagent review it, carries what it learned into the stories still to run, commits, and simplifies the result. Between stories you read the result and can adjust the next story's FIS before it runs.
+4. **`exec-plan`** builds the stories, one per fresh session. For each one it writes the code and tests, runs every check, has a fresh subagent review it, commits, and then simplifies the result. What a story learns goes into the stories still to run.
 5. **`review --fix`** reviews the finished work as a whole and applies the findings it marks `Fix`. Findings marked `Note` are left for you to decide. A clean review ends on a `Next (fresh session):` line for `ship`.
 6. **`ship`** lands what each story's `Implementation Observations` hold worth keeping, commits, and shows the PR title and body (a merge request on GitLab). It pushes and opens it after your one yes, and that question also asks whether to delete `plan.json` and the FIS files. The PR body states the change's intent, outcomes, and proof, in your PR template when you have one. With `prd.md`, it is where the stories' intent outlives deleted FIS files, however you merge.
 
@@ -96,13 +96,13 @@ Every step ends by printing the full next command to paste, including its target
 /andthen:ship docs/specs/data-export/plan.json           # fresh session: the Next line review printed
 ```
 
-To build every story without stopping, from CI or in parallel worktrees, run `exec-plan` on the plan directory instead (`--auto`, `--worktree`). It gives each story a fresh subagent and runs the full check tier once on the final tree, where story by story runs it once per story.
+To build every story without stopping, from CI or in parallel worktrees, run `exec-plan` on the plan directory instead (`--auto`, `--worktree`). It gives each story a fresh subagent and runs the full checks once at the end instead of after every story.
 
 Each review mode (lens) checks one thing: `code` the code itself, `gap` whether it matches its source and specs, `security` its vulnerabilities, and `outcome` whether the feature solves the problem the PRD describes. `review` picks the lenses the plan supports, so paste the line `exec-plan` printed.
 
 ### Where you take part
 
-You answer when `clarify` and `decide` interview you and when `plan` asks its preflight questions. Between stories you read the one that just ran, its report and any FIS it changed for the stories ahead, and adjust the next story before it runs ([revising a spec](COOKBOOK.md#revising-a-spec-or-re-planning)). Three points need your sign-off, because what they hold outlives the branch:
+You answer when `clarify` and `decide` interview you and when `plan` asks its preflight questions. Between stories you read the report of the one that just ran and any FIS it changed for the stories ahead, and adjust the next story before it runs ([revising a spec](COOKBOOK.md#revising-a-spec-or-re-planning)). Three points need your sign-off, because what they hold outlives the branch:
 
 - **After `clarify`** – read `prd.md`. Every story is cut from it, and it is the one planning file that survives the merge, unless your requirements live in the tracker.
 - **After `decide`**, when it ran – read the ADRs. Every later skill treats them as settled.
@@ -130,7 +130,7 @@ The nine skills most work starts from:
 |---|---|
 | `init` | Sets up a project: the document index in `CLAUDE.md` / `AGENTS.md`, the project's test commands, and offers for the optional extras |
 | `now-what` | Reads your project state and routes you to the right skill |
-| `clarify` | Interviews you about an idea and writes the PRD; `--brief` stops at a shorter `intent.md` you can share first, and asking for all its questions at once gives you a list to hand to a colleague or post on the issue |
+| `clarify` | Interviews you about an idea and writes the PRD; `--brief` stops at a shorter `intent.md` you can share first; ask for all its questions at once to get one list for a colleague or an issue reply |
 | `domain` | Models the domain with you as the expert: subdomains and bounded contexts in a Domain Map, the glossary of shared terms, and event storming |
 | `decide` | Settles technical choices with you and records them as ADRs |
 | `plan` | Decides whether the work is one story or several, and writes one FIS per story plus the `plan.json` that tracks them |
@@ -207,7 +207,7 @@ To set up by hand instead, start from [`CLAUDE.template.md`](plugin/skills/init/
 `exec-plan` runs for a long time without you watching, so it is worth limiting what the agent's shell commands can reach. They run as you. Approval prompts and allow/deny rules decide what asks you first, but a command you approve can still read `~/.ssh` or send data anywhere. An OS sandbox closes that gap. Every command and its child processes can write only inside the workspace, has no network, and cannot read the files you deny. Codex turns its sandbox on by default; Claude Code does not.
 
 - [`permissions/`](permissions/README.md) – example settings for both hosts. The sandbox is on and the network off. Commands cannot see `.env` files, cloud credentials, browser profiles, or token variables. `git push` asks first, the destructive-command hook below runs before every command, and Claude Code's bypass flag is refused. Organization-enforced variants are included.
-- [`hooks/`](hooks/README.md) – four optional hooks: a guard against destructive shell commands, desktop or voice notifications, and a context-size hint that has the agent suggest a fresh session. The guard matches patterns, so it adds a layer and does not replace the sandbox.
+- [`hooks/`](hooks/README.md) – four optional hooks: a guard against destructive shell commands, desktop or voice notifications, and a context-size hint that tells you when to start a fresh session. The guard matches patterns, so it adds a layer and does not replace the sandbox.
 
 Run `--dangerously-skip-permissions` or `--yolo` only inside a container or VM that holds none of your credentials.
 

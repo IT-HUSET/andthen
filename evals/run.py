@@ -22,6 +22,7 @@ run at all - one cell at a time makes the full tier hours.
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -152,6 +153,8 @@ def _execute(cell, staged, case_dir, provider, candidate_dir):
 
     run = staged["run"] = stage.new_run_dir(cell["case"], provider)
     used = [provider] + [p for p in [cell["judge"]["provider"]] if p and p != provider]
+    # Keeps the staged candidate out of another invocation's sweep for the tier.
+    os.utime(str(candidate_dir))
     stage.stage_candidate(run / "candidate", source=candidate_dir)
     if "codex" in used:
         stage.register_codex(run)

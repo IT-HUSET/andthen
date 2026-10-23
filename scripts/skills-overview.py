@@ -196,7 +196,7 @@ text(BX + 22, PANEL_Y + 70, "Inside the README this image is static – click it
 # ------------------------------------------------ the workflow
 y = 84
 band(BX, y, BW, 226, "band-flow", "THE WORKFLOW", "Idea to merged: you decide, agents build",
-     ["Your part: answer the interviews, read each story's result, sign off at the three gates.",
+     ["Your part: answer the interviews, sign off at the three gates, and read what the rings mark.",
       "Every step reads what the step before it wrote and closes on the printed next command.",
       "clarify and the design stage are optional: decide when a choice binds beyond the work,",
       "UI design where a screen has none."])
@@ -238,7 +238,7 @@ PLAN_X = f.box(140, key="plan", label="plan", cls="step", sub="one story or seve
 f.arrow(read=True)
 f.box(150, key="exec-plan", label="exec-plan", cls="exec", sub="one story per session",
       kicker="andthen · exec-plan",
-      body=["One story per fresh session: the tasks, the proofs and the full tier, one fresh reviewer subagent, the fixes, the verified line, then the next story's line.",
+      body=["One story per fresh session: proofs and the full tier, a fresh reviewer, the fixes, a simplify-code pass, then the next story's line.",
             "On a plan directory, unattended or parallel: one fresh exec-plan subagent per ready story, a simplify-code pass per story, the full tier once, then the plan review line."])
 f.arrow(read=True)
 f.box(224, key="review", label="review", cls="tail", sub="code · gap · security · outcome",
@@ -252,14 +252,14 @@ f.box(120, key="implement-fix", label="implement-fix", cls="tail", size=12, sub=
             "own, as minimal changes across code, specs, and docs, then re-verify once and annotate. No re-review."])
 f.arrow()
 f.ship(gate=3, key="ship", kicker="andthen · ship",
-       body=["Lands what each FIS's Observations hold worth keeping, deletes plan.json and the FIS files, and commits the branch's own work.",
-             "Then shows the PR / MR title and body and asks once before it pushes and opens it. --auto stops before the push."])
+       body=["Lands what each FIS's Observations hold worth keeping and commits the branch's own work, then shows the PR / MR title and body.",
+             "One question: push and open it, and delete plan.json and the FIS files (recommended)? --auto stops before the push."])
 assert f.x <= BR - 14, f.x
 
 # ------------------------------------------------ artifacts
 y = 326
 band(BX, y, BW, 112, "band-art", "ARTIFACTS", "The hand-offs",
-     ["plan.json and FIS go", "before the merge;", "PRD record and ADRs stay"])
+     ["plan.json and FIS go", "before the merge unless", "kept; PRD and ADRs stay"])
 CX0 = 224
 CW, CH = 204, 74
 CG = (BR - 22 - CX0 - 4 * CW) / 3
@@ -271,7 +271,7 @@ cards = [("intent", "intent.md / note", ["a short note or an issue, or", "what c
          ("prd", "prd.md", ["what and why, agreed;", "record in repo or tracker"],
           "artifact · PRD · durable record",
           ["Written by clarify; read by plan and review --mode gap,outcome. Its record outlives the branch in the repo or tracker.",
-           "ship deletes plan.json and FIS before the merge; under Record: tracker it publishes the PRD to its issue and deletes prd.md too."]),
+           "ship asks whether to delete plan.json and FIS before the merge; under Record: tracker a deletion takes prd.md too, after the PRD is published."]),
          ("adr", "ADRs", ["technical decisions by decide,", "indexed in DECISIONS.md"],
           "artifact · architecture decision record · durable",
           ["Written by decide, one per decision with real alternatives, in the ADRs location (default docs/adrs/) and registered in the Decisions document;",

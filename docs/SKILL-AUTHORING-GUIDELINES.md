@@ -18,9 +18,10 @@ Length buys no compliance, and restating the repository's own docs lowers task s
 
 Each was written for models that needed it, and on current ones at best dilutes the rules that matter.
 
-- **Pressure language** – MUST, NEVER, CRITICAL over-apply and set an anxious register.
-  A hedge ("try to", "if possible") on a real requirement reads as permission to skip it.
-  Emphasis, in capitals or bold, is a tested fix for one underweighted instruction, never a register.
+- **Pressure language**:
+  - MUST, NEVER, CRITICAL over-apply and set an anxious register.
+  - A hedge ("try to", "if possible") on a real requirement reads as permission to skip it.
+  - Emphasis, in capitals or bold, is a tested fix for one underweighted instruction, never a register.
 - **Thinking scaffolds** – "think step by step", "plan first", "be thorough" cause over-planning; depth is an effort setting. Never ask a model to show its reasoning, which Fable 5.1 can refuse.
 - **Step choreography for judgment work** – micro-steps, a fixed order of topics, or tool mechanics the host already handles, where the model's own plan does better.
   Spell out a sequence only for a narrow bridge where one alone is safe: destructive commands, migrations, auth.
@@ -39,20 +40,31 @@ Each was written for models that needed it, and on current ones at best dilutes 
 - **Altitude** – state the outcome, the constraints, and how success is verified.
 - **A reason in one clause**, only where the rule runs against the model's default, because there a bare rule is followed rigidly or rationalised away.
 - **Scope stated** – current models apply a rule exactly as scoped. "Report only high-severity findings" loses recall, so ask for every finding with a severity and filter downstream.
-- **Leading words** – name a load-bearing rule or technique with a term that already carries pretraining weight (*Chesterton's Fence*, *Stop-the-Line*, *Boy Scout rule*), in place of its explanation, and reuse it verbatim everywhere.
-  Keep only what the project adds to its common meaning, settled by asking the cheapest model cold.
-  Coin a term only where plain words fail, and keep one term per concept.
+- **Leading words**:
+  - Name a load-bearing rule or technique with a term that already carries pretraining weight (*Chesterton's Fence*, *Stop-the-Line*, *Boy Scout rule*), in place of its explanation, and reuse it verbatim everywhere.
+  - Keep only what the project adds to its common meaning, settled by asking the cheapest model cold.
+  - Coin a term only where plain words fail, and keep one term per concept.
 - **Gates over steps** – a phase ends on an observable that shows it done ("every modified model accounted for"), and a gate restating its step is cut. Visible later phases pull toward premature completion. Sharpen the current gate first, and hide later phases behind a fresh subagent only when runs show rushing.
 - **Dispatch sites** – a delegating step names the skill the subagent invokes, fresh or in-session context, the values it cannot derive as that skill's arguments, and the return shape the caller parses. It names the target in words and passes only switches such as `--fix`, `--quick`, and `--auto` as flags, never a mode or lens the invoked skill resolves from its target. The loaded skill is the **Single Authority**, and a hand-rolled prompt is a second copy that drifts. GPT models delegate in parallel only when told to.
-- **Prose for one rule, a list for several** – a rule is one sentence with its reason.
-  A step or rule carrying three or more instructions is a lead line plus one bullet per instruction, because a paragraph hides each instruction.
-  Data is what the model looks up – a token mapped to an action, a route by flag or host, a return shape – and takes a list, one key per item.
-  A table cell is a phrase; `tests/test_table_legibility.py` fails one over 200 chars.
-- **Plain sentences** – one condition and one action per sentence, in common words, imperative for instructions and descriptive for definitions. The actor is you unless the sentence names another. Split a sentence holding two or more of `:`, `;` and ` – `, unless it is a data line. Cut filler and mannered turns: an aphorism, a clause restating the one before, a contrast written for rhythm. Shorten by selecting, never by packing clauses.
+- **Prose for one rule, a list for several**:
+  - A rule is one sentence with its reason.
+  - A step or rule carrying three or more instructions is a lead line plus one bullet per instruction, because a paragraph hides each instruction.
+  - Data is what the model looks up – a token mapped to an action, a route by flag or host, a return shape – and takes a list, one key per item.
+  - A reshaped list directly above another list at the same indent merges with it, so keep a line of prose between them.
+  - A table cell is a phrase; `tests/test_table_legibility.py` fails one over 200 chars.
+- **Plain sentences**:
+  - One condition and one action per sentence, in common words, imperative for instructions and descriptive for definitions.
+  - The actor is you unless the sentence names another.
+  - Split a sentence holding two or more of `:`, `;` and ` – `, unless it is a data line.
+  - Cut filler and mannered turns: an aphorism, a clause restating the one before, a contrast written for rhythm.
+  - A rewrite tends to cut a binding or a leading word as filler, so check each cut against what the sentence did.
+  - Shorten by selecting, never by packing clauses.
 - **One sentence per source line** (semantic line breaks), in paragraphs and list items alike.
   Markdown renders the paragraph unchanged, and a diff shows the sentence that changed instead of a rewritten paragraph.
+  The rule covers text a change writes: reflow an old paragraph only when the change rewrites most of it.
 - **Contrast only a named failure** – write "X, not Y" only where Y is behaviour a recorded run produced.
-- **One concern per paragraph**, so an "otherwise" never reaches back past its condition. Layout adds markup, never instructions, so it does not count against concision.
+- **One concern per paragraph**, so an "otherwise" never reaches back past its condition.
+  Layout adds markup, never instructions, so it does not count against concision.
 - **Bind shared names once**, in a line such as "`Learnings` and `Tech Debt` are Project Document Index entries", then use the bare names.
 - **Tested vendor wording** (the Astra guide's autonomy, approve-last, and anti-slop snippets) is reused verbatim, in an instruction file or output style and never in a skill.
 - **A mitigation names the model it patches**, so the next release can remove it. Re-audit prompt-like files at each model release.
@@ -123,7 +135,7 @@ The only text seen before the skill fires, loaded every turn. Codex trims descri
 | Opening lines | Purpose |
 | `## Input` | `$ARGUMENTS` and the flags |
 | `## Rules` | Standing rules for the whole run, a few lines |
-| `## Workflow` | Steps in run order, each ending on its gate, a step longer than one line under a `### N. Name` heading; a branch loads its reference at the step |
+| `## Workflow` | Steps in run order, each ending on its gate, a step of more than one sentence under a `### N. Name` heading; a branch loads its reference at the step |
 | `## Output` | What is written where, and the shapes other files parse |
 | `## Follow-up` | The one next command |
 
@@ -167,7 +179,8 @@ Read the target with everything that loads beside it – its references, the pro
 
 ### Failure modes
 
-Measure against what one load pays for, since a link pulls its whole target into every consumer. Walk the load sites of the whole invoked path, every unconditional step of the invoked skill included, never a FIS read-set or only the files a change adds.
+Measure against what one load pays for, since a link pulls its whole target into every consumer.
+Walk the load sites of the whole invoked path, every unconditional step of the invoked skill included, never a FIS read-set or only the files a change adds.
 
 - **Duplication** – one meaning stated twice. On one loaded path it costs every load, and across skills a paraphrase drifts from its siblings.
 - **Sediment** – seams of add-only edits: bolted-on sentences, doubled altitude, contradictions, history phrasing ("now", "no longer", "instead of", a diff against text the model never saw).

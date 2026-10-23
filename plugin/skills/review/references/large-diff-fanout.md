@@ -18,7 +18,8 @@ Never partition by architectural layer (`api/`, `domain/`, `infra/`, `tests/`): 
 
 1. Dispatch the partition passes as one flat parallel batch without inherited conversation, each prompt carrying its own file list and slice of the coverage plan, so a pass never re-detects scope. A pass applies its lenses' rubrics to that list, and its matrix rows carry its own evidence, never orchestrator back-fill. A concern reaching past the list returns as a lead for the boundary pass, never a finding it reviews there.
 2. After every partition returns, a **boundary pass** attacks what no partition owns: `refactor-invariants.md` checks 1 (deletion completeness), 2 (resolve-once, consume-many), and 6 (parameter threading) across partition boundaries – the checks whose second site can live in another partition – and contradictions between partitions (slice A passes a surface slice B flags). Its findings tag `reviewer: Boundary Pass`, `scope_relation: primary`, `source_partition: boundary`.
-3. Merge every partition's findings with the boundary pass's into one set, deduplicated by `(location, finding)` keeping the strongest framing, in the report's one `## Findings` section – never segregated by partition; the `reviewer` field keeps the boundary pass identifiable. The Findings Filter then runs once over the merged set, at Step 4.
+3. Merge every partition's findings with the boundary pass's into one set deduplicated by defect, keeping the strongest framing, in the report's one `## Findings` section.
+   Never segregate it by partition; the `reviewer` field keeps the boundary pass identifiable. The Findings Filter then runs once over the merged set, at Step 4.
 
 
 ## Reporting

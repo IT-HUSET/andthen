@@ -21,6 +21,7 @@ Extract every page and screen from `REQUIREMENTS`, including modal and overlay s
 # Page Inventory
 ## Pages to Wireframe
 1. [page-name] - [brief description]
+## Shared Navigation and Page Chrome
 ## Total: [N] wireframes required
 ```
 
@@ -36,7 +37,10 @@ Basic grayscale HTML layouts: major sections and their placement, key containers
 
 #### 2.2 Parallel creation
 
-The pages are independent, so fan out one implementer subagent per inventory page, concurrently. Each gets its page only and never re-enters this mode: a child re-entering the mode would rebuild the inventory and re-run validation once per page. Give each one 2.1's HTML structure verbatim, its `OUTPUT_DIR/[page-name].html` target, the page's name and purpose, its key content and sections, its navigation context, and its responsive requirements. It writes that page's HTML and returns the path.
+The pages are independent, so fan out one implementer subagent per inventory page, concurrently.
+Each gets its page only and never re-enters this mode: a child re-entering the mode would rebuild the inventory and re-run validation once per page.
+Give each one 2.1's HTML structure and the inventory's Shared Navigation and Page Chrome verbatim, its `OUTPUT_DIR/[page-name].html` target, the page's name and purpose, its key content and sections, and its responsive requirements.
+It writes that page's HTML and returns the path.
 
 **Gate**: every page in the inventory has a wireframe, none skipped for seeming "similar" to another.
 

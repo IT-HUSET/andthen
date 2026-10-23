@@ -6,7 +6,7 @@ Live evals of AndThen skills on Claude Code and Codex. Commands: `docs/KEY_DEVEL
 
 A cell is one case on one provider, run as one `dartclaw-workflow run` over its own workspace. `workflows/tail.yaml` appends two steps to the case's subject workflow: `checks` (`step.py` over `checks.evaluate`) and `judge`. A cell passes only when both do. Its `result.json` carries DartClaw's token accounting for subject and judge, and under `dartclaw` the `path` and `--version` of the `dartclaw-workflow` the tier resolved once, with `version` null and `error` set when it could not be read.
 
-The subject reads its prompt from the case's `subject-workflow.yaml` `prompt:`, and `prompt.md` feeds only the judge (`step.py`), so a prompt fix edits both. No judge-only entry point exists, so a rubric change needs a full re-run of the cell.
+A subject workflow that sets `prompt: "prompt.md"` makes the subject read that file, so a prompt fix is one edit. An inline `prompt:` is duplicated in `prompt.md` for the judge (`step.py`), so a fix edits both. No judge-only entry point exists, so a rubric change needs a full re-run of the cell.
 
 Every cell runs a snapshot of the working tree's `plugin/`, copied into the run's `candidate/` – uncommitted edits included, never the installed plugin. Cells run on a dirty tree all report the same `candidate:` SHA, so group them by grepping each cell's `candidate/plugin/` for the clause in question. A run stages under `$TMPDIR/andthen-evals/` and moves to `.agent_temp/evals/<case>/<provider>/<stamp>/` when it ends, because Claude loads every `CLAUDE.md` above its working directory and this repo's would reach the subject.
 
@@ -26,7 +26,7 @@ Size a case to what `stage.py` enforces: `TURN_TIMEOUT` gives one step an hour a
 
 ## Workspaces
 
-`subject/` is the vendored subject application every cell starts from: one project's documents and one real suite, so a review has real code and the Intent, Learnings, and tech-debt anchors a skill reads are present. A case either starts from it unchanged, stages its `overlay/` over it, or replaces it with a whole `fixture/` workspace when the prompt needs a different project; validation refuses a case carrying both directories.
+`subject/` is the vendored subject application every cell starts from: one project's documents and one real suite, so a review has real code and the Intent, Learnings, and tech-debt anchors a skill reads are present. A case either starts from it unchanged, stages its `overlay/` over it, or replaces it with a whole `fixture/` workspace when the prompt needs a different project; validation refuses a case carrying both directories. An optional `dirty/` is copied over the committed workspace as uncommitted work, and `@@BASELINE@@` in any of its files becomes the baseline commit's short SHA, so a planted report can name the revision it reviewed.
 
 A cell runs with `SHELL=/bin/bash`, so the operator's login shell does not change a result. The `init` cases also get a scratch `HOME` holding only Claude's login, because the skill inspects `~/.claude/agents` and `~/.codex` and the operator's machine would pick its branch.
 

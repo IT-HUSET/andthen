@@ -67,7 +67,7 @@ Read and follow:
 
    **Snapshots** need explicit per-file updates, never `--update-all`, because bugs sail through rubber-stamped updates.
 
-4. **Prove.** A new test tool must run in CI without extra ceremony. The run-one-test row of `Key Dev Commands` is the invocation a scenario `Proof` binds to. Gate: every test went red with its behavior removed, then green with it restored.
+4. **Prove.** Reuse the project's framework; a new test tool must run in CI without extra ceremony. The run-one-test row of `Key Dev Commands` is the invocation a scenario `Proof` binds to. Gate: every test went red with its behavior removed, then green with it restored.
 
    **FIS scenario → test mapping:**
    - Reuse a bound `**Proof**:` only when its target resolves and runs; its annotated state then overrides the mode's initial state.

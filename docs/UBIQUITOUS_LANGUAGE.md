@@ -27,11 +27,12 @@
 | Outcome tag | `[OC<NN>]` token on an Acceptance Scenario, anchoring it to the Expected Outcome(s) it exemplifies. | scenario tag, OC reference |
 | Required Context | Optional FIS section for load-bearing upstream sources. | background, references |
 | Plan Bundle | Co-located planning directory containing `plan.json`, generated FIS files, `prd.md` when the source was one, and optional supporting assets. | implementation plan, plan folder |
+| Shipped record | A plan bundle `ship` kept with a `shipped` marker in `plan.json`, or a `prd.md` stamped `> **Shipped**:` after `ship` deleted the bundle; `now-what` reads it as history, not work. | shipped plan, finished bundle |
 | plan.json | Local typed runtime plan written by the `andthen:plan` skill and read by execution, review, and routing skills; runtime state is written by the session executing each story. | plan.md, markdown plan, plan table, ledger |
 | Story | Vertical, bounded, verifiable unit in `plan.json` that maps 1:1 to a FIS. | task, ticket, work item |
 | Wave | The stories dependency-ready at one point of a plan run (`plan-schema.md` § Execution semantics), derived from `dependsOn` and never stored. | dependency-ready batch, phase, batch field |
 | Plan run | An `andthen:exec-plan` run on a plan directory or its `plan.json`, dispatching each ready story as a story run and owning the final gate (`plan-run.md`). | plan execution, orchestrated run |
-| Story run | An `andthen:exec-plan` run on one FIS (`story.md`): dispatched when it runs as a story subagent of an exec-plan plan run, as its request says, else direct. | FIS run, direct FIS execution, a story run no plan run dispatched |
+| Story run | An `andthen:exec-plan` run on one FIS (`story.md`): dispatched when a plan run launched it as a story subagent, as its request says, else direct. | FIS run, direct FIS execution, a story run no plan run dispatched |
 | sourceRefs | `plan.json` story field for PRD feature IDs, anchors, and upstream requirement references that seed FIS context; Markdown label `Source refs`. | Source Refs, citations |
 | assetRefs | `plan.json` story field for wireframes, ADRs, design-system references, or other upstream assets the FIS author needs; Markdown label `Asset refs`. | Asset Refs |
 | bindingConstraints | `plan.json` top-level array of pointers (`featureId` + PRD `anchor`) to the spans that bind the plan; Markdown/prose section `Binding Constraints`. | hard requirements |
@@ -64,7 +65,7 @@
 | NOTICED BUT NOT TOUCHING | Report label for an issue no tidy can fix and the task did not ask for, that someone should act on. | out-of-scope notes, FYI |
 | Verification tier | `Key Dev Commands` tier: `fast` for each plan story; `full` for a direct story run or a plan run at convergence. | quick tests, full suite |
 | Traceability Gate | Requirement that tests and motivated code changes trace to FIS requirements or explicitly appended discovered requirements. | trace check |
-| Discovered Requirement | Requirement found during execution and appended through the sanctioned FIS channel before dependent tests or code are written. | inferred requirement |
+| Discovered Requirement | Requirement found during execution and appended through the FIS channel, by its story's run, another's, or a `clarify` amendment, before dependent code is written; its Interpretation is the reading. | inferred requirement |
 | Finding | Concrete review issue with severity, evidence, and remediation guidance. | comment, issue |
 | Findings Filter | Calibration pass that challenges candidate findings before final severity and report inclusion. | triage pass |
 | Self-review | The fresh-context reviewer pass an authoring skill runs over the document it just wrote (`clarify`, `plan`), loading a rubric rather than a review lens. | doc review, document review |
@@ -78,7 +79,7 @@
 | plan.schema.json | The machine form of `plan-schema.md` (JSON Schema draft 2020-12), a shared canonical in `plugin/references/`. | plan schema file, the JSON schema |
 | `Reviewed:` line | The completion report's one review signal: what reviewed the change, which findings were fixed, and what stays open. Prose for the reader, never parsed. | gate result, story verdict |
 | Scope Discipline | The `review-calibration.md` counterweight to the Anti-Leniency Protocol – Analysis Paralysis, Finding Distillation, Verdict first. | proportionality, going easy |
-| Follow-up review | A `review` run after remediation, over its normal scope, stating each finding the latest report left open resolved or still open; its own report and verdict. | closure pass, review campaign, re-review round |
+| Follow-up review | A `review` run after a `**Remediated**:` report: the work since its Revision, its callers, and its open findings, unless a condition fails; says which findings are now resolved. | closure pass, review campaign, re-review round |
 | Anchor move | A routing decision `intent-and-rules-context.md` defines against the Intent bundle, named in one cited clause. | intent check, guardrail rule |
 | Implement Fix | Workflow run by the `andthen:implement-fix` skill to turn a request or a review report's findings into re-validated minimal fixes, verify them, and update workflow state. | quick implement, address comments, remediate findings |
 | Tech Debt Backlog | Durable backlog for deferred validated findings that cannot be fixed in the current remediation pass. | parking lot |

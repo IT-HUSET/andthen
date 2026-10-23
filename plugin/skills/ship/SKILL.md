@@ -40,8 +40,8 @@ While the plan is not ready, the same question asks whether to keep the bundle, 
 
 ### 2. Land the observations
 
-Only with a plan bundle step 1 did not keep, because its specs go stale once the plan ships.
-Read every FIS's `## Implementation Observations`.
+Only with a plan bundle step 1 did not keep.
+Read every FIS's `## Implementation Observations`, those in `superseded/` included.
 - Write each trap as one `Learnings` bullet under its fitting topic, admitted against its header note.
 - Recommend the rest worth keeping in the output, because decisions and upstream documents stay the user's.
 - A design change no ADR or `Decisions` entry records yet becomes a recommended `Decisions` line, or a run of the `andthen:decide` skill where alternatives are still open.
@@ -74,7 +74,7 @@ Put what the merge decision needs first and fold per-story detail below it, beca
 - **Pictures**: where a flow, structure, or state change reads faster as a picture, add the smallest view that makes the point.
   Use a Mermaid diagram where the host renders one, an SVG, or a pseudocode or tree block.
 
-**Gate**: a title, and a body that states the intent, the outcomes, their proof, the door and blast radius, and where to read closely before any per-story detail.
+**Gate**: a title, and a body that states the intent, outcomes, proof, door and blast radius, and where to read closely before any per-story detail.
 
 ### 4. Commit
 
@@ -82,7 +82,7 @@ Put what the merge decision needs first and fold per-story detail below it, beca
   Recommend starting it the way the project's written convention for starting work says, else as `<type>/<slug>`.
 - Commit the fixes left in the working tree.
 - With a plan bundle, commit the landed entries, and leave the bundle to step 5's answer.
-  A bundle file git does not track has no copy in history and never reaches the merge, so never delete it and ask nothing about it.
+  An untracked bundle file never reaches the merge, so never delete it or ask about it.
 
 **Gate**: the branch's own work committed, and the tracked bundle untouched.
 
@@ -95,17 +95,17 @@ Put what the merge decision needs first and fold per-story detail below it, beca
 - Ask once whether to push and open it, and end the turn on the question.
   For a ready plan's tracked bundle, the same question asks whether to delete it, recommending deletion.
   It also names each feature folder under the `Wireframes` or `Mockups` locations that the branch added or the plan cites (`assetRefs`, its FIS files), never a location itself, and asks whether to delete them.
-  Recommend deleting them, except keeping them while the plan is not ready or the branch changed nothing outside design and spec folders, because their build is still to come.
+  Recommend deleting them unless their build is still to come: the plan is not ready, or the branch changed nothing outside design and spec folders.
   With no remote, ask only about the bundle and those folders, except under `Record: tracker`, where it waits for a publish.
   Offer screenshots or a recording for a visible UI change the request said nothing about.
 - On a yes under `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, and add the closing links from the issues it reports.
-- On a delete, commit the deletion before the push: `plan.json`, its FIS files, and any `intent.md` beside them go, and the requirements file its `prd` names stays.
-  A `prd.md` that stays gains a `> **Shipped**: <UTC ISO-8601 minute>` header line in the same commit, so later runs read it as a record.
-  Under `Record: tracker` in the `Issue Tracker` document, that file goes too once the issues are published, because they then carry the record.
-  Without a publish under `Record: tracker`, the bundle stays for the next run, because the issue bodies are written from it.
+- A deletion (step 1's "don't keep" answer included), the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead, there is no remote, or the run is `--auto`.
+- On a delete, commit the deletion before the push: `plan.json`, its FIS files, any `intent.md` beside them, and any `superseded/` folder go, and the requirements file its `prd` names stays.
+  A `prd.md` that stays gains a `> **Shipped**: <UTC ISO-8601 minute>` header line in the same commit.
+  Under `Record: tracker` in the `Issue Tracker` document, that file goes too once the issues are published, because they then carry the record, and until then the bundle stays, because the issue bodies are written from it.
 - With either deletion, repoint each committed link into a deleted file at what survives it, such as the requirements file, its issue, or an ADR, because a dead link fails silently.
   A branch commit is no such target, because a squash merge leaves it out of the base branch.
-- When a ready plan's bundle stays, kept or untracked, write its `shipped` marker unless the user declines the push, so later runs read the plan as a record.
+- When a ready plan's bundle stays by the user's answer or untracked, write its `shipped` marker, so later runs read the plan as a record.
   A tracked one is committed before any push, then once the pull request opens its `pr` is set, committed, and pushed.
   An untracked one is written once the pull request opens, else at the run's end with `pr` null, and left uncommitted.
 - Before the push, capture the screenshots or recording the request asked for or the answer took up, per the `Visual Validation` document.
@@ -120,5 +120,5 @@ Report:
 
 - each `Learnings` bullet written, each recommendation, and each observation judged not worth keeping, with its reason;
 - the commits made, the bundle files and design folders deleted, and the bundle or each design folder kept, with the `ASSUMPTION:` line of an unattended run;
-- each change left uncommitted, each file left in the bundle's directory, because a later `now-what` reads it as work in progress once no record is left beside it, and whether the plan was marked `shipped`;
+- each change left uncommitted, each file left in the bundle's directory, and whether the plan was marked `shipped`;
 - the pull request's URL, each issue published, and each image left for the user to attach, or its title, body, and the commands still to run.

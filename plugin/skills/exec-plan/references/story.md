@@ -10,7 +10,7 @@
 1. **Provenance.** Resolve `PLAN_FILE_PATH` and `STORY_ID` from the FIS's `**Plan**:` / `**Story-ID**:` header – the path repo-root-relative, from the git root holding the FIS, never the working directory.
 2. **Plan check.** Stop unless `PLAN_FILE_PATH` holds that story and its `fis` names this file.
 3. **Dependencies.** A `dependsOn` story not yet `done` means this one would build on work that is not there: ask whether to run anyway, recommending no.
-4. **Shared decisions.** Applicable `sharedDecisions` are execution input and outrank FIS text contradicting them: record that text as a `spec-stale` `#### DRIFT` line.
+4. **Shared decisions and discoveries.** Applicable `sharedDecisions` and the FIS's Discovered Requirements (read through their Interpretation) are execution input and outrank FIS text contradicting them: record that text as a `spec-stale` `#### DRIFT` line, and the scenario's bound Proof follows the outranking reading.
 
 ## Step 2: Implement
 
@@ -24,7 +24,7 @@ Read `Learnings` and the `Tech Debt` item for the story's area.
 - **The FIS changes only as `fis-mutability.md` allows.** A pivot records its ADR with the `andthen:decide` skill before the amendment.
 - **Direct Checks before Step 3**: the substance and wiring scans of `verification-evidence.md`, and test integrity. **Falsifiability** – removing the protected behavior makes its owning test fail. A suppression this diff adds needs a recorded reason. A deleted test whose behavior still ships is a red objective gate.
 
-Close with the **Chain Attestation**: one sentence per Expected Outcome over its `[OC<NN>]`-tagged scenarios and the tasks whose `SATISFIES` name them, and one per Discovered Requirement another story appended, over its proof. A link missing from the change is unfinished work, not a caveat.
+Close with the **Chain Attestation**: one sentence per Expected Outcome over its `[OC<NN>]`-tagged scenarios and the tasks whose `SATISFIES` name them, and one per Discovered Requirement it did not append itself, over its proof. A link missing from the change is unfinished work, not a caveat.
 
 ## Step 3: Verify and review
 

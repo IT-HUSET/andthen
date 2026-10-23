@@ -50,7 +50,7 @@ Read every file marked for your mode, then follow its procedure to the end.
 |---|---|---|---|
 | [`story.md`](references/story.md), the story procedure | yes | yes | |
 | [`plan-run.md`](references/plan-run.md), the plan procedure | | | yes |
-| [`between-stories.md`](references/between-stories.md), triage and simplify | no: the plan run does it after this story returns, since parallel siblings appending to one FIS conflict at merge | yes | yes |
+| [`between-stories.md`](references/between-stories.md), triage and simplify | no | yes | yes |
 | [`story-worktrees.md`](references/story-worktrees.md) | | | under `--worktree` |
 | [`fis-contract.md`](../../references/fis-contract.md) | yes | yes | |
 | [`plan-schema.md`](../../references/plan-schema.md) | | | yes |

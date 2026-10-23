@@ -38,16 +38,16 @@ When exactly one mode's triggers match `ARGUMENTS`, in any language, proceed in 
 
 **Level**: a design system is present when `DESIGN.md` sits at the `Design System` location or an earlier mode of this run writes it.
 
-- A request to design screens that names no level runs mockups while a design system is present, else wireframes.
+- A request for screens, or a requirements source alone, naming no level runs mockups while a design system is present, else wireframes.
 - Mockups asked for with no design system run wireframes, and the mode line says mockups need the design-system mode first.
 - A "prototype" that may mean technical feasibility is asked about, because that prototype is the `andthen:spike` skill's.
 
+Otherwise, ask only when no mode matches, when two or more match with no dominant intent, or when the detected mode's required input is missing.
+A missing input scopes the ask to that input, not the full menu.
+
 Say in one line which mode or modes run and why, so the user can redirect.
 
-Ask only when no mode matches, when two or more match with no dominant intent, or when the detected mode's required input is missing. A missing input scopes the ask to that input, not the full menu.
-
-**Multi-mode**: a request naming several modes in order ("research, then a design system, then wireframes") runs them in that order, sharing context. Research insights feed design-system decisions, and the design-system mode's `OUTPUT_DIR` binds the mockups mode's `DESIGN_DIR`, so the Mockups use the tokens just written.
-Wireframes stay grayscale.
+**Multi-mode**: a request naming several modes in order ("research, then a design system, then mockups") runs them in that order, sharing context. Research insights feed design-system decisions, and the design-system mode's `OUTPUT_DIR` binds the mockups mode's `DESIGN_DIR`, so the Mockups use the tokens just written.
 
 **Gate**: the mode or modes and their inputs are settled.
 

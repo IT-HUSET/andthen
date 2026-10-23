@@ -110,6 +110,11 @@ SELF_REPORT_TOLERANCE = "    onFailure: continue"
 # has produced is a 58 KB review report, so 256 KiB leaves it four times over.
 MAX_ARTIFACT_BYTES = 256 * 1024
 
+# What a `dirty/` file writes where it needs the baseline commit's short SHA, such
+# as a planted review report's `**Revision**:`. Not `{{...}}`, which DartClaw
+# templates; staging substitutes it once the baseline exists.
+BASELINE_REVISION = "@@BASELINE@@"
+
 # Committing as the run keeps a cell reproducible on a host with no git identity.
 IDENTITY = ("-c", "user.name=andthen-evals", "-c", "user.email=evals@andthen.invalid",
             "-c", "commit.gpgsign=false")
@@ -196,7 +201,10 @@ def stage_workspace(run, case_dir, roles=False):
     workflow prompt names files workspace-relative: `feature-request.md`. An
     optional `dirty/` directory is copied over the committed workspace so a case
     can start with uncommitted work - a resumed story's earlier edits, a user's
-    unrelated change - which is what the isolation journeys are about."""
+    unrelated change - which is what the isolation journeys are about. A dirty
+    file's BASELINE_REVISION becomes the baseline commit's short SHA, so a planted
+    report can name the revision it reviewed and `git diff <that>` is the dirty
+    work."""
     workspace = run / "workspace"
     fixture = case_dir / "fixture"
     if not fixture.is_dir():
@@ -222,13 +230,19 @@ def stage_workspace(run, case_dir, roles=False):
     write(run / "fixture-head.txt", git(workspace, "rev-parse", "HEAD"))
     dirty = case_dir / "dirty"
     if dirty.is_dir():
-        shutil.copytree(str(dirty), str(workspace), dirs_exist_ok=True)
+        revision = git(workspace, "rev-parse", "--short", "HEAD").strip().encode("ascii")
         # Planted bytes are the starting state: stage_diff drops a planted path
         # the subject left as it found it, so the checks see only what the
-        # subject did to it.
-        write(run / "dirty-baseline.json", json.dumps(dict(
-            (p.relative_to(dirty).as_posix(), _digest(p))
-            for p in dirty.rglob("*") if p.is_file()), indent=2) + "\n")
+        # subject did to it. The digest covers the bytes as substituted.
+        planted = {}
+        for source in sorted(p for p in dirty.rglob("*") if p.is_file()):
+            rel = source.relative_to(dirty)
+            target = workspace / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(source.read_bytes().replace(BASELINE_REVISION.encode("ascii"), revision))
+            shutil.copymode(str(source), str(target))
+            planted[rel.as_posix()] = _digest(target)
+        write(run / "dirty-baseline.json", json.dumps(planted, indent=2) + "\n")
     return workspace
 
 
@@ -333,7 +347,10 @@ def sweep(root=None, keep=KEEP, now=None):
     walls after its stamp it cannot be a cell of a tier in flight elsewhere, so it
     lands and its token is cleared. The cells past the newest `keep` go whole -
     a running cell is still under STAGING, never among them. Tiers started
-    together sweep the same cells, so a move the other got to first is done."""
+    together sweep the same cells, so a move the other got to first is done. A
+    staged candidate outlives its stamp by a whole tier, so it is judged by its
+    last touch instead: each cell touches it as it starts, which a live tier does
+    at least once per TIMEOUT."""
     now = time.time() if now is None else now
 
     def stale(cell):
@@ -341,7 +358,11 @@ def sweep(root=None, keep=KEEP, now=None):
         return now - began > 2 * TIMEOUT
 
     for orphan in STAGING.glob(CANDIDATES + "/*"):
-        if STAMP.fullmatch(orphan.name) and stale(orphan):
+        try:
+            idle = now - orphan.stat().st_mtime > 2 * TIMEOUT
+        except FileNotFoundError:
+            continue
+        if idle and STAMP.fullmatch(orphan.name):
             shutil.rmtree(str(orphan), ignore_errors=True)
     for cell in STAGING.glob("*/*/*"):
         if cell.is_dir() and STAMP.fullmatch(cell.name) and stale(cell):
@@ -549,7 +570,9 @@ def stage_diff(run, workspace):
     touched = sorted(line.split("\t")[-1] for line
                      in git(workspace, "diff", "--cached", base, "--name-status").split("\n")
                      if line and line[0] in "AM" and line.split("\t")[-1] not in untouched)
-    write(run / "diff.patch", git(workspace, "diff", "--cached", base))
+    # The judge may quote this patch, so a planted file left as found stays out of it.
+    write(run / "diff.patch", git(workspace, "diff", "--cached", base, "--", ".",
+                                  *[":(exclude,literal)" + p for p in sorted(untouched)]))
     # The index was the harness's, not the subject's: an oracle that asks git
     # whether the caller's edit is still dirty must see the tree as it was left.
     git(workspace, "reset", "-q")

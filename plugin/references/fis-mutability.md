@@ -2,7 +2,7 @@
 
 Who may change a FIS, when, and through which channel – the contract every skill that reads, executes, or amends a FIS shares.
 
-Until execution begins (the story leaves `pending`), the owning `andthen:plan` skill and explicit mechanical review remediation may rewrite FIS prose. Another story's run, or its plan run, only appends under `## Discovered Requirements`.
+Until execution begins (the story leaves `pending`), the owning `andthen:plan` skill and explicit mechanical review remediation may rewrite FIS prose. Another story's run, its plan run, or a `clarify` amendment only appends under `## Discovered Requirements`.
 
 During execution, everything above the FIS's two tail sections, `## Discovered Requirements` then `## Implementation Observations`, is read-only except through a design-change amendment. The agent appends to the tail sections with its own editor. A tail section the FIS lacks is created on first append, Discovered Requirements above an existing Implementation Observations.
 
@@ -14,8 +14,8 @@ Discovered Requirements is the one channel for a requirement found during execut
 
 - **Title** and **Description**;
 - **Rationale** – why the original spec missed it;
-- **Interpretation** – unattended runs only: the conservative reading chosen and why;
-- **Traced from** – the task ID, after its story's ID when another story found it (`S01/TI02`);
+- **Interpretation** – the reading chosen and why: an unattended run's conservative one, or a person's declined revision;
+- **Traced from** – the task ID, after its story's ID when another story found it (`S01/TI02`), or `PRD amendment`;
 - **Date**.
 
 ## Design-change amendment

@@ -27,7 +27,7 @@ Inspect project state and route the user to the one AndThen skill that fits next
 - **Setup** – the host loads the root instruction file into your context; never read it from disk. None reached you → `setup: not-started`. It lacks the `## Project Document Index` or `## Project-Specific Guidelines and Rules` heading → `setup: partial`.
 - **Codebase** – `git ls-files` count and extension distribution; the rough cut is >50 tracked files with substantive code extensions. Substantial code and no map → `codebase: brownfield-unmapped`. A map at its **Project Document Index** location – a filled-in `Architecture` document, or `requirements-discovered.md` / `decisions-discovered.md` – → `codebase: brownfield-mapped`.
 - **Workflow** – read the **Project Document Index** and check its paths for any of these; any → `workflow: mid-flow`, the position inferred from the artifact type:
-  - `intent.md`, `prd.md`, `plan.json`, FIS files (`s[0-9][0-9]-*.md`)
+  - `intent.md`, `prd.md`, `plan.json`, FIS files (`s[0-9][0-9]-*.md`), except in a `superseded/` folder
   - review reports with unaddressed findings (`*-review-*.md`; a clean or remediated report alone, or one whose `**Target**` names a `plan.json` that no longer exists at its repo-relative path, is retained evidence, not active state)
   - the most recent architecture or domain report (`*-architecture-*.md`, `*-domain-*.md`)
   - ui-ux-design output (wireframes, Mockups, design system) that differs from the default branch's, until it is implemented and any wireframes or Mockups among it are visually validated on this branch, because merged or finished output is a standing document

@@ -25,7 +25,8 @@ Read the `Visual Validation` document (default `docs/VISUAL-VALIDATION.md`) firs
 
 Scope is the states the work under validation touched, non-default states included, at the breakpoints the project names. With no change named, it is the states users depend on.
 
-A state with a Mockup is judged against it, layout included, and a state without one against its wireframe.
+A state is judged against its own feature's Mockup at the `Mockups` location, layout included, else its own feature's wireframe.
+Another feature's Mockup or wireframe is never the reference.
 
 Fallback: identify the baselines, Mockups, wireframes, design references, or acceptance criteria for every state in scope, consulting the `Mockups`, `Wireframes`, and `Design System` documents.
 

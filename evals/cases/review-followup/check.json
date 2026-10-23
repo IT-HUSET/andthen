@@ -6,6 +6,6 @@
   ],
   "commands": [
     "test \"$(ls docs/specs/csv-export/*-code-review-*.md | wc -l)\" -ge 2",
-    "git diff --quiet HEAD -- docs/specs/csv-export/csv-export-andthen-code-review-claude-2026-10-19.md"
+    "python3 -c \"import hashlib, json; p = 'docs/specs/csv-export/csv-export-andthen-code-review-claude-2026-10-19.md'; assert hashlib.sha256(open(p, 'rb').read()).hexdigest() == json.load(open('../dirty-baseline.json'))[p]\""
   ]
 }

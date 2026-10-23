@@ -4,7 +4,7 @@ Rationale, evidence, history, and reopen conditions for the **Authoring** bullet
 
 ## PRD acceptance criteria are EARS rules, FIS scenarios their examples
 
-Adopted 2026-10-18. The FIS self-review checks that every source acceptance criterion has a scenario, and the Validation and Error Handling lists the EARS rules replaced were not criteria, so nothing carried an error case into one. The gain in caught error and state cases is inferred, not measured.
+Adopted 2026-10-18. Each acceptance criterion a FIS keeps from its source is a seed its scenarios must cover (`fis-contract.md`), and the FIS self-reviewer is given that file. The Validation and Error Handling lists the EARS rules replaced were not criteria, so nothing carried an error case into one. The gain in caught error and state cases is inferred, not measured.
 
 Reopens on recorded plan runs whose scenarios still miss the PRD's `If` rules.
 

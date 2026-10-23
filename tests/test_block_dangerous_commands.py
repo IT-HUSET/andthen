@@ -132,14 +132,27 @@ class BlocksTest(unittest.TestCase):
         # A shell executes what it reads from stdin, so the body is a command, not data.
         for command in ("bash <<'EOF'\nrm -rf build\nEOF", "sh -s <<EOF\nrm -rf build\nEOF",
                         "cat <<EOF\n$(rm -rf build)\nEOF", "cat <<EOF\n`rm -rf build`\nEOF",
-                        "cat <<'EOF' && rm -rf build\nhi\nEOF"):
+                        "cat <<'EOF' && rm -rf build\nhi\nEOF",
+                        "cat <<EOF | sh\nrm -rf build\nEOF", "cat <<'EOF' | bash\nrm -rf build\nEOF",
+                        ". /dev/stdin <<'EOF'\nrm -rf build\nEOF",
+                        # The reader can sit on another line than the operator.
+                        "cat <<'EOF' |\nrm -rf build\nEOF\nsh", "{ cat <<'EOF'\nrm -rf build\nEOF\n} | sh",
+                        "(cat <<'EOF'\nrm -rf build\nEOF\n) | bash", "cat <<'EOF' \\\n| sh\nrm -rf build\nEOF",
+                        "fish <<'EOF'\nrm -rf build\nEOF", "$SHELL <<'EOF'\nrm -rf build\nEOF",
+                        "${SHELL} <<'EOF'\nrm -rf build\nEOF", "$BASH <<'EOF'\nrm -rf build\nEOF"):
             with self.subTest(command=command):
                 self.assertBlocked(command)
 
     def test_commands_around_a_heredoc_are_still_scanned(self):
         for command in ("cat <<'EOF'\nhi\nEOF\nrm -rf build", "rm -rf build <<'EOF'\nhi\nEOF",
                         "cat <<< x\nrm -rf build", "echo '<<EOF'\nrm -rf build\nEOF",
-                        "cat <<-'EOF'\n\thi\n\tEOF\nrm -rf build"):
+                        "cat <<-'EOF'\n\thi\n\tEOF\nrm -rf build",
+                        # Fail closed: no terminator line, so nothing after the operator is a body.
+                        'echo "x\n<<EOF"\nrm -rf build', "echo $((1<<2))\nrm -rf build",
+                        "echo hi # see <<EOF\nrm -rf build", "cat <<EOF\nrm -rf build",
+                        "cat > f <<EOF.\nhi\nEOF.\ngit push --force",
+                        # A comment or arithmetic shift is no operator, even with a matching line after it.
+                        "# see <<EOF\nrm -rf build\nEOF", "echo $((1<<2))\nrm -rf build\n2"):
             with self.subTest(command=command):
                 self.assertBlocked(command)
 

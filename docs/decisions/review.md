@@ -16,7 +16,7 @@ The target is `PR <n>` or a URL. `git fetch refs/pull/<n>/head` plus a detached 
 
 ## A review reads earlier reports as input, and a remediated one narrows scope
 
-No shared-contract rule decides when to widen either. rc.4 cut follow-up narrowing and every follow-up became a full run, which in trellis cost four to six reviewers per round, about 70% of the slice's review spend; the round that found a late HIGH was a `--quick --fix` over `git diff d805add`, so a delta still finds real defects.
+The delta is the work since the Revision, untracked files included, because `implement-fix` leaves its fixes and any new test file uncommitted before the follow-up. Two conditions return the review to the whole target: a lens the report did not run has no earlier report to follow, and a Revision outside HEAD's history cannot be diffed. This refines the decision and reverses nothing. No shared-contract rule decides when to widen either. rc.4 cut follow-up narrowing and every follow-up became a full run, which in trellis cost four to six reviewers per round, about 70% of the slice's review spend; the round that found a late HIGH was a `--quick --fix` over `git diff d805add`, so a delta still finds real defects.
 
 What counts as a fix asking for another round: a fixed CRITICAL or HIGH finding or a partly fixed one, never an UNRESOLVED one the next round fails the same way. A `plan.json` remedy is a Note because no fix round may write the file. Issue #3's fourth round was held open by surfaced and deferred MEDIUM and LOW findings returning as findings (2026-10-15).
 

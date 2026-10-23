@@ -8,7 +8,17 @@
 
 Build one target map: review target, implementation scope, requirements baseline, and user intent; the resolved lens set and why; the Intent Context source or `none discoverable`; and any recorded Drift Notes from the governing FIS's `## Implementation Observations`.
 
-**Earlier reports and recorded observations are input.** Read the latest earlier report on this target at the Output destination, `## Remediation Status` included, and each governing FIS's open `## Implementation Observations` items, its open quick-review findings and `NOTICED BUT NOT TOUCHING` among them. When that report carries `**Remediated**:`, this run's scope is `git diff <its Revision>` without a `-dirty` suffix, the callers of the code that diff changes, and the findings it left open. Step 2's fan-out trigger and the `security` escalation read that delta. The report states whether each finding the earlier report left open is now resolved or still open, and a finding or observation an earlier report carried stays that finding when this run finds it again, never a new one. Each one still open enters Step 4 as a finding of this review, except a MEDIUM or LOW one the earlier report marks `SURFACED` or `DEFERRED`, in its `## Remediation Status` or its summary list: it is already the user's decision, so it stays in this summary's list with that mark, holding neither readiness nor another fix round.
+**Earlier reports and recorded observations are input.** Read the latest earlier report on this target at the Output destination, `## Remediation Status` included, and each governing FIS's open `## Implementation Observations` items, its open quick-review findings and `NOTICED BUT NOT TOUCHING` among them.
+
+Narrow the scope only when all three hold, and otherwise name the failed one on the scope line:
+- that report carries `**Remediated**:`;
+- this run resolves no lens that report did not run;
+- its Revision, minus any `-dirty` suffix, is in HEAD's history.
+
+The narrowed scope is the work since that Revision, untracked files included, the callers of the code that work changes, and the findings the report left open.
+Step 2's fan-out trigger and the `security` escalation read that delta.
+
+The report states whether each finding the earlier report left open is now resolved or still open, and a finding or observation an earlier report carried stays that finding when this run finds it again, never a new one. Each one still open enters Step 4 as a finding of this review, except a MEDIUM or LOW one the earlier report marks `SURFACED` or `DEFERRED`, in its `## Remediation Status` or its summary list: it is already the user's decision, so it stays in this summary's list with that mark, holding neither readiness nor another fix round.
 
 Resolve the lenses by the first rule that applies:
 
