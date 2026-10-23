@@ -566,7 +566,7 @@ The skill infers feature scope and says so, checks the codebase for what exists 
 > Can an owner take an invitation back? *Recommended: yes, revoke; a revoked token must fail on accept.*
 > Existing account vs new sign-up on accept? …
 
-Terms settle as they go: `Invitation`, `Member`, `Owner` land in the PRD's `Decisions Log`, since Relay keeps no glossary document. The answers become the PRD: problem, three functional requirements (`FR-1 Send an invitation`, `FR-2 Accept an invitation`, `FR-3 Revoke and list pending invitations`) with acceptance criteria, non-functional thresholds (email dispatch never blocks the request), and scope in and out. The one open question – *expiry window, 7 days or 30?* – lands in `Constraints & Assumptions` as unresolved. A fresh-context self-review applies two mechanical fixes, and the run ends:
+Terms settle as they go: `Invitation`, `Member`, `Owner` land in the PRD's `Decisions Log`, since Relay keeps no glossary document. The answers become the PRD: problem, three functional requirements (`FR1 Send an invitation`, `FR2 Accept an invitation`, `FR3 Revoke and list pending invitations`) with acceptance criteria, non-functional thresholds (email dispatch never blocks the request), and scope in and out. The one open question – *expiry window, 7 days or 30?* – lands in `Constraints & Assumptions` as unresolved. A fresh-context self-review applies two mechanical fixes, and the run ends:
 
 ```
 docs/specs/workspace-invitations/prd.md            > **Source**: inline description
@@ -599,20 +599,20 @@ Three functional requirements in two modules size to several stories, so `plan` 
       "stories": ["S01", "S02"]
     }
   ],
-  "bindingConstraints": [{ "featureId": "FR-1", "anchor": "docs/specs/workspace-invitations/prd.md#non-functional-requirements" }],
+  "bindingConstraints": [{ "featureId": "FR1", "anchor": "docs/specs/workspace-invitations/prd.md#non-functional-requirements" }],
   "stories": [
     { "id": "S01", "name": "Send an invitation", "dependsOn": [],
       "status": "pending", "fis": "s01-send-an-invitation.md", "completedTaskIds": [],
       "scope": "An owner creates a pending Invitation for an email address and the invitee receives one email carrying a single-use link.",
-      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr-1-send-an-invitation"] },
+      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr1-send-an-invitation"] },
     { "id": "S02", "name": "Accept an invitation", "dependsOn": ["S01"],
       "status": "pending", "fis": "s02-accept-an-invitation.md", "completedTaskIds": [],
       "scope": "A valid token turns its invitee into a Member and is consumed; expired or unknown tokens are refused.",
-      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr-2-accept-an-invitation"] },
+      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr2-accept-an-invitation"] },
     { "id": "S03", "name": "Revoke pending invitations", "dependsOn": ["S02"],
       "status": "pending", "fis": "s03-revoke-pending-invitations.md", "completedTaskIds": [],
       "scope": "An owner lists pending invitations and revokes one; a revoked token fails on accept.",
-      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr-3-revoke-and-list-pending-invitations"],
+      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr3-revoke-and-list-pending-invitations"],
       "sequencing": "Revocation is only observable once accept exists to refuse it." }
   ]
 }
@@ -748,7 +748,7 @@ git switch -c feat/S02-accept-an-invitation 1.2
 /andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md
 ```
 
-S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr-2 says | Stale targets: prd.md#fr-2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied.
+S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied.
 
 S03 `dependsOn` S02, so it starts only after S02 merged. S02 found one constraint for it, that the revoke endpoint must invalidate the queued email too. Before its commit, S02's run appended it under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` and named that FIS in its report, so you read the constraint before S03's session and it reached `1.2` with S02's PR.
 

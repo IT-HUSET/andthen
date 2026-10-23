@@ -1,13 +1,15 @@
 # PRD: Session Hardening
 
+> **Shipped**: 2026-08-29T09:40Z
+
 ## Executive Summary
 
 Sign-in issues session cookies without the flags a browser needs to keep them out of script and off plaintext transports. This PRD covers the cookie policy and the audit trail that proves a sign-in happened.
 
 ### Capabilities at Glance
 
-- **Hardened session cookie** – one policy, applied wherever a session is issued.
-- **Sign-in audit trail** – one immutable row per attempt, success or failure.
+- **FR1: Hardened Session Cookie** _(Must / P0)_ – one policy, applied wherever a session is issued.
+- **FR2: Sign-In Audit Trail** _(Must / P0)_ – one immutable row per attempt, success or failure.
 
 ## Scope
 
@@ -23,10 +25,40 @@ Sign-in issues session cookies without the flags a browser needs to keep them ou
 
 ## Functional Requirements
 
-| As a | I want | So that |
-|---|---|---|
-| Signed-in user | my session cookie to be unreadable by page scripts | a script injection cannot lift my session |
-| Security reviewer | every sign-in attempt recorded | I can reconstruct an incident |
+### User Stories
+
+| ID | Story | Acceptance Criteria | Priority |
+|---|---|---|---|
+| US01 | As a signed-in user, I want my session cookie unreadable by page scripts, so that a script injection cannot lift my session | No sign-in response sets a cookie a script can read | Must / P0 |
+| US02 | As a security reviewer, I want every sign-in attempt recorded, so that I can reconstruct an incident | Every attempt leaves one audit row | Must / P0 |
+
+### Feature Specifications
+
+#### FR1: Hardened Session Cookie
+**Description**: Every response that issues a session sets the `sid` cookie through one policy.
+
+**Acceptance Criteria**:
+- [ ] When the sign-in or refresh endpoint issues a session, the auth service shall set `sid` with `HttpOnly`, `Secure`, `SameSite=Lax`, and `Path=/`.
+- [ ] If a request carries a `sid` cookie without those flags, then the auth service shall replace it on the next sign-in, never rewrite it in place.
+
+**Inputs / Outputs**:
+- **Inputs**: a validated credential pair or refresh token
+- **Outputs**: the `Set-Cookie` header
+
+**Priority**: Must / P0
+
+#### FR2: Sign-In Audit Trail
+**Description**: Every sign-in attempt leaves one immutable audit row.
+
+**Acceptance Criteria**:
+- [ ] When a sign-in attempt completes, the auth service shall write one audit row naming the user, the outcome, and the timestamp before the response is written.
+- [ ] If the audit store is unavailable, then the auth service shall buffer the row in a bounded queue and complete the sign-in.
+
+**Inputs / Outputs**:
+- **Inputs**: the attempt's user, outcome, and time
+- **Outputs**: an audit row
+
+**Priority**: Must / P0
 
 ## Non-Functional Requirements
 

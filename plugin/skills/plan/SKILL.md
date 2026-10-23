@@ -19,6 +19,8 @@ Write the FIS an unattended executor runs without asking: one story, or a `plan.
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
 - An out-of-scope observation is `NOTICED BUT NOT TOUCHING:`.
+- A story's `sourceRefs` cite each `#### FRn:` Feature Specification of a PRD it covers as its own entry at that heading's GitHub anchor (`#### FR2: Requirements tab` → `docs/specs/x/prd.md#fr2-requirements-tab`), because the `andthen:ship` skill traces each outcome's FR IDs through them.
+  Other spans keep their own anchors, and a tracker item the PRD came from stays a URL entry beside them.
 - `Product`, `Decisions`, `Wireframes`, `Mockups`, `Design System`, `Issue Tracker` and `Specs & Plans` are Project Document Index entries.
 - Every dispatch is a fresh subagent: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
 
@@ -73,7 +75,7 @@ Run `preflight.md` over the FIS even when nothing is open. Each answer, Step 4's
 
 ### 9. Record the story _(skip under `--batch`)_
 
-Write the story's row: `fis` the FIS basename, `status` `pending`. Standalone, write the one-story `plan.json` beside the FIS, two-space JSON in schema order, every path repo-root-relative POSIX, ending in one trailing newline: `schemaVersion` `"2"`; `prd` the input PRD's path or `null`; `overview.summary` the feature's one line; one story `S01` with `name` and `scope` from the feature, `dependsOn` `[]`, `completedTaskIds` `[]`, and `sourceRefs` every written source read (a tracker item as its URL, empty for a description). Check the candidate against `plan.schema.json` before writing it.
+Write the story's row: `fis` the FIS basename, `status` `pending`. Standalone, write the one-story `plan.json` beside the FIS, two-space JSON in schema order, every path repo-root-relative POSIX, ending in one trailing newline: `schemaVersion` `"2"`; `prd` the input PRD's path or `null`; `overview.summary` the feature's one line; one story `S01` with `name` and `scope` from the feature, `dependsOn` `[]`, `completedTaskIds` `[]`, and `sourceRefs` every written source read, cited as Rules say (a tracker item as its URL, empty for a description). Check the candidate against `plan.schema.json` before writing it.
 
 ## Output
 

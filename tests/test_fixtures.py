@@ -18,6 +18,8 @@ RENDERS = REPO / "scripts/fixtures/renders"
 README = RENDERS / "README.md"
 NOTES = RENDERS / "visual-review-notes.md"
 PLAN_SCHEMA = REPO / "plugin/references/plan.schema.json"
+PR_SECTION = REPO / "plugin/skills/ship/references/pr-section.md"
+PR_DESCRIPTION = RENDERS / "pr-description.md"
 
 H2 = re.compile(r"^##\s+(\S.*?)\s*$", re.M)
 KEBAB_ANCHOR = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -79,6 +81,125 @@ class CorpusTest(unittest.TestCase):
         supported = json.loads(PLAN_SCHEMA.read_text(encoding="utf-8"))
         plan = json.loads((RENDERS / "plan.json").read_text(encoding="utf-8"))
         self.assertEqual(plan["schemaVersion"], supported["properties"]["schemaVersion"]["const"])
+
+
+CELL = re.compile(r"(?<!\\)\|")
+SEPARATOR = re.compile(r"^\|(?:\s*-+\s*\|)+$")
+
+
+def tables(lines):
+    """Each run of table lines as rows of stripped cells, separator dropped."""
+    found, current = [], None
+    for line in lines:
+        if not line.startswith("|"):
+            current = None
+            continue
+        if current is None:
+            current = []
+            found.append(current)
+        if not SEPARATOR.match(line.strip()):
+            current.append([cell.strip() for cell in CELL.split(line.strip())[1:-1]])
+    return found
+
+
+def choices(cell):
+    """`{{A / B}}` -> [A, B]."""
+    return [choice.strip() for choice in cell.strip("{}").split(" / ")]
+
+
+def section_spec():
+    """What `ship`'s reference fixes: heading, line labels, table headers,
+    lens rows with their verdicts, and the read-closely tokens."""
+    text = PR_SECTION.read_text(encoding="utf-8")
+    heading = re.search(r"^## .+$", text, re.M).group(0)
+    body = [line for line in text.split(heading, 1)[1].splitlines() if not line.startswith(">")]
+    outcome, lens, reading = tables(body)
+    return {"heading": heading, "labels": re.findall(r"^([A-Z][A-Za-z]+): ", "\n".join(body), re.M),
+            "headers": [outcome[0], lens[0], reading[0]],
+            "lenses": {row[0]: choices(row[1]) for row in lens[1:]},
+            "reasons": choices(reading[1][0])}
+
+
+def section_problems(body):
+    """Every way a pull request body's section departs from the reference."""
+    spec = section_spec()
+    lines = body.splitlines()
+    starts = [i for i, line in enumerate(lines) if line == spec["heading"]]
+    if len(starts) != 1:
+        return [f"{len(starts)} section headings"]
+    rest = lines[starts[0] + 1:]
+    section = rest[:next((i for i, line in enumerate(rest) if line.startswith("## ")), len(rest))]
+    problems = [f"no {label}: line" for label in spec["labels"]
+                if not any(line.startswith(f"{label}: ") for line in section)]
+    found = tables(section)
+    if [table[0][0] for table in found] != [header[0] for header in spec["headers"]]:
+        return problems + [f"tables {[table[0][0] for table in found]}"]
+    headers = [list(header) for header in spec["headers"]]
+    if sum(line.startswith("PRD: ") for line in section) > 1:
+        headers[0].insert(headers[0].index("Requirements") + 1, "PRD")
+    for table, header in zip(found, headers):
+        if table[0] != header:
+            problems.append(f"header {table[0]}")
+        problems += [f"row width {row}" for row in table[1:] if len(row) != len(header)]
+        problems += [f"empty cell {row}" for row in table[1:] if {"", "–", "—"} & set(row)]
+    outcome, lens, reading = found
+    if [row[0] for row in lens[1:]] != list(spec["lenses"]):
+        problems.append(f"lens rows {[row[0] for row in lens[1:]]}")
+    for name, verdict, commit in (row[:3] for row in lens[1:] if len(row) >= 3):
+        if verdict not in spec["lenses"].get(name, []):
+            problems.append(f"{name} verdict {verdict!r}")
+        if (verdict == "not reviewed") != (commit == "-"):
+            problems.append(f"{name} commit {commit!r}")
+    problems += [f"reason {row[0]!r}" for row in reading[1:] if row[0] not in spec["reasons"]]
+    if any(row[1:2] == ["not reviewed"] for row in lens[1:]) and not any(
+            row[0] == "unchecked" for row in reading[1:]):
+        problems.append("a lens is not reviewed and no unchecked row says so")
+    problems += [f"outcome {row[2]!r}" for row in outcome[1:]
+                 if len(row) > 2 and row[0] != "-" and not re.match(r"^(\[OC\d{2}\] |-$)", row[2])]
+    return problems
+
+
+class ShipSectionTest(unittest.TestCase):
+    """A viewer joins a shipped pull request to its PRD, proof, and reviews by
+    the section `ship`'s reference fixes, so the corpus body must carry exactly
+    that shape, and the checker must fire on each departure a writer is likely
+    to make."""
+
+    def setUp(self):
+        self.body = PR_DESCRIPTION.read_text(encoding="utf-8")
+
+    def test_the_fixture_carries_the_section_the_reference_fixes(self):
+        self.assertEqual(section_problems(self.body), [])
+
+    def test_the_section_restates_prose_rather_than_replacing_it(self):
+        prose = self.body.split(section_spec()["heading"])[0]
+        self.assertIn("## Where to read closely", prose)
+
+    def test_a_row_without_a_plan_carries_an_untagged_outcome(self):
+        row = "| S01 | scripts/fixtures/renders/plan.json | [OC01] A page script cannot read the session cookie. |"
+        planless = self.body.replace(row, "| - | - | A page script cannot read the session cookie. |")
+        self.assertNotEqual(planless, self.body)
+        self.assertEqual(section_problems(planless), [])
+
+    def test_each_departure_fires_with_its_problem(self):
+        body = self.body
+        departures = [
+            (body + "\n## Ship summary\n", "2 section headings"),
+            (body.replace("\nUndo: ", "\nRollback: "), "no Undo: line"),
+            (body.replace("\nPRD: ", "\nRequirements file: "), "no PRD: line"),
+            (body.replace("| gap |", "| spec |"), "lens rows"),
+            (body.replace("| unchecked |", "| unreviewed |", 1), "reason 'unreviewed'"),
+            (body.replace("| security | not reviewed | - |", "| security | not reviewed | – |"),
+             "empty cell"),
+            (body.replace("| Reviewed commit |", "| Commit |"), "header"),
+            (body.replace("| [OC01] A page script", "| A page script"), "outcome"),
+            (body.replace("PRD: ", "PRD: docs/other/prd.md\nPRD: ", 1), "header"),
+        ]
+        for departed, problem in departures:
+            with self.subTest(problem):
+                self.assertNotEqual(departed, body, "departure did not apply")
+                self.assertTrue(any(p.startswith(problem) for p in section_problems(departed)),
+                                section_problems(departed))
 
 
 class NotesSampleTest(unittest.TestCase):

@@ -73,8 +73,9 @@ Put what the merge decision needs first and fold per-story detail below it, beca
 - **What stays open**: what the change knowingly leaves open, such as a finding or story the user shipped past.
 - **Pictures**: where a flow, structure, or state change reads faster as a picture, add the smallest view that makes the point.
   Use a Mermaid diagram where the host renders one, an SVG, or a pseudocode or tree block.
+- **Ship summary**: [`pr-section.md`](references/pr-section.md) fixes the section that ends the body, filled from the facts above, because a viewer parses it to join the pull request to its requirements, proof, and reviews.
 
-**Gate**: a title, and a body that states the intent, outcomes, proof, door and blast radius, and where to read closely before any per-story detail.
+**Gate**: a title, and a body that states the intent, outcomes, proof, door and blast radius, and where to read closely before any per-story detail, then ends on the Ship summary.
 
 ### 4. Commit
 
@@ -98,7 +99,7 @@ Put what the merge decision needs first and fold per-story detail below it, beca
   Recommend deleting them unless their build is still to come: the plan is not ready, or the branch changed nothing outside design and spec folders.
   With no remote, ask only about the bundle and those folders, except under `Record: tracker`, where it waits for a publish.
   Offer screenshots or a recording for a visible UI change the request said nothing about.
-- On a yes under `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, and add the closing links from the issues it reports.
+- On a yes under `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, and add the closing links from the issues it reports and the parent issue's URL per `pr-section.md`.
 - A deletion (step 1's "don't keep" answer included), the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead, there is no remote, or the run is `--auto`.
 - On a delete, commit the deletion before the push: `plan.json`, its FIS files, any `intent.md` beside them, and any `superseded/` folder go, and the requirements file its `prd` names stays.
   A `prd.md` that stays gains a `> **Shipped**: <UTC ISO-8601 minute>` header line in the same commit.

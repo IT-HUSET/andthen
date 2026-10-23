@@ -27,6 +27,7 @@ notes go** is what that owner does with them.
 | `event-storm` | `event-storm.json` | `andthen:domain` | the next `andthen:domain` run in `--mode event-storming` |
 | `architecture-model` | `architecture-model.json` | `andthen:describe` | `andthen:domain --mode contexts` or `andthen:architecture --mode review`, or `andthen:describe --model` for model corrections and regeneration |
 | `ubiquitous-language` | `ubiquitous-language.md` | `andthen:domain` | `andthen:domain --mode glossary`, which merges glossary corrections into the document |
+| `pr-description` | `pr-description.md` | `andthen:ship` | conversational input to a fresh `andthen:ship` run on the branch |
 
 `visual-review-notes.md` is the notes payload in the exact shape a viewer copies or sends: the H1 names
 the owner and the artifact path, each `## Section:` block carries one section's heading verbatim, notes
@@ -37,6 +38,13 @@ The two review reports follow the `andthen:review` skill's `references/report-te
 always-present header fields, `review-report-mixed.md` a remediated follow-up review over a code, gap, and security
 chain, carrying `Resolved chain`, `Follows`, `Remediated`, the lens-conditional sections, and the one
 `## Verdict` section a mixed report has.
+
+`pr-description.md` is a pull request body `ship` writes, ending on the `## Ship summary` section in the
+shape `plugin/skills/ship/references/pr-section.md` fixes, which `tests/test_fixtures.py` checks it
+against. `prd.md` carries the template's `#### FRn:` Feature Specifications that section's requirement IDs
+name, and the `> **Shipped**:` line `ship` stamps when it deletes a plan; `plan.json` is a finished plan
+whose bundle stayed, so it carries the `shipped` marker instead. Each is a sample of its own type, not one
+consistent history.
 
 The two model `.json` fixtures are sample documents for a downstream renderer; nothing in this repo
 validates them; their shape contract is the `*.schema.json` shipped beside its prose reference in

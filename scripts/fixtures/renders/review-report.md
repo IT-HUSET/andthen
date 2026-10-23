@@ -22,6 +22,7 @@ Filter summary: 1 validated, 1 downgraded, 0 withdrawn
 | `src/auth/session/cookie.ts` | the helper and both callers | every branch sets `HttpOnly`, `Secure`, `SameSite=Lax` | the sign-in error path, which sets no cookie at all | covered |
 | `src/audit/log/write.ts` | the buffered writer and its retry loop | a transient store failure still lands the write | the store staying down for the whole retry window | finding |
 | `tests/auth/test_session.py` | the two flag assertions | red before the fix, green after | a `Path=/admin` cookie, which still passes | finding |
+| `src/auth/session/refresh.ts` | none, the refresh path is outside story S01 | none | none | not reviewed |
 
 ## Findings
 
@@ -69,6 +70,8 @@ The sign-in error path, a store that stays down for the whole retry window, and 
 
 - `npm test` – 148 passed, 0 failed
 - `npm run lint` – clean
+- `npm run test:e2e` – skipped: the review sandbox has no browser
+- `semgrep --config auto` – unavailable: not installed
 
 ## Verdict
 

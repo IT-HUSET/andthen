@@ -15,6 +15,8 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 *Amended 2026-10-22: a declined push also leaves the bundle undeleted. The deletion, the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead, with no remote, or under `--auto`, which writes `pr` as null. Until then the bundle (a `superseded/` folder included), `prd.md`, `plan.json`, and design folders stay as they were for the next `ship` run.*
 
+*Amended 2026-10-23: the PR body ends on a fixed `## Ship summary` section, a contract a viewer parses: andthen-studio 0.2 joins a shipped PR to its PRD requirements, each outcome's proof, each lens's verdict, and the read-closely items with no agent run. Its shape lives in `ship`'s `references/pr-section.md`, and `scripts/fixtures/renders/pr-description.md` is the sample a viewer pins, so changing a heading, label, table header, or token breaks it. It repeats the prose and never replaces it, and a body without it stays valid. Markdown tables were chosen over a hidden JSON comment, which GitHub hides and which drifts from the prose, and over a flat outcome list, which loses which story delivered what. Requirement IDs are traced through each story's `sourceRefs` to the PRD's `#### FRn:` headings, with no FIS template change, because FIS files already in flight carry no such tag.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:

@@ -24,7 +24,7 @@
       "fis": "s01-foundation.md",
       "completedTaskIds": [],
       "scope": "Establish the shared contract.",
-      "sourceRefs": ["docs/prd.md#foundation"],
+      "sourceRefs": ["docs/prd.md#fr1-foundation"],
       "provenance": null,
       "assetRefs": [],
       "sequencing": null

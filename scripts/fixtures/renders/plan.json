@@ -1,14 +1,14 @@
 {
   "schemaVersion": "2",
-  "prd": "prd.md",
+  "prd": "scripts/fixtures/renders/prd.md",
   "overview": {
     "summary": "Session cookies are hardened and the audit trail records every sign-in."
   },
   "sharedDecisions": [],
   "bindingConstraints": [
     {
-      "featureId": "FR-2",
-      "anchor": "prd.md#non-functional-requirements"
+      "featureId": "FR2",
+      "anchor": "scripts/fixtures/renders/prd.md#non-functional-requirements"
     }
   ],
   "stories": [
@@ -28,7 +28,7 @@
       },
       "scope": "Cookie flags on the sign-in response.",
       "sourceRefs": [
-        "prd.md#security"
+        "scripts/fixtures/renders/prd.md#fr1-hardened-session-cookie"
       ],
       "provenance": null,
       "assetRefs": [],
@@ -40,16 +40,27 @@
       "dependsOn": [
         "S01"
       ],
-      "status": "pending",
+      "status": "done",
       "fis": "s02-record-sign-ins-in-the-audit-trail.md",
-      "completedTaskIds": [],
-      "scope": "One audit row per successful sign-in.",
+      "completedTaskIds": [
+        "TI01",
+        "TI02"
+      ],
+      "verified": {
+        "at": "2026-08-29T08:52Z",
+        "summary": "python3 -m unittest tests.audit.test_signin_log -> exit=0, Ran 3 tests, OK"
+      },
+      "scope": "One audit row per sign-in attempt.",
       "sourceRefs": [
-        "prd.md#observability"
+        "scripts/fixtures/renders/prd.md#fr2-sign-in-audit-trail"
       ],
       "provenance": null,
       "assetRefs": [],
       "sequencing": null
     }
-  ]
+  ],
+  "shipped": {
+    "at": "2026-08-29T09:40Z",
+    "pr": "https://github.com/example/session-hardening/pull/42"
+  }
 }
