@@ -60,15 +60,16 @@ jobs:
   # to load: only `skill list` names the failure. No auth or model call needed.
   copilot-load:
     runs-on: ubuntu-latest
-    env:
-      COPILOT_HOME: ${{ runner.temp }}/copilot-home
-      COPILOT_AUTO_UPDATE: "false"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
       - name: Install the plugin on a pinned Copilot CLI and load every skill
+        # Step-level env: GitHub rejects the `runner` context in job-level env.
+        env:
+          COPILOT_HOME: ${{ runner.temp }}/copilot-home
+          COPILOT_AUTO_UPDATE: "false"
         run: |
           npm install -g @github/copilot@1.0.105
           copilot plugin marketplace add "$GITHUB_WORKSPACE"
