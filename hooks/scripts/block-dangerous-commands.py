@@ -255,8 +255,10 @@ def without_heredoc_bodies(command):
 def check_command(command, patterns, readings=(POSIX,)):
     """Check a command against all blocked patterns. Returns (blocked, message) or (False, None)."""
     for quoted, flags, continuation in readings:
-        # PowerShell has no heredocs; its here-strings are quoted text the patterns skip.
-        text = without_heredoc_bodies(command) if continuation is POSIX[2] else command
+        # PowerShell has no heredocs; its here-strings are quoted text the patterns skip. A Bash
+        # command's PowerShell reading drops heredoc bodies too: there `<<` is a parse error, so
+        # the whole script, body included, never runs.
+        text = without_heredoc_bodies(command) if POSIX in readings else command
         for segment in split_commands(empty_literals(continuation.sub(" ", text), quoted)):
             segment = segment.strip()
             if not segment:

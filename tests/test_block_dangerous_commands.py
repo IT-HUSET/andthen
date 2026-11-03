@@ -41,6 +41,13 @@ def verdict(command, fallback=False, tool="Bash"):
     return run_hook(json.dumps({"tool_name": tool, "tool_input": {"command": command}}), fallback)
 
 
+def load_hook():
+    spec = importlib.util.spec_from_file_location("block_dangerous_commands", SCRIPT)
+    hook = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(hook)
+    return hook
+
+
 # Windows commands reach the hook through Claude Code's PowerShell tool and through Git Bash,
 # which can run cmd.exe and PowerShell commands too, so each must be refused from both.
 WINDOWS_DANGEROUS = (
@@ -215,9 +222,7 @@ class BlocksTest(unittest.TestCase):
     def test_windows_bash_commands_are_also_read_as_powershell(self):
         # Codex names its PowerShell tool Bash on Windows; read only as POSIX, the escaped-looking
         # \" makes one string of everything between the two Write-Host calls.
-        spec = importlib.util.spec_from_file_location("block_dangerous_commands", SCRIPT)
-        hook = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(hook)
+        hook = load_hook()
         command = 'Write-Host "C:\\dir\\"; Remove-Item -Recurse -Force C:\\x; Write-Host " done"'
         check = lambda windows: hook.check_command(
             command, hook.HARDCODED_DEFAULTS, hook.shells("Bash", windows=windows))[0]
@@ -257,9 +262,7 @@ class BlocksTest(unittest.TestCase):
 
     def test_fallback_patterns_hold_when_the_config_is_unreadable(self):
         # load_config() falls back to the script's own list; it must not reopen the holes.
-        spec = importlib.util.spec_from_file_location("block_dangerous_commands", SCRIPT)
-        hook = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(hook)
+        hook = load_hook()
         for command in ("rm -Rf build | cat", "sudo reboot"):
             self.assertTrue(hook.check_command(command, hook.HARDCODED_DEFAULTS)[0], command)
         for prefix in WRAPPER_PREFIXES:
@@ -270,6 +273,16 @@ class BlocksTest(unittest.TestCase):
                 search = f"{prefix} rg -n {quote}reboot{quote} docs"
                 self.assertFalse(hook.check_command(search, hook.HARDCODED_DEFAULTS)[0], search)
         self.assertFalse(hook.check_command("ls | grep nc", hook.HARDCODED_DEFAULTS)[0])
+
+
+HEREDOC_DATA = (
+    "cat > t.py <<'EOF'\n('rm -rf blocked', r'Recursive force delete'),\nEOF",
+    "cat > t.py <<'EOF'\nPAT = r'\\b(curl |jq |shellcheck|ruby|node )'\nEOF",
+    "python3 - <<'EOF'\nimport os; os.system('rm -rf x')\nEOF",
+    "git commit -m \"$(cat <<'EOF'\nBlock rm -rf and nc\nEOF\n)\"",
+    "cat <<-EOF\n\trm -rf build\n\tEOF", 'cat <<"EOF"\nnc -l 1\nEOF',
+    "cat <<'A' <<'B'\nrm -rf x\nA\nnc -l 1\nB",
+)
 
 
 class AllowsTest(unittest.TestCase):
@@ -338,14 +351,25 @@ class AllowsTest(unittest.TestCase):
 
     def test_heredoc_bodies_are_data(self):
         # Script text written through a heredoc names blocked commands without running them.
-        for command in ("cat > t.py <<'EOF'\n('rm -rf blocked', r'Recursive force delete'),\nEOF",
-                        "cat > t.py <<'EOF'\nPAT = r'\\b(curl |jq |shellcheck|ruby|node )'\nEOF",
-                        "python3 - <<'EOF'\nimport os; os.system('rm -rf x')\nEOF",
-                        "git commit -m \"$(cat <<'EOF'\nBlock rm -rf and nc\nEOF\n)\"",
-                        "cat <<-EOF\n\trm -rf build\n\tEOF", 'cat <<"EOF"\nnc -l 1\nEOF',
-                        "cat <<'A' <<'B'\nrm -rf x\nA\nnc -l 1\nB"):
+        # In-process with the POSIX reading, because the hook reads a Bash command on Windows as
+        # PowerShell too, and that reading keeps heredoc bodies (see the next test).
+        hook = load_hook()
+        config = json.loads((SCRIPT.parent.parent / "configs/blocked-commands.json").read_text(encoding="utf-8"))
+        pattern_sets = (hook.HARDCODED_DEFAULTS, [(p["regex"], p["message"]) for p in config["patterns"]])
+        for command in HEREDOC_DATA:
+            for patterns in pattern_sets:
+                with self.subTest(command=command):
+                    blocked = hook.check_command(command, patterns, hook.shells("Bash", windows=False))[0]
+                    self.assertFalse(blocked, command)
+
+    def test_windows_keeps_heredoc_bodies_in_its_powershell_reading(self):
+        # PowerShell has no heredocs and quotes differently, so dropping a "body" under its reading
+        # could hide commands a PowerShell run would execute: on Windows the body still blocks.
+        hook = load_hook()
+        for command in HEREDOC_DATA:
             with self.subTest(command=command):
-                self.assertAllowed(command)
+                blocked = hook.check_command(command, hook.HARDCODED_DEFAULTS, hook.shells("Bash", windows=True))[0]
+                self.assertTrue(blocked, command)
 
     def test_flags_after_the_script_belong_to_the_script(self):
         for command in ("python3 -m pytest -c 'pytest.ini'", "python3 script.py -c 'x'",
