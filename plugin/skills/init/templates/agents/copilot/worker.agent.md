@@ -2,7 +2,7 @@
 name: worker
 description: Small-task tier – one small, well-specified, verifiable subtask (retrieval, scans, mechanical edits, doc lookups, fact lookups against a pinned question, small clear-spec fixes or implementation work). Use only when exact scope, output contract, and done-criterion come from the orchestrator. Research that weighs or synthesises is implementer work.
 model: [claude-haiku-5.5, gpt-6-luna]
-reasoningEffort: high
+reasoning-effort: high
 include-custom-instructions: true
 ---
 

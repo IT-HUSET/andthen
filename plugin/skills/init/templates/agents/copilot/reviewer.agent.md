@@ -2,7 +2,7 @@
 name: reviewer
 description: Review tier – any review, of any target, returning findings and a verdict. Read-only unless the prompt carries a fix contract; otherwise fixing is implementer or worker work.
 model: [claude-opus-5.5, gpt-6.1-sol]
-reasoningEffort: medium
+reasoning-effort: medium
 include-custom-instructions: true
 ---
 
