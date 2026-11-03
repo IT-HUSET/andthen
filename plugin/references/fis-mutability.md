@@ -24,6 +24,16 @@ A design-change amendment carries a real pivot from FIS Intent or scenario text.
 
 A scenario-only amendment changes title and Given/When/Then only. Its tags and its Proof path, selector, and state stay unchanged.
 
+## Proof assertions
+
+A test a FIS `Proof` runs that exists before the change starts is its scenario's executable form, so its assertions follow the scenario's text, never the code. Agents rewrite a test they cannot pass, so they change only when:
+
+- the scenario changes by amendment;
+- an outranking reading the executing skill admits – a `sharedDecision`, or a Discovered Requirement appended before the change started – is recorded as a `spec-stale` `#### DRIFT` line naming the test;
+- an assertion contradicts the scenario's title or Given/When/Then. Correct it to the text, never past it, and record it under `## Implementation Observations`, quoting the clause.
+
+That the code disagrees is never the reason. Setup and harness change freely. A Drift Note never excuses an assertion moved toward the code: review judges the reading it cites.
+
 ## Drift Notes
 
 Drift Notes record deliberate code↔FIS divergence. A run that pivots, or that leaves a named upstream doc contradicted, appends a `#### DRIFT` subsection to `## Implementation Observations`, one line per item:

@@ -168,7 +168,7 @@ Writes the Feature Implementation Specification (FIS): the blueprint a fresh ses
 
 - **You get**: for one story, a FIS plus a one-story `plan.json` beside it. For several, `plan.json` plus one FIS per story and a cross-story review. Output lands beside a PRD, intent doc, or plan story, else under `docs/specs/<feature>/`. No code changes. Each story's `sourceRefs` link the PRD's `#### FRn:` sections it covers, so the PR `ship` opens can name each outcome's FR IDs.
 - **Options**: `--auto` writes each open question as an `ASSUMPTION:` instead of asking.
-- **Good to know**: `plan` asks about missing requirements first, then runs a self-review, then a final round of open questions, each with a recommendation, and closes by listing every open item with what settled it. A FIS too big for one run is flagged `OVERSIZE:` and you choose to split it or keep it as one. `plan` always authors from the source: it has no revise mode, so to revise a spec or re-plan after the source changed, see [the cookbook recipe](../COOKBOOK.md#revising-a-spec-or-re-planning). It closes on the `exec-plan` command for the first story's FIS in a fresh session, or stops early on `clarify` for a source too thin to spec, or on `ui-ux-design` when you choose to design new screens first.
+- **Good to know**: `plan` asks about missing requirements first, then runs a self-review, then a final round of open questions, each with a recommendation, and closes by listing every open item with what settled it. A FIS too big for one run is flagged `OVERSIZE:` and you choose to split it or keep it as one. Acceptance scenarios use your domain's terms and name an API, CLI flag, file format, or UI control only where something outside the change depends on it, so a better implementation does not break them. `plan` always authors from the source: it has no revise mode, so to revise a spec or re-plan after the source changed, see [the cookbook recipe](../COOKBOOK.md#revising-a-spec-or-re-planning). It closes on the `exec-plan` command for the first story's FIS in a fresh session, or stops early on `clarify` for a source too thin to spec, or on `ui-ux-design` when you choose to design new screens first.
 
 ```bash
 /andthen:plan "users can export their data"
@@ -325,7 +325,7 @@ Test strategy, coverage, and test authoring. With no mode it writes tests for th
   - `prove-it` is the bugfix flow: a failing test reproduces the defect before any production change.
 - **Good to know**:
   - Test-first applies wherever your `Testing Strategy` document or your request requires it, and each test is shown failing for the missing behavior before the code that passes it. `exec-plan` stories follow it too, and a plan run's stories take it only from the `Testing Strategy` document.
-  - A test is never deleted, disabled, or weakened to make a build green.
+  - A test is never deleted, disabled, or weakened to make a build green. A test a FIS scenario's proof already ran changes what it asserts only to match the scenario's text, never the code, and `review` flags one moved toward the code.
 
 ```bash
 /andthen:testing --mode strategy                      # write docs/TESTING-STRATEGY.md

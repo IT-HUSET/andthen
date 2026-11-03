@@ -35,7 +35,7 @@ Read and follow:
   - **Tautological assertion** – the expected value comes from the code under test: its output, its logic re-derived, or a stub's canned value asserted back. Take it from the requirement or a hand-worked example; a characterization test (`prove-it-pattern.md`) pins current output on purpose and goes once the fix lands.
   - **Vacuous assertion** – it never runs (an un-awaited async test, a callback never called, a loop over an empty collection, a swallowed assertion error) or checks nothing a bug would change (a not-null where any value passes, an absence check on a fixture without the value).
   - **Success-only double** – a mock or fake that only succeeds, so the caller's error paths never run. Give it the real dependency's failure modes – errors, timeouts, empty or partial results, constraint violations – or use the real dependency.
-- **Anti-Cheat Invariant.** Tests guard against agent-introduced regressions only while they keep telling the truth. Never delete a test except with the whole surface it covers, disable it (`.skip`, `xit`, `@Disabled`, equivalents), or pass by weakening assertions. A flaky test is reported, never skipped on your own call: quarantine happens only on a person's decision, per the `Testing Strategy` document. A wrong test is rewritten; a test whose subject was intentionally removed is replaced with a test for the new behavior.
+- **Anti-Cheat Invariant.** Tests guard against agent-introduced regressions only while they keep telling the truth. Never delete a test except with the whole surface it covers, disable it (`.skip`, `xit`, `@Disabled`, equivalents), or pass by weakening assertions. A flaky test is reported, never skipped on your own call: quarantine happens only on a person's decision, per the `Testing Strategy` document. A wrong test is rewritten – wrong against its requirement, never because the code disagrees – and a test whose subject was intentionally removed is replaced with a test for the new behavior. A test a FIS `Proof` runs changes its assertions only to match its scenario's text, quoting the clause, or to follow a scenario amendment or a decision that outranks the text, recorded as a `spec-stale` DRIFT line naming the test.
 
 ## Workflow
 
@@ -70,7 +70,8 @@ Read and follow:
 4. **Prove.** Reuse the project's framework; a new test tool must run in CI without extra ceremony. The run-one-test row of `Key Dev Commands` is the invocation a scenario `Proof` binds to. Gate: every test went red with its behavior removed, then green with it restored.
 
    **FIS scenario → test mapping:**
-   - Reuse a bound `**Proof**:` only when its target resolves and runs; its annotated state then overrides the mode's initial state.
+   - Reuse a bound `**Proof**:` only when its target resolves and runs; its annotated state then overrides the mode's initial state. Its name stays, because its selector is the binding.
+   - Name a test written for a scenario for its behavior, in the scenario's words, never its `S<NN>` id alone: the FIS bundle may be deleted at ship, and the test is the record of intent that stays.
    - A report, screenshot, or other documented artifact may support an unbound scenario, but is never a Proof binding.
    - Where nothing executable can observe the outcome, the FIS declares that with an `inspect: path:LINE` Proof rather than dressing an artifact as a test.
    - A purely visual case names that supporting artifact and routes to the `andthen:visual-validation` skill.

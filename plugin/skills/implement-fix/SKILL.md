@@ -77,7 +77,7 @@ Acknowledge an observational finding, where the reviewer confirmed something pas
 
 ### Phase 3: Plan Minimal Remediation
 
-- Before editing, map each Fix to its intended behavior, target artifacts, and regression proof. Record nearby Notes as prohibited effects, and read [`fis-mutability.md`](../../references/fis-mutability.md) before editing a governing FIS.
+- Before editing, map each Fix to its intended behavior, target artifacts, and regression proof. Record nearby Notes as prohibited effects, and read [`fis-mutability.md`](../../references/fis-mutability.md) before editing a governing FIS or a test its `Proof` runs.
 - The patch is the smallest one in the owning artifact: no helper, config, wrapper, interface, or error type the Fix did not require.
 - A Fix that turns out to encode an unresolved decision goes back to Phase 2's `decision needed` rule.
 - **Empty fixable set** – a report with nothing routed Fix, or a request whose findings Phase 2 all demoted. Run only Phase 4's re-check and escalation (steps 5 and 6), then only the Phase 5 steps the surfaced findings justify. The output says nothing was fixed and lists the findings for the user's decision, or with the disposition each took when unattended.

@@ -12,7 +12,7 @@ An implementer's attestation that a proof passes is the claim under test, not ev
 - **Composition Root** – the real top-level wiring, not a test-constructed object, supplies each new dependency.
 - **Real Boundary** – database, filesystem, network, clock, and browser behavior is proved across the boundary that owns it, since a mock of the boundary proves the mock.
 - **Failure Atomicity** – collision, retry, rollback, and partial-failure paths leave durable state intact, and a failure the user or operator cannot see is a finding.
-- **Falsifiability** – removing the protected behavior makes its owning test fail. Its expected value comes from the requirement, not the code under test; an absence or privacy test's fixture holds the forbidden value; a double reproduces the failure modes its caller handles.
+- **Falsifiability** – removing the protected behavior makes its owning test fail. Its expected value comes from the requirement, not the code under test; an absence or privacy test's fixture holds the forbidden value; a double reproduces the failure modes its caller handles. A test a FIS `Proof` runs that exists before the change keeps its assertions unless they contradicted the scenario's title or Given/When/Then, or a scenario amendment or an outranking reading changed them – a `sharedDecision` or a Discovered Requirement predating the change, recorded as a `spec-stale` DRIFT line naming the test. An assertion moved toward the code rather than the scenario's text is a `code-defect` routed `Fix`, whatever line records it; a correct but unrecorded correction routes `Note`.
 
 
 ## Review Dimensions
