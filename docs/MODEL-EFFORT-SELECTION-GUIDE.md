@@ -9,7 +9,7 @@ How AndThen steers model and reasoning depth across Claude Code, Codex CLI, and 
 A subagent's model and effort are set per spawn call – the model where the host's spawn tool offers one, the effort on Codex – or pinned once by an agent definition loaded at session start. AndThen therefore ships its delegation policy in two parts:
 
 - **The Subagent Model Policy** (in the CRITICAL-RULES guideline `init` places in project or user rules) routes by task, on two questions: how pinned is the scope, and how much judgment does it take. Judgment work – orchestration, planning, spec authoring, architecture, design, ambiguous or creative work – stays in the **session**, whose model the user chose for exactly that; nothing routes above it.
-- **Four opt-in role agents**, installed by `andthen:init` at user or project level in both host formats (`.md` for Claude Code, `.toml` for Codex). Each definition pins the model and effort currently recommended for the tier the policy routes to it. A tier is a capability class, not a fixed model, so two roles can share one:
+- **Four opt-in role agents**, installed by `andthen:init` at user or project level in each host's format (`.md` for Claude Code, `.toml` for Codex, `.agent.md` for Copilot). Each definition pins the model and effort currently recommended for the tier the policy routes to it. A tier is a capability class, not a fixed model, so two roles can share one:
 
 - **`oracle`** – S-tier model. Judgment work the user assigns it, and hard problems an agent hands over because they exceed its tier – the hand-over states what was tried, what every attempt assumed, and what stays unexplained. Never self-selected for routine judgment, never an agent's consult – a second opinion on a decision is the user's to ask for.
 - **`implementer`** – A-tier model. One fully specified unit: executing a story or spec, authoring a plan story's FIS, research that weighs or synthesises.
@@ -33,7 +33,7 @@ Effort is a **behavioral signal, not a hard token cap** – even at `low`, the m
 | **low** | Minimal thinking, max speed. | Retrieval, doc-lookup, scanning, formatting, trivial edits, high-volume parallel leaves |
 | **medium** | Balanced – thinks when useful. The default. | Routine coding, tests, docs, reviews |
 | **high** | Almost always thinks deeply. | Story and spec execution, subtle debugging |
-| **xhigh / max** | No constraints on depth. (`max` is Anthropic-only; Codex tops out at `xhigh`.) | The session's own judgment work: planning, architecture, design, trade-offs/ADRs, the hardest one-off decisions |
+| **xhigh / max** | No constraints on depth. (Which levels above `high` a model accepts varies by provider and model, so check before pinning one.) | The session's own judgment work: planning, architecture, design, trade-offs/ADRs, the hardest one-off decisions |
 
 ---
 
@@ -48,6 +48,10 @@ The session model is the user's choice (`/model`, `claude --model`, the alias sy
 ### Codex CLI
 
 The session/profile (`codex --profile X`, `-m`) is the user's model choice; `model_reasoning_effort` sets depth. Role definitions are `.toml` files under the Codex agents directory; Codex has no `inherit` sentinel, so omitting `model` *is* the inherit signal – the shape the generic fallback relies on.
+
+### Copilot CLI
+
+The session model is the user's choice (`/model`, `copilot --model`, `--reasoning-effort`). Role definitions are `.agent.md` files with `model:` and `reasoning-effort:` frontmatter (kebab-case; `reasoningEffort` is silently ignored). A `model:` list loads as the first model plus fallbacks. An effort the model does not support draws a warning and keeps the session's effort rather than failing.
 
 ---
 
