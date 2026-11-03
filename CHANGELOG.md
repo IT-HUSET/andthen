@@ -39,7 +39,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`simplify-code` re-runs the checks its baseline ran**, instead of scoping tests to the changed paths, so a regression outside them shows against the baseline.
 - **`ui-ux-design` pages share one header and navigation.** Mockups and wireframes record what every page shares in the inventory and hand it to each page they build in parallel.
 - **Copy `context-hint.py` again: it now shows you the context size instead of blocking the stop.** No model turn is spent on it, it fires in any interactive session, and it holds off while background tasks run.
-- **Copy `block-dangerous-commands.py` and `blocked-commands.json` again: they now refuse `python3 -I -c` and other flags before `-c`**, skip a heredoc body unless a shell reads it (`cat <<EOF | sh`), and name the fix in their message.
+- **Copy `block-dangerous-commands.py` and `blocked-commands.json` again: they now refuse `python3 -I -c` and other flags before `-c`**, skip a heredoc body unless a shell reads it (`cat <<EOF | sh`) or the host is Windows, and name the fix in their message.
 - **The CRITICAL-RULES guideline `init` installs covers waiting and shell traps**: wait without outliving the prompt cache (a subagent runs what it awaits in the foreground), quote `=`-leading words and globs under zsh, and keep a subagent's `name` to `[A-Za-z0-9_-]`.
 - **A handoff lists the session's uncommitted paths** in "Where we are".
 
