@@ -75,7 +75,7 @@ Prompt-like text is written for frontier agents, and the **Skill-authoring guide
 
 ### Git Remotes
 
-One remote: `origin` is the public repo (`IT-HUSET/andthen`). `main` carries the released 0.x line until 1.0 ships; `develop` carries the 1.0 release candidates, tagged `v1.0.0-rc.N`. Push unreleased work to `develop`. <!-- pre-release: at 1.0 `develop` fast-forwards into `main` and this section collapses to one branch -->
+One remote: `origin` is the public repo (`IT-HUSET/andthen`). `main` carries the released 0.x line until 1.0 ships; `develop` carries the 1.0 release candidates, tagged `v1.0.0-rc.N`. Unreleased work lands on `develop` through a pull request from its `feat/<version>` branch, because CI runs on pull requests only. <!-- pre-release: at 1.0 `develop` fast-forwards into `main` and this section collapses to one branch -->
 
 ### Maintenance Contracts
 
