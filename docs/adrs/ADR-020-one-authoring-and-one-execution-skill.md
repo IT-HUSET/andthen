@@ -66,6 +66,7 @@ After 1.0 any merge is a breaking rename.
 - The body is about 370 words: flags, the shared rules and the dispatch.
 - A FIS loads `references/story.md`, today's `exec-spec` steps.
 - A plan directory, or a `plan.json` path, loads `references/plan-run.md`, today's `exec-plan` steps. Add `references/story-worktrees.md` under `--worktree`.
+  *Amended 2026-10-19: a direct story run and a plan run also load `references/between-stories.md`, the discovery triage and simplification between two stories, which `plan-run.md` and the body held.*
 - A plan run spawns one fresh subagent per ready story, invoking the `andthen:exec-spec` skill on that story's FIS with `--no-full-tier`. ADR-014's "never another executor" now applies to FIS runs.
 
 **Result:** 21 skills become 19. The pipeline reads `clarify` → `spec` → `exec-spec` → `review`.
@@ -124,6 +125,7 @@ The floor option leads on the weighted total, 400 to 380, because this decision 
 ## Settled open points
 
 - `--tdd` passes through on a plan run. Before the merge `exec-plan` dropped it, and no reason was recorded.
+  *Amended 2026-10-20: `--tdd` is retired; see Still Current "Test-first is a project convention, not a flag".*
 - `--worktree` on a FIS is ignored and reported, per Still Current "No edge-case knobs, no strictness blocks".
 - An unattended `OVERSIZE:` from a written source proceeds as one story. DartClaw's `spec-and-implement` depends on that.
 - Eval case directories keep their names.

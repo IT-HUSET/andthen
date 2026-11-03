@@ -1,11 +1,12 @@
 ---
-description: Ship the current branch – land the plan's FIS Implementation Observations worth keeping and delete its bundle, commit, then push and open the pull request on one ask. Trigger on 'ship it', 'open the PR', 'close out the plan'.
+description: Ship the current branch – land the plan's FIS Implementation Observations worth keeping, delete or keep its bundle and design folders, commit, then push and open the pull request on one ask. Trigger on 'ship it', 'open the PR', 'close out the plan'.
 argument-hint: "[--auto] [plan.json path] [notes for the pull request]"
 ---
 
 # Ship
 
-Close out the current branch and open its pull or merge request. A branch carrying a plan bundle – `plan.json` and the FIS files beside it – first lands what its FIS files learned, then deletes the bundle, because a plan's specs govern one branch and never merge.
+Close out the current branch and open its pull or merge request.
+A branch carrying a plan bundle – `plan.json` and the FIS files beside it – first lands what its FIS files learned, then deletes the bundle unless the user keeps it, because a plan's specs govern one branch and go stale once it merges.
 
 ## Input
 
@@ -14,32 +15,111 @@ Close out the current branch and open its pull or merge request. A branch carryi
 - `--auto` makes the run unattended: read [`unattended-runs.md`](../../references/unattended-runs.md) and follow it.
 - A branch with a plan bundle: read [`plan-schema.md`](../../references/plan-schema.md), whose § Shipping says when the plan is ready.
 
-`Learnings`, `Decisions`, `Issue Tracker`, and `Visual Validation` are **Project Document Index** entries.
+`Learnings`, `Decisions`, `Issue Tracker`, `Visual Validation`, `Wireframes`, and `Mockups` are **Project Document Index** entries.
 
 ## Rules
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
-- **Publishing waits for a yes.** Commits and the bundle's deletion run unasked, because the branch history keeps both. A push and a pull request leave the machine, so they wait for the user's yes.
-- **Commit only the branch's own work.** Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged. A change you cannot tie to the branch stays uncommitted, because it may be another session's work in progress.
+- **Publishing waits for a yes.**
+  Commits run unasked, because the branch history keeps them.
+  A push and a pull request leave the machine, so they wait for the user's yes.
+- **Commit only the branch's own work.**
+  Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged.
+  A change you cannot tie to the branch stays uncommitted, because it may be another session's work in progress.
 
 ## Workflow
 
-1. **Check for open work.** Open work is what keeps a plan from being ready under § Shipping, and on any branch a CRITICAL or HIGH finding the latest review of its work leaves open. Name it and ask once whether to ship anyway, recommendation first. While the plan is not ready, recommend keeping the bundle, skipping step 2 and the deletion, because its remaining stories and reviews still read it. **Gate**: nothing open, or the user's answer.
+### 1. Check for open work
 
-2. **Land the observations** (plan bundle only), because nobody reads a FIS once step 4 deletes it. Read every FIS's `## Implementation Observations`, and write each trap as one `Learnings` bullet under its fitting topic, admitted against its header note. Recommend the rest worth keeping in the output, because decisions and upstream documents stay the user's. A design change no ADR or `Decisions` entry records yet becomes a recommended `Decisions` line, or a run of the `andthen:decide` skill where alternatives are still open. **Gate**: every observation written, recommended, or judged not worth keeping.
+Open work is what keeps a plan from being ready under § Shipping, and on any branch a CRITICAL or HIGH finding the latest review of its work leaves open.
+Name it and ask once whether to ship anyway, recommendation first.
+While the plan is not ready, the same question asks whether to keep the bundle, recommending keeping it, because its remaining stories and reviews still read it.
 
-3. **Write the pull request** for a reviewer deciding whether to merge: what the change is for, the outcomes it delivers, the proof of each, and whether it is a one-way or two-way door with its blast radius, linking the ADR that settled a one-way door. It is where they outlive the branch, because the bundle is deleted and the review report is usually never committed. Take the intent and outcomes from each FIS's Intent and Expected Outcomes and from the plan's source: the file its `prd` names, else what its stories' `sourceRefs` cite. Without a plan, take them from the commits and the request. Link a cited tracker item so the merge closes it, unless step 1 kept the bundle, because its work is then unfinished. Take the proof from each story's `verified.summary` in `plan.json` and from the latest review's verdict. Name what the change knowingly leaves open, such as a finding or story the user shipped past. A project's pull request template or named PR process sets the layout, and this content fills it. Put what the merge decision needs first and fold per-story detail below it, because a body the reviewer must scroll goes unread. Where a flow, structure, or state change reads faster as a picture, add the smallest view that makes the point: a Mermaid diagram where the host renders one, an SVG, or a pseudocode or tree block. **Gate**: a title, and a body that states the intent, the outcomes, their proof, and the door and blast radius before any per-story detail.
+**Gate**: nothing open, or the user's answer.
 
-4. **Commit.** Outside `--auto`, when the current branch is the remote's default branch, ask once whether to start a feature branch first, because commits land on the current branch and the pull request opens from it. Recommend starting it the way the project's written convention for starting work says, else as `<type>/<slug>`. Commit the fixes left in the working tree. With a plan bundle, commit the landed entries and the bundle's deletion too: `plan.json` and its FIS files go, and the requirements file its `prd` names stays. Under `Record: tracker` in the `Issue Tracker` document, that file goes too, and the deletion waits for step 5, because the issue bodies are written from the bundle. A bundle file git does not track has no copy in history and never reaches the merge, so leave it in place. Repoint each committed link into a file this run deletes at what survives it, such as the requirements file, its issue, or an ADR, because a dead link fails silently. A branch commit is no such target, because a squash merge leaves it out of the base branch. **Gate**: the branch's own work committed, no tracked bundle file left unless step 1 kept the bundle or its deletion waits for step 5, and no committed link into a file this run deletes.
+### 2. Land the observations
 
-5. **Publish.** Show the base branch, the commits leaving, the title, and the body, marking each commit made after the latest review report's `**Revision**`, other than this run's own. Ask once whether to push and open it, offering screenshots or a recording for a visible UI change the request said nothing about, and end the turn on the question. Under `Record: tracker` with a plan bundle, invoke the `andthen:tracker` skill with `publish <plan.json> --dry-run` before asking, and the same question covers its preview and a closing link in the body for each issue the merge finishes, because the merge closes them into the record. While step 1 kept the bundle, those are only the open issues of stories `done` or `skipped`, so the parent and the unfinished stories stay open for a later ship. On a yes, invoke it with `publish <plan.json>`, and add those links from the issues it reports. Before a push, commit the deletion step 4 held back, keeping the requirements file when nothing was published, because it is then the only copy. With no push, the bundle stays for the next run. Before the push, capture the screenshots or recording the request asked for or the answer took up, per the `Visual Validation` document. Attach each image through an upload the host accepts, else list it for the user to attach. Under `--auto`, stop before anything leaves the machine. **Gate**: no push before the deletion step 4 held back is committed, and the pull request's URL, or its title, body, and the commands still to run to open it.
+Only with a plan bundle step 1 did not keep.
+Read every FIS's `## Implementation Observations`, those in `superseded/` included.
+- Write each trap as one `Learnings` bullet under its fitting topic, admitted against its header note.
+- Recommend the rest worth keeping in the output, because decisions and upstream documents stay the user's.
+- A design change no ADR or `Decisions` entry records yet becomes a recommended `Decisions` line, or a run of the `andthen:decide` skill where alternatives are still open.
+
+**Gate**: every observation written, recommended, or judged not worth keeping.
+
+### 3. Write the pull request
+
+Write it for a reviewer deciding whether to merge.
+The body is where the intent and proof outlive the branch, because the bundle is usually deleted and the review report usually never committed.
+A project's pull request template or named PR process sets the layout, and this content fills it.
+Put what the merge decision needs first and fold per-story detail below it, because a body the reviewer must scroll goes unread.
+- **Intent and outcomes.**
+  Take them from each FIS's Intent and Expected Outcomes and from the plan's source: the file its `prd` names, else what its stories' `sourceRefs` cite.
+  Without a plan, take them from the commits and the request.
+  Link a cited tracker item so the merge closes it, unless the plan is not ready, because its work is then unfinished.
+- **Proof** of each outcome, from each story's `verified.summary` in `plan.json` and the latest review report's verdict.
+- **Door and blast radius.**
+  Say whether the change is a one-way or two-way door and what its blast radius is, linking the ADR that settled a one-way door.
+  Where reverting the merge would not undo the change, say what does and what no revert restores.
+- **Where to read closely**, because no check covers it or a mistake there costs most:
+  - the files where an error does the most harm;
+  - each choice no check can judge, such as a pattern others will copy or a call on scope;
+  - each check, lens, or surface that was skipped, unavailable, or marked `not reviewed`;
+  - all work after the latest review report's `**Revision**`, committed or still in the tree, except this run's `Learnings` bullets and bundle commit.
+    Say which of it the report's `**Remediated**:` line marks as fixes.
+    A `-dirty` Revision cannot show which work the review read, so say so.
+    With no report, say no review ran.
+- **What stays open**: what the change knowingly leaves open, such as a finding or story the user shipped past.
+- **Pictures**: where a flow, structure, or state change reads faster as a picture, add the smallest view that makes the point.
+  Use a Mermaid diagram where the host renders one, an SVG, or a pseudocode or tree block.
+- **Ship summary**: [`pr-section.md`](references/pr-section.md) fixes the section that ends the body, filled from the facts above, because a viewer parses it to join the pull request to its requirements, proof, and reviews.
+
+**Gate**: a title, and a body that states the intent, outcomes, proof, door and blast radius, and where to read closely before any per-story detail, then ends on the Ship summary.
+
+### 4. Commit
+
+- Outside `--auto`, when the current branch is the remote's default branch, ask once whether to start a feature branch first, because commits land on the current branch and the pull request opens from it.
+  Recommend starting it the way the project's written convention for starting work says, else as `<type>/<slug>`.
+- Commit the fixes left in the working tree.
+- With a plan bundle, commit the landed entries, and leave the bundle to step 5's answer.
+  An untracked bundle file never reaches the merge, so never delete it or ask about it.
+
+**Gate**: the branch's own work committed, and the tracked bundle untouched.
+
+### 5. Publish
+
+- Show the base branch, the commits leaving, the title, and the body.
+- Under `Record: tracker` with a plan bundle, invoke the `andthen:tracker` skill with `publish <plan.json> --dry-run` before asking.
+  The question below also covers its preview and a closing link in the body for each issue the merge finishes, because the merge closes them into the record.
+  While the plan is not ready, those are only the open issues of stories `done` or `skipped`, so the parent and the unfinished stories stay open for a later ship.
+- Ask once whether to push and open it, and end the turn on the question.
+  For a ready plan's tracked bundle, the same question asks whether to delete it, recommending deletion.
+  It also names each feature folder under the `Wireframes` or `Mockups` locations that the branch added or the plan cites (`assetRefs`, its FIS files), never a location itself, and asks whether to delete them.
+  Recommend deleting them unless their build is still to come: the plan is not ready, or the branch changed nothing outside design and spec folders.
+  With no remote, ask only about the bundle and those folders, except under `Record: tracker`, where it waits for a publish.
+  Offer screenshots or a recording for a visible UI change the request said nothing about.
+- On a yes under `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, and add the closing links from the issues it reports and the parent issue's URL per `pr-section.md`.
+- A deletion (step 1's "don't keep" answer included), the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead, there is no remote, or the run is `--auto`.
+- On a delete, commit the deletion before the push: `plan.json`, its FIS files, any `intent.md` beside them, and any `superseded/` folder go, and the requirements file its `prd` names stays.
+  A `prd.md` that stays gains a `> **Shipped**: <UTC ISO-8601 minute>` header line in the same commit.
+  Under `Record: tracker` in the `Issue Tracker` document, that file goes too once the issues are published, because they then carry the record, and until then the bundle stays, because the issue bodies are written from it.
+- With either deletion, repoint each committed link into a deleted file at what survives it, such as the requirements file, its issue, or an ADR, because a dead link fails silently.
+  A branch commit is no such target, because a squash merge leaves it out of the base branch.
+- When a ready plan's bundle stays by the user's answer or untracked, write its `shipped` marker, so later runs read the plan as a record.
+  A tracked one is committed before any push, then once the pull request opens its `pr` is set, committed, and pushed.
+  An untracked one is written once the pull request opens, else at the run's end with `pr` null, and left uncommitted.
+- Before the push, capture the screenshots or recording the request asked for or the answer took up, per the `Visual Validation` document.
+  Attach each image through an upload the host accepts, else list it for the user to attach.
+- Under `--auto`, stop before anything leaves the machine.
+
+**Gate**: no push before any bundle or design-folder deletion or tracked `shipped` marker is committed, and the pull request's URL, or its title, body, and the commands still to run to open it.
 
 ## Output
 
 Report:
 
 - each `Learnings` bullet written, each recommendation, and each observation judged not worth keeping, with its reason;
-- the commits made and the bundle files deleted;
-- each change left uncommitted and each untracked bundle file left in place;
+- the commits made, the bundle files and design folders deleted, and the bundle or each design folder kept, with the `ASSUMPTION:` line of an unattended run;
+- each change left uncommitted, each file left in the bundle's directory, and whether the plan was marked `shipped`;
 - the pull request's URL, each issue published, and each image left for the user to attach, or its title, body, and the commands still to run.

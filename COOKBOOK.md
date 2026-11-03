@@ -2,11 +2,11 @@
 
 What to type for a given situation, and what to expect back. The [root README](README.md) says what AndThen is; the [skill reference](plugin/README.md) carries each skill's flags, modes, and edge cases, which this file does not repeat.
 
-Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt, **Expect** (the artifact or closing line), and **Elsewhere** (where else to go). Prompts are the mechanism: skills read intent from your words, and a flag appears only where it changes a machine-consumed contract (`--mode`), a safety boundary (`--fix`), or the run mode (`--auto`, for an unattended run). Commands are shown in Claude Code form (`/andthen:<name>`); Codex CLI uses the same skill names through its own skill syntax. Skills recommend complete invocations in your host's syntax, including the target or request and required arguments, so you can paste the whole line.
+Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt, **Expect** (the artifact or closing line), and **Elsewhere** (where else to go). Prompts are the mechanism: skills read intent from your words, and a flag appears only where it changes a machine-consumed contract (`--mode`), a safety boundary (`--fix`), or the run mode (`--auto`, for an unattended run). Commands are shown in Claude Code form (`/andthen:<name>`), which Copilot CLI shares; Codex CLI uses the same skill names through its own skill syntax. Skills recommend complete invocations in your host's syntax, including the target or request and required arguments, so you can paste the whole line.
 
 **Contents**
 
-- **[Starting work](#starting-work)**: [Choosing a path](#choosing-a-path) · [One story or several](#one-story-or-several) · [A small change](#a-small-change) · [A bug or a broken build](#a-bug-or-a-broken-build) · [An existing codebase](#an-existing-codebase) · [Product vision vs feature](#product-vision-vs-feature-clarify) · [An intent doc first](#an-intent-doc-before-the-prd) · [Revising a spec](#revising-a-spec-or-re-planning)
+- **[Starting work](#starting-work)**: [Choosing a path](#choosing-a-path) · [One story or several](#one-story-or-several) · [A small change](#a-small-change) · [A bug or a broken build](#a-bug-or-a-broken-build) · [An existing codebase](#an-existing-codebase) · [Product vision vs feature](#product-vision-vs-feature-clarify) · [An intent doc first](#an-intent-doc-before-the-prd) · [Questions for someone else](#questions-for-someone-else-to-answer) · [Revising a spec](#revising-a-spec-or-re-planning)
 - **[The design stage](#the-design-stage)**: [Technical decisions or an architecture question](#technical-decisions-or-an-architecture-question) · [Event storming](#event-storming-a-new-domain-or-a-system-to-rewrite) · [Domain Map first](#the-domain-map-for-a-domain-heavy-project) · [Research, design system, wireframes](#research-a-design-system-wireframes) · [A second opinion](#a-second-opinion-before-committing-to-a-decision)
 - **[Running unattended](#running-unattended)**: [Unattended execution and CI chaining](#unattended-execution)
 - **[Reviewing](#reviewing)**: [Quick look, big PR, one pass](#review-phrasing-a-quick-look-a-big-pr-one-pass) · [Spec fit vs problem fit](#does-it-match-the-spec-or-does-it-solve-the-problem) · [Review, then remediate](#review-then-remediate) · [Review/fix loop](#review-and-fix-until-clean-from-a-coordinating-session)
@@ -59,8 +59,9 @@ Several stories:
 ```
 /andthen:clarify "workspace invitations by email"          # writes the PRD; skip when the requirements already exist
 /andthen:plan docs/specs/workspace-invitations/             # fresh session
-/andthen:exec-plan docs/specs/workspace-invitations/        # fresh session: the command plan printed
-/andthen:review --fix docs/specs/workspace-invitations/plan.json   # fresh session: the Next line exec-plan prints
+/andthen:exec-plan docs/specs/workspace-invitations/s01-send-an-invitation.md     # fresh session: the command plan printed
+/andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md   # fresh session: the Next line S01 printed, and so on
+/andthen:review --fix docs/specs/workspace-invitations/plan.json   # fresh session: the Next line the last story prints
 /andthen:ship docs/specs/workspace-invitations/plan.json   # fresh session: the Next line review prints once the plan is ready
 ```
 
@@ -76,16 +77,18 @@ One story:
 **Expect.**
 
 - `clarify` interviews at least once, writes `docs/specs/<feature>/prd.md`, and closes on the `plan` command – or on `decide` first when the PRD leaves a design fork open, then `ui-ux-design` when you chose to design new screens first; each of those closes on the next.
-- `plan` writes `plan.json` and one FIS per story (`s{NN}-<story-slug>.md`), self-reviews, asks what is still open (each question with a recommendation), and prints the `exec-plan` command.
-- `exec-plan` on a plan directory runs one fresh subagent per ready story, the full tier on the final tree, and one `simplify-code` pass. It ends on the `Next (fresh session):` line above, whose `--fix` remediates the report it just wrote.
-- `exec-plan` on one FIS implements the story where you invoke it: every proof, the full tier, one fresh quick reviewer, the story's `done` record, and the story commit, plus one `simplify-code` pass when it completes the plan. It prints the review line above.
+- `plan` writes `plan.json` and one FIS per story (`s{NN}-<story-slug>.md`), self-reviews, asks what is still open (each question with a recommendation), and prints the `exec-plan` command for the first story.
+- `exec-plan` on one FIS implements the story where you invoke it: every proof, the full tier, one fresh quick reviewer, the story's `done` record, and the story commit, then one `simplify-code` pass over the story's code.
+  - Before the commit, a discovery that affects a later story goes into that story's FIS. If it contradicts that FIS or changes scope, the run asks whether to revise first.
+  - It prints the revision's command when you say yes, else the next story's command, or after the last story the review line above.
+- Between stories, read the report and the next FIS. To change a later story beyond what a discovery added, revise its FIS with `plan` first ([Revising a spec](#revising-a-spec-or-re-planning)).
 - After the plan review, `now-what` routes a failing load-bearing check to `triage`; it recommends `ship` only when the plan meets the canonical Shipping condition.
 
 **Elsewhere.**
 
 - A question left unanswered becomes an `ASSUMPTION:` line in the FIS. To overturn one before execution, re-run `/andthen:plan "story S02 of docs/specs/workspace-invitations/plan.json"` with your answer.
 - `OVERSIZE:` means a story does not fit one run: `plan` offers to slice it, in the same run for a written source and through `clarify` for a description, or to proceed as one.
-- To drive stories by hand, run `exec-plan` per story – [the worked example](#the-worked-example-workspace-invitations) does.
+- To run every story without stopping, run `exec-plan` on the plan directory: one fresh subagent per ready story, `--worktree` for independent stories in parallel, a `simplify-code` pass after each story (each batch under `--worktree`), then the full tier once on the final tree. It ends on the same review line, unless you choose to revise a spec when it asks about a discovery. [Unattended execution](#unattended-execution) chains it from CI.
 - A failed story reports its route out: `review --fix` on the story's changed paths, for correctness and against its FIS (under `--worktree`, in the story's preserved worktree), then `exec-plan` again on the same input.
 
 Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-plan).
@@ -157,6 +160,19 @@ Edit it freely: answer an open question in place, or leave it and it is asked ag
 
 **Elsewhere.** Feature scope only; at product scope `PRODUCT.md` is already the one document. A directory that already holds a `prd.md` gets no intent doc. One story the intent doc already settles needs no PRD: `plan` takes the directory.
 
+### Questions for someone else to answer
+
+**Situation.** The answers sit with someone outside the session – whoever filed the issue, a colleague, a customer – and you want every question in one message they can reply to.
+
+```
+/andthen:clarify "https://github.com/org/repo/issues/42 – give me the complete set of questions as one list I can paste into a reply"
+/andthen:clarify "https://github.com/org/repo/issues/42 – the reporter answered in the issue comments"
+```
+
+**Expect.** One numbered list, each question with a recommended answer and each follow-up naming the earlier answer it assumes, and the turn ends there. Ask for another language in the same line, and post the list yourself. The second run reads the answers, re-asks what an answer changed, and plays the settled picture back for you to confirm before it writes the PRD.
+
+**Elsewhere.** To share your framing as a document they answer inside, use [an intent doc](#an-intent-doc-before-the-prd) instead. `decide` takes the same request for technical choices.
+
 ### Revising a spec or re-planning
 
 **Situation.** A FIS needs a change before it runs – an answer that overturns an `ASSUMPTION:`, a scope correction – or the source changed and the plan no longer matches.
@@ -167,7 +183,7 @@ Edit it freely: answer an open question in place, or leave it and it is asked ag
 /andthen:plan "docs/specs/workspace-invitations/ – the PRD dropped bulk invites; re-plan from it, S01 is done and stays out of scope"
 ```
 
-**Expect.** `plan` has no revision mode, so the prompt carries it: what you point at is the source, what you say changed is the correction, and the run writes the FIS (for a re-plan, the whole bundle) through the usual questions, self-review, and Preflight. A re-plan keeps nothing of the old `plan.json` and renumbers its stories from `S01`, so a new FIS can take a finished story's path. First `git mv` the old `plan.json` and FIS files into a `superseded/` folder beside the PRD, name the finished stories so they stay out, and delete the folder once the new bundle is in place.
+**Expect.** `plan` has no revision mode, so the prompt carries it: what you point at is the source, what you say changed is the correction, and the run writes the FIS (for a re-plan, the whole bundle) through the usual questions, self-review, and Preflight. A re-plan keeps nothing of the old `plan.json`, so ask it to number new stories after the highest old ID, or a new story shares a finished story's `Story-ID`, and its simplify pass edits that story's code. First move the old `plan.json` and FIS files into a `superseded/` folder beside the PRD (`git mv`; `clarify` does this itself when its amendment changes done work or adds or drops a story) and name the finished stories so they stay out. Leave the folder in place: `ship` lands its Observations and deletes it with the bundle, and deleting it yourself loses the done stories' Observations.
 
 **Elsewhere.** Finish a story that has started, or reset it in words first (*"reset S02 to pending, clearing its task IDs"*); otherwise its row names tasks the new FIS no longer has. Contract: [`plan`](plugin/README.md#plan).
 
@@ -217,7 +233,7 @@ The map is recommended first for a project with real domain depth, and never req
 
 **Elsewhere.** A discovery session to feed it is [event storming](#event-storming-a-new-domain-or-a-system-to-rewrite). The modes are in [`domain`](plugin/README.md#domain).
 
-### Research, a design system, wireframes
+### Research, a design system, wireframes, mockups
 
 **Situation.** UI work is coming: nobody has said who uses it, no shared tokens exist, or the FIS should not invent the screens.
 
@@ -225,6 +241,7 @@ The map is recommended first for a project with real domain depth, and never req
 /andthen:ui-ux-design "user research for the export flow: who exports, when, what they do with the file"
 /andthen:ui-ux-design "create a design system from docs/specs/workspace-invitations/prd.md"
 /andthen:ui-ux-design "wireframe the invitation flow from docs/specs/workspace-invitations/prd.md"
+/andthen:ui-ux-design "mockups of the invitation flow from docs/specs/workspace-invitations/prd.md"
 /andthen:ui-ux-design "research, then a design system, then wireframes for the onboarding flow in docs/specs/onboarding/prd.md"
 ```
 
@@ -232,9 +249,10 @@ The map is recommended first for a project with real domain depth, and never req
 
 - `research` returns in the conversation, no file: the job-to-be-done, two to five journeys, an IA sketch, constraints, and open questions (`clarify` input).
 - `design-system` writes `docs/design-system/DESIGN.md` (token front matter plus rationale), `tokens.css`, and `showcase.html`. Push back on a bland result: deliberate visual direction is the mode's bar.
-- `wireframes` writes grayscale HTML with full page coverage under `docs/wireframes/`, an `index.html` hub and a `page-inventory.md`, validated through `visual-validation`.
+- `wireframes` writes grayscale HTML with full page coverage under `docs/wireframes/<feature>/`, an `index.html` hub and a `page-inventory.md`, validated through `visual-validation`.
+- `mockups` needs the design system and writes clickable pages styled from it under `docs/mockups/<feature>/`: realistic text, working dialogs, tabs, and error states, an inventory of flows, a list of what the design system lacked, and a hub stamped with the `DESIGN.md` they were built on. It validates them for contrast, off-token values, and dead links. Asking for screens without naming a level gets mockups once a design system exists, else wireframes.
 
-Naming modes in order, as in the last prompt, runs them in that order sharing context; there is no chain flag. A run from a PRD closes on the `plan` command; `plan` cites the wireframes and `exec-plan` builds to them.
+Naming modes in order, as in the last prompt, runs them in that order sharing context; there is no chain flag. A run from a PRD closes on the `plan` command; `plan` cites the mockups or wireframes, `exec-plan` builds to them, and `visual-validation` judges the build against that feature's mockups first, else its wireframes. `ship` asks whether to delete the feature's design folders once it is built.
 
 **Elsewhere.** Validating a built screen is `visual-validation`, not a design mode. Questions about requirements rather than interaction are `clarify` territory.
 
@@ -270,7 +288,7 @@ Every skill in the chain takes the same flag:
 **Expect.** Every pipeline skill after requirements reads `--auto` the same way: no prompts, and a stop only on an unusable call, ending on `BLOCKED: <what is needed>`.
 
 - `clarify` has no unattended form (the interview is what `--auto` cannot buy), so the pipeline starts at `plan` from a requirements file or tracker item.
-- `plan` records each open question's recommendation in the FIS as an `ASSUMPTION:`.
+- `plan` records each open question's recommendation in the FIS as an `ASSUMPTION:`. Its `Next` line names the first story's FIS, for a person running story by story; the chain runs the plan directory.
 - `exec-plan` on a plan leaves a failed story `in-progress`, skips its dependents, finishes the rest, and ends with the aggregate report. It never reviews the plan itself: the `Next (fresh session):` line is the review, and something has to launch it.
 - `review --fix` passes the flag on to `implement-fix`, which gives every `Note` and `NOTICED BUT NOT TOUCHING` item an interactive run would hand back one disposition: applied, deferred to the Tech Debt Backlog, or closed with a reason.
 
@@ -368,7 +386,7 @@ decision. Finish with the final verdict, the report paths, and the remaining Not
 DEFERRED findings.
 ```
 
-**Expect.** One full review, then follow-up reviews: each a full `review` run on the same lenses with its own report and verdict, a `Follows` header naming the report before it, and a summary of which of that report's open findings are now resolved or still open.
+**Expect.** One full review, then follow-up reviews on the same lenses, each with its own report and verdict and a `Follows` header naming the report before it. A follow-up covers the work since that report, the callers of that code, and its open findings (the whole target if the reviewed commit is gone), and says which of those findings are now resolved.
 
 The loop ends on the hand-off, never on the verdict or a severity count: a `Note` no fix round may apply can hold readiness at Needs Fixes, so "until Ready" or "until no MEDIUM remains" may never terminate, while the `Next` line asks for another review only after a round fixed a CRITICAL or HIGH finding or left a fix partial. A blocked CRITICAL or HIGH fix is deferred and escalated, which is the "needs a decision" stop. Both come back to you with the last report.
 
@@ -387,7 +405,7 @@ While a plan runs, the tracker is a projection of the plan, never a second sourc
 4. **Inner loop, once per story** – claim the story's issue by assigning it to yourself, branch (`{type}/{story-id}-{slug}`) → `exec-plan`, its quick review included → PR with `Closes #N`. Merge closes the issue natively.
 5. **State** – `plan.json` is agent truth while the plan governs; the tracker is the human projection (re-run `tracker publish` to refresh it). Under the default `Record: repo`, `prd.md` outlives the bundle; the issues and PRs are the per-story record.
 
-**Requirements only in the tracker.** Set `Record: tracker` in the `Issue Tracker` document. `clarify` then saves the PRD to its issue, `plan <issue-url>` copies it back into the bundle, and `ship` publishes the issues a last time for the merge to close, and deletes `prd.md` with the bundle, so nothing requirements-shaped stays in the repo after the merge.
+**Requirements only in the tracker.** Set `Record: tracker` in the `Issue Tracker` document. `clarify` then saves the PRD to its issue, `plan <issue-url>` copies it back into the bundle, and `ship` publishes the issues a last time for the merge to close. When you delete the bundle, `prd.md` goes with it, so nothing requirements-shaped stays in the repo after the merge.
 
 A single story is the same flow with a different argument:
 
@@ -398,7 +416,7 @@ A single story is the same flow with a different argument:
 | Build + prove | `exec-plan` → `review --fix` → `ship` | same; PR body `Closes #42` |
 | Status | branch + PR | native: branch name / PR link moves the issue, merge closes it |
 | Record after merge | `prd.md` and the PR, whose body states each story's intent, outcomes, and proof | the issues and the PR |
-| Close-out | `ship`, once the plan-level review's `Next (fresh session):` line names it: Observations land in `Learnings`, the rest is recommended, then `plan.json` and the FIS files are deleted before the plan's branch merges; `prd.md` stays | same; under `Record: tracker`, the issues are refreshed first and the merge closes them, and `prd.md` goes too |
+| Close-out | `ship`, once the plan-level review's `Next (fresh session):` line names it: Observations land in `Learnings`, the rest is recommended, then the one question asks whether to delete `plan.json` and the FIS files (recommended), and the feature's design folders, before the plan's branch merges; `prd.md` stays | same; under `Record: tracker`, the issues are refreshed first and the merge closes them, and a deletion takes `prd.md` too |
 
 Under `Record: repo`, a PRD leaves `prd.md` behind as the requirements record; any other source leaves only the request itself. Concurrent stories need no shared state file: `plan.json` is the one state owner, and per-story FIS prose is frozen.
 
@@ -457,23 +475,23 @@ Reference for [the workflow](README.md#the-workflow): what each step reads and w
 |---|---|---|---|
 | Setup, once per project | `init` | the repository | the Project Document Index in `CLAUDE.md` / `AGENTS.md`, `Key Dev Commands`, the `.gitignore` entries; every other document on its first write |
 | Requirements, optional | `clarify` | your idea, or a source from anywhere – a pasted note, a tracker issue, an `intent.md` | `prd.md` – what to build and why |
-| Design, optional | `decide`, `ui-ux-design` | the PRD or the request | ADRs and Decisions lines; a design system or wireframes |
+| Design, optional | `decide`, `ui-ux-design` | the PRD or the request | ADRs and Decisions lines; a design system, wireframes, or mockups |
 | Plan | `plan` | a description, a `prd.md` (or its directory), a requirements file, a tracker issue | `plan.json` – the stories, their dependencies and status – plus one FIS per story |
 | Build | `exec-plan`, on a FIS or the plan directory | `plan.json` and the FIS | the code, one commit per story with `Story-ID:` and `Plan:` trailers, each story `done` in `plan.json` |
 | Review and fix | `review --fix` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json`, and the fixes |
-| Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle deleted; `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation |
+| Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle and design folders deleted, or kept (the bundle marked `shipped`); `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation |
 
 `plan` sizes the work before it writes a FIS. When a story still turns out too big for one run, it offers to split it – in the same run for a written source, through `clarify` for a description. `review --fix` is one review and one fix round; when it fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it prints a follow-up review as its `Next (fresh session):` line. Once the plan's stories are all `done` or `skipped` (cut from scope) and nothing CRITICAL or HIGH is open, its `Next (fresh session):` line runs `ship` instead; `implement-fix` run on the report closes the same way.
 
 ### The design stage and ADRs
 
-Two skills settle what the requirements left open, neither changing code: `decide` (a technical interview, a weighted trade-off where a choice is contested, ADRs) and `ui-ux-design` (research, design systems, wireframes). `architecture` advises, and its analysis modes can feed a decision first. An ADR comes in at three points, on one test – the choice binds beyond this work or is costly to reverse:
+Two skills settle what the requirements left open, neither changing code: `decide` (a technical interview, a weighted trade-off where a choice is contested, ADRs) and `ui-ux-design` (research, design systems, wireframes, mockups). `architecture` advises, and its analysis modes can feed a decision first. An ADR comes in at three points, on one test – the choice binds beyond this work or is costly to reverse:
 
 - **Before the spec** – `clarify` makes `decide` its closing command when the PRD leaves such a fork open.
 - **While specifying** – a fork only the spec surfaces is a Preflight question; you answer it into the FIS, and the ADR is recommended as its record. That `decide` run records your answer without asking it again and closes on `exec-plan`.
 - **While building** – a real pivot in `exec-plan` records one before the FIS changes.
 
-Design comes in before the spec, on your answer: `clarify` asks, with the closing summary you confirm, whether new screens no wireframes cover are designed first, and `plan` asks the same when its source skipped `clarify`. Either way `ui-ux-design` closes on `plan`.
+Design comes in before the spec, on your answer: `clarify` asks, with the closing summary you confirm, whether new screens no wireframes or mockups cover are designed first, and `plan` asks the same when its source skipped `clarify`. Either way `ui-ux-design` closes on `plan`.
 
 ### The artifacts – where each comes from, who reads it, how long it lives
 
@@ -482,17 +500,17 @@ Design comes in before the spec, on your answer: `clarify` asks, with the closin
 | any short source – `intent.md` is one shape | anyone, by hand; `clarify --brief` writes `intent.md` | `clarify`, `plan`, `now-what`, `architecture` | superseded – `clarify` folds it into `prd.md`, `plan` into the FIS |
 | `PRODUCT.md` | the first of `clarify`, `decide`, `plan`, `architecture` to ask its Proportionality facts, or `clarify` at product scope | every proposal skill, as the proportionality anchor | durable |
 | `prd.md` | `clarify` | `plan`, `review --mode gap,outcome` | survives the merge – the product record |
-| `plan.json` | `plan`; runtime state by the session executing each story (under `--worktree`, by the plan run before each batch) | `exec-plan`, `review`, `now-what`, `tracker`, `ship` | branch-scoped – deleted by `ship` before the merge |
-| FIS (one per story) | `plan`, one fresh subagent per story when there are several | `exec-plan`, `review`, `ship` | branch-scoped – deleted by `ship` before the merge |
+| `plan.json` | `plan`; runtime state by the session executing each story (under `--worktree`, by the plan run before each batch) | `exec-plan`, `review`, `now-what`, `tracker`, `ship` | branch-scoped – deleted by `ship` before the merge unless you keep it |
+| FIS (one per story) | `plan`, one fresh subagent per story when there are several | `exec-plan`, `review`, `ship` | branch-scoped – deleted by `ship` before the merge unless you keep it |
 | Review report | `review` | `implement-fix` | one run's working file – ignored by default, committed once the project drops its `.gitignore` line |
 | `LEARNINGS.md`, `DECISIONS.md` | `decide` (ADR rows, Still Current lines), `ship` at close-out (it writes `Learnings` and recommends `Decisions`), and the agents that read them after triage | every skill at task start | durable |
 
 ### The two loops
 
 - **Outer loop, once per initiative** – `clarify`, then `plan`: what and why, then a FIS per story.
-- **Inner loop, once per story** – `exec-plan`: build one story and prove it, review included, then on a team its PR into the milestone branch. On the plan directory `exec-plan` runs this loop for you, one story at a time in the shared tree, or independent stories in parallel under `--worktree`, one worktree each.
+- **Inner loop, once per story** – `exec-plan`: build one story and prove it, review included, then on a team its PR into the milestone branch. Run it one story per session and read each result before the next. On the plan directory `exec-plan` runs this loop for you without stopping, one story at a time in the shared tree, or independent stories in parallel under `--worktree`, one worktree each.
 
-**When the PR opens.** `ship` opens it, after one confirmation. The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR. On a team, `ship` on a story branch opens the story PR and keeps the bundle, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it.
+**When the PR opens.** `ship` opens it, after one confirmation. The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR. On a team, `ship` on a story branch opens the story PR and asks whether to keep the bundle, recommending keeping it, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it.
 
 This is a scope-and-cadence split, not the DevEx sense of inner loop (edit-build-test) versus outer loop (CI/CD). A third motion, the **knowledge cycle**, is not a loop: FIS `Implementation Observations` graduate into `LEARNINGS.md` at close-out through `ship`, which recommends the `DECISIONS.md` lines, recurring review traps become lint rules or tests, and settled trade-offs become ADRs.
 
@@ -519,7 +537,7 @@ This is a scope-and-cadence split, not the DevEx sense of inner loop (edit-build
 | Architecture – structure, trade-offs, decisions | inside `spec.md`; no separate decision record | `research.md`, `data-model.md`; ADRs are community extensions | `design.md` per spec; `structure.md` steering file | Architect agent's doc: real trade-offs only, IDs stories cite; readiness gate before stories | decisions in `CONTEXT.md`; `map-codebase` writes `ARCHITECTURE.md` | `decide` writes ADRs; `architecture` and `describe` analyse and map |
 | UX/UI design – research, design system, screens | UX standards applied as skills while writing `spec.md` | none in core; Figma and wireframe community extensions | none built in; opt-in Figma power | UX Designer agent: `DESIGN.md`, `EXPERIENCE.md`, both optional | `ui-phase` writes `UI-SPEC.md`, `sketch` HTML mockups, `ui-review` a six-pillar audit | `ui-ux-design`; `visual-validation` checks the built UI |
 | Plan and execution – split, order, run | `plan.md`, built in parallel worktree sessions | `plan.md` + `tasks.md`; `[P]` tasks run in parallel | `tasks.md`; one at a time or in dependency waves | `bmad-ticket` orders stories in `tickets.toml`; `bmad-build` plans each and hands it to a subagent | `ROADMAP.md` phases; `execute-phase` runs plans in parallel waves, each in a fresh agent | FIS per story + `plan.json`; `exec-plan`, fresh subagent per story, parallel under `--worktree` |
-| Intent and proof – goal, outcomes, proof each is met | `intent.md` states the outcome; `plan.md` defines the proof | Given/When/Then, `FR-` and `SC-` IDs; test tasks only on request; `analyze` flags uncovered requirements | EARS criteria (WHEN … THE SYSTEM SHALL …); optional property-based tests | criteria from the epic's *Done when* and `Verify:`; runs the plan's Verification commands | `must_haves` and per-task `<verify>`; gate requires every REQ-ID | tagged outcomes, scenarios, some with a runnable `Proof`; `done` needs the line naming what ran |
+| Intent and proof – goal, outcomes, proof each is met | `intent.md` states the outcome; `plan.md` defines the proof | Given/When/Then, `FR-` and `SC-` IDs; test tasks only on request; `analyze` flags uncovered requirements | EARS criteria (WHEN … THE SYSTEM SHALL …); optional property-based tests | criteria from the epic's *Done when* and `Verify:`; runs the plan's Verification commands | `must_haves` and per-task `<verify>`; gate requires every REQ-ID | EARS rules in the PRD; tagged outcomes, scenarios, some with a runnable `Proof`; `done` needs the line naming what ran |
 | Review – does the build match the ask | self-verify, then PR review under `REVIEW.md` | `converge` checks code against spec, plan, tasks | none of its own; property tests and hooks | parallel reviewers on the diff; Test Architect `trace` gate | fresh verifier writes `VERIFICATION.md`; `verify-work` is human UAT; `code-review` as a separate agent | `review`: code, gap, security, outcome lenses; a fresh reviewer per story |
 
 The row that trips people up is Requirements: AndThen's "spec" is the FIS, and it sits **downstream** of the PRD rather than replacing it. Arriving from Spec Kit or BMAD, you will map it one layer too high.
@@ -548,7 +566,7 @@ The skill infers feature scope and says so, checks the codebase for what exists 
 > Can an owner take an invitation back? *Recommended: yes, revoke; a revoked token must fail on accept.*
 > Existing account vs new sign-up on accept? …
 
-Terms settle as they go: `Invitation`, `Member`, `Owner` land in the PRD's `Decisions Log`, since Relay keeps no glossary document. The answers become the PRD: problem, three functional requirements (`FR-1 Send an invitation`, `FR-2 Accept an invitation`, `FR-3 Revoke and list pending invitations`) with acceptance criteria, non-functional thresholds (email dispatch never blocks the request), and scope in and out. The one open question – *expiry window, 7 days or 30?* – lands in `Constraints & Assumptions` as unresolved. A fresh-context self-review applies two mechanical fixes, and the run ends:
+Terms settle as they go: `Invitation`, `Member`, `Owner` land in the PRD's `Decisions Log`, since Relay keeps no glossary document. The answers become the PRD: problem, three functional requirements (`FR1 Send an invitation`, `FR2 Accept an invitation`, `FR3 Revoke and list pending invitations`) with acceptance criteria, non-functional thresholds (email dispatch never blocks the request), and scope in and out. The one open question – *expiry window, 7 days or 30?* – lands in `Constraints & Assumptions` as unresolved. A fresh-context self-review applies two mechanical fixes, and the run ends:
 
 ```
 docs/specs/workspace-invitations/prd.md            > **Source**: inline description
@@ -581,20 +599,20 @@ Three functional requirements in two modules size to several stories, so `plan` 
       "stories": ["S01", "S02"]
     }
   ],
-  "bindingConstraints": [{ "featureId": "FR-1", "anchor": "docs/specs/workspace-invitations/prd.md#non-functional-requirements" }],
+  "bindingConstraints": [{ "featureId": "FR1", "anchor": "docs/specs/workspace-invitations/prd.md#non-functional-requirements" }],
   "stories": [
     { "id": "S01", "name": "Send an invitation", "dependsOn": [],
       "status": "pending", "fis": "s01-send-an-invitation.md", "completedTaskIds": [],
       "scope": "An owner creates a pending Invitation for an email address and the invitee receives one email carrying a single-use link.",
-      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr-1-send-an-invitation"] },
+      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr1-send-an-invitation"] },
     { "id": "S02", "name": "Accept an invitation", "dependsOn": ["S01"],
       "status": "pending", "fis": "s02-accept-an-invitation.md", "completedTaskIds": [],
       "scope": "A valid token turns its invitee into a Member and is consumed; expired or unknown tokens are refused.",
-      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr-2-accept-an-invitation"] },
+      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr2-accept-an-invitation"] },
     { "id": "S03", "name": "Revoke pending invitations", "dependsOn": ["S02"],
       "status": "pending", "fis": "s03-revoke-pending-invitations.md", "completedTaskIds": [],
       "scope": "An owner lists pending invitations and revokes one; a revoked token fails on accept.",
-      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr-3-revoke-and-list-pending-invitations"],
+      "sourceRefs": ["docs/specs/workspace-invitations/prd.md#fr3-revoke-and-list-pending-invitations"],
       "sequencing": "Revocation is only observable once accept exists to refuse it." }
   ]
 }
@@ -649,7 +667,7 @@ The PRD's open expiry question was asked before slicing, since two stories build
 Authoring left nothing open, so Preflight asked nothing, and `plan` printed:
 
 ```
-Next (fresh session): /andthen:exec-plan docs/specs/workspace-invitations/
+Next (fresh session): /andthen:exec-plan docs/specs/workspace-invitations/s01-send-an-invitation.md
 ```
 
 **Checkpoint.** Every story is `pending` with its FIS. Read the three FIS files once – scope, non-goals, proof targets – which is cheaper now than mid-execution. On a team, PR the bundle to `1.2` beside the PRD and review the slicing there. Solo, commit it:
@@ -658,7 +676,7 @@ Next (fresh session): /andthen:exec-plan docs/specs/workspace-invitations/
 "commit the prd and plan bundle"   # git add -- docs/specs/workspace-invitations/ ; git commit -- docs/specs/workspace-invitations/
 ```
 
-**Conversation boundary.** The printed line runs every story for you; this example drives the inner loop by hand to show one story. Either way, execution starts in a fresh session.
+**Conversation boundary.** The printed line runs S01, and each story's report names the next, so execution pauses after every story for your read. Running the plan directory instead runs every story without stopping. Either way, execution starts in a fresh session.
 
 ### Turn 3 – story S01 through the inner loop *(session C)*
 
@@ -669,7 +687,7 @@ git switch -c feat/S01-send-an-invitation 1.2            # {type}/{story-id}-{sl
 /andthen:exec-plan docs/specs/workspace-invitations/s01-send-an-invitation.md
 ```
 
-The run resolved the plan from the FIS header, wrote the three tests and confirmed each red for its intended behavior, implemented `TI01`–`TI03` in `src/invitations/` (recording each in `completedTaskIds` as its `Verify` passed), then ran the full tier, the new scenario proofs, and every `Verify` itself. Its illustrative completion report shows the result each command returned:
+The run resolved the plan from the FIS header, wrote the three tests and confirmed each red for its intended behavior (its Testing Strategy requires test-first), implemented `TI01`–`TI03` in `src/invitations/`, each passing its `Verify` before the next, then ran the full tier, the new scenario proofs, and every `Verify` itself. Its illustrative completion report shows the result each command returned:
 
 ```
 TI01 done · TI02 done · TI03 done
@@ -700,11 +718,11 @@ Next (fresh session): /andthen:exec-plan docs/specs/workspace-invitations/s02-ac
 
 Three things the report does not spell out. The reviewer was a fresh subagent, so the pass was independent; F1 was Fix-routed and applied as the story's one repair round, and F2 stays open and reported, never gated. `status done` went into the row beside the `verified` line, the durable trace once the bundle is deleted; `done` is never written without it. The commit staged the changed files, the plan, and the FIS by path, so the `Story-ID:` and `Plan:` trailers ride it.
 
-**Checkpoint.** The one thing to read by hand is the open Note – whether `Mailer.send` becomes a Tech Debt entry is a human call.
+**Checkpoint.** Read the report and S02's FIS before S02's session; this pause is why `plan` printed one story. S01 changed no later FIS, so the one call left is the open Note: whether `Mailer.send` becomes a Tech Debt entry.
 
 ### Turn 4 – ship S01 *(session C continues)*
 
-`ship` on the story branch opens the PR to `1.2` and, with stories still to run, keeps the bundle. The PR body takes S01's intent and outcomes from the FIS and its proof from the `verified` line and the review, so the *why* survives the FIS's deletion however the PR merges. Its head reads:
+`ship` on the story branch opens the PR to `1.2` and, with stories still to run, asks whether to keep the bundle, recommending keeping it. The PR body takes S01's intent and outcomes from the FIS and its proof from the `verified` line and the review, so the *why* survives the FIS files' later deletion however the PR merges. Its head reads:
 
 ```
 ## Send an invitation (S01)
@@ -730,9 +748,9 @@ git switch -c feat/S02-accept-an-invitation 1.2
 /andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md
 ```
 
-S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr-2 says | Stale targets: prd.md#fr-2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied.
+S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied.
 
-S03 `dependsOn` S02, so it starts only after S02 merged. S02's report surfaced one constraint for it – the revoke endpoint must invalidate the queued email too – which landed under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` before any code depending on it.
+S03 `dependsOn` S02, so it starts only after S02 merged. S02 found one constraint for it, that the revoke endpoint must invalidate the queued email too. Before its commit, S02's run appended it under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` and named that FIS in its report, so you read the constraint before S03's session and it reached `1.2` with S02's PR.
 
 Between stories, state is one ask away:
 
@@ -764,6 +782,6 @@ It ends on a `Next (fresh session):` line for `ship`, which runs on `1.2` as the
 /andthen:ship docs/specs/workspace-invitations/plan.json
 ```
 
-It lands what belongs in `Learnings` from each FIS's `## Implementation Observations` and recommends the rest, including the PRD edit S02's Drift Note names, because the Drift Notes and cited ADRs go with the files. It then deletes `plan.json` and the FIS files (`prd.md` stays), commits, shows the `1.2` → `main` PR title and body, and asks once before it pushes.
+It lands what belongs in `Learnings` from each FIS's `## Implementation Observations` and recommends the rest, including the PRD edit S02's Drift Note names, because the Drift Notes and cited ADRs go with the files. It then commits, shows the `1.2` → `main` PR title and body, and asks once before it pushes, in the same question asking whether to delete `plan.json` and the FIS files (`prd.md` stays), recommending deletion.
 
 **What survives.** `prd.md`, the tests, the PRs whose bodies state each story's intent, outcomes, and proof, and on a team the issues.

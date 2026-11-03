@@ -20,7 +20,7 @@ Code that writes files or shells out is tested through the process boundary with
 ## Framework and Fixture Conventions
 
 - **Stdlib `unittest` only**, no pytest: the scripts must run on ubuntu, macOS, and Windows with nothing installed.
-- **One test file per script, in `tests/`**, never in `plugin/` – both hosts install `plugin/` wholesale, so a test there ships. A file puts its script's directory on `sys.path`; a hyphenated script name (`audit-cookbook.py`) loads via `importlib.util`. `evals/test_checks.py` stays beside the POSIX-only harness it proves; CI skips it on Windows.
+- **One test file per script, in `tests/`**, never in `plugin/` – every host installs `plugin/` wholesale, so a test there ships. A file puts its script's directory on `sys.path`; a hyphenated script name (`audit-cookbook.py`) loads via `importlib.util`. `evals/test_checks.py` stays beside the POSIX-only harness it proves; CI skips it on Windows.
 - **Fixtures**: committed inputs in `scripts/fixtures/renders/`, one real-shaped artifact per type. One-off input goes in a `tempfile.mkdtemp()` tree, never the repo.
 - **Prompt-contract tests** gate shipped text: a fixture holding the prose, the gate's own regex imported by name (never copied), and a docstring stating what the pair proves. Assert both directions – the pattern fires on the prose it replaced and not on the replacement – because a gate that flags its own fix gets switched off.
 - **Eval harness tests drive the runner, never a re-implementation.** Each acceptance boundary is asserted in both directions: a case shape refused before dispatch and its valid counterpart; a judge PASS that must quote retained material and the absence-based FAIL; a failing check that still reaches the judge. Case `oracle.py` files are proved on staged workspaces (all but `exec-plan`). `SubjectAppTest` keeps the subject app's suite green and its tree silent about the harness.
@@ -40,4 +40,8 @@ Sized to an experimental release candidate with one maintainer: the `fast` tier 
 
 - A script that greps the tree for patterns it polices matches its own source, so it skips its own file.
 - `bash scripts/install-skills.sh` without a flag conflicts with the local Codex plugin; only `--validate-only` and `--claude-user --dry-run` are safe.
+- On Windows:
+  - a bare `bash` in `subprocess.run` resolves to the System32 WSL stub, so resolve it with `shutil.which("bash")`;
+  - the default read encoding is cp1252, so pass `encoding=` on every read;
+  - user files arrive CRLF, so normalise `\r\n` before hashing bytes or `$`-anchoring.
 - The shipped-surface budget (`tests/surface-budget.json`) counts words, so an equal-length rewrite passes – it catches accretion, not a bad instruction.

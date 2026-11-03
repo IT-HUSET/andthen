@@ -1,10 +1,10 @@
 """Run-directory staging, candidate registration, dispatch, run-record readers.
 
-Every cell runs a snapshot of the working tree's plugin, staged as candidate/,
-and none of the operator's own configuration. A Claude cell keeps the parent
-environment, which is where its login resolves, but DartClaw spawns it with
-project-only setting sources, so ~/.claude/CLAUDE.md, the output style and user
-MCP servers stay out; the candidate arrives through `--plugin-dir`, and the
+Every cell runs a snapshot of the working tree's plugin, staged once per tier
+and copied into the cell as candidate/, and none of the operator's own
+configuration. A Claude cell keeps the parent environment, which is where its
+login resolves, but DartClaw spawns it with project-only setting sources, so
+~/.claude/CLAUDE.md, the output style and user MCP servers stay out; the candidate arrives through `--plugin-dir`, and the
 role agents `init` installs arrive as the workspace's project agents.
 
 Codex needs more. DartClaw pins Codex's CODEX_HOME to
@@ -41,6 +41,12 @@ CREDENTIALS = {"codex": Path.home() / ".codex/auth.json"}
 # whole and is kept from the operator's configuration by its setting sources.
 ENV_KEYS = ("PATH", "USER", "LOGNAME", "TMPDIR", "LANG", "LC_ALL", "SHELL", "TERM")
 
+# Cases whose skill inspects the home directory (`init` lists ~/.claude/agents and ~/.codex),
+# so the operator's machine would pick their branch. They run under a scratch HOME holding
+# only what Claude's login needs: the account file, the macOS keychains, the Linux credentials.
+HOME_PROBING_CASES = ("init", "init-empty")
+LOGIN_PATHS = (".claude.json", "Library/Keychains", ".claude/.credentials.json")
+
 # One dispatch carries subject, checks and judge, so the turn ceiling and the
 # cell's wall are not one number: a subject turn keeps its hour, and the wall
 # adds the tail's own declared timeouts (1800 + 900) on top. A wall covering only
@@ -70,6 +76,9 @@ STAGING = Path(tempfile.gettempdir()).resolve() / "andthen-evals"
 # find it, so both are staged beside it. andthen@andthen is enabled.
 CANDIDATE_ASSETS = ("plugin", ".claude-plugin/marketplace.json",
                     ".agents/plugins/marketplace.json")
+
+# Under STAGING: a tier's one staged candidate, named like a cell by its stamp.
+CANDIDATES = "_candidates"
 
 # The role agents `init` installs, from the candidate. A subject without them ran
 # its critics as general-purpose at high effort, so a Claude cell gets them as
@@ -101,6 +110,11 @@ SELF_REPORT_TOLERANCE = "    onFailure: continue"
 # has produced is a 58 KB review report, so 256 KiB leaves it four times over.
 MAX_ARTIFACT_BYTES = 256 * 1024
 
+# What a `dirty/` file writes where it needs the baseline commit's short SHA, such
+# as a planted review report's `**Revision**:`. Not `{{...}}`, which DartClaw
+# templates; staging substitutes it once the baseline exists.
+BASELINE_REVISION = "@@BASELINE@@"
+
 # Committing as the run keeps a cell reproducible on a host with no git identity.
 IDENTITY = ("-c", "user.name=andthen-evals", "-c", "user.email=evals@andthen.invalid",
             "-c", "commit.gpgsign=false")
@@ -129,7 +143,7 @@ PROVIDER_BLOCK = {
     "claude": ("    auth: auto\n    inherit_user_settings: false\n"
                "    pool_size: 1\n    permissionMode: dontAsk\n"
                "    permissions:\n      allow: [Bash, Read, Glob, Grep, Write, Edit, "
-               "NotebookEdit, Skill, Agent, TodoWrite, EnterWorktree, ExitWorktree]\n"
+               "NotebookEdit, Skill, Agent, TodoWrite]\n"
                "    settings:\n      additionalDirectories:\n        - {candidate}/plugin\n"
                "        - {request}\n"),
     # Codex's workspace-write sandbox keeps .git read-only, and an executor
@@ -187,7 +201,10 @@ def stage_workspace(run, case_dir, roles=False):
     workflow prompt names files workspace-relative: `feature-request.md`. An
     optional `dirty/` directory is copied over the committed workspace so a case
     can start with uncommitted work - a resumed story's earlier edits, a user's
-    unrelated change - which is what the isolation journeys are about."""
+    unrelated change - which is what the isolation journeys are about. A dirty
+    file's BASELINE_REVISION becomes the baseline commit's short SHA, so a planted
+    report can name the revision it reviewed and `git diff <that>` is the dirty
+    work."""
     workspace = run / "workspace"
     fixture = case_dir / "fixture"
     if not fixture.is_dir():
@@ -213,13 +230,19 @@ def stage_workspace(run, case_dir, roles=False):
     write(run / "fixture-head.txt", git(workspace, "rev-parse", "HEAD"))
     dirty = case_dir / "dirty"
     if dirty.is_dir():
-        shutil.copytree(str(dirty), str(workspace), dirs_exist_ok=True)
+        revision = git(workspace, "rev-parse", "--short", "HEAD").strip().encode("ascii")
         # Planted bytes are the starting state: stage_diff drops a planted path
         # the subject left as it found it, so the checks see only what the
-        # subject did to it.
-        write(run / "dirty-baseline.json", json.dumps(dict(
-            (p.relative_to(dirty).as_posix(), _digest(p))
-            for p in dirty.rglob("*") if p.is_file()), indent=2) + "\n")
+        # subject did to it. The digest covers the bytes as substituted.
+        planted = {}
+        for source in sorted(p for p in dirty.rglob("*") if p.is_file()):
+            rel = source.relative_to(dirty)
+            target = workspace / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(source.read_bytes().replace(BASELINE_REVISION.encode("ascii"), revision))
+            shutil.copymode(str(source), str(target))
+            planted[rel.as_posix()] = _digest(target)
+        write(run / "dirty-baseline.json", json.dumps(planted, indent=2) + "\n")
     return workspace
 
 
@@ -227,11 +250,38 @@ def _digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def stage_candidate(run):
+def new_candidate_dir():
+    """Where a tier stages its one candidate, under STAGING so it is outside this
+    repo and swept when a killed tier leaves it behind."""
+    path = STAGING / CANDIDATES / ("%s-%s" % (time.strftime(STAMP_TIME), uuid.uuid4().hex[:8]))
+    path.mkdir(parents=True)
+    return path
+
+
+def stage_candidate(dest, source=None):
+    """Copies the candidate assets of `source` (default: the working tree) into
+    `dest`. A tier calls it once on the tree, before its first cell, so plugin/
+    is free to edit from then on; each cell then copies that staged copy into its
+    own run/candidate, so every cell of the tier runs the same bytes."""
+    source = source or REPO_ROOT
     for rel in CANDIDATE_ASSETS:
-        source, target = REPO_ROOT / rel, run / "candidate" / rel
+        src, target = source / rel, dest / rel
         target.parent.mkdir(parents=True, exist_ok=True)
-        (shutil.copytree if source.is_dir() else shutil.copy2)(str(source), str(target))
+        if src.is_dir():
+            shutil.copytree(str(src), str(target),
+                            ignore=shutil.ignore_patterns("__pycache__", ".DS_Store"))
+        else:
+            shutil.copy2(str(src), str(target))
+
+
+def candidate_digest(path):
+    """sha256 over every file's relative path and bytes, so two runs compare as
+    the same candidate exactly when they ran the same content."""
+    digest = hashlib.sha256()
+    for file in sorted(p for p in path.rglob("*") if p.is_file()):
+        digest.update(file.relative_to(path).as_posix().encode("utf-8") + b"\0")
+        digest.update(file.read_bytes() + b"\0")
+    return digest.hexdigest()
 
 
 def stage_workflows(run, case_dir):
@@ -297,13 +347,23 @@ def sweep(root=None, keep=KEEP, now=None):
     walls after its stamp it cannot be a cell of a tier in flight elsewhere, so it
     lands and its token is cleared. The cells past the newest `keep` go whole -
     a running cell is still under STAGING, never among them. Tiers started
-    together sweep the same cells, so a move the other got to first is done."""
+    together sweep the same cells, so a move the other got to first is done. A
+    staged candidate outlives its stamp by a whole tier, so it is judged by its
+    last touch instead: each cell touches it as it starts, which a live tier does
+    at least once per TIMEOUT."""
     now = time.time() if now is None else now
 
     def stale(cell):
         began = time.mktime(time.strptime(STAMP.fullmatch(cell.name).group(1), STAMP_TIME))
         return now - began > 2 * TIMEOUT
 
+    for orphan in STAGING.glob(CANDIDATES + "/*"):
+        try:
+            idle = now - orphan.stat().st_mtime > 2 * TIMEOUT
+        except FileNotFoundError:
+            continue
+        if idle and STAMP.fullmatch(orphan.name):
+            shutil.rmtree(str(orphan), ignore_errors=True)
     for cell in STAGING.glob("*/*/*"):
         if cell.is_dir() and STAMP.fullmatch(cell.name) and stale(cell):
             try:
@@ -421,16 +481,32 @@ def dartclaw_binary():
     return {"path": path, "version": version, "error": None}
 
 
-def dispatch_env(run, provider):
+def scratch_home(run):
+    """run/home with symlinks to the real HOME's LOGIN_PATHS and nothing else."""
+    real, home = Path(os.environ.get("HOME") or Path.home()), run / "home"
+    for rel in LOGIN_PATHS:
+        if (real / rel).exists() and not (home / rel).exists():
+            (home / rel).parent.mkdir(parents=True, exist_ok=True)
+            (home / rel).symlink_to(real / rel)
+    return home
+
+
+def dispatch_env(run, provider, scratch=False):
     """The operator's own for Claude, whose login resolves from it while its
-    setting sources keep the rest out. Not for Codex: DartClaw builds the
+    setting sources keep the rest out, except HOME for a `scratch` cell and SHELL
+    for every cell: bash, because the Bash tool follows it and zsh differs on
+    `echo ===` and unmatched globs. Not for Codex: DartClaw builds the
     CODEX_HOME it pins by mirroring the operator's ~/.codex plugin tables, so a Codex cell gets
     an empty HOME and the candidate it registered stands alone. The judge step's
     `claude` spawn still needs the operator's real environment, which is what
     _claude_wrapper restores for that one process."""
     if provider != "codex":
-        return dict(os.environ)
+        env = dict(os.environ, SHELL="/bin/bash")
+        if scratch:
+            env["HOME"] = str(scratch_home(run))
+        return env
     env = dict((key, os.environ[key]) for key in ENV_KEYS if key in os.environ)
+    env["SHELL"] = "/bin/bash"
     env["HOME"] = str(run / "home")
     env["CLAUDE_CONFIG_DIR"] = env["CODEX_HOME"] = str(run / "provider")
     return env
@@ -443,7 +519,8 @@ def dispatch(run, provider, config, name, workspace, variables):
     workspace the evaluator reads. The tail's steps read `variables` through
     --var; a bash step's environment is allowlisted down to PATH and its
     neighbours, so a path cannot reach the checks step any other way."""
-    env = dispatch_env(run, provider)
+    scratch = Path(str(variables.get("case_dir", ""))).name in HOME_PROBING_CASES
+    env = dispatch_env(run, provider, scratch)
     command = ["dartclaw-workflow", "--config", str(config), "run", name,
                "--inline", "--force", "--json", "--approvals", "auto"]
     for key, value in variables.items():
@@ -493,7 +570,9 @@ def stage_diff(run, workspace):
     touched = sorted(line.split("\t")[-1] for line
                      in git(workspace, "diff", "--cached", base, "--name-status").split("\n")
                      if line and line[0] in "AM" and line.split("\t")[-1] not in untouched)
-    write(run / "diff.patch", git(workspace, "diff", "--cached", base))
+    # The judge may quote this patch, so a planted file left as found stays out of it.
+    write(run / "diff.patch", git(workspace, "diff", "--cached", base, "--", ".",
+                                  *[":(exclude,literal)" + p for p in sorted(untouched)]))
     # The index was the harness's, not the subject's: an oracle that asks git
     # whether the caller's edit is still dirty must see the tree as it was left.
     git(workspace, "reset", "-q")

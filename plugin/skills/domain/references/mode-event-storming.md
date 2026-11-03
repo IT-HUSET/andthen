@@ -4,7 +4,7 @@ Run a Brandolini event-storming session as a discovery technique. The mode produ
 
 ## Rules
 
-Event storming treats the user as the domain expert. Step 1 (scope + level) and Step 2 (event harvest) are the gates. Ask focused questions when vocabulary or causality is unclear. An unattended run bypasses the gates and records each assumption as a hotspot whose label is its `ASSUMPTION:` line.
+Step 1 (scope + level) and Step 2 (event harvest) are the gates. Ask focused questions when vocabulary or causality is unclear. An unattended run bypasses the gates and records each assumption as a hotspot whose label is its `ASSUMPTION:` line.
 
 Brandolini's color palette – keep colors stable across the report so readers can visually parse the board.
 

@@ -2,11 +2,9 @@
 
 A contested decision gets researched options compared against weighted criteria, so its recommendation rests on evidence rather than a first reading. `COUNT` is the number of alternatives compared – 5 unless the request names one ("compare three options").
 
-## Gates
+## Rules
 
-Two gates need the user's answer: **Step 1** (decision context, candidate options, and weighted criteria – the most load-bearing, because wrong criteria or weights waste Step 3's research) and **Step 5** (the recommendation, asked as the decision's question in the interview).
-
-An unattended run infers both from `INPUT` conservatively, records them in the report under labeled sections (*Decision Context*, *Criteria + Weights*), and lists the open questions.
+An unattended run infers both gates' answers from `INPUT` conservatively, records them in the report under labeled sections (*Decision Context*, *Criteria + Weights*), and lists the open questions.
 
 ## Step 1 – Context, Options, and Weighted Criteria _(gate)_
 
@@ -14,7 +12,7 @@ State the decision context: the core question, constraints, success criteria, an
 
 For a multi-dimensional decision, decompose per `design-tree.md`: the independent dimensions, the viable options per dimension, the incompatible or conditional pairings, then up to `COUNT` candidate solutions from the surviving combinations. A single-dimensional decision lists direct options.
 
-Choose only the criteria that matter for this decision. Present the context, the weighting table (criterion, suggested weight, one-line rationale), and the candidate list for confirm-or-adjust before Step 3 begins.
+Present the context, the weighting table (criterion, suggested weight, one-line rationale), and the candidate list for confirm-or-adjust before Step 3 begins.
 
 ## Step 2 – Design It Twice _(optional)_
 

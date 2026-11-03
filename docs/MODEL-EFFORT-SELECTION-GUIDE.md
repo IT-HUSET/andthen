@@ -1,6 +1,6 @@
 # Model & Effort Selection Guide
 
-How AndThen steers model and reasoning depth across Claude Code and Codex CLI. Principles only – no model version numbers, prices, or benchmark tables (those rot; consult the harness/provider docs for current specifics).
+How AndThen steers model and reasoning depth across Claude Code, Codex CLI, and Copilot CLI. Principles only – no model version numbers, prices, or benchmark tables (those rot; consult the harness/provider docs for current specifics).
 
 ---
 
@@ -9,7 +9,7 @@ How AndThen steers model and reasoning depth across Claude Code and Codex CLI. P
 A subagent's model and effort are set per spawn call – the model where the host's spawn tool offers one, the effort on Codex – or pinned once by an agent definition loaded at session start. AndThen therefore ships its delegation policy in two parts:
 
 - **The Subagent Model Policy** (in the CRITICAL-RULES guideline `init` places in project or user rules) routes by task, on two questions: how pinned is the scope, and how much judgment does it take. Judgment work – orchestration, planning, spec authoring, architecture, design, ambiguous or creative work – stays in the **session**, whose model the user chose for exactly that; nothing routes above it.
-- **Four opt-in role agents**, installed by `andthen:init` at user or project level in both host formats (`.md` for Claude Code, `.toml` for Codex). Each definition pins the model and effort currently recommended for the tier the policy routes to it. A tier is a capability class, not a fixed model, so two roles can share one:
+- **Four opt-in role agents**, installed by `andthen:init` at user or project level in each host's format (`.md` for Claude Code, `.toml` for Codex, `.agent.md` for Copilot). Each definition pins the model and effort currently recommended for the tier the policy routes to it. A tier is a capability class, not a fixed model, so two roles can share one:
 
 - **`oracle`** – S-tier model. Judgment work the user assigns it, and hard problems an agent hands over because they exceed its tier – the hand-over states what was tried, what every attempt assumed, and what stays unexplained. Never self-selected for routine judgment, never an agent's consult – a second opinion on a decision is the user's to ask for.
 - **`implementer`** – A-tier model. One fully specified unit: executing a story or spec, authoring a plan story's FIS, research that weighs or synthesises.
@@ -33,7 +33,7 @@ Effort is a **behavioral signal, not a hard token cap** – even at `low`, the m
 | **low** | Minimal thinking, max speed. | Retrieval, doc-lookup, scanning, formatting, trivial edits, high-volume parallel leaves |
 | **medium** | Balanced – thinks when useful. The default. | Routine coding, tests, docs, reviews |
 | **high** | Almost always thinks deeply. | Story and spec execution, subtle debugging |
-| **xhigh / max** | No constraints on depth. (`max` is Anthropic-only; Codex tops out at `xhigh`.) | The session's own judgment work: planning, architecture, design, trade-offs/ADRs, the hardest one-off decisions |
+| **xhigh / max** | No constraints on depth. (Which levels above `high` a model accepts varies by provider and model, so check before pinning one.) | The session's own judgment work: planning, architecture, design, trade-offs/ADRs, the hardest one-off decisions |
 
 ---
 
@@ -49,11 +49,15 @@ The session model is the user's choice (`/model`, `claude --model`, the alias sy
 
 The session/profile (`codex --profile X`, `-m`) is the user's model choice; `model_reasoning_effort` sets depth. Role definitions are `.toml` files under the Codex agents directory; Codex has no `inherit` sentinel, so omitting `model` *is* the inherit signal – the shape the generic fallback relies on.
 
+### Copilot CLI
+
+The session model is the user's choice (`/model`, `copilot --model`, `--reasoning-effort`). Role definitions are `.agent.md` files with `model:` and `reasoning-effort:` frontmatter (kebab-case; `reasoningEffort` is silently ignored). A `model:` list loads as the first model plus fallbacks. An effort the model does not support draws a warning and keeps the session's effort rather than failing.
+
 ---
 
 ## Durable principles
 
-- **The shipped pins are recommendations, as of each template's last change.** A template's model and effort were the best fit for its tier when the file last changed (`git log` on `plugin/skills/init/templates/agents/`), and both providers change their lineups between AndThen releases, so re-check every pin when either ships or reprices a model, and before a release. On Claude the templates name family aliases, which float within a family; which family serves which tier is part of the recommendation. Codex has no aliases, so its templates name the current model per tier and are the one place a model name is executable config. Dated *version IDs* stay out of everything else.
+- **The shipped pins are recommendations, as of each template's last change.** A template's model and effort were the best fit for its tier when the file last changed (`git log` on `plugin/skills/init/templates/agents/`), and both providers change their lineups between AndThen releases, so re-check every pin when either ships or reprices a model, and before a release. A tier goes to the model that performs best today, not the one the provider prices highest or labels frontier: a newer generation's workhorse can outrank an older flagship, which is why the S-tier pins name one. On Claude the templates name family aliases, which float within a family; which family serves which tier is part of the recommendation. Codex has no aliases, so its templates name the current model per tier and are executable config. Copilot's templates name a priority list of one Anthropic and one OpenAI model per tier, because which models a Copilot user may select depends on their plan and organization policy, and a single pin the user cannot select is unusable. Dated *version IDs* stay out of everything else.
 - **Calibrate effort per host; write it only in the templates.** Providers' models differ in capability, so one effort level lands a tier at different strengths, and each host's template pins its own model and effort for the tier. A role description, the Subagent Model Policy, or a doc that repeats a level goes stale at the next recalibration.
 - **The session model is the single deliberate knob.** Choose it consciously: it is the ceiling for every generic delegation, and judgment work never leaves it. If the session runs a 1M-context variant, fan-out leaves inherit that too – so pick the session variant with fan-out cost in mind, not just the orchestrator's needs.
 - **Adaptive thinking > static budgets.** On current models, interleaved thinking between tool calls matters more for agentic work than a high effort floor everywhere. The roles set a floor per task shape; they do not force high effort on routine work.

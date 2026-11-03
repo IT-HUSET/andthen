@@ -1,5 +1,5 @@
 ---
-description: Validate UI screenshots and run visual regression checks against wireframes or design specs, or set up the project's capture procedure; wireframe authoring is the andthen:ui-ux-design skill. Trigger on 'visual validation', 'check UI against design', 'set up visual validation'.
+description: Validate UI screenshots and run visual regression checks against mockups, wireframes, or design specs, or set up the project's capture procedure; design authoring is the andthen:ui-ux-design skill. Trigger on 'visual validation', 'check UI against design', 'set up visual validation'.
 argument-hint: "[--mode setup] [<screens-or-states-to-validate>] [design-reference/baseline]"
 ---
 
@@ -9,24 +9,26 @@ Validate built UI against its design references, listing the differences before 
 
 ## Input
 
-`$ARGUMENTS` minus flags names the screens, states, URLs, screenshots, wireframes, baselines, or design requirements to validate.
+`$ARGUMENTS` minus flags names the screens, states, URLs, screenshots, Mockups, wireframes, baselines, or design requirements to validate.
 
 - `--mode setup` authors the project's `Visual Validation` document, once per project, and judges nothing: read [`setup.md`](references/setup.md) and follow it.
 
 ## Rules
 
-- Inspect and capture within the current git root.
-- `Visual Validation`, `Wireframes`, `Design System`, and `Key Dev Commands` are Project Document Index entries.
+- `Visual Validation`, `Mockups`, `Wireframes`, `Design System`, and `Key Dev Commands` are Project Document Index entries.
 
 ## Workflow
 
 ### 1. Scope and references
 
-Read the `Visual Validation` document (default `docs/VISUAL-VALIDATION.md`) first. Its procedure replaces the fallback in Steps 1 and 2, gates included; the Evidence rule, Step 3 with its gate, and the Output hold either way. A missing document is not an error: the fallback stands in.
+Read the `Visual Validation` document (default `docs/VISUAL-VALIDATION.md`) first. Its procedure replaces the fallback in Steps 1 and 2, gates included; the Evidence rule, Step 3 with its gate, and the Output hold either way.
 
 Scope is the states the work under validation touched, non-default states included, at the breakpoints the project names. With no change named, it is the states users depend on.
 
-Fallback: identify the baselines, wireframes, design references, or acceptance criteria for every state in scope, consulting the `Wireframes` and `Design System` documents.
+A state is judged against its own feature's Mockup at the `Mockups` location, layout included, else its own feature's wireframe.
+Another feature's Mockup or wireframe is never the reference.
+
+Fallback: identify the baselines, Mockups, wireframes, design references, or acceptance criteria for every state in scope, consulting the `Mockups`, `Wireframes`, and `Design System` documents.
 
 **Gate**: every state in scope is paired with the reference it will be judged against, or with a note that it has none.
 
@@ -46,6 +48,8 @@ Select capture and comparison tooling from what the environment already provides
 2. Classify each one P1, P2, P3, or as a deviation a named decision allows.
 
 With no reference, the defect sweep runs alone, against the design contract. Either way, judge what no reference shows: hierarchy and spacing, readability and contrast, touch-target size, state and focus treatment, responsive behavior, and whether the primary action is obvious and input gets a visible response.
+
+Where a Mockup's colours, type, or sizes differ from the current `Design System`, judge those values against the design system, because a Mockup is frozen at the design system it was built on.
 
 Use pixel comparison when trustworthy baselines exist, and decide whether the diff matters to user intent.
 

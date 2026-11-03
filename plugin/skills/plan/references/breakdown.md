@@ -6,7 +6,7 @@ Turn a written source into `plan.json` per `plan-schema.md` and one reviewed, pr
 
 ### 1. Read the source
 
-`OUTPUT_DIR` is the directory the skill's Output names for the source. Route each asset the stories build on – beside the source, or at the `Decisions`, `Design System` and `Wireframes` entries – to the `assetRefs` of the stories that need it, so no story's spec re-reads every ADR. Module and context boundaries are in the `Models` Index entry's `architecture-model.json` and the `Domain Map` document, where present. An Index entry still named `Context Map` is read as the `Domain Map`.
+`OUTPUT_DIR` is the directory the skill's Output names for the source. Route each asset the stories build on – beside the source, or at the `Decisions`, `Design System`, `Mockups` and `Wireframes` entries – to the `assetRefs` of the stories that need it, so no story's spec re-reads every ADR. Module and context boundaries are in the `Models` Index entry's `architecture-model.json` and the `Domain Map` document, where present. An Index entry still named `Context Map` is read as the `Domain Map`.
 
 Ask every gap the cut or a story's intent turns on, at requirements altitude – the outcome or user-visible end state, an actor, a threshold, an unhappy path – in one round per `preflight.md`'s sitting before any story is authored, since story subagents cannot ask. An answer is a requirement the stories are cut from: it goes into `prd.md` through the `andthen:clarify` skill's amendment for a `prd.md` source, else into `sharedDecisions` or the story's brief, since those are all a story subagent reads.
 
@@ -26,8 +26,6 @@ Write `OUTPUT_DIR/plan.json` per `plan-schema.md`, with its two optional arrays:
 
 - `sharedDecisions`: one entry per real cross-story contract, an interface, name or abstraction two stories must agree on. Zero or one is normal, and an invented entry binds every story downstream.
 - `bindingConstraints`: a pointer to each at-risk "must" or "must not" span in the source, never its text.
-
-Check each candidate against `plan.schema.json`, and never write one that fails.
 
 ### 4. Author the FIS
 
@@ -57,13 +55,8 @@ Integrate each answer yourself where it is owned:
 - Cross-story contract → `sharedDecisions`.
 - Story-local → its FIS.
 
-A stop Preflight settles for a person's look lives in the follow-up line, never a plan status.
-
 **Gate**: every item decided or assumed; every story has a FIS.
 
 ## Follow-up
 
-Close on Preflight's Ending, when it ran, with the `plan.json` path before its one `Next (fresh session):` line, for the first case that applies. `<PLAN_DIR>` is `OUTPUT_DIR`, relative to the project root.
-
-- **Preflight settled a stop for a person's look** – the `andthen:exec-plan` skill on that story's FIS path (its dependencies first); look at the result, then run it on `<PLAN_DIR>`.
-- **Otherwise** – the `andthen:exec-plan` skill on `<PLAN_DIR>`, with `--worktree` to run independent stories in parallel, one worktree each, when the dependency graph lets two or more stories run at once.
+Close on Preflight's Ending, when it ran, with the `plan.json` path before its one `Next (fresh session):` line: the `andthen:exec-plan` skill on the first dependency-ready story's FIS, relative to the project root. Each direct story run names the next, so a person reads every result, and any stop Preflight settled for their look, before the next story runs.

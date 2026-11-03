@@ -19,7 +19,6 @@ Every run reads [`verification-evidence.md`](../../references/verification-evide
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
-- **Preserve exact behavior** – change only *how* the code works, never *what* it does, unless explicitly requested.
 - **Scope stays the user's** – this is Boy Scout cleanup inside the requested scope. Widening to an adjacent module mid-flow is the named failure mode; that module is a separate run.
 - Observable or exported removals are `behavior-affecting`: propose them, require explicit approval.
 - **Architecture.** A cleanup that would move code across a component boundary – checked against the `Architecture` document (**Project Document Index**) only when a candidate would – belongs in the `andthen:architecture` skill first, not in this run.
@@ -29,7 +28,7 @@ Every run reads [`verification-evidence.md`](../../references/verification-evide
 
 ### 1. Scope & Baseline
 
-1. Resolve scope in precedence order, and treat the result as authoritative:
+1. Resolve scope in precedence order:
    1. `PATH_SCOPE`.
    2. Described files – analyze the codebase to identify matches.
    3. The current branch diff against its base/upstream (fall back to `git diff HEAD`).
@@ -37,7 +36,7 @@ Every run reads [`verification-evidence.md`](../../references/verification-evide
 
    In an unattended run, the diff/conversation fallback is defensible only when it yields a non-empty, cohesive set; otherwise stop rather than simplifying against noise.
 2. Resolve the project's check commands per `verification-evidence.md`; they serve both this baseline and Step 4. A green gate result the invocation hands over for this tree is the baseline; otherwise run them and record the result.
-3. The governing FIS is the Intent anchor: the one the arguments name, each FIS of a plan they name, else the one discoverable for the scope's paths. Read its `What We're NOT Doing` and `Architecture Decision` sections, and the PRD or `Product` document only where it cites them: the FIS already carries what binds from them. With none, record `Intent Context: none discoverable` in the completion summary: Step 2 falls back to code-quality heuristics alone.
+3. The governing FIS is the Intent anchor: the one the arguments name, each FIS of a plan they name, else the one discoverable for the scope's paths. Read its `What We're NOT Doing` and `Architecture Decision` sections, and the PRD or `Product` document only where it cites them: the FIS already carries what binds from them. With none, record `Intent Context: none discoverable` in the completion summary.
 
 **Gate**: scope defined, baseline recorded, Intent anchor read or recorded as absent.
 
@@ -57,7 +56,7 @@ Every run reads [`verification-evidence.md`](../../references/verification-evide
 
 Remove only complexity proved inert across its real boundary. One caller or overlapping coverage is not proof (Chesterton's Fence).
 
-Produce a prioritized list of improvements, then proceed with the conservative, lowest-risk subset. Drop genuinely risky or scope-widening items, and record the deferred items in the completion summary.
+Produce a prioritized list of improvements, then proceed with the conservative, lowest-risk subset. Defer risky or scope-widening items.
 
 **Gate**: every candidate is applied-next, deferred, or `dropped:` with its anchor, and the deferred and dropped ones are recorded.
 
@@ -72,10 +71,7 @@ Execute improvements from the prioritized list:
 
 ### 4. Verification
 
-With the relevant `Key Dev Commands` resolved in Step 1:
-
-1. **Linting/types**: run full-project typecheck and lint when configured.
-2. **Tests**: run tests scoped to changed paths when the runner supports it; broaden to the full suite when the changed code is shared or hot-path.
+Re-run the checks the baseline ran.
 
 **Gate**: every check the baseline had green still passes, no new lint/type errors, and a check already failing at the baseline is reported, not fixed. A cleanup that turns a check red is edited back, never fixed forward, because behavior is the contract.
 

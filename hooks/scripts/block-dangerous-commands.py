@@ -62,7 +62,7 @@ FORMAT_DISK = (
 INVOKE_EXPRESSION = r"(?i)\|\s*iex\b|\biex\s*[($\"']|\binvoke-expression\b"
 
 HARDCODED_DEFAULTS = [
-    (RM_RECURSIVE_FORCE, "Recursive force delete blocked."),
+    (RM_RECURSIVE_FORCE, "Recursive force delete blocked. Delete a tree with `rm -r <dir>` (no -f)."),
     (REMOVE_ITEM_RECURSE_FORCE, "Recursive force delete blocked."),
     (CMD_DELETE_TREE, "Recursive force delete blocked."),
     (FORCE_PUSH, "Force push blocked."),
@@ -197,10 +197,67 @@ def split_commands(cmd):
     return re.split(r"\s*(?:&&|\|\||[;\n]|(?<![<>&])&(?![>&]))\s*", cmd)
 
 
+# A quoted string, `$((...))` or comment (skipped whole, so `echo '<<EOF'` opens no heredoc) or a
+# heredoc operator; `<<<` is a here-string, not a heredoc. Group 1 is `-` (tabs stripped); the
+# delimiter is group 2 (`\TAG`), 3 (`'TAG'`), 4 (`"TAG"`) with no expansion in the body, or 5
+# (`TAG`) with it.
+HEREDOC_OPERATOR = re.compile(
+    r"\\.|'[^']*'|\"(?:[^\"\\]|\\.)*\"|\$\(\([^)]*\)\)|(?<![^\s;&|(])#.*|(?<!<)<<(?!<)(-?)\s*(?:\\(\w+)|'(\w+)'|\"(\w+)\"|(\w+))")
+# A shell reading its commands from stdin runs the body: a shell name, `$SHELL`, or `.` as a command.
+SHELL_READER = re.compile(
+    r"(?<![\w.-])(?:bash|sh|zsh|dash|ksh|fish|source)\b|\$\{?(?:SHELL|BASH)\b|(?:^|[;&|(]\s*)\.\s")
+# What still executes in an unquoted body, which expands $(...) and backticks.
+EXPANSION = re.compile(r"\$\([^)]*\)?|`[^`]*`?")
+
+
+def without_heredoc_bodies(command):
+    """Drop heredoc bodies, which are data (script text, commit messages) and made the patterns
+    fire on what they merely mention. Kept: a body a shell reads, and in an unquoted body the
+    $(...) and backtick expansions, which run. Fails closed: a body is dropped only once its
+    terminator line is found, so an operator with no terminator line hides nothing."""
+    lines = command.split("\n")
+    kept, i = [], 0
+    while i < len(lines):
+        line = lines[i]
+        kept.append(line)
+        i += 1
+        pending = []
+        bodies = []
+        for m in HEREDOC_OPERATOR.finditer(line):
+            if m.lastindex:
+                pending.append((m.group(1), m.lastindex != 5, m.group(m.lastindex)))
+        for strip_tabs, no_expansion, tag in pending:
+            body, end = [], i
+            while end < len(lines):
+                text = lines[end].rstrip("\r")
+                end += 1
+                if (text.lstrip("\t") if strip_tabs else text) == tag:
+                    break
+                body.append(text)
+            else:
+                kept.extend(lines[i:])
+                return "\n".join(kept)
+            i = end
+            bodies.append((no_expansion, body))
+        # A reader on the operator's line (`cat <<EOF | sh`), on the next one after a trailing `|`
+        # or `\` or after the closing `)`/`}` of a group (`{ cat <<EOF ... } | sh`) runs the body.
+        after = lines[i] if i < len(lines) else ""
+        runs = bool(SHELL_READER.search(line) or line.rstrip().endswith(("|", "\\"))
+                    or (re.match(r"\s*[)}]", after) and SHELL_READER.search(after)))
+        for no_expansion, body in bodies:
+            if runs:
+                kept.extend(body)
+            elif not no_expansion:
+                kept.extend(e for text in body for e in EXPANSION.findall(text))
+    return "\n".join(kept)
+
+
 def check_command(command, patterns, readings=(POSIX,)):
     """Check a command against all blocked patterns. Returns (blocked, message) or (False, None)."""
     for quoted, flags, continuation in readings:
-        for segment in split_commands(empty_literals(continuation.sub(" ", command), quoted)):
+        # PowerShell has no heredocs; its here-strings are quoted text the patterns skip.
+        text = without_heredoc_bodies(command) if continuation is POSIX[2] else command
+        for segment in split_commands(empty_literals(continuation.sub(" ", text), quoted)):
             segment = segment.strip()
             if not segment:
                 continue

@@ -51,7 +51,7 @@ Then remove the two Index entries and only the AndThen files they point at. A sa
 
 - **A 0.x plan** (schema v1 `plan.json` or markdown `plan.md`, with its FIS files): `git mv` the old plan and its FIS files into a `0.x/` folder beside the PRD, since the new files take their paths. If some stories are already implemented, mark them out of scope in the PRD. Then run `/andthen:plan <feature-dir>`. It works from the PRD alone, so a decision an old FIS settled comes back as a question; answer it from `0.x/`. Delete `0.x/` once the new bundle is in place.
 - **A standalone 0.x FIS** (no `**Plan**:` line under its title): move it into a `0.x/` folder, then run `/andthen:plan` on its requirements source – or, with the source gone, on the moved FIS as a requirements file, so what it settled carries over. Delete the old file once the new FIS and its one-story plan are in place.
-- **An unfinished `plan.json` from a 1.0 release candidate** needs no re-spec: run `/andthen:exec-plan` on its directory as it stands, since an older status such as `spec-ready` reads as `pending`.
+- **An unfinished `plan.json` from a 1.0 release candidate** needs no re-spec: run `/andthen:exec-plan` as it stands on the story `/andthen:now-what` names, since an older status such as `spec-ready` reads as `pending`.
 
 
 ## The migration prompt
@@ -117,7 +117,7 @@ reset item.
 |---|---|
 | `prd`, in every form | Retired. `/andthen:clarify <same source>` writes the PRD. It has no non-interactive form: an unattended pipeline starts at `/andthen:plan` from the requirements file or issue. |
 | `remediate-findings` | `/andthen:implement-fix <report>` – same six phases, Fix bar, and `## Remediation Status` annotation. |
-| `quick-implement`, its `--tdd` flag, and its commit/PR creation | `/andthen:implement-fix "<request>"`, which treats your sentence as its whole Fix set. For strict TDD, use `/andthen:testing --mode tdd`. The verified change is left in the working tree; `/andthen:ship` commits it and opens the PR, with one confirmation before the push. |
+| `quick-implement`, its `--tdd` flag, and its commit/PR creation | `/andthen:implement-fix "<request>"`, which treats your sentence as its whole Fix set. For test-first, require it in your `Testing Strategy` document (`/andthen:testing --mode strategy` asks) or ask for it in the request. The verified change is left in the working tree; `/andthen:ship` commits it and opens the PR, with one confirmation before the push. |
 | `quick-review` | `/andthen:review`. A story's own review runs the quick pass inside `/andthen:exec-plan`, applying Fix-routed findings inline as `quick-review --fix` did. The `commit <sha>` shorthand has no replacement: pin the commit with your Git tooling, then give the review its diff and changed files as explicit scope. |
 | `preflight`, Persisted Decision Blocks, `Preflight:` | Now the Preflight step that closes `/andthen:plan`, ending on the next command. There is no verdict line and no held story: in an unattended run, or when a question goes unanswered, the recommendation becomes an `ASSUMPTION:` in the FIS. |
 | `refactor` | `/andthen:simplify-code` |
@@ -150,7 +150,7 @@ The `ops` skill and its script are gone. The session running a plan edits `plan.
 |---|---|
 | `quick-implement --issue <number>` | Fetch and review the issue through your tracker, then pass the approved small-fix requirements inline to `/andthen:implement-fix`; `/andthen:ship` commits and pushes it, with one confirmation before the push. For larger work, pass the issue URL to `/andthen:plan`. |
 | `--issue <number>` | Pass the full issue URL positionally to `/andthen:clarify`, `/andthen:plan`, or `/andthen:triage`. |
-| `--from-issue` | No reverse-sync mode. Pass the issue URL to `/andthen:plan`, then run `/andthen:exec-plan` on the plan directory. |
+| `--from-issue` | No reverse-sync mode. Pass the issue URL to `/andthen:plan`, then run `/andthen:exec-plan` on the FIS its `Next` line names. |
 | `--create-story-issues`, or publishing a local plan as tracker work | `/andthen:tracker publish <plan.json>` creates the parent and child issues and updates them on a re-run. |
 | `--to-issue` | No general publisher. For a plan bundle, use tracker `publish`. Publish a PRD, report, or triage artifact yourself through your tracker or host CLI after reviewing it. |
 | `--to-pr` | No report or comment publisher. A PR is a review target – `/andthen:review "PR <number>"`; post output through the host yourself if wanted. |

@@ -1,0 +1,4 @@
+{"criteria": [
+  {"id": "CHANGE_DRAWS_NO_FIX", "intent": "No finding located in the uncommitted change - `truncate_label` and `ELLIPSIS` in src/reporter/text_tools.py, its tests in tests/test_text_tools.py, or the text_tools row of docs/ARCHITECTURE.md - carries `Routing:` Fix. A report with no finding there passes; quote the report's Findings text."},
+  {"id": "SEEDED_FLAWS_STAY_PRE_EXISTING_NOTES", "intent": "Every finding that names code outside the change - the ValueError escaping cli.main, records.py importing DELIMITER from export.py, export_csv emitting ledger order, write_report taking --name unchecked, the fixed one-second retry pause - has `Scope relation`: pre_existing and `Routing:` Note; none is `primary` or Fix. A report naming none of them passes; quote the report's Findings text."}
+]}

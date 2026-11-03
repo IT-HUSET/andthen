@@ -4,8 +4,6 @@ Canonical schema for the typed architecture model, written by the `andthen:descr
 
 **Machine form.** `architecture-model.schema.json` beside this file (JSON Schema draft 2020-12) is the shape contract; this reference carries the semantics no schema can state.
 
-> **A model, not a ledger or a dump.** Treating it as a ledger invites appended status and history; treating it as a dump invites every file the scanner found. It is a *description of what exists* – small, typed, and refutable against the source it points at.
-
 ## Contents
 
 - Document shape – `meta`, `contexts[]`, `nodes[]`, `edges[]`, `tours[]`

@@ -15,10 +15,9 @@ A **spike** answers exactly one design question with throwaway runnable code.
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
-- **Evidence, not product.** Spike code **never merges and is never reused directly**. Reusing it would carry the shortcuts a spike is allowed to take – skipped tests, hard-coded inputs, ignored edge cases – into production. The real implementation is authored fresh through the spec-driven path, informed by the verdict.
+- **Evidence, not product.** Spike code **never merges and is never reused directly**. Reusing it would carry the shortcuts a spike is allowed to take – skipped tests, hard-coded inputs, ignored edge cases – into production.
 - **The caller's checkout is not yours.** Other work – the user's dirty files, a concurrent session's edits – lives in the checkout you were invoked from, so the spike runs in its own worktree with every file-writing tool bound to that root. Never stash, clean, switch, or stage the caller checkout: a stash or `git add -A` there swallows work that arrived after you looked. If isolation cannot be established, stop before writing anything.
 - **Exempt from testing and review discipline.** The code is throwaway, so the test-first, review, and coverage gates do not apply: optimize for reaching the answer fast.
-- **Bounded and honest.** Build the smallest thing that produces the deciding observation. Measure, don't assert: for "faster", produce numbers; for "feasible", produce it working or the concrete wall it hit. State what the spike did not cover.
 
 ## Workflow
 
@@ -46,15 +45,13 @@ Restate the one design question and the outcome that would answer it: a number, 
 
 Write the smallest spike that produces the deciding observation, run it, and capture the evidence: numbers, output, the error it hit.
 
-Commit the files the spike owns by path, bypassing repo hooks, since throwaway code must not fight them: `git add <spike paths> && git commit --no-verify -m "spike: <question>"`. A question answered without code, with nothing to commit, is fine: note it in the Verdict's Evidence instead.
+Commit the files the spike owns by path, bypassing repo hooks, since throwaway code must not fight them: `git add <spike paths> && git commit --no-verify -m "spike: <question>"`.
 
 **Gate**: the question is answered by something that actually ran, and any spike code is committed on `spike/<slug>`.
 
 ### 4. Return and report
 
-Remove the worktree and keep the branch: `git worktree remove <spike root>`, with `--force` only for build artifacts and scratch output that reproduce nothing. Report a removal failure; never work around it with a clean or checkout in the caller checkout. The spike stays on `spike/<slug>` as durable evidence, never merged.
-
-Emit the Spike Verdict, as under Output.
+Remove the worktree and keep the branch: `git worktree remove <spike root>`, with `--force` only for build artifacts and scratch output that reproduce nothing. Report a removal failure; never work around it with a clean or checkout in the caller checkout.
 
 **Gate**: the worktree is removed or its removal failure reported; `spike/<slug>` still exists, unmerged, carrying everything the Verdict's Evidence cites; the Spike Verdict is emitted.
 

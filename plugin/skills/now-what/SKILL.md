@@ -18,7 +18,6 @@ Inspect project state and route the user to the one AndThen skill that fits next
 - **Detect first, ask second.** Ask only what state cannot reveal: the user's actual idea or framing.
 - **Two questions at most, never a menu.** One to hear the idea, one to disambiguate, then commit.
 - **One handoff per invocation.** For a sequenced route, recommend the first hop and have the user invoke the `andthen:now-what` skill again; never auto-chain.
-- **One line per recommended skill.**
 - **Use the user's words, not workflow vocabulary.** A first-time user does not know "FIS" or "PRD": introduce the term at handoff.
 
 ## Workflow
@@ -28,9 +27,16 @@ Inspect project state and route the user to the one AndThen skill that fits next
 - **Setup** – the host loads the root instruction file into your context; never read it from disk. None reached you → `setup: not-started`. It lacks the `## Project Document Index` or `## Project-Specific Guidelines and Rules` heading → `setup: partial`.
 - **Codebase** – `git ls-files` count and extension distribution; the rough cut is >50 tracked files with substantive code extensions. Substantial code and no map → `codebase: brownfield-unmapped`. A map at its **Project Document Index** location – a filled-in `Architecture` document, or `requirements-discovered.md` / `decisions-discovered.md` – → `codebase: brownfield-mapped`.
 - **Workflow** – read the **Project Document Index** and check its paths for any of these; any → `workflow: mid-flow`, the position inferred from the artifact type:
-  - `intent.md`, `prd.md`, `plan.json`, FIS files (`s[0-9][0-9]-*.md`)
-  - review reports with unaddressed findings (`*-review-*.md`; a clean or remediated report alone is retained evidence, not active state)
-  - the most recent architecture or domain report (`*-architecture-*.md`, `*-domain-*.md`) and ui-ux-design output (wireframes, design system)
+  - `intent.md`, `prd.md`, `plan.json`, FIS files (`s[0-9][0-9]-*.md`), except in a `superseded/` folder
+  - review reports with unaddressed findings (`*-review-*.md`; a clean or remediated report alone, or one whose `**Target**` names a `plan.json` that no longer exists at its repo-relative path, is retained evidence, not active state)
+  - the most recent architecture or domain report (`*-architecture-*.md`, `*-domain-*.md`)
+  - ui-ux-design output (wireframes, Mockups, design system) that differs from the default branch's, until it is implemented and any wireframes or Mockups among it are visually validated on this branch, because merged or finished output is a standing document
+
+  A plan bundle is a **shipped record** when either holds:
+  - its `plan.json` carries `shipped`
+  - it has no `plan.json`, and its `prd.md` header carries a `**Shipped**` line
+
+  A shipped record counts nowhere, here or in any Branch D row, nor does any other file in its directory or the requirements file its `prd` names, because `ship` deletes the rest of a bundle and keeps the requirements file.
 
 **2. Pick the branch.** First matching row wins; ends on one branch:
 
@@ -76,16 +82,16 @@ First match wins, top-down. *The plan review* is the latest review report beside
 When every plan story is `done` or `skipped`, read [`plan-schema.md`](../../references/plan-schema.md) § Shipping for readiness.
 
 - **`intent.md` present, no sibling `prd.md` or `plan.json`** – the `andthen:clarify` skill, which folds it into the PRD.
-- **`prd.md` exists, no `plan.json`** – the `andthen:decide` skill when it leaves open a design fork the `Decisions` document does not settle; else the `andthen:ui-ux-design` skill when its `Decisions Log` puts design before planning and no wireframes cover it yet; else the `andthen:plan` skill.
-- **`plan.json` with a story neither `done` nor `skipped`** – the `andthen:exec-plan` skill: on the FIS for a one-story plan, else on the plan directory.
-- **Review report present (any lens) with findings and no `## Remediation Status`** – the `andthen:implement-fix` skill.
+- **`prd.md` exists, no `plan.json`** – the `andthen:decide` skill when it leaves open a design fork the `Decisions` document does not settle; else the `andthen:ui-ux-design` skill when its `Decisions Log` puts design before planning and no wireframes or Mockups cover it yet; else the `andthen:plan` skill.
+- **`plan.json` with a story neither `done` nor `skipped`** – the `andthen:exec-plan` skill on the FIS of the first dependency-ready story in source order; with none, on the plan directory.
+- **Review report present (any lens) with findings and no `## Remediation Status`, not retained evidence** – the `andthen:implement-fix` skill.
 - **Every plan story `done` or `skipped`, and no plan review yet, or its `## Remediation Status` marks a CRITICAL or HIGH finding RESOLVED or a Fix finding PARTIALLY RESOLVED** – the `andthen:review` skill on `<plan.json>` with `--fix`, because fixes need a reading their own session did not write.
 - **Every plan story `done` or `skipped`, and the plan review has a CRITICAL or HIGH finding `DEFERRED`** – `Next: blocked –`; once the user decides, the `andthen:implement-fix` skill on the report, carrying that decision.
 - **Every plan story `done` or `skipped`, and the plan review reports a failing load-bearing check** – name the check and route to the `andthen:triage` skill with the failure and review report.
 - **Every plan story `done` or `skipped`, otherwise** – if § Shipping holds, the branch is ready: the `andthen:ship` skill. Else `Next: blocked –` with the unmet condition.
 - **Architecture or domain report present (any mode), its recommended next step not yet taken** – that step, else the `andthen:decide` skill on the report.
-- **UI/UX wireframes or design-system output, no plan** – the `andthen:plan` skill on the requirements they were drawn from.
-- **UI/UX wireframes implemented, no visual validation on this branch** – the `andthen:visual-validation` skill.
+- **UI/UX wireframes, Mockups, or design-system output not yet implemented, no plan** – the `andthen:plan` skill on the requirements they were drawn from.
+- **UI/UX wireframes or Mockups implemented, no visual validation on this branch** (no captures newer than the implementation, where the `Visual Validation` document puts them, else in `.agent_temp/validation/`) – the `andthen:visual-validation` skill.
 - **User says "stuck" with mid-flow state** – ask: "What did you last do, and what's not behaving as expected?"
 
 ## Output

@@ -24,7 +24,7 @@ Detect a monorepo or workspace. When one is found, list the workspace tool and s
 Spawn parallel subagents, each prompt carrying its task and a scope that is read-only on source: a subagent writes only the output files its brief names, such as its document or `architecture-model.json`.
 
 - **Small retrieval** – the command inventory (2c), when tightly scoped: a `worker`.
-- **High judgment** – everything else: architecture with its testing overview, boundary analysis, conventions synthesis, and requirements and decision discovery. Always a generic inherited subagent, since judgment keeps the session's model; never downshift these as scanning.
+- **High judgment** – everything else: architecture with its testing overview, boundary analysis, conventions synthesis, and requirements and decision discovery. Always a generic inherited subagent, since judgment keeps the session's model.
 
 A subagent briefed to write a derived document carries the Regeneration contract in its brief: an analyst who never sees it overwrites the file it was meant to merge into.
 
@@ -99,7 +99,7 @@ In a monorepo, write a lightweight agent instruction file, matching the root cho
 
 Print each output file's path relative to the project root, the Architecture Model JSON included when emitted; under `MODEL_ONLY`, print only the model's path.
 
-The discovered requirements and decisions are for team review, and `decisions-discovered.md` is promoted into `DECISIONS.md` once confirmed.
+`decisions-discovered.md` is promoted into `DECISIONS.md` once the team confirms it.
 
 ## Follow-up
 

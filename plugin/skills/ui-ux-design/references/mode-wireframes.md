@@ -5,8 +5,7 @@ Turn feature requirements into simple HTML wireframes that capture the key layou
 Bound from `ARGUMENTS`:
 
 - `REQUIREMENTS` – required: an inline description, a file path, or a PRD reference.
-- `DESIGN_DIR` – optional: a design system directory or concept inputs, noted when it exists.
-- `OUTPUT_DIR` – the `Wireframes` document location (default `docs/wireframes`).
+- `OUTPUT_DIR` – `<Wireframes location>/<feature>/` (default location `docs/wireframes`), the feature named as `REQUIREMENTS` names it.
 
 **100% page coverage**: an un-wireframed page becomes an un-designed surface downstream, so every distinct page and state in the inventory gets its own wireframe.
 
@@ -22,12 +21,9 @@ Extract every page and screen from `REQUIREMENTS`, including modal and overlay s
 # Page Inventory
 ## Pages to Wireframe
 1. [page-name] - [brief description]
+## Shared Navigation and Page Chrome
 ## Total: [N] wireframes required
 ```
-
-#### 1.2 Key patterns
-
-Note the navigation structure, key content blocks and their hierarchy, primary user actions and CTA placement, and responsive requirements (mobile, tablet, desktop).
 
 **Gate**: `page-inventory.md` lists every page and distinct state.
 
@@ -41,7 +37,10 @@ Basic grayscale HTML layouts: major sections and their placement, key containers
 
 #### 2.2 Parallel creation
 
-The pages are independent, so fan out one implementer subagent per inventory page, concurrently. Each gets its page only and never re-enters this mode: a child re-entering the mode would rebuild the inventory and re-run validation once per page. Give each one 2.1's HTML structure verbatim, its `OUTPUT_DIR/[page-name].html` target, the page's name and purpose, its key content and sections, its navigation context, and its responsive requirements. It writes that page's HTML and returns the path.
+The pages are independent, so fan out one implementer subagent per inventory page, concurrently.
+Each gets its page only and never re-enters this mode: a child re-entering the mode would rebuild the inventory and re-run validation once per page.
+Give each one 2.1's HTML structure and the inventory's Shared Navigation and Page Chrome verbatim, its `OUTPUT_DIR/[page-name].html` target, the page's name and purpose, its key content and sections, and its responsive requirements.
+It writes that page's HTML and returns the path.
 
 **Gate**: every page in the inventory has a wireframe, none skipped for seeming "similar" to another.
 
@@ -64,7 +63,7 @@ Screenshots land at `OUTPUT_DIR/screenshots/[page]-[viewport].png`, overriding i
 
 #### 3.2 Refinement
 
-Fix hidden or overlapping content, missing navigation, and horizontal scroll on mobile first, by adjusting CSS (gap, overflow, min-height, breakpoint rules). Note spacing and decorative overlap and continue. Then improve unclear sections, add missing elements, and make the pages consistent.
+Fix hidden or overlapping content, missing navigation, and horizontal scroll on mobile first. Note spacing and decorative overlap and continue. Then make the pages consistent.
 
 **Gate**: the report holds no P1 or P2 finding and no `not judged` region for any page and viewport, or validation is reported as not run.
 

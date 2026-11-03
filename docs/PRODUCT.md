@@ -26,14 +26,14 @@ The rule covers existing design in scope, not only proposals: simplify or remove
 
 - A mandatory methodology, a fixed project layout, or a rigid input format.
 - Replacing coding agents, execution platforms, or project-management systems.
-- Keeping specs in sync with code after merge. `plan.json` and each FIS govern one branch and are deleted before its merge; the Product document, PRDs, Learnings, and Decisions stay. A spec maintained past merge is a second record of what the code already states.
+- Keeping specs in sync with code after merge. `plan.json` and each FIS govern one branch, and `ship` deletes them before its merge unless the user keeps them as an unmaintained record; the Product document, PRDs, Learnings, and Decisions stay. A spec maintained past merge is a second record of what the code already states.
 
 ## Proportionality
 
 <!-- pre-release: drop "release candidate" at 1.0.0 -->
 - **Stage:** experimental framework, distributed as a 1.0 release candidate. Each adopting project sets its own criticality and verification bar.
 - **Scale:** users, active maintainers, and artifact volume are unknown; size nothing against assumed scale.
-- **Distribution:** one `plugin/` directory under Claude Code and Codex manifests, plus a loose-skill installer for other agents; no build step and no AndThen-operated service.
+- **Distribution:** one `plugin/` directory under Claude Code and Codex manifests, the Claude Code pair also serving Copilot CLI, plus a loose-skill installer for other agents; no build step and no AndThen-operated service.
 - **Runtime:** prompts and assets only; no shipped script.
 - **Standing technical non-goals:** no required hosted control plane, no central workflow database, no duplicated downstream adapters. Workflow state lives in the local artifact that owns it.
 

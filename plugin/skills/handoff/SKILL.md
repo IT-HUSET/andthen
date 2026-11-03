@@ -22,7 +22,7 @@ Route the session's durable fragments to their homes, then write the document a 
 
 ## Workflow
 
-**1. Triage by durability.** Bin each substantive fragment; skip empty bins. Ends with every fragment in a bin.
+**1. Triage by durability.** Bin each substantive fragment. Ends with every fragment in a bin.
 
 | Bin | Examples | Where it goes |
 |---|---|---|
@@ -31,7 +31,7 @@ Route the session's durable fragments to their homes, then write the document a 
 | **Structural decision needing rationale** | "We chose X over Y because…" with real trade-offs and consequences | Recommend the `andthen:decide` skill – do not auto-create the ADR |
 | **Transient context** | Open questions, hypotheses, things tried, failed approaches, a story blocked or stopped mid-way, next-session priming | The handoff doc itself |
 
-**2. Apply durable mutations.** Write one bullet per defensive-knowledge entry to the `Learnings` document, creating it per the Index preamble when it does not exist. Ends with every such entry a written bullet.
+**2. Apply durable mutations.** Write the `Learnings` bullets Step 1 admitted, creating the document per the Index preamble when it does not exist. Ends with every admitted entry a written bullet.
 
 **3. Write the handoff doc** to the Output path. Ends with the document at the stamped path holding every template heading.
 
@@ -48,7 +48,7 @@ Save to `.agent_temp/handoff/handoff-<UTC-ts>.md`, where `<UTC-ts>` is `date -u 
 <FOCUS, or "Resume current mid-flow work" if empty>
 
 ## Where we are
-<active feature, artifact, and phase, by path>
+<active feature, artifact, and phase, by path; each uncommitted path this session changed, with the change in a few words>
 
 ## Open questions
 - <each tied to a concrete next action where possible>

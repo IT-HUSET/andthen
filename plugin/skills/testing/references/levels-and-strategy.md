@@ -1,6 +1,6 @@
 # Levels and Strategy – Writing the Testing Strategy Document
 
-Canon: Dodds' Testing Trophy, Farley's feedback economics, Fowler's pyramid critique, *Software Engineering at Google* on coverage and flaky tests. The canon is how you judge what the project does, never what you transcribe.
+Canon: Dodds' Testing Trophy, Farley's feedback economics, Fowler's pyramid critique, *Software Engineering at Google* on coverage and flaky tests.
 
 ## Workflow
 
@@ -24,8 +24,6 @@ Canon: Dodds' Testing Trophy, Farley's feedback economics, Fowler's pyramid crit
 | **Unit** | No trust boundary, no real IO. | Milliseconds; thousands in seconds. | Many. |
 | **Integration** | One trust boundary at a time. | 100ms to a few seconds; hundreds in a minute or two. | Moderate – the ones that matter. |
 | **E2E** | Many boundaries, often a real browser. | Seconds each; dozens take minutes. | Few. |
-
-Static checks (types, lint, dependency audits) sit under the trophy and catch a class of bugs dynamic tests do not.
 
 **Farley's caveat**: integration slower than a couple of minutes stops developers running it locally – parallelize, or demote some to unit.
 

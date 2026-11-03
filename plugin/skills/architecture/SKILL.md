@@ -25,9 +25,8 @@ Architecture advice and structural analysis, in one mode or a chain of modes. No
 ## Rules
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
-- Every dispatch is a fresh subagent: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
+- Every dispatch is a fresh subagent: the installed role agent it names (`reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
 - A project document a run has to create – `Product` on the first Proportionality answer – is seeded through a `worker` subagent that invokes the `andthen:init` skill with `seed <Index entry>` and the content to seed, keeping the templates out of this run's context.
-- Recommend from fit for this project, never from popularity or novelty.
 
 ## Workflow
 

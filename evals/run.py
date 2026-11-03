@@ -22,6 +22,7 @@ run at all - one cell at a time makes the full tier hours.
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -70,20 +71,31 @@ def main(argv=None):
     started = time.time()
     stage.sweep()
     dartclaw = stage.dartclaw_binary()
-    with ThreadPoolExecutor(max_workers=args.jobs) as pool:
-        rows = list(pool.map(lambda cell: run_cell(cell[0], cell[1], args.profile, profile,
-                                                   dartclaw), selected))
+    # Staged once, before the pool: every cell runs these bytes, and plugin/ is
+    # editable from here on. The cells' own copies outlive this one in their runs.
+    staged = stage.new_candidate_dir()
+    try:
+        stage.stage_candidate(staged)
+        candidate = _candidate(staged)
+        print("candidate staged: %s; plugin/ is editable now" % candidate["digest"][:12],
+              flush=True)
+        with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+            rows = list(pool.map(lambda cell: run_cell(cell[0], cell[1], args.profile, profile,
+                                                       dartclaw, staged, candidate), selected))
+    finally:
+        shutil.rmtree(str(staged), ignore_errors=True)
     return _report(rows, time.time() - started)
 
 
-def run_cell(case, provider, profile_name, profile, dartclaw=None):
+def run_cell(case, provider, profile_name, profile, dartclaw, candidate_dir, candidate):
     """One case on one provider. Returns (result, run directory or None).
-    `dartclaw` is the tier's stage.dartclaw_binary(), recorded as is."""
+    `dartclaw` is the tier's stage.dartclaw_binary(), recorded as is;
+    `candidate_dir` is the tier's staged candidate and `candidate` its identity."""
     started = time.time()
-    cell = _new_cell(case, provider, profile_name, profile, dartclaw)
+    cell = _new_cell(case, provider, profile_name, profile, dartclaw, candidate)
     staged = {}
     try:
-        _execute(cell, staged, cases.CASES_DIR / case, provider)
+        _execute(cell, staged, cases.CASES_DIR / case, provider, candidate_dir)
     except Exception as exc:  # noqa: BLE001
         # A staging or dispatch failure belongs to the machine, not the subject.
         # Reporting it keeps the staged evidence; propagating would lose it.
@@ -113,7 +125,7 @@ def run_cell(case, provider, profile_name, profile, dartclaw=None):
     return cell, run
 
 
-def _new_cell(case, provider, profile_name, profile, dartclaw):
+def _new_cell(case, provider, profile_name, profile, dartclaw, candidate):
     subject = (profile.get("subject") or {}).get(provider) or {}
     judge = profile.get("judge") or {}
     return {"case": case, "provider": provider, "profile": profile_name,
@@ -121,12 +133,12 @@ def _new_cell(case, provider, profile_name, profile, dartclaw):
                         "effort": subject.get("effort"), "sessionId": None, "runId": None},
             "judge": {"provider": judge.get("provider"), "model": judge.get("model"),
                       "effort": judge.get("effort"), "sessionId": None},
-            "candidate": _candidate(), "dartclaw": dartclaw, "outcome": "ERROR", "error": None,
+            "candidate": candidate, "dartclaw": dartclaw, "outcome": "ERROR", "error": None,
             "checks": [], "criteria": [], "evidence": [], "durationSeconds": 0.0,
             "tokens": {"subject": None, "judge": None}}
 
 
-def _execute(cell, staged, case_dir, provider):
+def _execute(cell, staged, case_dir, provider, candidate_dir):
     invalid = cases.validate(case_dir)
     if invalid:
         cell["error"] = "invalid case: " + "; ".join(invalid)
@@ -141,7 +153,9 @@ def _execute(cell, staged, case_dir, provider):
 
     run = staged["run"] = stage.new_run_dir(cell["case"], provider)
     used = [provider] + [p for p in [cell["judge"]["provider"]] if p and p != provider]
-    stage.stage_candidate(run)
+    # Keeps the staged candidate out of another invocation's sweep for the tier.
+    os.utime(str(candidate_dir))
+    stage.stage_candidate(run / "candidate", source=candidate_dir)
     if "codex" in used:
         stage.register_codex(run)
     workspace = stage.stage_workspace(run, case_dir, roles=provider == "claude")
@@ -332,9 +346,10 @@ def _dispatch_error(dispatched, step, executable, missing=()):
             % (cause, step or "none", dispatched["exitCode"], executable))
 
 
-def _candidate():
-    """What was tested: the working tree's commit and dirtiness. Every cell loads
-    a snapshot of this tree's plugin/, staged as the run's candidate/."""
+def _candidate(staged):
+    """What was tested, recorded once at staging: the working tree's commit and
+    dirtiness, and a digest of the staged copy every cell of the tier loads, so
+    runs compare only when they ran the same candidate."""
     def out(*args):
         return subprocess.run(["git", "-C", str(cases.REPO_ROOT)] + list(args), text=True,
                               stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
@@ -342,9 +357,11 @@ def _candidate():
         head = out("rev-parse", "HEAD")
     except OSError:
         head = None
-    return ({"head": None, "dirty": None} if head is None or head.returncode else
-            {"head": head.stdout.strip(),
-             "dirty": bool(out("status", "--porcelain").stdout.strip())})
+    digest = stage.candidate_digest(staged)
+    return ({"head": None, "dirty": None, "digest": digest} if head is None or head.returncode
+            else {"head": head.stdout.strip(),
+                  "dirty": bool(out("status", "--porcelain").stdout.strip()),
+                  "digest": digest})
 
 
 def _reason(cell):
@@ -369,8 +386,9 @@ def _summary(cell):
              "- profile: %s" % cell["profile"],
              "- subject: %s" % role("subject", cell["provider"]),
              "- judge: %s" % role("judge", cell["judge"]["provider"]),
-             "- candidate: %s%s" % (candidate["head"] or "unknown",
-                                    " (dirty)" if candidate["dirty"] else "")]
+             "- candidate: %s%s, digest %s" % (candidate["head"] or "unknown",
+                                              " (dirty)" if candidate["dirty"] else "",
+                                              candidate["digest"][:12])]
     lines += ["- duration: %ss" % cell["durationSeconds"],
               "- tokens: subject %s; judge %s" % tuple(
                   _tokens(cell["tokens"][r]) for r in ("subject", "judge"))]

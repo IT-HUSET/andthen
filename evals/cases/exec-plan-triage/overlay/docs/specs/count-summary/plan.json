@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "2",
+  "prd": null,
+  "overview": {"summary": "Record how many records a run exported, then summarize the run in one line."},
+  "sharedDecisions": [],
+  "bindingConstraints": [],
+  "stories": [
+    {"id": "S01", "name": "Record Row Count", "dependsOn": [], "status": "pending", "fis": "s01-record-row-count.md", "completedTaskIds": [], "scope": "Write the exported record count beside the report.", "sourceRefs": [], "provenance": null, "assetRefs": [], "sequencing": null},
+    {"id": "S02", "name": "Write Run Summary", "dependsOn": ["S01"], "status": "pending", "fis": "s02-write-run-summary.md", "completedTaskIds": [], "scope": "Write a one-line run summary beside the report, built on the record count.", "sourceRefs": [], "provenance": null, "assetRefs": [], "sequencing": null}
+  ]
+}

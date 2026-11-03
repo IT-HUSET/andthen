@@ -28,7 +28,9 @@ Prefer a durable, addressable artifact to a description or extract: a test over 
 
 ## Acceptance Scenarios
 
-One scenario per behavior the user would notice: the happy path and the edges that matter.
+One scenario per behavior the user would notice.
+
+**Problem-domain language** – Given/When/Then states what a user or caller observes, in domain terms (the `Ubiquitous Language` document's, where one exists) with concrete values. It names a mechanism or surface – a transport, UI control, storage layout, or code symbol – only where that is the requirement: a mechanism per *Mechanism Fidelity*, or a surface something outside the change depends on (a published API, a CLI flag or output, a file format, a control or copy the PRD or design contract fixes). A scenario that names its solution is a design, and breaks on the first better one.
 
 What the user notices only when it breaks is a Structural Criterion, an invariant this story's own diff could break. A run-wide check – a performance baseline, the full suite green, an E2E journey – is the run's final verification, never a criterion.
 
@@ -56,7 +58,7 @@ Before tasks for a cross-cutting rename or restructure, search the repo case-ins
 4. **Coverage is clause-level.** A `Verify` covers every acceptance-significant clause of what its `SATISFIES` names. It may name a target whole only when that test asserts every clause, and then states only how it is observed and any clause it adds. A task satisfying "the record is created *and* linked to its owner" whose Verify proves only creation leaves the join unbuilt and still completes green.
 5. **Assertions name outcomes.** Literal values belong only to contracts (column names, mandated errors), per *Diff-scoped leanness*: ``**Verify**: `cmd: traces list --limit 1` – output includes columns IN_TOKENS, OUT_TOKENS, CACHE_R, CACHE_W``.
 
-A FIS is as short as completeness allows. Past ~6,000 words with the task count in range, the problem is prose: apply **Single source of truth** first, each cut naming the home that keeps its clause, and signal `OVERSIZE:` only on what remains.
+Past ~6,000 words with the task count in range, the problem is prose: apply **Single source of truth** first, each cut naming the home that keeps its clause, and signal `OVERSIZE:` only on what remains.
 
 *What We're NOT Doing* lists exclusions an executor could plausibly build, with reasons. *Constraints & Gotchas* holds only what is cross-cutting (≥2 tasks, a shared harness or ordering included) or a non-obvious framework trap; a task-local concern lives in its task.
 
@@ -71,5 +73,5 @@ Every scenario and Structural Criterion traces to a plan story's scope, a source
 ## Self-Check
 
 - **Task ↔ Scenario coverage** – every task's `SATISFIES` names ≥1 existing `S<NN>` or `SC<NN>`: a task naming nothing is unproven scope, one naming a missing target is broken wiring.
-- **Verify lines stay unrun** – they are exec-time checks; authoring proves the design of the surface, never its result. A `cmd:` absence check inverts its search's exit: no match exits 1.
+- **Verify lines stay unrun** – they are exec-time checks; authoring proves the design of the surface, never its result. A `cmd:` absence check is `test -z "$(<search>)"`, which exits 1 on a match, since `! a | grep -qv b` misreads the pipeline's status.
 - **Prose-vs-Verify scope** – "rename all X" gets a Verify enforcing that whole scope, not a sample.

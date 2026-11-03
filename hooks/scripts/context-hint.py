@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Stop hook for Claude Code and Codex: tells the model the session's context size once it
-passes a threshold, so its closing advice can suggest a fresh session.
+"""Stop hook for Claude Code and Codex: shows the user the session's context size once it
+passes a threshold, so they can choose a fresh session.
 
 The model cannot see its own context size, and long interactive sessions decline. Above
-CONTEXT_HINT_THRESHOLD tokens (default 200000) the hook blocks the stop once per 50k step with
-a reason, and the model adds a closing line on how to proceed. It stays silent below the
-threshold, while the agent is already continuing because of a Stop hook, and on a run with a
-single prompt, which is headless or unattended. Fails open: any error prints nothing and exits 0.
+CONTEXT_HINT_THRESHOLD tokens (default 200000) the hook prints a `systemMessage` once per 50k
+step: the host shows it to the user and runs no model turn, where blocking the stop cost a full
+turn at 200k+ tokens to relay it. It stays silent below the threshold, while the agent is already
+continuing because of a Stop hook, while the Stop input lists in-flight `background_tasks` (the
+turn only ends to wait for them), and on unattended runs (Agent SDK, `claude -p`, `codex exec`).
+Fails open: any error prints nothing and exits 0.
 """
 
 import json
@@ -16,13 +18,13 @@ import sys
 import tempfile
 
 STEP = 50_000
-REASON = (
-    "Context-size hint: this session is at ~{k}k tokens, and long sessions lose detail. "
-    "Add one closing line of advice on how to proceed: continue here, or start a fresh session, "
-    "writing a handoff or brief first if this session knows anything not yet written down. "
-    "If the work is mid-task and continuing here is right, add nothing. "
-    "This hint is for this reply only; never carry it into a summary or a later turn."
+MESSAGE = (
+    "Context size: this session is at ~{k}k tokens, and long sessions lose detail. "
+    "Consider a fresh session, with a handoff or brief first if this session knows anything not "
+    "yet written down, and hand remaining pinned work to a subagent."
 )
+# Entrypoints (Claude Code transcripts) and rollout sources (Codex) of runs with nobody to advise.
+UNATTENDED_SOURCES = ("exec", "mcp", "claude-code-github-action")
 
 
 def lines_from_end(path, chunk=1 << 16):
@@ -71,16 +73,27 @@ def context_tokens(path):
     return None
 
 
-def has_second_prompt(path):
-    """Claude Code marks typed prompts `origin.kind: human`, unlike tool results and task
-    notifications; Codex starts one task per prompt."""
-    prompts = 0
-    for r in records_from_end(path, b'"human"', b'"task_started"'):
-        claude = r.get("type") == "user" and (r.get("origin") or {}).get("kind") == "human"
-        codex = r.get("type") == "event_msg" and (r.get("payload") or {}).get("type") == "task_started"
-        prompts += claude or codex
-        if prompts > 1:
-            return True
+def is_interactive(path):
+    """Whether a person is at the session, read from its first records: Claude Code stamps each
+    record with the `entrypoint` it was started from (`cli`, `claude-desktop`, `sdk-cli`, ...),
+    Codex's `session_meta` carries a `source` (`vscode`, `exec`, or a subagent's dict). A
+    transcript saying neither is unknown, and unknown stays silent."""
+    with open(path, "rb") as f:
+        for _, line in zip(range(200), f):
+            if b'"entrypoint"' not in line and b'"session_meta"' not in line:
+                continue
+            try:
+                record = json.loads(line)
+            except ValueError:
+                continue
+            if not isinstance(record, dict):
+                continue
+            if record.get("entrypoint"):
+                entrypoint = record["entrypoint"]
+                return not (entrypoint.startswith("sdk") or entrypoint in UNATTENDED_SOURCES)
+            if record.get("type") == "session_meta":
+                source = (record.get("payload") or {}).get("source")
+                return source is not None and not isinstance(source, dict) and source not in UNATTENDED_SOURCES
     return False
 
 
@@ -101,22 +114,22 @@ def hint(event):
                 return None
     except FileNotFoundError:
         pass
-    if not has_second_prompt(path):
+    if not is_interactive(path) or event.get("background_tasks"):
         return None
-    # Record the step first: a failed write leaves the hook silent rather than blocking each turn.
+    # Record the step first: a failed write leaves the hook silent rather than repeating each turn.
     fd = os.open(state, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0), 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(str(step))
-    return REASON.format(k=tokens // 1000)
+    return MESSAGE.format(k=tokens // 1000)
 
 
 def main():
     try:
-        reason = hint(json.load(sys.stdin))
+        message = hint(json.load(sys.stdin))
     except Exception:
         return
-    if reason:
-        print(json.dumps({"decision": "block", "reason": reason}))
+    if message:
+        print(json.dumps({"systemMessage": message}))
 
 
 if __name__ == "__main__":

@@ -981,10 +981,29 @@ class ValidatePlanScriptTest(unittest.TestCase):
 
     FIXTURE = pathlib.Path("scripts/fixtures/renders/plan.json")
 
-    def run_validator(self, plan_path):
+    def run_validator(self, plan_path, candidate=None):
+        env = dict(os.environ)
+        env.pop("ANDTHEN_CANDIDATE", None)
+        if candidate is not None:
+            env["ANDTHEN_CANDIDATE"] = str(candidate)
         return subprocess.run(
             [sys.executable, str(cases.REPO_ROOT / "evals" / "validate_plan.py"), str(plan_path)],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+
+    def test_the_schema_comes_from_the_staged_candidate_when_a_run_names_one(self):
+        """A cell's checks grade against the candidate it ran, not the live
+        plugin/ an edit may since have changed: the same plan passes the live
+        schema and fails the staged one."""
+        with tempfile.TemporaryDirectory() as tmp:
+            schema = pathlib.Path(tmp) / "plugin" / "references" / "plan.schema.json"
+            schema.parent.mkdir(parents=True)
+            schema.write_text('{"type": "object", "required": ["staged-marker"]}',
+                              encoding="utf-8")
+            plan = cases.REPO_ROOT / self.FIXTURE
+            self.assertEqual(0, self.run_validator(plan).returncode)
+            done = self.run_validator(plan, candidate=tmp)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("'staged-marker'", done.stderr)
 
     def test_the_committed_fixture_plan_validates(self):
         done = self.run_validator(cases.REPO_ROOT / self.FIXTURE)
@@ -1080,6 +1099,15 @@ class RunnerTest(unittest.TestCase):
         (path / "data").mkdir()
         return path
 
+    def staged_candidate(self):
+        """The tier's one staged copy and its identity, as `main` hands them to
+        every cell."""
+        if not hasattr(self, "_staged"):
+            holder = self.tmp / "staged-candidate"
+            stage.stage_candidate(holder)
+            self._staged = (holder, runner._candidate(holder))
+        return self._staged
+
     def context(self, run, data):
         stage.write(run / "data" / "workflows" / "runs" / "r1" / "context.json",
                     json.dumps({"data": data}))
@@ -1100,7 +1128,9 @@ class RunnerTest(unittest.TestCase):
             stage.write(run / "stderr.log", "")
             if kv is not None:
                 stage.write(run / "data" / "standalone" / "kv.json", json.dumps(kv))
-            data = dict(outputs or {})
+            # A subject that wrote nothing is an ERROR (step.py), so a double that
+            # leaves no outputs behind would never reach the judge.
+            data = dict({"summary": "done"} if outputs is None else outputs)
             self.context(run, data)
             subject(workspace)
             with contextlib.redirect_stderr(io.StringIO()):
@@ -1118,14 +1148,15 @@ class RunnerTest(unittest.TestCase):
                 mock.patch.object(stage, "land", lambda run: run), \
                 mock.patch.object(stage, "preflight", lambda providers: ""), \
                 mock.patch.object(stage, "dispatch", dispatch):
-            return runner.run_cell("synthetic", "claude", "default", PROFILE, dartclaw)
+            return runner.run_cell("synthetic", "claude", "default", PROFILE, dartclaw,
+                                   *self.staged_candidate())
 
     def test_candidate_satisfies_its_manifests(self):
         """The staged manifests are what registers the candidate for Codex, and a
         manifest naming a plugin source that is not under candidate/ registers
         nothing. Gate 0's Codex attempts failed exactly there."""
         run = self.run_dir()
-        stage.stage_candidate(run)
+        stage.stage_candidate(run / "candidate")
         candidate = run / "candidate"
         claude = cases.load_json(candidate / ".claude-plugin" / "marketplace.json")[0]
         codex = cases.load_json(candidate / ".agents" / "plugins" / "marketplace.json")[0]
@@ -1208,6 +1239,50 @@ class RunnerTest(unittest.TestCase):
         self.assertNotIn("credentials_required", config)
         self.assertNotIn("HOME=", wrapper.read_text(encoding="utf-8"))
 
+    def test_the_claude_allow_list_names_no_tool_dontask_denies_anyway(self):
+        """EnterWorktree and ExitWorktree ask for approval whatever the allow-list
+        says, and a headless cell has nobody to ask, so listing them promised a
+        bound-tools path the cell could never take (spike-isolation, 3 of 3 runs)."""
+        self.assertNotIn("Worktree", stage.PROVIDER_BLOCK["claude"])
+
+    def test_a_cell_runs_under_bash_whatever_shell_the_operator_has(self):
+        """The Bash tool follows $SHELL, and zsh differs from bash on `echo ===`
+        and unmatched globs, so a result would depend on the operator's login shell."""
+        run = self.run_dir()
+        with mock.patch.dict(os.environ, {"SHELL": "/bin/zsh"}):
+            for provider in ("claude", "codex"):
+                self.assertEqual("/bin/bash", stage.dispatch_env(run, provider)["SHELL"])
+
+    def test_a_cell_whose_skill_inspects_the_home_directory_gets_a_scratch_one(self):
+        """`init` looks at ~/.claude/agents and ~/.codex, so its branch depended on
+        the machine. The scratch HOME holds only what the login needs: the account
+        file and, on macOS, the keychains. Other cells keep the operator's HOME."""
+        real = pathlib.Path(tempfile.mkdtemp(dir=str(self.tmp)))
+        write_tree(real, {".claude.json": "{}", ".claude/agents/oracle.md": "x",
+                          ".codex/agents/oracle.toml": "x", "Library/Keychains/login.keychain-db": "x"})
+        run = self.run_dir()
+        seen = {}
+
+        def fake_run(command, **kwargs):
+            seen.update(kwargs["env"])
+            return mock.Mock(returncode=0, stdout="", stderr="")
+
+        for name in ("init", "init-empty", "review"):
+            seen.clear()
+            with mock.patch.dict(os.environ, {"HOME": str(real)}), \
+                    mock.patch.object(stage.subprocess, "run", fake_run):
+                stage.dispatch(run, "claude", run / "dartclaw.yaml", "wf", run / "workspace",
+                               {"case_dir": cases.CASES_DIR / name})
+            if name == "review":
+                self.assertEqual(str(real), seen["HOME"])
+                continue
+            home = pathlib.Path(seen["HOME"])
+            self.assertEqual(run / "home", home)
+            self.assertTrue((home / ".claude.json").exists())
+            self.assertTrue((home / "Library/Keychains/login.keychain-db").exists())
+            self.assertFalse((home / ".claude/agents").exists())
+            self.assertFalse((home / ".codex").exists())
+
     def test_claude_wrapper_preserves_paths_and_forwarded_arguments(self):
         """Candidate loading and restored login paths survive shell parsing;
         quoted path characters never split argv or become shell syntax."""
@@ -1257,7 +1332,7 @@ class RunnerTest(unittest.TestCase):
         CODEX_HOME it pins from the operator's ~/.codex, so a Codex cell gets
         its own HOME."""
         run = self.run_dir()
-        self.assertEqual(dict(os.environ), stage.dispatch_env(run, "claude"))
+        self.assertEqual(dict(os.environ, SHELL="/bin/bash"), stage.dispatch_env(run, "claude"))
         codex = stage.dispatch_env(run, "codex")
         self.assertEqual(str(run / "home"), codex["HOME"])
         self.assertEqual(str(run / "provider"), codex["CODEX_HOME"])
@@ -1315,7 +1390,7 @@ class RunnerTest(unittest.TestCase):
         setting sources load, so the diff the checks weigh is the subject's
         alone. A Codex cell reads no .claude/ directory and gets none."""
         run = self.run_dir()
-        stage.stage_candidate(run)
+        stage.stage_candidate(run / "candidate")
         case = self.make_case({})
         roles = sorted(p.name for p in (stage.REPO_ROOT / stage.ROLES).iterdir())
         self.assertIn("reviewer.md", roles)
@@ -1326,7 +1401,7 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual("", stage.git(workspace, "status", "--porcelain"))
 
         other = self.run_dir()
-        stage.stage_candidate(other)
+        stage.stage_candidate(other / "candidate")
         self.assertFalse((stage.stage_workspace(other, case) / ".claude").exists())
 
     def test_check_level_error_sets_error(self):
@@ -1401,7 +1476,8 @@ class RunnerTest(unittest.TestCase):
                 mock.patch.object(stage, "land", lambda run: run), \
                 mock.patch.object(stage, "preflight", lambda providers: ""), \
                 mock.patch.object(stage, "dispatch", dispatch):
-            cell, run_out = runner.run_cell("synthetic", "claude", "default", PROFILE)
+            cell, run_out = runner.run_cell("synthetic", "claude", "default", PROFILE, None,
+                                            *self.staged_candidate())
 
         self.assertEqual("ERROR", cell["outcome"])
         self.assertEqual([], cell["checks"])
@@ -1429,6 +1505,7 @@ class RunnerTest(unittest.TestCase):
         case = self.make_case({"requiredArtifacts": ["work.md"]})
         run = self.run_dir()
         workspace = stage.stage_workspace(run, case)
+        self.context(run, {"summary": "done"})
         code, log = evaluate(case, run)
         self.assertEqual(0, code)
         self.assertIn("checks: FAIL", log)
@@ -1465,6 +1542,49 @@ class RunnerTest(unittest.TestCase):
         self.assertFalse((run / "checks.json").is_file())
         self.assertFalse((run / stage.REQUEST).is_file())
 
+    def test_a_subject_that_wrote_and_said_nothing_is_error_not_a_fail(self):
+        """A judge handed a request with no outputs and no messages fails every
+        criterion on "absent evidence", a false skill FAIL for what is a subject
+        run that ended without its answer (2026-10-19 exec-plan-worktree, a
+        Claude turn that closed in text without the structured call). The checks
+        step refuses to write the request, so the cell is an ERROR to re-run."""
+        case = self.make_case({})
+        run = self.run_dir()
+        stage.stage_workspace(run, case)
+        self.context(run, {})
+        with contextlib.redirect_stderr(io.StringIO()) as log:
+            code = step.main(["--case", str(case), "--run", str(run)])
+        self.assertEqual(1, code)
+        self.assertIn("wrote no output and said nothing", log.getvalue())
+        self.assertFalse((run / stage.REQUEST).is_file())
+
+        self.context(run, {"summary": "done"})
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(0, step.main(["--case", str(case), "--run", str(run)]))
+        self.assertTrue((run / stage.REQUEST).is_file())
+
+    def test_an_empty_or_whitespace_assistant_message_is_not_speech(self):
+        """A step whose only assistant messages are null, empty, or blank said
+        nothing, so the judge would fail every criterion on absent evidence: the
+        same ERROR as a step with no messages at all."""
+        case = self.make_case({})
+        run = self.run_dir()
+        stage.stage_workspace(run, case)
+        self.context(run, {"s1.status": "completed", "s1.sessionId": "s1"})
+        silent = "".join(json.dumps({"role": "assistant", "content": content}) + "\n"
+                         for content in (None, "", "  \n"))
+        stage.write(run / "data" / "standalone" / "sessions" / "s1" / "messages.ndjson", silent)
+        with contextlib.redirect_stderr(io.StringIO()) as log:
+            code = step.main(["--case", str(case), "--run", str(run)])
+        self.assertEqual(1, code)
+        self.assertIn("wrote no output and said nothing", log.getvalue())
+        self.assertFalse((run / stage.REQUEST).is_file())
+
+        stage.write(run / "data" / "standalone" / "sessions" / "s1" / "messages.ndjson",
+                    silent + json.dumps({"role": "assistant", "content": "SURFACED"}) + "\n")
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(0, step.main(["--case", str(case), "--run", str(run)]))
+
     def test_a_failing_check_still_gets_a_verdict_and_still_fails_the_cell(self):
         """The cheapest layer must not veto the most valuable one: three live
         runs of a since-retired case failed one wording check with the skill
@@ -1497,7 +1617,8 @@ class RunnerTest(unittest.TestCase):
         """One cell whose subject left `work.md` saying `the widget trims
         whitespace` and whose judge step answered `answer`; that text and any
         declared `outputs` are the only retained material a PASS may quote."""
-        data = {"s1.status": "completed", "s1.sessionId": subject_session}
+        # The bare `summary` is the subject's answer; a run without one is an ERROR (step.py).
+        data = {"s1.status": "completed", "s1.sessionId": subject_session, "summary": "done"}
         data.update(outputs or {})
         return self.drive(
             {}, lambda workspace: stage.write(workspace / "work.md", work),
@@ -1628,6 +1749,85 @@ class RunnerTest(unittest.TestCase):
         status = stage.git(workspace, "status", "--porcelain")
         self.assertIn(" M seed.md", status)
         self.assertIn("?? scratch.txt", status)
+
+    def test_a_dirty_files_placeholder_becomes_the_baseline_sha_and_stays_planted(self):
+        """A planted review report names the revision it reviewed; the only commit
+        a workspace has is the baseline, whose SHA is known after the commit, so
+        the dirty file carries a placeholder and staging substitutes it. The
+        planted digest covers the substituted bytes, or an untouched report would
+        read as the subject's edit."""
+        case = self.make_case({})
+        (case / "dirty").mkdir()
+        (case / "dirty" / "report.md").write_text(
+            "**Revision**: %s\n" % stage.BASELINE_REVISION, encoding="utf-8")
+        (case / "dirty" / "plain.md").write_text("no placeholder\n", encoding="utf-8")
+        run = self.run_dir()
+        workspace = stage.stage_workspace(run, case)
+
+        short = stage.git(workspace, "rev-parse", "--short", "HEAD").strip()
+        self.assertEqual("**Revision**: %s\n" % short, cases.read_text(workspace / "report.md"))
+        self.assertEqual("no placeholder\n", cases.read_text(workspace / "plain.md"))
+        stage.git(workspace, "cat-file", "-e", short + "^{commit}")
+        planted = json.loads(cases.read_text(run / "dirty-baseline.json"))
+        self.assertEqual(stage._digest(workspace / "report.md"), planted["report.md"])
+        self.assertEqual(([], []), stage.stage_diff(run, workspace))
+
+    def test_the_judges_diff_holds_only_what_the_subject_changed_of_a_dirty_case(self):
+        """diff.patch reaches the judge as retained material it may quote, so an
+        untouched planted file in it reads as the subject's own work: a thin
+        follow-up could pass a criterion on a quote of the planted report. A
+        planted file the subject edits stays in."""
+        case = self.make_case({})
+        (case / "dirty").mkdir()
+        (case / "dirty" / "seed.md").write_text("seed plus earlier work\n", encoding="utf-8")
+        (case / "dirty" / "scratch.txt").write_text("untracked\n", encoding="utf-8")
+        run = self.run_dir()
+        workspace = stage.stage_workspace(run, case)
+        stage.write(workspace / "new.txt", "the subject's\n")
+        stage.stage_diff(run, workspace)
+        patch = cases.read_text(run / "diff.patch")
+        self.assertIn("new.txt", patch)
+        self.assertNotIn("seed.md", patch)
+        self.assertNotIn("scratch.txt", patch)
+
+        stage.write(workspace / "scratch.txt", "untracked, then edited\n")
+        stage.stage_diff(run, workspace)
+        patch = cases.read_text(run / "diff.patch")
+        self.assertIn("scratch.txt", patch)
+        self.assertNotIn("seed.md", patch)
+
+    def test_review_followups_revision_resolves_and_the_fix_is_the_work_since_it(self):
+        """The follow-up review scopes itself to `git diff <Revision>`: the planted
+        report's Revision must be a commit of the workspace, and the fix the
+        report calls remediated must be the only tracked change since it. Editing
+        the planted report is caught by its digest, which the file's own
+        `git diff` could not do while the report is untracked."""
+        case = cases.CASES_DIR / "review-followup"
+        run = self.run_dir()
+        workspace = stage.stage_workspace(run, case)
+        report = "docs/specs/csv-export/csv-export-andthen-code-review-claude-2026-10-19.md"
+        revision = re.search(r"\*\*Revision\*\*: (\S+)", cases.read_text(workspace / report)).group(1)
+        stage.git(workspace, "cat-file", "-e", revision + "^{commit}")
+        self.assertEqual("src/reporter/cli.py\n", stage.git(workspace, "diff", "--name-only", revision))
+
+        check, _ = cases.load_json(case / "check.json")
+        untouched = checks.evaluate(check, workspace, [], case)
+        self.assertEqual([checks.PASS], [r["status"] for r in untouched if r["id"] == "commands[1]"])
+        stage.write(workspace / report, cases.read_text(workspace / report) + "\nedited\n")
+        edited = checks.evaluate(check, workspace, [], case)
+        self.assertEqual([checks.FAIL], [r["status"] for r in edited if r["id"] == "commands[1]"])
+
+    def test_a_dirty_case_without_a_placeholder_is_staged_byte_for_byte(self):
+        """review-clean's dirty files carry no placeholder, so substitution leaves
+        them and their planted digests exactly as copied."""
+        case = cases.CASES_DIR / "review-clean"
+        run = self.run_dir()
+        workspace = stage.stage_workspace(run, case)
+        planted = json.loads(cases.read_text(run / "dirty-baseline.json"))
+        self.assertTrue(planted)
+        for rel, digest in planted.items():
+            self.assertEqual(stage._digest(case / "dirty" / rel), digest)
+            self.assertEqual((case / "dirty" / rel).read_bytes(), (workspace / rel).read_bytes())
 
     def test_a_case_starts_from_the_vendored_app_under_whatever_it_adds(self):
         """The corpus has one starting project rather than one per case: a case
@@ -1794,7 +1994,7 @@ class RunnerTest(unittest.TestCase):
         seen, binaries = [], []
         resolved = {"path": "/bin/dartclaw-workflow", "version": "0.26.2", "error": None}
 
-        def run_cell(case, provider, profile_name, profile, dartclaw):
+        def run_cell(case, provider, profile_name, profile, dartclaw, staged, candidate):
             barrier.wait()
             seen.append(case)
             binaries.append(dartclaw)
@@ -1818,7 +2018,9 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual(["sweep", "resolve"], seen[:2])
         self.assertEqual(sorted(smoke), sorted(seen[2:]))
         self.assertEqual([resolved, resolved], binaries)
-        rows = [line.split(" | ")[0] for line in stdout.getvalue().splitlines()[1:3]]
+        lines = stdout.getvalue().splitlines()
+        header = [i for i, line in enumerate(lines) if line.startswith("case | provider")][0]
+        rows = [line.split(" | ")[0] for line in lines[header + 1:header + 3]]
         self.assertEqual(list(smoke), rows)
         self.assertIn("2 cell(s) in", stdout.getvalue())
 
@@ -1826,6 +2028,100 @@ class RunnerTest(unittest.TestCase):
         with contextlib.redirect_stderr(stderr):
             self.assertEqual(2, runner.main(["smoke", "--provider", "claude", "--jobs", "0"]))
         self.assertIn("--jobs", stderr.getvalue())
+
+    def fake_tree(self):
+        """A stand-in for the live working tree, small enough to edit mid-test:
+        the candidate assets, a role agent for a Claude workspace, and a plan
+        schema that no real plan satisfies, so a check that reads it is
+        unmistakable."""
+        tree = self.tmp / "tree"
+        write_tree(tree, {
+            "plugin/skill.md": "v1\n",
+            "plugin/references/plan.schema.json": json.dumps(
+                {"type": "object", "required": ["staged-schema-marker"]}),
+            "plugin/skills/init/templates/agents/claude/reviewer.md": "reviewer\n",
+            ".claude-plugin/marketplace.json": "{}\n",
+            ".agents/plugins/marketplace.json": "{}\n"})
+        return tree
+
+    def test_the_candidate_is_staged_once_before_the_pool_and_every_cell_runs_that_copy(self):
+        """A cell staging its own copy froze plugin/ for the whole run (one freeze
+        cost an hour) and, with a mid-run edit, ran different cells against
+        different candidates. Staging is the tier's, announced when it is done,
+        so the maintainer knows plugin/ is theirs again, and the one staged
+        identity is what every cell records."""
+        tree, seen, stdout = self.fake_tree(), [], io.StringIO()
+        staged_dirs = []
+
+        def run_cell(case, provider, profile_name, profile, dartclaw, staged, candidate):
+            self.assertIn("candidate staged", stdout.getvalue())
+            staged_dirs.append(staged)
+            seen.append((case, candidate, (staged / "plugin" / "skill.md").read_text(),
+                         stage.candidate_digest(staged)))
+            # An edit once staging is done must not reach a cell that starts later.
+            (tree / "plugin" / "skill.md").write_text("v2\n", encoding="utf-8")
+            return {"case": case, "provider": provider, "outcome": "PASS", "error": None}, None
+
+        names = ("a-case", "b-case")
+        with mock.patch.object(runner, "run_cell", run_cell), \
+                mock.patch.object(stage, "sweep", lambda: None), \
+                mock.patch.object(stage, "dartclaw_binary", lambda: {}), \
+                mock.patch.object(stage, "STAGING", self.tmp / "staging"), \
+                mock.patch.object(stage, "REPO_ROOT", tree), \
+                mock.patch.object(cases, "REPO_ROOT", tree), \
+                mock.patch.object(cases, "discover", lambda: list(names)), \
+                contextlib.redirect_stdout(stdout):
+            self.assertEqual(0, runner.main(list(names) + ["--provider", "claude"]))
+
+        (_, first, text, digest), (_, second, again, _) = seen
+        self.assertEqual(["v1\n", "v1\n"], [text, again])
+        self.assertEqual(first, second)
+        self.assertEqual(digest, first["digest"])
+        self.assertEqual(1, len(set(staged_dirs)))
+        self.assertIn("candidate staged: %s; plugin/ is editable now" % digest[:12],
+                      stdout.getvalue().splitlines())
+        self.assertFalse(staged_dirs[0].exists(), "the staged copy outlives the tier")
+
+    def test_the_digest_follows_the_candidates_content(self):
+        """Two runs are comparable only when they ran the same candidate, so the
+        digest moves with a changed or added file and with nothing else."""
+        tree = self.fake_tree()
+        one, two = self.tmp / "one", self.tmp / "two"
+        stage.stage_candidate(one, source=tree)
+        stage.stage_candidate(two, source=tree)
+        self.assertEqual(stage.candidate_digest(one), stage.candidate_digest(two))
+        os.utime(str(two / "plugin" / "skill.md"), (1, 1))
+        self.assertEqual(stage.candidate_digest(one), stage.candidate_digest(two))
+        (two / "plugin" / "skill.md").write_text("v2\n", encoding="utf-8")
+        edited = stage.candidate_digest(two)
+        self.assertNotEqual(stage.candidate_digest(one), edited)
+        (two / "plugin" / "new.md").write_text("new\n", encoding="utf-8")
+        self.assertNotEqual(edited, stage.candidate_digest(two))
+
+    def test_a_cell_runs_the_staged_copy_and_checks_against_its_schema(self):
+        """The tier's staged copy is the whole candidate: a cell's candidate/ is
+        that copy, not today's plugin/, and a check that validates a plan reads
+        the schema from there, because an edit after staging that changed the
+        checks' oracle mid-run would grade cells against different rules."""
+        tree = self.fake_tree()
+        holder = self.tmp / "staged-candidate"
+        stage.stage_candidate(holder, source=tree)
+        self._staged = (holder, runner._candidate(holder))
+        (tree / "plugin" / "skill.md").write_text("v2\n", encoding="utf-8")
+        (tree / "plugin" / "references" / "plan.schema.json").write_text("{}", encoding="utf-8")
+
+        validate = 'python3 "$ANDTHEN_ROOT/evals/validate_plan.py" plan.json'
+        cell, run = self.drive(
+            {"commands": [validate]},
+            lambda workspace: shutil.copy(
+                str(cases.REPO_ROOT / "scripts" / "fixtures" / "renders" / "plan.json"),
+                str(workspace / "plan.json")),
+            judge={"answer": JUDGE_PASS})
+
+        self.assertEqual("v1\n", (run / "candidate" / "plugin" / "skill.md").read_text())
+        self.assertEqual(self._staged[1], cell["candidate"])
+        self.assertEqual(checks.FAIL, cell["checks"][0]["status"])
+        self.assertIn("staged-schema-marker", cell["checks"][0]["evidence"])
 
     def test_a_cell_leaves_no_credentials_directory_whatever_its_outcome(self):
         """The seeded token is the operator's live login, and the CODEX_HOME beside
@@ -1886,6 +2182,41 @@ class RunnerTest(unittest.TestCase):
         self.assertFalse((cells / stamps[-2] / "data" / "credentials").exists())
         self.assertTrue((cells / stamps[-2] / "result.json").is_file())
         self.assertTrue((cells / "aborted-20260901T100000" / token).is_file())
+
+    def test_the_sweep_judges_a_staged_candidate_by_its_last_touch_not_its_stamp(self):
+        """A tier stages its candidate once and every cell copies it, so a tier
+        running past two walls is live with an old stamp; a second invocation's
+        sweep deleted it and every remaining cell errored on a missing source.
+        Each cell touches the directory as it starts, so only an untouched one is
+        an orphan."""
+        now = time.mktime(time.strptime("20260918T120000", stage.STAMP_TIME))
+        staging = self.tmp / "staging"
+        live, orphan = (staging / stage.CANDIDATES / ("20260917T020000-0000000%d" % n)
+                        for n in (1, 2))
+        for directory, age in ((live, 60), (orphan, 3 * stage.TIMEOUT)):
+            stage.write(directory / "plugin" / "x", "")
+            os.utime(str(directory), (now - age, now - age))
+
+        with mock.patch.object(stage, "STAGING", staging):
+            stage.sweep(self.tmp / "evidence", now=now)
+
+        self.assertTrue(live.is_dir())
+        self.assertFalse(orphan.exists())
+
+    def test_a_candidate_swept_away_is_one_error_cell_not_a_tier_crash(self):
+        """The touch is part of the cell's staging, so a candidate another
+        invocation removed fails that cell alone and the report still prints."""
+        shutil.rmtree(str(self.staged_candidate()[0]))
+        cell, _ = self.drive({"commands": ["exit 0"]}, judge={"answer": JUDGE_PASS})
+        self.assertEqual("ERROR", cell["outcome"])
+        self.assertIn("FileNotFoundError", cell["error"])
+
+    def test_a_cell_touches_the_tiers_candidate_as_it_starts(self):
+        """What keeps a live tier's candidate out of another invocation's sweep."""
+        holder = self.staged_candidate()[0]
+        os.utime(str(holder), (1, 1))
+        self.drive({"commands": ["exit 0"]}, judge={"answer": JUDGE_PASS})
+        self.assertGreater(holder.stat().st_mtime, time.time() - stage.TIMEOUT)
 
     def test_two_tiers_started_together_sweep_the_same_killed_cell(self):
         """Concurrent invocations are how a case is repeated, and each sweeps at
@@ -1957,7 +2288,7 @@ class RunnerTest(unittest.TestCase):
         written = json.loads((run / "result.json").read_text(encoding="utf-8"))
         self.assertEqual(cell["tokens"], written["tokens"])
 
-        cell, _ = self.drive({}, outputs={"s1.sessionId": "subj-2"})
+        cell, _ = self.drive({}, outputs={"s1.sessionId": "subj-2", "summary": "done"})
         self.assertEqual({"subject": None, "judge": None}, cell["tokens"])
 
     def test_session_records_read_from_either_dartclaw_layout(self):

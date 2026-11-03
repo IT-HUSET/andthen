@@ -4,7 +4,7 @@
 
 **Shipping.** The plan's branch is ready once every story is `done` or `skipped` (cut from scope), and its plan-level review over the `done` stories leaves no CRITICAL or HIGH finding open and no load-bearing check failing. A `DEFERRED` finding is still open: a deferral names a blocker, it does not accept the risk.
 
-**Machine form.** `plan.schema.json` (JSON Schema draft 2020-12) owns the shape invariants. The skill that authors a plan checks its candidate against it before writing.
+**Machine form.** `plan.schema.json` (JSON Schema draft 2020-12) owns the shape invariants. The skill that authors a plan checks its candidate by reading it against the schema before writing.
 
 ## Document Shape
 
@@ -24,7 +24,7 @@
       "fis": "s01-foundation.md",
       "completedTaskIds": [],
       "scope": "Establish the shared contract.",
-      "sourceRefs": ["docs/prd.md#foundation"],
+      "sourceRefs": ["docs/prd.md#fr1-foundation"],
       "provenance": null,
       "assetRefs": [],
       "sequencing": null
@@ -45,6 +45,7 @@ The fields whose *meaning* prose has to state:
 | `verified` | `{at, summary}`, written with `done` and never without it; `at` a UTC ISO-8601 minute. |
 | `provenance` | Why no `sourceRefs` entry covers the story, or `null`. |
 | `sequencing` | Residual dependency rationale, or `null`. |
+| `shipped` | Top-level `{at, pr}`, written by `ship` when a ready plan's bundle stays, kept or untracked: `at` a UTC ISO-8601 minute, `pr` the PR's URL or `null`. A plan carrying it is a shipped record. |
 
 ## FIS identity
 
@@ -68,7 +69,7 @@ The path is repo-root-relative POSIX, with no leading `./` or trailing slash, re
 
 `andthen:plan` owns durable planning fields and initializes new stories to `pending`, `fis: null`, and `completedTaskIds: []`.
 
-Runtime state is `status`, `verified`, `fis`, and `completedTaskIds`. **The session executing a story writes its row** – a direct `andthen:exec-plan` run, or the story subagent a plan run dispatched. A plan run writes only under `--worktree`: the batch's rows as `in-progress`, committed before the batch branches, while no story copy exists yet. Authoring keeps one writer: the `andthen:plan` breakdown session writes the plan, and its story subagents report and never write it. Never put two writers on one copy of the file at once: racing writers lose a row.
+Runtime state is `status`, `verified`, `fis`, and `completedTaskIds`. **The session executing a story writes its row** – a direct `andthen:exec-plan` story run, or the dispatched story run of a plan run. A plan run writes only under `--worktree`: the batch's rows as `in-progress`, committed before the batch branches, while no story copy exists yet. Authoring keeps one writer: the `andthen:plan` breakdown session writes the plan, and its story subagents report and never write it. Never put two writers on one copy of the file at once: racing writers lose a row.
 
 Statuses: `pending` until execution starts, with `fis` recording whether the FIS exists; `in-progress` once execution starts, and still after a failure, which lives in the run report; `done`, written with `verified`; `skipped`, set only by hand. `done` and `skipped` are terminal for execution.
 

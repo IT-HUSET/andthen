@@ -5,9 +5,9 @@
 
 Drives the real script through stdin with each host's Stop input and a transcript
 shaped like the host's own: a Claude Code session JSONL and a Codex rollout. Above
-the threshold the hook blocks the stop once with a reason for the model; anything
-else must stay silent and exit 0, because a Stop hook that errors or blocks without
-cause keeps the agent from finishing its turn. TMPDIR isolates the per-session state.
+the threshold the hook prints a user-facing `systemMessage` once per step; anything
+else must stay silent and exit 0, and it never blocks the stop, because a block costs
+a model turn. TMPDIR isolates the per-session state.
 """
 
 import json
@@ -23,7 +23,7 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "hooks/scripts/context-hint.py"
 
 
-def claude_transcript(tokens, prompts=2):
+def claude_transcript(tokens, prompts=2, entrypoint="claude-desktop"):
     """Each typed prompt is answered through a tool call, whose result Claude Code records as a
     user entry, and a subagent's task notification; the session ends on a request of `tokens`,
     whose entry writes a file longer than the hook's read chunk, and a subagent's usage summary,
@@ -46,13 +46,14 @@ def claude_transcript(tokens, prompts=2):
                                               "usage": {"totalTokens": 900_000}}},
         {"type": "system", "subtype": "stop_hook_summary"},
     ]
-    return entries
+    # Claude Code stamps every record with the entrypoint the session started from.
+    return [{**e, "entrypoint": entrypoint} if entrypoint else e for e in entries]
 
 
-def codex_rollout(tokens, prompts=2):
+def codex_rollout(tokens, prompts=2, source="vscode"):
     """Codex injects AGENTS.md as a user message and starts one task per prompt."""
     records = [
-        {"type": "session_meta", "payload": {"id": "s1"}},
+        {"type": "session_meta", "payload": {"id": "s1", "source": source}},
         {"type": "response_item", "payload": {"type": "message", "role": "user", "content": [
             {"type": "input_text", "text": "# AGENTS.md instructions for /repo"}]}},
     ]
@@ -91,12 +92,12 @@ class ContextHintTest(unittest.TestCase):
         return proc.stdout
 
     def assertHint(self, out, tokens_k):
-        decision = json.loads(out)
-        self.assertEqual(decision["decision"], "block")
-        self.assertIn(f"~{tokens_k}k tokens", decision["reason"])
-        self.assertIn("fresh session", decision["reason"])
-        # A compaction summary that keeps the hint replays a stale size after the context shrank.
-        self.assertIn("this reply only", decision["reason"])
+        output = json.loads(out)
+        # A systemMessage reaches the user without a model turn; decision: block would cost one.
+        self.assertEqual(list(output), ["systemMessage"])
+        self.assertIn(f"~{tokens_k}k tokens", output["systemMessage"])
+        self.assertIn("fresh session", output["systemMessage"])
+        self.assertIn("hand remaining pinned work to a subagent", output["systemMessage"])
 
     def test_claude_session_below_threshold_stops_silently(self):
         self.write(claude_transcript(199_000))
@@ -139,13 +140,35 @@ class ContextHintTest(unittest.TestCase):
         self.write(claude_transcript(210_000))
         self.assertEqual(self.stop(stop_hook_active=True), "")
 
-    def test_single_prompt_run_gets_no_hint(self):
-        # A headless or unattended run has one prompt and nobody to advise; tool results,
-        # task notifications and injected AGENTS.md text are not prompts.
+    def test_single_prompt_interactive_session_gets_a_hint(self):
+        # One long desktop session of subagent work has one typed prompt and still needs the hint.
         self.write(claude_transcript(400_000, prompts=1))
-        self.assertEqual(self.stop(), "")
+        self.assertHint(self.stop(), 400)
+        self.write(claude_transcript(400_000, prompts=1, entrypoint="cli"))
+        self.assertHint(self.stop(session_id="s2"), 400)
         self.write(codex_rollout(250_000, prompts=1))
+        self.assertHint(self.stop(session_id="s3"), 250)
+
+    def test_unattended_runs_get_no_hint(self):
+        # Nobody reads a headless run's output; `sdk-*` is the Agent SDK and `claude -p`.
+        for entrypoint in ("sdk-cli", "sdk-ts", "mcp"):
+            self.write(claude_transcript(400_000, entrypoint=entrypoint))
+            self.assertEqual(self.stop(), "", entrypoint)
+        for source in ("exec", "mcp", {"subagent": {"thread_spawn": {"depth": 1}}}):
+            self.write(codex_rollout(250_000, source=source))
+            self.assertEqual(self.stop(), "", source)
+
+    def test_session_of_unknown_origin_stays_silent(self):
+        self.write(claude_transcript(400_000, entrypoint=None))
         self.assertEqual(self.stop(), "")
+
+    def test_in_flight_background_tasks_defer_the_hint(self):
+        # The turn only ends to wait for them; the hint comes on the stop after they report.
+        # The step is not consumed meanwhile.
+        self.write(claude_transcript(300_000))
+        task = {"id": "t1", "type": "subagent", "status": "running", "description": "review"}
+        self.assertEqual(self.stop(background_tasks=[task]), "")
+        self.assertHint(self.stop(background_tasks=[]), 300)
 
     def test_unreadable_transcript_stops_silently(self):
         self.assertEqual(self.stop(transcript_path=str(self.tmp / "missing.jsonl")), "")

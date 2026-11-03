@@ -28,7 +28,7 @@ Turn a review report's findings, or a small request, into the smallest verified 
 
 For a report, read [`review-calibration.md`](../../references/review-calibration.md).
 
-Read a report from its path, or fetch a link however it resolves, for the report content itself. Take its `**Review mode**:` and `**Resolved chain**:` header lines, its `Intent Context:` line, the targets it names, and each finding with the fields of `review-calibration.md` § Structured Finding Contract. Record a finding's missing `Routing:` tag, because Phase 2 reconstructs it.
+From the report, take its `Intent Context:` line, the targets it names, and each finding with the fields of `review-calibration.md` § Structured Finding Contract.
 
 **Scope guard.** A request describing a plan, a PRD, a FIS, or anything plainly beyond a small change stops here. Route it to the `andthen:plan` skill then the `andthen:exec-plan` skill, with the `andthen:clarify` skill first when its requirements are still open.
 
@@ -40,19 +40,19 @@ Read a report from its path, or fetch a link however it resolves, for the report
 
 ### Phase 2: Re-Validate and Route
 
-**Still true.** Classify each finding `valid`, `already fixed`, `superseded`, or `unclear` against the current workspace, with its remediation surface: `implementation`, `document`, `workflow-artifact`, or `mixed`. A request's findings are `valid`, since the user asserts them now. Ask about an `unclear` finding once, recommendation first, and classify it on the answer. Unattended, record your reading as an `ASSUMPTION:` line and report the finding `SURFACED` with that reading. Only `valid` findings go on.
+**Still true.** Classify each finding `valid`, `already fixed`, `superseded`, or `unclear` against the current workspace. A request's findings are `valid`, since the user asserts them now. Ask about an `unclear` finding once, recommendation first, and classify it on the answer. Unattended, record your reading as an `ASSUMPTION:` line and report the finding `SURFACED` with that reading. Only `valid` findings go on.
 
 **Still wanted.** Check every `valid` finding against the Intent anchor, surfacing a demotion for the user rather than dismissing it:
 
 - **Contradicts a Non-Goal or Out-of-Scope statement** → `SURFACED: contradicts Intent`, citing artifact and section, with its `ASSUMPTION:` line when unattended.
 - **Defers to a later story** → `SURFACED: deferred per <story-id>`.
-- **Contradicts a stated Expected Outcome** → promote. A `valid` LOW or MEDIUM escalates to HIGH for Phase 3's priority.
+- **Contradicts a stated Expected Outcome** → promote. A `valid` LOW or MEDIUM escalates to HIGH.
 
-An upstream `Routing: Fix` demotes here too: this is the divergence-catch. Intent that *withholds* the decision a fix would settle contradicts nothing. That is the `decision needed` blocker below.
+An upstream `Routing: Fix` demotes here too. Intent that *withholds* the decision a fix would settle contradicts nothing. That is the `decision needed` blocker below.
 
 **Route.** `Routing: Note` is a negative authorization boundary. It becomes an edit objective only through explicit user direction, changed governing Intent, or the unattended disposition below, never through a nearby Fix. Reconstruct an untagged finding's route against the Fix bar in `review-calibration.md` § Structured Finding Contract. A field that bar needs and you cannot establish routes the finding `SURFACED`. Severity sets priority and escalation only, and neither it, triviality, nor locality makes a finding Fix-eligible.
 
-**Unattended, decide what an attended run lists for the user**, because nobody reads that list. Each Note and `NOTICED BUT NOT TOUCHING:` item takes one disposition, with your recommendation on record:
+**Decide each Note and `NOTICED BUT NOT TOUCHING:` item's disposition in both modes**, with your recommendation on record. Unattended, apply it, because nobody reads the list an attended run returns. Attended, edit no Note: Output's closing question carries each. The dispositions:
 
 - **Fix** – it joins the fixable set when you would make the change unasked: it holds against the anchor above, sits inside the reviewed surface (the whole surface on a remediation pass, else the files the change touches), has one determined remedy this round can prove, and settles no decision the project holds open.
 - **Defer** – against a blocker below, with the recommended remedy.
@@ -69,7 +69,7 @@ An upstream `Routing: Fix` demotes here too: this is the divergence-catch. Inten
 
 A decision no cited line holds open is not a blocker. Ask it once, recommendation first. Unattended, take your recommendation and record it as an `ASSUMPTION:` line.
 
-A blocked finding is `DEFERRED` under its report severity, never a promoted one, and an inline request's finding counts as MEDIUM. A blocked CRITICAL or HIGH finding is also escalated in Phase 4.
+A blocked finding is `DEFERRED` under its report severity, never a promoted one, and an inline request's finding counts as MEDIUM.
 
 Acknowledge an observational finding, where the reviewer confirmed something passes, in the output. Never defer it.
 
@@ -77,11 +77,10 @@ Acknowledge an observational finding, where the reviewer confirmed something pas
 
 ### Phase 3: Plan Minimal Remediation
 
-- **One batched round.** Group the fixable set by affected area, apply it as one round, and verify once at its end.
-- Before editing, map each Fix to its intended behavior, target artifacts, and regression proof. Record nearby Notes as prohibited effects, and read [`fis-mutability.md`](../../references/fis-mutability.md) before editing a governing FIS.
+- Before editing, map each Fix to its intended behavior, target artifacts, and regression proof. Record nearby Notes as prohibited effects, and read [`fis-mutability.md`](../../references/fis-mutability.md) before editing a governing FIS or a test its `Proof` runs.
 - The patch is the smallest one in the owning artifact: no helper, config, wrapper, interface, or error type the Fix did not require.
-- A Fix that turns out to encode an unresolved decision goes back to Phase 2's `decision needed` rule rather than becoming a speculative edit: cite the line that holds it open, else ask.
-- **Empty fixable set** – a report with nothing routed Fix, or a request whose findings Phase 2 all demoted. Skip Phase 4 and run only the Phase 5 steps the surfaced findings justify. The output says nothing was fixed and lists the findings for the user's decision, or with the disposition each took when unattended. Never invent a Fix to avoid an empty round, because that is the over-application the routing gate exists to prevent.
+- A Fix that turns out to encode an unresolved decision goes back to Phase 2's `decision needed` rule.
+- **Empty fixable set** – a report with nothing routed Fix, or a request whose findings Phase 2 all demoted. Run only Phase 4's re-check and escalation (steps 5 and 6), then only the Phase 5 steps the surfaced findings justify. The output says nothing was fixed and lists the findings for the user's decision, or with the disposition each took when unattended.
 
 **Gate**: the remediation plan is bounded, or the fixable set is empty and the output says so.
 
@@ -89,8 +88,10 @@ Acknowledge an observational finding, where the reviewer confirmed something pas
 
 Read [`verification-evidence.md`](../../references/verification-evidence.md) for a Fix set.
 
+**Past about 4 Fix findings or 3 files**, hand the Phase 3 rows grouped by touched area, one group at a time, to a fresh subagent in this tree that applies them per steps 2 and 3 and verifies its group. It is the installed `implementer` role agent when available, else a generic inherited subagent, and never invokes this skill, which would re-dispatch and overwrite the report's `## Remediation Status`. Dispatch it in the foreground (`run_in_background: false` on Claude Code) and take its changed paths and check evidence as the return. Where no subagent can be spawned, apply the groups yourself, step 2 included. Then run steps 1 and 3–6 yourself over the combined diff.
+
 1. **Trace test** against the pre-mutation baseline: each remediation hunk maps to a Fix row or is a Boy Scout tidy. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. A tidy never does a finding's work unless that finding is routed Fix this round. Edit any other hunk back before verification and surface it. Leave changes already in the baseline untouched.
-2. **Test first where a fix adds a branch**, through the `andthen:testing` skill: a failing test that proves the defect for a defect, red-green otherwise. Tests alongside are for structural changes only, such as renames, reorganization, and declarations. Test-after is forbidden, because it proves what the code does, not what the finding asked for.
+2. **Test first where a fix adds a branch**, through the `andthen:testing` skill: a failing test that proves what the finding asks for precedes the change, Prove-It for a defect. Tests alongside are for structural changes only, such as renames, reorganization, and declarations. Test-after is forbidden, because it proves what the code does, not what the finding asked for.
 3. **Verify once** over the union of the round's touched areas, per `verification-evidence.md`. Check a document or workflow-artifact fix against its source of truth and cross-references.
 4. **Review** your diff against the input yourself; for a small change that pass *is* the review. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill to review the round's diff for correctness only when a defect would not be visible in that diff. It is the installed `reviewer` role agent when available, else a generic inherited subagent; never pin model or effort in a prompt.
 5. **Re-check every finding** of the input against the workspace and state one of:
@@ -120,7 +121,7 @@ Update only what the verified work justifies: state never advances before proof.
 
 ### Phase 6: Capture Cross-Finding Patterns _(optional)_
 
-A recurring trap becomes a lint or test only when a Fix row includes that prevention, because prevention is scope, never a tidy. Prove it through `Key Dev Commands`, then delete the `Learnings` entries it supersedes. Otherwise recommend it, and append to `Learnings` only a trap passing its admission test. One-offs fail it.
+A recurring trap becomes a lint or test only when a Fix row includes that prevention, because prevention is scope, never a tidy. Then delete the `Learnings` entries it supersedes. Otherwise recommend it, and append to `Learnings` only a trap passing its admission test.
 
 ## Output
 
@@ -140,4 +141,4 @@ Run standalone on a report, print one `Next` line for the first case that applie
 - **A `plan <plan.json>` target ready under [`plan-schema.md`](../../references/plan-schema.md) § Shipping** – `Next (fresh session):` the `andthen:ship` skill on `<plan.json>`.
 - **Otherwise** – no line.
 
-Attended, with `DEFERRED` findings, close on them after that line: each with its blocker and recommended remedy, CRITICAL and HIGH first, then one question asking which to add to the backlog. Write only the approved ones, per Phase 5. Not standalone, return the list and the question to your caller.
+Attended, close after that line on one question covering each open Note and decision with its `Recommend:` line, and each `DEFERRED` finding with its blocker and recommended backlog write, CRITICAL and HIGH first. "Go" takes every recommendation, a Note's Fix as a further round. Not standalone, return the list and the question to your caller.

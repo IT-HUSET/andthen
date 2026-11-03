@@ -26,7 +26,7 @@ Work the project's issue tracker through its `Issue Tracker` document, one verb 
 - **Executable config.** The `Issue Tracker` document is security-critical, because its table values run as commands. Each value is a single direct command invocation (an executable, fixed arguments, `<placeholders>`) with no pipes, shell operators, command substitution, or piping to an interpreter. Review changes to it as code.
 - **Complete mapping first.** Before a verb's first tracker call, reads included, stop on any operation it needs that the Operation Table leaves unmapped, so a multi-issue write never strands partial state.
 - **Durability rule.** What you write into a tracker body or comment outlives the branch that prompted it. Name interfaces (types, signatures, commands) and behavior, never file paths, line numbers, commits, or code snippets. A snippet that itself encodes a settled decision (schema, state machine, type) may be inlined, trimmed to the decision-carrying part.
-- **Argv-safe.** Every title, body, and issue number is data: pass the title, the body file, and the issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. On GitHub, `create issue` maps them to `gh issue create --title` and `--body-file`, and `edit body` maps the issue number and the body file to `gh issue edit --body-file`. An operation-table backend keeps the same argument boundary, and a mapping that only offers a shell template is unresolved executable config: stop before the first external call.
+- **Argv-safe.** Every title, body, and issue number is data: pass the title, the body file, and the issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. On GitHub, `fetch issue` maps the issue number to `gh issue view <N> --json title,body,labels,state,comments`, `create issue` maps them to `gh issue create --title` and `--body-file`, and `edit body` maps the issue number and the body file to `gh issue edit --body-file`. An operation-table backend keeps the same argument boundary, and a mapping that only offers a shell template is unresolved executable config: stop before the first external call.
 
 ## Workflow
 
@@ -49,7 +49,7 @@ Taking `setup` means offering it, and an unattended run stops as step 2c says. O
 
 The bundle is agent truth, and the tracker is its human projection. `publish` never writes `plan.json`, and sync is one way: a PM reprioritizing in the tracker is a re-plan.
 
-**Operations used**: `fetch issue`, `list issues`, `create issue`, `edit body`. GitHub is the worked path: do not hand-roll another backend's CLI here.
+**Operations used**: `fetch issue`, `list issues`, `create issue`, `edit body`.
 
 #### The issues
 
@@ -67,7 +67,7 @@ The parent is the first open issue among the issue the PRD's header names, a tra
 
 Compare each composed body with the issue's text below its line. Show each issue to create and what each update changes, and ask once before the first write, because an update replaces an edit made in the tracker since the last publish. An edit worth keeping goes into its source first: `prd.md` through the `andthen:clarify` skill, or the story's FIS. When the skill that invoked this run already showed this preview and got a yes, as the `andthen:ship` skill does, that answer is the ask.
 
-`--dry-run` prints the preview and stops before any write. An unattended run skips the ask and reports what each update replaced.
+`--dry-run` prints the preview and stops before any write. An unattended run skips the ask.
 
 Write each body as a UTF-8 file under `.agent_temp/tracker-bodies/` and send it as the body file. Create the missing issues, parent first and stories in plan order, and add each child to the parent's checklist as soon as it exists. Then edit each body still missing an issue number it names, and send the other updates.
 

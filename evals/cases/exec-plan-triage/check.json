@@ -1,0 +1,23 @@
+{
+  "allowedPaths": [
+    "src/reporter/pipeline.py",
+    "tests/**",
+    "docs/specs/count-summary/**",
+    "docs/ARCHITECTURE.md",
+    "docs/LEARNINGS.md",
+    "docs/TECH-DEBT-BACKLOG.md",
+    ".agent_temp/**"
+  ],
+  "commands": [
+    "python3 -m unittest discover -s tests -t .",
+    "python3 -c \"import pathlib, tempfile; from src.reporter.pipeline import run; d = pathlib.Path(tempfile.mkdtemp()); s = d / 'March Ledger.csv'; s.write_text('1,north,40\\n\\n2,south,2\\n'); run(s, d / 'out', 'report.csv'); assert (d / 'out' / 'rows.txt').read_text().strip() == '2'\"",
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/count-summary/plan.json"
+  ],
+  "forbiddenText": {
+    "src/**": ["summary.txt"]
+  },
+  "oracle": "oracle.py",
+  "forbiddenArtifacts": [
+    "**/*-review-*.md"
+  ]
+}

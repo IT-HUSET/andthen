@@ -133,7 +133,7 @@ H = 892
 PANEL_Y = H - PANEL_H - 24
 
 out.append(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ttl" font-family="{SANS}">')
-out.append('<title id="ttl">AndThen skills and workflow – the one workflow with its three human gates and two optional reads, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>')
+out.append('<title id="ttl">AndThen skills and workflow – the one workflow with its three human gates and three optional reads, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>')
 out.append('''<style>
 .bg{fill:#FBF8F3}
 .t1{fill:#1A140E}.t2{fill:#5E564C}.t3{fill:#6F665B}
@@ -196,7 +196,7 @@ text(BX + 22, PANEL_Y + 70, "Inside the README this image is static – click it
 # ------------------------------------------------ the workflow
 y = 84
 band(BX, y, BW, 226, "band-flow", "THE WORKFLOW", "Idea to merged: you decide, agents build",
-     ["Your part: answer the interviews and sign off at the three gates; the chain runs the rest.",
+     ["Your part: answer the interviews, sign off at the three gates, and read what the rings mark.",
       "Every step reads what the step before it wrote and closes on the printed next command.",
       "clarify and the design stage are optional: decide when a choice binds beyond the work,",
       "UI design where a screen has none."])
@@ -209,7 +209,7 @@ text(LGX, y + 26, "HUMAN-IN-THE-LOOP CHECKPOINTS", "kick", 11, family=MONO, spac
 for i, (n, ln) in enumerate([("ask", "you answer: clarify and decide interview you, plan asks its preflight questions"),
                              (1, "read prd.md"), (2, "read the ADRs, when decide ran"),
                              (3, "PR / MR: settle open Notes, read ship's recommendations, approve push"),
-                             (None, "worth a read: the FIS files, the review report")]):
+                             (None, "worth a read: the FIS files, each story's report, the review report")]):
     if n == "ask":
         bubble(LGX + 8, y + 44 + i * 16)
     else:
@@ -225,7 +225,7 @@ f.arrow(gate=1)
 # decide sits below, where its link to the ADRs card leaves the stack
 DECIDE_X = f.stack(128, [
     dict(key="ui-ux-design", label="ui-ux-design", kicker="andthen · ui-ux-design",
-         body=["UX research, design systems, and wireframes – singly or chained. Validating the built UI is visual-validation."]),
+         body=["UX research, design systems, wireframes, and clickable mockups – singly or chained. Validating the built UI is visual-validation."]),
     dict(key="decide", label="decide", asks=True, kicker="andthen · decide",
          body=["Interviews you over the decisions a technical solution needs, recommends each, and deepens a contested one into a weighted trade-off.",
                "Writes ADRs and Decisions lines. Optional: when a choice binds beyond the work or is costly to reverse."]),
@@ -236,11 +236,11 @@ PLAN_X = f.box(140, key="plan", label="plan", cls="step", sub="one story or seve
                body=["The FIS for the work, from a PRD, a description, a file or an issue URL – one story, or plan.json plus a FIS per story when it needs several.",
                      "Several stories get one fresh authoring subagent each and one cross-cutting review. Self-review, preflight questions, then the exec-plan line."])
 f.arrow(read=True)
-f.box(150, key="exec-plan", label="exec-plan", cls="exec", sub="FIS or plan directory",
+f.box(150, key="exec-plan", label="exec-plan", cls="exec", sub="one story per session",
       kicker="andthen · exec-plan",
-      body=["Implement one FIS where it is invoked: the tasks, the proofs and the full tier, one fresh reviewer subagent, the fixes, the verified line.",
-            "On a plan directory: one fresh exec-plan subagent per ready story, the full tier and one simplify-code pass, then a Next (fresh session): line for the plan review."])
-f.arrow()
+      body=["One story per fresh session: proofs and the full tier, a fresh reviewer, the fixes, a simplify-code pass, then the next story's line.",
+            "On a plan directory, unattended or parallel: one fresh exec-plan subagent per ready story, a simplify-code pass per story, the full tier once, then the plan review line."])
+f.arrow(read=True)
 f.box(224, key="review", label="review", cls="tail", sub="code · gap · security · outcome",
       kicker="andthen · review",
       body=["Proof-led code / gap / security / outcome review over the plan – outcome when it names a PRD – and PR review; a story's own review is one",
@@ -252,14 +252,14 @@ f.box(120, key="implement-fix", label="implement-fix", cls="tail", size=12, sub=
             "own, as minimal changes across code, specs, and docs, then re-verify once and annotate. No re-review."])
 f.arrow()
 f.ship(gate=3, key="ship", kicker="andthen · ship",
-       body=["Lands what each FIS's Observations hold worth keeping, deletes plan.json and the FIS files, and commits the branch's own work.",
-             "Then shows the PR / MR title and body and asks once before it pushes and opens it. --auto stops before the push."])
+       body=["Lands what each FIS's Observations hold worth keeping and commits the branch's own work, then shows the PR / MR title and body.",
+             "One question: push and open it, and delete plan.json and the FIS files (recommended)? --auto stops before the push."])
 assert f.x <= BR - 14, f.x
 
 # ------------------------------------------------ artifacts
 y = 326
 band(BX, y, BW, 112, "band-art", "ARTIFACTS", "The hand-offs",
-     ["plan.json and FIS go", "before the merge;", "PRD record and ADRs stay"])
+     ["plan.json and FIS go", "before the merge unless", "kept; PRD and ADRs stay"])
 CX0 = 224
 CW, CH = 204, 74
 CG = (BR - 22 - CX0 - 4 * CW) / 3
@@ -271,7 +271,7 @@ cards = [("intent", "intent.md / note", ["a short note or an issue, or", "what c
          ("prd", "prd.md", ["what and why, agreed;", "record in repo or tracker"],
           "artifact · PRD · durable record",
           ["Written by clarify; read by plan and review --mode gap,outcome. Its record outlives the branch in the repo or tracker.",
-           "ship deletes plan.json and FIS before the merge; under Record: tracker it publishes the PRD to its issue and deletes prd.md too."]),
+           "ship asks whether to delete plan.json and FIS before the merge; under Record: tracker a deletion takes prd.md too, after the PRD is published."]),
          ("adr", "ADRs", ["technical decisions by decide,", "indexed in DECISIONS.md"],
           "artifact · architecture decision record · durable",
           ["Written by decide, one per decision with real alternatives, in the ADRs location (default docs/adrs/) and registered in the Decisions document;",
@@ -315,9 +315,9 @@ core = [("now-what", "routes you to a skill", "First-stop router – inspects pr
         ("handoff", "resume next session", "Compact the conversation into a document a fresh session resumes from; durable fragments go to the Learnings document."),
         ("triage", "debug and fix", ["Investigate, diagnose, and fix build failures, config errors, runtime bugs, regressions, test failures.",
                     "A reproducible bug gets a failing test before the fix. No spec, no plan state."]),
-        ("testing", "strategy and TDD", ["Test strategy (writes the Testing Strategy document), test authoring, TDD, and the Prove-It bugfix flow.",
+        ("testing", "strategy and tests", ["Test strategy (writes the Testing Strategy document), test authoring, test-first where required, and the Prove-It bugfix flow.",
                      "Suites at every level, E2E included."]),
-        ("visual-validation", "UI against its design", "Validate screenshots and built UI against wireframes, design specs, and baselines; visual regression checks."),
+        ("visual-validation", "UI against its design", "Validate screenshots and built UI against mockups, wireframes, design specs, and baselines; visual regression checks."),
         ("visualize", "artifact as a page", ["Draw an AndThen artifact – a model, a board, a plan, any spec or report – as one self-contained HTML page",
                          "with inline SVG figures, rendered and looked at before it is shown."]),
         ("architecture", "advice and analysis", ["Design advice grounded in CUPID / DDD, in text. review, decompose and fitness run the deep analysis,",
