@@ -205,8 +205,8 @@ def main() -> int:
                 "uninstall": lambda n, mp: ["copilot", "plugin", "uninstall", f"{n}@{mp}"],
                 "mp_remove": lambda mp: ["copilot", "plugin", "marketplace", "remove", mp],
                 # Copilot has no owner/repo@ref form; a git URL fragment pins the ref.
-                "mp_add": lambda s: ["copilot", "plugin", "marketplace", "add",
-                                     args.path or f"https://github.com/{REPO}.git#{ref}"],
+                "source": args.path or f"https://github.com/{REPO}.git#{ref}",
+                "mp_add": lambda s: ["copilot", "plugin", "marketplace", "add", s],
                 "install": lambda n, mp: ["copilot", "plugin", "install", f"{n}@{mp}"],
                 # A local marketplace is loaded live from the checkout, so there is no copy to go stale.
                 "installed": lambda mp, n, v, src: (
@@ -226,7 +226,7 @@ def main() -> int:
         if not shutil.which(cli):
             print(f"{host}: `{cli}` not on PATH - skipped")
             continue
-        if not refresh(host, cli, cmds, source, mf, args):
+        if not refresh(host, cli, cmds, cmds.get("source", source), mf, args):
             failed = 1
 
     if not args.dry_run:
