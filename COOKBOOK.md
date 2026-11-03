@@ -2,7 +2,7 @@
 
 What to type for a given situation, and what to expect back. The [root README](README.md) says what AndThen is; the [skill reference](plugin/README.md) carries each skill's flags, modes, and edge cases, which this file does not repeat.
 
-Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt, **Expect** (the artifact or closing line), and **Elsewhere** (where else to go). Prompts are the mechanism: skills read intent from your words, and a flag appears only where it changes a machine-consumed contract (`--mode`), a safety boundary (`--fix`), or the run mode (`--auto`, for an unattended run). Commands are shown in Claude Code form (`/andthen:<name>`); Codex CLI uses the same skill names through its own skill syntax. Skills recommend complete invocations in your host's syntax, including the target or request and required arguments, so you can paste the whole line.
+Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt, **Expect** (the artifact or closing line), and **Elsewhere** (where else to go). Prompts are the mechanism: skills read intent from your words, and a flag appears only where it changes a machine-consumed contract (`--mode`), a safety boundary (`--fix`), or the run mode (`--auto`, for an unattended run). Commands are shown in Claude Code form (`/andthen:<name>`), which Copilot CLI shares; Codex CLI uses the same skill names through its own skill syntax. Skills recommend complete invocations in your host's syntax, including the target or request and required arguments, so you can paste the whole line.
 
 **Contents**
 

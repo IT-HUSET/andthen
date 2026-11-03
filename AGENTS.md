@@ -4,7 +4,7 @@
 
 AndThen is an experimental, lightweight agentic software engineering framework for AI coding agents, adoptable piece by piece, with no forced workflow or directory layout. Its main workflow is spec-driven: a **Feature Implementation Specification (FIS)** for one story, or a plan with one FIS per story, written before the code (often from a PRD) and executed autonomously. Skills find every document through the **Project Document Index** below, which keeps locations configurable.
 
-It ships to Claude Code and Codex CLI as one marketplace plugin – one shared `plugin/` directory under dual manifests, no build step – and to other agents as loose skills via `scripts/install-skills.sh`. Skills are the unit, invoked as `andthen:<name>` on both plugin hosts. Shared content in `plugin/references/` travels whole with the plugin; the loose-skill installer inlines it per skill so those bundles stay self-contained.
+It ships to Claude Code, Codex CLI, and GitHub Copilot CLI as one marketplace plugin – one shared `plugin/` directory under dual manifests, no build step – and to other agents as loose skills via `scripts/install-skills.sh`. Skills are the unit, invoked as `andthen:<name>` on every plugin host. Copilot reads the Claude Code manifests. Shared content in `plugin/references/` travels whole with the plugin; the loose-skill installer inlines it per skill so those bundles stay self-contained.
 
 ### Repo Map
 
@@ -47,7 +47,7 @@ Create a missing document and its entry here from `project-document-templates.md
 - **Research** – `docs/temp/research/`: working research artifacts, transient and not shipped. Read when re-opening that investigation; write when a task produces durable research.
 - **Learnings** – `docs/LEARNINGS.md`. Read at task start for skill, packaging, or agent-workflow changes; add a bullet when bitten by a non-obvious failure.
 - **Decisions** – `docs/DECISIONS.md`: ADR index and Still Current notes. Read before proposing or changing a design or architecture choice; settled decisions are not relitigated without new evidence.
-- **Plugin manifests** – `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`: install metadata for the plugin on both hosts. Write all four together on an install-metadata change. A version bump sets one version in `CHANGELOG.md`, the `andthen` entry of `.claude-plugin/marketplace.json`, and both `plugin.json` files (`.agents/plugins/marketplace.json` carries none), and opens `## [<version>]` in `CHANGELOG.md`, renaming `## [Unreleased]` when present, in one commit titled with the version; CI fails on skew and reads only the bracketed version, so the heading's date can wait for the tag. The bump is the first commit of a `feat/<version>` branch, else it happens at release.
+- **Plugin manifests** – `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`: install metadata for the plugin on every host (Copilot reads the Claude Code pair). Write all four together on an install-metadata change. A version bump sets one version in `CHANGELOG.md`, the `andthen` entry of `.claude-plugin/marketplace.json`, and both `plugin.json` files (`.agents/plugins/marketplace.json` carries none), and opens `## [<version>]` in `CHANGELOG.md`, renaming `## [Unreleased]` when present, in one commit titled with the version; CI fails on skew and reads only the bracketed version, so the heading's date can wait for the tag. The bump is the first commit of a `feat/<version>` branch, else it happens at release.
 - **Agent Temp** – `.agent_temp/`: scratch workspace for reviews, research, and QA; never ship from it.
 
 ---
@@ -80,12 +80,12 @@ One remote: `origin` is the public repo (`IT-HUSET/andthen`). `main` carries the
 ### Maintenance Contracts
 
 - Every shipped skill is user-invocable, so a skill change updates `README.md`, `plugin/README.md`, and `CHANGELOG.md` on their index entries' terms.
-- Tests live in `tests/`, one file per script they prove, never under `plugin/`: both hosts install the plugin directory wholesale, so a test placed there ships.
+- Tests live in `tests/`, one file per script they prove, never under `plugin/`: every host installs the plugin directory wholesale, so a test placed there ships.
 - Adding, renaming, or removing a shared canonical in `plugin/references/` updates `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table and, in `scripts/install-skills.py`, `_canonical_assets` and the `_skill_assets_*` array of every consuming skill.
 - Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`.
   Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
 - Release-time flips carry a `pre-release:` comment at their site, each stating its own flip. Releasing 1.0 starts with tagging `v0.40.4` on `origin` (the only ref back to 0.x) and ends with `rg 'pre-release:'` returning nothing.
-- Before a release, re-check each role template's model and effort pin (`plugin/skills/init/templates/agents/`) against both providers' current lineups: the pins are recommendations as of their last change (`docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Durable principles).
+- Before a release, re-check each role template's model and effort pin (`plugin/skills/init/templates/agents/`) against both providers' current lineups and the models Copilot offers: the pins are recommendations as of their last change (`docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Durable principles).
 
 ---
 

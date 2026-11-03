@@ -148,6 +148,25 @@ class InstallSkillsValidationCase(unittest.TestCase):
         self.assertEqual(1, result.returncode)
         self.assertIn("role worker body differs", result.stderr)
 
+    def test_a_copilot_role_body_that_differs_fails_validation(self) -> None:
+        copilot = self.repo / "plugin/skills/init/templates/agents/copilot/worker.agent.md"
+        body = copilot.read_text(encoding="utf-8")
+        copilot.write_text(body.replace("You are the Worker:", "You are a worker:", 1),
+                           encoding="utf-8")
+
+        result = self.run_installer("--validate-only")
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("role worker body differs between its Claude and Copilot", result.stderr)
+
+    def test_a_role_without_a_copilot_template_fails_validation(self) -> None:
+        (self.repo / "plugin/skills/init/templates/agents/copilot/worker.agent.md").unlink()
+
+        result = self.run_installer("--validate-only")
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("role worker has no Copilot template", result.stderr)
+
     def test_a_stale_pycache_in_the_source_tree_does_not_reach_an_install(self) -> None:
         # Compiled Python is build output of whoever ran the source tree; the
         # copy is recursive, so nothing but an explicit strip keeps it out.

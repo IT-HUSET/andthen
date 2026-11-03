@@ -17,12 +17,19 @@ BUDGET = Path(__file__).resolve().parent / "surface-budget.json"
 DESCRIPTION_CAP = 400
 
 
+# Copilot role templates repeat the Claude bodies verbatim, held identical by the
+# installer's parity check, so they add no text to budget; the Codex `.toml`
+# copies already fall outside the `*.md` glob.
+PARITY_COPIES = ROOT / "plugin" / "skills" / "init" / "templates" / "agents" / "copilot"
+
+
 def surface_words():
-    """`str.split()` words over every shipped `plugin/**/*.md` but `README.md`."""
+    """`str.split()` words over every shipped `plugin/**/*.md` but `README.md`
+    and the parity-held Copilot role copies."""
     return sum(
         len(path.read_text(encoding="utf-8").split())
         for path in sorted((ROOT / "plugin").rglob("*.md"))
-        if path.name != "README.md"
+        if path.name != "README.md" and PARITY_COPIES not in path.parents
     )
 
 

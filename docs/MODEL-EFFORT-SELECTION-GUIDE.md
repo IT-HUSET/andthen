@@ -1,6 +1,6 @@
 # Model & Effort Selection Guide
 
-How AndThen steers model and reasoning depth across Claude Code and Codex CLI. Principles only – no model version numbers, prices, or benchmark tables (those rot; consult the harness/provider docs for current specifics).
+How AndThen steers model and reasoning depth across Claude Code, Codex CLI, and Copilot CLI. Principles only – no model version numbers, prices, or benchmark tables (those rot; consult the harness/provider docs for current specifics).
 
 ---
 
@@ -53,7 +53,7 @@ The session/profile (`codex --profile X`, `-m`) is the user's model choice; `mod
 
 ## Durable principles
 
-- **The shipped pins are recommendations, as of each template's last change.** A template's model and effort were the best fit for its tier when the file last changed (`git log` on `plugin/skills/init/templates/agents/`), and both providers change their lineups between AndThen releases, so re-check every pin when either ships or reprices a model, and before a release. On Claude the templates name family aliases, which float within a family; which family serves which tier is part of the recommendation. Codex has no aliases, so its templates name the current model per tier and are the one place a model name is executable config. Dated *version IDs* stay out of everything else.
+- **The shipped pins are recommendations, as of each template's last change.** A template's model and effort were the best fit for its tier when the file last changed (`git log` on `plugin/skills/init/templates/agents/`), and both providers change their lineups between AndThen releases, so re-check every pin when either ships or reprices a model, and before a release. On Claude the templates name family aliases, which float within a family; which family serves which tier is part of the recommendation. Codex has no aliases, so its templates name the current model per tier and are executable config. Copilot's templates name a priority list of one Anthropic and one OpenAI model per tier, because which models a Copilot user may select depends on their plan and organization policy, and a single pin the user cannot select is unusable. Dated *version IDs* stay out of everything else.
 - **Calibrate effort per host; write it only in the templates.** Providers' models differ in capability, so one effort level lands a tier at different strengths, and each host's template pins its own model and effort for the tier. A role description, the Subagent Model Policy, or a doc that repeats a level goes stale at the next recalibration.
 - **The session model is the single deliberate knob.** Choose it consciously: it is the ceiling for every generic delegation, and judgment work never leaves it. If the session runs a 1M-context variant, fan-out leaves inherit that too – so pick the session variant with fan-out cost in mind, not just the orchestrator's needs.
 - **Adaptive thinking > static budgets.** On current models, interleaved thinking between tool calls matters more for agentic work than a high effort floor everywhere. The roles set a floor per task shape; they do not force high effort on routine work.

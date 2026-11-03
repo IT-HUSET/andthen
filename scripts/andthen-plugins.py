@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Install, switch, or refresh the AndThen plugin on Claude Code and Codex.
+"""Install, switch, or refresh the AndThen plugin on Claude Code, Codex, and
+Copilot CLI.
 
-Both hosts install a plugin as a *copy* under a version-keyed cache directory,
-so nothing short of uninstall+install re-copies: Claude Code's `plugin update`
-compares version strings and leaves a stale copy in place while the version is
-unchanged, and switching release lines changes the marketplace ref, not the
-version. Every mode here therefore runs the same sequence - drop the installs,
-re-point the marketplace, install again - and proves the result by looking for
-the expected version in the host's cache rather than trusting a success message.
+Claude Code and Codex install a plugin as a *copy* under a version-keyed cache
+directory, so nothing short of uninstall+install re-copies: Claude Code's
+`plugin update` compares version strings and leaves a stale copy in place while
+the version is unchanged, and switching release lines changes the marketplace
+ref, not the version. Copilot copies a remote marketplace's plugin without a
+version directory and loads a local one live from the checkout. Every mode here
+therefore runs the same sequence - drop the installs, re-point the marketplace,
+install again - and proves the result by reading the version from the installed
+copy rather than trusting a success message.
 
 Targets:
   rc          the 1.0 release candidates on develop (a tag such as v1.0.0-rc.2
@@ -26,6 +29,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import urllib.request
 from pathlib import Path
 
@@ -62,6 +66,38 @@ def run(cmd: list[str], *, optional: bool = False, dry: bool = False) -> bool:
     return False
 
 
+def installed_version(plugin_dir: Path) -> str | None:
+    try:
+        return json.loads((plugin_dir / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))["version"]
+    except (OSError, ValueError, KeyError):
+        return None
+
+
+def copilot_problems(mp: str, name: str, version: str, installed: Path) -> list[str]:
+    """What Copilot reports about the install. Its installer prints a skill count
+    even when a skill's frontmatter fails to parse, and only `skill list` names
+    the failure, by path."""
+    listed = subprocess.run(["copilot", "plugin", "list", "--json"], capture_output=True, text=True)
+    try:
+        entries = json.loads(listed.stdout)
+    except ValueError:
+        return [f"`copilot plugin list --json` gave no JSON: {listed.stderr.strip()}"]
+    if not any(e.get("name") == name and e.get("marketplace") == mp and e.get("version") == version
+               for e in entries):
+        return [f"`copilot plugin list` shows no {name}@{mp} {version}"]
+    # An empty cwd: inside a repo, project skills join the listing, and under an
+    # ancestor of the plugin, failure paths print relative to it.
+    with tempfile.TemporaryDirectory() as cwd:
+        skills = subprocess.run(["copilot", "skill", "list"], capture_output=True, text=True, cwd=cwd)
+    output = (skills.stdout + skills.stderr).splitlines()
+    if not any(line.startswith("Plugin skills:") for line in output):
+        return ["`copilot skill list` shows no plugin skills"]
+    # Failures print one path per line; the plugin's own are the ones under it,
+    # in either spelling of a symlinked home (macOS /var vs /private/var).
+    roots = {str(installed), str(installed.resolve())}
+    return [line.strip() for line in output if any(root in line for root in roots)]
+
+
 def differences(src: Path, dst: Path) -> list[str]:
     cmp = filecmp.dircmp(src, dst, ignore=IGNORE)
     diffs = [f"{cmp.left}: {n}" for n in cmp.left_only + cmp.right_only + cmp.diff_files]
@@ -88,9 +124,16 @@ def refresh(host: str, cli: str, cmds: dict, source: str, mf: dict, args) -> boo
             continue
         if args.dry_run:
             continue
-        installed = cmds["cache"] / mp / name / version
-        if not installed.is_dir():
-            print(f"  x {name}: expected {version} at {installed}, not found")
+        installed = cmds["installed"](mp, name, version, src)
+        found = installed_version(installed)
+        if found != version:
+            print(f"  x {name}: expected {version} at {installed}, found {found or 'nothing'}")
+            ok = False
+            continue
+        problems = cmds["check"](mp, name, version, installed) if "check" in cmds else []
+        if problems:
+            print(f"  x {name}: the host reports problems with the install")
+            print("\n".join(f"      {p}" for p in problems[:10]))
             ok = False
             continue
         # A local refresh is the case where a stale copy is invisible, so it is
@@ -112,6 +155,7 @@ def main() -> int:
     ap.add_argument("--path", help="local checkout to install from")
     ap.add_argument("--claude-only", action="store_true")
     ap.add_argument("--codex-only", action="store_true")
+    ap.add_argument("--copilot-only", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -142,7 +186,7 @@ def main() -> int:
                 "mp_remove": lambda mp: ["claude", "plugin", "marketplace", "remove", mp],
                 "mp_add": lambda s: ["claude", "plugin", "marketplace", "add", s],
                 "install": lambda n, mp: ["claude", "plugin", "install", f"{n}@{mp}", "-y"],
-                "cache": host_root("CLAUDE_CONFIG_DIR", ".claude") / "plugins" / "cache",
+                "installed": lambda mp, n, v, _: host_root("CLAUDE_CONFIG_DIR", ".claude") / "plugins" / "cache" / mp / n / v,
             },
         ),
         "Codex": (
@@ -152,14 +196,30 @@ def main() -> int:
                 "mp_remove": lambda mp: ["codex", "plugin", "marketplace", "remove", mp],
                 "mp_add": lambda s: ["codex", "plugin", "marketplace", "add", s],
                 "install": lambda n, mp: ["codex", "plugin", "add", f"{n}@{mp}"],
-                "cache": host_root("CODEX_HOME", ".codex") / "plugins" / "cache",
+                "installed": lambda mp, n, v, _: host_root("CODEX_HOME", ".codex") / "plugins" / "cache" / mp / n / v,
+            },
+        ),
+        "Copilot CLI": (
+            "copilot",
+            {
+                "uninstall": lambda n, mp: ["copilot", "plugin", "uninstall", f"{n}@{mp}"],
+                "mp_remove": lambda mp: ["copilot", "plugin", "marketplace", "remove", mp],
+                # Copilot has no owner/repo@ref form; a git URL fragment pins the ref.
+                "mp_add": lambda s: ["copilot", "plugin", "marketplace", "add",
+                                     args.path or f"https://github.com/{REPO}.git#{ref}"],
+                "install": lambda n, mp: ["copilot", "plugin", "install", f"{n}@{mp}"],
+                # A local marketplace is loaded live from the checkout, so there is no copy to go stale.
+                "installed": lambda mp, n, v, src: (
+                    Path(args.path, src) if args.path
+                    else host_root("COPILOT_HOME", ".copilot") / "installed-plugins" / mp / n
+                ),
+                "check": copilot_problems,
             },
         ),
     }
-    if args.claude_only:
-        hosts.pop("Codex")
-    if args.codex_only:
-        hosts.pop("Claude Code")
+    only = {"Claude Code": args.claude_only, "Codex": args.codex_only, "Copilot CLI": args.copilot_only}
+    if any(only.values()):
+        hosts = {host: spec for host, spec in hosts.items() if only[host]}
 
     failed = 0
     for host, (cli, cmds) in hosts.items():
@@ -170,7 +230,7 @@ def main() -> int:
             failed = 1
 
     if not args.dry_run:
-        print("Restart Claude Code / Codex to load the new copy.")
+        print("Restart Claude Code / Codex / Copilot CLI to load the new copy.")
     return failed
 
 

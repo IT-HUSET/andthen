@@ -38,8 +38,8 @@ Ask a question only in an empty repository, where Step 1 found no manifest, READ
 Generate the root agent instruction file(s) from [`CLAUDE.template.md`](templates/CLAUDE.template.md), by the host(s) in play:
 
 - **Claude Code alone** – one full `CLAUDE.md`.
-- **Codex or a generic agent alone** – one full `AGENTS.md`.
-- **Both, or the target unclear** – `AGENTS.md` carries the full template content and `CLAUDE.md` is a thin import: `@AGENTS.md` as the first line, Claude-specific additions (if any) below it under a `## Claude Code` heading. Codex never reads `CLAUDE.md`, so the `@` sigil is safe there.
+- **Codex, Copilot, or a generic agent alone** – one full `AGENTS.md`.
+- **Claude Code plus another host, or the target unclear** – `AGENTS.md` carries the full template content and `CLAUDE.md` is a thin import: `@AGENTS.md` as the first line, Claude-specific additions (if any) below it under a `## Claude Code` heading. Codex never reads `CLAUDE.md` and Copilot reads the import as one inert line, so the `@` sigil is safe on both.
 
 Keep the Project Document Index and the Project-Specific Guidelines and Rules sections intact. Append the line from `project-document-templates.md` § Index entries for each AndThen document Step 1 found, at the path where it was found.
 

@@ -45,7 +45,7 @@ Skills read the **user's project** `CLAUDE.md` (not this repo's) for two key int
 
 ## Skill Anatomy
 
-Skills live in `plugin/skills/<name>/`, the plugin dir under its Claude Code and Codex manifests. Each skill contains:
+Skills live in `plugin/skills/<name>/`, the plugin dir under its Claude Code and Codex manifests (Copilot CLI reads the Claude Code ones). Each skill contains:
 
 - `SKILL.md` – the skill prompt (with frontmatter: `description`, `argument-hint`, and optional `context`, `agent`). Frontmatter and description craft is in `docs/SKILL-AUTHORING-GUIDELINES.md` § Skills.
 - `agents/openai.yaml` – OpenAI/Codex agent metadata for cross-agent portability.
@@ -100,7 +100,7 @@ A single-consumer canonical lives in that skill's own `references/` instead (`do
 
 ## Reference Syntax in Skill Prompts
 
-Every path in shipped skill content resolves from the skill's own directory, which both hosts announce to the model – Claude Code as *Base directory for this skill: `<path>`*, Codex as the `SKILL.md` path it loaded. Neither substitutes a variable in skill text – Claude Code's two path variables are retired and Codex never had them, so a token left in place cost the model a plugin-cache search before every read – and `install-skills.sh --validate-only` rejects both names anywhere under a plugin dir, naming the shape to use instead.
+Every path in shipped skill content resolves from the skill's own directory, which every host announces to the model – Claude Code and Copilot CLI as the skill's base directory, Codex as the `SKILL.md` path it loaded. Neither substitutes a variable in skill text – Claude Code's two path variables are retired and Codex never had them, so a token left in place cost the model a plugin-cache search before every read – and `install-skills.sh --validate-only` rejects both names anywhere under a plugin dir, naming the shape to use instead.
 
 Three forms, and nothing else leaves the skill root:
 
@@ -167,10 +167,11 @@ The model fills `<skill-dir>` on every tier. Skills are the only propagated unit
 
 ## Distribution Channels
 
-One source directory, three channels – `plugin/` is neither duplicated nor pre-built into the repo:
+One source directory, four channels – `plugin/` is neither duplicated nor pre-built into the repo:
 
 - **Claude Code plugin (primary)** – `.claude-plugin/marketplace.json` lists it (`andthen` → `./plugin`), shipped verbatim – no inlining, no path rewrites. The `concise-critical` output style lives under `plugin/skills/init/templates/output-styles/` (so it travels with the `init` skill on every channel) and is registered through the manifest's `outputStyles` field – opt-in via `outputStyle`, never `force-for-plugin` (that would silently override the user's own style). Codex ignores the field; on user-tier/loose installs `init` copies the file to `~/.claude/output-styles/` when wiring.
 - **Codex plugin (primary)** – the same directory, described by its `.codex-plugin/plugin.json` and served by the repo-level `.agents/plugins/marketplace.json` (`codex plugin marketplace add IT-HUSET/andthen`). Codex copies a plugin directory whole into its versioned cache, so `plugin/references/` travels with the skills – no inlining, no build step, no rewrites. Skills register as `andthen:<name>`, byte-identical to Claude Code, which is why shipped prose uses that form. Codex plugins cannot carry subagents, which costs nothing here: no agents auto-load from the plugin – the optional role-agent templates travel inside the init skill bundle and are installed opt-in – and delegation is always a generic subagent whose prompt invokes a skill or loads a reference.
-- **Loose skills (secondary)** – `scripts/install-skills.sh` for the `~/.agents/skills` readers (Gemini CLI, Cursor, opencode, Amp, Copilot, plugin-less Codex), the Claude user tier, and white-label installs. It exports `plugin/skills` as one skill set, inlining canonicals from `plugin/references/`. This is the only channel where bundles leave the plugin structure, so it performs the inlining and rewrites described above.
+- **GitHub Copilot CLI plugin (primary)** – the same directory through the Claude Code manifests, which Copilot reads natively (`copilot plugin marketplace add`, `install andthen@andthen`); no third manifest. Copilot ignores `outputStyles`, parses skill frontmatter as strict YAML, and lets a same-named project or personal skill shadow a plugin skill. Slash invocation is `/andthen:<name>`, while the model's skill tool takes the bare name, which a frontier model derives from `andthen:<name>` prose. The `copilot-load` CI job installs the plugin on a pinned CLI and fails on any skill that does not load; the evals do not cover Copilot.
+- **Loose skills (secondary)** – `scripts/install-skills.sh` for the `~/.agents/skills` readers (Gemini CLI, Cursor, opencode, Amp, plugin-less Copilot or Codex), the Claude user tier, and white-label installs. It exports `plugin/skills` as one skill set, inlining canonicals from `plugin/references/`. This is the only channel where bundles leave the plugin structure, so it performs the inlining and rewrites described above.
 
 **Version contract**: four locations carry the same version – `CHANGELOG.md`, the `andthen` entry in `.claude-plugin/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json` – enforced by CI (`validate-plugin.yml`), because four hand-edited copies skew.

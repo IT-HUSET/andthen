@@ -8,7 +8,7 @@
 
 > "I have a feature idea" → *and then?* → **clarify** → *and then?* → **plan** → *and then?* → **exec-plan** → *and then?* → **review** → **ship it.**
 
-AndThen is a set of skills for AI coding agents (Claude Code, Codex CLI, and others) that covers the whole agentic software engineering process: requirements, architecture, design, implementation, testing, review, and debugging. Its main workflow is spec-driven: for anything bigger than a small fix, the agent writes a spec first and then builds against it. The spec says what to build, how to prove it works, and when it is done.
+AndThen is a set of skills for AI coding agents (Claude Code, Codex CLI, GitHub Copilot CLI, and others) that covers the whole agentic software engineering process: requirements, architecture, design, implementation, testing, review, and debugging. Its main workflow is spec-driven: for anything bigger than a small fix, the agent writes a spec first and then builds against it. The spec says what to build, how to prove it works, and when it is done.
 
 What AndThen enforces, so you don't have to:
 
@@ -38,11 +38,15 @@ It is one plugin, `andthen`, with 21 skills and no runtime of its own to install
 # Codex CLI
 codex plugin marketplace add IT-HUSET/andthen@develop
 codex plugin add andthen@andthen
+
+# GitHub Copilot CLI
+copilot plugin marketplace add https://github.com/IT-HUSET/andthen.git#develop
+copilot plugin install andthen@andthen
 ```
 
-On Codex, ask for a skill by name: *Run the `andthen:init` skill*. This works on every host. The `/andthen:<name>` commands on this page are Claude Code's.
+On Codex, ask for a skill by name: *Run the `andthen:init` skill*. This works on every host. The `/andthen:<name>` commands on this page are Claude Code's and Copilot CLI's.
 
-<!-- pre-release: at 1.0, drop "@develop" from both marketplace lines above and the note's first sentence -->
+<!-- pre-release: at 1.0, drop "@develop" from the Claude Code and Codex marketplace lines above, replace the Copilot one's URL with `IT-HUSET/andthen`, and drop the note's first sentence -->
 > [!NOTE]
 > **1.0 is a breaking release, in release candidates on the `develop` branch** (`main` still serves 0.40.x). Have 0.x installed? [Remove it first](#10-release-candidate-from-the-develop-branch). Retired 0.x skills and flags have no aliases, and 0.x specs must be rewritten with `plan` before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) walks you through it. AndThen is experimental, and skills still change shape between minor versions.
 
@@ -143,7 +147,7 @@ The other twelve are `implement-fix`, `ship`, `triage`, `testing`, `architecture
 
 ## Installation
 
-The [quick start](#quick-start) covers both plugin hosts.
+The [quick start](#quick-start) covers all three plugin hosts.
 
 <!-- pre-release: delete this section when 1.0 is public -->
 ### 1.0 release candidate from the develop branch
@@ -161,14 +165,21 @@ codex plugin remove andthen@andthen
 codex plugin marketplace remove andthen
 codex plugin marketplace add IT-HUSET/andthen@develop
 codex plugin add andthen@andthen
+
+# GitHub Copilot CLI (takes no @ref; a URL fragment pins the branch)
+copilot plugin uninstall andthen@andthen
+copilot plugin marketplace remove andthen
+copilot plugin marketplace add https://github.com/IT-HUSET/andthen.git#develop
+copilot plugin install andthen@andthen
 ```
 
-From a checkout of the branch, `python3 scripts/andthen-plugins.py --path .` does all of this on both hosts and checks the installed version. To go back to 0.x, run the same commands with `IT-HUSET/andthen` in place of `IT-HUSET/andthen@develop`.
+From a checkout of the branch, `python3 scripts/andthen-plugins.py --path .` does all of this on every host it finds and checks the installed version. To go back to 0.x, run the same commands with `IT-HUSET/andthen` in place of `IT-HUSET/andthen@develop`.
 
 ### Host options
 
 - **Claude Code** – `/plugin install andthen@andthen --scope project` installs for the current project only; the default is your user. Turn on auto-update in `/plugin` → **Marketplaces** → `andthen` → **Enable auto-update**.
 - **Codex CLI** – if you used `install-skills.sh` before, delete the old `~/.agents/skills/andthen-*` directories first, or Codex lists every skill twice.
+- **GitHub Copilot CLI** – a project or personal skill with the same name as an AndThen skill (`review`, `plan`) silently replaces it; rename yours or list it in `disabledSkills`. Role agents and the conversation style come from `init`, as on the other hosts. Copilot support is load-checked in CI, not covered by the evals.
 
 ### Other agents (Aider, Cursor, Gemini CLI, opencode)
 

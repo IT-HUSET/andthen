@@ -9,6 +9,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ## [1.0.0-rc.8] – 2026-10-20
 
 ### Added
+- **GitHub Copilot CLI is a supported plugin host.** Install with `copilot plugin marketplace add https://github.com/IT-HUSET/andthen.git#develop` and `copilot plugin install andthen@andthen`, then invoke `/andthen:<skill>`. `init` offers Copilot role agents (`.github/agents/` or `~/.copilot/agents/`) and writes the conversation style into `~/.copilot/copilot-instructions.md`, and `andthen-plugins.py --copilot-only` refreshes the install. CI checks that every skill loads; the evals do not cover Copilot.
 - **`ui-ux-design` writes clickable mockups.** A new `mockups` mode builds hi-fi pages of every page and flow from your design system into `docs/mockups/<feature>/`, with working in-page interactions and a list of what the design system lacked, and checks them for contrast, off-token values, and dead links. Asking for screens, or giving a requirements source alone, gets mockups once a design system exists, else wireframes; a new `Mockups` Index entry holds the location.
 
 ### Changed

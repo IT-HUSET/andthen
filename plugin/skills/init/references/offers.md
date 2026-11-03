@@ -6,8 +6,8 @@ The procedures behind Step 3's offers.
 
 Compare what is installed at both levels, for the host(s) in play, against the templates. Name each differing file and ask before replacing it. With nothing installed, ask the level:
 
-- **User** – a personal default across projects: `agents/` under `$CLAUDE_CONFIG_DIR` / `$CODEX_HOME`, defaulting to `~/.claude` / `~/.codex`.
-- **Project** – `.claude/agents/`, `.codex/agents/`, sharing the pins with the team.
+- **User** – a personal default across projects: `agents/` under `$CLAUDE_CONFIG_DIR` / `$CODEX_HOME` / `$COPILOT_HOME`, defaulting to `~/.claude` / `~/.codex` / `~/.copilot`.
+- **Project** – `.claude/agents/`, `.codex/agents/`, `.github/agents/`, sharing the pins with the team. Copilot also loads `.claude/agents/`, whose Claude model aliases it cannot use; the `.github/agents/` file of the same name takes precedence.
 
 Create nothing under a host whose home directory is absent. Definitions load at session start, so the roles take effect next session.
 
@@ -21,10 +21,11 @@ Adopt into the project instruction file by default, so the policy travels with t
 
 **Skip** – add the standalone marker `<!-- AndThen critical rules: skipped -->` to each owning instruction file where adoption was declined (`AGENTS.md` alone in the shared layout).
 
-**Personal configuration.** User-level rules take the same bounded block in the same host home as the role agents above; skip an absent one. Conversation style is independent of rules adoption: configure it from `concise-critical.md` for the requested hosts only.
+**Personal configuration.** User-level rules take the same bounded block in each host's user instruction file, in the same home as the role agents above; skip an absent home. Copilot's is `copilot-instructions.md`. Conversation style is independent of rules adoption: configure it from `concise-critical.md` for the requested hosts only.
 
 - **Claude Code**: the installed plugin registers `<plugin-name>:concise-critical`; otherwise copy the style to the host's `output-styles/` and use `concise-critical`. Merge `outputStyle` into user `settings.json`, preserving other keys; report a project setting that shadows it.
 - **Codex**: put the style body below its frontmatter into top-level `developer_instructions` in user `config.toml`, above the first table header. Preserve existing instructions and other settings.
+- **Copilot CLI**: it has no style setting, so put the style body below its frontmatter into user `copilot-instructions.md` between `<!-- andthen-style -->` and `<!-- /andthen-style -->` markers, replacing that block on a re-run.
 
 Never replace an existing style choice or rewrite an unparseable configuration. Tell the user configuration changes take effect next session.
 

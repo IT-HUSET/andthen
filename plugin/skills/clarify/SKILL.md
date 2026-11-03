@@ -1,5 +1,5 @@
 ---
-description: The requirements skill – interviews in rounds (Discovery & Ideation: gaps, edge cases, scope, alternatives) until the understanding is shared, then writes the PRD at feature or product scope; `--brief` stops at `intent.md`. Trigger on 'PRD from an issue', 'sharpen this idea', 'product vision'.
+description: "The requirements skill – interviews in rounds (Discovery & Ideation: gaps, edge cases, scope, alternatives) until the understanding is shared, then writes the PRD at feature or product scope; `--brief` stops at `intent.md`. Trigger on 'PRD from an issue', 'sharpen this idea', 'product vision'."
 argument-hint: "[--brief] <description | file path | tracker item URL | other URL | specs directory>"
 ---
 

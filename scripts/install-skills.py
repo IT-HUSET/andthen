@@ -504,8 +504,9 @@ def _validate_reference_depth():
     return not report
 
 
-def _role_body_claude(path):
-    """An agent template's prompt: everything after the frontmatter fences."""
+def _role_body_markdown(path):
+    """A Markdown agent template's prompt (Claude, Copilot): everything after
+    the frontmatter fences."""
     fences = 0
     body = []
     for line in lines_of(read_text(path)):
@@ -539,7 +540,7 @@ def _role_body_text(body):
 
 
 def _check_role_template_parity():
-    """Each optional role agent ships in two host formats, and only the
+    """Each optional role agent ships in three host formats, and only the
     frontmatter differs by contract. A body that drifts ships two personas under
     one role name."""
     templates = REPO_ROOT / "plugin" / "skills" / "init" / "templates" / "agents"
@@ -555,9 +556,17 @@ def _check_role_template_parity():
             err("error: role %s has no Codex template at %s" % (role, codex_template))
             ok = False
             continue
-        if _role_body_claude(claude_template) != _role_body_codex(codex_template):
+        if _role_body_markdown(claude_template) != _role_body_codex(codex_template):
             err("error: role %s body differs between its Claude and Codex templates;"
                 " the two hosts ship one persona" % role)
+            ok = False
+        copilot_template = templates / "copilot" / (role + ".agent.md")
+        if not copilot_template.is_file():
+            err("error: role %s has no Copilot template at %s" % (role, copilot_template))
+            ok = False
+        elif _role_body_markdown(claude_template) != _role_body_markdown(copilot_template):
+            err("error: role %s body differs between its Claude and Copilot templates;"
+                " the hosts ship one persona" % role)
             ok = False
     return ok
 

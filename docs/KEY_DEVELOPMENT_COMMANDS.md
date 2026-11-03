@@ -13,7 +13,7 @@ Run from the repo root. `{file}` is a dotted module path (not a slash path); `{t
 | run one test | `python3 -m unittest {file}.{test}` | One test, e.g. `python3 -m unittest tests.test_audit_cookbook.FiringTest.test_missing_skill_fires` |
 | eval smoke | `python3 -m evals.run smoke --provider both --jobs 5` | Live run, a few minutes: seven cells under the 300 s smoke bar on both hosts. Ask first; needs `dartclaw-workflow` (DartClaw 0.26.1 or later), `claude`, `codex` on PATH, subscription credentials |
 | eval full | `python3 -m evals.run full --provider both --jobs 5` | Live run before a release: every case on Claude plus smoke on Codex. Case names in place of a tier run just those |
-| shipped-surface words | `find plugin -name '*.md' ! -name README.md -print0 \| xargs -0 cat \| wc -w` | The count `tests/surface-budget.json` caps, equal to the test's `surface_words()`. Use it instead of an inline script, which the repo hook blocks |
+| shipped-surface words | `find plugin -name '*.md' ! -name README.md ! -path '*/templates/agents/copilot/*' -print0 \| xargs -0 cat \| wc -w` | The count `tests/surface-budget.json` caps, equal to the test's `surface_words()`. Use it instead of an inline script, which the repo hook blocks |
 | plan check | `python3 evals/validate_plan.py docs/temp/specs/<feature>/plan.json` | Stdlib schema check of one `plan.json`: `OK:` or one `ERROR:` line per violation; `jsonschema` is not installed |
 
 - Run `bash scripts/install-skills.sh` only with a flag here, because bare it conflicts with the local Codex plugin. `--validate-only` and `--claude-user --dry-run` install nothing; run the latter on its own when you touch user-tier packaging.

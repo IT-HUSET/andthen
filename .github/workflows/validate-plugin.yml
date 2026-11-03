@@ -55,6 +55,34 @@ jobs:
           echo "changelog=$v_changelog four locations:"; echo "$versions"
           skew=$(printf '%s\n%s\n' "$versions" "$v_changelog" | sort -u | wc -l)
           if [ "$skew" -ne 1 ]; then
+  # Copilot CLI installs the plugin from the Claude manifests but parses skill
+  # frontmatter strictly, and its installer reports success when a skill fails
+  # to load: only `skill list` names the failure. No auth or model call needed.
+  copilot-load:
+    runs-on: ubuntu-latest
+    env:
+      COPILOT_HOME: ${{ runner.temp }}/copilot-home
+      COPILOT_AUTO_UPDATE: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install the plugin on a pinned Copilot CLI and load every skill
+        run: |
+          npm install -g @github/copilot@1.0.105
+          copilot plugin marketplace add "$GITHUB_WORKSPACE"
+          copilot plugin install andthen@andthen
+          cd "$RUNNER_TEMP"
+          copilot skill list > skills.txt 2>&1
+          cat skills.txt
+          if grep -q 'failed to load' skills.txt; then
+            echo "::error::Copilot CLI failed to load a skill (see above)"
+            exit 1
+          fi
+          # Absence of a failure proves nothing if the plugin never loaded at all.
+          grep -q '^  clarify - ' skills.txt || { echo "::error::Copilot CLI lists no AndThen skills"; exit 1; }
+
             echo "::error::version skew across CHANGELOG.md, .claude-plugin/marketplace.json (andthen), plugin/.claude-plugin/plugin.json, plugin/.codex-plugin/plugin.json"
             exit 1
           fi

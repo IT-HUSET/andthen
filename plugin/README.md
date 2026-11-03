@@ -4,11 +4,11 @@ Lightweight agentic software engineering for AI coding agents, spec-driven when 
 
 ## Installation
 
-Install steps for Claude Code, Codex CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, run `claude plugin marketplace add ./` from its root, then `claude plugin install andthen@andthen` for a persistent local install.
+Install steps for Claude Code, Codex CLI, GitHub Copilot CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, run `claude plugin marketplace add ./` from its root, then `claude plugin install andthen@andthen` for a persistent local install.
 
 ## Setup
 
-Skills read your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex and generic agents) for two things:
+Skills read your project's root agent instruction file (`CLAUDE.md` for Claude Code, `AGENTS.md` for Codex, Copilot, and generic agents) for two things:
 
 - **Project Document Index**: a list that maps each document the project has (specs, plans, decisions, testing strategy) to its location and says when to read it, so skills know where to read and write. Documents are read whole, so keep them short; an entry's trigger may name the part to read only for history or reference that no task is checked against, such as a changelog.
 - **Project-Specific Guidelines and Rules**: your own conventions and workflow notes.
@@ -49,6 +49,7 @@ Projections live under the `Models` Index location (default `docs/models/`) and 
   """
   ```
   Do not use `model_instructions_file` for this: it replaces Codex's base instructions.
+- Copilot CLI has no style setting. The closest place is `~/.copilot/copilot-instructions.md`, which every session loads: put the style body there between `<!-- andthen-style -->` and `<!-- /andthen-style -->`, the block init writes and replaces.
 
 ## Workflows
 
@@ -493,7 +494,7 @@ Behavior-preserving simplification: clarity, reuse, and less over-engineering, w
 
 ## Delegation
 
-AndThen skills hand work to subagents. Nothing is installed by default. The `init` skill can install four optional role agents (for Claude Code as `.md`, for Codex as `.toml`) that pin a model and effort level per task type. They take effect from the next session. Re-check the installed pins when a provider's model lineup changes.
+AndThen skills hand work to subagents. Nothing is installed by default. The `init` skill can install four optional role agents (for Claude Code as `.md`, for Codex as `.toml`, for Copilot CLI as `.agent.md`) that pin a model and effort level per task type. They take effect from the next session. Re-check the installed pins when a provider's model lineup changes.
 
 - **`oracle`**: judgment work you assign it (a design, an architecture call, a second opinion on a decision), and hard problems an agent hands over because they exceed its tier. It returns a diagnosis or recommendation. `triage` hands over once, when `oracle` is installed, before it stops after three failed fixes. A second opinion is never requested unasked. The model-initiated form is Claude Code's built-in advisor (`/advisor`): experimental, Anthropic API only, with no Codex equivalent.
 - **`implementer`**: one medium or large unit of pinned work, such as executing a story or authoring a plan story's FIS.
