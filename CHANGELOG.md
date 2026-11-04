@@ -8,6 +8,10 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ## [1.0.0-rc.9]
 
+### Changed
+- **The critical rules check that a reported problem still exists before fixing it.** The fix an issue, review finding, or report proposes is one candidate unless you asked for that fix, and a problem already gone is reported with what removed it. Ask `init` to update your project or personal rules to adopt it.
+- **A new `PRODUCT.md` has a Product Principles section** for the tiebreakers your product applies when design options conflict, matching the one `clarify` writes at product scope.
+
 ---
 
 ## [1.0.0-rc.8] – 2026-11-03
