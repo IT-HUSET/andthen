@@ -23,6 +23,7 @@ These rules override harness defaults and habits where they conflict.
 
 ## Scope Discipline
 
+- **Confirm a reported problem still exists before fixing it.** An issue, review finding, or report describes the code when it was written, and its proposed fix is one candidate fix unless the user asked for that fix. If the problem is gone, say what removed it.
 - **Make every Boy Scout tidy you find.** A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too.
 - **Unless the task asks for it, make no redesign, public API change, or change that settles an open decision or reverses a recorded one**, because each needs its own review. If the task cannot fit without a redesign or public API change, make the smallest one that works and name it in the report.
 - **List as `NOTICED BUT NOT TOUCHING` only what no tidy can fix**, and only when someone should act on it.
