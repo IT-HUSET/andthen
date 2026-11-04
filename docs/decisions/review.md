@@ -20,4 +20,6 @@ The delta is the work since the Revision, untracked files included, because `imp
 
 What counts as a fix asking for another round: a fixed CRITICAL or HIGH finding or a partly fixed one, never an UNRESOLVED one the next round fails the same way. A `plan.json` remedy is a Note because no fix round may write the file. Issue #3's fourth round was held open by surfaced and deferred MEDIUM and LOW findings returning as findings (2026-10-15).
 
+Issue #4 asked for a round cap and a qualifying clause on the `Next` line after ten whole-target rounds (2026-10-20, before this narrowing); neither was added, because the narrowed follow-up removes the cost, a round follows only a fixed CRITICAL or HIGH, and the report's scope line states what was read.
+
 Reopens if a delta follow-up misses a defect a fix introduced outside the changed code and its callers.
