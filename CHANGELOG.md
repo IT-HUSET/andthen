@@ -6,6 +6,10 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [1.0.0-rc.9]
+
+---
+
 ## [1.0.0-rc.8] – 2026-11-03
 
 ### Added
