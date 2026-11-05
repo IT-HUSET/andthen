@@ -46,7 +46,7 @@ copilot plugin install andthen@andthen
 On Codex, ask for a skill by name: *Run the `andthen:init` skill*. This works on every host. The `/andthen:<name>` commands on this page are Claude Code's and Copilot CLI's.
 
 > [!NOTE]
-> **1.0 is a breaking release.** Have 0.x installed? [Remove it first](#upgrading-from-0x). Retired 0.x skills and flags have no aliases, and 0.x specs must be rewritten with `plan` before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) walks you through it. AndThen is experimental, and skills still change shape between minor versions.
+> **1.0 is a breaking release.** Have 0.x installed? [Update the plugin](#upgrading-from-0x): 1.0 comes from the same marketplace. Retired 0.x skills and flags have no aliases, and 0.x specs must be rewritten with `plan` before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) walks you through it. AndThen is experimental, and skills still change shape between minor versions.
 
 
 ## The workflow
@@ -151,32 +151,29 @@ Pre-releases of the next version live on the `develop` branch. `IT-HUSET/andthen
 
 ### Upgrading from 0.x
 
-The 0.x and 1.0 marketplaces are both named `andthen`, so remove the 0.x one before adding 1.0. On Claude Code, removing the marketplace also uninstalls its plugin.
+1.0 ships from the same marketplace as 0.x: `andthen`, added from `IT-HUSET/andthen`. Refresh the marketplace and update the plugin:
 
 ```bash
-# Claude Code
-/plugin marketplace remove andthen             # drops 0.x and its plugin
-/plugin marketplace add IT-HUSET/andthen
-/plugin install andthen@andthen
+# Claude Code (auto-update, when on, does this at startup)
+/plugin marketplace update andthen
+/plugin update andthen@andthen                 # restart to apply
 
 # Codex CLI
-codex plugin remove andthen@andthen
-codex plugin marketplace remove andthen
-codex plugin marketplace add IT-HUSET/andthen
+codex plugin marketplace upgrade andthen
 codex plugin add andthen@andthen
 
 # GitHub Copilot CLI
-copilot plugin uninstall andthen@andthen
-copilot plugin marketplace remove andthen
-copilot plugin marketplace add IT-HUSET/andthen
-copilot plugin install andthen@andthen
+copilot plugin marketplace update andthen
+copilot plugin update andthen@andthen
 ```
 
-From a checkout of this repository, `python3 scripts/andthen-plugins.py stable` does all of this on every host it finds and then checks the installed version. Your 0.x specs need rewriting before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) covers that and the retired skill names.
+A marketplace added with a tag, such as `IT-HUSET/andthen@v0.40.4`, stays on that tag: remove it and add it again as in the [quick start](#quick-start). From a checkout of this repository, `python3 scripts/andthen-plugins.py stable` reinstalls from `main` on every host it finds and then checks the installed version.
+
+Updating replaces the skills, not your 0.x specs, which need rewriting before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) covers that and the retired skill names.
 
 ### Staying on 0.x
 
-0.40.4 is the last 0.x release, tagged `v0.40.4`. It gets no further changes, and its own [README](https://github.com/IT-HUSET/andthen/blob/v0.40.4/README.md) documents it. To install it, or to go back to it from 1.0, run the commands above with the tag pinned:
+0.40.4 is the last 0.x release, tagged `v0.40.4`. It gets no further changes, and its own [README](https://github.com/IT-HUSET/andthen/blob/v0.40.4/README.md) documents it. To install it, or to go back to it from 1.0, remove the marketplace and add it again with the tag pinned:
 
 - **Claude Code and Codex:** `IT-HUSET/andthen@v0.40.4` in place of `IT-HUSET/andthen`.
 - **Copilot CLI:** `https://github.com/IT-HUSET/andthen.git#v0.40.4` in place of `IT-HUSET/andthen`.

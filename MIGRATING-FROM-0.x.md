@@ -24,7 +24,7 @@ Each step says when it applies; skip the ones that don't.
 
 **1. Update your installation.** Always.
 
-- **Plugin (Claude Code or Codex):** run the README's [upgrade commands](README.md#upgrading-from-0x). They remove the old `andthen` marketplace – on Claude Code that also uninstalls the 0.x plugin – and add `IT-HUSET/andthen` on both hosts. The host's plugin cache (`~/.claude/plugins/cache`, `~/.codex/plugins/cache`) refreshes itself; leave it alone.
+- **Plugin (Claude Code, Codex, or Copilot CLI):** run the README's [upgrade commands](README.md#upgrading-from-0x). They refresh the `andthen` marketplace, which 1.0 shares with 0.x, and update the plugin in place. The host's plugin cache (`~/.claude/plugins/cache`, `~/.codex/plugins/cache`) refreshes itself; leave it alone.
 - **Loose `install-skills.sh` install:** the current installer updates the skills it still ships but does not remove retired ones. Note the prefix and the skill and agent directories your 0.x install used, remove the retired files listed under [Installation cleanup](#installation-cleanup-loose-installs-only) once you confirm each is AndThen's, then run the current installer.
 - **Moving from loose skills to the plugin:** remove the loose ones the same way, or both naming schemes stay visible as duplicate commands.
 
