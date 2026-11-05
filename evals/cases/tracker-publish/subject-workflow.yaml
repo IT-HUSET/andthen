@@ -1,0 +1,32 @@
+name: andthen-tracker-publish-subject
+description: Publish one committed two-story plan to a local tracker twice.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: publish
+    name: Publish the plan
+    skill: andthen:tracker
+    prompt: >-
+      publish docs/specs/ledger-hygiene/plan.json --auto
+
+      Run each tracker operation as docs/ISSUE-TRACKER.md maps it, and change
+      nothing in the plan bundle. Return the issue numbers the run created,
+      updated, or found unchanged, and for each update what it replaced.
+    outputs:
+      first_run:
+        format: text
+  - id: publish-again
+    name: Publish the unchanged plan again
+    skill: andthen:tracker
+    prompt: >-
+      publish docs/specs/ledger-hygiene/plan.json --auto
+
+      The plan is unchanged and the tracker now holds the issues the first run
+      wrote. Before anything else, run `python3 tools/issues.py checkpoint`
+      once. Then run the publish above and return the issue numbers the run
+      created, updated, or found unchanged.
+    outputs:
+      second_run:
+        format: text

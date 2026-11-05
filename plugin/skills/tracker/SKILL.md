@@ -55,13 +55,16 @@ The bundle is agent truth, and the tracker is its human projection. `publish` ne
 
 Each body you write is projected from one hidden line down. On the parent the line is `<!-- andthen-projection <source> -->`, where `<source>` is the repo path of the PRD, else of the `plan.json`, kept as identity only. On a child it is `<!-- andthen-projection <id> <source> -->`, led by its story's id so the parent's line never matches it. Keep the text above the line, such as a source issue's original request, and put the line below the text of an issue that has none.
 
-- **The parent** is titled by the PRD's heading, else `Plan: <plan directory name>`, and a found parent keeps its title. Below the line goes the PRD, then a `## Stories` checklist with one `- [ ] <id> #<number> – <name>` per story, checked once the story is `done` or `skipped`. A plan without a PRD writes only the checklist. A `prd.md` alone writes only the PRD and keeps the checklist already there.
+- **The parent** is titled by the PRD's heading, else `Plan: <plan directory name>`. Below the line goes the PRD, each file path it cites replaced by what the file is, then a `## Stories` checklist with one `- [ ] <id> #<number> – <name>` per story, checked once the story is `done` or `skipped`. A plan without a PRD writes only the checklist. A `prd.md` alone writes only the PRD and keeps the checklist already there.
 - **A child** per story is titled `<id> - <name>`. Below the line go the story's scope, then its FIS's Intent, Expected Outcomes, and Acceptance Scenarios without their Proof lines, then `Blocked by:` its dependencies' issues, and once the story is done `Verified:` with its `verified.summary`.
-- **A closed issue is the shipped record**, so never edit one.
+- **A closed issue is the shipped record**, so never edit one. A found issue keeps its title, because `publish` has no retitle operation.
+- **The checklist never loses a finished story or a link.** A story it checks stays checked, because another branch's copy of `plan.json` finished it; while this copy has not, leave that story's child as it is. An entry for a story the plan no longer has stays too, and the preview and Output name its open child to close. A re-plan numbers new stories after the highest old ID, so an old entry never names a new story.
 
 #### Find them
 
 The parent is the first open issue among the issue the PRD's header names, a tracker item the plan's `sourceRefs` cite, and the issue `list issues` finds with the line as the body-search phrase. With none open, create the parent, and when a candidate was closed, link it in the text above the line. A child is the issue the parent's checklist links for its story, else the open issue `list issues` finds with its line, because a run that stopped before the checklist write left it unlinked. Two open candidates at one step, for the parent or a child, stop the run, naming both.
+
+On GitHub, `list issues` for a line is `gh issue list --state all --json number,state,body --search` with one argument, `"<line text>" in:body`: the text inside the comment markers, quoted as one phrase, because unquoted its words match unrelated issues. Only a hit whose body holds the exact line counts.
 
 #### Preview and send
 
@@ -88,4 +91,4 @@ Ask which backend the tracker uses, for any backend but GitHub the command each 
 
 ## Output
 
-`publish` reports each issue it created, updated, or found unchanged, by number, and in an unattended run what each update replaced.
+`publish` reports each issue it created, updated, found unchanged, or left closed, by number, naming the open child of a dropped story for the user to close, and in an unattended run what each update replaced.

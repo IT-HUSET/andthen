@@ -35,7 +35,7 @@ Create a missing document and its entry here from `project-document-templates.md
   Skip a change that leaves behavior as it was, such as doc wording, a figure, layout, or an internal refactor, because every extra bullet buries the ones an upgrading user needs.
   A change to something the release already lists reworks that bullet rather than adding one.
   Bullets stay tight (bold lead plus one or two sentences).
-  On a `feat/<version>` branch, write under `## [<version>]`, never `[Unreleased]`; the version bump (see Plugin manifests) opens that heading.
+  On a `feat/<version>` branch, write under `## [<version>]`, never `[Unreleased]`; the version bump (see Plugin manifests) sets that heading.
 - **Plugin reference** – `plugin/README.md`: canonical user-facing reference for every shipped skill. Read the skill's section and every line naming it before changing or describing its behavior; update when a flag, mode, or edge case changes.
 - **Public intro** – `README.md`: the front door, about 2k words – what AndThen is, install, setup, the first feature, and the nine core skills; everything deeper is one link away in the Cookbook. Update when a user-invocable skill is added, renamed, or removed – the shipped skill count, and a row when it is one of the nine – and regenerate its figure (`python3 scripts/skills-overview.py` writes `assets/skills-overview.svg`).
 - **Cookbook** – `COOKBOOK.md`: task-oriented recipes, how the workflow fits together (steps, artifacts, loops, terms), team work, the framework comparison, and the continuous worked example. Read the recipes for the workflow you describe before describing it to users; update when a skill, option, or artifact a recipe names changes – `scripts/audit-cookbook.py` fails CI on a stale reference.
@@ -47,7 +47,7 @@ Create a missing document and its entry here from `project-document-templates.md
 - **Research** – `docs/temp/research/`: working research artifacts, transient and not shipped. Read when re-opening that investigation; write when a task produces durable research.
 - **Learnings** – `docs/LEARNINGS.md`. Read at task start for skill, packaging, or agent-workflow changes; add a bullet when bitten by a non-obvious failure.
 - **Decisions** – `docs/DECISIONS.md`: ADR index and Still Current notes. Read before proposing or changing a design or architecture choice; settled decisions are not relitigated without new evidence.
-- **Plugin manifests** – `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`: install metadata for the plugin on every host (Copilot reads the Claude Code pair). Write all four together on an install-metadata change. A version bump sets one version in `CHANGELOG.md`, the `andthen` entry of `.claude-plugin/marketplace.json`, and both `plugin.json` files (`.agents/plugins/marketplace.json` carries none), and opens `## [<version>]` in `CHANGELOG.md`, renaming `## [Unreleased]` when present, in one commit titled with the version; CI fails on skew and reads only the bracketed version, so the heading's date can wait for the tag. The bump is the first commit of a `feat/<version>` branch, else it happens at release.
+- **Plugin manifests** – `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`: install metadata for the plugin on every host (Copilot reads the Claude Code pair). Write all four together on an install-metadata change. A version bump sets one version in `CHANGELOG.md`, the `andthen` entry of `.claude-plugin/marketplace.json`, and both `plugin.json` files (`.agents/plugins/marketplace.json` carries none), and opens `## [<version>]` in `CHANGELOG.md`, renaming `## [Unreleased]` when present, in one commit titled with the version; CI fails on skew and reads only the first bracketed semver in `CHANGELOG.md`, so the heading's date can wait for the tag. Until 1.0 the bump renames the one cumulative section's heading to the new `## [1.0.0-rc.N]` instead of opening another. <!-- pre-release: at 1.0 that heading becomes `## [1.0.0] – <date>`, and from then on a bump opens its own section again; drop the sentence before this comment --> The bump is the first commit of a `feat/<version>` branch, else it happens at release.
 - **Agent Temp** – `.agent_temp/`: scratch workspace for reviews, research, and QA; never ship from it.
 
 ---
@@ -75,7 +75,7 @@ Prompt-like text is written for frontier agents, and the **Skill-authoring guide
 
 ### Git Remotes
 
-One remote: `origin` is the public repo (`IT-HUSET/andthen`). `main` carries the released 0.x line until 1.0 ships; `develop` carries the 1.0 release candidates, tagged `v1.0.0-rc.N`. Unreleased work lands on `develop` through a pull request from its `feat/<version>` branch, because CI runs on pull requests only. <!-- pre-release: at 1.0 `develop` fast-forwards into `main` and this section collapses to one branch -->
+One remote: `origin` is the public repo (`IT-HUSET/andthen`). `main` carries the released 0.x line until 1.0 ships; `develop` carries the 1.0 release candidates, tagged `v1.0.0-rc.N`. Unreleased work lands on `develop` through a pull request from its `feat/<version>` branch, because CI runs on pull requests only. <!-- pre-release: at 1.0 `develop` fast-forwards into `main` and this section collapses to one branch; collapse the `develop` wording in docs/KEY_DEVELOPMENT_COMMANDS.md § Release steps 3-4 and the Changelog entry's `feat/<version>` wording with it -->
 
 ### Maintenance Contracts
 
@@ -84,7 +84,7 @@ One remote: `origin` is the public repo (`IT-HUSET/andthen`). `main` carries the
 - Adding, renaming, or removing a shared canonical in `plugin/references/` updates `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table and, in `scripts/install-skills.py`, `_canonical_assets` and the `_skill_assets_*` array of every consuming skill.
 - Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`.
   Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
-- Release-time flips carry a `pre-release:` comment at their site, each stating its own flip. Releasing 1.0 starts with tagging `v0.40.4` on `origin` (the only ref back to 0.x) and ends with `rg 'pre-release:'` returning nothing.
+- Release-time flips carry a `pre-release` comment (found by `rg 'pre-release[:]'`) at their site, each stating its own flip. The 1.0 cut has its own steps in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
 - Before a release, re-check each role template's model and effort pin (`plugin/skills/init/templates/agents/`) against both providers' current lineups and the models Copilot offers: the pins are recommendations as of their last change (`docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Durable principles).
 
 ---

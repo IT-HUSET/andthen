@@ -34,7 +34,7 @@ import urllib.request
 from pathlib import Path
 
 REPO = "IT-HUSET/andthen"
-# pre-release: at release `stable` is 1.0 on main and `rc` goes (docstring too).
+# pre-release: at 1.0 `stable` is 1.0 on main and `rc` goes: here, in the module docstring's Targets list, and in the `rc|stable` text of the `ap.error` call in main().
 CHANNELS = {"rc": "develop", "stable": "main"}
 MANIFEST = ".claude-plugin/marketplace.json"
 IGNORE = [".DS_Store", "__pycache__", ".in_use", ".git"]

@@ -27,7 +27,7 @@ Code that writes files or shells out is tested through the process boundary with
 
 ## What Must Have a Test Before Merge
 
-Sized to an experimental release candidate with one maintainer: the `fast` tier green on every change, the `full` tier before a merge to `develop`, and the live `eval full` before a release.
+Sized to an experimental release candidate with one maintainer: the `fast` tier green on every change, the `full` tier before a merge to `develop`, and the live `eval full` before a release. <!-- pre-release: at 1.0 drop "experimental release candidate" and make "a merge to `develop`" read "a merge to `main`" -->
 
 - **Highest risk, always tested:** `scripts/install-skills.py`, because its rewrites reach every loose-skill install. A behavior change in it comes with a test of that behavior.
 - Every release-check assertion (e.g. `scripts/audit-cookbook.py`), proved to fire on synthetic input, not only to pass on the live tree – an assertion never shown to fire is a non-catch.

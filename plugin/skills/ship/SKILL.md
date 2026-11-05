@@ -57,7 +57,9 @@ Put what the merge decision needs first and fold per-story detail below it, beca
 - **Intent and outcomes.**
   Take them from each FIS's Intent and Expected Outcomes and from the plan's source: the file its `prd` names, else what its stories' `sourceRefs` cite.
   Without a plan, take them from the commits and the request.
-  Link a cited tracker item so the merge closes it, unless the plan is not ready, because its work is then unfinished.
+  Add a closing link for each issue the merge finishes: the parent once the plan is ready (the tracker item the plan cites, or the one step 5's publish reports), and the child of each story `done` or `skipped`; without a plan, the tracker item the request cites.
+  Step 5's publish names the children; without one, the parent's `## Stories` checklist does, fetched read-only as the `Issue Tracker` document says or with `gh issue view`.
+  A link closes only from a pull request into the remote's default branch, so for another base the step 5 question and the output name the issues that stay open for the user to close after the merge.
 - **Proof** of each outcome, from each story's `verified.summary` in `plan.json` and the latest review report's verdict.
 - **Door and blast radius.**
   Say whether the change is a one-way or two-way door and what its blast radius is, linking the ADR that settled a one-way door.
@@ -91,15 +93,14 @@ Put what the merge decision needs first and fold per-story detail below it, beca
 
 - Show the base branch, the commits leaving, the title, and the body.
 - Under `Record: tracker` with a plan bundle, invoke the `andthen:tracker` skill with `publish <plan.json> --dry-run` before asking.
-  The question below also covers its preview and a closing link in the body for each issue the merge finishes, because the merge closes them into the record.
-  While the plan is not ready, those are only the open issues of stories `done` or `skipped`, so the parent and the unfinished stories stay open for a later ship.
+  The question below also covers its preview.
 - Ask once whether to push and open it, and end the turn on the question.
   For a ready plan's tracked bundle, the same question asks whether to delete it, recommending deletion.
   It also names each feature folder under the `Wireframes` or `Mockups` locations that the branch added or the plan cites (`assetRefs`, its FIS files), never a location itself, and asks whether to delete them.
   Recommend deleting them unless their build is still to come: the plan is not ready, or the branch changed nothing outside design and spec folders.
   With no remote, ask only about the bundle and those folders, except under `Record: tracker`, where it waits for a publish.
   Offer screenshots or a recording for a visible UI change the request said nothing about.
-- On a yes under `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, and add the closing links from the issues it reports and the parent issue's URL per `pr-section.md`.
+- On a yes under `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, add step 3's closing links, taking the issue numbers from those it reports, and put the parent issue's URL on `pr-section.md`'s `PRD:` line.
 - A deletion (step 1's "don't keep" answer included), the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead, there is no remote, or the run is `--auto`.
 - On a delete, commit the deletion before the push: `plan.json`, its FIS files, any `intent.md` beside them, and any `superseded/` folder go, and the requirements file its `prd` names stays.
   A `prd.md` that stays gains a `> **Shipped**: <UTC ISO-8601 minute>` header line in the same commit.
@@ -122,4 +123,4 @@ Report:
 - each `Learnings` bullet written, each recommendation, and each observation judged not worth keeping, with its reason;
 - the commits made, the bundle files and design folders deleted, and the bundle or each design folder kept, with the `ASSUMPTION:` line of an unattended run;
 - each change left uncommitted, each file left in the bundle's directory, and whether the plan was marked `shipped`;
-- the pull request's URL, each issue published, and each image left for the user to attach, or its title, body, and the commands still to run.
+- the pull request's URL, each issue published, each issue left for the user to close, and each image left for the user to attach, or its title, body, and the commands still to run.

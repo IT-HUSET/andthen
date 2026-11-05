@@ -1,0 +1,24 @@
+{
+  "next": 3,
+  "issues": [
+    {
+      "number": 1,
+      "title": "Ledger hygiene for month close",
+      "body": "At month close the ledger owner's notes stop the run, and the run label overflows the summary sheet. Please make an annotated ledger run as it is and keep every run label to what the sheet holds.",
+      "state": "open",
+      "labels": [
+        "ready-for-agent"
+      ],
+      "comments": []
+    },
+    {
+      "number": 2,
+      "title": "S01 - Comment lines in the ledger",
+      "body": "<!-- andthen-projection S01 docs/specs/ledger-hygiene/prd.md -->\nLedger lines starting with a hash are skipped.",
+      "state": "open",
+      "labels": [],
+      "comments": []
+    }
+  ],
+  "log": []
+}

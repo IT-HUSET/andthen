@@ -450,7 +450,7 @@ Record: repo
      Each value is a single direct command invocation (executable + fixed args + <placeholders>) – no pipes,
      shell operators, command substitution, or piping to an interpreter.
      This file is security-critical executable config: review changes as code.
-     The backend must expose numeric issue ids; <N> is the issue number. -->
+     Placeholders, each passed as one argv element: <N> the issue's id or key, <title>, <body-file> (a UTF-8 file), <query>, <label>. -->
 
 | Operation      | Backend call |
 |----------------|--------------|

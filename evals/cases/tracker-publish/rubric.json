@@ -1,0 +1,7 @@
+{
+  "criteria": [
+    {"id": "TRACKER_PUBLISH_PROJECTION", "intent": "the parent issue's body carries the PRD's content below its hidden line, not a bare checklist, and each story issue's body carries that story's Intent, Expected Outcomes, and Acceptance Scenarios in prose, with no Proof lines"},
+    {"id": "TRACKER_PUBLISH_FIRST_REPORT", "intent": "the first run's returned report names every issue by number as created, updated, or found unchanged, and says what each update replaced, because an unattended run edits without asking"},
+    {"id": "TRACKER_PUBLISH_RERUN_REPORT", "intent": "the second run's returned report accounts for the same three issues by number as updated or found unchanged and names none as created"}
+  ]
+}

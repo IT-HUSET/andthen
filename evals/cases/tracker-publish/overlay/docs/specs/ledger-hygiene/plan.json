@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "2",
+  "prd": "docs/specs/ledger-hygiene/prd.md",
+  "overview": {"summary": "Let an annotated ledger run as it is and keep every run label within the summary sheet's 24 characters."},
+  "sharedDecisions": [],
+  "bindingConstraints": [],
+  "stories": [
+    {"id": "S01", "name": "Comment lines in the ledger", "dependsOn": [], "status": "pending", "fis": "s01-comment-lines.md", "completedTaskIds": [], "scope": "The ledger reader skips a line that starts with a hash, so an annotated ledger yields the records of the ledger without its notes.", "sourceRefs": ["docs/specs/ledger-hygiene/prd.md#fr1-comment-lines-in-the-ledger"], "provenance": null, "assetRefs": [], "sequencing": null},
+    {"id": "S02", "name": "Short run labels", "dependsOn": ["S01"], "status": "pending", "fis": "s02-short-labels.md", "completedTaskIds": [], "scope": "Label normalization cuts a run label longer than 24 characters at the last word boundary within that limit.", "sourceRefs": ["docs/specs/ledger-hygiene/prd.md#fr2-short-run-labels"], "provenance": null, "assetRefs": [], "sequencing": null}
+  ]
+}

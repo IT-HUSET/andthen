@@ -1,0 +1,9 @@
+{
+  "requiredArtifacts": ["tools/issues.json"],
+  "allowedPaths": ["tools/issues.json", ".agent_temp/**"],
+  "commands": [
+    "python3 \"$ANDTHEN_ROOT/evals/validate_plan.py\" docs/specs/ledger-hygiene/plan.json",
+    "git diff HEAD --exit-code --name-only -- docs/specs/ledger-hygiene 1>&2"
+  ],
+  "oracle": "oracle.py"
+}

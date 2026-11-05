@@ -8,7 +8,7 @@ Author it per the skill's **Durability rule**.
 
 ## Output
 
-The section `edit body` appends:
+The section `edit body` appends, above any `andthen-projection` line, because `publish` replaces what follows it:
 
 ```markdown
 ## Agent Brief

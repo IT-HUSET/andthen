@@ -1,0 +1,3 @@
+Step 1. Run the staged `andthen:tracker` skill: `publish docs/specs/ledger-hygiene/plan.json --auto`. Run each tracker operation as `docs/ISSUE-TRACKER.md` maps it, and change nothing in the plan bundle. Return the issue numbers the run created, updated, or found unchanged, and for each update what it replaced.
+
+Step 2. The plan is unchanged and the tracker now holds step 1's issues. Run `python3 tools/issues.py checkpoint` once, before anything else, then run the same skill call again: `publish docs/specs/ledger-hygiene/plan.json --auto`. Return the issue numbers the run created, updated, or found unchanged.

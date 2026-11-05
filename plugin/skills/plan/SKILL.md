@@ -75,14 +75,15 @@ Run `preflight.md` over the FIS even when nothing is open. Each answer, Step 4's
 
 ### 9. Record the story _(skip under `--batch`)_
 
-Write the story's row: `fis` the FIS basename, `status` `pending`. Standalone, write the one-story `plan.json` beside the FIS, two-space JSON in schema order, every path repo-root-relative POSIX, ending in one trailing newline: `schemaVersion` `"2"`; `prd` the input PRD's path or `null`; `overview.summary` the feature's one line; one story `S01` with `name` and `scope` from the feature, `dependsOn` `[]`, `completedTaskIds` `[]`, and `sourceRefs` every written source read, cited as Rules say (a tracker item as its URL, empty for a description). Check the candidate against `plan.schema.json` before writing it.
+Write the story's row: `fis` the FIS basename, `status` `pending`. Standalone, write the one-story `plan.json` beside the FIS, two-space JSON in schema order, every path repo-root-relative POSIX, ending in one trailing newline: `schemaVersion` `"2"`; `prd` the input PRD's path or `null`; `overview.summary` the feature's one line; one story, `S01` unless Output numbers it after a prior plan, with `name` and `scope` from the feature, `dependsOn` `[]`, `completedTaskIds` `[]`, and `sourceRefs` every written source read, cited as Rules say (a tracker item as its URL, empty for a description). Check the candidate against `plan.schema.json` before writing it.
 
 ## Output
 
-Every FIS is `s{NN}-{name}.md` beside its plan: `NN` the zero-padded story number, `{name}` a kebab-case slug of the story name. Its `**Plan**:` / `**Story-ID**:` pair holds the plan's repo-root-relative POSIX path, with no leading `./` and never the caller's absolute one, and the story ID (`S01` standalone).
+Every FIS is `s{NN}-{name}.md` beside its plan: `NN` the zero-padded story number, `{name}` a kebab-case slug of the story name. Its `**Plan**:` / `**Story-ID**:` pair holds the plan's repo-root-relative POSIX path, with no leading `./` and never the caller's absolute one, and the story ID (`S01` standalone in a fresh directory). In a directory that already holds a plan, current or under `superseded/`, number new stories, a standalone one included, after its highest story ID, because published issues keep the old IDs.
 
 - A plan story: the plan's directory.
-- A directory, PRD or intent doc: that directory, as `s01-{feature-slug}.md`.
+- A directory, PRD or intent doc: that directory, as `s{NN}-{feature-slug}.md`.
+- A tracker item: the `issue-{number}-*` directory the `andthen:clarify` skill wrote under `Specs & Plans`, when one exists, so its `prd.md` is reused.
 - Otherwise: a feature directory under `Specs & Plans`, default `docs/specs/{feature-name}/`.
 
 Under `--batch`, return the FIS path, any `PHANTOM_SCOPE` entries, any `OVERSIZE:` line, and each open item – a sign-off or manual check the source gives a person among them – written into the FIS as its conservative `ASSUMPTION:` line.
