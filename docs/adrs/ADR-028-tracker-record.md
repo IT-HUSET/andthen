@@ -9,6 +9,8 @@ Extends ADR-026: `ship` gains the final tracker refresh. It reverses one recorde
 
 *Amended 2026-10-21: `ship` deletes the bundle only when the user chooses it (ADR-026, amended the same day). The deletion still waits for the publish: under `Record: tracker` it removes `prd.md` too once the issues are published, and without a publish the bundle stays for the next run.*
 
+*Amended 2026-11-05: a closing link closes only from a pull request into the default branch, so `ship` names the issues another base leaves open. `ship` links finished stories' children in both modes, under `Record: repo` from the cited issue's `## Stories` checklist, read only (it still writes no issue there, so the "refresh only under `Record: tracker`" note holds). `publish` never unchecks a checked story, edits its child from a copy of `plan.json` that has not finished it, or drops a checklist entry, because team branches carry diverging copies; "no merge" concerns edits made in the tracker.*
+
 ## Context
 
 **Some teams want no requirements documents in the repo.** Their PRDs and stories live in GitHub issues, and the issues plus the PR are the lasting record. AndThen supports half of that today. `plan <issue-url>` reads an issue as its requirements, the gap lens reads that URL as its baseline, and `ship` writes the PR body and deletes `plan.json` and the FIS files before the merge (ADR-026). Three gaps remain:

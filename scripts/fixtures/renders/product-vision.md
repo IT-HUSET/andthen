@@ -18,7 +18,7 @@ Reconciliation lives in spreadsheets rebuilt every month, so the answer to "why 
 - One queryable history per payment, from authorization to settlement.
 - Month-end close that does not require a data export.
 
-## Anti-Goals
+## Non-Goals
 
 - Not a general BI tool; no arbitrary chart builder.
 - Not a payment processor; Ledger never moves money.

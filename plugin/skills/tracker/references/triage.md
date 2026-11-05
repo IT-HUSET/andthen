@@ -5,7 +5,7 @@ Turn raw incoming tracker items into a triaged backlog: each item gets a categor
 ## Rules
 
 - **Every write is ratified.** The deliverable is the per-item judgement the user ratifies before anything is written to a shared tracker, because a wrong label or a `wontfix` on someone's issue is visible to the whole team and costly to unwind. An unattended run inverts this, as Step 2's Confirm item says.
-- **Operation vocabulary**: `list issues`, `fetch issue`, `comment`, `edit body`, `add label` / `remove label`, `close issue`, each mapped through the Issue Tracker document's Operation Table. Label names and body shapes stay identical across backends, since the document maps transport, not contract, and a backend must expose numeric issue identifiers.
+- **Operation vocabulary**: `list issues`, `fetch issue`, `comment`, `edit body`, `add label` / `remove label`, `close issue`, each mapped through the Issue Tracker document's Operation Table. Label names and body shapes stay identical across backends, since the document maps transport, not contract.
 - **Canonical roles**: two categories, `bug` and `enhancement`, and five states. Both sets are closed. Resolve each role to the repo's actual label via the Issue Tracker document's **Label Role Mapping**, whose defaults are the canonical names.
   - `needs-triage` – untriaged, the input set.
   - `needs-info` – blocked on the reporter.
@@ -20,11 +20,11 @@ Turn raw incoming tracker items into a triaged backlog: each item gets a categor
 
 Assemble the working set:
 
-- Specific number(s) in `ARGUMENTS` – `fetch issue` each.
+- Specific issue id(s) in `ARGUMENTS` – `fetch issue` each.
 - A query – `list issues` matching it.
-- Empty – every untriaged item: no state label, or carrying `needs-triage`.
+- Empty – every untriaged item: no state label, or carrying `needs-triage`, except an issue whose body holds an `andthen-projection` line, which belongs to a published plan.
 
-**Gate**: the working set is listed by number.
+**Gate**: the working set is listed by id.
 
 ### 2. Triage each item
 
@@ -63,6 +63,6 @@ Per item: number or identifier, category, recommended (or applied) state, one-li
 A `ready-for-agent` item is buildable. Point the user at its execution path; an unattended run skips this:
 
 - **Bug with an unknown cause** → the `andthen:triage` skill on the issue URL, because a fix is sized only once its cause is known.
-- **Small fix** → the `andthen:implement-fix` skill.
+- **Small fix** → the `andthen:implement-fix` skill on the issue URL.
 - **Feature, one story or several** → the `andthen:plan` skill on the issue URL, an accepted requirements source it breaks into stories when it needs several, then the `andthen:exec-plan` skill.
 - **Requirements still too thin to plan from** → the `andthen:clarify` skill on the issue URL, then the `andthen:plan` skill on the directory it writes.

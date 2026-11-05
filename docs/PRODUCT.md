@@ -1,17 +1,23 @@
 # Product: AndThen
 
-## Purpose
+## Vision
 
-AndThen is a lightweight agentic software engineering framework for AI coding agents, with spec-driven development as its main workflow. It helps developers and teams turn intent into verified changes with fewer omissions, less rework, and less supervision. Other tools integrate through its artifacts' documented shapes (PRD, `plan.json`, FIS, review report), not through an API or service.
+AndThen is a lightweight agentic software engineering framework for AI coding agents, with spec-driven development as its main workflow. It helps developers and teams turn intent into verified changes.
 
-## Decision Rule
+## Target Users
 
-Choose the smallest approach that meets the requirement and its verification bar; extending what exists, or changing nothing, is always a candidate. Every addition – a step, artifact, dependency, configuration, agent call, instruction, rule, or check – names the outcome it enables or the failure it prevents. A new instruction or check also covers a path most runs take or a failure that is destructive or silent. Analysis establishes the need when the text omits a step, gives an output no home, or directs the wrong behaviour; a claim that the model goes wrong where the text is silent needs the run where it did, because without that run the instruction may change nothing (**Intent-driven**).
+- **Developers and teams using an AI coding agent** (Claude Code, Codex CLI, GitHub Copilot CLI, or another agent through loose skills): have the agent build against a spec they agreed to.
 
-The rule covers existing design in scope, not only proposals: simplify or remove machinery whose benefit no longer covers its cost. That is judgment, not another approval step or document.
+## Value Propositions
+
+- Aims for fewer omissions, less rework, and less supervision on the way from intent to a verified change. Not yet measured (see Success Metrics).
+- Integration through files: other tools work with its artifacts' documented shapes (PRD, `plan.json`, FIS, review report), not through an API or service.
 
 ## Product Principles
 
+- **Decision Rule:** Choose the smallest approach that meets the requirement and its verification bar; extending what exists, or changing nothing, is always a candidate. Every addition – a step, artifact, dependency, configuration, agent call, instruction, rule, or check – names the outcome it enables or the failure it prevents. A new instruction or check also covers a path most runs take or a failure that is destructive or silent. Analysis establishes the need when the text omits a step, gives an output no home, or directs the wrong behaviour; a claim that the model goes wrong where the text is silent needs the run where it did, because without that run the instruction may change nothing (**Intent-driven**).
+
+  The rule covers existing design in scope, not only proposals: simplify or remove machinery whose benefit no longer covers its cost. That is judgment, not another approval step or document.
 - **Lean:** one source of truth per fact; rework it rather than layering duplicates, exceptions, and bookkeeping on top.
 - **Lightweight:** each skill is useful without adopting the whole pipeline. Dependencies stay few, and context loads only when a path needs it.
 - **Efficient:** optimize total cost to a verified completion, not local savings that raise failures or rework.
@@ -31,13 +37,13 @@ The rule covers existing design in scope, not only proposals: simplify or remove
 ## Proportionality
 
 <!-- pre-release: drop "release candidate" at 1.0.0 -->
-- **Stage:** experimental framework, distributed as a 1.0 release candidate. Each adopting project sets its own criticality and verification bar.
-- **Scale:** users, active maintainers, and artifact volume are unknown; size nothing against assumed scale.
-- **Distribution:** one `plugin/` directory under Claude Code and Codex manifests, the Claude Code pair also serving Copilot CLI, plus a loose-skill installer for other agents; no build step and no AndThen-operated service.
-- **Runtime:** prompts and assets only; no shipped script.
-- **Standing technical non-goals:** no required hosted control plane, no central workflow database, no duplicated downstream adapters. Workflow state lives in the local artifact that owns it.
+- **Stage**: experimental framework, distributed as a 1.0 release candidate. Each adopting project sets its own criticality and verification bar.
+- **Scale**: users, active maintainers, and artifact volume are unknown; size nothing against assumed scale.
+- **Distribution**: one `plugin/` directory under Claude Code and Codex manifests, the Claude Code pair also serving Copilot CLI, plus a loose-skill installer for other agents; no build step and no AndThen-operated service.
+- **Runtime**: prompts and assets only; no shipped script.
+- **Standing technical non-goals**: no required hosted control plane, no central workflow database, no duplicated downstream adapters. Workflow state lives in the local artifact that owns it.
 
-## Success Indicators
+## Success Metrics
 
 Compare equivalent tasks at the same verification bar on requirements met, escaped defects, rework, tokens, elapsed time, and human intervention, counting setup and failed attempts. Skill counts, document volume, and completed workflow steps are not evidence of value.
 

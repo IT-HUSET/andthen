@@ -26,7 +26,7 @@ A template's `>` note sits above its fenced block, states who owns that document
 > The skill that creates a document appends that document's line below to the Index, changing the path only where the project keeps the document elsewhere, so each path below is the default location. `Key Dev Commands` points at the instruction file's § Key Development Commands instead when the project keeps its commands inline. `Agent Temp` ships in the `init` template. An Index that already has a `Context Map` entry keeps it, read as the `Domain Map`, so the skill seeding the `Domain Map` adds no second line.
 
 ```markdown
-- **Product** – `docs/PRODUCT.md`: vision, personas, non-goals (firmly rejected concepts included), Proportionality facts. Read before proposing a feature, a design, or new machinery, or triaging a request: features anchor to it, and its stage and scale size what gets built.
+- **Product** – `docs/PRODUCT.md`: vision, personas, principles, non-goals (firmly rejected concepts included), Proportionality facts. Read before proposing a feature, a design, or new machinery, or triaging an issue or feature request: features anchor to it, and its stage and scale size what gets built.
 - **Roadmap** – `docs/ROADMAP.md`: phases with success criteria. Read when sequencing work across phases; update when a phase's scope or criteria change.
 - **Specs & Plans** – `docs/specs/<version-or-feature>/`: per version or feature, its `prd.md`, `plan.json`, and one FIS per story (`s01-*.md`, …), written by the `clarify` and `plan` skills. Read the governing FIS before implementing; update the FIS and its story's `plan.json` row as execution proceeds. `plan.json` has one writer per copy at a time, so a `plan` breakdown's story subagents never write it. An oversized FIS is a story too big: decompose it (`OVERSIZE:`), never trim it.
 - **Issue Tracker** – `docs/ISSUE-TRACKER.md` (optional): tracker backend, its commands, label role mapping, where the requirements record lives. Read before any issue fetch, triage, or label write.
@@ -137,6 +137,11 @@ _No tech debt recorded yet._
 
 ## Value Propositions
 <!-- Concrete value per segment. -->
+
+- ...
+
+## Product Principles
+<!-- Tiebreakers this product applies when design options conflict, one bullet each, e.g. "favor depth over breadth". -->
 
 - ...
 
@@ -445,7 +450,7 @@ Record: repo
      Each value is a single direct command invocation (executable + fixed args + <placeholders>) – no pipes,
      shell operators, command substitution, or piping to an interpreter.
      This file is security-critical executable config: review changes as code.
-     The backend must expose numeric issue ids; <N> is the issue number. -->
+     Placeholders, each passed as one argv element: <N> the issue's id or key, <title>, <body-file> (a UTF-8 file), <query>, <label>. -->
 
 | Operation      | Backend call |
 |----------------|--------------|

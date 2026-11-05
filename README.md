@@ -46,7 +46,7 @@ copilot plugin install andthen@andthen
 
 On Codex, ask for a skill by name: *Run the `andthen:init` skill*. This works on every host. The `/andthen:<name>` commands on this page are Claude Code's and Copilot CLI's.
 
-<!-- pre-release: at 1.0, drop "@develop" from the Claude Code and Codex marketplace lines above, replace the Copilot one's URL with `IT-HUSET/andthen`, and drop the note's first sentence -->
+<!-- pre-release: at 1.0, drop "@develop" from the Claude Code and Codex marketplace lines above, replace the Copilot one's URL with `IT-HUSET/andthen`, cut the note's first sentence to "**1.0 is a breaking release.**", and point its "Remove it first" link at `#upgrading-from-0x` -->
 > [!NOTE]
 > **1.0 is a breaking release, in release candidates on the `develop` branch** (`main` still serves 0.40.x). Have 0.x installed? [Remove it first](#10-release-candidate-from-the-develop-branch). Retired 0.x skills and flags have no aliases, and 0.x specs must be rewritten with `plan` before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) walks you through it. AndThen is experimental, and skills still change shape between minor versions.
 
@@ -149,7 +149,7 @@ The other twelve are `implement-fix`, `ship`, `triage`, `testing`, `architecture
 
 The [quick start](#quick-start) covers all three plugin hosts.
 
-<!-- pre-release: delete this section when 1.0 is public -->
+<!-- pre-release: at 1.0, retitle this section "Upgrading from 0.x" (anchor `#upgrading-from-0x`), rewrite its intro and checkout sentence for the release, drop "@develop" and "#develop" from its commands, and make the closing sentence say rolling back is the same remove-then-add with `IT-HUSET/andthen@v0.40.4` (Copilot: `#v0.40.4`) -->
 ### 1.0 release candidate from the develop branch
 
 `IT-HUSET/andthen@develop` follows the release candidates (turn on auto-update under [Host options](#host-options)); `IT-HUSET/andthen@v1.0.0-rc.<N>` pins candidate N. The 0.x and 1.0 marketplaces are both named `andthen`, so remove the old one first. On Claude Code, removing the marketplace also uninstalls its plugin.
