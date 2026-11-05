@@ -13,9 +13,10 @@ install again - and proves the result by reading the version from the installed
 copy rather than trusting a success message.
 
 Targets:
-  rc          the 1.0 release candidates on develop (a tag such as v1.0.0-rc.2
-              via --ref pins one)
-  stable      the 0.x line on main
+  rc          the pre-releases on develop (a tag such as v1.1.0-rc.1 via --ref
+              pins one)
+  stable      the current release on main (a tag such as v1.0.0 via --ref
+              pins one, v0.40.4 the last 0.x)
   --ref REF   any branch or tag of the marketplace repo
   --path DIR  a local checkout (development refresh; also diffs the copy)
 """
@@ -34,7 +35,6 @@ import urllib.request
 from pathlib import Path
 
 REPO = "IT-HUSET/andthen"
-# pre-release: at 1.0 `stable` is 1.0 on main and `rc` goes: here, in the module docstring's Targets list, and in the `rc|stable` text of the `ap.error` call in main().
 CHANNELS = {"rc": "develop", "stable": "main"}
 MANIFEST = ".claude-plugin/marketplace.json"
 IGNORE = [".DS_Store", "__pycache__", ".in_use", ".git"]

@@ -27,11 +27,4 @@ Run with the user present: step 4 is a `git push`, an `ask` rule on purpose, and
 1. Bump the version in the four places `AGENTS.md` § Plugin manifests names, unless the branch's first commit already did, and set `## [<version>]` in `CHANGELOG.md` to `## [<version>] – <date>`, with the date from `date +%Y-%m-%d` at tag time (rename `## [Unreleased]` if that is still the heading). Run the `full` tier, then commit titled `<version>`.
 2. Update your installs on both hosts with the refresh command above and restart sessions: both cache by version, so a session otherwise loads the previous release's skills.
 3. Squash the branch onto `develop`: `git fetch origin`, then `git commit-tree 'HEAD^{tree}' -p origin/develop -m <version>` prints `<sha>`, and `git tag -a v<version> -m <version> <sha>`.
-4. Last, `git push origin <sha>:refs/heads/develop v<version>`.
-
-<!-- pre-release: delete this block after 1.0, and collapse "develop" in steps 3-4 to "main" -->
-**The 1.0 cut** changes three steps. `main` still holds 0.40.4 (`16b36406`, an ancestor of `origin/develop`), which has no tag on `origin`, and the push moves `main`.
-
-- **Before step 1:** `git tag -a v0.40.4 -m 0.40.4 16b36406`, after `git rev-parse origin/main` confirms that SHA. It is the only ref back to 0.x, and the README's rollback names it.
-- **In step 1:** flip every `pre-release` marker in the version commit (`rg 'pre-release[:]'` finds them), set the changelog heading to `## [1.0.0] – <date>`, and confirm that `rg 'pre-release[:]'` then returns nothing.
-- **Step 4 pushes:** `git push origin <sha>:refs/heads/develop <sha>:refs/heads/main v1.0.0 v0.40.4`. Step 3's `<sha>` has `origin/develop` as its parent, so `origin/main` is its ancestor and `main` fast-forwards; no force is needed, and a rejected `main` means step 3 ran against a stale `origin`.
+4. Last, `git push origin <sha>:refs/heads/develop v<version>`. A release (no `-rc.N`) adds `<sha>:refs/heads/main` to that push: `main` only ever moves to a commit on `develop`, so it fast-forwards with no force, and a rejected `main` means something landed on `main` alone.

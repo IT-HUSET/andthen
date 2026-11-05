@@ -36,8 +36,7 @@ AndThen is a lightweight agentic software engineering framework for AI coding ag
 
 ## Proportionality
 
-<!-- pre-release: drop "release candidate" at 1.0.0 -->
-- **Stage**: experimental framework, distributed as a 1.0 release candidate. Each adopting project sets its own criticality and verification bar.
+- **Stage**: experimental framework, distributed as 1.0. Each adopting project sets its own criticality and verification bar.
 - **Scale**: users, active maintainers, and artifact volume are unknown; size nothing against assumed scale.
 - **Distribution**: one `plugin/` directory under Claude Code and Codex manifests, the Claude Code pair also serving Copilot CLI, plus a loose-skill installer for other agents; no build step and no AndThen-operated service.
 - **Runtime**: prompts and assets only; no shipped script.

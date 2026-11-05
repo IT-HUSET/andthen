@@ -20,8 +20,7 @@ What AndThen enforces, so you don't have to:
 It is one plugin, `andthen`, with 21 skills and no runtime of its own to install. There is no CLI to install and no tool directory to commit: skills find your specs and docs through an index in `CLAUDE.md` / `AGENTS.md`.
 
 <p align="center">
-  <!-- pre-release: the raw link targets develop; point it at IT-HUSET/andthen/raw/main when 1.0 merges -->
-  <a href="https://github.com/IT-HUSET/andthen/raw/develop/assets/skills-overview.svg"><img src="assets/skills-overview.svg" alt="AndThen skills and workflow – the idea-to-merge chain (optional clarify, decide and ui-ux-design, then plan, exec-plan, review, implement-fix and ship) with where you take part: the interviews of clarify, decide and plan, three numbered gates (PRD, ADRs, PR), and three reads (the FIS files, each story's report, the review report), the hand-off artifacts (intent.md or a short note, prd.md, ADRs, plan.json with a FIS per story), the thirteen standalone skills, and the four opt-in subagent roles"></a>
+  <a href="https://github.com/IT-HUSET/andthen/raw/main/assets/skills-overview.svg"><img src="assets/skills-overview.svg" alt="AndThen skills and workflow – the idea-to-merge chain (optional clarify, decide and ui-ux-design, then plan, exec-plan, review, implement-fix and ship) with where you take part: the interviews of clarify, decide and plan, three numbered gates (PRD, ADRs, PR), and three reads (the FIS files, each story's report, the review report), the hand-off artifacts (intent.md or a short note, prd.md, ADRs, plan.json with a FIS per story), the thirteen standalone skills, and the four opt-in subagent roles"></a>
   <br><sub>Click the figure for the interactive version: hover a skill, artifact, or role to see what it does.</sub>
 </p>
 
@@ -30,25 +29,24 @@ It is one plugin, `andthen`, with 21 skills and no runtime of its own to install
 
 ```bash
 # Claude Code
-/plugin marketplace add IT-HUSET/andthen@develop
+/plugin marketplace add IT-HUSET/andthen
 /plugin install andthen@andthen
 /andthen:init                      # set up your project
 /andthen:now-what                  # ...and let it route you from there
 
 # Codex CLI
-codex plugin marketplace add IT-HUSET/andthen@develop
+codex plugin marketplace add IT-HUSET/andthen
 codex plugin add andthen@andthen
 
 # GitHub Copilot CLI
-copilot plugin marketplace add https://github.com/IT-HUSET/andthen.git#develop
+copilot plugin marketplace add IT-HUSET/andthen
 copilot plugin install andthen@andthen
 ```
 
 On Codex, ask for a skill by name: *Run the `andthen:init` skill*. This works on every host. The `/andthen:<name>` commands on this page are Claude Code's and Copilot CLI's.
 
-<!-- pre-release: at 1.0, drop "@develop" from the Claude Code and Codex marketplace lines above, replace the Copilot one's URL with `IT-HUSET/andthen`, cut the note's first sentence to "**1.0 is a breaking release.**", and point its "Remove it first" link at `#upgrading-from-0x` -->
 > [!NOTE]
-> **1.0 is a breaking release, in release candidates on the `develop` branch** (`main` still serves 0.40.x). Have 0.x installed? [Remove it first](#10-release-candidate-from-the-develop-branch). Retired 0.x skills and flags have no aliases, and 0.x specs must be rewritten with `plan` before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) walks you through it. AndThen is experimental, and skills still change shape between minor versions.
+> **1.0 is a breaking release.** Have 0.x installed? [Remove it first](#upgrading-from-0x). Retired 0.x skills and flags have no aliases, and 0.x specs must be rewritten with `plan` before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) walks you through it. AndThen is experimental, and skills still change shape between minor versions.
 
 
 ## The workflow
@@ -147,33 +145,43 @@ The other twelve are `implement-fix`, `ship`, `triage`, `testing`, `architecture
 
 ## Installation
 
-The [quick start](#quick-start) covers all three plugin hosts.
+The [quick start](#quick-start) installs the latest release from `main` on all three plugin hosts. To pin a release, add its tag: `IT-HUSET/andthen@v1.0.0` on Claude Code and Codex, and `https://github.com/IT-HUSET/andthen.git#v1.0.0` on Copilot CLI, which takes a URL fragment instead of `@`.
 
-<!-- pre-release: at 1.0, retitle this section "Upgrading from 0.x" (anchor `#upgrading-from-0x`), rewrite its intro and checkout sentence for the release, drop "@develop" and "#develop" from its commands, and make the closing sentence say rolling back is the same remove-then-add with `IT-HUSET/andthen@v0.40.4` (Copilot: `#v0.40.4`) -->
-### 1.0 release candidate from the develop branch
+Pre-releases of the next version live on the `develop` branch. `IT-HUSET/andthen@develop` follows them (Copilot: `#develop`), and a tag such as `@v1.1.0-rc.1` pins one. If you installed a 1.0 release candidate from `@develop`, you are now on 1.0.0 and will get the next pre-releases: to get only releases, remove the marketplace and add it again as `IT-HUSET/andthen`.
 
-`IT-HUSET/andthen@develop` follows the release candidates (turn on auto-update under [Host options](#host-options)); `IT-HUSET/andthen@v1.0.0-rc.<N>` pins candidate N. The 0.x and 1.0 marketplaces are both named `andthen`, so remove the old one first. On Claude Code, removing the marketplace also uninstalls its plugin.
+### Upgrading from 0.x
+
+The 0.x and 1.0 marketplaces are both named `andthen`, so remove the 0.x one before adding 1.0. On Claude Code, removing the marketplace also uninstalls its plugin.
 
 ```bash
 # Claude Code
 /plugin marketplace remove andthen             # drops 0.x and its plugin
-/plugin marketplace add IT-HUSET/andthen@develop
+/plugin marketplace add IT-HUSET/andthen
 /plugin install andthen@andthen
 
 # Codex CLI
 codex plugin remove andthen@andthen
 codex plugin marketplace remove andthen
-codex plugin marketplace add IT-HUSET/andthen@develop
+codex plugin marketplace add IT-HUSET/andthen
 codex plugin add andthen@andthen
 
-# GitHub Copilot CLI (takes no @ref; a URL fragment pins the branch)
+# GitHub Copilot CLI
 copilot plugin uninstall andthen@andthen
 copilot plugin marketplace remove andthen
-copilot plugin marketplace add https://github.com/IT-HUSET/andthen.git#develop
+copilot plugin marketplace add IT-HUSET/andthen
 copilot plugin install andthen@andthen
 ```
 
-From a checkout of the branch, `python3 scripts/andthen-plugins.py --path .` does all of this on every host it finds and checks the installed version. To go back to 0.x, run the same commands with `IT-HUSET/andthen` in place of `IT-HUSET/andthen@develop`.
+From a checkout of this repository, `python3 scripts/andthen-plugins.py stable` does all of this on every host it finds and then checks the installed version. Your 0.x specs need rewriting before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) covers that and the retired skill names.
+
+### Staying on 0.x
+
+0.40.4 is the last 0.x release, tagged `v0.40.4`. It gets no further changes, and its own [README](https://github.com/IT-HUSET/andthen/blob/v0.40.4/README.md) documents it. To install it, or to go back to it from 1.0, run the commands above with the tag pinned:
+
+- **Claude Code and Codex:** `IT-HUSET/andthen@v0.40.4` in place of `IT-HUSET/andthen`.
+- **Copilot CLI:** `https://github.com/IT-HUSET/andthen.git#v0.40.4` in place of `IT-HUSET/andthen`.
+- **From a checkout:** `python3 scripts/andthen-plugins.py --ref v0.40.4`.
+- **Loose skills:** check out the tag (`git checkout v0.40.4`) and run its `./scripts/install-skills.sh`.
 
 ### Host options
 
