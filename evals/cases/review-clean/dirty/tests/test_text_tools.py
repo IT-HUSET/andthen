@@ -28,4 +28,4 @@ class TruncateLabelTests(unittest.TestCase):
 
     def test_rejects_non_strings(self):
         with self.assertRaises(TypeError):
-            truncate_label(7, 5)
+            truncate_label(b"north", 8)
