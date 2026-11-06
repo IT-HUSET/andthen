@@ -261,7 +261,7 @@ and then
 
 Too many to list, but special shoutout to:
 - [Peter Steinberger](https://github.com/steipete)
-- [Cole Medin](https://github.com/coleam00) – the split into an outer loop per feature and an inner loop per story, and the habit of saying at each hand-off whether to continue or start fresh
+- [Cole Medin](https://github.com/coleam00)
 - [IndieDevDan](https://github.com/disler)
 - [Matt Pocock](https://github.com/mattpocock)
 - [Addy Osmani](https://github.com/addyosmani)
@@ -270,4 +270,4 @@ Too many to list, but special shoutout to:
 
 ## License
 
-MIT
+[MIT](LICENSE).
