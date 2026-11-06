@@ -486,7 +486,7 @@ Answers one named design question by building a throwaway runnable spike, then r
 Behavior-preserving simplification: clarity, reuse, and less over-engineering, within the scope you give.
 
 - **You get**: edits that keep behavior, checked against the baseline it records first. Cleanups that contradict the governing FIS's `What We're NOT Doing` or `Architecture Decision` are dropped and reported. Run standalone, a substantial change ends on a `Next (fresh session):` line for a `review` of the changed paths.
-- **Good to know**: without a scope it falls back to the current branch diff, and an unattended run stops if that is not a cohesive set. Removing anything observable or exported needs your approval; unattended, it is deferred. `exec-plan` runs it once per plan, from the run that completes the last story, before the review.
+- **Good to know**: without a scope it falls back to the current branch diff, and an unattended run stops if that is not a cohesive set. Removing anything observable or exported needs your approval; unattended, it is deferred. `exec-plan` runs it once per `done` story, as its own `refactor` commit before the next story runs (under `--worktree`, one pass per merged batch).
 
 ```bash
 /andthen:simplify-code src/billing/invoice.ts
