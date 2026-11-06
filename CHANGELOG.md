@@ -6,6 +6,10 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [1.0.1]
+
+---
+
 ## [1.0.0] – 2026-11-05
 
 Changes since 0.40.4; each `v1.0.0-rc.N` tag's CHANGELOG.md keeps that candidate's notes.
