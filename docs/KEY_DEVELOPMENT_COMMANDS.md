@@ -28,3 +28,8 @@ Run with the user present: step 4 is a `git push`, an `ask` rule on purpose, and
 2. Update your installs on both hosts with the refresh command above and restart sessions: both cache by version, so a session otherwise loads the previous release's skills.
 3. Squash the branch onto `develop`: `git fetch origin`, then `git commit-tree 'HEAD^{tree}' -p origin/develop -m <version>` prints `<sha>`, and `git tag -a v<version> -m <version> <sha>`.
 4. Last, `git push origin <sha>:refs/heads/develop v<version>`. A release (no `-rc.N`) adds `<sha>:refs/heads/main` to that push: `main` only ever moves to a commit on `develop`, so it fast-forwards with no force, and a rejected `main` means something landed on `main` alone.
+
+A patch whose pull request targets `main` (`AGENTS.md` § Git Remotes) replaces steps 3–4.
+Its version bump and dated `CHANGELOG.md` heading go in the pull request, dated the day you merge and tag, because nothing is committed to `main` outside one.
+Once it merges, `git fetch origin`, then `git tag -a v<version> -m <version> origin/main`, then `git push origin v<version>`.
+Last, carry `develop` onto that commit: `git push origin origin/main:refs/heads/develop` where the two refs were level, else `git merge origin/main` on `develop` and push the result, because a `develop` holding its own pre-release work cannot be fast-forwarded.

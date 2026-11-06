@@ -10,7 +10,7 @@ Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt
 - **[The design stage](#the-design-stage)**: [Technical decisions or an architecture question](#technical-decisions-or-an-architecture-question) · [Event storming](#event-storming-a-new-domain-or-a-system-to-rewrite) · [Domain Map first](#the-domain-map-for-a-domain-heavy-project) · [Research, design system, wireframes](#research-a-design-system-wireframes) · [A second opinion](#a-second-opinion-before-committing-to-a-decision)
 - **[Running unattended](#running-unattended)**: [Unattended execution and CI chaining](#unattended-execution)
 - **[Reviewing](#reviewing)**: [Quick look, big PR, one pass](#review-phrasing-a-quick-look-a-big-pr-one-pass) · [Spec fit vs problem fit](#does-it-match-the-spec-or-does-it-solve-the-problem) · [Review, then remediate](#review-then-remediate) · [Review/fix loop](#review-and-fix-until-clean-from-a-coordinating-session)
-- **[Across people and sessions](#across-people-and-sessions)**: [Working in a team](#working-in-a-team) · [Resuming interrupted work](#resuming-interrupted-work)
+- **[Across people and sessions](#across-people-and-sessions)**: [Working in a team](#working-in-a-team) · [Resuming interrupted work](#resuming-interrupted-work) · [A recipe you run every week](#a-recipe-you-run-every-week)
 - **[Backlog](#backlog)**: [A bounded backlog pass](#a-bounded-backlog-pass)
 - **Reference**: [How the workflow fits together](#how-the-workflow-fits-together) (steps, artifacts, the two loops, terms) · [Coming from Spec Kit, Kiro, BMAD, or GSD](#coming-from-spec-kit-kiro-bmad-or-gsd)
 - **[The worked example](#the-worked-example-workspace-invitations)**: one initiative from rough request to milestone PR, in seven turns
@@ -430,7 +430,7 @@ git switch -c feat/S02-accept-an-invitation                                     
 /andthen:tracker publish docs/specs/workspace-invitations/plan.json             # refresh, from the milestone branch
 ```
 
-Each child issue is titled `S02 - Accept an invitation`. The projection is one way, repo → tracker, so reprioritising in the tracker is a re-plan. GitLab and Linear are rows you fill in the `Issue Tracker` document's operation table.
+Each child issue is titled `workspace-invitations S02 - Accept an invitation`, because story ids restart in every plan. The projection is one way, repo → tracker, so reprioritising in the tracker is a re-plan. GitLab and Linear are rows you fill in the `Issue Tracker` document's operation table.
 
 ### Resuming interrupted work
 
@@ -449,6 +449,24 @@ Resume from .agent_temp/handoff/handoff-20260831-142210.md
 **Expect.** `handoff` routes durable fragments home (bounded traps into `Learnings`) and writes the rest – open questions, what was tried, the recommended next skill – to `.agent_temp/handoff/handoff-<UTC-ts>.md`. The next session reads it cold; no skill is needed to resume.
 
 **Without a handoff.** Asking what is active reads `docs/specs/workspace-invitations/plan.json` – status and completed task IDs are the answer – and `/andthen:now-what` routes from the artifacts on disk. Mid-story, `exec-plan` reruns the story using its existing work and plan state; earlier story edits stay in scope, and foreign paths are never staged or reverted.
+
+### A recipe you run every week
+
+**Situation.** You paste the same recipe with the same paths and flags several times a week, and you want the team to have one entry point for it.
+
+Wrap it in a project skill of your own, committed beside the code. Ask for it in the session that just ran the recipe:
+
+```
+Read the "Unattended execution" recipe in COOKBOOK.md and write it as a project skill at
+.claude/skills/plan-bundle/SKILL.md: a description, an argument-hint of "<plan dir>", and a body
+that runs the recipe's invocations in order with the plan directory as $ARGUMENTS. Name the
+andthen:plan and andthen:exec-plan skills in prose, not host slash syntax, so the same file works
+on every host. Then symlink it at .agents/skills/plan-bundle for Codex.
+```
+
+**Expect.** `/plan-bundle docs/specs/workspace-invitations/` on Claude Code and Copilot CLI, and the same skill from Codex's `/skills` picker: one committed file, read by all three hosts from `.claude/skills/` and `.agents/skills/`. Claude Code also still reads the older `.claude/commands/<name>.md` form, which gives `/<name>` from one file with no directory.
+
+**Wrap only what is settled.** The parts that never change (a plan directory, `--auto`, a review mode) belong in the file; the request itself stays `$ARGUMENTS`, because skills read intent from your words and a frozen sentence is a worse request than the one you would have typed. A recipe you run twice a year is not worth a file.
 
 
 ## Backlog

@@ -24,6 +24,9 @@ SOURCE = "docs/specs/ledger-hygiene/prd.md"
 PARENT_TITLE = "Ledger hygiene for month close"
 REQUEST = "At month close the ledger owner's notes stop the run"
 STORIES = {"S01": 2, "S02": 3}  # story id -> issue number: #2 is seeded, #3 is new
+SEEDED = STORIES["S01"]  # #2, the seeded child
+SEEDED_TITLE = "S01 - Comment lines in the ledger"  # #2's title, which a found issue keeps
+PLAN_ID = "ledger-hygiene"  # the plan directory's name, leading a created child's title
 # What each story's body must carry, so a body that kept its hidden line and lost
 # its projection does not pass.
 STORY_WORDS = {"S01": "comment", "S02": "24 characters"}
@@ -88,9 +91,17 @@ def main():
         if STORY_WORDS[story] not in text:
             problems.append("#%d body below its line does not carry %s's content (no %r)"
                             % (number, story, STORY_WORDS[story]))
-        if not child.get("title", "").startswith(story):
-            problems.append("#%d title is %r, expected one led by %s"
-                            % (number, child.get("title"), story))
+        title = child.get("title", "")
+        if number == SEEDED:
+            if title != SEEDED_TITLE:
+                problems.append("#%d title is %r, expected the found child to keep %r"
+                                % (number, title, SEEDED_TITLE))
+        else:
+            led = "%s %s" % (PLAN_ID, story)
+            if not title.startswith(led):
+                problems.append("#%d title is %r, expected one led by %r, so the id names "
+                                "a story on a tracker shared by several plans"
+                                % (number, title, led))
 
     # The Durability rule, over every body below its hidden line.
     for number, issue in sorted(issues.items()):

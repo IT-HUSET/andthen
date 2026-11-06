@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [1.0.1] – 2026-11-06
+
+### Changed
+- **`tracker publish` leads a story's child-issue title with the plan directory's name** (`workspace-invitations S02 - Accept an invitation`), because story ids restart in every plan, so `S01 - …` named nothing on a tracker several plans share. Issues already published keep their titles.
+
+---
+
 ## [1.0.0] – 2026-11-05
 
 Changes since 0.40.4; each `v1.0.0-rc.N` tag's CHANGELOG.md keeps that candidate's notes.
