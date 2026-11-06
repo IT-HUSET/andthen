@@ -430,7 +430,7 @@ git switch -c feat/S02-accept-an-invitation                                     
 /andthen:tracker publish docs/specs/workspace-invitations/plan.json             # refresh, from the milestone branch
 ```
 
-Each child issue is titled `S02 - Accept an invitation`. The projection is one way, repo → tracker, so reprioritising in the tracker is a re-plan. GitLab and Linear are rows you fill in the `Issue Tracker` document's operation table.
+Each child issue is titled `workspace-invitations S02 - Accept an invitation`, because story ids restart in every plan. The projection is one way, repo → tracker, so reprioritising in the tracker is a re-plan. GitLab and Linear are rows you fill in the `Issue Tracker` document's operation table.
 
 ### Resuming interrupted work
 
