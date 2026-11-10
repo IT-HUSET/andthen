@@ -388,7 +388,7 @@ DEFERRED findings.
 
 **Expect.** One full review, then follow-up reviews on the same lenses, each with its own report and verdict and a `Follows` header naming the report before it. A follow-up covers the work since that report, the callers of that code, and its open findings (the whole target if the reviewed commit is gone), and says which of those findings are now resolved.
 
-The loop ends on the hand-off, never on the verdict or a severity count: a `Note` no fix round may apply can hold readiness at Needs Fixes, so "until Ready" or "until no MEDIUM remains" may never terminate, while the `Next` line asks for another review only after a round fixed a CRITICAL or HIGH finding or left a fix partial. A blocked CRITICAL or HIGH fix is deferred and escalated, which is the "needs a decision" stop. Both come back to you with the last report.
+The loop ends on the hand-off, never on the verdict or a severity count: a `Note` no fix round may apply can hold readiness at FAIL, so "until PASS" or "until no MEDIUM remains" may never terminate, while the `Next` line asks for another review only after a round fixed a CRITICAL or HIGH finding or left a fix partial. A blocked CRITICAL or HIGH fix is deferred and escalated, which is the "needs a decision" stop. Both come back to you with the last report.
 
 **Elsewhere.** One round is `review --fix` above. Contract: [`review`](plugin/README.md#review).
 

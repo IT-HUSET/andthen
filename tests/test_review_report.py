@@ -336,7 +336,7 @@ GAP_TABLE = """| Dimension | Score | Threshold | Status |
 def as_gap_report(report):
     """The single-lens code fixture recast as a gap report: no corpus fixture
     is one, and the gap verdict shape needs a positive case."""
-    readiness = "**Readiness: Needs Fixes** - 1 HIGH, 1 LOW, no CRITICAL."
+    readiness = "**Readiness: FAIL** - 1 HIGH, 1 LOW, no CRITICAL."
     head, rest = report.split("## Compliance", 1)
     report = head + "## Critic Coverage" + rest.split("## Critic Coverage", 1)[1]
     report = report.replace(f"## Verdict\n\n{readiness}", f"## Verdict\n\n{GAP_TABLE}\n\n**Overall: FAIL**")
@@ -400,10 +400,10 @@ class ReportShapeTest(unittest.TestCase):
             (report.replace("- **Confidence**: 100", "- **Confidence**: high"), "finding 1 Confidence value"),
             (report.replace("### Finding 2 -", "### Finding 3 -"), "finding numbers"),
             (report.replace("### Finding 1 -", "#### Finding 1 -"), "finding heading at ####"),
-            (report.replace("## Verdict\n\n**Readiness: Needs Fixes**", "## Verdict\n\n**Readiness: PASS**"),
+            (report.replace("## Verdict\n\n**Readiness: FAIL**", "## Verdict\n\n**Readiness: Ready**"),
              "verdict line not stated once"),
-            (report.replace("## Executive Summary\n\n**Readiness: Needs Fixes**",
-                            "## Executive Summary\n\n**Readiness: Ready**"),
+            (report.replace("## Executive Summary\n\n**Readiness: FAIL**",
+                            "## Executive Summary\n\n**Readiness: PASS**"),
              "Executive Summary does not open"),
             (mixed.replace("### Gap\n", ""), "no `### Gap` block"),
             (mixed.replace("### Security\n", "### Outcome\n"), "lens subheadings"),

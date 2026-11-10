@@ -64,6 +64,7 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   Step 5's publish names the children; without one, the parent's `## Stories` checklist does, fetched read-only as the `Issue Tracker` document says or with `gh issue view`.
   A link closes only from a pull request into the remote's default branch, so for another base the step 5 question and the output name the issues that stay open for the user to close after the merge.
 - **Proof** of each outcome, from each story's `verified.summary` in `plan.json` and the latest review report's verdict.
+  Where that report carries a `**Remediated**:` line, say its verdict predates the fixes, because a FAIL alone reads as findings still open.
 - **Door and blast radius.**
   Say whether the change is a one-way or two-way door and what its blast radius is, linking the ADR that settled a one-way door.
   Where reverting the merge would not undo the change, say what does and what no revert restores.

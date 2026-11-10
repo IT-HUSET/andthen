@@ -26,15 +26,17 @@ PRD: {{the requirements file's path at the pull request's head, its tracker issu
 > Requirements are the bare IDs, spelled as the PRD's `#### FRn:` headings spell the ID and without the title after it (`FR3`, never `FR3: Its title`), of the Feature Specifications this outcome answers, traced through its story's `sourceRefs` anchors and its FIS's Required Context. Write `-` rather than copy a story's whole set onto an outcome that does not answer it.
 > With two or more `PRD:` lines, a `PRD` column after `Requirements` carries the outcome's `PRD:` value verbatim.
 
-| Lens | Verdict | Reviewed commit |
-|---|---|---|
-| code | {{Ready / Needs Fixes / Blocked / not reviewed}} | {{Revision}} |
-| gap | {{PASS / FAIL / not reviewed}} | {{Revision}} |
-| security | {{Ready / Needs Fixes / Blocked / not reviewed}} | {{Revision}} |
-| outcome | {{Ready / Needs Fixes / Blocked / not reviewed}} | {{Revision}} |
+| Lens | Verdict | Reviewed commit | Remediated |
+|---|---|---|---|
+| code | {{PASS / FAIL / not reviewed}} | {{Revision}} | {{yes / -}} |
+| gap | {{PASS / FAIL / not reviewed}} | {{Revision}} | {{yes / -}} |
+| security | {{PASS / FAIL / not reviewed}} | {{Revision}} | {{yes / -}} |
+| outcome | {{PASS / FAIL / not reviewed}} | {{Revision}} | {{yes / -}} |
 
-> All four rows, in this order. Each takes the latest review report that ran the lens: the label its verdict gives the lens, and its `**Revision**` verbatim, a `-dirty` suffix kept.
-> A lens no report gave a verdict is `not reviewed` with commit `-`, and gets an `unchecked` row below.
+> All four rows, in this order. Each takes the latest review report that ran the lens: the PASS or FAIL its verdict gives the lens, and its `**Revision**` verbatim, a `-dirty` suffix kept.
+> Remediated is `yes` on every row a report carrying a `**Remediated**:` line supplies, a mixed report's included, because its verdict predates the fixes and no review has re-run the lens since.
+> A report written before verdicts were PASS or FAIL maps `Ready` to `PASS`, and `Needs Fixes` and `Blocked` to `FAIL`.
+> A lens no report gave a verdict is `not reviewed` with commit and Remediated `-`, and gets an `unchecked` row below.
 
 | Read closely | Files | Note |
 |---|---|---|

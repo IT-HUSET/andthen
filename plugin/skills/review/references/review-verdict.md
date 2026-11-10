@@ -27,17 +27,16 @@ Any dimension below threshold is **FAIL**; all at threshold is **PASS**; no cond
 
 ### Code mode (`--mode code`)
 
-Severity counts plus a readiness label:
+Severity counts plus a readiness verdict:
 
 | Readiness | When |
 |-----------|------|
-| **Ready** | No CRITICAL or HIGH findings; LOW/MEDIUM items are optional polish. |
-| **Needs Fixes** | Any HIGH finding, or three or more MEDIUM findings that collectively require rework. |
-| **Blocked** | Any CRITICAL finding, or a failing check in verification evidence that is load-bearing for the change (not a pre-existing unrelated failure). |
+| **PASS** | No CRITICAL or HIGH finding, not three or more MEDIUM that collectively require rework, and no failing check load-bearing for the change; LOW/MEDIUM items are optional polish. |
+| **FAIL** | Anything else. Severity and the failing check stay in the findings and the evidence, so the verdict carries no level of its own. |
 
 ### Security mode (`--mode security`)
 
-The code-mode scale: LOW/MEDIUM items are hardening and defense-in-depth opportunities, a failing load-bearing security scanner is `Blocked`.
+The code-mode scale: LOW/MEDIUM items are hardening and defense-in-depth opportunities, and a failing load-bearing security scanner is `FAIL`.
 
 ### Outcome mode (`--mode outcome`)
 
@@ -45,4 +44,4 @@ The code-mode scale, severity anchored by the lens's own § Severity. A PRD-side
 
 ### Mixed mode (a resolved multi-lens set)
 
-Per-lens verdicts in each lens's own label (code/security/outcome the three-level scale; gap PASS/FAIL), and **overall readiness** the **worst** across lenses: `Blocked` / `FAIL` > `Needs Fixes` > `Ready` / `PASS`.
+A PASS or FAIL per lens, and **overall readiness** `FAIL` when any lens fails, else `PASS`.
