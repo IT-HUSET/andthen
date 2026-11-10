@@ -79,24 +79,14 @@ The README presents the second as the installer and names the first only for upg
 
 ## Implementation Notes
 
-- **One change with all its callers**, found by `rg 'install-skills|andthen-plugins'`, historical ADR text excluded:
-  - `.github/workflows/validate-plugin.yml`: the content-check step and the `scripts` job's header comment.
-  - `docs/KEY_DEVELOPMENT_COMMANDS.md`, `docs/TESTING-STRATEGY.md`, `docs/SKILL-AUTHORING-GUIDELINES.md`.
-  - `docs/ARCHITECTURE.md`: Distribution Channels and the propagation table's `--claude-user` row.
-  - `AGENTS.md`: the overview, the repo map, and the `_canonical_assets` / `_skill_assets_*` maintenance contract, which names the new module.
-  - `README.md`; `plugin/README.md`, whose "Bundling Into a Downstream Toolkit" section goes; `MIGRATING-FROM-0.x.md`, which names the new command (`scripts/audit-cookbook.py` checks it).
-  - `docs/DECISIONS.md`: the Still Current notes naming `--validate-only`.
-  - `.claude/settings.example.sandbox.json`: the `dartclaw-` dry-run allow rules go.
-- **Tests** split per new script, per the one-file-per-script contract: the `--validate-only` tests move to the content check's file, the custom-prefix tests go, and tests call `sys.executable` instead of shelling out through bash.
-- **Module names** must be importable, so no hyphen. Keep the shebang and executable bit, or document `python3 scripts/andthen.py` everywhere. The shim's `python3 || python` fallback and Git Bash path fix go with it.
-- **Flag spellings** other than `--ref`, `--loose`, `--trust`, and `--replace-roles` are the implementation's.
+- **Landed in `257ab5f4`** with every caller moved; `rg 'install-skills|andthen-plugins'` now hits only historical text.
+- **Module names** are importable (`andthen_loose`, no hyphen), and tests call `sys.executable`, never bash, so they run on Windows.
 - **The script's own code runs on Python 3.9**, the `python3` a stock macOS ships, so it reads Codex's `config.toml` without `tomllib`; the tests may assume CI's 3.12 floor.
 - **Version read-back on Claude Code** reads `installPath` and `version` from `installed_plugins.json` rather than a computed path. A host with a pre-seeded, read-only marketplace (`CLAUDE_CODE_PLUGIN_SEED_DIR`) skips the remove-and-reinstall and checks the seed's `cache/<marketplace>/<plugin>/<version>/` copy instead, since a seed carries no `installed_plugins.json`.
 - **A seeded install proves presence, not loading.** Claude Code loads a seed's plugins only where `enabledPlugins` names them, in managed settings or the project's `.claude/settings.json`, and server-managed settings never reach the disk, so the script cannot read the enablement and does not fail on it. It prints the requirement; the load proof is `claude -p --output-format stream-json --verbose`, whose `init` event lists the loaded plugins.
 - **Prove the unattended path in a clean container.** Proven on 2026-11-10 in `node:22-bookworm` with no sign-in (Claude Code 2.1.322, Codex 0.167.0, Copilot CLI 1.0.108): all three marketplace adds and installs, placement, an idempotent second run, and the refusals. Unconfirmed: whether `codex exec` in an untrusted directory prompts or fails, which needs a signed-in run.
-- **The Cookbook recipe** "A container or sandbox VM" follows on top: install at image build, not on every start; the trust flag; the `~/.claude` volume-mount trap; a per-host smoke run, since placement proves nothing about whether the sandbox's plan offers the pinned models.
-- **Bootstrap pitfalls.** Piped, `__file__` is `<stdin>` and a sibling module cannot be imported, so `andthen_loose` is imported inside the loose path, after the tree check. The hand-over is `subprocess.call`, not `os.execv`, which loses the exit code on Windows. Extraction passes `filter="data"` where `tarfile.data_filter` exists, because stock macOS Python 3.9 lacks it and 3.12+ warns without it. The top-level directory is the one entry in the tarball, never computed: GitHub names it `andthen-1.0.1` for `v1.0.1` and `andthen-main` for `main`. An `ssl` failure prints a hint to set `SSL_CERT_FILE` to the CA bundle curl trusts. Unconfirmed: a branch name containing a slash (`refs/heads/main` resolves on codeload; a slashed branch was not tried).
-- **CHANGELOG**: Removed (the old commands, the white-label flags, `--claude-user`) and Added (the script and its placement and trust flags).
+- **Container guidance** is three sentences in `README.md` § "From a checkout, or in a container", not a Cookbook recipe: install at image build, `--trust`, the home-volume trap, a per-host prompt.
+- **Bootstrap pitfalls.** Piped, `__file__` is `<stdin>` and a sibling module cannot be imported, so `andthen_loose` is imported inside the loose path, after the tree check. The hand-over is `subprocess.call`, not `os.execv`, which loses the exit code on Windows. Extraction passes `filter="data"` where `tarfile.data_filter` exists, because stock macOS Python 3.9 lacks it and 3.12+ warns without it. The top-level directory is the one entry in the tarball, never computed: GitHub names it `andthen-1.0.1` for `v1.0.1` and `andthen-main` for `main`. An `ssl` failure prints a hint to set `SSL_CERT_FILE` to the CA bundle curl trusts. Codeload serves a branch name containing a slash (`actions/checkout`'s `releases/v1` returns 200). An old copy that cannot be replaced, such as one a running host holds open on Windows, fails with a message to close the hosts.
 
 ## Project Compliance
 

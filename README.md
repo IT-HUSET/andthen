@@ -199,6 +199,8 @@ curl -fsSL https://raw.githubusercontent.com/IT-HUSET/andthen/main/scripts/andth
 
 `--ref v<version>` pins a release, a checkout included. The download lands in `${XDG_DATA_HOME:-~/.local/share}/andthen/<version>` and stays, because Copilot loads it live. A role file or rules block that differs from AndThen's is refused (`--replace-roles` overwrites a role file), and `--trust <path>` marks a project trusted in Codex.
 
+In a container, install when the image is built, not on every start, and pass `--trust` with the project's path so Codex applies its config. A volume mounted over the home folder (`~/.claude`, `~/.codex`, `~/.copilot`, `~/.local/share`) hides what the build placed there; then run the install at start instead, where a second run changes nothing. Placement does not prove the sandbox's plan offers the models the role agents pin, so run one short prompt per host.
+
 ### Other agents (Aider, Cursor, Gemini CLI, opencode)
 
 `--loose` copies the skills into your agent's skills directory under `andthen-` names, each bundle self-contained. Invoke them with `$andthen-<skill>` in Codex and other agents that read `~/.agents/skills`.
