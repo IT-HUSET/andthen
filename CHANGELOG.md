@@ -18,7 +18,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`implement-fix` proves every other entry point and reader a fix touches**, because closing one gate path left its sibling open.
 - **`review`'s outcome lens walks a leg a deferral does not name**, instead of letting one deferral close every row.
 - **`clarify`'s PRD self-review reports an unstated result for an actor or entry point**, delegated and scheduled work included, not only for an unhandled input.
-- **`clarify` keeps the `Product` document's Non-Goals current in both directions, on an amendment too.** A Non-Goal the PRD overturns, on an amendment too, is narrowed to what you still reject or removed, because a standing bullet makes the `review` outcome lens grade the commissioned feature a HIGH no fix round can clear.
+- **`clarify` keeps the `Product` document's Non-Goals current in both directions, on an amendment too.** A Non-Goal the PRD overturns is narrowed to what you still reject or removed, because a standing bullet makes the `review` outcome lens grade the commissioned feature a HIGH no fix round can clear.
 - **`decide` closes the PRD rows it settles.** An `Open Questions` or `Decisions Log` row the run answered keeps its text and names the ADR or Still Current line that closes it, instead of reading as still parked.
 - **The critical-rules starter is tighter, and its rules no longer contradict one another.** It tells the agent the codebase is its own ("This codebase is yours, and you keep building on it"), bounded to Boy Scout tidies, asks once before committing on the default branch, and drops the macOS shell, subagent-naming, and prompt-cache-polling rules; `init` updates an installed copy only when you ask it to.
 - **`tracker publish` needs no `Issue Tracker` document on GitHub.** An absent document takes the built-in `gh` default for both verbs, as `triage` already did, so the first publish no longer asks you to run `setup` first, and `comment` gains its `gh` mapping.
@@ -29,6 +29,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`scripts/install-skills.sh`, `install-skills.py`, and `andthen-plugins.py`, with `--display-brand`, a custom `--prefix`, `--claude-skills-dir`, `--claude-user` and its `--claude` alias, `--validate-only`, `--path`, and the `rc` and `stable` release lines.** Use `python3 scripts/andthen.py install` for the plugin (hosts upgrade with their own commands), `andthen.py install --loose` for loose skills (always `andthen-<name>`; Claude Code takes the plugin), and `python3 scripts/validate-plugin.py` for the content check; automation calling the old names breaks.
 
 ### Fixed
+- **`clarify` saves an amended PRD back to its issue under `Record: tracker`**, as it does a new one, so the issue no longer keeps the old text. While a plan is under way it leaves the write to the plan's next `tracker publish` or `ship`.
 - **`ship` writes the Ship summary's Requirements as bare IDs** (`FR3`). Its wording let a run copy the whole `#### FR3: Its title` heading into the cell, and a viewer that reads the IDs rejected the section.
 
 ---
