@@ -11,6 +11,7 @@ The PRD – from a plan, the file its `prd` names; otherwise the `prd.md` discov
 ## Coverage Matrix
 
 One row per Desired Outcome, Target User, User Story, Success Metric, and Non-Goal, in the skill's `surface / evidence read / positive proof / falsifier attempted / result` shape. Positive proof is a **walked path**: the product exercised as that user along the PRD's User Flows – a browser journey, driven by hand or through the `andthen:visual-validation` skill, when the surface is a UI, else the CLI or API driven by hand – never a test the FIS bound. The falsifier is that user's unhappy path: the input they get wrong, the step they skip, the state they cannot recover from, the metric nobody can see.
+A recorded deferral closes only the rows it names; a leg reachable without what it defers (a local server, the CLI) is still walked.
 
 
 ## Failure Modes

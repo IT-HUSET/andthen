@@ -6,6 +6,16 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [Unreleased]
+
+### Changed
+- **`plan` starts a cross-story flow with a walking-skeleton story**, proved end to end, and lists every reader of a shared seam it replaces. Its self-review checks seams existing code carries, each party and entry point of a gated action, and two tokens keyed or formatted alike for confusion.
+- **`implement-fix` proves every other entry point and reader a fix touches**, because closing one gate path left its sibling open.
+- **`review`'s outcome lens walks a leg a deferral does not name**, instead of letting one deferral close every row.
+- **`clarify`'s PRD self-review reports an unstated result for an actor or entry point**, delegated and scheduled work included, not only for an unhandled input.
+
+---
+
 ## [1.0.1] – 2026-11-06
 
 ### Changed

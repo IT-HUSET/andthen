@@ -34,6 +34,8 @@ One scenario per behavior the user would notice.
 
 What the user notices only when it breaks is a Structural Criterion, an invariant this story's own diff could break. A run-wide check – a performance baseline, the full suite green, an E2E journey – is the run's final verification, never a criterion.
 
+**Walking skeleton** – its own end-to-end path is a `[runtime]` scenario, not a run-wide check. Its proof is a sociable test with doubles only at trust boundaries, each playing the outside party over the real protocol with the credentials the system issues it, under no marker that skips it when the project's suite runs.
+
 **Negative-path checklist** – after drafting, add one scenario for the riskiest gap in each category still uncovered, not one per parameter: omitted optional inputs, no-match cases (a lookup matching nothing and falling through), rejection paths.
 
 Articulate each scenario at one of three levels:
@@ -50,7 +52,8 @@ Three or four lines: one `**Approach**:` line, and a `**Why this over the floor*
 
 ## Tasks
 
-Before tasks for a cross-cutting rename or restructure, search the repo case-insensitively for every literal: each match maps to a task or a documented exclusion.
+Before tasks for a cross-cutting rename or restructure, search the repo case-insensitively for every literal; replacing a shared seam (a token or identity, a registry, a schema constant, a default) also needs each reader of what the old one provided, which no literal match finds.
+Each match and each reader maps to a task whose Verify exercises it through the new seam, or to a documented exclusion.
 
 1. **Outcomes, not code changes** – each task states what is TRUE when done, and the executor chooses the implementation: "Replace foo with bar" becomes "Module X uses bar (foo retired)".
 2. **Brevity** – the outcome in one clause, a pattern reference (`file#symbol`) where one applies, a dependency on an earlier task, `Verify`, `SATISFIES`. More means too large (split) or too detailed (state the outcome).
