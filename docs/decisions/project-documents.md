@@ -22,7 +22,7 @@ Reopens if a polyglot repository with no single manifest needs an inventory the 
 
 ## Tracker setup is first-use, not an `init` gate
 
-The skills that need the backend first: a reader handed a non-GitHub URL, `tracker triage` with no remote, `tracker publish` at first publish. Under `Backend: none`, `tracker publish` and `tracker triage` name the line to change and run no `gh` flow.
+The skills that need the backend first: a reader handed a non-GitHub URL, and `tracker triage` or `tracker publish` with no GitHub remote. Under `Backend: none`, `tracker publish` and `tracker triage` name the line to change and run no `gh` flow.
 
 Reopens if a project needs the backend declared before any skill sees a URL.
 

@@ -19,7 +19,7 @@ Interview the user until the requirements are shared, then write the PRD, or the
 
 - **The interview is the deliverable.** Every run asks at least one round of questions and waits for real answers before writing anything. An input that already answers everything load-bearing earns one short confirmation round on the recommendations it would otherwise ratify unseen, never zero: "input looks complete" is the agent rationalizing past the contract. Two runs skip it: an amendment carrying a decision the user already settled, such as a Preflight answer from the `andthen:plan` skill, and a re-run that only prints an existing PRD's path. Gaps or notes another skill supplies scope the interview to them, never re-litigating what its artifact settled. There is no unattended form, because a pipeline with no requirements has nothing to synthesise from.
 - **Cite, then ask.** Look up what the codebase and project documents answer before you ask. A point is settled only where you cite the line in the source, the code, or a project document that states it. A reading you drew is your recommendation, never the source's: ask it. So are an ambiguity and a conflict between `INPUT` and what exists. Requirements derive from these **Project Document Index** entries, where they exist, and never re-derive them:
-  - `Product` – the Proportionality facts and Non-Goals Step 2 checks.
+  - `Product` – the Proportionality facts and the Non-Goals Steps 2 and 6 work on.
   - `Architecture` and `Decisions` – structural constraints the requirements must not contradict.
   - `Roadmap` – release phasing.
   - `Learnings` – prior traps worth probing.
@@ -49,7 +49,7 @@ At product scope, read [`product-mode.md`](references/product-mode.md) and [`pro
 
 Never write over an existing `prd.md`: a resolved directory holding one from this `SOURCE_ID` takes the amendment branch, or prints its path and stops when `INPUT` carries no decision, gaps, or notes, and one from another source takes the first free numeric suffix.
 
-- **Directory holding `prd.md`, or that `prd.md` itself** – amend it. A decision the user settled (a threshold, a changed rule) is edited straight in; supplied gaps or notes run Step 2 first, and the user's answers are edited in. Edit only the rows and sections they touch, keeping `Source`, location, and every unrelated line except a `**Shipped**` header line, which goes because the amendment is unshipped work, then run Steps 4–5 bounded to the touched scope. The PRD is the canonical requirement. `OUTPUT_DIR`: the PRD's directory.
+- **Directory holding `prd.md`, or that `prd.md` itself** – amend it. A decision the user settled (a threshold, a changed rule) is edited straight in; supplied gaps or notes run Step 2 first, and the user's answers are edited in. Edit only the rows and sections they touch, keeping `Source`, location, and every unrelated line except a `**Shipped**` header line, which goes because the amendment is unshipped work, then run Steps 4–6 on what the amendment changed. The PRD is the canonical requirement. `OUTPUT_DIR`: the PRD's directory.
 - **Directory or file holding an `intent.md`** – a baseline stating what its author knew, not a finished artifact: Step 3 folds its sections into the PRD, and the interview still runs. Read `intent-template.md` for its shape. `OUTPUT_DIR`: that directory.
 - **Other directory** – `OUTPUT_DIR`: that directory.
 - **Other file path** – `OUTPUT_DIR`: root + lowercase kebab-case stem.
@@ -126,11 +126,11 @@ Ask the user every returned Note with your recommendation, `blocks: no` included
 
 ### 6. Product Non-Goals
 
-Append a direction firmly rejected as a concept to the `Product` document's **Non-Goals** as one dated bullet naming this document and where the direction was requested, so no later feature re-litigates it under a new name.
+Bring the `Product` document's **Non-Goals** up to date in both directions, since every reader takes a standing bullet as a live prohibition. Append a direction firmly rejected as a concept as one dated bullet naming this document and where the direction was requested, so no later feature re-litigates it under a new name. Narrow a bullet this PRD adopts to what the user still rejects, or remove it when nothing is left.
 
-A deferral is not one: it stays in `Scope > Out of Scope` with the release that would carry it, or becomes a `Tech Debt` entry when it is a fix being put off. Only a rejection traceable to explicit user input graduates; an agent-assumed one does not.
+A deferral is not a rejection: it stays in `Scope > Out of Scope` with the release that would carry it, or becomes a `Tech Debt` entry when it is a fix being put off. Only a change traceable to explicit user input lands here; an agent-assumed one does not.
 
-**Gate**: user-traceable rejections in the `Product` document's Non-Goals.
+**Gate**: the `Product` document's Non-Goals state what the user still rejects, every change traceable to their input.
 
 ### 7. Save the PRD to its issue
 

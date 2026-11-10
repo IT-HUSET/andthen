@@ -64,7 +64,9 @@ Record each decision at its weight:
 
 Register each ADR in `Decisions` with a **Current ADRs** row – `ID` linked to the file, `Title`, `Status`, `Scope` (one phrase) – idempotent on ID, updating an existing row in place. When it supersedes a prior decision, move the prior row to **Superseded** with `Prior Decision` (linked), `Superseded By` (linked to the new ADR), and `Notes` (one-line reason).
 
-**Gate**: every decision written and registered, each path printed relative to the project root.
+A PRD among the inputs gains the pointer: each `Open Questions` or `Decisions Log` row this run settled keeps its text and names the ADR or Still Current line that settles it, so it no longer reads as parked. Nothing else in the PRD changes.
+
+**Gate**: every decision written and registered, a PRD input's settled rows pointing at them, and each path printed relative to the project root.
 
 ## Follow-up
 
