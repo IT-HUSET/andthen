@@ -123,7 +123,7 @@ Write it from `report-template.md` – header, sections, finding blocks, and ver
 
 ## Follow-up
 
-**`--fix`** invokes the `andthen:implement-fix` skill with `<report-path>`, plus `--auto` in an unattended run, and a backlog question it returns ends your output, after any `Next` line. Skip it, stating the reason, only for a clean report, a single-lens gap PASS with no findings, or a report whose every finding is routed Note outside an unattended run. Unattended, that pass is what dispositions the Notes.
+**`--fix`** invokes the `andthen:implement-fix` skill with `<report-path>`, plus `--auto` in an unattended run. Commit the verified change it returns per `verification-evidence.md` § The commit rule. A backlog question it returns ends your output, after any `Next` line. Skip it, stating the reason, only for a clean report, a single-lens gap PASS with no findings, or a report whose every finding is routed Note outside an unattended run. Unattended, that pass is what dispositions the Notes.
 
 **A recurring trap** – a defect class repeated across findings, or a repeat of an existing `Learnings` entry – is appended to the `Learnings` document (**Project Document Index**) under the fitting topic. Where a lint rule or test could catch it, recommend that check.
 

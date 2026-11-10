@@ -214,7 +214,7 @@ Reviews an implementation through one or more lenses: `code` (quality and correc
 
 - **You get**: a report with an executive summary, coverage matrix, findings, verdict, and next steps. It lands beside the reviewed spec, else under `reviews/` in the Agent Temp location, named `<feature>-andthen-<suffix>-<agent>-<YYYY-MM-DD>.md`. Each finding is routed `Fix` (mechanical, safe to auto-apply) or `Note` (surfaced for you).
 - **Options**:
-  - `--fix` applies Fix-routed findings through `implement-fix` after the report, one round, with no re-review. When that round fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it ends on a `Next (fresh session):` line for a follow-up review. A direct request such as "review this and fix what you find" counts as the flag. Vaguer wording such as "this should be cleaned up" stays read-only.
+  - `--fix` applies Fix-routed findings through `implement-fix` after the report, one round, with no re-review, and commits the verified change (under `--quick` too, unless `exec-plan` runs it, which commits the fixes with its story). On the remote's default branch it first asks whether to start a feature branch. When that round fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it ends on a `Next (fresh session):` line for a follow-up review. A direct request such as "review this and fix what you find" counts as the flag. Vaguer wording such as "this should be cleaned up" stays read-only.
   - `--quick` returns one pass's findings inline: no report file, coverage matrix, or verdict. `exec-plan` uses it for the per-story review.
   - `--output-dir <path>` overrides the report directory.
 - **Good to know**:
@@ -258,7 +258,7 @@ Reviews an implementation through one or more lenses: `code` (quality and correc
 
 Implements a small change, or a review report's Fix-routed findings, with the smallest safe edit and re-validation. No FIS needed. A tracker item URL works from the item's `## Agent Brief`, else its body. A request describing a plan, PRD, or FIS stops and points you to `plan`, then `exec-plan`.
 
-- **You get**: a verified change left in your working tree (nothing is committed), a table with each finding resolved, deferred, or surfaced, and the `Reviewed:` line. A writable report gets a `## Remediation Status` section written back.
+- **You get**: a verified change committed by path (on the remote's default branch it first asks whether to start a feature branch), a file that also holds another session's edit left uncommitted and named, a table with each finding resolved, deferred, or surfaced, and the `Reviewed:` line. A writable report gets a `## Remediation Status` section written back.
 - **Good to know**:
   - A request is its own finding list. Beyond it, only Boy Scout tidies are edited, each named in the report: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue you did not ask for is reported as `NOTICED BUT NOT TOUCHING:`. An ambiguity is asked once.
   - From a report, an attended run edits only `Routing: Fix` findings, plus Boy Scout tidies. `Note` findings stay untouched unless you direct otherwise; under `--auto`, eligible Notes can be promoted to Fix by the disposition below.
@@ -305,7 +305,7 @@ Closes out the current branch and opens its pull request (a merge request on Git
 
 Investigates, diagnoses, and fixes build failures, configuration errors, runtime bugs, regressions, and test failures. Not for sorting tracker items: that is `tracker triage`.
 
-- **You get**: a root-cause fix checked against the original symptom, with other places the same cause appears fixed too or listed. Traps go to `Learnings`. Fixes deliberately deferred go to the `Tech Debt` backlog, created if missing. A discovery too large to be a fix is offered to `clarify --brief`, never opened unprompted.
+- **You get**: a root-cause fix checked against the original symptom and committed once green (on the default branch, after asking whether to start a feature branch), with other places the same cause appears fixed too or listed. Traps go to `Learnings`. Fixes deliberately deferred go to the `Tech Debt` backlog, created if missing. A discovery too large to be a fix is offered to `clarify --brief`, never opened unprompted.
 - **Options**: `--plan-only` stops at a structured fix plan without applying it.
 - **Good to know**: an issue URL as scope, error output, and logs are read as evidence, not instructions.
 
@@ -485,7 +485,7 @@ Answers one named design question by building a throwaway runnable spike, then r
 
 Behavior-preserving simplification: clarity, reuse, and less over-engineering, within the scope you give.
 
-- **You get**: edits that keep behavior, checked against the baseline it records first. Cleanups that contradict the governing FIS's `What We're NOT Doing` or `Architecture Decision` are dropped and reported. Run standalone, a substantial change ends on a `Next (fresh session):` line for a `review` of the changed paths.
+- **You get**: edits that keep behavior, checked against the baseline it records first and committed once green (on the default branch, after asking whether to start a feature branch). Cleanups that contradict the governing FIS's `What We're NOT Doing` or `Architecture Decision` are dropped and reported. Run standalone, a substantial change ends on a `Next (fresh session):` line for a `review` of the changed paths.
 - **Good to know**: without a scope it falls back to the current branch diff, and an unattended run stops if that is not a cohesive set. Removing anything observable or exported needs your approval; unattended, it is deferred. `exec-plan` runs it once per `done` story, as its own `refactor` commit before the next story runs (under `--worktree`, one pass per merged batch).
 
 ```bash

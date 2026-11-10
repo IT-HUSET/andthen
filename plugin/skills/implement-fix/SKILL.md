@@ -128,8 +128,9 @@ A recurring trap becomes a lint or test only when a Fix row includes that preven
 
 ## Output
 
-The verified change stays in the working tree for the user to commit. Report:
+Commit the verified change per `verification-evidence.md` § The commit rule, before the closing question, because that question ends the turn. A further round it approves gets its own commit. Report:
 
+- the commit;
 - the findings re-check table, each finding with its Phase 4 status and evidence or justification, and what stays open and why;
 - each tidy with its file;
 - verification results (tests, lints, builds). A change touching UI reports visual validation as not run, since this skill does not dispatch it, and names the `andthen:visual-validation` skill as the follow-up;

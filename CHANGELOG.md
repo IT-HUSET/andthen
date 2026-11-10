@@ -15,6 +15,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`implement-fix` proves every other entry point and reader a fix touches**, because closing one gate path left its sibling open.
 - **`review`'s outcome lens walks a leg a deferral does not name**, instead of letting one deferral close every row.
 - **`clarify`'s PRD self-review reports an unstated result for an actor or entry point**, delegated and scheduled work included, not only for an unhandled input.
+- **`implement-fix`, `review --fix`, `triage`, and `simplify-code` commit their verified change**, where they left it in the working tree, so they match `exec-plan`. Only green work commits, staged by path, and a file holding another session's edit stays uncommitted and named. A run another skill invokes leaves the commit to that skill, so an `exec-plan` story stays one commit. On the remote's default branch they first ask once whether to start a feature branch, as `exec-plan` and `ship` do. Push and PR still wait for `ship`.
 
 ---
 

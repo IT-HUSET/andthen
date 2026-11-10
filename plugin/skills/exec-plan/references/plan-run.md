@@ -36,7 +36,7 @@ Run it whenever at least one story is `done`: each got only the fast tier, so a 
 - `Scope: complete` or `Scope: incomplete – {failed/skipped ids}`;
 - `Verification: passed`, `failed – {evidence}`, or `not run – {reason}` when a failed story's leftovers make the checks impossible.
 
-Each repair round of a red gate is a fresh implementer subagent that invokes the `andthen:triage` skill with `--auto` and a scope naming the failing checks – the commands and what they returned – and the affected FIS paths. The assigned checks bound the work, so no original task is replayed. Require its changed paths and check evidence, then re-run what the repair invalidated.
+Each repair round of a red gate is a fresh implementer subagent that invokes the `andthen:triage` skill with `--auto` and a scope naming the failing checks – the commands and what they returned – and the affected FIS paths. The assigned checks bound the work, so no original task is replayed. Require its changed paths, left uncommitted for this run, and check evidence, then re-run what the repair invalidated.
 
 A round that turns nothing green, changes anything outside the repository, or returns malformed output fails the run with the open checks and the affected stories. A repair writes no `plan.json` row: a red run gate blocks the run's success claim, not evidence already executed.
 
@@ -44,7 +44,7 @@ Commit a repair per the commit rule, under the owning story's trailers. Report a
 
 ## Step 4: Aggregate report
 
-Always write the summary: completed stories with their `Reviewed:` lines verbatim, the batches executed, the `Scope:` and `Verification:` lines, tree state and commands run, repairs pending the user's commit, and `PLAN_PATH`. Success needs green verification from this invocation on the final tree; a gate skipped, unavailable, or run on an earlier tree cannot produce it.
+Always write the summary: completed stories with their `Reviewed:` lines verbatim, the batches executed, the `Scope:` and `Verification:` lines, tree state and commands run, changes pending the user's commit, and `PLAN_PATH`. Success needs green verification from this invocation on the final tree; a gate skipped, unavailable, or run on an earlier tree cannot produce it.
 
 Where any story failed or was skipped, add `Completed`, `Failed`, `Skipped`, and `Blocked by` sections: story ids, FIS paths, failure evidence, report paths, preserved worktrees. Each failed story gets its route out.
 

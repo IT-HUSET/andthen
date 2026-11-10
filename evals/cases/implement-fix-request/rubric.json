@@ -10,7 +10,7 @@
     },
     {
       "id": "REQUEST_NO_INFERRED_PUBLICATION",
-      "intent": "no commit or PR is made or claimed - completion is reported on the verified change left in the working tree"
+      "intent": "the verified change is committed and the report names that commit, while no push or PR is made or claimed"
     }
   ]
 }

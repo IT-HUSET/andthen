@@ -17,6 +17,8 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 *Amended 2026-10-23: the PR body ends on a fixed `## Ship summary` section, a contract a viewer parses: andthen-studio 0.2 joins a shipped PR to its PRD requirements, each outcome's proof, each lens's verdict, and the read-closely items with no agent run. Its shape lives in `ship`'s `references/pr-section.md`, and `scripts/fixtures/renders/pr-description.md` is the sample a viewer pins, so changing a heading, label, table header, or token breaks it. It repeats the prose and never replaces it, and a body without it stays valid. Markdown tables were chosen over a hidden JSON comment, which GitHub hides and which drifts from the prose, and over a flat outcome list, which loses which story delivered what. Requirement IDs are traced through each story's `sourceRefs` to the PRD's `#### FRn:` headings, with no FIS template change, because FIS files already in flight carry no such tag.*
 
+*Amended 2026-11-10: `implement-fix` commits its verified change, reversing "`implement-fix` itself still never commits", which this record carried over without a reason. The maintainer saw `review --fix` leave its fixes uncommitted where `exec-plan` commits, while `ship`'s own rule says a commit needs no ask because the branch history keeps it. One rule, `verification-evidence.md` § The commit rule, now covers `exec-plan`, `implement-fix`, both `review --fix` paths, `triage`, and `simplify-code`: commit only green work, by path, leaving a file that holds another session's edit uncommitted, and report the commit. On the remote's default branch, outside `--auto`, a run that will commit first asks once whether to start a feature branch, as `exec-plan` and `ship` already did. Those two keep their own copy of that sentence, because `exec-plan` asks before it loads the reference and `ship` never loads it. A run another skill invoked leaves its change for that skill, except an `exec-plan` story run, so a story keeps one commit. `testing` stays out, because a Prove-It test is red by design and written tests belong to the fix or story that commits them. `ship` still commits whatever a run left in the tree. Accepted gap: `review --fix` on a failed story's paths commits without the story's trailers, so that story's simplify pass misses those paths.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:
@@ -59,7 +61,7 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 - The docs naming the close-out change: README, `plugin/README.md`, Cookbook, CHANGELOG, two migration-guide rows, and the Architecture document's artifact-lifecycle paragraph.
 
 **Unchanged**
-- `implement-fix` never commits, and `exec-plan` commits per story as before.
+- `exec-plan` commits per story as before. (`implement-fix` never committing was reversed on 2026-11-10, see the amendment above.)
 - Working artifacts stay branch-scoped, and the non-goal against keeping specs past merge stands; `ship` is now what enforces it.
 - The plan-level review stays the judge of readiness.
 

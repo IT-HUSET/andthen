@@ -1,6 +1,6 @@
 # Verification Evidence
 
-The project's checks contract: where a skill's check commands come from, and how the results are reported.
+The project's checks contract: where a skill's check commands come from, how the results are reported, and how green work is committed.
 
 ## Where the commands come from
 
@@ -37,3 +37,15 @@ Completion reports name each check and its numbers:
 - **Runtime** – when the app was started or a flow exercised.
 
 Name the tier that ran, and any applicable check skipped and why. Skills may add fields, never drop an applicable one.
+
+## The commit rule
+
+A skill that commits its work does so unasked, because the branch history keeps it and a revert undoes it.
+A push or a pull request leaves the machine, so it waits for the user's yes.
+
+- Before the first edit of a run that will commit, outside `--auto`, when the current branch is the remote's default branch, ask once whether to start a feature branch, because commits land on the current branch and the pull request opens from it. Recommend starting it the way the project's written convention for starting work says, else as `<type>/<slug>`.
+- Commit only green work: a change whose checks fail stays in the tree.
+- Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged.
+- A file that also holds a change you did not make stays uncommitted and goes in the report.
+- A run another skill invoked leaves its change for that skill to commit, except a story run of the `andthen:exec-plan` skill, which commits its own.
+- Report the commit's short SHA and paths, or why nothing was committed.

@@ -87,7 +87,8 @@ Write what is worth keeping now, because triage ends in conversation:
 
 ## Output
 
-Report the root cause and the chain that reached it, the fixes applied, each tidy with its file, and what prevents a recurrence, with the verification evidence `verification-evidence.md` names.
+Commit the verified change per `verification-evidence.md` § The commit rule.
+Report the commit, the root cause and the chain that reached it, the fixes applied, each tidy with its file, and what prevents a recurrence, with the verification evidence `verification-evidence.md` names.
 
 The `--plan-only` fix plan holds:
 

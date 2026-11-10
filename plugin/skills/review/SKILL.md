@@ -33,13 +33,14 @@ Review a change or an implementation through the resolved lenses, prove coverage
 - A lens pass this session runs itself: [`lens-adversarial.md`](../../references/lens-adversarial.md), the Critic posture every lens runs in.
 - A PR target, `--quick` included: [`pr-target.md`](references/pr-target.md), its resolution, scope, and the trust its checks run on.
 - Each resolved lens: its row below. Read the whole row; under `--quick`, only the rubric and its calibration.
+- Under `--fix`, or a full review's code or gap lens: [`verification-evidence.md`](../../references/verification-evidence.md), the checks contract and its commit rule.
 - Without `--quick`: [`full-review.md`](references/full-review.md), with [`report-template.md`](references/report-template.md), [`review-verdict.md`](references/review-verdict.md), and [`fis-mutability.md`](../../references/fis-mutability.md).
 - Above the full review's fan-out trigger: [`large-diff-fanout.md`](references/large-diff-fanout.md).
 - When a full review's refactor trigger fires: [`refactor-invariants.md`](references/refactor-invariants.md).
 
 | Lens | Rubric | Severity calibration | Full review also loads |
 |---|---|---|---|
-| code | [`lens-code.md`](references/lens-code.md) | [`code-review-calibration.md`](references/code-review-calibration.md) | [`verification-evidence.md`](../../references/verification-evidence.md) |
+| code | [`lens-code.md`](references/lens-code.md) | [`code-review-calibration.md`](references/code-review-calibration.md) | `verification-evidence.md` |
 | gap | [`lens-gap.md`](references/lens-gap.md) | `code-review-calibration.md` | [`plan-schema.md`](../../references/plan-schema.md), [`fis-contract.md`](../../references/fis-contract.md), `verification-evidence.md` |
 | security | [`lens-security.md`](references/lens-security.md) | the lens's own exposure tiers | – |
 | outcome | [`lens-outcome.md`](references/lens-outcome.md) | the lens's own § Severity | – |
@@ -78,6 +79,11 @@ Read the governing FIS's `#### DRIFT` Notes before flagging. Declared drift rout
 
 A full review's output and `Next` line are `full-review.md`'s `## Output` and `## Follow-up`. Under `--quick`, return the findings themselves – full field set, `Class:`, `Routing:` – with one line naming what was attacked and each unavailable lens with its impact, and the label `quick`. A run with no lens available stops instead, because an empty return reads as clean.
 
-Under `--quick` with `--fix`, apply the Fix-routed findings yourself as one surgical patch set, re-run the checks those edits invalidate, and mark each applied finding in what you return.
+Under `--quick` with `--fix`:
+
+- Apply the Fix-routed findings yourself as one surgical patch set.
+- Re-run the checks those edits invalidate.
+- Commit the verified change per `verification-evidence.md` § The commit rule.
+- Mark each applied finding in what you return.
 
 **Gate**: nothing returns before every finding is filtered, classed, and routed, and under `--fix` before the invalidated checks re-ran.
