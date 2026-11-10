@@ -19,11 +19,11 @@ PRD: {{the requirements file's path at the pull request's head, its tracker issu
 
 | Story | Plan | Outcome | Requirements | Outcome proof |
 |---|---|---|---|---|
-| {{story ID}} | {{plan.json path}} | {{one Expected Outcome bullet verbatim, its `[OCnn]` tag included}} | {{FR IDs, comma-separated}} | {{the story's `verified.summary`}} |
+| {{story ID}} | {{plan.json path}} | {{one Expected Outcome bullet verbatim, its `[OCnn]` tag included}} | {{bare FR IDs, comma-separated, such as `FR1, FR3`}} | {{the story's `verified.summary`}} |
 
 > One row per Expected Outcome, grouped per story in plan order, and one row with Outcome `-` for a story whose FIS has none; a `skipped` story has no row.
 > Without a plan, each outcome the body states is one untagged row, with Story, Plan, and Outcome proof `-`.
-> Requirements are the IDs, spelled as the PRD's `#### FRn:` headings spell them, of the Feature Specifications this outcome answers, traced through its story's `sourceRefs` anchors and its FIS's Required Context. Write `-` rather than copy a story's whole set onto an outcome that does not answer it.
+> Requirements are the bare IDs, spelled as the PRD's `#### FRn:` headings spell the ID and without the title after it (`FR3`, never `FR3: Its title`), of the Feature Specifications this outcome answers, traced through its story's `sourceRefs` anchors and its FIS's Required Context. Write `-` rather than copy a story's whole set onto an outcome that does not answer it.
 > With two or more `PRD:` lines, a `PRD` column after `Requirements` carries the outcome's `PRD:` value verbatim.
 
 | Lens | Verdict | Reviewed commit |

@@ -28,6 +28,9 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ### Removed
 - **`scripts/install-skills.sh`, `install-skills.py`, and `andthen-plugins.py`, with `--display-brand`, a custom `--prefix`, `--claude-skills-dir`, `--claude-user`, `--validate-only`, and `--path`.** Use `python3 scripts/andthen.py install` for the plugin (`rc`, `stable`, or `--ref` for a GitHub source), `andthen.py install --loose` for loose skills (always `andthen-<name>`; Claude Code takes the plugin), and `python3 scripts/validate-plugin.py` for the content check. Automation calling the old names breaks.
 
+### Fixed
+- **`ship` writes the Ship summary's Requirements as bare IDs** (`FR3`). Its wording let a run copy the whole `#### FR3: Its title` heading into the cell, and a viewer that reads the IDs rejected the section.
+
 ---
 
 ## [1.0.1] – 2026-11-06
