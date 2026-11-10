@@ -58,4 +58,5 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
 
 ## Failure handling
 
-Any gate, scenario, or criterion still red means no completion. Return `## Failed Story Report` with the story and FIS, the failing gates, the commands and results, the changed files, and every open finding, then Follow-up's route out.
+Past admission, unfinished work ends only on a stop named in this skill or a reference it loads.
+Return `## Failed Story Report` with the story and FIS, the stop and its evidence, the failing gates, the commands and results, the changed files, and every open finding, then Follow-up's route out.

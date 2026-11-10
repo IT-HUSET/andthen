@@ -1,0 +1,12 @@
+{
+  "criteria": [
+    {
+      "id": "RESUMED_STORY_FINISHES",
+      "intent": "The in-progress story is completed in this invocation, including its final blank-line validation, verified row and story commit. Earlier completed task IDs and historical unavailable-validation observations do not substitute for remaining work or cause another identical status-only handoff."
+    },
+    {
+      "id": "RESUME_REPORT_ACCOUNTABILITY",
+      "intent": "The completion report quotes the executed final-validation command and its result, accounts for the independent review and commit, and agrees with the retained behavior and done record. It does not claim unexecuted proof or silently relax the final validation."
+    }
+  ]
+}

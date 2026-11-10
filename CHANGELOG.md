@@ -9,6 +9,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ## [Unreleased]
 
 ### Changed
+- **`exec-plan` fails a story only on a stop it names.** A red gate is work to finish until a `triage` repair turns nothing green, and a direct story run prints its `Next` line only once the story is `done`, failed, or stopped at admission, so an unfinished story no longer routes back to itself.
 - **`init`'s `oracle` role pins Claude Fable 5.2 at `high` effort** on Claude Code, where it pinned Opus at `xhigh`; `init` reports the mismatch against an already-installed copy. The Codex and Copilot templates keep their pins.
 - **`plan` starts a cross-story flow with a walking-skeleton story**, proved end to end, and lists every reader of a shared seam it replaces. Its self-review checks seams existing code carries, each party and entry point of a gated action, and two tokens keyed or formatted alike for confusion.
 - **`implement-fix` proves every other entry point and reader a fix touches**, because closing one gate path left its sibling open.

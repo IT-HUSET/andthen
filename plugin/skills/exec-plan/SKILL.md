@@ -18,7 +18,12 @@ Execute a FIS, or a plan with one fresh subagent per story, verify against its p
 ## Rules
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
-- **Stop-the-Line.** A red objective gate – build, tests, lint, type-check, a substance or wiring scan, a task's `Verify` – is work to finish, not a delivery caveat. Iterate it to green, invoking the `andthen:triage` skill when iteration stalls, and never write `Done` on a broken tree. Partial subagent work, an intermediate refactor state, and a story's size or difficulty are work to finish too: a spec that should have been split is an upstream problem. None of these stops a run; only the Ladder's last rung ends one on an open question.
+- **Stop-the-Line.** A red objective gate – build, tests, lint, type-check, a substance or wiring scan, a task's `Verify` – is work to finish, not a delivery caveat.
+  - Iterate it to green, invoking the `andthen:triage` skill when iteration stalls, and never write `Done` on a broken tree.
+  - Partial subagent work, an intermediate refactor state, and a story's size or difficulty are work to finish too: a spec that should have been split is an upstream problem.
+  - None of these stops a run.
+    An open question ends one only on the Ladder's last rung.
+    A red gate ends one when a repair through the `andthen:triage` skill turns nothing green.
 - **Resolution Ladder.** An artifact conflict or an ambiguity you cannot settle locally is an investigation. Climb in order, stop at the first rung that answers, and name it:
   1. **Re-read** the intent anchor and its Required Context, which confirms a reading but adds no evidence.
   2. **Widen** to the governing PRD, ADRs, decisions, and code. Authority and trust decide first; specificity and recency break ties only among peers. A cross-authority conflict needs an amendment or a user decision.
@@ -60,7 +65,7 @@ Read every file marked for your mode, then follow its procedure to the end.
 
 A failed story's route out is the `andthen:review` skill with `--fix` over the story's changed paths, for correctness and against its FIS, `<absolute FIS path>`, then this skill again on the same input. Under `--worktree` the review runs in the story's preserved worktree.
 
-Close on one `Next (fresh session):` line. A dispatched story run prints none, and a plan run closes per `plan-run.md` Step 4. A direct story run takes the first case that applies:
+Close on one `Next (fresh session):` line. A dispatched story run prints none, and a plan run closes per `plan-run.md` Step 4. A direct story run that stopped at admission, or has written `done` or a `## Failed Story Report`, takes the first case that applies:
 
 - **The story failed** – its route out.
 - **The person chose a revision at triage** (never in an unattended run) – the `andthen:clarify` skill's amendment on the PRD for a scope change, else the `andthen:plan` skill on `"story <id> of <plan.json> – <the discovery, and the FIS's other Discovered Requirements>; revise its FIS"` for the first story whose FIS needs it, since `plan` writes from its request and never reads the old FIS.

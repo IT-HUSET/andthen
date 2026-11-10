@@ -196,7 +196,7 @@ Run a plan one story per fresh session: `plan` prints the first story's command 
   - Plan run: stories run one at a time in the shared tree. Each story runs the fast tier, then the plan run runs the full tier once on the final tree and repairs failures. A failed story's dependents are reported skipped. Other stories continue only when the failure's changes are provably isolated, which is always true under `--worktree`; otherwise the run stops.
   - `--worktree` needs a clean tracked tree and a committed bundle (a gitignored specs directory fails this). A failed story keeps its branch and worktree, and a rerun resumes there. A merge conflict fails the story, except lines both sides appended to the changelog or `Learnings`.
   - Another session's uncommitted changes are never staged, stashed, or reverted.
-  - A red story ends with a route out: `review --fix` over the story's changed paths, for correctness and against its FIS, then `exec-plan` again on the same input.
+  - A red gate is work to finish until a `triage` repair turns nothing green. A failed story ends with a route out: `review --fix` over the story's changed paths, for correctness and against its FIS, then `exec-plan` again on the same input.
   - The plan-level review (`review --fix <plan.json>`) is printed, never run for you.
   - `plan.json` and the FIS files stay in the tree. After a clean plan-level review, a `Next (fresh session):` line for `ship` lands their observations and asks whether to delete them. `prd.md` stays under `Record: repo`; under `Record: tracker`, its issue carries the record.
 
