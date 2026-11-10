@@ -128,8 +128,9 @@ class AndthenCase(unittest.TestCase):
         return [c for c in self.commands if c[0] == cli]
 
     @staticmethod
-    def config_level(config: Path, path: Path):
-        return tomllib.loads(config.read_text(encoding="utf-8"))["projects"][str(path)].get("trust_level")
+    def config_level(config: Path, key):
+        # A str key is taken verbatim, because str(Path("/x")) is "\\x" on Windows.
+        return tomllib.loads(config.read_text(encoding="utf-8"))["projects"][str(key)].get("trust_level")
 
 
 class PluginChannelTest(AndthenCase):
@@ -651,7 +652,7 @@ class TrustTest(TrustCase):
         text = self.config.read_text(encoding="utf-8")
         self.assertTrue(text.startswith(mine))
         self.assertEqual("trusted", self.config_level(self.config, self.resolved))
-        self.assertEqual("untrusted", self.config_level(self.config, Path("/elsewhere")))
+        self.assertEqual("untrusted", self.config_level(self.config, "/elsewhere"))
 
     def test_an_already_trusted_path_is_accepted_untouched(self) -> None:
         self.home["codex"].mkdir(parents=True, exist_ok=True)

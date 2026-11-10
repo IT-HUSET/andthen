@@ -93,11 +93,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # 3.12 is the floor of the suites; macOS is left to the local fast tier. 3.9 is the
-          # floor of the setup scripts (a stock macOS python3), so only their suites run on it.
+          # 3.12 is the floor of the suites; macOS is left to the local fast tier. The setup
+          # scripts' 3.9 floor (ADR-030) has no row: runner images no longer offer 3.9, and
+          # the project pins no image older than the latest.
           - {os: ubuntu-latest, python: "3.12", tests: "discover -s tests"}
           - {os: windows-latest, python: "3.x", tests: "discover -s tests"}
-          - {os: ubuntu-latest, python: "3.9", tests: "tests.test_andthen tests.test_andthen_loose tests.test_validate_plugin"}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -113,7 +113,7 @@ jobs:
       # The evals harness is repo tooling, not shipped plugin content, and its
       # run directories are POSIX-shaped: Windows is out of scope for it.
       - name: evals check-evaluator and case-validation suite
-        if: runner.os != 'Windows' && matrix.python != '3.9'
+        if: runner.os != 'Windows'
         run: python evals/test_checks.py
       # The validators walk the shipped tree and match paths and text, which is
       # exactly where line endings and case-insensitive filesystems diverge, so
