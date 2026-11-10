@@ -70,9 +70,9 @@ Filter summary: {{N}} validated, {{N}} downgraded, {{N}} withdrawn
 
 > The shape per lens, by mode – `review-verdict.md` owns what each label means:
 >
-> - `code`, `security`, `outcome` – `**Readiness: {{Ready|Needs Fixes|Blocked}}** - {{severity counts}}`
+> - `code`, `security`, `outcome` – `**Readiness: {{PASS|FAIL}}** - {{severity counts}}`
 > - `gap` – the dimension table below, then its `**Overall: {{PASS|FAIL}}**` line
-> - `mixed` – `**Overall readiness: {{Blocked|FAIL|Needs Fixes|Ready|PASS}}** - {{each lens and its label}}`, the worst label across lenses, then the gap table under a `### Gap` subheading when gap ran; never a second `## Verdict`
+> - `mixed` – `**Overall readiness: {{PASS|FAIL}}** - {{each lens and its PASS or FAIL}}`, then the gap table under a `### Gap` subheading when gap ran; never a second `## Verdict`
 
 > Gap lens only, under `### Gap` in a mixed report:
 

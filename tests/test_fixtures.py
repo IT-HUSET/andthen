@@ -109,7 +109,7 @@ def choices(cell):
 
 def section_spec():
     """What `ship`'s reference fixes: heading, line labels, table headers,
-    lens rows with their verdicts, and the read-closely tokens."""
+    lens rows with their verdicts and remediated tokens, and the read-closely tokens."""
     text = PR_SECTION.read_text(encoding="utf-8")
     heading = re.search(r"^## .+$", text, re.M).group(0)
     body = [line for line in text.split(heading, 1)[1].splitlines() if not line.startswith(">")]
@@ -117,6 +117,7 @@ def section_spec():
     return {"heading": heading, "labels": re.findall(r"^([A-Z][A-Za-z]+): ", "\n".join(body), re.M),
             "headers": [outcome[0], lens[0], reading[0]],
             "lenses": {row[0]: choices(row[1]) for row in lens[1:]},
+            "remediated": {row[0]: choices(row[3]) for row in lens[1:]},
             "reasons": choices(reading[1][0])}
 
 
@@ -145,11 +146,14 @@ def section_problems(body):
     outcome, lens, reading = found
     if [row[0] for row in lens[1:]] != list(spec["lenses"]):
         problems.append(f"lens rows {[row[0] for row in lens[1:]]}")
-    for name, verdict, commit in (row[:3] for row in lens[1:] if len(row) >= 3):
+    for name, verdict, commit, remediated in (row[:4] for row in lens[1:] if len(row) >= 4):
         if verdict not in spec["lenses"].get(name, []):
             problems.append(f"{name} verdict {verdict!r}")
         if (verdict == "not reviewed") != (commit == "-"):
             problems.append(f"{name} commit {commit!r}")
+        if remediated not in spec["remediated"].get(name, []) or (
+                verdict == "not reviewed" and remediated != "-"):
+            problems.append(f"{name} remediated {remediated!r}")
     problems += [f"reason {row[0]!r}" for row in reading[1:] if row[0] not in spec["reasons"]]
     if any(row[1:2] == ["not reviewed"] for row in lens[1:]) and not any(
             row[0] == "unchecked" for row in reading[1:]):
@@ -175,6 +179,11 @@ class ShipSectionTest(unittest.TestCase):
         prose = self.body.split(section_spec()["heading"])[0]
         self.assertIn("## Where to read closely", prose)
 
+    def test_the_section_still_conforms_without_its_details_block(self):
+        bare = re.sub(r"^(</?details>|<summary>.*</summary>)\n", "", self.body, flags=re.M)
+        self.assertNotEqual(bare, self.body)
+        self.assertEqual(section_problems(bare), [])
+
     def test_a_row_without_a_plan_carries_an_untagged_outcome(self):
         row = "| S01 | scripts/fixtures/renders/plan.json | [OC01] A page script cannot read the session cookie. |"
         planless = self.body.replace(row, "| - | - | A page script cannot read the session cookie. |")
@@ -192,6 +201,13 @@ class ShipSectionTest(unittest.TestCase):
             (body.replace("| security | not reviewed | - |", "| security | not reviewed | – |"),
              "empty cell"),
             (body.replace("| Reviewed commit |", "| Commit |"), "header"),
+            (body.replace("| code | FAIL |", "| code | Needs Fixes |"), "code verdict 'Needs Fixes'"),
+            (body.replace("| code | FAIL | 9c4e2a7 | yes |", "| code | FAIL (remediated) | 9c4e2a7 | - |"),
+             "code verdict"),
+            (body.replace("| 9c4e2a7 | yes |", "| 9c4e2a7 | Yes |"), "code remediated 'Yes'"),
+            (body.replace("| security | not reviewed | - | - |", "| security | not reviewed | - | yes |"),
+             "security remediated 'yes'"),
+            (body.replace(" | Remediated |", " |").replace("| 9c4e2a7 | yes |", "| 9c4e2a7 |"), "header"),
             (body.replace("| [OC01] A page script", "| A page script"), "outcome"),
             (body.replace("PRD: ", "PRD: docs/other/prd.md\nPRD: ", 1), "header"),
         ]

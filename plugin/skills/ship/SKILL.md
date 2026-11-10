@@ -22,10 +22,10 @@ A branch carrying a plan bundle – `plan.json` and the FIS files beside it – 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
 - **Publishing waits for a yes.**
-  Commits run unasked, because the branch history keeps them.
   A push and a pull request leave the machine, so they wait for the user's yes.
-- **Commit only the branch's own work.**
-  Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged.
+- **Commit per [`verification-evidence.md`](../../references/verification-evidence.md) § The commit rule.**
+  Its feature-branch ask joins step 1's question, because step 2 is the first edit.
+  This skill runs no checks, so in place of its green-work bullet it commits what step 1's gate cleared, and step 3's proof says what was verified.
   A change you cannot tie to the branch stays uncommitted, because it may be another session's work in progress.
 
 ## Workflow
@@ -35,8 +35,9 @@ A branch carrying a plan bundle – `plan.json` and the FIS files beside it – 
 Open work is what keeps a plan from being ready under § Shipping, and on any branch a CRITICAL or HIGH finding the latest review of its work leaves open.
 Name it and ask once whether to ship anyway, recommendation first.
 While the plan is not ready, the same question asks whether to keep the bundle, recommending keeping it, because its remaining stories and reviews still read it.
+The commit rule's feature-branch ask joins that question, or is the question when nothing is open.
 
-**Gate**: nothing open, or the user's answer.
+**Gate**: nothing open and no feature-branch ask, or the user's answer.
 
 ### 2. Land the observations
 
@@ -53,7 +54,9 @@ Read every FIS's `## Implementation Observations`, those in `superseded/` includ
 Write it for a reviewer deciding whether to merge.
 The body is where the intent and proof outlive the branch, because the bundle is usually deleted and the review report usually never committed.
 A project's pull request template or named PR process sets the layout, and this content fills it.
-Put what the merge decision needs first and fold per-story detail below it, because a body the reviewer must scroll goes unread.
+Put what the merge decision needs first, because a body the reviewer must scroll goes unread.
+Collapse per-story detail in a `<details>` block where the host renders one.
+Give each `<details>` block a blank line after `</summary>`, because without it the host shows the markdown inside as raw text.
 - **Intent and outcomes.**
   Take them from each FIS's Intent and Expected Outcomes and from the plan's source: the file its `prd` names, else what its stories' `sourceRefs` cite.
   Without a plan, take them from the commits and the request.
@@ -61,6 +64,7 @@ Put what the merge decision needs first and fold per-story detail below it, beca
   Step 5's publish names the children; without one, the parent's `## Stories` checklist does, fetched read-only as the `Issue Tracker` document says or with `gh issue view`.
   A link closes only from a pull request into the remote's default branch, so for another base the step 5 question and the output name the issues that stay open for the user to close after the merge.
 - **Proof** of each outcome, from each story's `verified.summary` in `plan.json` and the latest review report's verdict.
+  Where that report carries a `**Remediated**:` line, say its verdict predates the fixes, because a FAIL alone reads as findings still open.
 - **Door and blast radius.**
   Say whether the change is a one-way or two-way door and what its blast radius is, linking the ADR that settled a one-way door.
   Where reverting the merge would not undo the change, say what does and what no revert restores.
@@ -81,8 +85,6 @@ Put what the merge decision needs first and fold per-story detail below it, beca
 
 ### 4. Commit
 
-- Outside `--auto`, when the current branch is the remote's default branch, ask once whether to start a feature branch first, because commits land on the current branch and the pull request opens from it.
-  Recommend starting it the way the project's written convention for starting work says, else as `<type>/<slug>`.
 - Commit the fixes left in the working tree.
 - With a plan bundle, commit the landed entries, and leave the bundle to step 5's answer.
   An untracked bundle file never reaches the merge, so never delete it or ask about it.

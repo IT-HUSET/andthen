@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-**Readiness: Needs Fixes** - 0 CRITICAL, 1 HIGH, 1 MEDIUM, 0 LOW
+**Readiness: FAIL** - 0 CRITICAL, 1 HIGH, 1 MEDIUM, 0 LOW
 
 The command line breaks its own documented exit-code contract on ordinary bad input, which blocks readiness on its own. The retry policy is a real finding whose repair waits on an open decision.
 
@@ -72,7 +72,7 @@ The exit-code contract against every exception `records.parse_row` raises, wheth
 
 ## Verdict
 
-**Readiness: Needs Fixes** - 0 CRITICAL, 1 HIGH, 1 MEDIUM, 0 LOW
+**Readiness: FAIL** - 0 CRITICAL, 1 HIGH, 1 MEDIUM, 0 LOW
 
 ## Next Steps
 

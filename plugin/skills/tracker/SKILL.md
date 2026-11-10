@@ -26,7 +26,7 @@ Work the project's issue tracker through its `Issue Tracker` document, one verb 
 - **Executable config.** The `Issue Tracker` document is security-critical, because its table values run as commands. Each value is a single direct command invocation (an executable, fixed arguments, `<placeholders>`) with no pipes, shell operators, command substitution, or piping to an interpreter. Review changes to it as code.
 - **Complete mapping first.** Before a verb's first tracker call, reads included, stop on any operation it needs that the Operation Table leaves unmapped, so a multi-issue write never strands partial state.
 - **Durability rule.** What you write into a tracker body or comment outlives the branch that prompted it. Name interfaces (types, signatures, commands) and behavior, never file paths, line numbers, commits, or code snippets. A snippet that itself encodes a settled decision (schema, state machine, type) may be inlined, trimmed to the decision-carrying part.
-- **Argv-safe.** Every title, body, and issue number is data: pass the title, the body file, and the issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. On GitHub, `fetch issue` maps the issue number to `gh issue view <N> --json title,body,labels,state,comments`, `create issue` maps them to `gh issue create --title` and `--body-file`, and `edit body` maps the issue number and the body file to `gh issue edit --body-file`. An operation-table backend keeps the same argument boundary, and a mapping that only offers a shell template is unresolved executable config: stop before the first external call.
+- **Argv-safe.** Every title, body, and issue number is data: pass the title, the body file, and the issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. On GitHub, `fetch issue` maps the issue number to `gh issue view <N> --json title,body,labels,state,comments`, `create issue` maps them to `gh issue create --title` and `--body-file`, `edit body` maps the issue number and the body file to `gh issue edit --body-file`, and `comment` maps them to `gh issue comment <N> --body-file`. An operation-table backend keeps the same argument boundary, and a mapping that only offers a shell template is unresolved executable config: stop before the first external call.
 
 ## Workflow
 
@@ -38,8 +38,7 @@ Before `publish` or `triage` runs any tracker operation, resolve the `Issue Trac
 - `none` declares no tracker: end on one line saying so, naming the `Backend:` line.
 - Another backend substitutes every operation from its **Operation Table**. A value naming an MCP tool is invoked the same way.
 - An unparseable `Backend:` line takes `setup`.
-- For `publish`, an absent document takes `setup`, since creating it is part of the first publish.
-- For `triage`, an absent document takes the `gh` default where the repository has a GitHub remote, and `setup` where it has none, since there is nothing to read.
+- An absent document takes the `gh` default where the repository has a GitHub remote, and `setup` where it has none, since there is nothing to read.
 
 Taking `setup` means offering it, and an unattended run stops as step 2c says. On acceptance, run it, then resolve against the document it wrote.
 

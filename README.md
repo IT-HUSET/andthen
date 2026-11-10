@@ -167,7 +167,7 @@ copilot plugin marketplace update andthen
 copilot plugin update andthen@andthen
 ```
 
-A marketplace added with a tag, such as `IT-HUSET/andthen@v0.40.4`, stays on that tag: remove it and add it again as in the [quick start](#quick-start). From a checkout of this repository, `python3 scripts/andthen-plugins.py stable` reinstalls from `main` on every host it finds and then checks the installed version.
+A marketplace added with a tag, such as `IT-HUSET/andthen@v0.40.4`, stays on that tag: remove it and add it again as in the [quick start](#quick-start). Hosts upgrade with their own commands, and `scripts/andthen.py` is for a [checkout or a container](#from-a-checkout-or-in-a-container); it re-registers the `andthen` marketplace from a local tree, so afterwards these commands no longer follow GitHub.
 
 Updating replaces the skills, not your 0.x specs, which need rewriting before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) covers that and the retired skill names.
 
@@ -177,28 +177,42 @@ Updating replaces the skills, not your 0.x specs, which need rewriting before th
 
 - **Claude Code and Codex:** `IT-HUSET/andthen@v0.40.4` in place of `IT-HUSET/andthen`.
 - **Copilot CLI:** `https://github.com/IT-HUSET/andthen.git#v0.40.4` in place of `IT-HUSET/andthen`.
-- **From a checkout:** `python3 scripts/andthen-plugins.py --ref v0.40.4`.
-- **Loose skills:** check out the tag (`git checkout v0.40.4`) and run its `./scripts/install-skills.sh`.
+- **Loose skills:** check out the tag (`git checkout v0.40.4`) and run the installer that tag's own README names.
 
 ### Host options
 
 - **Claude Code** – `/plugin install andthen@andthen --scope project` installs for the current project only; the default is your user. Turn on auto-update in `/plugin` → **Marketplaces** → `andthen` → **Enable auto-update**.
-- **Codex CLI** – if you used `install-skills.sh` before, delete the old `~/.agents/skills/andthen-*` directories first, or Codex lists every skill twice.
+- **Codex CLI** – if you copied the skills into `~/.agents/skills` before (a loose install), delete the old `andthen-*` directories first, or Codex lists every skill twice.
 - **GitHub Copilot CLI** – a project or personal skill with the same name as an AndThen skill (`review`, `plan`) silently replaces it; rename yours or list it in `disabledSkills`. Role agents and the conversation style come from `init`, as on the other hosts. Copilot support is load-checked in CI, not covered by the evals.
 
-### Other agents (Aider, Cursor, Gemini CLI, opencode)
+### From a checkout, or in a container
 
-The installer copies the skills into your agent's skills directory under `andthen-` names, each bundle self-contained. Invoke them with `$andthen-<skill>` in Codex and other agents that read `~/.agents/skills`.
+`scripts/andthen.py install` installs the plugin on every host whose CLI is on `PATH`, from the tree it sits in, reads the installed version back, and exits non-zero on any mismatch. It removes an `andthen` marketplace added from GitHub and adds the local tree in its place, so host upgrades stop following GitHub until you add `IT-HUSET/andthen` again as in the [quick start](#quick-start). `--dry-run` prints the plan and writes nothing.
 
 ```bash
-./scripts/install-skills.sh                                # all skills (default: ~/.agents/skills)
-./scripts/install-skills.sh --dry-run                      # preview what it will do
-./scripts/install-skills.sh --skills clarify,plan,review   # a subset
-./scripts/install-skills.sh --skills-dir <path>            # custom skills directory
-./scripts/install-skills.sh --claude-user                  # also install for Claude Code at the user tier
+python3 scripts/andthen.py install                  # plugin from this checkout
+python3 scripts/andthen.py install --roles --rules  # plus user-level role agents and critical rules
+
+# With no checkout, such as an image build, it downloads the latest release first
+curl -fsSL https://raw.githubusercontent.com/IT-HUSET/andthen/main/scripts/andthen.py | python3 - install --roles --rules
 ```
 
-A reinstall replaces the skills it installed before but leaves retired ones in place. `--prefix` installs under another name, which is how a toolkit [bundles AndThen](plugin/README.md#bundling-into-a-downstream-toolkit) into its own namespace.
+`--ref v<version>` pins a release, a checkout included. The download lands in `${XDG_DATA_HOME:-~/.local/share}/andthen/<version>` and stays, because Copilot loads it live. A role file or rules block that differs from AndThen's is refused (`--replace-roles` overwrites a role file), and `--trust <path>` marks a project trusted in Codex.
+
+In a container, install when the image is built, not on every start, and pass `--trust` with the project's path so Codex applies its config. A volume mounted over the home folder (`~/.claude`, `~/.codex`, `~/.copilot`, `~/.local/share`) hides what the build placed there; then run the install at start instead, where a second run changes nothing. Placement does not prove the sandbox's plan offers the models the role agents pin, so run one short prompt per host.
+
+### Other agents (Cursor, Gemini CLI, opencode, Amp)
+
+`--loose` copies the skills into your agent's skills directory under `andthen-` names, each bundle self-contained. Invoke them with `$andthen-<skill>` in Codex and other agents that read `~/.agents/skills`.
+
+```bash
+python3 scripts/andthen.py install --loose                                  # all skills into ~/.agents/skills
+python3 scripts/andthen.py install --loose --dry-run                        # preview what it will do
+python3 scripts/andthen.py install --loose --skills clarify,plan,review     # a subset
+python3 scripts/andthen.py install --loose --skills-dir <path>              # custom skills directory
+```
+
+Without `--skills-dir` it refuses while the AndThen Codex plugin is installed, because Codex reads `~/.agents/skills` too. A reinstall replaces the skills it installed before but leaves retired ones in place.
 
 
 ## Project setup

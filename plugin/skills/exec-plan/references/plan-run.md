@@ -4,7 +4,7 @@ You are the orchestrator: you schedule stories and own the run's verification ga
 
 ## Step 1: Parse the plan
 
-1. **Branch.** Take `BASE_BRANCH` from the current git root's HEAD and print `BASE_BRANCH={value}`.
+1. **Branch.** Ask `verification-evidence.md` § The commit rule's feature-branch question here, before any dispatch, because every story commits to the branch it starts on. Then take `BASE_BRANCH` from the current git root's HEAD and print `BASE_BRANCH={value}`.
    - Under `--worktree`, stop when a tracked file carries uncommitted changes, rather than stash or commit what the run does not own: stories branch from HEAD and merge back into it, so that dirt neither reaches them nor survives the merge.
    - Under `--worktree`, stop too when the bundle is untracked (`git ls-files --error-unmatch {PLAN_DIR}/plan.json`): a worktree holds no copy of it to write, and a story's row reaches the main checkout only through the merge.
 2. **Read `plan.json`.** Stop when it is missing – the `andthen:plan` skill owns producing it – or not parseable JSON.
@@ -36,15 +36,15 @@ Run it whenever at least one story is `done`: each got only the fast tier, so a 
 - `Scope: complete` or `Scope: incomplete – {failed/skipped ids}`;
 - `Verification: passed`, `failed – {evidence}`, or `not run – {reason}` when a failed story's leftovers make the checks impossible.
 
-Each repair round of a red gate is a fresh implementer subagent that invokes the `andthen:triage` skill with `--auto` and a scope naming the failing checks – the commands and what they returned – and the affected FIS paths. The assigned checks bound the work, so no original task is replayed. Require its changed paths and check evidence, then re-run what the repair invalidated.
+Each repair round of a red gate is a fresh implementer subagent that invokes the `andthen:triage` skill with `--auto` and a scope naming the failing checks – the commands and what they returned – and the affected FIS paths. The assigned checks bound the work, so no original task is replayed. Require its changed paths, left uncommitted for this run, and check evidence, then re-run what the repair invalidated.
 
 A round that turns nothing green, changes anything outside the repository, or returns malformed output fails the run with the open checks and the affected stories. A repair writes no `plan.json` row: a red run gate blocks the run's success claim, not evidence already executed.
 
-Commit a repair per the commit rule, under the owning story's trailers. Report any other change by path, as pending the user's commit.
+Commit a repair per `verification-evidence.md` § The commit rule, under the owning story's trailers. Report any other change by path, as pending the user's commit.
 
 ## Step 4: Aggregate report
 
-Always write the summary: completed stories with their `Reviewed:` lines verbatim, the batches executed, the `Scope:` and `Verification:` lines, tree state and commands run, repairs pending the user's commit, and `PLAN_PATH`. Success needs green verification from this invocation on the final tree; a gate skipped, unavailable, or run on an earlier tree cannot produce it.
+Always write the summary: completed stories with their `Reviewed:` lines verbatim, the batches executed, the `Scope:` and `Verification:` lines, tree state and commands run, changes pending the user's commit, and `PLAN_PATH`. Success needs green verification from this invocation on the final tree; a gate skipped, unavailable, or run on an earlier tree cannot produce it.
 
 Where any story failed or was skipped, add `Completed`, `Failed`, `Skipped`, and `Blocked by` sections: story ids, FIS paths, failure evidence, report paths, preserved worktrees. Each failed story gets its route out.
 

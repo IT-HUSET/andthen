@@ -1,0 +1,14 @@
+name: andthen-exec-plan-resume-subject
+description: Resume one in-progress story.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: exec-plan
+    name: Resume the story
+    skill: andthen:exec-plan
+    prompt: "prompt.md"
+    outputs:
+      completion:
+        format: text

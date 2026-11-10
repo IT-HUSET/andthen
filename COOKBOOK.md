@@ -101,7 +101,7 @@ Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-
 /andthen:implement-fix "return 404 instead of 500 when an export job id does not exist"
 ```
 
-**Expect.** Your sentence is the whole Fix set: tests first where the change adds a branch, the change, the project's checks, and a diff pass as the review. No FIS, no plan state, nothing committed – the verified change stays in the working tree. Beyond it, only Boy Scout tidies are made, each named: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue the sentence did not ask for comes back under `NOTICED BUT NOT TOUCHING:` rather than as an edit.
+**Expect.** Your sentence is the whole Fix set: tests first where the change adds a branch, the change, the project's checks, and a diff pass as the review. No FIS and no plan state. The verified change is committed by path, and a file that also holds someone else's edit stays uncommitted and is named. Beyond it, only Boy Scout tidies are made, each named: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue the sentence did not ask for comes back under `NOTICED BUT NOT TOUCHING:` rather than as an edit.
 
 **Elsewhere.** A sentence that turns out to describe a feature, a PRD, or a plan stops at the scope guard and points at `plan` → `exec-plan`, with `clarify` first when requirements are still open. Contract: [`implement-fix`](plugin/README.md#implement-fix).
 
@@ -361,7 +361,7 @@ Each `-p` call is its own session, so fresh context holds by construction. Codex
 - In an attended run, `Note` findings are not edited without your direction, whatever their severity. They come back to you in the `## Remediation Status` the pass writes into the report. Under `--auto`, eligible Notes can be promoted to Fix as [unattended execution](#unattended-execution) describes.
 - A Fix whose repair would settle a decision the project leaves open is `DEFERRED`: offered to you, or written to the Tech Debt Backlog in an unattended run.
 - When the round fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, the run ends on a `Next (fresh session):` line for a follow-up review; otherwise one round is the whole job.
-- The change stays in the working tree; nothing is committed.
+- The verified round is committed by path, so each fix round in [the loop below](#review-and-fix-until-clean-from-a-coordinating-session) is its own commit. Push and PR stay with `ship`.
 
 **Elsewhere.** "This should be cleaned up" is not authorization: the review stays read-only and names `--fix`. `--fix` on a PR target is rejected – the scratch tree is discarded, so there is nothing to remediate. More than one round is [the loop below](#review-and-fix-until-clean-from-a-coordinating-session). Contract: [`implement-fix`](plugin/README.md#implement-fix).
 
@@ -388,7 +388,7 @@ DEFERRED findings.
 
 **Expect.** One full review, then follow-up reviews on the same lenses, each with its own report and verdict and a `Follows` header naming the report before it. A follow-up covers the work since that report, the callers of that code, and its open findings (the whole target if the reviewed commit is gone), and says which of those findings are now resolved.
 
-The loop ends on the hand-off, never on the verdict or a severity count: a `Note` no fix round may apply can hold readiness at Needs Fixes, so "until Ready" or "until no MEDIUM remains" may never terminate, while the `Next` line asks for another review only after a round fixed a CRITICAL or HIGH finding or left a fix partial. A blocked CRITICAL or HIGH fix is deferred and escalated, which is the "needs a decision" stop. Both come back to you with the last report.
+The loop ends on the hand-off, never on the verdict or a severity count: a `Note` no fix round may apply can hold readiness at FAIL, so "until PASS" or "until no MEDIUM remains" may never terminate, while the `Next` line asks for another review only after a round fixed a CRITICAL or HIGH finding or left a fix partial. A blocked CRITICAL or HIGH fix is deferred and escalated, which is the "needs a decision" stop. Both come back to you with the last report.
 
 **Elsewhere.** One round is `review --fix` above. Contract: [`review`](plugin/README.md#review).
 

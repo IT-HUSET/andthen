@@ -5,7 +5,7 @@ Sign-in now issues the session cookie out of reach of page scripts and records e
 - **S01** A page script cannot read the session cookie. Proof: `python3 -m unittest tests.auth.test_session`, 2 tests, OK.
 - **S02** Every sign-in attempt leaves one audit row, and a degraded audit store never fails a sign-in. Proof: `python3 -m unittest tests.audit.test_signin_log`, 3 tests, OK.
 
-Review: code Ready and gap PASS at `9c4e2a7`. Security and outcome were not reviewed.
+Review: code FAIL and gap PASS at `9c4e2a7`. Both verdicts predate the fix for the review's one HIGH finding, the unbounded audit queue, and no review re-ran them. Security and outcome were not reviewed.
 
 ## Door and blast radius
 
@@ -29,6 +29,9 @@ S01 moved cookie construction into one helper that every handler calls. S02 adde
 
 </details>
 
+<details>
+<summary>Ship summary (tables for tooling)</summary>
+
 ## Ship summary
 
 PRD: scripts/fixtures/renders/prd.md
@@ -39,12 +42,12 @@ PRD: scripts/fixtures/renders/prd.md
 | S02 | scripts/fixtures/renders/plan.json | [OC01] Every sign-in attempt leaves one audit row. | FR2 | python3 -m unittest tests.audit.test_signin_log -> exit=0, Ran 3 tests, OK |
 | S02 | scripts/fixtures/renders/plan.json | [OC02] A degraded audit store never fails a sign-in. | FR2 | python3 -m unittest tests.audit.test_signin_log -> exit=0, Ran 3 tests, OK |
 
-| Lens | Verdict | Reviewed commit |
-|---|---|---|
-| code | Ready | 9c4e2a7 |
-| gap | PASS | 9c4e2a7 |
-| security | not reviewed | - |
-| outcome | not reviewed | - |
+| Lens | Verdict | Reviewed commit | Remediated |
+|---|---|---|---|
+| code | FAIL | 9c4e2a7 | yes |
+| gap | PASS | 9c4e2a7 | yes |
+| security | not reviewed | - | - |
+| outcome | not reviewed | - | - |
 
 | Read closely | Files | Note |
 |---|---|---|
@@ -56,3 +59,5 @@ PRD: scripts/fixtures/renders/prd.md
 | after-review | `src/audit/log/write.ts` | The queue bound landed after the review at `9c4e2a7`. |
 
 Undo: reverting the merge restores the old cookie code, but sessions issued meanwhile keep their flags until they expire, and the audit rows written stay.
+
+</details>

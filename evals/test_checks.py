@@ -689,6 +689,170 @@ class ValidationTest(unittest.TestCase):
         self.assertNotIn("S01", done.stderr)
         self.assertIn("story S02 status is 'in-progress', expected 'done'", done.stderr)
 
+    def test_exec_plan_resume_requires_repaired_behavior_and_committed_completion(self):
+        """Saved task IDs do not close an implemented story's remaining proof.
+        Starting state, narrated completion and an uncommitted repair fail;
+        repaired behavior committed with its final row passes."""
+        workspace = self.stage_case("exec-plan-resume")
+        plan = workspace / "docs/specs/row-count/plan.json"
+        pipeline = workspace / "src/reporter/pipeline.py"
+        proof = subprocess.run([sys.executable, "tools/check_blank_rows.py"],
+                               cwd=str(workspace), capture_output=True, text=True)
+        self.assertNotEqual(proof.returncode, 0)
+        self.assertIn("expected 2 exported records, got 4", proof.stderr)
+        done = self.run_oracle("exec-plan-resume", workspace)
+        self.assertNotEqual(done.returncode, 0)
+        self.edit_story(plan, status="done", completedTaskIds=["TI01"],
+                        verified={"at": "2026-11-10T00:00Z",
+                                  "summary": "python3 tools/check_blank_rows.py -> exit=0, OK"})
+        self.commit(workspace, "feat(S01): record rows\n\nStory-ID: S01\n"
+                    "Plan: docs/specs/row-count/plan.json", str(plan.relative_to(workspace)))
+        done = self.run_oracle("exec-plan-resume", workspace)
+        self.assertNotEqual(done.returncode, 0)
+        self.assertIn("expected 2 exported records, got 4", done.stderr)
+        broken = pipeline.read_text(encoding="utf-8")
+        pipeline.write_text(broken.replace("len(Path(source).read_text(encoding=\"utf-8\").splitlines())",
+                                           "len(load_records(source))"), encoding="utf-8")
+        done = self.run_oracle("exec-plan-resume", workspace)
+        self.assertNotEqual(done.returncode, 0)
+        self.assertIn("uncommitted completion", done.stderr)
+        self.edit_story(plan, verified={"at": "2026-11-10T00:01Z",
+                                       "summary": "python3 tools/check_blank_rows.py -> exit=0, "
+                                                  "OK: 2 exported records; blank lines excluded"})
+        self.commit(workspace, "fix(S01): finish row proof\n\nStory-ID: S01\n"
+                    "Plan: docs/specs/row-count/plan.json",
+                    "src/reporter/pipeline.py", str(plan.relative_to(workspace)))
+        # TI01's earlier edits start uncommitted (`dirty/`), so the story commit
+        # owes its test file too: a repaired, committed story with the test left
+        # in the tree fails on that file alone.
+        done = self.run_oracle("exec-plan-resume", workspace)
+        self.assertNotEqual(done.returncode, 0)
+        self.assertIn("uncommitted completion: M tests/test_pipeline.py", done.stderr)
+        self.assertNotIn("no Story-ID/Plan commit", done.stderr)
+        self.commit(workspace, "test(S01): row count test\n\nStory-ID: S01\n"
+                    "Plan: docs/specs/row-count/plan.json", "tests/test_pipeline.py")
+        done = self.run_oracle("exec-plan-resume", workspace)
+        self.assertEqual(done.returncode, 0, done.stderr)
+
+        pipeline.write_text(pipeline.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        self.commit(workspace, "refactor: preserve count behavior", "src/reporter/pipeline.py")
+        done = self.run_oracle("exec-plan-resume", workspace)
+        self.assertEqual(done.returncode, 0, done.stderr)
+
+    def test_exec_plan_resume_story_commit_must_contain_both_proof_and_completed_row(self):
+        """An attributed whitespace change, an incomplete row, or a row-only story
+        commit cannot borrow proof from an untagged commit, even when the final
+        workspace passes."""
+        tagged = ("feat(S01): recorded completion\n\nStory-ID: S01\n"
+                  "Plan: docs/specs/row-count/plan.json")
+        untagged = "finish without story attribution"
+        # Each scenario is two commits: (message, pipeline state, row status).
+        scenarios = {
+            "repair": ((tagged, "whitespace", "done"), (untagged, "repaired", None)),
+            "completed row": ((tagged, "repaired", "in-progress"), (untagged, None, "done")),
+            "tagged row only": ((untagged, "repaired", None), (tagged, None, "done")),
+        }
+        for name, commits in scenarios.items():
+            with self.subTest(scenario=name):
+                run = self.tmp / ("run-resume-commit-" + name.replace(" ", "-"))
+                run.mkdir()
+                workspace = stage.stage_workspace(run, cases.CASES_DIR / "exec-plan-resume")
+                plan = workspace / "docs/specs/row-count/plan.json"
+                pipeline = workspace / "src/reporter/pipeline.py"
+                broken = pipeline.read_text(encoding="utf-8")
+                states = {"whitespace": broken + "\n", "repaired": broken.replace(
+                    'len(Path(source).read_text(encoding="utf-8").splitlines())',
+                    "len(load_records(source))")}
+                for message, state, status in commits:
+                    paths = []
+                    if state:
+                        pipeline.write_text(states[state], encoding="utf-8")
+                        paths.append("src/reporter/pipeline.py")
+                    if status:
+                        self.edit_story(plan, status=status, completedTaskIds=["TI01"],
+                                        verified={"at": "2026-11-10T00:00Z",
+                                                  "summary": "claimed proof"})
+                        paths.append(str(plan.relative_to(workspace)))
+                    self.commit(workspace, message, *paths)
+
+                done = self.run_oracle("exec-plan-resume", workspace)
+                self.assertNotEqual(done.returncode, 0)
+                self.assertIn("no Story-ID/Plan commit contains both", done.stderr)
+
+    def finished_resume(self, name, message, tests_message="test: row count test"):
+        """A resumed story with every part of its completion in place except the
+        commit message under test: TI01's test file is committed on its own, and
+        the repair and the done row share one commit carrying `message`."""
+        run = self.tmp / ("run-resume-" + name.replace(" ", "-"))
+        run.mkdir()
+        workspace = stage.stage_workspace(run, cases.CASES_DIR / "exec-plan-resume")
+        plan = workspace / "docs/specs/row-count/plan.json"
+        pipeline = workspace / "src/reporter/pipeline.py"
+        pipeline.write_text(pipeline.read_text(encoding="utf-8").replace(
+            'len(Path(source).read_text(encoding="utf-8").splitlines())',
+            "len(load_records(source))"), encoding="utf-8")
+        self.edit_story(plan, status="done", completedTaskIds=["TI01"],
+                        verified={"at": "2026-11-10T00:00Z",
+                                  "summary": "python3 tools/check_blank_rows.py -> exit=0, OK"})
+        self.commit(workspace, tests_message, "tests/test_pipeline.py")
+        self.commit(workspace, message, "src/reporter/pipeline.py", str(plan.relative_to(workspace)))
+        return workspace
+
+    def test_exec_plan_resume_story_commit_needs_both_trailers(self):
+        """The repair and the done row in one commit still fail unless that commit
+        carries the story's own Story-ID and Plan trailers, so the check cannot
+        be loosened to accept an untagged or another story's commit."""
+        plan = "Plan: docs/specs/row-count/plan.json"
+        messages = {
+            "untagged": "finish row count",
+            "another story": "feat(S02): finish row count\n\nStory-ID: S02\n" + plan,
+            "story id only": "feat(S01): finish row count\n\nStory-ID: S01",
+            "plan only": "feat(S01): finish row count\n\n" + plan,
+        }
+        for name, message in messages.items():
+            with self.subTest(commit=name):
+                done = self.run_oracle("exec-plan-resume", self.finished_resume(name, message))
+                self.assertNotEqual(done.returncode, 0)
+                self.assertIn("no Story-ID/Plan commit contains both", done.stderr)
+                self.assertNotIn("uncommitted completion", done.stderr)
+        # The same workspace with the story's trailers passes, so the failures
+        # above are the trailers alone.
+        tagged = "feat(S01): finish row count\n\nStory-ID: S01\n" + plan
+        done = self.run_oracle("exec-plan-resume", self.finished_resume("tagged", tagged))
+        self.assertEqual(done.returncode, 0, done.stderr)
+
+    def test_exec_plan_resume_rejects_a_changed_final_validation_or_an_uncommitted_edit(self):
+        """A finished story still fails when the final-validation ledger or its
+        command was edited to pass, or when the story's FIS edit was left
+        uncommitted."""
+        tagged = ("feat(S01): finish row count\n\nStory-ID: S01\n"
+                  "Plan: docs/specs/row-count/plan.json")
+        changes = {
+            "ledger": ("examples/blank-ledger.csv",
+                       lambda text: "".join(l for l in text.splitlines(True) if l.strip())),
+            "proof command": ("tools/check_blank_rows.py", lambda text: "import sys\nsys.exit(0)\n"),
+        }
+        for name, (path, change) in changes.items():
+            with self.subTest(changed=name):
+                workspace = self.finished_resume("changed-" + name.replace(" ", "-"), tagged)
+                target = workspace / path
+                text = target.read_text(encoding="utf-8")
+                self.assertNotEqual(text, change(text))
+                target.write_text(change(text), encoding="utf-8")
+                done = self.run_oracle("exec-plan-resume", workspace)
+                self.assertNotEqual(done.returncode, 0)
+                self.assertIn("%s: final-validation input or command was changed" % path,
+                              done.stderr)
+        with self.subTest(changed="uncommitted FIS"):
+            workspace = self.finished_resume("uncommitted-fis", tagged)
+            fis = workspace / "docs/specs/row-count/s01-record-row-count.md"
+            fis.write_text(fis.read_text(encoding="utf-8") + "\n- Proof ran green.\n",
+                           encoding="utf-8")
+            done = self.run_oracle("exec-plan-resume", workspace)
+            self.assertNotEqual(done.returncode, 0)
+            self.assertIn("uncommitted completion: M docs/specs/row-count/s01-record-row-count.md",
+                          done.stderr)
+
     def test_spike_isolation_oracle_accepts_a_contained_spike_and_rejects_a_leaked_one(self):
         """The spike's evidence is a branch of its own; the caller checkout keeps
         its branch, its dirty edit, and its untracked note. A spike branch is

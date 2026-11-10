@@ -21,7 +21,7 @@ The rubric for the fresh reader an authoring skill spawns over the document it j
 
 ## PRD
 
-Look for ambiguity, contradiction between sections, a missing unhappy path, and **undefined behavior** – a stated capability whose result is unstated for an input the user flows reach. Skip what the author's validation already checked: section completeness, testable criteria, Success Metric shape, and problem-solution fit.
+Look for ambiguity, contradiction between sections, a missing unhappy path, and **undefined behavior** – a stated capability whose result is unstated for an input, actor, or entry point that reaches it, delegated or automated work included. Skip what the author's validation already checked: section completeness, testable criteria, Success Metric shape, and problem-solution fit.
 
 **Product document** – its **Non-Goals** and **Proportionality** facts. A requirement re-litigating a Non-Goal, or sized past what the stage facts carry, is a Note naming the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). Absent or `unknown` facts are no licence to size against imagined scale.
 
@@ -31,6 +31,10 @@ Apply the authoring guidelines' *Self-Check*, *Plan-Spec Alignment Check*, and *
 
 With no Architecture or Decisions baseline behind it, an architectural prescription needs code-pattern evidence or reads as an assumption.
 
+Two tokens or signatures the FIS keys or formats alike are attacked for confusion with each other.
+
+For each action the FIS gates by who may take it, every acting party – a person, a delegated or scheduled job acting for one, an external client – and every entry point reaching it has a scenario or a decided exclusion.
+
 **Scope trades.** The Architecture Decision's `**Why this over the floor**:` line says which requirement clause is buying the design. For each component the floor would not carry, return one Note naming that clause, the floor, the narrower reading that would drop it, and what the Target User loses against the Desired Outcome. "The design could be simpler" is not one: it gives the owner nothing to decide.
 
 ## Bundle
@@ -39,6 +43,7 @@ A plan bundle is reviewed as one document set: apply § FIS to each FIS, then th
 
 - **Inter-story coherence** – overlapping scope, contradictory ADR choices, inconsistent naming, and dependency gaps between `plan.json`'s `dependsOn` and FIS task order.
 - **Seams and chains** – an output one story needs that another's spec never produces. For each multi-step flow in the source, compose every scenario's title and GWT in flow order and check that each leg's output satisfies the next precondition, naming handoff artifacts and flagging orphan outputs or unsourced inputs. Inspect Proof only to verify an articulated leg, never to fill a semantic gap.
+  A leg existing code carries counts: read its input from that code and check it against each change the bundle makes upstream of it.
 - **Source → FIS traceability** – every story scope, Binding Constraint, and source acceptance criterion covered by ≥1 scenario or criterion.
 
 The return is the bundle's coverage proof. To the blocks above it adds a **per-FIS roster**: one line per FIS naming fixes applied, Notes open, and any `PHANTOM_SCOPE`. The cross-cutting `Notes:`, `Scope trades:`, and `Attacked:` each name the stories they hold.

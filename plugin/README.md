@@ -4,7 +4,7 @@ Lightweight agentic software engineering for AI coding agents, spec-driven when 
 
 ## Installation
 
-Install steps for Claude Code, Codex CLI, GitHub Copilot CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, run `claude plugin marketplace add ./` from its root, then `claude plugin install andthen@andthen` for a persistent local install.
+Install steps for Claude Code, Codex CLI, GitHub Copilot CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, `python3 scripts/andthen.py install` from its root installs it on every host whose CLI is on `PATH`.
 
 ## Setup
 
@@ -133,9 +133,9 @@ Inspects project state and hands off to the skill that fits. Settled requirement
 
 The requirements skill. It interviews you in rounds about gaps, edge cases, scope, and alternatives you had not considered, then writes the document. Scope is inferred and stated first: **feature scope** writes `prd.md` under the Specs & Plans location, **product scope** writes `PRODUCT.md`.
 
-- **You get**: a self-contained PRD with a problem definition and success metrics. Settled domain terms go to the `Ubiquitous Language` document when one exists, and concepts you explicitly reject to the `Product` document's Non-Goals.
+- **You get**: a self-contained PRD with a problem definition and success metrics. Settled domain terms go to the `Ubiquitous Language` document when one exists, and concepts you explicitly reject to the `Product` document's Non-Goals, where a Non-Goal this PRD overturns is narrowed or removed.
 - **Options**: `--brief` stops at `intent.md` (problem, outcome, affected systems, constraints, open questions, plus a decisions log). Edit or share it, then run `clarify` on its directory: only what is still open is asked. Product scope ignores the flag.
-- **Tracker record**: with `Record: tracker` in the `Issue Tracker` document, it asks once and then saves the PRD to its issue, creating one when the input was not an issue. `plan` on that issue takes the PRD back, so the local `prd.md` is optional to keep. `clarify` on the issue amends it.
+- **Tracker record**: with `Record: tracker` in the `Issue Tracker` document, it asks once and then saves the PRD to its issue, creating one when the input was not an issue. `plan` on that issue takes the PRD back, so the local `prd.md` is optional to keep. `clarify` on the issue amends it and saves it back, unless a plan is under way, whose next `publish` or `ship` carries the change.
 - **Good to know**: every run asks at least one round and waits for real answers, even when your input looks complete. You confirm the settled picture before anything is written; when the scope adds screens no wireframes or mockups cover, that question also asks whether design comes first. It closes on one next step: `decide` if a design fork binds beyond the work, then `ui-ux-design` if you chose design first, otherwise `plan`. An amendment to a plan already under way closes on a `plan` revision of the first pending story it changes, and is appended to each other changed pending FIS as a discovered requirement. When it changes done work or adds or drops a story, it moves the old `plan.json` and FIS files into `superseded/` beside the PRD and closes on `plan` for the whole PRD, with new stories numbered after the highest old ID; `ship` later lands that folder's Observations and deletes it.
 
 ```bash
@@ -150,7 +150,7 @@ The requirements skill. It interviews you in rounds about gaps, edge cases, scop
 
 Makes the technical decisions a solution needs and records them. It sits between `clarify` (what to build) and `plan` (one story's how). It lists the decision points and sorts each: a choice that binds beyond one story or is costly to reverse is decided here, a story-local one is left to `plan`, a user-visible requirement goes back to the PRD via `clarify`, and anything the code or an earlier decision settles is cited, not asked.
 
-- **You get**: one ADR per decision with real alternatives, registered in `DECISIONS.md` (superseded rows move, never disappear), or a one-line Still Current entry for a load-bearing choice with no alternative. You pick `Accepted` or `Proposed` when you confirm the closing summary. Parked decisions go under Pending.
+- **You get**: one ADR per decision with real alternatives, registered in `DECISIONS.md` (superseded rows move, never disappear), or a one-line Still Current entry for a load-bearing choice with no alternative. You pick `Accepted` or `Proposed` when you confirm the closing summary. Parked decisions go under Pending. Run on a PRD, each Open Question or Decisions Log row it settled names the decision that closes it.
 - **Options**: `--output-dir <path>` sets where trade-off research lands (default: the Research location, else `docs/research/`). `--auto` settles the named decisions on its own recommendations and writes `Proposed` ADRs, which a later run asks you again.
 - **Good to know**: each decision is labelled a one-way or two-way door (costly or cheap to reverse), and its ADR says what reversing takes. When no option stands out, or you ask for a comparison, it runs a weighted trade-off analysis with five options unless you name a count ("compare three options"). Close options on a two-way door skip it, because either pick is cheap to undo. A question only running code can answer goes to `spike`. No code changes. Run on a PRD, it closes on `plan` (or `ui-ux-design` when the PRD puts design first); run from `plan`'s Preflight, it records the answer you already gave and closes on `exec-plan`.
 
@@ -196,7 +196,7 @@ Run a plan one story per fresh session: `plan` prints the first story's command 
   - Plan run: stories run one at a time in the shared tree. Each story runs the fast tier, then the plan run runs the full tier once on the final tree and repairs failures. A failed story's dependents are reported skipped. Other stories continue only when the failure's changes are provably isolated, which is always true under `--worktree`; otherwise the run stops.
   - `--worktree` needs a clean tracked tree and a committed bundle (a gitignored specs directory fails this). A failed story keeps its branch and worktree, and a rerun resumes there. A merge conflict fails the story, except lines both sides appended to the changelog or `Learnings`.
   - Another session's uncommitted changes are never staged, stashed, or reverted.
-  - A red story ends with a route out: `review --fix` over the story's changed paths, for correctness and against its FIS, then `exec-plan` again on the same input.
+  - A red gate is work to finish until a `triage` repair turns nothing green. A failed story ends with a route out: `review --fix` over the story's changed paths, for correctness and against its FIS, then `exec-plan` again on the same input.
   - The plan-level review (`review --fix <plan.json>`) is printed, never run for you.
   - `plan.json` and the FIS files stay in the tree. After a clean plan-level review, a `Next (fresh session):` line for `ship` lands their observations and asks whether to delete them. `prd.md` stays under `Record: repo`; under `Record: tracker`, its issue carries the record.
 
@@ -214,7 +214,7 @@ Reviews an implementation through one or more lenses: `code` (quality and correc
 
 - **You get**: a report with an executive summary, coverage matrix, findings, verdict, and next steps. It lands beside the reviewed spec, else under `reviews/` in the Agent Temp location, named `<feature>-andthen-<suffix>-<agent>-<YYYY-MM-DD>.md`. Each finding is routed `Fix` (mechanical, safe to auto-apply) or `Note` (surfaced for you).
 - **Options**:
-  - `--fix` applies Fix-routed findings through `implement-fix` after the report, one round, with no re-review. When that round fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it ends on a `Next (fresh session):` line for a follow-up review. A direct request such as "review this and fix what you find" counts as the flag. Vaguer wording such as "this should be cleaned up" stays read-only.
+  - `--fix` applies Fix-routed findings through `implement-fix` after the report, one round, with no re-review, and commits the verified change (under `--quick` too, unless `exec-plan` runs it, which commits the fixes with its story). On the remote's default branch it first asks whether to start a feature branch. When that round fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it ends on a `Next (fresh session):` line for a follow-up review. A direct request such as "review this and fix what you find" counts as the flag. Vaguer wording such as "this should be cleaned up" stays read-only.
   - `--quick` returns one pass's findings inline: no report file, coverage matrix, or verdict. `exec-plan` uses it for the per-story review.
   - `--output-dir <path>` overrides the report directory.
 - **Good to know**:
@@ -258,7 +258,7 @@ Reviews an implementation through one or more lenses: `code` (quality and correc
 
 Implements a small change, or a review report's Fix-routed findings, with the smallest safe edit and re-validation. No FIS needed. A tracker item URL works from the item's `## Agent Brief`, else its body. A request describing a plan, PRD, or FIS stops and points you to `plan`, then `exec-plan`.
 
-- **You get**: a verified change left in your working tree (nothing is committed), a table with each finding resolved, deferred, or surfaced, and the `Reviewed:` line. A writable report gets a `## Remediation Status` section written back.
+- **You get**: a verified change committed by path (on the remote's default branch it first asks whether to start a feature branch), a file that also holds another session's edit left uncommitted and named, a table with each finding resolved, deferred, or surfaced, and the `Reviewed:` line. A writable report gets a `## Remediation Status` section written back.
 - **Good to know**:
   - A request is its own finding list. Beyond it, only Boy Scout tidies are edited, each named in the report: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue you did not ask for is reported as `NOTICED BUT NOT TOUCHING:`. An ambiguity is asked once.
   - From a report, an attended run edits only `Routing: Fix` findings, plus Boy Scout tidies. `Note` findings stay untouched unless you direct otherwise; under `--auto`, eligible Notes can be promoted to Fix by the disposition below.
@@ -280,10 +280,10 @@ Implements a small change, or a review report's Fix-routed findings, with the sm
 Closes out the current branch and opens its pull request (a merge request on GitLab). On a branch with a plan bundle it first lands what the FIS files learned, `superseded/` ones included, then deletes the bundle if you agree, because a plan's specs govern one branch and go stale once it merges. On any other branch it commits and opens the request.
 
 - **You get**: the traps from each FIS's `Implementation Observations` written as `Learnings` bullets, recommendations for the rest, the branch's fixes committed with the bundle's deletion (or, if you keep it, its `shipped` marker), and a pull request that states the change's intent, outcomes, and proof: the PRD's why, each story's Intent and Expected Outcomes, its `verified.summary`, and the review's verdict.
-- **In the PR body**: where a reviewer should read closely, which is the files where an error does the most harm, choices no check can judge (such as a pattern others will copy), and what the proof left unchecked (skipped checks, surfaces no review read, work committed or fixed after the review). It also says whether the change is a one-way or two-way door, what breaks if it is wrong, and how to undo it where reverting the merge would not. It ends on a fixed `## Ship summary` section that repeats those facts in tables a viewer can parse: each outcome with its story, plan, PRD `FRn` IDs, and proof, each review lens's verdict and reviewed commit, and each read-closely item with its reason.
+- **In the PR body**: where a reviewer should read closely, which is the files where an error does the most harm, choices no check can judge (such as a pattern others will copy), and what the proof left unchecked (skipped checks, surfaces no review read, work committed or fixed after the review). It also says whether the change is a one-way or two-way door, what breaks if it is wrong, and how to undo it where reverting the merge would not. It ends on a fixed `## Ship summary` section, collapsed where the host renders `<details>`, that repeats those facts in tables a viewer can parse: each outcome with its story, plan, PRD `FRn` IDs, and proof, each review lens's PASS or FAIL verdict, reviewed commit, and whether fixes landed after that review, and each read-closely item with its reason.
 - **Good to know**:
   - It asks before the push, showing the base branch, the commits leaving, and the PR title and body. On the remote's default branch it first asks whether to start a feature branch, unless the run is unattended. Commits run unasked, because the branch history keeps them.
-  - Your PR template or documented PR process sets the body's layout. The key points come first and per-story detail folds below. A flow or structure change gets a Mermaid or SVG diagram where a picture reads faster. For a UI change it captures screenshots or a recording when you ask, and otherwise offers them in that one question. An image the host's CLI cannot upload is listed for you to attach. The PR carries a closing link for each issue the merge finishes, in both record modes: the parent once the plan is ready (the tracker item the plan cites, or the one `tracker publish` reports), and the child of each story `done` or `skipped`; without a plan, the tracker item the request cites. Without a publish, the children come from the parent's `## Stories` checklist, read only. A link closes only from a PR into the default branch, so for another base, such as a milestone branch, `ship` names the issues left open for you to close after the merge.
+  - Your PR template or documented PR process sets the body's layout. The key points come first and per-story detail collapses below them. A flow or structure change gets a Mermaid or SVG diagram where a picture reads faster. For a UI change it captures screenshots or a recording when you ask, and otherwise offers them in that one question. An image the host's CLI cannot upload is listed for you to attach. The PR carries a closing link for each issue the merge finishes, in both record modes: the parent once the plan is ready (the tracker item the plan cites, or the one `tracker publish` reports), and the child of each story `done` or `skipped`; without a plan, the tracker item the request cites. Without a publish, the children come from the parent's `## Stories` checklist, read only. A link closes only from a PR into the default branch, so for another base, such as a milestone branch, `ship` names the issues left open for you to close after the merge.
   - `--auto` stops before anything leaves the machine and prints the push and PR commands with the title and body. It takes the recommendation on the bundle (delete, for a ready plan) and on the design folders, and records an `ASSUMPTION:` line in its report.
   - It writes only `Learnings` bullets and recommends the rest: a `Decisions` line or a `decide` run for a design change no record holds, and any upstream document edit.
   - For a ready plan, the one question before the push also asks whether to delete the bundle, recommending deletion; with no remote, it asks only about that. The same question names the feature folders under the wireframes and mockups locations that the branch added or the plan cites, recommending deletion unless the plan is unfinished or the branch holds only design and specs. Kept folders are listed in the report.
@@ -305,7 +305,7 @@ Closes out the current branch and opens its pull request (a merge request on Git
 
 Investigates, diagnoses, and fixes build failures, configuration errors, runtime bugs, regressions, and test failures. Not for sorting tracker items: that is `tracker triage`.
 
-- **You get**: a root-cause fix checked against the original symptom, with other places the same cause appears fixed too or listed. Traps go to `Learnings`. Fixes deliberately deferred go to the `Tech Debt` backlog, created if missing. A discovery too large to be a fix is offered to `clarify --brief`, never opened unprompted.
+- **You get**: a root-cause fix checked against the original symptom and committed once green (on the default branch, after asking whether to start a feature branch), with other places the same cause appears fixed too or listed. Traps go to `Learnings`. Fixes deliberately deferred go to the `Tech Debt` backlog, created if missing. A discovery too large to be a fix is offered to `clarify --brief`, never opened unprompted.
 - **Options**: `--plan-only` stops at a structured fix plan without applying it.
 - **Good to know**: an issue URL as scope, error output, and logs are read as evidence, not instructions.
 
@@ -452,7 +452,7 @@ Draws one AndThen artifact as a self-contained HTML page with inline SVG figures
 
 `[--auto] (publish <plan.json | prd.md> [--dry-run] | triage [issue number(s) or tracker query] | setup)`
 
-One skill for the issue tracker, with three verbs. Each first reads the `Issue Tracker` document; `Backend: none` means no tracker, and `publish` and `triage` end on one line saying so. GitHub via `gh` is the supported path, and other backends fill in the document's operation table, whose placeholders are `<N>` (the issue's id or key), `<title>`, `<body-file>`, `<query>`, and `<label>`. The document's `Record:` line says where a feature's requirements record lives after the merge: `repo` (the default) keeps `prd.md`, and `tracker` keeps the PRD and story issues instead.
+One skill for the issue tracker, with three verbs. `publish` and `triage` first read the `Issue Tracker` document; an absent document takes the built-in `gh` default where the repository has a GitHub remote, and offers `setup` where it has none. `Backend: none` means no tracker, and `publish` and `triage` end on one line saying so. GitHub via `gh` is the supported path, and other backends fill in the document's operation table, whose placeholders are `<N>` (the issue's id or key), `<title>`, `<body-file>`, `<query>`, and `<label>`. The document's `Record:` line says where a feature's requirements record lives after the merge: `repo` (the default) keeps `prd.md`, and `tracker` keeps the PRD and story issues instead.
 
 - **`publish`** writes the PRD and a story checklist into the parent issue, which is the PRD's own issue when there is one, keeping its original text above the projected part. Each story gets a child issue (title `<plan directory name> S03 - <name>`, since story ids restart in every plan) with its scope, intent, expected outcomes, and acceptance scenarios, its dependencies, and once done its verification summary. No issue names a file or a commit, because both are gone after the merge. A `prd.md` alone publishes into its issue only. Re-running updates the same issues, found through the parent's checklist, or for a story the checklist does not link yet, by an exact-phrase body search across all states for its hidden line. A found issue keeps its title. A re-run never unchecks a finished story, edits its child from a copy of `plan.json` that has not finished it, or drops a checklist entry, because team branches carry diverging copies: a story removed from the plan keeps its entry, and publish names its open child for you to close. Before writing, it shows what each issue gains or loses and asks once, so an edit made in the tracker is seen before it is replaced; unattended, it writes and reports what it replaced. A closed issue is a shipped record and is never edited, so a later plan gets a new parent issue. Flow is one way, plan to tracker, with no reverse sync. `--dry-run` shows the preview and writes nothing. Issues published by an earlier release candidate are not found again.
 - **`triage`** labels untriaged issues (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`; `bug`, `enhancement`), routes them toward implementation or a human decision, and appends an Agent Brief a fresh executor can act on to `ready-for-agent` items, above the item's `andthen-projection` line when it has one. It skips issues carrying that line, because they belong to a published plan. A ratified `wontfix` is also recorded in the `Product` document's Non-Goals. Interactively, you ratify every write per item. Unattended, it applies only safe transitions and leaves `wontfix`, `ready-for-agent`, and duplicate closes for a human.
@@ -485,7 +485,7 @@ Answers one named design question by building a throwaway runnable spike, then r
 
 Behavior-preserving simplification: clarity, reuse, and less over-engineering, within the scope you give.
 
-- **You get**: edits that keep behavior, checked against the baseline it records first. Cleanups that contradict the governing FIS's `What We're NOT Doing` or `Architecture Decision` are dropped and reported. Run standalone, a substantial change ends on a `Next (fresh session):` line for a `review` of the changed paths.
+- **You get**: edits that keep behavior, checked against the baseline it records first and committed once green (on the default branch, after asking whether to start a feature branch). Cleanups that contradict the governing FIS's `What We're NOT Doing` or `Architecture Decision` are dropped and reported. Run standalone, a substantial change ends on a `Next (fresh session):` line for a `review` of the changed paths.
 - **Good to know**: without a scope it falls back to the current branch diff, and an unattended run stops if that is not a cohesive set. Removing anything observable or exported needs your approval; unattended, it is deferred. `exec-plan` runs it once per `done` story, as its own `refactor` commit before the next story runs (under `--worktree`, one pass per merged batch).
 
 ```bash
@@ -506,23 +506,6 @@ Without the roles installed, every skill falls back to the same portable shape: 
 ## Working in a Team
 
 See [Working in a team](../COOKBOOK.md#working-in-a-team) in the cookbook.
-
-## Bundling Into a Downstream Toolkit
-
-For toolkit authors only. Another toolkit can bundle AndThen under its own prefix so the two coexist without name collisions. Clone the repo and install with a prefix that ends in `-`:
-
-```bash
-git clone --depth 1 https://github.com/IT-HUSET/andthen /tmp/andthen
-
-# User-tier install (~/.claude/skills and ~/.agents/skills):
-/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- --claude-user
-
-# Project-local Claude Code install (target <project>/.claude/):
-/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- \
-  --claude-skills-dir "$PWD/.claude/skills"
-```
-
-Skills install as `<prefix><name>` and are invoked on Claude Code as `/<prefix><name>`. `--claude-skills-dir` overrides the Claude-side destination and implies a user-tier install. The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too for a fully project-local bundle.
 
 ## Release Notes
 

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "2",
+  "prd": null,
+  "overview": {
+    "summary": "Record how many records a run exported."
+  },
+  "sharedDecisions": [],
+  "bindingConstraints": [],
+  "stories": [
+    {
+      "id": "S01",
+      "name": "Record Row Count",
+      "dependsOn": [],
+      "status": "in-progress",
+      "fis": "s01-record-row-count.md",
+      "completedTaskIds": [
+        "TI01"
+      ],
+      "scope": "Write the exported record count beside the report.",
+      "sourceRefs": [],
+      "provenance": null,
+      "assetRefs": [],
+      "sequencing": null
+    }
+  ]
+}

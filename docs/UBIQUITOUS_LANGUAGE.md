@@ -100,7 +100,7 @@
 ## Distribution
 | Term | Definition | Avoid |
 |------|------------|-------|
-| Shared Plugin Asset | Canonical file under `plugin/references/` consumed by multiple skills and inlined during generic/user-tier installs. | shared reference, shared doc |
+| Shared Plugin Asset | Canonical file under `plugin/references/` consumed by multiple skills and inlined during loose installs. | shared reference, shared doc |
 | Generic Subagent | The one delegation shape AndThen uses: a host-provided general subagent whose prompt invokes a skill or loads a reference. | custom agent, persona agent, docs agent, sub-agent |
 | Role Agent | One of four opt-in subagent definitions – `oracle`, `implementer`, `reviewer`, `worker` – shipped as templates by the `andthen:init` skill and installed at user or project level. | tier agent, model agent, oracle skill, reviewer agent |
 | Model Tier | A capability class – S, A, B, by default a host's top three models – whose model is a shifting recommendation; the Subagent Model Policy defines it, each Role Agent pins one. | top model, cheap model, strongest model |

@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-**Overall readiness: FAIL** - code Needs Fixes, gap FAIL, security Ready.
+**Overall readiness: FAIL** - code FAIL, gap FAIL, security PASS.
 
 Follow-up review over the two finding families the 2026-09-15 report left open, the artifacts their repairs touched, and the seat-count invariant neither pass covered. Both are still open: the seat-count write outside the acceptance transaction (Finding 1) and the S03 expiry scenario with no proof (Finding 2).
 
@@ -90,7 +90,7 @@ Code: double acceptance, a crash between the two writes, a revoked invitation re
 
 ## Verdict
 
-**Overall readiness: FAIL** - code Needs Fixes, gap FAIL, security Ready.
+**Overall readiness: FAIL** - code FAIL, gap FAIL, security PASS.
 
 ### Gap
 

@@ -6,7 +6,7 @@
 
 ## Current ADRs
 
-ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-030.
+ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-031.
 
 | ID | Title | Status | Scope |
 |----|-------|--------|-------|
@@ -22,6 +22,7 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 | [ADR-027](adrs/ADR-027-visualize-skill.md) | Draw AndThen artifacts as checked pages with a small `visualize` skill | Accepted | Model-written self-contained HTML with inline SVG, gated by a render-and-look loop; any artifact; `now-what` drops its notes route |
 | [ADR-028](adrs/ADR-028-tracker-record.md) | Keep a feature's record in the issue tracker, opt-in per project | Accepted | `Record: repo \| tracker`; the PRD lives in the source issue, story issues carry intent and acceptance, `ship` writes the final record and the merge closes it; prose, no script |
 | [ADR-029](adrs/ADR-029-domain-skill-and-domain-map.md) | Model the domain in a `domain` skill, recorded in one Domain Map | Accepted | `domain` modes `subdomains`, `contexts`, `glossary`, `event-storming`; `DOMAIN-MAP.md` replaces `CONTEXT-MAP.md`; `context-map.json` retires; one Markdown-or-JSON rule |
+| [ADR-030](adrs/ADR-030-one-setup-script.md) | One setup script installs AndThen and places its role agents and rules | Accepted | `scripts/andthen.py` replaces both install scripts; opt-in user-level roles and rules, written only where no merge is needed; `validate-plugin.py`; white-label and `--claude-user` go |
 
 ## Superseded
 
@@ -63,7 +64,7 @@ Rationale and reopen conditions: [decisions/authoring.md](decisions/authoring.md
 - **`plan` has no re-entry handling**: it authors from a source, never reading an existing FIS or `plan.json` as state. Revising or re-planning is a prompt the user writes, because edge-case handling a user can prompt around costs every run focus.
 - **A FIS carries only what the executor would miss**: a fact restated from a cited source, a project document, or a scenario is a second copy that drifts. Past ~6,000 words with the task count in range, `plan` compresses under **Single source of truth** before `OVERSIZE:` fires; trimming is an authoring rule, not a reviewer cut duty. Technical Overview is the Architecture Decision's `Flow`, capped at ~10 lines.
 - **Over-engineered work is discarded, and the PRD is cut first**: before executing a PRD or plan, weigh its FR count and acceptance volume against the problem, and redo bloat small rather than prune it. Prefer data-only extension points, one generic code path, and "running it is the test" over meta-tests.
-- **Rejected concepts are Product non-goals, not a registry**: `clarify` and `tracker triage` append a firmly rejected concept to the `Product` document's Non-Goals as one dated bullet and check that section before re-proposing one.
+- **Rejected concepts are Product non-goals, not a registry**: `clarify` and `tracker triage` append a firmly rejected concept to the `Product` document's Non-Goals as one dated bullet and check that section before re-proposing one. `clarify` curates in both directions, narrowing or removing a bullet its PRD overturns on the same user-traceable bar, because a standing bullet makes the `review` outcome lens grade the commissioned feature a HIGH no fix round can clear.
 
 ### Execution
 
@@ -103,8 +104,9 @@ Rationale and reopen conditions: [decisions/project-documents.md](decisions/proj
 - **Durable documents carry no size ceilings**: an Index entry holds name, location, and read/update trigger, no size number, since a count cannot tell needed explanation from dispensable text. Documents are read whole and stay short; a trigger names a part only for history or reference no task is checked against, and an outgrown document becomes an index over topic shards.
 - **The Index entry catalog carries no Product Backlog or Changelog entry**: each entry is where its first writer creates the document (ADR-022), and no skill writes or reads a backlog or changelog. A project that keeps either adds its own entry.
 - **No `Stack` document**: its template's rows projected the manifest, the lockfile, an ADR, or the Architecture document's Integration Points, and drifted. The baseline (language, runtime, main framework) is one sentence in the Architecture document's System Overview; versions stay in the manifest.
-- **Tracker setup is first-use, not an `init` gate**: `init` writes neither the file nor its Index entry; the first skill that needs the backend offers `tracker setup`, and an unattended run blocks naming the `Backend:` line. `Backend: none` declares no tracker, and `tracker publish` and `tracker triage` end on one line saying so. Accepted: a non-GitHub project's first unattended run blocks until the document exists.
-- **`init` wires the rules and role agents in prose, not a script**: both are one-line offers in its closing summary (ADR-022), run as the prose in `init/references/offers.md`, which does in 18 lines what `wire.py` did in 328 plus 388 test lines.
+- **Tracker setup is first-use, not an `init` gate**: `init` writes neither the file nor its Index entry; the first skill that needs the backend offers `tracker setup`; `tracker publish` and `tracker triage` do so where the repository has no GitHub remote, since GitHub takes the built-in `gh` default, and an unattended run blocks naming the `Backend:` line. `Backend: none` declares no tracker, and `tracker publish` and `tracker triage` end on one line saying so. Accepted: a non-GitHub project's first unattended run blocks until the document exists.
+- **The critical-rules starter's ownership lead is adapted, not quoted**: its codebase-care rule keeps the Fable 5.2 prompting guide's "This codebase is yours, and you keep building on it", because that framing, not an instruction to tidy, is what makes a model merge duplication rather than add another copy, and drops the guide's "what it's for and how it's built are your call", since `clarify` owns what the code is for and `decide` owns how it is built. Its bound sits in the same sentence ("and nothing beyond them"), because a scope rule elsewhere in the file does not cancel an ownership statement.
+- **`init` wires the rules and role agents in prose; unattended setup places them by script**: attended, both are one-line offers in `init`'s closing summary (ADR-022), run as the prose in `init/references/offers.md`, which owns project-level placement and every merge into a file that differs. Unattended, `scripts/andthen.py` places user-level copies only where no merge is needed and refuses the rest, pointing at `init` (ADR-030).
 - **The architecture-model schema is for code-structure graphs only**: `ref` anchors to repo-relative paths and `evidence` makes every edge refutable against code, so it never adds another `kind`. Any other JSON record follows ADR-029: generated facts nobody hand-edits and no document holds, never a mirror of a document.
 
 ### Packaging and measurement
@@ -113,9 +115,9 @@ Rationale and reopen conditions: [decisions/packaging-and-measurement.md](decisi
 
 - **AndThen owns the artifact contracts; downstream tooling owns its views**: the artifact schemas, the `scripts/fixtures/renders/` corpus, and the visual-review-notes payload are AndThen's; a downstream viewer owns its views and closes its notes loop by invoking the owning skill; no shipped skill reads the payload. AndThen's one view is `visualize` (ADR-027). Shipped skills never name a downstream app, since that prompt breaks for everyone without it.
 - **No tests inside the plugin directory**: every suite lives in `tests/`, because both hosts install `plugin/` wholesale with no exclude list, so a test beside a shipped script ships to every user.
-- **Codex does not substitute `${CLAUDE_PLUGIN_ROOT}` or `${CLAUDE_SKILL_DIR}` in skill text**: its shim is a hook environment variable only, so references are skill-root-relative (`../../references/<name>.md`, `<skill-dir>/scripts/<name>`), with no tokens anywhere (`--validate-only` rejects them).
+- **Codex does not substitute `${CLAUDE_PLUGIN_ROOT}` or `${CLAUDE_SKILL_DIR}` in skill text**: its shim is a hook environment variable only, so references are skill-root-relative (`../../references/<name>.md`, `<skill-dir>/scripts/<name>`), with no tokens anywhere (`scripts/validate-plugin.py` rejects them).
 - **Leanness is measured per consuming path, and dedup never creates a reference file**: the number is the active lines a use case loads (body plus every reference it names), reported per path before and after, not SKILL.md size. A pointer pulls a whole file into every consuming bundle, so minor duplication in canonical wording is accepted.
-- **No context-budget gate**: shipped-prompt size is bounded by `install-skills.sh --validate-only` and the shipped-surface word budget; the ratchet cost a fixtures directory, a ceilings file, and wording gotchas without producing a finding after its baseline.
+- **No context-budget gate**: shipped-prompt size is bounded by `scripts/validate-plugin.py` and the shipped-surface word budget; the ratchet cost a fixtures directory, a ceilings file, and wording gotchas without producing a finding after its baseline.
 
 ### Evals
 

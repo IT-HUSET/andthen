@@ -29,7 +29,7 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
 ## Step 3: Verify and review
 
 1. **Run the proofs yourself**: the full tier once, or the fast tier under `--no-full-tier`, then every `Proof` and `Verify` target per `fis-contract.md` § Runnable Proof Forms, and every Final Validation Checklist item the FIS carries. Keep one line per proof id and checklist item – what ran, its exit code, and the runner's own result line, or what it saw – plus the tier result. Those lines are the story's evidence; recalling what a task did is not.
-2. **One fresh reviewer, always.** You wrote this code, so the independent pass is not yours to give. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill with `--quick --fix`, plus `--auto` in an unattended run, over the story's changed paths against its FIS, `<absolute FIS_FILE_PATH>`, carrying the Chain Attestation as the claims to falsify and one line per tidy as intended scope. It applies the Fix-routed findings and returns every finding. Where no subagent can be spawned, your own diff pass against the FIS is the review, you apply its fixes, and the `Reviewed:` line says so.
+2. **One fresh reviewer, always.** You wrote this code, so the independent pass is not yours to give. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill with `--quick --fix`, plus `--auto` in an unattended run, over the story's changed paths against its FIS, `<absolute FIS_FILE_PATH>`, carrying the Chain Attestation as the claims to falsify, one line per tidy as intended scope, and that it leaves its fixes uncommitted for Step 4. It applies the Fix-routed findings and returns every finding. Where no subagent can be spawned, your own diff pass against the FIS is the review, you apply its fixes, and the `Reviewed:` line says so.
 3. **UI work** spawns a fresh reviewer subagent that invokes the `andthen:visual-validation` skill with the screens and states this story touched, the project's `Visual Validation` document, and the design contract. It captures for itself and gets nothing else of yours: your measurements, summaries, and earlier verdicts frame it toward a pass. A re-validation carries only the finding it rechecks.
 4. **Route what came back.** Objective failures converge and subjective findings thrash, so the two route differently:
    - An objective failure is Step 2 work until green. A P1 Critical or P2 Major visual finding is one, and its screen is recaptured after the fix.
@@ -41,7 +41,7 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
 1. **Triage**, in a direct story run, per `between-stories.md` § Discovery triage, before the row, so a question waiting on the person leaves no `done` row uncommitted.
 2. **Write the story's row** in `PLAN_FILE_PATH`: `fis` this file's canonical basename, every verified task id in `completedTaskIds`, `verified: {at, summary}` after it, and only then `status: done`. `at` is a UTC ISO-8601 minute. `summary` is one line quoted from Step 3's output: the proof command, its exit status, and the runner's own result line (`{cmd} -> exit=0, Ran 4 tests, OK`).
 3. **Write what the project keeps**: a changelog entry for a user-facing change where the project keeps a changelog, and each story-level trap as one `Learnings` bullet under its fitting topic, admitted against its header note.
-4. **Commit** the change set, the review's applied fixes, the FIS, `plan.json`, and the writes of Steps 4.1 and 4.3, per the commit rule. The message is a subject and two trailers with no body, because a squash merge can list every commit's message:
+4. **Commit** the change set, the review's applied fixes, the FIS, `plan.json`, and the writes of Steps 4.1 and 4.3, per `verification-evidence.md` § The commit rule. The message is a subject and two trailers with no body, because a squash merge can list every commit's message:
 
    ```
    {type}({STORY_ID}): <the FIS title, lowercased>
@@ -58,4 +58,5 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
 
 ## Failure handling
 
-Any gate, scenario, or criterion still red means no completion. Return `## Failed Story Report` with the story and FIS, the failing gates, the commands and results, the changed files, and every open finding, then Follow-up's route out.
+Past admission, unfinished work ends only on a stop named in this skill or a reference it loads.
+Return `## Failed Story Report` with the story and FIS, the stop and its evidence, the failing gates, the commands and results, the changed files, and every open finding, then Follow-up's route out.

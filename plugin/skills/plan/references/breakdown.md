@@ -15,8 +15,10 @@ Ask every gap the cut or a story's intent turns on, at requirements altitude –
 Cut the fewest stories that cover the source, none overlapping, each a vertical slice demoable through every layer.
 
 - **Single-session rule**: a story fits one fresh-context exec run with headroom, the measure in the skill's step 3. An oversized story splits into thinner vertical slices, never into layers.
+- **Walking skeleton**: where the source's main flow crosses several stories or code the plan does not change, the first story is that flow's walking skeleton; its `scope` says so and names the flow.
+  Each story thickening it consumes that path, so it carries the skeleton in `dependsOn`.
 - **Module fan-out**: where module boundaries are strong, a feature crossing modules splits along the seam into per-module stories, each vertical within its module, the interface pinned in `sharedDecisions`.
-- Merge stories that touch substantially the same files, or that chain with no independent demo ("define endpoint", "wire handler", "surface in UI").
+- Merge stories that touch substantially the same files, the walking skeleton and its thickeners excepted, or that chain with no independent demo ("define endpoint", "wire handler", "surface in UI").
 - `dependsOn` holds causal edges only: a predecessor whose artifact, contract or decision the story consumes.
 - A story entry is a brief its authoring subagent reads once before the FIS supersedes it. Keep out what the FIS will state (scenarios, criteria, approach, file paths) and the source's rationale. Cite the source through `sourceRefs`; a story no source covers carries `provenance` saying why.
 

@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-**Readiness: Needs Fixes** - 1 HIGH, 1 LOW, no CRITICAL.
+**Readiness: FAIL** - 1 HIGH, 1 LOW, no CRITICAL.
 
 The cookie helper is correct; the audit write is on the latency path with no bound on the retry queue.
 
@@ -75,7 +75,7 @@ The sign-in error path, a store that stays down for the whole retry window, and 
 
 ## Verdict
 
-**Readiness: Needs Fixes** - 1 HIGH, 1 LOW, no CRITICAL.
+**Readiness: FAIL** - 1 HIGH, 1 LOW, no CRITICAL.
 
 ## Next Steps
 

@@ -77,7 +77,8 @@ Re-run the checks the baseline ran.
 
 ## Output
 
-The completion summary names what was applied and deferred, each `dropped:` item, `Intent Context: none discoverable` when no anchor was found, and the verification evidence per `verification-evidence.md`.
+Commit the verified change per `verification-evidence.md` § The commit rule.
+The completion summary names the commit, what was applied and deferred, each `dropped:` item, `Intent Context: none discoverable` when no anchor was found, and the verification evidence per `verification-evidence.md`.
 
 ## Follow-up
 
