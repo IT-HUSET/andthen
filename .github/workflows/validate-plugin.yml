@@ -1,8 +1,8 @@
 name: Validate Plugin Content
 
 # Chiefly the checks no local tier runs: version skew, Copilot CLI loading, Windows,
-# and the Python floor. The `scripts` job also runs the install-time validators
-# on every OS, keeping the plugin channels behind the loose installer's checks.
+# and the Python floor. The `scripts` job also runs `scripts/validate-plugin.py`
+# on every OS, the content check the plugin channels and loose installs rely on.
 #
 # The version gate keeps the manifests honest: plugin/ ships to Claude Code and
 # Codex under separate manifests, and skew between any of the four version
@@ -84,7 +84,7 @@ jobs:
           # Absence of a failure proves nothing if the plugin never loaded at all.
           grep -q '^  clarify - ' skills.txt || { echo "::error::Copilot CLI lists no AndThen skills"; exit 1; }
 
-  # The repo scripts (the loose-skill installer above all, whose rewrites reach
+  # The repo scripts (the loose-skill module above all, whose rewrites reach
   # every loose install) run on Linux and Windows, because path and
   # line-ending handling is where they diverge.
   scripts:
@@ -102,9 +102,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      # Every suite under tests/: the repo tooling (installer, cookbook audit,
-      # surface budget) and the shipped-content contracts. The installer
-      # suites shell out to bash, so the whole step runs under it.
+      # Every suite under tests/: the repo tooling (setup script, cookbook audit,
+      # surface budget) and the shipped-content contracts. The notify suite
+      # shells out to bash, so the whole step runs under it.
       - name: tests/ suites
         shell: bash
         run: python -m unittest discover -s tests
@@ -116,6 +116,5 @@ jobs:
       # The validators walk the shipped tree and match paths and text, which is
       # exactly where line endings and case-insensitive filesystems diverge, so
       # they run on Windows as well as Linux.
-      - name: Install-time content validations
-        shell: bash
-        run: bash scripts/install-skills.sh --validate-only
+      - name: Plugin content validations
+        run: python scripts/validate-plugin.py

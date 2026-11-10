@@ -26,11 +26,11 @@ The skills that need the backend first: a reader handed a non-GitHub URL, and `t
 
 Reopens if a project needs the backend declared before any skill sees a URL.
 
-## `init` wires the rules and role agents in prose, not a script
+## `init` wires the rules and role agents in prose; unattended setup places them by script
 
-`wire.py` re-derived what the agent already has in context.
+`wire.py` re-derived what the agent already has in context. Its reopen condition, an unattended `init` needing a machine-checkable wiring result, was met on 2026-11-10 for unattended environments: ADR-030 gives the setup script user-level placement, limited to what needs no merge, with the install's exit code as the result. Attended setup keeps the prose.
 
-Reopens if an unattended `init` needs a machine-checkable wiring result.
+Reopens if unattended placement needs a merge the setup script refuses (ADR-030 § Reopens).
 
 ## The architecture-model schema is for code-structure graphs only
 

@@ -507,23 +507,6 @@ Without the roles installed, every skill falls back to the same portable shape: 
 
 See [Working in a team](../COOKBOOK.md#working-in-a-team) in the cookbook.
 
-## Bundling Into a Downstream Toolkit
-
-For toolkit authors only. Another toolkit can bundle AndThen under its own prefix so the two coexist without name collisions. Clone the repo and install with a prefix that ends in `-`:
-
-```bash
-git clone --depth 1 https://github.com/IT-HUSET/andthen /tmp/andthen
-
-# User-tier install (~/.claude/skills and ~/.agents/skills):
-/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- --claude-user
-
-# Project-local Claude Code install (target <project>/.claude/):
-/tmp/andthen/scripts/install-skills.sh --prefix dartclaw- \
-  --claude-skills-dir "$PWD/.claude/skills"
-```
-
-Skills install as `<prefix><name>` and are invoked on Claude Code as `/<prefix><name>`. `--claude-skills-dir` overrides the Claude-side destination and implies a user-tier install. The generic skill target (`--skills-dir`) defaults to `~/.agents/skills`; pass it too for a fully project-local bundle.
-
 ## Release Notes
 
 See CHANGELOG.md at the repository root.

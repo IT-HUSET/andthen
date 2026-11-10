@@ -50,7 +50,7 @@ PLUGIN = ROOT / "plugin"
 REFERENCE = PLUGIN / "references" / "unattended-runs.md"
 PREFLIGHT = PLUGIN / "skills" / "plan" / "references" / "preflight.md"
 GUIDELINE = ROOT / "docs" / "SKILL-AUTHORING-GUIDELINES.md"
-# The path, not the link: install-skills.py counts a code-span path as a load too.
+# The path, not the link: scripts/andthen_loose.py counts a code-span path as a load too.
 PATH = "../../references/unattended-runs.md"
 LOAD = f"`--auto` makes the run unattended: read [`unattended-runs.md`]({PATH}) and follow it."
 RETIRED_TRIGGER = "This run is unattended: no one can answer until it ends."

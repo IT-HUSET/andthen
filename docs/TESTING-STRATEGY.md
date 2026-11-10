@@ -13,7 +13,7 @@ AndThen ships prompts, not an application. What is testable is a contract stated
 |-------------|------------|----------|
 | Unit | Pure logic: the word-budget rules, cookbook/README invocation extraction | `tests/test_*.py` |
 | Integration | A script driven through `subprocess` over a real temp-dir repo – real files, real exit codes; the eval harness through `run.py`'s own seams | `tests/test_*.py`, `evals/test_checks.py` |
-| E2E | Not run as tests. Closest: the install checks (`install-skills.sh --validate-only`, `--claude-user --dry-run`) and the live evals (`evals/README.md`) | – |
+| E2E | Not run as tests. Closest: the install checks (`scripts/validate-plugin.py`, `andthen.py install --loose --dry-run`) and the live evals (`evals/README.md`) | – |
 
 Code that writes files or shells out is tested through the process boundary with a real temp tree, because a mocked filesystem proves the mock.
 
@@ -29,7 +29,7 @@ Code that writes files or shells out is tested through the process boundary with
 
 Sized to one maintainer: the `fast` tier green on every change, the `full` tier before a merge to `develop` or `main`, and the live `eval full` before a release.
 
-- **Highest risk, always tested:** `scripts/install-skills.py`, because its rewrites reach every loose-skill install. A behavior change in it comes with a test of that behavior.
+- **Highest risk, always tested:** `scripts/andthen_loose.py`, because its rewrites reach every loose-skill install, and `scripts/andthen.py`, because it writes into the user's host homes. A behavior change in it comes with a test of that behavior.
 - Every release-check assertion (e.g. `scripts/audit-cookbook.py`), proved to fire on synthetic input, not only to pass on the live tree – an assertion never shown to fire is a non-catch.
 - Every script's refusal path: exit code, message, and that nothing was written.
 - **Test-first for script defects:** a bug in any script gets a failing test before the fix (Prove-It). Prompt text has no executable behavior; its gate is a prompt-contract test where one exists, otherwise the evals.
@@ -39,7 +39,7 @@ Sized to one maintainer: the `fast` tier green on every change, the `full` tier 
 ## Known Gotchas
 
 - A script that greps the tree for patterns it polices matches its own source, so it skips its own file.
-- `bash scripts/install-skills.sh` without a flag conflicts with the local Codex plugin; only `--validate-only` and `--claude-user --dry-run` are safe.
+- `python3 scripts/andthen.py install` without `--dry-run` reinstalls the plugin and `--loose` writes into `~/.agents/skills`, both on the real home. Tests pass a temp `HOME` or `--skills-dir`, and by hand only `scripts/validate-plugin.py` and `--dry-run` are safe.
 - On Windows:
   - a bare `bash` in `subprocess.run` resolves to the System32 WSL stub, so resolve it with `shutil.which("bash")`;
   - the default read encoding is cp1252, so pass `encoding=` on every read;

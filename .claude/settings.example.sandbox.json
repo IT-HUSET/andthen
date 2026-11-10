@@ -78,11 +78,7 @@
       "Bash(which *)",
       "Bash(file *)",
       "Bash(stat *)",
-      "Bash(diff *)",
-      "Bash(mkdir -p /tmp/at-fake-plugin/.claude/plugins/cache/local/andthen)",
-      "Bash(HOME=/tmp/at-fake-plugin sh scripts/install-skills.sh --claude-user --prefix dartclaw- --dry-run)",
-      "Bash(HOME=/tmp/at-fake-plugin sh scripts/install-skills.sh --claude-user --dry-run)",
-      "Bash(find /tmp/at-fake-plugin -delete)"
+      "Bash(diff *)"
     ]
   },
   "sandbox": {

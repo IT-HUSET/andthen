@@ -4,14 +4,14 @@
 
 AndThen is an experimental, lightweight agentic software engineering framework for AI coding agents, adoptable piece by piece, with no forced workflow or directory layout. Its main workflow is spec-driven: a **Feature Implementation Specification (FIS)** for one story, or a plan with one FIS per story, written before the code (often from a PRD) and executed autonomously. Skills find every document through the **Project Document Index** below, which keeps locations configurable.
 
-It ships to Claude Code, Codex CLI, and GitHub Copilot CLI as one marketplace plugin – one shared `plugin/` directory under dual manifests, no build step – and to other agents as loose skills via `scripts/install-skills.sh`. Skills are the unit, invoked as `andthen:<name>` on every plugin host. Copilot reads the Claude Code manifests. Shared content in `plugin/references/` travels whole with the plugin; the loose-skill installer inlines it per skill so those bundles stay self-contained.
+It ships to Claude Code, Codex CLI, and GitHub Copilot CLI as one marketplace plugin – one shared `plugin/` directory under dual manifests, no build step – and to other agents as loose skills via `scripts/andthen.py install --loose`. Skills are the unit, invoked as `andthen:<name>` on every plugin host. Copilot reads the Claude Code manifests. Shared content in `plugin/references/` travels whole with the plugin; a loose install inlines it per skill so those bundles stay self-contained.
 
 ### Repo Map
 
 - `plugin/skills/<name>/SKILL.md` – a skill; `agents/openai.yaml` beside it is its Codex metadata.
 - `plugin/references/` – shared reference files consumed by several skills.
 - `plugin/skills/init/templates/output-styles/concise-critical.md` – conversation-style rules for the system-prompt tier: a Claude Code output style via `outputStyles` in `plugin/.claude-plugin/plugin.json`, pasted into Codex `developer_instructions`, wired by `init`. A rule subagents must also see (engineering, git and commit, artifact conventions) belongs in the CRITICAL-RULES guideline instead.
-- `scripts/install-skills.py` – the loose-skill installer: install-time portability rewrites and shared-reference inlining; `scripts/install-skills.sh` is its shim.
+- `scripts/andthen.py` – the setup script: `install` sets up the plugin on each host and, on request, places user-level role agents, rules, and Codex trust; `--loose` hands off to `scripts/andthen_loose.py`, the loose-skill module (install-time portability rewrites, shared-reference inlining, the canonical-asset tables). `scripts/validate-plugin.py` is the content check CI and the fast tier run.
 - `scripts/fixtures/renders/` – one minimal, real-shaped artifact per type its `README.md` names, read by the `tests/` suites.
 - `evals/` – the live eval harness (`README.md`) and `subject/`, the app every case starts from, carrying seven deliberate flaws. `subject-defects.md` is their answer key, kept beside the app and never inside it, because a subject that can read the answer key can satisfy it.
 
@@ -87,7 +87,7 @@ Both paths' commands are in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
 
 - Every shipped skill is user-invocable, so a skill change updates `README.md`, `plugin/README.md`, and `CHANGELOG.md` on their index entries' terms.
 - Tests live in `tests/`, one file per script they prove, never under `plugin/`: every host installs the plugin directory wholesale, so a test placed there ships.
-- Adding, renaming, or removing a shared canonical in `plugin/references/` updates `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table and, in `scripts/install-skills.py`, `_canonical_assets` and the `_skill_assets_*` array of every consuming skill.
+- Adding, renaming, or removing a shared canonical in `plugin/references/` updates `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table and, in `scripts/andthen_loose.py`, `_canonical_assets` and the `_skill_assets_*` array of every consuming skill.
 - Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`.
   Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
 - Release-time flips carry a `pre-release` comment (found by `rg 'pre-release[:]'`) at their site, each stating its own flip. The 1.0 cut has its own steps in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
@@ -103,7 +103,7 @@ Both paths' commands are in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
   - Mandatory wherever the name follows an invocation or delegation verb (spawn, invoke, dispatch, delegate to): verb plus bare name is the shape behind the known-bad "Spawn `andthen:<skill-name>` subagent", which passes skill names as agent types.
   - Machine-contract identifiers, headings, command examples, argument surfaces, and assertional text that does not instruct invocation may use the bare form.
   - A delegated agent is a **subagent** in prose – never a kinship metaphor.
-- Shipped skills and references (`plugin/`) never use invocation sigils (`/andthen:<name>`, `$andthen-<name>`): sigils are host syntax, not skill identity, and render wrong on other hosts – `install-skills.sh` rejects them. User-facing docs (README, plugin/README) may show real commands.
+- Shipped skills and references (`plugin/`) never use invocation sigils (`/andthen:<name>`, `$andthen-<name>`): sigils are host syntax, not skill identity, and render wrong on other hosts – `scripts/validate-plugin.py` rejects them. User-facing docs (README, plugin/README) may show real commands.
 - Audit the wording across the repo, for skill-as-agent phrasing and other drift, with `rg 'andthen:[a-z-]+' AGENTS.md plugin/ docs/`.
 
 ---

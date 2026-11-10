@@ -25,7 +25,7 @@ Each step says when it applies; skip the ones that don't.
 **1. Update your installation.** Always.
 
 - **Plugin (Claude Code, Codex, or Copilot CLI):** run the README's [upgrade commands](README.md#upgrading-from-0x). They refresh the `andthen` marketplace, which 1.0 shares with 0.x, and update the plugin in place. The host's plugin cache (`~/.claude/plugins/cache`, `~/.codex/plugins/cache`) refreshes itself; leave it alone.
-- **Loose `install-skills.sh` install:** the current installer updates the skills it still ships but does not remove retired ones. Note the prefix and the skill and agent directories your 0.x install used, remove the retired files listed under [Installation cleanup](#installation-cleanup-loose-installs-only) once you confirm each is AndThen's, then run the current installer.
+- **Loose install:** the current installer (`python3 scripts/andthen.py install --loose`, from a checkout of 1.0) updates the skills it still ships but does not remove retired ones. It installs only as `andthen-<name>` and has no Claude Code skills target (Claude Code takes the plugin), so a 0.x install under another prefix or in `~/.claude/skills` needs its skills removed by hand. Note the prefix and the skill and agent directories your 0.x install used, remove the retired files listed under [Installation cleanup](#installation-cleanup-loose-installs-only) once you confirm each is AndThen's, then run the current installer.
 - **Moving from loose skills to the plugin:** remove the loose ones the same way, or both naming schemes stay visible as duplicate commands.
 
 Done when `/andthen:clarify` is available and no retired skill such as `prd` is still offered.
@@ -76,7 +76,7 @@ user-level directory or the old install prefix, as unknown rather than guessing.
 Beyond the steps:
 
 - Installation: name every channel in use (Claude plugin, Codex plugin, loose
-  install-skills.sh bundles) and report loose AndThen bundles beside a plugin as
+  skill bundles) and report loose AndThen bundles beside a plugin as
   duplicates. For a loose channel, resolve the actual prior prefix and directories,
   and list the files from "Installation cleanup" that exist, by exact path. Plugin
   caches (~/.claude/plugins/cache, ~/.codex/plugins/cache) belong to the host, which
@@ -156,7 +156,7 @@ The `ops` skill and its script are gone. The session running a plan edits `plan.
 | `--to-pr` | No report or comment publisher. A PR is a review target – `/andthen:review "PR <number>"`; post output through the host yourself if wanted. |
 | `review --from-pr <number>`, `review --worktree` | `/andthen:review "PR <number>"` reviews the PR in a scratch worktree, so neither flag is needed. |
 | `--team`, `--max-parallel` | Removed with Agent Teams orchestration and `merge-resolve`. `exec-plan --worktree` on a plan directory remains: one worktree per story of a batch of the wave (about five), merged back with `git merge --no-ff` rather than squashed. |
-| Installer `--codex-agents-dir`, `--no-codex-agents`, `--claude-agents-dir` | Removed: the 1.0 loose installer installs no agents. `/andthen:init` offers the four optional role agents (`oracle`, `implementer`, `reviewer`, `worker`) instead. |
+| Installer `--codex-agents-dir`, `--no-codex-agents`, `--claude-agents-dir` | Removed: a loose install (`andthen.py install --loose`) places no agents. `/andthen:init` offers the four optional role agents (`oracle`, `implementer`, `reviewer`, `worker`), and `python3 scripts/andthen.py install --roles` places them at user level from a checkout. |
 | `scripts/generate-codex-agents.sh` | Removed; role agents come from `/andthen:init` templates. |
 | `review --inline-findings` | `/andthen:review --quick <target>` returns structured findings in the conversation. |
 | `review --fanout`, `review --no-fanout` | Fan-out follows the scope's shape. Ask to partition, or ask to keep the review in one pass. |
@@ -222,7 +222,7 @@ The `ops` skill and its script are gone. The session running a plan edits `plan.
 
 ## Installation cleanup (loose installs only)
 
-Skip this with a plugin install. A 0.x loose install could use custom destinations and a custom `--prefix`; resolve both before touching anything. With the default prefix, the sixteen retired skill directories are:
+Skip this with a plugin install. A 0.x loose install could use custom destinations and a custom name prefix; resolve both before touching anything. With the default prefix, the sixteen retired skill directories are:
 
 ```
 andthen-e2e-test/

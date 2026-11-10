@@ -156,7 +156,7 @@ Script source never enters context, only its output. Deterministic work goes to 
 
 - Link each file once, where the run loads it, in a list with one line per condition. A mode table's cells and a flag's argument line serve as that list. A link threaded through a sentence hides the load.
 - A reference continues the body's step numbering, or cites no step outside itself.
-- A later mention is the bare backticked filename or a declared alias, and loads nothing. Mention only a file the same body loads, or another skill's file as a fact. A model opens any name it can resolve, so `install-skills.sh --validate-only` fails on a bare name of an unloaded file under `references/`.
+- A later mention is the bare backticked filename or a declared alias, and loads nothing. Mention only a file the same body loads, or another skill's file as a fact. A model opens any name it can resolve, so `scripts/validate-plugin.py` fails on a bare name of an unloaded file under `references/`.
 - Only `SKILL.md` links or paths to another file, and every other file only mentions, code fences included. Chained loads get partial reads.
 
 ## Changing a skill

@@ -9,7 +9,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ## [1.1.0] – 2026-11-10
 
 ### Added
-- **`python3 scripts/andthen.py install` sets AndThen up on every host and proves the result** ([ADR-030](docs/adrs/ADR-030-one-setup-script.md)). It installs the plugin from the tree the script sits in, reads each host's installed version back, and with `--roles`, `--rules`, and `--trust <path>` also places the role agents and the critical-rules block at user level and trusts a project in Codex; any mismatch or refusal exits non-zero. `scripts/validate-plugin.py` is the content check CI and the fast tier run.
+- **`python3 scripts/andthen.py install` sets AndThen up on every host and proves the result** ([ADR-030](docs/adrs/ADR-030-one-setup-script.md)). It installs the plugin from the tree the script sits in, or from one it downloads first when piped through `curl … | python3 - install` or given `--ref v<version>`, reads each host's installed version back, and with `--roles`, `--rules`, and `--trust <path>` also places the role agents and the critical-rules block at user level and trusts a project in Codex; any mismatch or refusal exits non-zero. `scripts/validate-plugin.py` is the content check CI and the fast tier run.
 
 ### Changed
 - **`exec-plan` fails a story only on a stop it names.** A red gate is work to finish until a `triage` repair turns nothing green, and a direct story run prints its `Next` line only once the story is `done`, failed, or stopped at admission, so an unfinished story no longer routes back to itself.
@@ -26,7 +26,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`ship` collapses per-story detail and the `## Ship summary` tables in `<details>` blocks** where the host renders them, so a reviewer reads the merge decision without scrolling past tables written for tooling. The section's heading, labels, and tables are unchanged, so viewers parse it as before.
 
 ### Removed
-- **`scripts/install-skills.sh`, `install-skills.py`, and `andthen-plugins.py`, with `--display-brand`, a custom `--prefix`, `--claude-skills-dir`, `--claude-user`, `--validate-only`, and `--path`.** Use `python3 scripts/andthen.py install` for the plugin (`rc`, `stable`, or `--ref` for a GitHub source), `andthen.py install --loose` for loose skills (always `andthen-<name>`; Claude Code takes the plugin), and `python3 scripts/validate-plugin.py` for the content check. Automation calling the old names breaks.
+- **`scripts/install-skills.sh`, `install-skills.py`, and `andthen-plugins.py`, with `--display-brand`, a custom `--prefix`, `--claude-skills-dir`, `--claude-user`, `--validate-only`, `--path`, and the `rc` and `stable` release lines.** Use `python3 scripts/andthen.py install` for the plugin (hosts upgrade with their own commands), `andthen.py install --loose` for loose skills (always `andthen-<name>`; Claude Code takes the plugin), and `python3 scripts/validate-plugin.py` for the content check. Automation calling the old names breaks.
 
 ### Fixed
 - **`ship` writes the Ship summary's Requirements as bare IDs** (`FR3`). Its wording let a run copy the whole `#### FR3: Its title` heading into the cell, and a viewer that reads the IDs rejected the section.
