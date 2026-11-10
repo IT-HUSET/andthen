@@ -4,8 +4,12 @@
 >
 > It restates facts the prose above it already gives, so a viewer can join the pull request to its requirements, proof, and reviews without an agent run.
 > Downstream tooling parses the heading, the `PRD:` and `Undo:` labels, the table headers, the lens names, and the tokens as spelled here, so write them exactly.
-> The section runs from its heading to the next `## ` heading or the body's end, once per body, and text added to the body later goes above it.
+> The section runs from its heading to the next `## ` heading or the body's end, once per body, and text added to the body later goes above the section, outside its `<details>` block.
+> Where the host renders no `<details>`, leave out the block's three tag lines.
 > Every cell is one line without bold. Write a `|` inside a cell as `\|`, and an absent value as `-`, the ASCII hyphen, never an en or em dash.
+
+<details>
+<summary>Ship summary (tables for tooling)</summary>
 
 ## Ship summary
 
@@ -40,3 +44,5 @@ PRD: {{the requirements file's path at the pull request's head, its tracker issu
 > A review narrowed to stories or paths gets an `unchecked` row naming what it left out.
 
 Undo: {{what undoes the change and what no revert restores, or revert the merge}}
+
+</details>

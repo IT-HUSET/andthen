@@ -53,7 +53,9 @@ Read every FIS's `## Implementation Observations`, those in `superseded/` includ
 Write it for a reviewer deciding whether to merge.
 The body is where the intent and proof outlive the branch, because the bundle is usually deleted and the review report usually never committed.
 A project's pull request template or named PR process sets the layout, and this content fills it.
-Put what the merge decision needs first and fold per-story detail below it, because a body the reviewer must scroll goes unread.
+Put what the merge decision needs first, because a body the reviewer must scroll goes unread.
+Collapse per-story detail in a `<details>` block where the host renders one.
+Give each `<details>` block a blank line after `</summary>`, because without it the host shows the markdown inside as raw text.
 - **Intent and outcomes.**
   Take them from each FIS's Intent and Expected Outcomes and from the plan's source: the file its `prd` names, else what its stories' `sourceRefs` cite.
   Without a plan, take them from the commits and the request.

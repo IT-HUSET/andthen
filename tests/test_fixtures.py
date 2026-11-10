@@ -175,6 +175,11 @@ class ShipSectionTest(unittest.TestCase):
         prose = self.body.split(section_spec()["heading"])[0]
         self.assertIn("## Where to read closely", prose)
 
+    def test_the_section_still_conforms_without_its_details_block(self):
+        bare = re.sub(r"^(</?details>|<summary>.*</summary>)\n", "", self.body, flags=re.M)
+        self.assertNotEqual(bare, self.body)
+        self.assertEqual(section_problems(bare), [])
+
     def test_a_row_without_a_plan_carries_an_untagged_outcome(self):
         row = "| S01 | scripts/fixtures/renders/plan.json | [OC01] A page script cannot read the session cookie. |"
         planless = self.body.replace(row, "| - | - | A page script cannot read the session cookie. |")

@@ -29,6 +29,9 @@ S01 moved cookie construction into one helper that every handler calls. S02 adde
 
 </details>
 
+<details>
+<summary>Ship summary (tables for tooling)</summary>
+
 ## Ship summary
 
 PRD: scripts/fixtures/renders/prd.md
@@ -56,3 +59,5 @@ PRD: scripts/fixtures/renders/prd.md
 | after-review | `src/audit/log/write.ts` | The queue bound landed after the review at `9c4e2a7`. |
 
 Undo: reverting the merge restores the old cookie code, but sessions issued meanwhile keep their flags until they expire, and the audit rows written stay.
+
+</details>
