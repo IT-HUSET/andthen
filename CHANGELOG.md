@@ -15,6 +15,9 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`implement-fix` proves every other entry point and reader a fix touches**, because closing one gate path left its sibling open.
 - **`review`'s outcome lens walks a leg a deferral does not name**, instead of letting one deferral close every row.
 - **`clarify`'s PRD self-review reports an unstated result for an actor or entry point**, delegated and scheduled work included, not only for an unhandled input.
+- **`clarify` keeps the `Product` document's Non-Goals current in both directions, on an amendment too.** A Non-Goal the PRD overturns is narrowed to what you still reject, or removed, because a standing bullet makes the `review` outcome lens grade the commissioned feature a HIGH no fix round can clear. An amendment now runs that step, where most overturns arrive.
+- **`decide` closes the PRD rows it settles.** An `Open Questions` or `Decisions Log` row the run answered keeps its text and names the ADR or Still Current line that closes it, instead of reading as still parked.
+- **`tracker publish` needs no `Issue Tracker` document on GitHub.** An absent document takes the built-in `gh` default for both verbs, as `triage` already did, so the first publish no longer asks you to run `setup` first. `comment` gains its `gh` mapping.
 - **`implement-fix`, `review --fix`, `triage`, and `simplify-code` commit their verified change**, where they left it in the working tree, so they match `exec-plan`. Only green work commits, staged by path, and a file holding another session's edit stays uncommitted and named. A run another skill invokes leaves the commit to that skill, so an `exec-plan` story stays one commit. On the remote's default branch they first ask once whether to start a feature branch, as `exec-plan` and `ship` do. Push and PR still wait for `ship`.
 
 ---
