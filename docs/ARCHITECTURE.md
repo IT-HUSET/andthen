@@ -63,7 +63,7 @@ Skills are fully self-contained: each skill owns its `references/`, `templates/`
 
 **References are one level deep**: no file in a skill but `SKILL.md` links or paths to another file – the skill body naming a load site names its whole read-set, since a chained reference is invisible to a reader who previews the intermediate file – and `scripts/validate-plugin.py` fails on any such link or path, naming file and line (a bare filename in prose stays a legal mention). The load and mention rule itself is in `docs/SKILL-AUTHORING-GUIDELINES.md` § Scripts and references.
 
-Reusable canonical content lives at `plugin/references/` and is consumed via `../../references/<asset>` – see **Shared Plugin Assets** below. Canonicals are shared by multiple skills; a single-consumer template lives in its owning skill's own `references/` instead (`fis-template.md` under `plan`, `prd-template.md` under `clarify`), so a dedup pass has nothing to promote back. a loose install (`scripts/andthen_loose.py`) inlines each canonical into every consuming skill at install time, so installed bundles stay self-contained.
+Reusable canonical content lives at `plugin/references/` and is consumed via `../../references/<asset>` – see **Shared Plugin Assets** below. Canonicals are shared by multiple skills; a single-consumer template lives in its owning skill's own `references/` instead (`fis-template.md` under `plan`, `prd-template.md` under `clarify`), so a dedup pass has nothing to promote back. A loose install (`scripts/andthen_loose.py`) inlines each canonical into every consuming skill at install time, so installed bundles stay self-contained.
 
 **Forking shared content** – when a consumer genuinely needs a divergent version, fork explicitly: copy the canonical into the skill's local `references/` under a distinct name (e.g. `triage-plan-schema.md` as a triage-only fork of `plan-schema.md`) and point that skill's references at the local copy. Don't preemptively duplicate – fork on demand, not by default.
 
@@ -90,7 +90,7 @@ The canonical assets live at `plugin/references/` – a single canonical locatio
 | `review-calibration.md` | review, architecture, domain, decide, implement-fix |
 | `self-review.md` | clarify, plan |
 | `unattended-runs.md` | plan, exec-plan, review, implement-fix, ship, triage, architecture, domain, decide, ui-ux-design, simplify-code, tracker, testing |
-| `verification-evidence.md` | exec-plan, implement-fix, review, testing, triage, simplify-code |
+| `verification-evidence.md` | exec-plan, implement-fix, review, testing, triage, simplify-code, ship |
 
 A single-consumer canonical lives in that skill's own `references/` instead (`docs/SKILL-AUTHORING-GUIDELINES.md` § Repository constraints). A schema lives beside its prose reference, so `plan.schema.json` stays here with `plan-schema.md`, which has several consumers, and the model schemas live in `describe` and `domain` beside theirs.
 
@@ -156,7 +156,7 @@ Before loose-skill copies begin, the installer derives each skill's direct canon
 
 | Target | `../../references/<asset>` |
 |---|---|
-| Plugin install (either host) | No rewrite – the canonical travels with the plugin |
+| Plugin install (any host) | No rewrite – the canonical travels with the plugin |
 | `--loose`, default or `--skills-dir` (`~/.agents/skills/`) | Inline canonical into skill's `references/`; rewrite path to local-relative form |
 
 The model fills `<skill-dir>` on every tier. Skills are the only propagated unit, exported as `andthen-<name>`: the installer rewrites `andthen:` to `andthen-` in markdown and `agents/openai.yaml`, so an identifier matched on read spells no `andthen:` (the tracker's `andthen-projection` line) or lives outside them (schema `$id`s). No plugin agent auto-loads; `init` carries opt-in role templates separately. A loose reinstall stages and replaces each owned surviving skill directory, removing stale files inside it. Removing or renaming a whole skill still does not delete its previously installed `andthen-*` directory.

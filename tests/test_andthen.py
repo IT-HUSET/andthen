@@ -178,6 +178,21 @@ class PluginChannelTest(AndthenCase):
         self.assertIn("x andthen: the host reports problems with the install", out)
         self.assertIn(f"{broken}: invalid frontmatter", out)
 
+    def test_copilot_is_checked_by_its_own_listing_not_by_comparing_the_tree_with_itself(self) -> None:
+        # Copilot loads the marketplace live, so its "installed copy" is the source tree.
+        with mock.patch.object(andthen, "differences", wraps=andthen.differences) as diff, \
+                mock.patch.object(andthen, "installed_version", wraps=andthen.installed_version) as read:
+            code, out, _ = self.run_install("--copilot-only")
+            self.assertEqual(0, code, out)
+            self.assertEqual([], diff.call_args_list)
+            self.assertEqual([], read.call_args_list)
+            self.assertIn(f"v andthen {VERSION}", out)
+
+            code, out, _ = self.run_install("--codex-only")  # the copies are still compared
+            self.assertEqual(0, code, out)
+            self.assertGreater(diff.call_count, 0)  # it recurses into subdirectories
+            self.assertEqual(1, read.call_count)
+
     def test_a_version_the_host_recorded_that_differs_fails_the_run(self) -> None:
         self.recorded_version = "0.0.1"
 
@@ -560,6 +575,8 @@ class TrustEdgeTest(TrustCase):
             "dotted key": f'projects."{self.escaped}".trust_level = "untrusted"\n',
             "padded header": f'[ projects."{self.escaped}" ]\ntrust_level = "untrusted"\n',
             "literal key": f"[projects]\n'{self.resolved}' = {{ trust_level = \"untrusted\" }}\n",
+            "dotted key in the projects table": f'[projects]\n"{self.escaped}".trust_level = "untrusted"\n',
+            "projects as an inline table": f'projects = {{ "{self.escaped}" = {{ trust_level = "untrusted" }} }}\n',
         }
         self.home["codex"].mkdir(parents=True)
         for label, mine in spellings.items():
@@ -574,6 +591,39 @@ class TrustEdgeTest(TrustCase):
                 self.assertEqual(mine, self.config.read_text(encoding="utf-8"))
                 self.assertIn(str(self.config), out)
                 self.assertIn("by hand", out)
+
+    def test_a_path_that_is_only_a_value_is_not_a_spelling_the_script_refuses(self) -> None:
+        # The same run writes `source = "<checkout>"` under [marketplaces.andthen], and an MCP
+        # server may run in the project: neither names the project as a key.
+        values = {
+            "marketplace source": f'[marketplaces.andthen]\nsource = "{self.escaped}"\n',
+            "mcp cwd": f'[mcp_servers.x]\ncwd = "{self.escaped}"\n',
+            "array element": f'writable_roots = ["{self.escaped}", "/tmp"]\n',
+            "literal-string value": f"[marketplaces.andthen]\nsource = '{self.resolved}'\n",
+        }
+        self.home["codex"].mkdir(parents=True)
+        for label, mine in values.items():
+            with self.subTest(label):
+                if label == "literal-string value" and "'" in str(self.resolved):
+                    continue
+                self.config.write_text(mine, encoding="utf-8")
+
+                code, out, _ = self.run_install("--codex-only", "--trust", str(self.project))
+
+                self.assertEqual(0, code, out)
+                self.assertEqual(f'{mine}\n{self.header}\ntrust_level = "trusted"\n',
+                                 self.config.read_text(encoding="utf-8"))
+
+    def test_an_already_trusted_path_stays_accepted_beside_a_value_that_names_it(self) -> None:
+        self.home["codex"].mkdir(parents=True)
+        mine = f'{self.header}\ntrust_level = "trusted"\n\n[marketplaces.andthen]\nsource = "{self.escaped}"\n'
+        self.config.write_text(mine, encoding="utf-8")
+
+        code, out, _ = self.run_install("--codex-only", "--trust", str(self.project))
+
+        self.assertEqual(0, code, out)
+        self.assertIn("already trusted", out)
+        self.assertEqual(mine, self.config.read_text(encoding="utf-8"))
 
 
 @unittest.skipIf(tomllib is None, "reading the written TOML back needs tomllib (Python 3.11+)")
@@ -697,6 +747,39 @@ class LooseDuplicateTest(AndthenCase):
         self.assertEqual(0, code, out + err)
         self.assertEqual(RULES, self.instruction_file("claude").read_text(encoding="utf-8"))
         self.assertEqual([], self.commands)
+
+
+class OptionCheckTest(AndthenCase):
+    def test_an_empty_option_value_is_rejected_not_defaulted(self) -> None:
+        # `--skills-dir ""` once fell back to ~/.agents/skills and `--skills ""` installed everything.
+        for args in (["--loose", "--skills-dir", ""], ["--loose", "--skills", ""],
+                     ["--skills-dir", ""], ["--skills", ""], ["--trust", ""]):
+            with self.subTest(args=args):
+                code, _, err = self.run_install(*args)
+
+                self.assertEqual(2, code)
+                self.assertIn(args[-2], err)
+                self.assertIn("empty", err)
+        self.assertFalse((self.root / "home").exists())
+        self.assertEqual([], self.commands)
+
+    def test_a_host_flag_with_loose_and_nothing_that_uses_hosts_is_rejected(self) -> None:
+        for flag in ("--claude-only", "--codex-only", "--copilot-only"):
+            with self.subTest(flag):
+                code, _, err = self.run_install("--loose", flag, "--skills-dir", str(self.root / "skills"))
+
+                self.assertEqual(2, code)
+                self.assertIn(flag, err)
+                self.assertIn("--roles", err)
+        self.assertFalse((self.root / "skills").exists())
+
+    def test_a_host_flag_with_loose_is_accepted_when_placement_uses_it(self) -> None:
+        for extra in ("--roles", "--rules", "--replace-roles"):
+            with self.subTest(extra):
+                code, out, err = self.run_install("--loose", "--claude-only", "--skills-dir",
+                                                  str(self.root / "skills"), "--skills", "tracker", extra)
+
+                self.assertEqual(0, code, out + err)
 
 
 class BootstrapTest(unittest.TestCase):
@@ -891,24 +974,60 @@ class CommandLineTest(unittest.TestCase):
             self.assertNotIn(gone, result.stdout)
         self.assertIn("usage: andthen.py install", result.stdout)
 
+    def test_ref_is_a_documented_option_of_install(self) -> None:
+        # `main` takes --ref before the parser runs, so the parser must still list it.
+        result = subprocess.run([sys.executable, str(SCRIPT), "install", "--help"],
+                                text=True, capture_output=True, check=False)
+
+        usage = " ".join(result.stdout.split("\n\n")[0].split())
+        self.assertIn("[--ref REF]", usage)
+        self.assertRegex(result.stdout, r"(?m)^\s+--ref REF\s+\S")
+
+    def test_the_data_home_is_documented_as_the_code_resolves_it(self) -> None:
+        wanted = "${XDG_DATA_HOME:-~/.local/share}/andthen/<version>"
+        result = subprocess.run([sys.executable, str(SCRIPT), "--help"],
+                                text=True, capture_output=True, check=False)
+
+        self.assertIn(wanted, " ".join(result.stdout.split()))
+        self.assertIn(wanted, andthen.__doc__)
+
+    @staticmethod
+    def run_piped(tmp: str, cwd: Path, *args: str):
+        """The script piped through `python -`, so `__file__` is `<stdin>`. A dead proxy
+        makes any download fail offline, deterministically."""
+        env = {k: v for k, v in os.environ.items() if "proxy" not in k.lower()}
+        env.update(HOME=str(Path(tmp) / "home"), USERPROFILE=str(Path(tmp) / "home"),
+                   XDG_DATA_HOME=str(Path(tmp) / "share"), https_proxy="http://127.0.0.1:9")
+        return subprocess.run([sys.executable, "-", *args], input=SCRIPT.read_text(encoding="utf-8"),
+                              cwd=cwd, env=env, text=True, capture_output=True, check=False)
+
     def test_piped_through_stdin_with_no_tree_it_reaches_the_bootstrap(self) -> None:
-        # `__file__` is `<stdin>` here, so a module-level import of a sibling file would raise
-        # before anything ran. A dead proxy makes the download fail offline, deterministically.
+        # A module-level import of a sibling file would raise before anything ran.
         with tempfile.TemporaryDirectory() as tmp:
             work = Path(tmp) / "work"
             work.mkdir()
-            env = {k: v for k, v in os.environ.items() if "proxy" not in k.lower()}
-            env.update(HOME=str(Path(tmp) / "home"), USERPROFILE=str(Path(tmp) / "home"),
-                       XDG_DATA_HOME=str(Path(tmp) / "share"), https_proxy="http://127.0.0.1:9")
 
-            result = subprocess.run([sys.executable, "-", "install", "--roles", "--rules"],
-                                    input=SCRIPT.read_text(encoding="utf-8"), cwd=work, env=env,
-                                    text=True, capture_output=True, check=False)
+            result = self.run_piped(tmp, work, "install", "--roles", "--rules")
 
             self.assertEqual(1, result.returncode, result.stdout + result.stderr)
             self.assertIn("Cannot download https://codeload.github.com/IT-HUSET/andthen/tar.gz/main", result.stdout)
             self.assertNotIn("Traceback", result.stderr)
             self.assertFalse((Path(tmp) / "share").exists())
+
+    def test_piped_from_a_subdirectory_of_a_tree_it_still_downloads_instead_of_using_that_tree(self) -> None:
+        # `<stdin>` resolves against the cwd, so its "parent's parent" is the cwd's parent:
+        # run from `docs/` of any checkout, that checkout used to be taken for the script's own tree.
+        with tempfile.TemporaryDirectory() as tmp:
+            tree = Path(tmp) / "tree"
+            (tree / ".claude-plugin").mkdir(parents=True)
+            shutil.copy(ROOT / ".claude-plugin" / "marketplace.json", tree / ".claude-plugin")
+            (tree / "docs").mkdir()
+
+            result = self.run_piped(tmp, tree / "docs", "install", "--dry-run", "--claude-only")
+
+            self.assertEqual(1, result.returncode, result.stdout + result.stderr)
+            self.assertIn("Cannot download", result.stdout)
+            self.assertNotIn("Marketplace:", result.stdout)
 
 
 if __name__ == "__main__":

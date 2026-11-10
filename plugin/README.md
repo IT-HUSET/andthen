@@ -4,7 +4,7 @@ Lightweight agentic software engineering for AI coding agents, spec-driven when 
 
 ## Installation
 
-Install steps for Claude Code, Codex CLI, GitHub Copilot CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, run `claude plugin marketplace add ./` from its root, then `claude plugin install andthen@andthen` for a persistent local install.
+Install steps for Claude Code, Codex CLI, GitHub Copilot CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, `python3 scripts/andthen.py install` from its root installs it on every host whose CLI is on `PATH`.
 
 ## Setup
 

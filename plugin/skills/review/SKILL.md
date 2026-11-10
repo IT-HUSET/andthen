@@ -33,7 +33,7 @@ Review a change or an implementation through the resolved lenses, prove coverage
 - A lens pass this session runs itself: [`lens-adversarial.md`](../../references/lens-adversarial.md), the Critic posture every lens runs in.
 - A PR target, `--quick` included: [`pr-target.md`](references/pr-target.md), its resolution, scope, and the trust its checks run on.
 - Each resolved lens: its row below. Read the whole row; under `--quick`, only the rubric and its calibration.
-- Under `--fix`, or a full review's code or gap lens: [`verification-evidence.md`](../../references/verification-evidence.md), the checks contract and its commit rule.
+- Under `--fix`: [`verification-evidence.md`](../../references/verification-evidence.md), the checks contract and its commit rule.
 - Without `--quick`: [`full-review.md`](references/full-review.md), with [`report-template.md`](references/report-template.md), [`review-verdict.md`](references/review-verdict.md), and [`fis-mutability.md`](../../references/fis-mutability.md).
 - Above the full review's fan-out trigger: [`large-diff-fanout.md`](references/large-diff-fanout.md).
 - When a full review's refactor trigger fires: [`refactor-invariants.md`](references/refactor-invariants.md).

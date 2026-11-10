@@ -128,7 +128,7 @@ A recurring trap becomes a lint or test only when a Fix row includes that preven
 
 ## Output
 
-Commit the verified change per `verification-evidence.md` § The commit rule, before the closing question, because that question ends the turn. A further round it approves gets its own commit. Report:
+Commit the verified change and its Phase 5 writes inside the repository per `verification-evidence.md` § The commit rule, before the closing question, because that question ends the turn. What the question approves, a further round or a backlog write, gets its own commit. Report:
 
 - the commit;
 - the findings re-check table, each finding with its Phase 4 status and evidence or justification, and what stays open and why;

@@ -6,7 +6,7 @@
     },
     {
       "id": "RESUME_REPORT_ACCOUNTABILITY",
-      "intent": "The completion report quotes the executed final-validation command and its result, accounts for the independent review and commit, and agrees with the retained behavior and done record. It does not claim unexecuted proof or silently relax the final validation."
+      "intent": "The completion report quotes the executed final-validation command and its result, names in its review line what reviewed the change and what it found and fixed, reports the commit, and agrees with the retained behavior and done record. It does not claim unexecuted proof or silently relax the final validation."
     }
   ]
 }

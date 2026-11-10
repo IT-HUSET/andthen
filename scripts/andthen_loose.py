@@ -63,7 +63,7 @@ _skill_assets_init="project-document-templates.md"
 # describe merges what map-codebase and ubiquitous-language each consumed.
 _skill_assets_describe="project-document-templates.md"
 _skill_assets_implement_fix="fis-mutability.md plan-schema.md review-calibration.md unattended-runs.md verification-evidence.md"
-_skill_assets_ship="plan-schema.md unattended-runs.md"
+_skill_assets_ship="plan-schema.md unattended-runs.md verification-evidence.md"
 _skill_assets_now_what="plan-schema.md"
 _skill_assets_ui_ux_design="unattended-runs.md"
 _skill_assets_simplify_code="unattended-runs.md verification-evidence.md"
@@ -212,8 +212,8 @@ def _canonicalize_dir(path, dry_run=False):
 
 # ---------------------------------------------------------------------------
 # Content checks shared with scripts/validate-plugin.py. The install runs the
-# two that decide whether a bundle comes out whole; the rest of the content
-# checks are the validator's.
+# two that decide whether a bundle comes out whole; the rest run in CI's
+# validator, which every tree an end user installs from passed (ADR-030).
 # ---------------------------------------------------------------------------
 
 def _each_source_skill():
@@ -346,7 +346,7 @@ def rewrite_namespace_dir(directory):
 
 def rewrite_namespace_file(markdown):
     """andthen:<x> -> andthen-<x>. Shipped content is sigil-free by contract
-    (the validator's _validate_no_sigil_refs), so this catch-all suffices."""
+    (CI's validator, _validate_no_sigil_refs), so this catch-all suffices."""
     text = read_text(markdown)
     rewritten = text.replace("andthen:", PREFIX)
     if rewritten != text:

@@ -36,9 +36,9 @@ AndThen is a lightweight agentic software engineering framework for AI coding ag
 
 ## Proportionality
 
-- **Stage**: experimental framework, distributed as 1.0. Each adopting project sets its own criticality and verification bar.
+- **Stage**: experimental framework, distributed as 1.x. Each adopting project sets its own criticality and verification bar.
 - **Scale**: users, active maintainers, and artifact volume are unknown; size nothing against assumed scale.
-- **Distribution**: one `plugin/` directory under Claude Code and Codex manifests, the Claude Code pair also serving Copilot CLI, plus a loose-skill installer for other agents; no build step and no AndThen-operated service.
+- **Distribution**: one `plugin/` directory under Claude Code and Codex manifests, the Claude Code pair also serving Copilot CLI, plus `scripts/andthen.py`, which installs the plugin on each host or loose skills for other agents; no build step and no AndThen-operated service.
 - **Runtime**: prompts and assets only; no shipped script.
 - **Standing technical non-goals**: no required hosted control plane, no central workflow database, no duplicated downstream adapters. Workflow state lives in the local artifact that owns it.
 

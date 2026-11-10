@@ -167,7 +167,7 @@ copilot plugin marketplace update andthen
 copilot plugin update andthen@andthen
 ```
 
-A marketplace added with a tag, such as `IT-HUSET/andthen@v0.40.4`, stays on that tag: remove it and add it again as in the [quick start](#quick-start). Hosts upgrade with their own commands, and `scripts/andthen.py` is for a [checkout or a container](#from-a-checkout-or-in-a-container).
+A marketplace added with a tag, such as `IT-HUSET/andthen@v0.40.4`, stays on that tag: remove it and add it again as in the [quick start](#quick-start). Hosts upgrade with their own commands, and `scripts/andthen.py` is for a [checkout or a container](#from-a-checkout-or-in-a-container); it re-registers the `andthen` marketplace from a local tree, so afterwards these commands no longer follow GitHub.
 
 Updating replaces the skills, not your 0.x specs, which need rewriting before they run: [MIGRATING-FROM-0.x.md](MIGRATING-FROM-0.x.md) covers that and the retired skill names.
 
@@ -187,7 +187,7 @@ Updating replaces the skills, not your 0.x specs, which need rewriting before th
 
 ### From a checkout, or in a container
 
-`scripts/andthen.py install` installs the plugin on every host whose CLI is on `PATH`, from the tree it sits in, reads the installed version back, and exits non-zero on any mismatch. `--dry-run` prints the plan and writes nothing.
+`scripts/andthen.py install` installs the plugin on every host whose CLI is on `PATH`, from the tree it sits in, reads the installed version back, and exits non-zero on any mismatch. It removes an `andthen` marketplace added from GitHub and adds the local tree in its place, so host upgrades stop following GitHub until you add `IT-HUSET/andthen` again as in the [quick start](#quick-start). `--dry-run` prints the plan and writes nothing.
 
 ```bash
 python3 scripts/andthen.py install                  # plugin from this checkout
@@ -201,7 +201,7 @@ curl -fsSL https://raw.githubusercontent.com/IT-HUSET/andthen/main/scripts/andth
 
 In a container, install when the image is built, not on every start, and pass `--trust` with the project's path so Codex applies its config. A volume mounted over the home folder (`~/.claude`, `~/.codex`, `~/.copilot`, `~/.local/share`) hides what the build placed there; then run the install at start instead, where a second run changes nothing. Placement does not prove the sandbox's plan offers the models the role agents pin, so run one short prompt per host.
 
-### Other agents (Aider, Cursor, Gemini CLI, opencode)
+### Other agents (Cursor, Gemini CLI, opencode, Amp)
 
 `--loose` copies the skills into your agent's skills directory under `andthen-` names, each bundle self-contained. Invoke them with `$andthen-<skill>` in Codex and other agents that read `~/.agents/skills`.
 

@@ -36,11 +36,7 @@ Execute a FIS, or a plan with one fresh subagent per story, verify against its p
 
 ## Workflow
 
-### 1. Feature branch
-
-Outside `--auto`, when the current branch is the remote's default branch, ask once whether to start a feature branch first, because commits land on the current branch and the pull request opens from it. Recommend starting it the way the project's written convention for starting work says, else as `<type>/<slug>`.
-
-### 2. Route
+### 1. Route
 
 Your mode is the first that matches:
 

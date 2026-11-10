@@ -6,7 +6,7 @@
 Each host whose CLI is on PATH installs the plugin from the repo tree this script
 sits in, as a local marketplace. With no tree around (piped through curl) or with
 `--ref REF`, the script first downloads that ref's tree (default main) to
-~/.local/share/andthen/<version> and runs that tree's own script.
+${XDG_DATA_HOME:-~/.local/share}/andthen/<version> and runs that tree's own script.
 
 Claude Code and Codex install a plugin as a *copy* under a version-keyed cache
 directory, and Claude Code's `plugin update` leaves a stale copy in place while
@@ -48,8 +48,9 @@ MANIFEST = ".claude-plugin/marketplace.json"
 IGNORE = [".DS_Store", "__pycache__", ".in_use", ".git"]
 
 # The tree the script sits in: source of the local marketplace and of every
-# template, so a run is one version byte for byte. Piped, `__file__` is `<stdin>`.
-REPO_ROOT = Path(__file__).resolve().parent.parent
+# template, so a run is one version byte for byte. Piped, `__file__` is `<stdin>`, which
+# resolves against the cwd, so a piped run has no tree (None) and downloads one.
+REPO_ROOT = Path(__file__).resolve().parent.parent if Path(__file__).is_file() else None
 
 
 def _run(cmd: list[str], cwd: str | None = None) -> subprocess.CompletedProcess:
@@ -156,7 +157,7 @@ def locate_install(host: Host, mp: str, name: str, version: str, src: str) -> tu
         return claude_install_record(mp, name)
     if host.key == "copilot":
         # A local marketplace is loaded live from the tree, so there is no copy to go stale.
-        return REPO_ROOT / src, None
+        return REPO_ROOT / src, None  # only for copilot_problems to recognise the plugin's own paths
     return host.home() / "plugins" / "cache" / mp / name / version, None
 
 
@@ -211,16 +212,20 @@ def seed_holding(mp: str) -> Path | None:
 
 def verify_plugin(host: Host, mp: str, name: str, version: str, installed: Path,
                   listed: str | None, src: str, report: Report) -> None:
+    if host.key == "copilot":
+        # Copilot's "installed copy" is the source tree itself, so reading its version or diffing
+        # it against the source would compare the tree with itself: `copilot plugin list --json` is the check.
+        problems = copilot_problems(mp, name, version, installed)
+        if problems:
+            report.bad(f"{name}: the host reports problems with the install", problems[:10])
+        else:
+            report.ok(f"{name} {version}")
+        return
     found = installed_version(installed)
     if found != version or listed not in (None, version):
         report.bad(f"{name}: expected {version} at {installed}, found {found or 'nothing'}"
                    + (f" (host recorded {listed})" if listed not in (None, found) else ""))
         return
-    if host.key == "copilot":
-        problems = copilot_problems(mp, name, version, installed)
-        if problems:
-            report.bad(f"{name}: the host reports problems with the install", problems[:10])
-            return
     # A stale copy is invisible to the host, so the installed copy is diffed
     # against the source rather than merely located.
     diffs = differences(REPO_ROOT / src, installed)
@@ -453,12 +458,18 @@ def trust_state(text: str, project: str) -> tuple[int | None, str | None]:
 
 
 def trust_spelled_elsewhere(text: str, project: str) -> bool:
-    """Whether the project's path, as a quoted key in either string form, sits
-    anywhere but on a header trust_state reads: an inline table, a dotted key, a
-    padded header. A table appended beside one of those would be invalid TOML."""
+    """Whether the project's path names a key anywhere but on a header trust_state
+    reads: a padded header, a dotted key, an inline table. A table appended beside
+    one of those would be invalid TOML. The same path as a value (a marketplace
+    `source`, an MCP `cwd`) names no key, so it does not count."""
     header = toml_table_pattern("projects", project)
-    spellings = (f'"{toml_escape(project)}"', f"'{project}'")
-    return any(not header.match(line) and any(s in line for s in spellings) for line in text.splitlines())
+    spellings = "|".join(re.escape(s) for s in (f'"{toml_escape(project)}"', f"'{project}'"))
+    keys = [  # a header under projects, `projects."p".…`, and `"p" =` or `"p".…` at a key position
+        re.compile(rf"^\s*\[\[?\s*projects\s*\.\s*(?:{spellings})"),
+        re.compile(rf"^\s*projects\s*\.\s*(?:{spellings})"),
+        re.compile(rf"(?:^|[{{,])\s*(?:{spellings})\s*[.=]"),
+    ]
+    return any(not header.match(line) and any(k.search(line) for k in keys) for line in text.splitlines())
 
 
 def place_trust(path: Path, dry: bool, report: Report) -> None:
@@ -466,16 +477,16 @@ def place_trust(path: Path, dry: bool, report: Report) -> None:
     config = HOST["codex"].home() / "config.toml"
     existing = config.read_bytes() if config.is_file() else None
     before = existing or b""
-    if trust_spelled_elsewhere(_text(before), project):
-        report.bad(f"{config}: {project} is written in a form this script does not edit, not changed",
-                   ['Set trust_level = "trusted" for it by hand.'])
-        return
     header_index, level = trust_state(_text(before), project)
     if level == "trusted":
         report.ok(f"{config}: {project} already trusted")
         return
     if level is not None:
         report.bad(f"{config}: {project} already has trust_level = \"{level}\", not changed")
+        return
+    if trust_spelled_elsewhere(_text(before), project):
+        report.bad(f"{config}: {project} is written in a form this script does not edit, not changed",
+                   ['Set trust_level = "trusted" for it by hand.'])
         return
     if dry:
         print(f"  would mark {project} trusted in {config}")
@@ -514,8 +525,13 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="command", required=True)
     ins = sub.add_parser("install", help="install AndThen on every host whose CLI is on PATH",
-                         description="Install AndThen from the repo tree this script sits in. --ref REF (a"
-                                     " branch or tag) downloads that tree first and runs its script.")
+                         description="Install AndThen from the repo tree this script sits in, or from the"
+                                     " tree --ref downloads.")
+    # Handled by `main` before this parser runs, so a newer tree's flags never meet this copy's
+    # parser; declared here so `install --help` documents it.
+    ins.add_argument("--ref", metavar="REF",
+                     help="download that branch or tag (default main) and run its own script"
+                          " instead of the tree this script sits in")
     ins.add_argument("--loose", action="store_true",
                      help="copy skills as andthen-<name> into --skills-dir instead of installing the plugin")
     ins.add_argument("--skills", metavar="LIST",
@@ -536,9 +552,16 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     ins.add_argument("--copilot-only", action="store_true")
     ins.add_argument("--dry-run", action="store_true", help="print the plan, write nothing")
     args = ap.parse_args(argv)
-    if (args.skills or args.skills_dir) and not args.loose:
+    for flag, value in (("--skills", args.skills), ("--skills-dir", args.skills_dir), ("--trust", args.trust)):
+        if value == "":  # never a silent fallback to the default
+            ap.error(f"{flag} given an empty value")
+    if (args.skills is not None or args.skills_dir is not None) and not args.loose:
         ap.error("--skills and --skills-dir need --loose")
     args.roles = args.roles or args.replace_roles
+    if args.loose and not (args.roles or args.rules or args.trust) and \
+            (args.claude_only or args.codex_only or args.copilot_only):
+        ap.error("--claude-only, --codex-only and --copilot-only select hosts, which --loose uses only"
+                 " with --roles, --rules or --trust")
     return args
 
 
@@ -560,7 +583,7 @@ def selected_hosts(args: argparse.Namespace, report: Report) -> list[Host]:
 
 def install_loose(args: argparse.Namespace, report: Report) -> None:
     print("Loose skills:")
-    if not args.skills_dir and codex_plugin_installed():
+    if args.skills_dir is None and codex_plugin_installed():
         report.bad("not installed into ~/.agents/skills: the AndThen Codex plugin is installed, and Codex"
                    " reads that directory too, so it would list every skill twice",
                    ["Name another directory with --skills-dir, or drop --loose."])
@@ -568,7 +591,8 @@ def install_loose(args: argparse.Namespace, report: Report) -> None:
     import andthen_loose  # not at the top: piped through curl there is no sibling to import
     try:
         count, destination = andthen_loose.install(
-            args.skills_dir or andthen_loose.default_skills_dir(), args.skills or "", args.dry_run)
+            andthen_loose.default_skills_dir() if args.skills_dir is None else args.skills_dir,
+            "" if args.skills is None else args.skills, args.dry_run)
     except andthen_loose.InstallError:
         report.bad("loose install failed")
         return
@@ -627,7 +651,8 @@ def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
     # One rule: `--ref` means "fetch that version", wherever the script runs. It is handled here, before
     # parse_args, so a newer tree's flags never meet this copy's parser.
-    if any(a == "--ref" or a.startswith("--ref=") for a in argv) or not (REPO_ROOT / MANIFEST).is_file():
+    if any(a == "--ref" or a.startswith("--ref=") for a in argv) or REPO_ROOT is None \
+            or not (REPO_ROOT / MANIFEST).is_file():
         return bootstrap(argv)
     args = parse_args(argv)
     report = Report()

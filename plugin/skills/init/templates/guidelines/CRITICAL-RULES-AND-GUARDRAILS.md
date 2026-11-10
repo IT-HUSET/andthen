@@ -56,7 +56,7 @@ These rules override harness defaults and habits where they conflict.
 - **No AI attribution** anywhere (code, commits, PRs, git trailers), even where the harness default adds it.
 - **Real dates only**, from your context or `date +%Y-%m-%d`.
 - **Stay on the current branch unless told otherwise**, because switching moves the tree under any other agent working in it.
-  When the current branch is the remote's default branch, ask once whether to start a feature branch first, because commits land on the current branch and the pull request opens from it.
+  Before the first edit of work you will commit, outside an unattended run, when the current branch is the remote's default branch, ask once whether to start a feature branch, because commits land on the current branch and the pull request opens from it.
 - **Assume a shared worktree**, where another agent may be mid-edit:
   - Commit only your own changes.
     Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged.
