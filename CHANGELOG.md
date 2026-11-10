@@ -6,7 +6,10 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [Unreleased]
+## [1.1.0] – 2026-11-10
+
+### Added
+- **`python3 scripts/andthen.py install` sets AndThen up on every host and proves the result** ([ADR-030](docs/adrs/ADR-030-one-setup-script.md)). It installs the plugin from the tree the script sits in, reads each host's installed version back, and with `--roles`, `--rules`, and `--trust <path>` also places the role agents and the critical-rules block at user level and trusts a project in Codex; any mismatch or refusal exits non-zero. `scripts/validate-plugin.py` is the content check CI and the fast tier run.
 
 ### Changed
 - **`exec-plan` fails a story only on a stop it names.** A red gate is work to finish until a `triage` repair turns nothing green, and a direct story run prints its `Next` line only once the story is `done`, failed, or stopped at admission, so an unfinished story no longer routes back to itself.
@@ -21,6 +24,9 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`tracker publish` needs no `Issue Tracker` document on GitHub.** An absent document takes the built-in `gh` default for both verbs, as `triage` already did, so the first publish no longer asks you to run `setup` first. `comment` gains its `gh` mapping.
 - **`implement-fix`, `review --fix`, `triage`, and `simplify-code` commit their verified change**, where they left it in the working tree, so they match `exec-plan`. Only green work commits, staged by path, and a file holding another session's edit stays uncommitted and named. A run another skill invokes leaves the commit to that skill, so an `exec-plan` story stays one commit. On the remote's default branch they first ask once whether to start a feature branch, as `exec-plan` and `ship` do. Push and PR still wait for `ship`.
 - **`ship` collapses per-story detail and the `## Ship summary` tables in `<details>` blocks** where the host renders them, so a reviewer reads the merge decision without scrolling past tables written for tooling. The section's heading, labels, and tables are unchanged, so viewers parse it as before.
+
+### Removed
+- **`scripts/install-skills.sh`, `install-skills.py`, and `andthen-plugins.py`, with `--display-brand`, a custom `--prefix`, `--claude-skills-dir`, `--claude-user`, `--validate-only`, and `--path`.** Use `python3 scripts/andthen.py install` for the plugin (`rc`, `stable`, or `--ref` for a GitHub source), `andthen.py install --loose` for loose skills (always `andthen-<name>`; Claude Code takes the plugin), and `python3 scripts/validate-plugin.py` for the content check. Automation calling the old names breaks.
 
 ---
 
