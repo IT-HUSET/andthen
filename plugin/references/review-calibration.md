@@ -58,6 +58,7 @@ Findings that survive the Findings Filter (below) additionally carry:
   - class is `code-defect`;
   - the fix is mechanical, bounded, and uniquely determined, and does not expand past Intent;
   - a security fix is mechanically secure, not merely plausible;
+  - the remedy reverts or deletes no change it cannot attribute to the reviewed work, because the change may be another session's;
   - the remedy edits no `plan.json`: only the `andthen:plan` skill and the session executing a story write it.
 
   Everything else is `Note`: surfaced, never applied on this tag's authority, even under `--fix`. Ties default to `Note`.

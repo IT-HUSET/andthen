@@ -169,13 +169,14 @@ The `ops` skill and its script are gone. The session running a plan edits `plan.
 | `testing --mode write` | `/andthen:testing <target>`; writing tests is the default. |
 | `testing --mode strategy` | Same flag, new job: it writes the `Testing Strategy` document (`docs/TESTING-STRATEGY.md`). For 0.x's read-only coverage and risk assessment, ask `/andthen:testing` for it on a scope; no mode does it. |
 | `clarify --mode product`, `clarify --mode feature` | Say whether the request is about the whole product or one feature. |
-| `quick-implement --pr`, `quick-implement --no-pr` | Gone. `/andthen:implement-fix` never commits or pushes; `/andthen:ship` does it, with one confirmation before the push. |
+| `quick-implement --pr`, `quick-implement --no-pr` | Gone. `/andthen:implement-fix` commits its verified change and never pushes; `/andthen:ship` pushes and opens the PR, with one confirmation before the push. |
 | `now-what --no-handoff` | Ask `/andthen:now-what` for a recommendation only, without running the next skill. |
+| `now-what --auto` | Removed. Name the skill to run in an unattended pipeline. |
 | `handoff --no-mutate` | Ask `/andthen:handoff` for the document only. Its durable writes are idempotent, so there is nothing to opt out of. |
 | `issue-triage --limit <N>` | `/andthen:tracker triage`, with the item cap stated in the request. |
 | `map-codebase --model-only` | `/andthen:describe --model-only` |
 | `triage --investigate` | `/andthen:triage --plan-only` |
-| `triage --headless` | `/andthen:triage --auto`. `--auto` is unchanged on every skill that had it: the run asks nothing, records each open decision as an `ASSUMPTION:`, and stops only on an unusable call. |
+| `triage --headless` | `/andthen:triage --auto`. `--auto` is unchanged on every skill that kept it: the run asks nothing, records each open decision as an `ASSUMPTION:`, and stops only on an unusable call. |
 | `ubiquitous-language --update` | `/andthen:domain --mode glossary`; it merges into the existing glossary by default. |
 | `ubiquitous-language --model` | Removed. The glossary has no typed model; `/andthen:visualize` draws the `Ubiquitous Language` document itself. |
 | `simplify-code --path <path>` | Pass the path as positional scope to `/andthen:simplify-code`. |

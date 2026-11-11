@@ -13,6 +13,7 @@ Ask every gap the cut or a story's intent turns on, at requirements altitude –
 ### 2. Cut the stories
 
 Cut the fewest stories that cover the source, none overlapping, each a vertical slice demoable through every layer.
+A story with no user-facing behavior (infrastructure, a migration) is cut by module and proven by tests.
 
 - **Single-session rule**: a story fits one fresh-context exec run with headroom, the measure in the skill's step 3. An oversized story splits into thinner vertical slices, never into layers.
 - **Walking skeleton**: where the source's main flow crosses several stories or code the plan does not change, the first story is that flow's walking skeleton; its `scope` says so and names the flow.

@@ -109,6 +109,7 @@ Reopens if an eval shows it applying marginal observations.
 A tidy is a behavior-preserving fix in a function or doc section the change edits, or a minor mechanical or check-covered one elsewhere, or an obvious small bug in an edited function fixed under a test. The 0.15.1 default of surface-don't-fix sent a smell the implementer could fix in one edit through three passes: recorded in the FIS, read back by the review as a finding (a "did not touch" note inside the change is a MEDIUM finding by `review-calibration.md` rule 7), then applied by the fix round. Rule 7's radius matches the tidy's. The never-a-tidy list dates from 2026-10-03.
 
 Widened from the files the change touches (2026-10-15), because reports still filled with minor issues a behavior-preserving edit could clear. A parallel story's own-files limit exists because a tidy elsewhere can conflict with a sibling at merge.
+Widened again (2026-11-11) to the minimum fix, named in the report, for an issue elsewhere that blocks a required check, because Stop-the-Line orders the gate green while the tidy radius had no room for that fix.
 
 Reopens if a review or eval shows a tidy hiding a regression.
 

@@ -56,7 +56,7 @@ Every run reads [`verification-evidence.md`](../../references/verification-evide
 
 Remove only complexity proved inert across its real boundary. One caller or overlapping coverage is not proof (Chesterton's Fence).
 
-Produce a prioritized list of improvements, then proceed with the conservative, lowest-risk subset. Defer risky or scope-widening items.
+Produce a prioritized list of improvements, then proceed with the conservative, lowest-risk subset. Defer risky or scope-widening items, and any in code no baseline check exercises, because a green re-run proves nothing there.
 
 **Gate**: every candidate is applied-next, deferred, or `dropped:` with its anchor, and the deferred and dropped ones are recorded.
 

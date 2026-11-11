@@ -61,7 +61,7 @@
 | Stop-the-Line | Execution discipline that treats objective red gates as work to finish before advancing or claiming completion. | fail-fast, stop work |
 | Objective Red Gate | Binary failing check such as build, test, lint, type-check, wiring check, or task Verify line. | blocker |
 | Subjective Finding | Review or visual-validation finding that requires judgment rather than a binary check. | review issue |
-| Boy Scout tidy | A behavior-preserving fix in an edited function or doc section, or a minor one elsewhere, or an obvious small bug in an edited function fixed under a failing test; named in the report. | drive-by refactor, cleanup pass |
+| Boy Scout tidy | A behavior-preserving fix in edited code or a minor one elsewhere, a small bug in an edited function fixed under a failing test, or the minimum fix to a required check's blocker; named in the report. | drive-by refactor, cleanup pass |
 | NOTICED BUT NOT TOUCHING | Report label for an issue no tidy can fix and the task did not ask for, that someone should act on. | out-of-scope notes, FYI |
 | Verification tier | `Key Dev Commands` tier: `fast` for each plan story; `full` for a direct story run or a plan run at convergence. | quick tests, full suite |
 | Traceability Gate | Requirement that tests and motivated code changes trace to FIS requirements or explicitly appended discovered requirements. | trace check |

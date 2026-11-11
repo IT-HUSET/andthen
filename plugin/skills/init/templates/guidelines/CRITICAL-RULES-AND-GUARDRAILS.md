@@ -36,6 +36,7 @@ These rules override harness defaults and habits where they conflict.
   Never hand the user a check, or a question, that a local, non-destructive command would settle.
 - **Tests verify intent.**
   A test that still passes when the business logic changes is wrong.
+- **Get past a failing check only by fixing its cause**, never with `--no-verify` or a skipped, weakened, or deleted test, unless the user or the active skill's contract sanctions it.
 - **Validate UI visually**, never from the code alone.
 
 ## Scope Discipline
@@ -46,6 +47,7 @@ These rules override harness defaults and habits where they conflict.
 - **Make every Boy Scout tidy you find.**
   A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it.
   In an edited function, an obvious small bug fixed under a test that fails first is a tidy too.
+  So is the minimum fix to an issue elsewhere that blocks a required check.
 - **Unless the task asks for it, make no redesign, public API change, or change that settles an open decision or reverses a recorded one**, because each needs its own review.
   If the task cannot fit without a redesign or public API change, make the smallest one that works and name it in the report.
 - **List as `NOTICED BUT NOT TOUCHING` only what no tidy can fix**, and only when someone should act on it.
@@ -86,6 +88,9 @@ The `andthen:init` skill can install four role agents, `oracle`, `implementer`, 
 Spawn a role as the subagent type of that name.
 Delegated work no row below fits goes to `implementer`, with its scope and done-criterion pinned in the prompt.
 Where the roles are not installed, spawn a generic subagent with the tier's model where the host offers a choice, never above the session's model.
+
+Label each subagent role first, or model family first where no role is installed, then the task in plain words (`Reviewer: audit prompt diff`), in the field the host lists it by (Claude Code's `description`).
+On Claude Code leave the Agent tool's `name` unset, because a named spawn can run as a teammate whose report never returns.
 
 | Task | Route |
 |---|---|

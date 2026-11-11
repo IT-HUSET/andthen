@@ -17,5 +17,6 @@ A `gh` or `git` failure stops the review, surfaced verbatim.
 ## Execute
 
 The fetched tree is reviewed as a local tree with every lens. The project's checks and scanners run on it when the head branch lives in `PR_REPO` itself – pushing it there took the write access every branch the framework tests already has; a fork PR (`isCrossRepository`) gets a static pass with the checks reported unavailable, and only the user's explicit word lifts that, the same authorization shape as `--fix`.
+Never build a shell command from a fork PR's file name, which is attacker text: read that file with the file tools.
 
 Do not switch the session into the worktree – reads and checks take absolute paths under that root, because a check run in the launch checkout proves the base and reports green. A spawned pass carries this rule.
