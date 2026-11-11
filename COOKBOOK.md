@@ -427,6 +427,7 @@ Under `Record: repo`, a PRD leaves `prd.md` behind as the requirements record; a
 /andthen:tracker publish docs/specs/workspace-invitations/plan.json
 git switch -c feat/S02-accept-an-invitation                                     # {type}/{story-id}-{slug}
 /andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md
+/andthen:ship                                                                   # the story PR into the milestone branch, bundle kept
 /andthen:tracker publish docs/specs/workspace-invitations/plan.json             # refresh, from the milestone branch
 ```
 
@@ -528,7 +529,7 @@ Design comes in before the spec, on your answer: `clarify` asks, with the closin
 - **Outer loop, once per initiative** – `clarify`, then `plan`: what and why, then a FIS per story.
 - **Inner loop, once per story** – `exec-plan`: build one story and prove it, review included, then on a team its PR into the milestone branch. Run it one story per session and read each result before the next. On the plan directory `exec-plan` runs this loop for you without stopping, one story at a time in the shared tree, or independent stories in parallel under `--worktree`, one worktree each.
 
-**When the PR opens.** `ship` opens it, after one confirmation. The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR. On a team, `ship` on a story branch opens the story PR and asks whether to keep the bundle, recommending keeping it, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it.
+**When the PR opens.** `ship` opens it, after one confirmation. The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR. On a team, `ship` on a story branch opens the story PR and asks whether to keep the bundle, recommending keeping it, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it. Story PRs can target the default branch instead, but the milestone branch is recommended, because each story PR carries only its story's quick review, and the plan-level review reads every story before any reaches the default branch.
 
 This is a scope-and-cadence split, not the DevEx sense of inner loop (edit-build-test) versus outer loop (CI/CD). A third motion, the **knowledge cycle**, is not a loop: FIS `Implementation Observations` graduate into `LEARNINGS.md` at close-out through `ship`, which recommends the `DECISIONS.md` lines, recurring review traps become lint rules or tests, and settled trade-offs become ADRs.
 
@@ -764,11 +765,12 @@ Same three steps each, from an up-to-date `1.2`:
 ```
 git switch -c feat/S02-accept-an-invitation 1.2
 /andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md
+/andthen:ship
 ```
 
 S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied.
 
-S03 `dependsOn` S02, so it starts only after S02 merged. S02 found one constraint for it, that the revoke endpoint must invalidate the queued email too. Before its commit, S02's run appended it under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` and named that FIS in its report, so you read the constraint before S03's session and it reached `1.2` with S02's PR.
+S03 `dependsOn` S02, so it starts only after S02 merged. To start it sooner, branch it from S02's branch, and once S02 squash-merges, move it with `git rebase --onto 1.2 feat/S02-accept-an-invitation`, because merging `1.2` into it conflicts in the FIS both stories appended to. S02 found one constraint for it, that the revoke endpoint must invalidate the queued email too. Before its commit, S02's run appended it under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` and named that FIS in its report, so you read the constraint before S03's session and it reached `1.2` with S02's PR.
 
 Between stories, state is one ask away:
 

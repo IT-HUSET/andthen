@@ -21,6 +21,8 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 *Amended 2026-11-10: the `## Ship summary` section, like per-story detail, sits in a `<details>` block where the host renders one, because its tables restate the prose for tooling and a reviewer scrolled past them. No heading, label, table header, or token changed: both parsers read the exact heading line to the next `## ` and skip the tag lines, so a body with or without the block parses the same, and andthen-studio renders the block collapsed.*
 
+*Amended 2026-11-11: a pull request covers the stories whose `plan.json` rows its branch's own commits changed, every story when the base has no `plan.json`. On a team's per-story PRs into a milestone branch, the body had restated every merged story and listed its issues to close again. With no review report, the body no longer says no review ran, because each story's quick review writes none.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:

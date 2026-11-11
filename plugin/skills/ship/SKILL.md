@@ -52,6 +52,7 @@ Read every FIS's `## Implementation Observations`, those in `superseded/` includ
 ### 3. Write the pull request
 
 Write it for a reviewer deciding whether to merge.
+It covers the stories whose `plan.json` rows the branch's own commits changed, and every story when the base has no `plan.json`, because each story the base holds had its own pull request.
 The body is where the intent and proof outlive the branch, because the bundle is usually deleted and the review report usually never committed.
 A project's pull request template or named PR process sets the layout, and this content fills it.
 Put what the merge decision needs first, because a body the reviewer must scroll goes unread.
@@ -75,7 +76,7 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   - all work after the latest review report's `**Revision**`, committed or still in the tree, except this run's `Learnings` bullets and bundle commit.
     Say which of it the report's `**Remediated**:` line marks as fixes.
     A `-dirty` Revision cannot show which work the review read, so say so.
-    With no report, say no review ran.
+    With no report, say so.
 - **What stays open**: what the change knowingly leaves open, such as a finding or story the user shipped past.
 - **Pictures**: where a flow, structure, or state change reads faster as a picture, add the smallest view that makes the point.
   Use a Mermaid diagram where the host renders one, an SVG, or a pseudocode or tree block.

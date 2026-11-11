@@ -6,6 +6,13 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- **`ship` writes a story PR for that story only**: the body, Ship summary, and issues to close cover the stories whose `plan.json` rows the branch's own commits changed, not stories already merged into its base. A body with no review report no longer claims no review ran.
+
+---
+
 ## [1.1.0] – 2026-11-10
 
 ### Added
