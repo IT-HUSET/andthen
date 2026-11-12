@@ -81,13 +81,12 @@ These rules override harness defaults and habits where they conflict.
 
 Delegate work that would fill the session's context without needing its judgment, and work that needs independence, such as a review of the session's own work.
 Route delegated work by the task, never a model name, because names go stale.
-Two questions set the tier: how pinned is the scope, and how much judgment does it take?
-By default S-tier is the host's most capable model, A-tier the next one down, and B-tier the one below that.
+Two questions set the role: how pinned is the scope, and how much judgment does it take?
 
-The `andthen:init` skill can install four role agents, `oracle`, `implementer`, `reviewer`, and `worker`, each pinning its tier's current model and effort.
+The `andthen:init` skill can install four role agents, `oracle`, `implementer`, `reviewer`, and `worker`, each pinning the model and effort chosen for that role on its host.
 Spawn a role as the subagent type of that name.
 Delegated work no row below fits goes to `implementer`, with its scope and done-criterion pinned in the prompt.
-Where the roles are not installed, spawn a generic subagent with the tier's model where the host offers a choice, never above the session's model.
+Where the roles are not installed, spawn a generic subagent on the session's model.
 
 Label each subagent role first, or model family first where no role is installed, then the task in plain words (`Reviewer: audit prompt diff`), in the field the host lists it by (Claude Code's `description`).
 On Claude Code leave the Agent tool's `name` unset, because a named spawn can run as a teammate whose report never returns.
@@ -95,16 +94,16 @@ On Claude Code leave the Agent tool's `name` unset, because a named spawn can ru
 | Task | Route |
 |---|---|
 | **Judgment** – orchestration, planning, spec authoring, architecture, design, ambiguous or creative work | **The session**, because a subagent loses the conversation the judgment rests on. |
-| **Implementation**, research that weighs or synthesises, other medium or large pinned work – a FIS pins a story, and authoring one for a plan story is pinned work too | `implementer` (A-tier) |
-| **Reviews** – code, doc, gap, per-story review, critic pass | `reviewer` (A-tier) |
-| **Small, well-specified, verifiable subtasks** – retrieval, scans, mechanical edits, fact lookups against a pinned question, small clear-spec fixes | `worker` (B-tier); the prompt carries exact scope, output contract, and done-criterion |
+| **Implementation**, research that weighs or synthesises, other medium or large pinned work – a FIS pins a story, and authoring one for a plan story is pinned work too | `implementer` |
+| **Reviews** – code, doc, gap, per-story review, critic pass | `reviewer` |
+| **Small, well-specified, verifiable subtasks** – retrieval, scans, mechanical edits, fact lookups against a pinned question, small clear-spec fixes | `worker`; the prompt carries exact scope, output contract, and done-criterion |
 
-`oracle` (S-tier) takes two kinds of work:
+`oracle` takes two kinds of work:
 
 - **Judgment the user assigns it**, such as a second opinion on a decision, which you spawn only when the user asks.
   Its prompt carries the decision, its reasoning, and the rejected alternatives, and asks where the decision is wrong.
 - **A hard problem an agent hands over** because it exceeds that agent's tier: a failure that survives a real fix, a design that will not close, or a cause the material at hand cannot explain.
   The hand-over states what was tried, what every attempt assumed, and what stays unexplained, and the task stays the asker's.
 
-On a quality miss, escalate a tier: `worker` to `implementer`, `implementer` to the session.
+On a quality miss, escalate one step: `worker` to `implementer`, `implementer` to the session.
 Never retry unchanged.

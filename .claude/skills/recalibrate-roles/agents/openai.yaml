@@ -1,0 +1,7 @@
+interface:
+  display_name: "AndThen - Recalibrate Roles"
+  short_description: "Re-pick the role agents' model and effort per host from current benchmarks and measured cost per task, and keep the selection guide current"
+  default_prompt: "Recalibrate the role agents' model and effort pins against the current lineups and benchmarks, by the rule in docs/MODEL-EFFORT-SELECTION-GUIDE.md."
+
+policy:
+  allow_implicit_invocation: true

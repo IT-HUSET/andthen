@@ -42,6 +42,7 @@ Create a missing document and its entry here from `project-document-templates.md
 - **Migration guide** – `MIGRATING-FROM-0.x.md`: 0.x → 1.0 migration prompt and the retired-name mapping; transient, delete it once 0.x is out of circulation. Read and update when a 1.0 skill named in its table is renamed or moved – `scripts/audit-cookbook.py` covers it as a fourth document.
 - **Ubiquitous Language** – `docs/UBIQUITOUS_LANGUAGE.md`: canonical terms and the synonyms to avoid. Read before naming, renaming, or describing framework concepts in skills, references, docs, or specs; add a row when a term settles, on the shape its own header states.
 - **Models** – `docs/models/`: committed typed projections (`architecture-model.json`, `event-storms/<slug>.json`). Regenerate at deliberate points, never per commit, and never hand-edit – the code and the session are the records. Nothing validates a model – the producer checks its candidate against the schema and reference in `plugin/skills/describe/references/` (`architecture-model`) or `plugin/skills/domain/references/` (`board-models`).
+- **Role Pin Record** – `docs/ROLE-PINS.md`: the last recalibration's sources, margins, and scored shortlist behind the role templates. The `recalibrate-roles` skill reads it first and overwrites it; git history keeps earlier runs.
 - **Skill-authoring guidelines** – `docs/SKILL-AUTHORING-GUIDELINES.md`: the one source for prompt and skill craft, and the `skill-review` skill's rubric. Read before authoring, editing, or reviewing prompt-like content (skills, references, agent definitions, instruction files).
 - **Dev guidelines** – `docs/guidelines/`: foundational rules (CRITICAL-RULES) plus project-authored guidelines. Read at task start for any code or script change, or before triaging an issue or feature request.
 - **Research** – `docs/temp/research/`: working research artifacts, transient and not shipped. Read when re-opening that investigation; write when a task produces durable research.
@@ -91,7 +92,7 @@ Both paths' commands are in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
 - Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`.
   Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
 - Release-time flips carry a `pre-release` comment (found by `rg 'pre-release[:]'`) at their site, each stating its own flip. The 1.0 cut has its own steps in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
-- Before a release, re-check each role template's model and effort pin (`plugin/skills/init/templates/agents/`) against both providers' current lineups and the models Copilot offers: the pins are recommendations as of their last change (`docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Durable principles).
+- Before a release, and when a provider ships or reprices a model, run the project-level `recalibrate-roles` skill (`.claude/skills/recalibrate-roles/`) over the role templates (`plugin/skills/init/templates/agents/`): the pins are recommendations as of their last change, chosen by `docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Choosing a role's pin.
 
 ---
 

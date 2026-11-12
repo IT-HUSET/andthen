@@ -399,10 +399,10 @@
 <g class="hot" tabindex="0" data-hotspot="role-oracle">
 <rect x="484" y="714" width="150" height="40" rx="20" class="role"/>
 <text x="559" y="731" class="role-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">oracle</text>
-<text x="559" y="746" class="role-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">S-tier model</text>
+<text x="559" y="746" class="role-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">hard problems</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
-<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · oracle · S-tier model</text>
+<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · oracle · hard problems</text>
 <text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Judgment work the user assigns it, and hard problems an agent hands over because they exceed its tier: a failure that</text>
 <text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">survives a real fix, a design that will not close, a cause the material at hand cannot explain.</text>
 </g>
@@ -410,10 +410,10 @@
 <g class="hot" tabindex="0" data-hotspot="role-implementer">
 <rect x="644" y="714" width="150" height="40" rx="20" class="role"/>
 <text x="719" y="731" class="role-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">implementer</text>
-<text x="719" y="746" class="role-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">A-tier model</text>
+<text x="719" y="746" class="role-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">pinned work</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
-<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · implementer · A-tier model</text>
+<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · implementer · pinned work</text>
 <text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">One fully-specified unit of work: executing a story or spec, research that weighs or synthesises sources,</text>
 <text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">authoring a FIS for a pinned plan story.</text>
 </g>
@@ -421,10 +421,10 @@
 <g class="hot" tabindex="0" data-hotspot="role-reviewer">
 <rect x="804" y="714" width="150" height="40" rx="20" class="role"/>
 <text x="879" y="731" class="role-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">reviewer</text>
-<text x="879" y="746" class="role-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">A-tier model</text>
+<text x="879" y="746" class="role-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">every review</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
-<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · reviewer · A-tier model</text>
+<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · reviewer · every review</text>
 <text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Any review, of any target, returning findings and a verdict. Read-only unless the prompt</text>
 <text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">carries a fix contract.</text>
 </g>
@@ -432,10 +432,10 @@
 <g class="hot" tabindex="0" data-hotspot="role-worker">
 <rect x="964" y="714" width="150" height="40" rx="20" class="role"/>
 <text x="1039" y="731" class="role-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">worker</text>
-<text x="1039" y="746" class="role-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">B-tier model</text>
+<text x="1039" y="746" class="role-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">small tasks</text>
 <g class="d">
 <rect x="24" y="782" width="1112" height="86" rx="14" class="panel"/>
-<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · worker · B-tier model</text>
+<text x="46" y="808" class="dk" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">role · worker · small tasks</text>
 <text x="46" y="830" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">One small, well-specified, verifiable subtask: retrieval, scans, mechanical edits, fact lookups against a pinned</text>
 <text x="46" y="848" class="db" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">question. Answers found, never made.</text>
 </g>

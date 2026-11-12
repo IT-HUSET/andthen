@@ -1,7 +1,7 @@
 ---
 name: implementer
 description: Implementation tier – one medium or large unit of pinned work. Executing a story or spec, authoring a plan story's FIS, research that weighs or synthesises sources, or another task whose scope, inputs, and done-criteria the prompt pins. A spec makes work well-specified, not small, so executing one comes here, not to worker. Reviews go to reviewer.
-model: [claude-sonnet-5.5, gpt-6.1-sol]
+model: [claude-opus-5.5, gpt-6.1-sol]
 reasoning-effort: high
 include-custom-instructions: true
 ---

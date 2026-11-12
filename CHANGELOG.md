@@ -14,6 +14,9 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`ship` writes a story PR for that story only**: the body, Ship summary, and issues to close cover the stories whose `plan.json` rows the branch's own commits changed, not stories already merged into its base. A body with no review report no longer claims no review ran.
 - **`decide`'s trade-off scores share one scale.** Each option's research subagent returns evidence against the confirmed criteria, and the session scores every option criterion by criterion. Previously each subagent scored only its own option. The Findings Filter reviewer now gets the scores and their evidence.
 
+### Changed
+- **`init`'s role agents are recalibrated against private-task coding benchmarks and measured cost per task.** The Claude Code and Copilot `implementer` runs Opus instead of Sonnet, at `high` effort. The Codex and Copilot `worker` uses GPT-6.1 Terra instead of GPT-6 Luna, at `medium` on Codex, which needs Codex CLI 0.159.0 or later. The Subagent Model Policy drops its S/A/B tier letters, and without roles a generic subagent always runs on the session's model. To update an installed copy, rerun `init`, or run `andthen.py install --roles` or `--rules`.
+
 ---
 
 ## [1.1.0] – 2026-11-10

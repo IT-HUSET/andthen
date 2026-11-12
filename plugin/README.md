@@ -503,6 +503,8 @@ AndThen skills hand work to subagents. Nothing is installed by default. The `ini
 
 Without the roles installed, every skill falls back to the same portable shape: a generic subagent on your session's model, whose prompt invokes the relevant skill or reference. Judgment work stays in your session. Execution nests: a plan run starts one subagent per story, and each of those starts its own reviewer.
 
+Planning (`clarify`, `plan`, `decide`, `architecture`) runs in your session on the model you chose. For it, AndThen recommends the model and effort the `oracle` template pins for your host (`skills/init/templates/agents/`), because both are picked for the hardest judgment.
+
 ## Working in a Team
 
 See [Working in a team](../COOKBOOK.md#working-in-a-team) in the cookbook.
