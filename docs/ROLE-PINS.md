@@ -64,3 +64,14 @@ No check could compare any pick, so every pin below rests on Artificial Analysis
 
 Copilot follows each provider's pick: `implementer` `[claude-opus-5.5, gpt-6.1-sol]` at high, `worker` `[claude-haiku-5.5, gpt-6.1-terra]` at high.
 Its `oracle` stays on Opus because GitHub publishes no Copilot CLI ID for Claude Fable 5.2.
+
+### Open question: Claude `oracle` at `medium`
+
+The rule keeps Fable at high: Fable medium's general score is 56.4 ([AA](https://artificialanalysis.ai/models/claude-fable-5-2-medium)), outside the margin of the best pair's 62.2, at $3.80 against $9.08 per index task for high.
+A task-specific measurement on 2026-11-12 found no loss at medium on spec review, the shape of `plan`'s `oracle` gate (tables and limits in `docs/adrs/ADR-031-oracle-at-two-gates.md`, Context):
+
+- Plan self-review, 12 runs per arm, blind scorer: Fable medium found 32 of 32 planted gaps and 13 build-changing others, Fable high 32 and 12, at $1.53 against $3.33 per review.
+- Plan second opinion, 4 runs per effort, unblinded scorers: medium raised 6 of 6 build-changing gaps the reviewer missed, high 5 of 6, at $1.69 against $2.89 per run.
+
+It was kept at high because two small bundles and eight unblinded runs on one task shape do not outweigh an independent general score, and the hand-over and `decide` jobs it never ran are the ones the depth is for; no mechanism lets one gate run below the role's effort.
+Reopen on a larger blinded run across the `oracle`'s jobs; a move to medium also redoes ADR-031's cost lines.
