@@ -50,7 +50,9 @@ A chain leg no story owns opens a story through Steps 2–4. Anything else the r
 
 ### 6. Preflight
 
-Run `preflight.md` once over the whole bundle, even when nothing is open. Its items are Step 1's unasked gaps, every open item a `--batch` report returned, and Step 5's residue. A batch `ASSUMPTION:` is a question the story subagent could not ask, not an answer: outside an unattended run, ask it like any other item.
+Take the second opinion as in the skill's step 8, over the whole bundle and the items so far: Step 1's unasked gaps, every open item a `--batch` report returned, and Step 5's residue.
+Then run `preflight.md` once over the whole bundle, even when nothing is open.
+A batch `ASSUMPTION:` is a question the story subagent could not ask, not an answer: outside an unattended run, ask it like any other item.
 
 Integrate each answer yourself where it is owned:
 

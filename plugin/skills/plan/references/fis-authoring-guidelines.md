@@ -1,6 +1,6 @@
 # FIS Authoring Guidelines
 
-The craft rubric the author writes a FIS to and the fresh reviewer checks it against. `fis-contract.md` defines the surfaces, shapes, proof forms and tags.
+The craft rubric the author writes a FIS to and the self-review subagent checks it against. `fis-contract.md` defines the surfaces, shapes, proof forms and tags.
 
 ## Principles
 

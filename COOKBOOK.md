@@ -258,13 +258,13 @@ Naming modes in order, as in the last prompt, runs them in that order sharing co
 
 ### A second opinion before committing to a decision
 
-**Situation.** The session has proposed a design, a scope cut, or a plan shape, and you want an independent view before acting. Nothing spawns this on its own – you ask.
+**Situation.** The session has proposed a design, a scope cut, or a plan shape, and you want an independent view before acting. `decide` takes one on its own for the hard-to-reverse decisions it is about to record, and `plan` takes one on a spec before its final questions. Anywhere else nothing spawns this on its own – you ask.
 
 ```
 "Sounds good – but before we go on, ask an oracle subagent for a second opinion: give it the decision, your reasoning, and the alternatives you rejected, and ask where it's wrong."
 ```
 
-**Expect.** The subagent sees none of the conversation, so the hand-over (decision, reasoning, rejected alternatives, constraints) is all it can judge. It returns the failure mode or wrong assumption it finds, with evidence, or an agreement that names what it checked. It touches nothing; the decision stays yours. Without the `oracle` role installed, a generic subagent takes the same hand-over.
+**Expect.** The subagent sees none of the conversation, so the hand-over (decision, reasoning, rejected alternatives, constraints) is all it can judge. It returns the failure mode or wrong assumption it finds, with evidence, or an agreement that names what it checked. It touches nothing; the decision stays yours. Without the `oracle` role installed, a generic subagent takes the same hand-over. To get one every time, write the ask as a standing rule in your project's instruction file. A rule you wrote counts as your ask.
 
 **Elsewhere.** An artifact with a rubric (a PRD, a plan, a FIS, a diff) is `review`. A question only measurement settles is the `spike` skill. Claude Code's built-in advisor is the model-initiated form ([Delegation](plugin/README.md#delegation)).
 

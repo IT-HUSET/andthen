@@ -98,7 +98,7 @@ On Claude Code leave the Agent tool's `name` unset, because a named spawn can ru
 | **Reviews** – code, doc, gap, per-story review, critic pass | `reviewer` |
 | **Small, well-specified, verifiable subtasks** – retrieval, scans, mechanical edits, fact lookups against a pinned question, small clear-spec fixes | `worker`; the prompt carries exact scope, output contract, and done-criterion |
 
-`oracle` takes two kinds of work:
+Outside a gate a skill names it for, `oracle` takes two kinds of work:
 
 - **Judgment the user assigns it**, such as a second opinion on a decision, which you spawn only when the user asks.
   Its prompt carries the decision, its reasoning, and the rejected alternatives, and asks where the decision is wrong.

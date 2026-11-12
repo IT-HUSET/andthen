@@ -8,10 +8,10 @@ How AndThen steers model and reasoning depth across Claude Code, Codex CLI, and 
 
 A subagent's model and effort are set per spawn call (the model where the host's spawn tool offers one, the effort on Codex) or pinned once by an agent definition loaded at session start. AndThen therefore ships its delegation policy in two parts:
 
-- **The Subagent Model Policy** (in the CRITICAL-RULES guideline `init` places in project or user rules) routes by task, on two questions: how pinned is the scope, and how much judgment does it take. Judgment work (orchestration, planning, spec authoring, architecture, design, ambiguous or creative work) stays in the **session**, whose model the user chose for exactly that; nothing routes above it.
+- **The Subagent Model Policy** (in the CRITICAL-RULES guideline `init` places in project or user rules) routes by task, on two questions: how pinned is the scope, and how much judgment does it take. Judgment work (orchestration, planning, spec authoring, architecture, design, ambiguous or creative work) stays in the **session**, whose model the user chose for exactly that; only the two `oracle` gates below route above it.
 - **Four opt-in role agents**, installed by `andthen:init` at user or project level in each host's format (`.md` for Claude Code, `.toml` for Codex, `.agent.md` for Copilot). Each role is a tier: a task shape with its own selection rule (below), pinned per host to the model and effort that rule picks. Two roles can share a model and differ by effort.
 
-- **`oracle`**: judgment work the user assigns it, and hard problems an agent hands over because they exceed its tier. The hand-over states what was tried, what every attempt assumed, and what stays unexplained. Never self-selected for routine judgment, never an agent's consult: a second opinion on a decision is the user's to ask for.
+- **`oracle`**: judgment work the user assigns it, and hard problems an agent hands over because they exceed its tier. The hand-over states what was tried, what every attempt assumed, and what stays unexplained. Never self-selected for routine judgment, never an agent's consult: a second opinion on a decision is the user's to ask for. Two skills name it at a gate, each once per run (ADR-031): `decide` takes its second opinion on the one-way doors before they are confirmed, and `plan` takes one on the reviewed spec and its open items before Preflight.
 - **`implementer`**: one fully specified unit, such as executing a story or spec, authoring a plan story's FIS, or research that weighs or synthesises.
 - **`reviewer`**: every review pass (code, doc, gap, per-story review, Critic). Its effort stays at `medium` unless reviews are observed missing defects, because higher review effort bred analysis-paralysis and scope creep, not findings.
 - **`worker`**: small, well-specified, verifiable subtasks (retrieval, scans, mechanical edits, fact lookups) with exact scope, output contract, and done-criterion in the prompt.
@@ -20,7 +20,7 @@ Nothing auto-loads: without the roles, delegation still works through the generi
 
 ### Overriding the default
 
-A project's own agent definitions win over the installed roles; a project or user that wants different routing edits the Subagent Model Policy in its own rules copy, and the nearest definition wins. Skill prompts name the role for each dispatch's **task shape** (`worker`, `implementer`, `reviewer`, or a generic inherited subagent for judgment), never a model or effort; the roles select those. The never-version-pin invariant governs AndThen's shipped content; a project's own copies are the project's to maintain.
+A project's own agent definitions win over the installed roles; a project or user that wants different routing edits the Subagent Model Policy in its own rules copy, and the nearest definition wins. Skill prompts name the role for each dispatch's **task shape** (`worker`, `implementer`, `reviewer`, `oracle` at its gates and `triage`'s hand-over, or a generic inherited subagent for judgment), never a model or effort; the roles select those. The never-version-pin invariant governs AndThen's shipped content; a project's own copies are the project's to maintain.
 
 ---
 
@@ -82,7 +82,7 @@ Copilot templates list one Anthropic and one OpenAI model per role, each the rul
 
 ### Planning sessions
 
-Planning (`clarify`, `plan`, `decide`, `architecture`) is judgment, so it stays in the session, and the session model is the user's to pick. The recommendation for it is the `oracle` template's model and effort for the host, because both are chosen for the hardest judgment: `plugin/README.md` says so, and a recalibration that changes the `oracle` pin changes the recommendation with it. Skill frontmatter carries no model or effort override (see How to set it).
+Planning (`clarify`, `plan`, `decide`, `architecture`) is judgment, so it stays in the session but for the two `oracle` gates, and the session model is the user's to pick. The recommendation for it is the `oracle` template's model and effort for the host, because both are chosen for the hardest judgment: `plugin/README.md` says so, and a recalibration that changes the `oracle` pin changes the recommendation with it. Skill frontmatter carries no model or effort override (see How to set it).
 
 ---
 

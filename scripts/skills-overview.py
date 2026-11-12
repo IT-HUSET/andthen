@@ -346,8 +346,8 @@ assert FOOT_Y + 16 <= y + SEC_H, (FOOT_Y, SEC_H)
 y = 454 + SEC_H + 16
 band(BX, y, BW, 64, "band-roles", "ROLES", "", "")
 text(BX + 22, y + 48, "Opt-in subagent tiers installed by init; each pins its model and effort.", "t2", 12)
-roles = [("oracle", "hard problems", ["Judgment work the user assigns it, and hard problems an agent hands over because they exceed its tier: a failure that",
-                                          "survives a real fix, a design that will not close, a cause the material at hand cannot explain."]),
+roles = [("oracle", "hard problems", ["Judgment the user assigns it, and hard problems an agent hands over because they exceed its tier: a failure that survives a real fix,",
+                                          "a design that will not close. decide and plan each take one read-only second opinion from it at a gate, once per run."]),
          ("implementer", "pinned work", ["One fully-specified unit of work: executing a story or spec, research that weighs or synthesises sources,",
                                               "authoring a FIS for a pinned plan story."]),
          ("reviewer", "every review", ["Any review, of any target, returning findings and a verdict. Read-only unless the prompt",
