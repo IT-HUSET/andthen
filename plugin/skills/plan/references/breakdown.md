@@ -50,7 +50,15 @@ A chain leg no story owns opens a story through Steps 2–4. Anything else the r
 
 ### 6. Preflight
 
-Take the second opinion as in the skill's step 8, over the whole bundle and the items so far: Step 1's unasked gaps, every open item a `--batch` report returned, and Step 5's residue.
+Before it, take one second opinion, once per run.
+
+- Spawn one fresh read-only oracle subagent with `plan.json`, every FIS, the source, the `Product` document, Step 5's return, and the items so far: Step 1's unasked gaps, every open item a `--batch` report returned, and Step 5's residue.
+  Its prompt names `self-review.md` § The contract by absolute path for the shape of a Note.
+- It returns the answer it would give each item, with its evidence.
+- It returns as a Note each answer that differs from, splits, or widens its item, and each guess an executor would still make that changes what gets built and that no item or Note names.
+- A returned Note with `blocks: no` routes as the skill's step 7 routes one, and any other is a Preflight item.
+- Close an item on a line it cites only after reading that line, and where you keep your answer over its, offer its as an alternative.
+
 Then run `preflight.md` once over the whole bundle, even when nothing is open.
 A batch `ASSUMPTION:` is a question the story subagent could not ask, not an answer: outside an unattended run, ask it like any other item.
 

@@ -71,16 +71,6 @@ Spawn one fresh reviewer subagent. Its prompt names `self-review.md` § FIS, `fi
 
 ### 8. Preflight _(skip under `--batch`)_
 
-Before it, take one second opinion, once per run.
-Without nested subagents, skip it, because in context it only agrees with you.
-
-- Spawn one fresh read-only oracle subagent with the FIS, its intent anchors, the self-review's return, and the open items, each `ASSUMPTION:` line in the FIS among them.
-  Its prompt names `self-review.md` § The contract by absolute path for the shape of a Note.
-- It returns the answer it would give each item, with its evidence.
-- It returns as a Note each answer that differs from, splits, or widens its item, and each guess an executor would still make that changes what gets built and that no item or Note names.
-- A returned Note with `blocks: no` routes as step 7 routes one.
-- Close an item on a line it cites only after reading that line, and where you keep your answer over its, offer its as an alternative.
-
 Run `preflight.md` over the FIS even when nothing is open. Each answer, Step 4's included, lands in the FIS prose that owns it, and a requirement-level one also reaches `prd.md` through the `andthen:clarify` skill's amendment for a `prd.md` source, because the outcome review reads the PRD, never the FIS.
 
 ### 9. Record the story _(skip under `--batch`)_

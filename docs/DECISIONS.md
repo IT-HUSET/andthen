@@ -23,7 +23,7 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 | [ADR-028](adrs/ADR-028-tracker-record.md) | Keep a feature's record in the issue tracker, opt-in per project | Accepted | `Record: repo \| tracker`; the PRD lives in the source issue, story issues carry intent and acceptance, `ship` writes the final record and the merge closes it; prose, no script |
 | [ADR-029](adrs/ADR-029-domain-skill-and-domain-map.md) | Model the domain in a `domain` skill, recorded in one Domain Map | Accepted | `domain` modes `subdomains`, `contexts`, `glossary`, `event-storming`; `DOMAIN-MAP.md` replaces `CONTEXT-MAP.md`; `context-map.json` retires; one Markdown-or-JSON rule |
 | [ADR-030](adrs/ADR-030-one-setup-script.md) | One setup script installs AndThen and places its role agents and rules | Accepted | `scripts/andthen.py` replaces both install scripts; opt-in user-level roles and rules, written only where no merge is needed; `validate-plugin.py`; white-label and `--claude-user` go |
-| [ADR-031](adrs/ADR-031-oracle-at-two-gates.md) | Name the `oracle` at two gates | Accepted | One read-only second opinion each: `decide` on its one-way doors before the playback, `plan` on the reviewed spec and its open items before Preflight; never self-selected |
+| [ADR-031](adrs/ADR-031-oracle-at-two-gates.md) | Name the `oracle` at two gates | Accepted | One read-only second opinion each: `decide` on its one-way doors before the playback, `plan` on a several-story bundle before Preflight; never self-selected |
 
 ## Superseded
 
