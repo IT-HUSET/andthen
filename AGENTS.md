@@ -77,11 +77,11 @@ Prompt-like text is written for frontier agents, and the **Skill-authoring guide
 ### Git Remotes
 
 One remote: `origin` is the public repo (`IT-HUSET/andthen`).
-`main` carries releases, tagged `v<version>` (`v0.40.4` is the last 0.x); `develop` carries the pre-releases, tagged `v<version>-rc.N`.
-Every change lands through a pull request from its `feat/<version>` branch, because CI runs on pull requests only.
-Work that needs pre-releases before it ships targets `develop`, and everything else targets `main`.
+`main` carries versions tested by real users on `develop`; tag `v<version>` on `develop` before that test period (`v0.40.4` is the last 0.x).
+Changes land through a pull request from their `feat/<version>` branch, because CI runs on pull requests only.
+Releases target `develop`; a patch may target `main`.
 `develop` always contains `main`, so a patch that lands on `main` is carried into `develop` in the same sitting.
-A release moves `main` only by fast-forwarding it to `develop`'s version commit, which fails once `main` holds work `develop` lacks.
+After user testing, promote the tagged commit to `main` by fast-forward, leaving later `develop` work out.
 Both paths' commands are in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
 
 ### Maintenance Contracts

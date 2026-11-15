@@ -152,7 +152,9 @@ The other twelve are `implement-fix`, `ship`, `triage`, `testing`, `architecture
 
 The [quick start](#quick-start) installs the latest release from `main` on all three plugin hosts. To pin a release, add its tag: `IT-HUSET/andthen@v1.0.0` on Claude Code and Codex, and `https://github.com/IT-HUSET/andthen.git#v1.0.0` on Copilot CLI, which takes a URL fragment instead of `@`.
 
-Pre-releases of the next version live on the `develop` branch. `IT-HUSET/andthen@develop` follows them (Copilot: `#develop`), and a tag such as `@v1.1.0-rc.1` pins one. If you installed a 1.0 release candidate from `@develop`, you are now on 1.0.0 and will get the next pre-releases: to get only releases, remove the marketplace and add it again as `IT-HUSET/andthen`.
+Versions are tagged on `develop` for testing by real users before the same commit reaches `main`.
+`IT-HUSET/andthen@develop` follows that testing branch (Copilot: `#develop`); a tag such as `@v1.2.0` pins one version, which may still be in testing.
+To follow only versions promoted to `main`, remove the marketplace and add it again as `IT-HUSET/andthen`.
 
 ### Upgrading from 0.x
 
