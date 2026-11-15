@@ -22,7 +22,7 @@ Write the FIS an unattended executor runs without asking: one story, or a `plan.
 - A story's `sourceRefs` cite each `#### FRn:` Feature Specification of a PRD it covers as its own entry at that heading's GitHub anchor (`#### FR2: Requirements tab` → `docs/specs/x/prd.md#fr2-requirements-tab`), because the `andthen:ship` skill traces each outcome's FR IDs through them.
   Other spans keep their own anchors, and a tracker item the PRD came from stays a URL entry beside them.
 - `Product`, `Decisions`, `Wireframes`, `Mockups`, `Design System`, `Issue Tracker` and `Specs & Plans` are Project Document Index entries.
-- Every dispatch is a fresh subagent: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
+- Every dispatch is a fresh subagent: the installed role agent it names (`oracle`, `implementer`, `reviewer`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
 
 ## Workflow
 
@@ -45,7 +45,7 @@ Read by condition:
 - Every run but `--batch`: [`preflight.md`](references/preflight.md), [`plan.schema.json`](../../references/plan.schema.json).
 - Several stories: [`breakdown.md`](references/breakdown.md) and [`plan-schema.md`](../../references/plan-schema.md). Follow the breakdown's own Steps 1–6 to its end; the steps below are the one-story path.
 - One story: [`fis-template.md`](references/fis-template.md), [`fis-contract.md`](../../references/fis-contract.md), [`fis-authoring-guidelines.md`](references/fis-authoring-guidelines.md).
-- Named in a fresh reviewer's prompt, never read by you: [`self-review.md`](../../references/self-review.md), with `fis-contract.md` and `fis-authoring-guidelines.md`.
+- Named in a subagent's prompt, and read by you only to run the self-review in context: [`self-review.md`](../../references/self-review.md), with `fis-contract.md` and `fis-authoring-guidelines.md`.
 
 ### 4. Settle the intent
 

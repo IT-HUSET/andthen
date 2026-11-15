@@ -26,7 +26,7 @@ Interview the user over the technical decisions a solution needs until each is m
 - **Fit over fashion.** Recommend from fit for this project, never popularity or novelty. Every alternative set includes the floor option per [`design-tree.md`](../../references/design-tree.md).
 - **Anchor on the `Product` document's Proportionality facts.** Drop or flag an option they do not carry or a standing technical non-goal forbids, citing the anchor (`flagged: exceeds stage prototype in docs/PRODUCT.md`). When the facts are absent, ask for all three in one question before you recommend, and write the answers into its Proportionality section, `unknown` for one left unanswered. An unattended run skips the question, writes nothing to `Product`, and says the anchor was unavailable.
 - A project document the run creates – `Decisions` on the first registration, `Product` on the first Proportionality answer – is seeded through a `worker` subagent that invokes the `andthen:init` skill with `seed <Index entry>` and the content to seed.
-- Every dispatch is a fresh subagent: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
+- Every dispatch is a fresh subagent: the installed role agent it names (`oracle`, `implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt.
 - No code changes.
 
 ## Workflow
@@ -50,15 +50,21 @@ Ask in rounds over the frontier: every question whose prerequisites are settled 
 
 A decision is **contested** when no option stands out: the options sit close on the criteria that matter, the evidence is missing, or the user asks for the comparison. Close options on a two-way door are not contested. A contested decision runs through [`trade-off.md`](references/trade-off.md) before you recommend, with its gates asked in the round where the decision sits. Its Findings Filter reviewer, not you, reads [`review-calibration.md`](../../references/review-calibration.md). A question only running code settles goes to the `andthen:spike` skill, whose Spike Verdict folds back in as evidence.
 
-Shared understanding is confirmed, not inferred. Play the settled set back in a few lines – each decision with its rationale and cost, and what stays open – and ask whether that is it. Ask in the user's words, not workflow vocabulary: no step name or term from this skill. In the same question, ask whether its ADRs go in `Accepted` or `Proposed` for others to sign off, with `Accepted` recommended since the user just settled them. A correction reopens the frontier.
+Before the playback, take one second opinion on the one-way doors the run decided, once per run:
 
-**Gate**: every decision answered by the user or parked as open, the settled set confirmed, and the ADR status chosen.
+- Spawn one fresh read-only oracle subagent with each one-way door, its rationale, the rejected alternatives, and the answers and Proportionality facts it rests on, asking where each is wrong.
+- It returns each objection with its evidence, or what it checked before agreeing.
+- An objection you accept reopens the frontier with that evidence.
+
+Shared understanding is confirmed, not inferred. Play the settled set back in a few lines – each decision with its rationale and cost, any objection the decision was kept over, with your reason, and what stays open – and ask whether that is it. Ask in the user's words, not workflow vocabulary: no step name or term from this skill. In the same question, ask whether its ADRs go in `Accepted` or `Proposed` for others to sign off, with `Accepted` recommended since the user just settled them. A correction reopens the frontier.
+
+**Gate**: every decision answered by the user or parked as open, the second opinion returned where the run decided a one-way door, the settled set confirmed, and the ADR status chosen.
 
 ### 3. Record
 
 Record each decision at its weight:
 
-- **An ADR** for a decision with real alternatives and consequences, from [`adr-template.md`](references/adr-template.md), in the `ADRs` location, else `docs/adrs/`, numbered after the existing ADRs or from `ADR-001`. Status is the one the user chose, `Proposed` in an unattended run. A `Proposed` ADR the user accepts here becomes `Accepted`, in its file and its row.
+- **An ADR** for a decision with real alternatives and consequences, from [`adr-template.md`](references/adr-template.md), in the `ADRs` location, else `docs/adrs/`, numbered after the existing ADRs or from `ADR-001`. Status is the one the user chose, `Proposed` in an unattended run. A `Proposed` ADR the user accepts here becomes `Accepted`, in its file and its row. A second-opinion objection the decision was kept over goes under *Consequences* with your reason.
 - **A Still Current line** for a load-bearing choice with no real alternative: `**<Topic>**: <decision + brief rationale>` under the `Decisions` document's **Still Current**.
 - **A Pending bullet** for a decision parked as open, and in an unattended run for a choice with no real alternative, since nobody settled it.
 

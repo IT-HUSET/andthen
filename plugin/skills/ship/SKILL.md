@@ -1,5 +1,5 @@
 ---
-description: Ship the current branch – land the plan's FIS Implementation Observations worth keeping, delete or keep its bundle and design folders, commit, then push and open the pull request on one ask. Trigger on 'ship it', 'open the PR', 'close out the plan'.
+description: Ship the current branch – land the plan's FIS Implementation Observations worth keeping, delete or keep its bundle and design folders, commit, then push and open the pull request. Trigger on 'ship it', 'open the PR', 'close out the plan'.
 argument-hint: "[--auto] [plan.json path] [notes for the pull request]"
 ---
 
@@ -21,10 +21,11 @@ A branch carrying a plan bundle – `plan.json` and the FIS files beside it – 
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
-- **Publishing waits for a yes.**
-  A push and a pull request leave the machine, so they wait for the user's yes.
+- **Publishing needs the user's yes.**
+  `--auto` supplies it for pushing the branch, publishing its required tracker record, and opening the pull request.
 - **Commit per [`verification-evidence.md`](../../references/verification-evidence.md) § The commit rule.**
   Its feature-branch ask joins step 1's question, because step 2 is the first edit.
+  Under `--auto` on the remote's default branch, start a feature branch before step 2 using the project's branch-start convention, else `<type>/<slug>`, so the push can open a pull request from it.
   This skill runs no checks, so in place of its green-work bullet it commits what step 1's gate cleared, and step 3's proof says what was verified.
   A change you cannot tie to the branch stays uncommitted, because it may be another session's work in progress.
 
@@ -52,6 +53,7 @@ Read every FIS's `## Implementation Observations`, those in `superseded/` includ
 ### 3. Write the pull request
 
 Write it for a reviewer deciding whether to merge.
+It covers the stories whose `plan.json` rows the branch's own commits changed, and every story when the base has no `plan.json`, because each story the base holds had its own pull request.
 The body is where the intent and proof outlive the branch, because the bundle is usually deleted and the review report usually never committed.
 A project's pull request template or named PR process sets the layout, and this content fills it.
 Put what the merge decision needs first, because a body the reviewer must scroll goes unread.
@@ -75,7 +77,7 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   - all work after the latest review report's `**Revision**`, committed or still in the tree, except this run's `Learnings` bullets and bundle commit.
     Say which of it the report's `**Remediated**:` line marks as fixes.
     A `-dirty` Revision cannot show which work the review read, so say so.
-    With no report, say no review ran.
+    With no report, say so.
 - **What stays open**: what the change knowingly leaves open, such as a finding or story the user shipped past.
 - **Pictures**: where a flow, structure, or state change reads faster as a picture, add the smallest view that makes the point.
   Use a Mermaid diagram where the host renders one, an SVG, or a pseudocode or tree block.
@@ -96,14 +98,14 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
 - Show the base branch, the commits leaving, the title, and the body.
 - Under `Record: tracker` with a plan bundle, invoke the `andthen:tracker` skill with `publish <plan.json> --dry-run` before asking.
   The question below also covers its preview.
-- Ask once whether to push and open it, and end the turn on the question.
+- Outside `--auto`, ask once whether to push and open it, and end the turn on the question.
   For a ready plan's tracked bundle, the same question asks whether to delete it, recommending deletion.
   It also names each feature folder under the `Wireframes` or `Mockups` locations that the branch added or the plan cites (`assetRefs`, its FIS files), never a location itself, and asks whether to delete them.
   Recommend deleting them unless their build is still to come: the plan is not ready, or the branch changed nothing outside design and spec folders.
   With no remote, ask only about the bundle and those folders, except under `Record: tracker`, where it waits for a publish.
   Offer screenshots or a recording for a visible UI change the request said nothing about.
-- On a yes under `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, add step 3's closing links, taking the issue numbers from those it reports, and put the parent issue's URL on `pr-section.md`'s `PRD:` line.
-- A deletion (step 1's "don't keep" answer included), the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead, there is no remote, or the run is `--auto`.
+- On a yes or under `--auto`, with `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, add step 3's closing links, taking the issue numbers from those it reports, and put the parent issue's URL on `pr-section.md`'s `PRD:` line.
+- A deletion (step 1's "don't keep" answer included), the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead or there is no remote.
 - On a delete, commit the deletion before the push: `plan.json`, its FIS files, any `intent.md` beside them, and any `superseded/` folder go, and the requirements file its `prd` names stays.
   A `prd.md` that stays gains a `> **Shipped**: <UTC ISO-8601 minute>` header line in the same commit.
   Under `Record: tracker` in the `Issue Tracker` document, that file goes too once the issues are published, because they then carry the record, and until then the bundle stays, because the issue bodies are written from it.
@@ -114,9 +116,10 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   An untracked one is written once the pull request opens, else at the run's end with `pr` null, and left uncommitted.
 - Before the push, capture the screenshots or recording the request asked for or the answer took up, per the `Visual Validation` document.
   Attach each image through an upload the host accepts, else list it for the user to attach.
-- Under `--auto`, stop before anything leaves the machine.
+- With consent and a remote, push the branch and open the pull request.
 
 **Gate**: no push before any bundle or design-folder deletion or tracked `shipped` marker is committed, and the pull request's URL, or its title, body, and the commands still to run to open it.
+Under `--auto` with a remote, an incomplete publication ends on `BLOCKED:`.
 
 ## Output
 

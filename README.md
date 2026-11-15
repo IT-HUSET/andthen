@@ -70,7 +70,11 @@ The path through the workflow:
 3. **`plan`** writes the specs. It decides whether the work is one story or several.
 4. **`exec-plan`** builds the stories, one per fresh session. For each one it writes the code and tests, runs every check, has a fresh subagent review it, commits, and then simplifies the result. What a story learns goes into the stories still to run.
 5. **`review --fix`** reviews the finished work as a whole and applies the findings it marks `Fix`. Findings marked `Note` are left for you to decide. A clean review ends on a `Next (fresh session):` line for `ship`.
-6. **`ship`** lands what each story's `Implementation Observations` hold worth keeping, commits, and shows the PR title and body (a merge request on GitLab). It pushes and opens it after your one yes, and that question also asks whether to delete `plan.json` and the FIS files. The PR body states the change's intent, outcomes, and proof, in your PR template when you have one. With `prd.md`, it is where the stories' intent outlives deleted FIS files, however you merge.
+6. **`ship`** lands what each story's `Implementation Observations` hold worth keeping, commits, and shows the PR title and body (a merge request on GitLab).
+   It pushes and opens it after your one yes, and that question also asks whether to delete `plan.json` and the FIS files.
+   `ship --auto` authorizes publication without a question and takes the cleanup recommendations.
+   The PR body states the change's intent, outcomes, and proof, in your PR template when you have one.
+   With `prd.md`, it is where the stories' intent outlives deleted FIS files, however you merge.
 
 Every step ends by printing the full next command to paste, including its target and required arguments. Not sure where you are? `/andthen:now-what` reads your project state and sends you to the right skill.
 
@@ -108,7 +112,8 @@ You answer when `clarify` and `decide` interview you and when `plan` asks its pr
 
 - **After `clarify`** – read `prd.md`. Every story is cut from it, and it is the one planning file that survives the merge, unless your requirements live in the tracker.
 - **After `decide`**, when it ran – read the ADRs. Every later skill treats them as settled.
-- **At the PR** – review it as you would any PR. `ship` lands the observations worth keeping and prints its recommendations for the rest, so read those and settle the review's open `Note` findings, which are decisions left to you, before you say yes to its push-and-PR question.
+- **At the PR** – review it as you would any PR.
+  In an attended run, `ship` lands the observations worth keeping and prints its recommendations for the rest, so read those and settle the review's open `Note` findings before you say yes to its push-and-PR question.
 
 Two more reads pay off when you have the time: the FIS files after `plan`, with what you decided and what the run assumed listed above the next command, and the review report.
 
@@ -147,7 +152,9 @@ The other twelve are `implement-fix`, `ship`, `triage`, `testing`, `architecture
 
 The [quick start](#quick-start) installs the latest release from `main` on all three plugin hosts. To pin a release, add its tag: `IT-HUSET/andthen@v1.0.0` on Claude Code and Codex, and `https://github.com/IT-HUSET/andthen.git#v1.0.0` on Copilot CLI, which takes a URL fragment instead of `@`.
 
-Pre-releases of the next version live on the `develop` branch. `IT-HUSET/andthen@develop` follows them (Copilot: `#develop`), and a tag such as `@v1.1.0-rc.1` pins one. If you installed a 1.0 release candidate from `@develop`, you are now on 1.0.0 and will get the next pre-releases: to get only releases, remove the marketplace and add it again as `IT-HUSET/andthen`.
+Versions are tagged on `develop` for testing by real users before the same commit reaches `main`.
+`IT-HUSET/andthen@develop` follows that testing branch (Copilot: `#develop`); a tag such as `@v1.2.0` pins one version, which may still be in testing.
+To follow only versions promoted to `main`, remove the marketplace and add it again as `IT-HUSET/andthen`.
 
 ### Upgrading from 0.x
 

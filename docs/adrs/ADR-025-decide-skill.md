@@ -7,6 +7,8 @@ Amends [ADR-020](ADR-020-one-authoring-and-one-execution-skill.md) and [ADR-021]
 
 *Amended 2026-10-06: each decision decided here is labelled a one-way or two-way door, and the ADR template gains a `**Reversal**` line under Consequences. Close options on a two-way door no longer count as contested, because either pick is cheap to reverse. Missing evidence or the user's request still runs the trade-off analysis for any door, so a two-way door keeps it where it matters. Running it for every one-way door was rejected, because on an uncontested choice it mostly confirms the recommendation.*
 
+*Amended 2026-11-12: before the playback, a run that decided a one-way door takes one `oracle` second opinion on them (ADR-031). The rejection above stands for the trade-off analysis. This is one read over the settled set, not a research run per decision, and it may mostly confirm too.*
+
 ## Context
 
 Every route to a decision record goes through `architecture --mode trade-off`. Seven skills send their open decisions there:

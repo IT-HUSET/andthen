@@ -6,7 +6,7 @@
 
 ## Current ADRs
 
-ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-031.
+ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-032.
 
 | ID | Title | Status | Scope |
 |----|-------|--------|-------|
@@ -18,11 +18,12 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 | [ADR-022](adrs/ADR-022-init-asks-only-what-it-cannot-infer.md) | `init` asks only what it cannot infer | Accepted | Core documents on first write; Proportionality asked at first use |
 | [ADR-024](adrs/ADR-024-plan-names-and-story-status-writers.md) | Name the skills `plan` and `exec-plan`, and give every story status a writer | Accepted | `spec` → `plan`, `exec-spec` → `exec-plan`; statuses `pending`/`in-progress`/`done`/`skipped`; `skipped` blocks dependents |
 | [ADR-025](adrs/ADR-025-decide-skill.md) | Make and record technical decisions in a `decide` skill | Accepted | `decide` interviews over technical decisions and writes ADRs; `architecture` loses `trade-off` and `advise`'s Design sub-mode |
-| [ADR-026](adrs/ADR-026-ship-skill.md) | Ship the branch with a `ship` skill | Accepted | `ship` owns the close-out on any branch: lands FIS observations, deletes or keeps the bundle on one ask, commits, one ask before push and PR; the printers hand off to it |
+| [ADR-026](adrs/ADR-026-ship-skill.md) | Ship the branch with a `ship` skill | Accepted | `ship` closes out the branch; attended publication asks once, `--auto` authorizes push, tracker publication, and PR creation |
 | [ADR-027](adrs/ADR-027-visualize-skill.md) | Draw AndThen artifacts as checked pages with a small `visualize` skill | Accepted | Model-written self-contained HTML with inline SVG, gated by a render-and-look loop; any artifact; `now-what` drops its notes route |
 | [ADR-028](adrs/ADR-028-tracker-record.md) | Keep a feature's record in the issue tracker, opt-in per project | Accepted | `Record: repo \| tracker`; the PRD lives in the source issue, story issues carry intent and acceptance, `ship` writes the final record and the merge closes it; prose, no script |
 | [ADR-029](adrs/ADR-029-domain-skill-and-domain-map.md) | Model the domain in a `domain` skill, recorded in one Domain Map | Accepted | `domain` modes `subdomains`, `contexts`, `glossary`, `event-storming`; `DOMAIN-MAP.md` replaces `CONTEXT-MAP.md`; `context-map.json` retires; one Markdown-or-JSON rule |
 | [ADR-030](adrs/ADR-030-one-setup-script.md) | One setup script installs AndThen and places its role agents and rules | Accepted | `scripts/andthen.py` replaces both install scripts; opt-in user-level roles and rules, written only where no merge is needed; `validate-plugin.py`; white-label and `--claude-user` go |
+| [ADR-031](adrs/ADR-031-oracle-at-two-gates.md) | Name the `oracle` at two gates | Accepted | One read-only second opinion each: `decide` on its one-way doors before the playback, `plan` on a several-story bundle before Preflight; never self-selected |
 
 ## Superseded
 

@@ -59,7 +59,7 @@ Document each issue with severity, location, symptoms, and the relevant error ou
 
 Work in dependency order, validating each fix before moving on:
 
-1. Make fixes plus Boy Scout tidies. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. Read the `Tech Debt` backlog when the area under repair has a listed item: the entry states what was deferred there and why.
+1. Make fixes plus Boy Scout tidies. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. So is the minimum fix to an issue elsewhere that blocks a required check. Read the `Tech Debt` backlog when the area under repair has a listed item: the entry states what was deferred there and why.
 2. For a reproducible bug, a failing test that proves the defect precedes the fix, written through the `andthen:testing` skill.
 
 **Gate**: critical and high-priority issues resolved.

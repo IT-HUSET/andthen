@@ -13,6 +13,7 @@ Ask every gap the cut or a story's intent turns on, at requirements altitude –
 ### 2. Cut the stories
 
 Cut the fewest stories that cover the source, none overlapping, each a vertical slice demoable through every layer.
+A story with no user-facing behavior (infrastructure, a migration) is cut by module and proven by tests.
 
 - **Single-session rule**: a story fits one fresh-context exec run with headroom, the measure in the skill's step 3. An oversized story splits into thinner vertical slices, never into layers.
 - **Walking skeleton**: where the source's main flow crosses several stories or code the plan does not change, the first story is that flow's walking skeleton; its `scope` says so and names the flow.
@@ -49,7 +50,17 @@ A chain leg no story owns opens a story through Steps 2–4. Anything else the r
 
 ### 6. Preflight
 
-Run `preflight.md` once over the whole bundle, even when nothing is open. Its items are Step 1's unasked gaps, every open item a `--batch` report returned, and Step 5's residue. A batch `ASSUMPTION:` is a question the story subagent could not ask, not an answer: outside an unattended run, ask it like any other item.
+Before it, take one second opinion, once per run.
+
+- Spawn one fresh read-only oracle subagent with `plan.json`, every FIS, the source, the `Product` document, Step 5's return, and the items so far: Step 1's unasked gaps, every open item a `--batch` report returned, and Step 5's residue.
+  Its prompt names `self-review.md` § The contract by absolute path for the shape of a Note.
+- It returns the answer it would give each item, with its evidence.
+- It returns as a Note each answer that differs from, splits, or widens its item, and each guess an executor would still make that changes what gets built and that no item or Note names.
+- A returned Note with `blocks: no` routes as the skill's step 7 routes one, and any other is a Preflight item.
+- Close an item on a line it cites only after reading that line, and where you keep your answer over its, offer its as an alternative.
+
+Then run `preflight.md` once over the whole bundle, even when nothing is open.
+A batch `ASSUMPTION:` is a question the story subagent could not ask, not an answer: outside an unattended run, ask it like any other item.
 
 Integrate each answer yourself where it is owned:
 

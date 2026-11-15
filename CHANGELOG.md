@@ -6,6 +6,21 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [1.2.0] – 2026-11-15
+
+### Fixed
+- **The critical-rules starter and the `concise-critical` output style get back rules that earlier rewrites dropped**: subagent labels lead with the role or model family, with Claude Code's Agent `name` left unset; a failing check is fixed, never bypassed; and the minimum fix to an issue elsewhere that blocks a required check counts as a Boy Scout tidy, in `implement-fix`, `exec-plan`, `triage`, and `testing` too. The output style again names forced triads and candour commentary as AI tells, and a later list of reference codes numbers on. Rerun `init`'s rules offer, or `andthen.py install --rules` after removing the old block, to update an installed copy.
+- **Skills get back guards the 1.0 rework dropped.** A `review` Fix never reverts a change it cannot attribute to the reviewed work. `simplify-code` defers changes to code no baseline check exercises. `tracker publish` stops at the preview on a body over the tracker's limit (GitHub: 65,536 characters) instead of shortening it. `plan` cuts a story with no user-facing behavior by module, proven by tests.
+- **`ship` writes a story PR for that story only**: the body, Ship summary, and issues to close cover the stories whose `plan.json` rows the branch's own commits changed, not stories already merged into its base. A body with no review report no longer claims no review ran.
+- **`decide`'s trade-off scores share one scale.** Each option's research subagent returns evidence against the confirmed criteria, and the session scores every option criterion by criterion. Previously each subagent scored only its own option. The Findings Filter reviewer now gets the scores and their evidence.
+
+### Changed
+- **`ship --auto` pushes the branch and opens its pull request.** The flag also authorizes required tracker publication and starts a feature branch when invoked on the remote's default branch. Attended runs keep the preview and confirmation before publication.
+- **`decide` and `plan` each name the `oracle` role at one gate (ADR-031).** `decide` takes one second opinion on the one-way doors a run decided, before you confirm them. `plan`, when it breaks the work into several stories, takes one on the reviewed specs before its final questions: an answer for each open item, and what the specs still leave an executor to guess. A one-story `plan` run takes none. Both are read-only. In a Claude Code measurement the `plan` one caught the build-changing gaps the self-review had missed, for about $2.90 and five minutes more per several-story plan. Rerun `init` to refresh installed role agents and rules.
+- **`init`'s role agents are recalibrated against private-task coding benchmarks and measured cost per task.** The Claude Code and Copilot `implementer` runs Opus instead of Sonnet, at `high` effort. The Codex and Copilot `worker` uses GPT-6.1 Terra instead of GPT-6 Luna, at `medium` on Codex, which needs Codex CLI 0.159.0 or later. The Subagent Model Policy drops its S/A/B tier letters, and without roles a generic subagent always runs on the session's model. To update an installed copy, rerun `init`, or run `andthen.py install --roles` or `--rules`.
+
+---
+
 ## [1.1.0] – 2026-11-10
 
 ### Added

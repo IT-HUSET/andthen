@@ -258,13 +258,13 @@ Naming modes in order, as in the last prompt, runs them in that order sharing co
 
 ### A second opinion before committing to a decision
 
-**Situation.** The session has proposed a design, a scope cut, or a plan shape, and you want an independent view before acting. Nothing spawns this on its own – you ask.
+**Situation.** The session has proposed a design, a scope cut, or a plan shape, and you want an independent view before acting. `decide` takes one on its own for the hard-to-reverse decisions it is about to record, and `plan` takes one before its final questions when it breaks the work into several stories. Anywhere else, a one-story spec included, nothing spawns this on its own – you ask.
 
 ```
 "Sounds good – but before we go on, ask an oracle subagent for a second opinion: give it the decision, your reasoning, and the alternatives you rejected, and ask where it's wrong."
 ```
 
-**Expect.** The subagent sees none of the conversation, so the hand-over (decision, reasoning, rejected alternatives, constraints) is all it can judge. It returns the failure mode or wrong assumption it finds, with evidence, or an agreement that names what it checked. It touches nothing; the decision stays yours. Without the `oracle` role installed, a generic subagent takes the same hand-over.
+**Expect.** The subagent sees none of the conversation, so the hand-over (decision, reasoning, rejected alternatives, constraints) is all it can judge. It returns the failure mode or wrong assumption it finds, with evidence, or an agreement that names what it checked. It touches nothing; the decision stays yours. Without the `oracle` role installed, a generic subagent takes the same hand-over. To get one every time, write the ask as a standing rule in your project's instruction file. A rule you wrote counts as your ask.
 
 **Elsewhere.** An artifact with a rubric (a PRD, a plan, a FIS, a diff) is `review`. A question only measurement settles is the `spike` skill. Claude Code's built-in advisor is the model-initiated form ([Delegation](plugin/README.md#delegation)).
 
@@ -283,6 +283,7 @@ Every skill in the chain takes the same flag:
 /andthen:plan --auto docs/requests/workspace-invitations.md    # open questions → ASSUMPTION: lines
 /andthen:exec-plan --auto docs/specs/workspace-invitations/    # runs every ready story
 /andthen:review --auto --fix docs/specs/workspace-invitations/plan.json   # the Next (fresh session): line exec-plan printed
+/andthen:ship --auto docs/specs/workspace-invitations/plan.json   # pushes the branch and opens the PR
 ```
 
 **Expect.** Every pipeline skill after requirements reads `--auto` the same way: no prompts, and a stop only on an unusable call, ending on `BLOCKED: <what is needed>`.
@@ -291,6 +292,8 @@ Every skill in the chain takes the same flag:
 - `plan` records each open question's recommendation in the FIS as an `ASSUMPTION:`. Its `Next` line names the first story's FIS, for a person running story by story; the chain runs the plan directory.
 - `exec-plan` on a plan leaves a failed story `in-progress`, skips its dependents, finishes the rest, and ends with the aggregate report. It never reviews the plan itself: the `Next (fresh session):` line is the review, and something has to launch it.
 - `review --fix` passes the flag on to `implement-fix`, which gives every `Note` and `NOTICED BUT NOT TOUCHING` item an interactive run would hand back one disposition: applied, deferred to the Tech Debt Backlog, or closed with a reason.
+- `ship --auto` authorizes the push, PR creation, and required tracker publication, taking the bundle and design-folder cleanup recommendations.
+  The runner still needs credentials and permission to publish.
 
 **Chaining the stages.** An authoring skill prints one next-step line and stops, because the next stage wants a clean context. Put the chain where the trigger and authorization already live, such as a CI job keyed to the merge:
 
@@ -427,6 +430,7 @@ Under `Record: repo`, a PRD leaves `prd.md` behind as the requirements record; a
 /andthen:tracker publish docs/specs/workspace-invitations/plan.json
 git switch -c feat/S02-accept-an-invitation                                     # {type}/{story-id}-{slug}
 /andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md
+/andthen:ship                                                                   # the story PR into the milestone branch, bundle kept
 /andthen:tracker publish docs/specs/workspace-invitations/plan.json             # refresh, from the milestone branch
 ```
 
@@ -497,7 +501,7 @@ Reference for [the workflow](README.md#the-workflow): what each step reads and w
 | Plan | `plan` | a description, a `prd.md` (or its directory), a requirements file, a tracker issue | `plan.json` – the stories, their dependencies and status – plus one FIS per story |
 | Build | `exec-plan`, on a FIS or the plan directory | `plan.json` and the FIS | the code, one commit per story with `Story-ID:` and `Plan:` trailers, each story `done` in `plan.json` |
 | Review and fix | `review --fix` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json`, and the fixes |
-| Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle and design folders deleted, or kept (the bundle marked `shipped`); `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation |
+| Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle and design folders deleted, or kept (the bundle marked `shipped`); `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation or under `--auto` |
 
 `plan` sizes the work before it writes a FIS. When a story still turns out too big for one run, it offers to split it – in the same run for a written source, through `clarify` for a description. `review --fix` is one review and one fix round; when it fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it prints a follow-up review as its `Next (fresh session):` line. Once the plan's stories are all `done` or `skipped` (cut from scope) and nothing CRITICAL or HIGH is open, its `Next (fresh session):` line runs `ship` instead; `implement-fix` run on the report closes the same way.
 
@@ -528,7 +532,10 @@ Design comes in before the spec, on your answer: `clarify` asks, with the closin
 - **Outer loop, once per initiative** – `clarify`, then `plan`: what and why, then a FIS per story.
 - **Inner loop, once per story** – `exec-plan`: build one story and prove it, review included, then on a team its PR into the milestone branch. Run it one story per session and read each result before the next. On the plan directory `exec-plan` runs this loop for you without stopping, one story at a time in the shared tree, or independent stories in parallel under `--worktree`, one worktree each.
 
-**When the PR opens.** `ship` opens it, after one confirmation. The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR. On a team, `ship` on a story branch opens the story PR and asks whether to keep the bundle, recommending keeping it, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it.
+**When the PR opens.** `ship` opens it after one confirmation, or without asking under `--auto`.
+The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR.
+On a team, attended `ship` on a story branch opens the story PR and asks whether to keep the bundle, recommending keeping it, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it.
+Story PRs can target the default branch instead, but the milestone branch is recommended, because each story PR carries only its story's quick review, and the plan-level review reads every story before any reaches the default branch.
 
 This is a scope-and-cadence split, not the DevEx sense of inner loop (edit-build-test) versus outer loop (CI/CD). A third motion, the **knowledge cycle**, is not a loop: FIS `Implementation Observations` graduate into `LEARNINGS.md` at close-out through `ship`, which recommends the `DECISIONS.md` lines, recurring review traps become lint rules or tests, and settled trade-offs become ADRs.
 
@@ -764,11 +771,12 @@ Same three steps each, from an up-to-date `1.2`:
 ```
 git switch -c feat/S02-accept-an-invitation 1.2
 /andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md
+/andthen:ship
 ```
 
 S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied.
 
-S03 `dependsOn` S02, so it starts only after S02 merged. S02 found one constraint for it, that the revoke endpoint must invalidate the queued email too. Before its commit, S02's run appended it under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` and named that FIS in its report, so you read the constraint before S03's session and it reached `1.2` with S02's PR.
+S03 `dependsOn` S02, so it starts only after S02 merged. To start it sooner, branch it from S02's branch, and once S02 squash-merges, move it with `git rebase --onto 1.2 feat/S02-accept-an-invitation`, because merging `1.2` into it conflicts in the FIS both stories appended to. S02 found one constraint for it, that the revoke endpoint must invalidate the queued email too. Before its commit, S02's run appended it under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` and named that FIS in its report, so you read the constraint before S03's session and it reached `1.2` with S02's PR.
 
 Between stories, state is one ask away:
 

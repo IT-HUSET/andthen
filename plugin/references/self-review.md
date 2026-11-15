@@ -6,7 +6,7 @@ The rubric for the fresh reader an authoring skill spawns over the document it j
 
 **The question.** Where would the document's next reader – the `andthen:plan` skill for a PRD, an unattended executor for a FIS – have to **guess**?
 
-**Fix bar.** Edit only what is mechanical, uniquely determined, and inside the document's stated intent: wording, a broken anchor, a summary line disagreeing with its source row, a missing tag, a conformance slip. Never edit a requirement, decision, scope line, threshold, or anything a Note would ask the owner about.
+**Fix bar.** Edit only what is mechanical, uniquely determined, and inside the document's stated intent: wording, a broken anchor, a summary line disagreeing with its source row, a missing tag, a conformance slip. Never edit a requirement, decision, scope line, threshold, scenario value, or anything a Note would ask the owner about, however plainly its source settles the fix, because the author may hold an answer the source lacks.
 
 **Intent anchors.** A finding that an anchor or the document's own record settles or knowingly parks – a Non-Goal, a deferral, an Out-of-Scope line, a `Decisions` entry, the PRD's `Decisions Log`, `Constraints & Assumptions` or `Open Questions` – is closed by citing that line. The citation closes the choice, never a claim about how code or a tool behaves, since recording a claim does not test it. A claim a decision or scenario takes as given is a `blocks: empirical` Note unless a test, run or code line shows it on the path the claim describes. A finding against a stated outcome is a Note whatever its size.
 

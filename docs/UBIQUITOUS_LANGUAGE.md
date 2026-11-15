@@ -61,7 +61,7 @@
 | Stop-the-Line | Execution discipline that treats objective red gates as work to finish before advancing or claiming completion. | fail-fast, stop work |
 | Objective Red Gate | Binary failing check such as build, test, lint, type-check, wiring check, or task Verify line. | blocker |
 | Subjective Finding | Review or visual-validation finding that requires judgment rather than a binary check. | review issue |
-| Boy Scout tidy | A behavior-preserving fix in an edited function or doc section, or a minor one elsewhere, or an obvious small bug in an edited function fixed under a failing test; named in the report. | drive-by refactor, cleanup pass |
+| Boy Scout tidy | A behavior-preserving fix in edited code or a minor one elsewhere, a small bug in an edited function fixed under a failing test, or the minimum fix to a required check's blocker; named in the report. | drive-by refactor, cleanup pass |
 | NOTICED BUT NOT TOUCHING | Report label for an issue no tidy can fix and the task did not ask for, that someone should act on. | out-of-scope notes, FYI |
 | Verification tier | `Key Dev Commands` tier: `fast` for each plan story; `full` for a direct story run or a plan run at convergence. | quick tests, full suite |
 | Traceability Gate | Requirement that tests and motivated code changes trace to FIS requirements or explicitly appended discovered requirements. | trace check |
@@ -103,7 +103,7 @@
 | Shared Plugin Asset | Canonical file under `plugin/references/` consumed by multiple skills and inlined during loose installs. | shared reference, shared doc |
 | Generic Subagent | The one delegation shape AndThen uses: a host-provided general subagent whose prompt invokes a skill or loads a reference. | custom agent, persona agent, docs agent, sub-agent |
 | Role Agent | One of four opt-in subagent definitions – `oracle`, `implementer`, `reviewer`, `worker` – shipped as templates by the `andthen:init` skill and installed at user or project level. | tier agent, model agent, oracle skill, reviewer agent |
-| Model Tier | A capability class – S, A, B, by default a host's top three models – whose model is a shifting recommendation; the Subagent Model Policy defines it, each Role Agent pins one. | top model, cheap model, strongest model |
+| Model Tier | A Role Agent's task shape in the Subagent Model Policy, whose template pins a model and effort per host by the Model & Effort Selection Guide's rule. | S-tier, A-tier, B-tier, top model, cheap model, strongest model |
 | Live Eval Run | One eval case dispatched to a real model through DartClaw – a cell per case and host under the `smoke` or `full` tier; the user is asked before it starts. | paid run, paid cell, paid eval, benchmark |
 
 ## Overloaded Terms

@@ -68,6 +68,7 @@ On GitHub, `list issues` for a line is `gh issue list --state all --json number,
 #### Preview and send
 
 Compare each composed body with the issue's text below its line. Show each issue to create and what each update changes, and ask once before the first write, because an update replaces an edit made in the tracker since the last publish. An edit worth keeping goes into its source first: `prd.md` through the `andthen:clarify` skill, or the story's FIS. When the skill that invoked this run already showed this preview and got a yes, as the `andthen:ship` skill does, that answer is the ask.
+A body over the tracker's limit (GitHub: 65,536 characters) stops the run at the preview, never shortened, because the issue can become the PRD's only copy.
 
 `--dry-run` prints the preview and stops before any write. An unattended run skips the ask.
 

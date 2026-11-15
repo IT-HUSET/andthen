@@ -22,12 +22,17 @@ Run from the repo root. `{file}` is a dotted module path (not a slash path); `{t
 
 ## Release
 
-Run with the user present: step 4 is a `git push`, an `ask` rule on purpose, and an unattended one has waited hours for approval.
+Publish with the user's authorization; a push without it has waited hours for approval in an unattended run.
 
 1. Bump the version in the four places `AGENTS.md` § Plugin manifests names, unless the branch's first commit already did, and set `## [<version>]` in `CHANGELOG.md` to `## [<version>] – <date>`, with the date from `date +%Y-%m-%d` at tag time (rename `## [Unreleased]` if that is still the heading). Run the `full` tier, then commit titled `<version>`.
 2. Update your installs on every host with the refresh command above and restart sessions: Claude Code and Codex cache by version, so a session otherwise loads the previous release's skills.
-3. Squash the branch onto `develop`: `git fetch origin`, then `git commit-tree 'HEAD^{tree}' -p origin/develop -m <version>` prints `<sha>`, and `git tag -a v<version> -m <version> <sha>`.
-4. Last, `git push origin <sha>:refs/heads/develop v<version>`. A release (no `-rc.N`) adds `<sha>:refs/heads/main` to that push: `main` only ever moves to a commit on `develop`, so it fast-forwards with no force, and a rejected `main` means something landed on `main` alone.
+3. Open the feature branch's pull request into `develop`, wait for its checks, and squash-merge with title `<version>` and a message pointing to its CHANGELOG section.
+4. Run `git fetch origin`, then tag the merged commit with `git tag -a v<version> -m <version> <sha>`, where `<sha>` is the squash merge's commit, and publish it with `git push origin v<version>`.
+   Leave `main` in place while real users test the tagged version on `develop`.
+
+After the maintainer accepts that testing, fetch origin and verify the tagged commit contains `origin/main` and belongs to `origin/develop` with `git merge-base --is-ancestor origin/main 'v<version>^{commit}'` and `git merge-base --is-ancestor 'v<version>^{commit}' origin/develop`.
+Promote that exact commit with `git push origin 'v<version>^{commit}:refs/heads/main'`.
+A rejected fast-forward means `main` holds work the tested commit lacks; integrate it and test a new version rather than moving the tag or forcing the push.
 
 A patch whose pull request targets `main` (`AGENTS.md` § Git Remotes) replaces steps 3–4.
 Its version bump and dated `CHANGELOG.md` heading go in the pull request, dated the day you merge and tag, because nothing is committed to `main` outside one.

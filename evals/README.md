@@ -11,7 +11,7 @@ A subject workflow that sets `prompt: "prompt.md"` makes the subject read that f
 Every cell runs a snapshot of the working tree's `plugin/`, copied into the run's `candidate/` – uncommitted edits included, never the installed plugin. Cells run on a dirty tree all report the same `candidate:` SHA, so group them by grepping each cell's `candidate/plugin/` for the clause in question. A run stages under `$TMPDIR/andthen-evals/` and moves to `.agent_temp/evals/<case>/<provider>/<stamp>/` when it ends, because Claude loads every `CLAUDE.md` above its working directory and this repo's would reach the subject.
 
 - **Claude** cells keep the operator's environment for the login only: `inherit_user_settings: false` spawns the CLI with project-only setting sources, so `~/.claude/CLAUDE.md`, memory, the output style, and user MCP servers stay out. The cell's `claude` wrapper loads the candidate with `--plugin-dir`, and the role agents `init` bundles are committed into the workspace as project agents.
-- **Codex** cells register the candidate under the `CODEX_HOME` DartClaw pins.
+- **Codex** cells register the candidate under the `CODEX_HOME` DartClaw pins, with the Codex role agents in its `agents/`. A subagent's `session_meta` records the role it ran as (`agent_role`) and its `turn_context` the model and effort, so read a dispatch back from those.
 
 A case keeps its directory name through a skill rename, because retained runs are filed under it ([ADR-020](../docs/adrs/ADR-020-one-authoring-and-one-execution-skill.md)): `spec` and `spec-two-stories` run the `plan` skill.
 
