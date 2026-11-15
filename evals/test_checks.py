@@ -1546,27 +1546,42 @@ class RunnerTest(unittest.TestCase):
             self.assertTrue((live / "data" / "credentials" / "codex" / "auth.json").is_file())
         self.assertNotIn(stage.REPO_ROOT, stage.STAGING.parents)
 
-    def test_a_claude_workspace_carries_the_role_agents_in_its_baseline(self):
-        """User settings no longer reach a Claude subject, and neither do the
-        role agents `init` installs under ~/.claude/agents; without a `reviewer`
-        role, critics ran as general-purpose at high effort. The candidate's own
-        definitions are committed as project agents, the one scope project-only
-        setting sources load, so the diff the checks weigh is the subject's
-        alone. A Codex cell reads no .claude/ directory and gets none."""
+    def test_a_cell_carries_its_providers_role_agents(self):
+        """Neither host's user-level agents reach a subject: a Claude cell loads
+        project setting sources only, and a Codex cell runs under the CODEX_HOME
+        DartClaw pins. Without a `reviewer` role, critics ran as general-purpose
+        at high effort, and until 2026-11-15 every Codex cell ran that way, so a
+        Codex pass said nothing about a role's pin or its dispatch by name. A
+        Claude cell's are committed as project agents, so the diff the checks
+        weigh is the subject's alone. A Codex cell's sit in its CODEX_HOME, the
+        one placement Codex was seen to load, and never in the workspace. A
+        Codex judge under a Claude subject gets none."""
+        case = self.make_case({})
+
+        def names(directory):
+            return sorted(p.name for p in directory.iterdir())
+
         run = self.run_dir()
         stage.stage_candidate(run / "candidate")
-        case = self.make_case({})
-        roles = sorted(p.name for p in (stage.REPO_ROOT / stage.ROLES).iterdir())
-        self.assertIn("reviewer.md", roles)
-
+        claude = names(stage.REPO_ROOT / stage.ROLES / "claude")
+        self.assertIn("reviewer.md", claude)
         workspace = stage.stage_workspace(run, case, roles=True)
-        agents = workspace / ".claude" / "agents"
-        self.assertEqual(roles, sorted(p.name for p in agents.iterdir()))
+        self.assertEqual(claude, names(workspace / ".claude" / "agents"))
         self.assertEqual("", stage.git(workspace, "status", "--porcelain"))
 
-        other = self.run_dir()
-        stage.stage_candidate(other / "candidate")
-        self.assertFalse((stage.stage_workspace(other, case) / ".claude").exists())
+        run = self.run_dir()
+        stage.stage_candidate(run / "candidate")
+        codex = names(stage.REPO_ROOT / stage.ROLES / "codex")
+        self.assertIn("reviewer.toml", codex)
+        stage.register_codex(run, roles=True)
+        workspace = stage.stage_workspace(run, case)
+        self.assertEqual(codex, names(run / "data" / "credentials" / "codex" / "agents"))
+        self.assertFalse((workspace / ".claude").exists() or (workspace / ".codex").exists())
+
+        run = self.run_dir()
+        stage.stage_candidate(run / "candidate")
+        stage.register_codex(run)
+        self.assertFalse((run / "data" / "credentials" / "codex" / "agents").exists())
 
     def test_check_level_error_sets_error(self):
         """A check that could not run leaves result.json saying only

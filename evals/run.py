@@ -157,7 +157,7 @@ def _execute(cell, staged, case_dir, provider, candidate_dir):
     os.utime(str(candidate_dir))
     stage.stage_candidate(run / "candidate", source=candidate_dir)
     if "codex" in used:
-        stage.register_codex(run)
+        stage.register_codex(run, roles=provider == "codex")
     workspace = stage.stage_workspace(run, case_dir, roles=provider == "claude")
     stage.seed_credentials(run, used)
     stage.stage_workflows(run, case_dir)

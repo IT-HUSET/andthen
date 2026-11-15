@@ -9,8 +9,9 @@ role agents `init` installs arrive as the workspace's project agents.
 
 Codex needs more. DartClaw pins Codex's CODEX_HOME to
 <data_dir>/credentials/codex whatever the environment holds, so a Codex cell
-registers the candidate there; a run that left the environment alone would leave
-it unregistered, which is how Gate 0's first attempts failed.
+registers the candidate there, and its role agents beside it; a run that left the
+environment alone would leave it unregistered, which is how Gate 0's first
+attempts failed.
 """
 
 import hashlib
@@ -80,10 +81,14 @@ CANDIDATE_ASSETS = ("plugin", ".claude-plugin/marketplace.json",
 # Under STAGING: a tier's one staged candidate, named like a cell by its stamp.
 CANDIDATES = "_candidates"
 
-# The role agents `init` installs, from the candidate. A subject without them ran
-# its critics as general-purpose at high effort, so a Claude cell gets them as
-# project agents - the one scope its setting sources still load.
-ROLES = "plugin/skills/init/templates/agents/claude"
+# The role agents `init` installs, from the candidate, one directory per host. A
+# subject without them ran its critics as general-purpose at high effort. A
+# Claude cell gets them as project agents, the one scope its setting sources
+# still load. A Codex cell gets them in the CODEX_HOME DartClaw pins, where
+# `andthen.py install --roles` places them: staged as project agents in the
+# trusted workspace, Codex 0.167.0 offered no `agent_type` on its spawn tool and
+# every subagent ran on the session's model with no role (2026-11-15).
+ROLES = "plugin/skills/init/templates/agents"
 
 # The vendored application every overlay case starts from. Its deliberate flaws
 # are documented beside it, never inside it, for the same reason `oracle.py` is
@@ -219,8 +224,8 @@ def stage_workspace(run, case_dir, roles=False):
         if (case_dir / name).is_file():
             shutil.copy2(str(case_dir / name), str(workspace / name))
     if roles:
-        shutil.copytree(str(run / "candidate" / ROLES), str(workspace / ".claude" / "agents"),
-                        dirs_exist_ok=True)
+        shutil.copytree(str(run / "candidate" / ROLES / "claude"),
+                        str(workspace / ".claude" / "agents"), dirs_exist_ok=True)
     # One commit of the starting state, so the diff afterwards is the subject's,
     # and named for what it is to the subject that reads this history: a
     # project's own baseline, not a harness word.
@@ -301,12 +306,16 @@ def stage_workflows(run, case_dir):
     write(custom / "subject-workflow.yaml", subject + read_text(cases.TAIL_WORKFLOW))
 
 
-def register_codex(run):
+def register_codex(run, roles=False):
     """Codex is handed the marketplace and the plugin materialized in its cache,
     the layout Gate 0 ran on, under the CODEX_HOME DartClaw pins. Written before
     the credential is seeded, so a missing one leaves no half-written registration
-    behind. Claude's counterpart is _claude_wrapper."""
+    behind. Claude's counterpart is _claude_wrapper. `roles` adds the role agents
+    for a Codex subject; a Codex judge under a Claude subject gets none."""
     home = run / "data" / "credentials" / "codex"
+    if roles:
+        shutil.copytree(str(run / "candidate" / ROLES / "codex"), str(home / "agents"),
+                        dirs_exist_ok=True)
     source = run / "candidate" / "plugin"
     version = json.loads(read_text(source / ".claude-plugin" / "plugin.json"))["version"]
     cache = home / "plugins" / "cache" / "andthen" / "andthen" / version
