@@ -283,6 +283,7 @@ Every skill in the chain takes the same flag:
 /andthen:plan --auto docs/requests/workspace-invitations.md    # open questions → ASSUMPTION: lines
 /andthen:exec-plan --auto docs/specs/workspace-invitations/    # runs every ready story
 /andthen:review --auto --fix docs/specs/workspace-invitations/plan.json   # the Next (fresh session): line exec-plan printed
+/andthen:ship --auto docs/specs/workspace-invitations/plan.json   # pushes the branch and opens the PR
 ```
 
 **Expect.** Every pipeline skill after requirements reads `--auto` the same way: no prompts, and a stop only on an unusable call, ending on `BLOCKED: <what is needed>`.
@@ -291,6 +292,8 @@ Every skill in the chain takes the same flag:
 - `plan` records each open question's recommendation in the FIS as an `ASSUMPTION:`. Its `Next` line names the first story's FIS, for a person running story by story; the chain runs the plan directory.
 - `exec-plan` on a plan leaves a failed story `in-progress`, skips its dependents, finishes the rest, and ends with the aggregate report. It never reviews the plan itself: the `Next (fresh session):` line is the review, and something has to launch it.
 - `review --fix` passes the flag on to `implement-fix`, which gives every `Note` and `NOTICED BUT NOT TOUCHING` item an interactive run would hand back one disposition: applied, deferred to the Tech Debt Backlog, or closed with a reason.
+- `ship --auto` authorizes the push, PR creation, and required tracker publication, taking the bundle and design-folder cleanup recommendations.
+  The runner still needs credentials and permission to publish.
 
 **Chaining the stages.** An authoring skill prints one next-step line and stops, because the next stage wants a clean context. Put the chain where the trigger and authorization already live, such as a CI job keyed to the merge:
 
@@ -498,7 +501,7 @@ Reference for [the workflow](README.md#the-workflow): what each step reads and w
 | Plan | `plan` | a description, a `prd.md` (or its directory), a requirements file, a tracker issue | `plan.json` – the stories, their dependencies and status – plus one FIS per story |
 | Build | `exec-plan`, on a FIS or the plan directory | `plan.json` and the FIS | the code, one commit per story with `Story-ID:` and `Plan:` trailers, each story `done` in `plan.json` |
 | Review and fix | `review --fix` | `plan.json` – its PRD and FIS files – and the code | a review report beside `plan.json`, and the fixes |
-| Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle and design folders deleted, or kept (the bundle marked `shipped`); `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation |
+| Ship | `ship` | each FIS (Intent, Expected Outcomes, Implementation Observations), `plan.json`, the plan's source, and the branch's commits | `Learnings` and recommendations; bundle and design folders deleted, or kept (the bundle marked `shipped`); `prd.md` kept under `Record: repo`, else published to its issue; commits; PR after confirmation or under `--auto` |
 
 `plan` sizes the work before it writes a FIS. When a story still turns out too big for one run, it offers to split it – in the same run for a written source, through `clarify` for a description. `review --fix` is one review and one fix round; when it fixed a CRITICAL or HIGH finding or left a Fix finding partly fixed, it prints a follow-up review as its `Next (fresh session):` line. Once the plan's stories are all `done` or `skipped` (cut from scope) and nothing CRITICAL or HIGH is open, its `Next (fresh session):` line runs `ship` instead; `implement-fix` run on the report closes the same way.
 
@@ -529,7 +532,10 @@ Design comes in before the spec, on your answer: `clarify` asks, with the closin
 - **Outer loop, once per initiative** – `clarify`, then `plan`: what and why, then a FIS per story.
 - **Inner loop, once per story** – `exec-plan`: build one story and prove it, review included, then on a team its PR into the milestone branch. Run it one story per session and read each result before the next. On the plan directory `exec-plan` runs this loop for you without stopping, one story at a time in the shared tree, or independent stories in parallel under `--worktree`, one worktree each.
 
-**When the PR opens.** `ship` opens it, after one confirmation. The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR. On a team, `ship` on a story branch opens the story PR and asks whether to keep the bundle, recommending keeping it, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it. Story PRs can target the default branch instead, but the milestone branch is recommended, because each story PR carries only its story's quick review, and the plan-level review reads every story before any reaches the default branch.
+**When the PR opens.** `ship` opens it after one confirmation, or without asking under `--auto`.
+The plan's branch ships once its plan-level review's `Next (fresh session):` line names `ship`: solo, that is the plan's one PR.
+On a team, attended `ship` on a story branch opens the story PR and asks whether to keep the bundle, recommending keeping it, because later stories still read it; the close-out runs on the milestone branch before the milestone PR, after the per-story PRs have merged into it.
+Story PRs can target the default branch instead, but the milestone branch is recommended, because each story PR carries only its story's quick review, and the plan-level review reads every story before any reaches the default branch.
 
 This is a scope-and-cadence split, not the DevEx sense of inner loop (edit-build-test) versus outer loop (CI/CD). A third motion, the **knowledge cycle**, is not a loop: FIS `Implementation Observations` graduate into `LEARNINGS.md` at close-out through `ship`, which recommends the `DECISIONS.md` lines, recurring review traps become lint rules or tests, and settled trade-offs become ADRs.
 

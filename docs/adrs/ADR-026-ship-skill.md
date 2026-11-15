@@ -23,6 +23,12 @@ Supersedes the Still Current note "No `close-plan` verb", deleted from `Decision
 
 *Amended 2026-11-11: a pull request covers the stories whose `plan.json` rows its branch's own commits changed, every story when the base has no `plan.json`. On a team's per-story PRs into a milestone branch, the body had restated every merged story and listed its issues to close again. With no review report, the body no longer says no review ran, because each story's quick review writes none.*
 
+*Amended 2026-11-15: `ship --auto` supplies consent for the branch push, required `Record: tracker` publication, and PR creation, so a runner can automate the outer loop through an open PR.
+On the remote's default branch it starts a feature branch before editing, because pushing the default branch would publish the changes before PR creation fails.
+This reverses the local-only `--auto` decision below and the 2026-10-22 amendment's always-null `pr`: a kept bundle records the PR URL once it opens in either mode.
+Unattended runs take the cleanup recommendations; deletion, stamping, and marking happen when the push proceeds or there is no remote.
+Attended runs keep the preview and one question before publication.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:
