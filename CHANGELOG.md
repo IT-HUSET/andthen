@@ -6,7 +6,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [1.1.1]
+## [1.2.0]
 
 ### Fixed
 - **The critical-rules starter and the `concise-critical` output style get back rules that earlier rewrites dropped**: subagent labels lead with the role or model family, with Claude Code's Agent `name` left unset; a failing check is fixed, never bypassed; and the minimum fix to an issue elsewhere that blocks a required check counts as a Boy Scout tidy, in `implement-fix`, `exec-plan`, `triage`, and `testing` too. The output style again names forced triads and candour commentary as AI tells, and a later list of reference codes numbers on. Rerun `init`'s rules offer, or `andthen.py install --rules` after removing the old block, to update an installed copy.
