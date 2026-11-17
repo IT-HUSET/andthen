@@ -9,6 +9,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ## [1.2.1]
 
 ### Changed
+- **The critical-rules starter drops its date and dash rules, and its shared-worktree rule is shorter.** In isolated headless runs on Claude Opus 5.5, Haiku 5.5, GPT-6.1 Sol, and GPT-6.1 Terra, runs without any rules dated a CHANGELOG release today in 16 of 16 and wrote at most one dash in a short release note. The worktree rule keeps its four instructions in 91 words instead of 106. Rerun `init`'s rules offer, or `andthen.py install --rules` after removing the old block, to update an installed copy.
 - **`init`'s Codex role agents pin the GPT-6.2 models.** The `oracle` runs GPT-6.2 Astra at `high` effort, where it ran GPT-6.1 Sol at `xhigh`, and the `implementer` and `reviewer` run GPT-6.2 Sol at their previous efforts. The `worker` stays on GPT-6.1 Terra, and the Copilot templates keep their pins because GitHub lists no GPT-6.2 model for Copilot CLI yet. To update an installed copy, rerun `init`, or run `andthen.py install --replace-roles`.
 
 ## [1.2.0] – 2026-11-15
