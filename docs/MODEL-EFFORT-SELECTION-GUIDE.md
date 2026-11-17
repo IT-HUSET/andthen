@@ -77,6 +77,7 @@ Candidates are the eligible (model, effort) pairs.
 - **`reviewer`**: the implementer's model at `medium`.
 - **`worker`**: the cheapest pair whose coding score is at least half the implementer pin's.
 - **Change a pin only when the rule's pick scores outside the margin of the current pin, or costs at least a third less within it.** Without this, pins flip on noise.
+  When Stage 1 replaces the current pin's model with its successor, the pin moves to the successor at the same effort, and this rule compares the pick with that pair.
 
 Copilot templates list one Anthropic and one OpenAI model per role, each the rule's pick for its provider, and set the effort the first model's pick uses, since one file carries one effort. List only model IDs GitHub publishes for Copilot CLI.
 

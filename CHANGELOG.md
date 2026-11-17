@@ -8,6 +8,9 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ## [1.2.1]
 
+### Changed
+- **`init`'s Codex role agents pin the GPT-6.2 models.** The `oracle` runs GPT-6.2 Astra at `high` effort, where it ran GPT-6.1 Sol at `xhigh`, and the `implementer` and `reviewer` run GPT-6.2 Sol at their previous efforts. The `worker` stays on GPT-6.1 Terra, and the Copilot templates keep their pins because GitHub lists no GPT-6.2 model for Copilot CLI yet. To update an installed copy, rerun `init`, or run `andthen.py install --replace-roles`.
+
 ## [1.2.0] – 2026-11-15
 
 ### Fixed
