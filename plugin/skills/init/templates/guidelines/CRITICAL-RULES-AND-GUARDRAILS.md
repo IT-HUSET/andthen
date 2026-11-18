@@ -68,6 +68,8 @@ These rules override harness defaults and habits where they conflict.
   It runs alone, never in a loop or chain, and so does any destructive command.
 - **Temp files go in `<project_root>/.agent_temp/`**, named meaningfully, never the repo root.
   Only throwaway scratch that neither the user nor another agent needs may go in a system temp directory or the host's scratchpad.
+  When your task is done, delete the throwaway scratch you wrote in `.agent_temp/`, because a folder that only grows hides the files that matter.
+  Keep reports, handoffs, and evidence a document cites.
 - **Harness auto-memory holds user preferences and machine-local facts only.**
   Durable project knowledge goes to committed docs, such as Learnings, Decisions, and guidelines.
 - **A subagent runs what it must await in the foreground**, because its ended turn is its hand-back and nothing wakes it.
