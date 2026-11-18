@@ -14,7 +14,7 @@ Check which ADRs have corresponding automated enforcement. An active ADR with no
 
 New fitness functions are written in the same PR as the ADR and link both ways – the test names the ADR number, the ADR names the test location.
 
-A `Learnings` entry that a lint rule, type, or test could catch is a Step 3 candidate.
+A `Learnings` entry whose trap breaks an architectural property is a Step 3 candidate.
 
 ### Step 3 – Propose Functions
 
