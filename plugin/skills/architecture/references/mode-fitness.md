@@ -8,11 +8,13 @@ Propose fitness functions for governance and ADR enforcement.
 
 Identify which architectural properties are currently protected (existing tests, CI checks, lint rules) and which are unprotected.
 
-### Step 2 – Map ADRs
+### Step 2 – Map ADRs and Learnings
 
 Check which ADRs have corresponding automated enforcement. An active ADR with no automated check is a **governance gap** and a finding.
 
 New fitness functions are written in the same PR as the ADR and link both ways – the test names the ADR number, the ADR names the test location.
+
+A `Learnings` entry that a lint rule, type, or test could catch is a Step 3 candidate.
 
 ### Step 3 – Propose Functions
 
@@ -33,11 +35,21 @@ Default thresholds to propose unless the project's own evidence says otherwise:
 - **Security** – a direct dependency with CVE ≥ CVSS 7.0 fails, > 18 months behind latest warns; only designated entry-point layers expose public endpoints (HTTP annotations on inner layers are violations); no source file contains `.ssh/`, `.aws/credentials`, `BEGIN RSA PRIVATE KEY`.
 - **Performance** – p99 latency budget; query count per request capped per endpoint (N+1 guard).
 
-For each proposal give: name, what it checks, threshold, implementation approach (language-specific tooling), which ADR it enforces, and severity if violated. **Dart has no ArchUnit equivalent** – compose from `lakos` (CCD/ACD/NCCD, instability, cycles, DOT output), `dart pub deps --json`, `dart analyze`, `custom_lint`, and a `tool/arch_check.dart` walking the AST with the `analyzer` package.
+Each proposal gives:
+
+- name;
+- what it checks;
+- threshold;
+- implementation approach (language-specific tooling);
+- which ADR or `Learnings` entry it enforces;
+- severity if violated;
+- the failure message, which says what to do instead.
+
+**Dart has no ArchUnit equivalent** – compose from `lakos` (CCD/ACD/NCCD, instability, cycles, DOT output), `dart pub deps --json`, `dart analyze`, `custom_lint`, and a `tool/arch_check.dart` walking the AST with the `analyzer` package.
 
 ### Step 4 – Prioritize
 
-Rank by: (1) blast radius if violated, (2) likelihood of accidental violation, (3) implementation effort.
+Rank by: (1) blast radius if violated, (2) likelihood of accidental violation, which a `Learnings` entry evidences, (3) implementation effort.
 
 Start with 3 fitness functions and grow; 5–6 actively governed dimensions is a mature codebase, not a starting bar. Fitness functions that enforce seams are runway investment – roughly 2–4 sprints of prepared capacity is the calibration, below which teams pay architecture tax continuously and above which it is speculative.
 

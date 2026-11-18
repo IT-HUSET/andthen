@@ -373,7 +373,7 @@ Design guidance and structural analysis. It never changes code. The mode is infe
   - `advise`: design guidance, grounded in CUPID, DDD, deep modules, and Locality of Behaviour.
   - `review`: dependency metrics, connascence, anti-patterns, fitness proposals.
   - `decompose`: one split-or-merge decision with scored drivers.
-  - `fitness`: governance and ADR enforcement.
+  - `fitness`: governance, with checks proposed for unenforced ADRs and for `Learnings` traps a lint rule, type, or test could catch. Each proposal states the failure message, saying what to do instead.
 - **Good to know**: modeling the domain (subdomains, bounded contexts, event storming) is [`domain`](#domain). A decision to settle and record goes to `decide`.
 
 ```bash

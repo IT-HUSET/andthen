@@ -125,7 +125,7 @@ Write it from `report-template.md` – header, sections, finding blocks, and ver
 
 **`--fix`** invokes the `andthen:implement-fix` skill with `<report-path>`, plus `--auto` in an unattended run. Commit the verified change it returns per `verification-evidence.md` § The commit rule. A backlog question it returns ends your output, after any `Next` line. Skip it, stating the reason, only for a clean report, a single-lens gap PASS with no findings, or a report whose every finding is routed Note outside an unattended run. Unattended, that pass is what dispositions the Notes.
 
-**A recurring trap** – a defect class repeated across findings, or a repeat of an existing `Learnings` entry – is appended to the `Learnings` document (**Project Document Index**) under the fitting topic. Where a lint rule or test could catch it, recommend that check.
+**A recurring trap** – a defect class repeated across findings, or a repeat of an existing `Learnings` entry – is appended to the `Learnings` document (**Project Document Index**) under the fitting topic, admitted against its header note.
 
 **On completion**, print the report path relative to the project root, absolute in an unattended run. Then close on one `Next` line for the first case that applies, never a menu: a command prints as `Next (fresh session):`. It is printed, never invoked: the next run is the orchestrator's to spend. A run another skill invoked prints none, because its caller owns the next step.
 

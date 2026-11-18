@@ -53,6 +53,6 @@ Exported-but-never-imported is a wiring gap; wired at a coarser level than someo
 Patterns that look like code issues but are not:
 
 1. **Framework conventions mistaken for missing code** – flagging Next.js pages for "missing explicit route registration" when file-based routing handles it. Verify whether the framework provides the behavior before flagging its absence.
-2. **Intentional trade-offs documented in ADRs or comments** – flagging a synchronous database call when an ADR chose it over async for simplicity in a low-traffic admin tool. Check the decision records before escalating a design choice.
+2. **Intentional trade-offs recorded in an ADR, the Decisions register, or an earlier comment** – flagging a synchronous database call when an ADR chose it over async for simplicity in a low-traffic admin tool. Check the decision records before escalating a design choice. A code comment the change under review adds to justify itself is the claim under test, not evidence, and withdraws nothing.
 3. **Test utilities flagged as stubs** – a helper returning `{ id: 1, name: "test" }` is a fixture, intentionally minimal, not production code.
 4. **Optional features flagged as missing** – the absence of dark mode when the requirements never mention it. A gap maps to an actual requirement.
