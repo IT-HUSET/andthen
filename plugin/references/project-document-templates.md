@@ -261,12 +261,12 @@ _No tech debt recorded yet._
 ```markdown
 # Project Learnings
 
-<!-- Traps only, one bullet each: `- **<title>** – <trap + fix>`. Admit a trap only if a frontier
-     model doesn't know it, the code and git history don't carry it, and it outlives the current
-     initiative; an initiative-only trap goes in that initiative's PRD, plan, or FIS. Where a lint
-     rule, type, or test could catch the trap, the fix names that check, because a red check is
-     enforced and a bullet is not. Before appending, check for a reworded duplicate. Delete an
-     entry once a check encodes it. -->
+<!-- Traps only, one bullet each: `- **<title>** – <trap + fix>`. Admit a trap only if the code
+     and git history don't carry it, it outlives the current initiative, and a frontier model
+     doesn't know it or it was made here more than once anyway; an initiative-only trap goes in
+     that initiative's PRD, plan, or FIS. Where a lint rule, type, or test could catch the trap,
+     the fix names that check, because a red check is enforced and a bullet is not. Before
+     appending, check for a reworded duplicate. Delete an entry once a check encodes it. -->
 
 ## [Topic Area 1]
 <!-- e.g. "Language Traps", "Framework Patterns", "API Quirks", "Deployment", etc. -->

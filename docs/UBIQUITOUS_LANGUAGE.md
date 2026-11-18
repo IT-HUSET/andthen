@@ -83,7 +83,7 @@
 | Anchor move | A routing decision `intent-and-rules-context.md` defines against the Intent bundle, named in one cited clause. | intent check, guardrail rule |
 | Implement Fix | Workflow run by the `andthen:implement-fix` skill to turn a request or a review report's findings into re-validated minimal fixes, verify them, and update workflow state. | quick implement, address comments, remediate findings |
 | Tech Debt Backlog | Durable backlog for deferred validated findings that cannot be fixed in the current remediation pass. | parking lot |
-| Admission test | The agent's judgment before a durable-store write, never a script check: does a frontier model already know this, does code or git history carry it, does it outlive the initiative? | quality bar, entry filter |
+| Admission test | The agent's judgment before a durable-store write, never a script check: does code or git history carry it, does it outlive the initiative, and is it unknown to a frontier model or repeated here? | quality bar, entry filter |
 | Drift Note | One line under `#### DRIFT` in a FIS `## Implementation Observations`, recording deliberate code↔FIS divergence and any upstream doc it leaves stale. | reconciliation ledger, drift log |
 
 ## Protocols

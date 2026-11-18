@@ -190,7 +190,7 @@ The `ops` skill and its script are gone. The session running a plan edits `plan.
 | `ops update-state`, `ops read-state` | Read `plan.json`; `/andthen:handoff` carries session continuity. Retire the old State documents as in step 2. |
 | `ops update-ledger` and the reconciliation ledger | Append the drift note to the FIS's `## Implementation Observations` yourself; there is no separate ledger. |
 | `ops update-fis ...` in every form, `ops update-decisions` | Append to the FIS's `## Implementation Observations` or `## Discovered Requirements` yourself. Preflight settles FIS-local questions. For a durable project choice, use `/andthen:decide` for an ADR or edit the Decisions document. |
-| `ops update-tech-debt append <body>`, `ops update-learnings add\|remove\|error ...` | Edit the document yourself: a Tech Debt entry under its severity heading, or one Learnings bullet under the fitting topic. First check that the entry is unknown to a frontier model, absent from code and history, and durable beyond this initiative. |
+| `ops update-tech-debt append <body>`, `ops update-learnings add\|remove\|error ...` | Edit the document yourself: a Tech Debt entry under its severity heading, or one Learnings bullet under the fitting topic. First check that the entry is absent from code and history, durable beyond this initiative, and unknown to a frontier model, or for a Learnings trap, made more than once anyway. |
 | `ops changelog` | Edit the project changelog under its own rules. |
 | `ops stale`, `ops branch` | Removed. Name a branch `{type}/{story-id}-{slug}` by hand. |
 
