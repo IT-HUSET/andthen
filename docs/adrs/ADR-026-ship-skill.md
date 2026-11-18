@@ -29,6 +29,10 @@ This reverses the local-only `--auto` decision below and the 2026-10-22 amendmen
 Unattended runs take the cleanup recommendations; deletion, stamping, and marking happen when the push proceeds or there is no remote.
 Attended runs keep the preview and one question before publication.*
 
+*Amended 2026-11-18: the pull request's images are part of its publication, so `--auto`'s consent to open it covers them.
+`ship` attaches step 3's SVGs and the screenshots through the host's upload, and recommends screenshots in the one existing question where the `Visual Validation` document exists.
+An image that fails to upload is listed and the pull request still opens, because the merge decision does not rest on it.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:

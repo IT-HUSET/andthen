@@ -15,14 +15,14 @@ A branch carrying a plan bundle – `plan.json` and the FIS files beside it – 
 - `--auto` makes the run unattended: read [`unattended-runs.md`](../../references/unattended-runs.md) and follow it.
 - A branch with a plan bundle: read [`plan-schema.md`](../../references/plan-schema.md), whose § Shipping says when the plan is ready.
 
-`Learnings`, `Decisions`, `Issue Tracker`, `Visual Validation`, `Wireframes`, and `Mockups` are **Project Document Index** entries.
+`Learnings`, `Decisions`, `Issue Tracker`, `Visual Validation`, `Wireframes`, `Mockups`, and `Agent Temp` are **Project Document Index** entries.
 
 ## Rules
 
 - Print each recommended skill invocation as a complete, paste-ready line in the host's syntax, including its target path or request and required arguments.
 
 - **Publishing needs the user's yes.**
-  `--auto` supplies it for pushing the branch, publishing its required tracker record, and opening the pull request.
+  `--auto` supplies it for pushing the branch, publishing its required tracker record, and opening the pull request with its images.
 - **Commit per [`verification-evidence.md`](../../references/verification-evidence.md) § The commit rule.**
   Its feature-branch ask joins step 1's question, because step 2 is the first edit.
   Under `--auto` on the remote's default branch, start a feature branch before step 2 using the project's branch-start convention, else `<type>/<slug>`, so the push can open a pull request from it.
@@ -80,7 +80,11 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
     With no report, say so.
 - **What stays open**: what the change knowingly leaves open, such as a finding or story the user shipped past.
 - **Pictures**: where a flow, structure, or state change reads faster as a picture, add the smallest view that makes the point.
-  Use a Mermaid diagram where the host renders one, an SVG, or a pseudocode or tree block.
+  Draw it as a Mermaid diagram where the host renders one, else as a pseudocode or tree block, because both stay text in the body.
+  Draw an SVG only for what Mermaid cannot lay out legibly, and reference it in the body by relative path for step 5 to attach:
+  - write it under the `Agent Temp` location, so no commit takes it;
+  - give it an opaque background, so it reads in either theme;
+  - render it and look at it before using it.
 - **Ship summary**: [`pr-section.md`](references/pr-section.md) fixes the section that ends the body, filled from the facts above, because a viewer parses it to join the pull request to its requirements, proof, and reviews.
 
 **Gate**: a title, and a body that states the intent, outcomes, proof, door and blast radius, and where to read closely before any per-story detail, then ends on the Ship summary.
@@ -103,7 +107,7 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   It also names each feature folder under the `Wireframes` or `Mockups` locations that the branch added or the plan cites (`assetRefs`, its FIS files), never a location itself, and asks whether to delete them.
   Recommend deleting them unless their build is still to come: the plan is not ready, or the branch changed nothing outside design and spec folders.
   With no remote, ask only about the bundle and those folders, except under `Record: tracker`, where it waits for a publish.
-  Offer screenshots or a recording for a visible UI change the request said nothing about.
+  For a visible UI change the request said nothing about, it offers screenshots, recommending them where the `Visual Validation` document exists.
 - On a yes or under `--auto`, with `Record: tracker`, invoke the `andthen:tracker` skill with `publish <plan.json>`, add step 3's closing links, taking the issue numbers from those it reports, and put the parent issue's URL on `pr-section.md`'s `PRD:` line.
 - A deletion (step 1's "don't keep" answer included), the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead or there is no remote.
 - On a delete, commit the deletion before the push: `plan.json`, its FIS files, any `intent.md` beside them, and any `superseded/` folder go, and the requirements file its `prd` names stays.
@@ -114,9 +118,13 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
 - When a ready plan's bundle stays by the user's answer or untracked, write its `shipped` marker, so later runs read the plan as a record.
   A tracked one is committed before any push, then once the pull request opens its `pr` is set, committed, and pushed.
   An untracked one is written once the pull request opens, else at the run's end with `pr` null, and left uncommitted.
-- Before the push, capture the screenshots or recording the request asked for or the answer took up, per the `Visual Validation` document.
-  Attach each image through an upload the host accepts, else list it for the user to attach.
+- Before the push, capture the screenshots or recording the request asked for or the answer or `--auto` took up, per the `Visual Validation` document.
+  Capture the commit being pushed, in the fewest screens that show a reviewer what changed, because an earlier capture can predate a fix.
+  Keep a capture only when it shows the state its alt text names.
 - With consent and a remote, push the branch and open the pull request.
+  Attach every capture and step 3's SVGs through the host's upload, such as `gh pr create --attach <file>` (gh 2.99 or later), which swaps the body's relative reference for the uploaded copy.
+  A create that exits non-zero after printing the pull request's URL opened it without the files that failed, and the publication is complete without them.
+  Remove the body's reference to each file not uploaded, and list it for the user to attach, with its reason.
 
 **Gate**: no push before any bundle or design-folder deletion or tracked `shipped` marker is committed, and the pull request's URL, or its title, body, and the commands still to run to open it.
 Under `--auto` with a remote, an incomplete publication ends on `BLOCKED:`.
@@ -128,4 +136,4 @@ Report:
 - each `Learnings` bullet written, each recommendation, and each observation judged not worth keeping, with its reason;
 - the commits made, the bundle files and design folders deleted, and the bundle or each design folder kept, with the `ASSUMPTION:` line of an unattended run;
 - each change left uncommitted, each file left in the bundle's directory, and whether the plan was marked `shipped`;
-- the pull request's URL, each issue published, each issue left for the user to close, and each image left for the user to attach, or its title, body, and the commands still to run.
+- the pull request's URL, each issue published, each issue left for the user to close, and each image or recording not uploaded, with its reason, or its title, body, and the commands still to run.
