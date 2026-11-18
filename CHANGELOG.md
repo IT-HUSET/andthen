@@ -16,6 +16,8 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 - **`architecture --mode fitness` proposes checks for `Learnings` traps as well as ADRs**, ranking a trap the document records as likelier to recur. Every proposed fitness function, in `review` mode too, states its failure message, saying what to do instead.
 - **`review` no longer treats a comment the reviewed change adds as a recorded trade-off.** An ADR, the Decisions register, or an earlier comment still withdraws a design-choice finding, but a comment justifying the change's own workaround is part of the claim being reviewed.
 
+- **The `concise-critical` output style bans preamble instead of all narration.** Current models go quiet during long tool runs under a "No narration" rule; progress updates and closing `Next:` lines stay allowed. On Codex, update the copy pasted into `developer_instructions`.
+- **`init`'s project `CLAUDE.md` sends documentation lookups to the `worker` role**, where it named a generic subagent on the session's model. An existing project keeps its copy, so edit its `Documentation Lookup Tools` line to adopt it.
 ## [1.2.0] – 2026-11-15
 
 ### Fixed

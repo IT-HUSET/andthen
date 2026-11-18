@@ -91,7 +91,7 @@ Both paths' commands are in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
 - Adding, renaming, or removing a shared canonical in `plugin/references/` updates `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table and, in `scripts/andthen_loose.py`, `_canonical_assets` and the `_skill_assets_*` array of every consuming skill.
 - Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`.
   Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
-- Release-time flips carry a `pre-release` comment (found by `rg 'pre-release[:]'`) at their site, each stating its own flip. The 1.0 cut has its own steps in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
+- Release-time flips carry a `pre-release` comment (found by `rg 'pre-release[:]'`) at their site, each stating its own flip.
 - Before a release, and when a provider ships or reprices a model, run the project-level `recalibrate-roles` skill (`.claude/skills/recalibrate-roles/`) over the role templates (`plugin/skills/init/templates/agents/`): the pins are recommendations as of their last change, chosen by `docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Choosing a role's pin.
 
 ---
@@ -111,7 +111,7 @@ Both paths' commands are in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
 
 ## Documentation Lookup Tools
 
-For library/framework/API documentation lookups, spawn a generic subagent whose prompt names the concrete question and relevant library versions. It:
+For library/framework/API documentation lookups, spawn a worker subagent whose prompt names the concrete question and relevant library versions. It:
 
 - uses the project's available search and fetch tools;
 - prefers official documentation matching those versions or the highest-authority fallback;
