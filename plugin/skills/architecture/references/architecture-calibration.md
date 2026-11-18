@@ -5,7 +5,7 @@ Thresholds, selection criteria, and misfire traps for the architecture modes, ap
 ## Metrics and Thresholds
 
 - **Package** – **Ca** afferent, **Ce** efferent, **I** = `Ce / (Ca + Ce)`, **A** = abstract types / total types (abstract classes, interfaces, and mixins count as abstract), **D** = `|A + I - 1|`.
-- **Graph**, computable from any dependency graph (Dart: `lakos --metrics --node-metrics <dir>`) – CD = nodes reachable from a node including itself (blast radius), CCD = sum of CD, ACD = CCD / N, NCCD = CCD relative to a balanced binary tree of N; below 1.0 beats that baseline.
+- **Graph**, computable from any dependency graph – CD = nodes reachable from a node including itself (blast radius), CCD = sum of CD, ACD = CCD / N, NCCD = CCD relative to a balanced binary tree of N; below 1.0 beats that baseline.
 
 | Metric | Healthy | Warning | Critical |
 |--------|---------|---------|----------|
