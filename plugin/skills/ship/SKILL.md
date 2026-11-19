@@ -72,22 +72,25 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   Where reverting the merge would not undo the change, say what does and what no revert restores.
 - **Where to read closely**, because no check covers it or a mistake there costs most:
   - the files where an error does the most harm;
-  - each choice no check can judge, such as a pattern others will copy or a call on scope;
+  - each choice no check can judge that the `## Decided without asking` section does not list, such as a pattern others will copy or a call on scope;
   - each check, lens, or surface that was skipped, unavailable, or marked `not reviewed`;
   - all work after the latest review report's `**Revision**`, committed or still in the tree, except this run's `Learnings` bullets and bundle commit.
     Say which of it the report's `**Remediated**:` line marks as fixes.
     A `-dirty` Revision cannot show which work the review read, so say so.
     With no report, say so.
 - **What stays open**: what the change knowingly leaves open, such as a finding or story the user shipped past.
+- **Decided without asking**: each `ASSUMPTION:` line, and each Drift Note or Discovered Requirement Interpretation whose reading a run chose, because the reviewer answers for them.
+  Read them from the covered stories' FIS files, the branch's review reports, and the lines the branch's commits added.
+  [`pr-section.md`](references/pr-section.md) fixes their section, which stays visible, outside any `<details>` block.
 - **Pictures**: where a flow, structure, or state change reads faster as a picture, add the smallest view that makes the point.
   Draw it as a Mermaid diagram where the host renders one, else as a pseudocode or tree block, because both stay text in the body.
   Draw an SVG only for what Mermaid cannot lay out legibly, and reference it in the body by relative path for step 5 to attach:
   - write it under the `Agent Temp` location, so no commit takes it;
   - give it an opaque background, so it reads in either theme;
   - render it and look at it before using it.
-- **Ship summary**: [`pr-section.md`](references/pr-section.md) fixes the section that ends the body, filled from the facts above, because a viewer parses it to join the pull request to its requirements, proof, and reviews.
+- **Ship summary**: `pr-section.md` also fixes the section that ends the body, filled from the facts above, because a viewer parses it to join the pull request to its requirements, proof, and reviews.
 
-**Gate**: a title, and a body that states the intent, outcomes, proof, door and blast radius, and where to read closely before any per-story detail, then ends on the Ship summary.
+**Gate**: a title, and a body that states the intent, outcomes, proof, door and blast radius, where to read closely, and what was decided without asking before any per-story detail, then ends on the Ship summary.
 
 ### 4. Commit
 

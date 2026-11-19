@@ -717,8 +717,22 @@ git switch -c feat/S01-send-an-invitation 1.2            # {type}/{story-id}-{sl
 The run resolved the plan from the FIS header, wrote the three tests and confirmed each red for its intended behavior (its Testing Strategy requires test-first), implemented `TI01`–`TI03` in `src/invitations/`, each passing its `Verify` before the next, then ran the full tier, the new scenario proofs, and every `Verify` itself. Its illustrative completion report shows the result each command returned:
 
 ```
-TI01 done · TI02 done · TI03 done
-Changed: src/invitations/models.py, src/invitations/routes.py, src/invitations/jobs.py, tests/invitations/test_send.py
+How it works: an Owner posts an email address to POST /workspaces/{id}/invitations. The route stores one
+pending Invitation with a single-use token that expires in 7 days and enqueues the email on the existing
+background queue, so the response never waits on the mailer. A Member who is not an Owner gets 403.
+
+Where to read closely:
+- src/invitations/routes.py – the Owner check and the token comparison; an error here lets any Member invite.
+- src/invitations/models.py – the token is 32 random bytes; no check judges whether that is strong enough.
+
+Decided without asking: none
+
+Reviewed: fresh reviewer subagent, review quick pass with --fix against s01-send-an-invitation.md.
+  Fixed (1): F1 HIGH token compared with == in routes.py:41, timing-observable → hmac.compare_digest; focused test re-run, exit 0, 1 passed.
+  Open (1): F2 MEDIUM Mailer.send swallows SMTP errors – pre-existing, outside this FIS (Routing: Note).
+
+Commit: 4f2c9a1 feat(S01): send an invitation
+        src/invitations/models.py, src/invitations/routes.py, src/invitations/jobs.py, tests/invitations/test_send.py
 Tidied: routes.py – dropped an unused import
 
 full tier   – pytest -q -> exit=0, 3 passed in 0.12s
@@ -728,24 +742,18 @@ TI01 Verify – pytest -q tests/invitations/test_send.py::test_owner_invite_crea
 TI02 Verify – pytest -q tests/invitations/test_send.py::test_non_owner_is_forbidden -> exit=0, 1 passed in 0.04s
 TI03 Verify – pytest -q tests/invitations/test_send.py::test_send_is_enqueued_not_awaited -> exit=0, 1 passed in 0.04s
 
-Reviewed: fresh reviewer subagent, review quick pass with --fix against s01-send-an-invitation.md.
-  Fixed (1): F1 HIGH token compared with == in routes.py:41, timing-observable → hmac.compare_digest; focused test re-run, exit 0, 1 passed.
-  Open (1): F2 MEDIUM Mailer.send swallows SMTP errors – pre-existing, outside this FIS (Routing: Note).
-
-Chain Attestation: OC01 holds – S01 passed, satisfied by TI01 and TI03. OC02 holds – S02 passed, satisfied by TI02.
 Observations: docs/specs/workspace-invitations/s01-send-an-invitation.md#implementation-observations
 NOTICED BUT NOT TOUCHING: Mailer.send swallows SMTP errors
 
 S01 record: fis s01-send-an-invitation.md · completedTaskIds TI01, TI02, TI03
             verified 2026-08-31T14:22Z "pytest -q -> exit=0, 3 passed in 0.12s" · status done
-Commit: 4f2c9a1 feat(S01): send an invitation
 
 Next (fresh session): /andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md
 ```
 
 Three things the report does not spell out. The reviewer was a fresh subagent, so the pass was independent; F1 was Fix-routed and applied as the story's one repair round, and F2 stays open and reported, never gated. `status done` went into the row beside the `verified` line, the durable trace once the bundle is deleted; `done` is never written without it. The commit staged the changed files, the plan, and the FIS by path, so the `Story-ID:` and `Plan:` trailers ride it.
 
-**Checkpoint.** Read the report and S02's FIS before S02's session; this pause is why `plan` printed one story. S01 changed no later FIS, so the one call left is the open Note: whether `Mailer.send` becomes a Tech Debt entry.
+**Checkpoint.** Read the report and S02's FIS before S02's session; this pause is why `plan` printed one story, and the report's four lead blocks are written to be read in place of the diff. S01 changed no later FIS, so the one call left is the open Note: whether `Mailer.send` becomes a Tech Debt entry.
 
 ### Turn 4 – ship S01 *(session C continues)*
 
@@ -776,7 +784,7 @@ git switch -c feat/S02-accept-an-invitation 1.2
 /andthen:ship
 ```
 
-S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied.
+S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied. S02's report quotes the line under `Decided without asking:`, and its PR carries it in the table of that name, so the choice outlives the FIS.
 
 S03 `dependsOn` S02, so it starts only after S02 merged. To start it sooner, branch it from S02's branch, and once S02 squash-merges, move it with `git rebase --onto 1.2 feat/S02-accept-an-invitation`, because merging `1.2` into it conflicts in the FIS both stories appended to. S02 found one constraint for it, that the revoke endpoint must invalidate the queued email too. Before its commit, S02's run appended it under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` and named that FIS in its report, so you read the constraint before S03's session and it reached `1.2` with S02's PR.
 
@@ -812,4 +820,4 @@ It ends on a `Next (fresh session):` line for `ship`, which runs on `1.2` as the
 
 It lands what belongs in `Learnings` from each FIS's `## Implementation Observations` and recommends the rest, including the PRD edit S02's Drift Note names, because the Drift Notes and cited ADRs go with the files. It then commits, shows the `1.2` → `main` PR title and body, and asks once before it pushes, in the same question asking whether to delete `plan.json` and the FIS files (`prd.md` stays), recommending deletion. The `1.2` → `main` PR is the one that can close issues, so its body links the parent and every story's child, read from the parent's `## Stories` checklist.
 
-**What survives.** `prd.md`, the tests, the PRs whose bodies state each story's intent, outcomes, and proof, and on a team the issues.
+**What survives.** `prd.md`, the tests, the PRs whose bodies state each story's intent, outcomes, proof, and what its run decided without asking, and on a team the issues.

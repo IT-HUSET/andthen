@@ -78,6 +78,7 @@
 | Close-out | `ship` landing the FIS Implementation Observations, then deleting `plan.json` and the FIS files, before the branch merges (the milestone on a team); `prd.md` stays unless `Record: tracker`. | plan cleanup, archive the plan, teardown |
 | plan.schema.json | The machine form of `plan-schema.md` (JSON Schema draft 2020-12), a shared canonical in `plugin/references/`. | plan schema file, the JSON schema |
 | `Reviewed:` line | The completion report's one review signal: what reviewed the change, which findings were fixed, and what stays open. Prose for the reader, never parsed. | gate result, story verdict |
+| Decided without asking | A choice a run recorded making with nobody to ask: the list a story or plan report carries under that label, and the table `ship` writes into the pull request. | decided alone, agent decisions, decision log |
 | Scope Discipline | The `review-calibration.md` counterweight to the Anti-Leniency Protocol – Analysis Paralysis, Finding Distillation, Verdict first. | proportionality, going easy |
 | Follow-up review | A `review` run after a `**Remediated**:` report: the work since its Revision, its callers, and its open findings, unless a condition fails; says which findings are now resolved. | closure pass, review campaign, re-review round |
 | Anchor move | A routing decision `intent-and-rules-context.md` defines against the Intent bundle, named in one cited clause. | intent check, guardrail rule |

@@ -1,6 +1,6 @@
 # Story Run
 
-- **The FIS is the source of truth – execute its intent.** Implement the whole of it. Where its detail falls short, take the best reading rather than stopping, and record the gap under `## Implementation Observations`.
+- **The FIS is the source of truth – execute its intent.** Implement the whole of it. Where its detail falls short, take the best reading rather than stopping, and record it under `## Implementation Observations` as `ASSUMPTION: <what was assumed> – <what would change it>`.
 - **Surgical scope.** Every changed line traces to a FIS task, an accepted finding, the story's simplification, or a Boy Scout tidy. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. So is the minimum fix to an issue elsewhere that blocks a required check. Make every tidy you find. What no tidy can fix and someone should act on goes under `## Implementation Observations` as `NOTICED BUT NOT TOUCHING`.
 
 `Learnings` and `Tech Debt` are Project Document Index entries.
@@ -56,9 +56,14 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
    ```
 
 5. **Simplify**, in a direct story run, per `between-stories.md` § Simplify.
-6. **Report** per-task status, the changed files, each tidy with its file, and Step 3's proof lines with the tier result. A dispatched story run names each discovery that affects an unstarted story, and that story, for its plan run to triage.
+6. **Report**, leading with what lets the person answer for the story without reading its diff:
+   - **How it works**: what can now be done, through which entry point, and which parts carry it, in the domain's terms.
+   - **Where to read closely**: the files where an error does the most harm, each choice no check can judge that `Decided without asking:` does not list, and each check or surface that was skipped or unavailable.
+   - Then the labeled list `Decided without asking:`, never omitted, because a missing list reads as nothing decided.
+     It quotes, one per line, each `ASSUMPTION:` line, and each Drift Note or Discovered Requirement Interpretation whose reading a run chose, recorded by this run or a subagent it dispatched, or says `none`.
    - Then the labeled line `Reviewed:`, never omitted: what reviewed the change and what it found, which findings the repair round fixed, and what stays open.
-   - Add the Chain Attestation, the visual results where they apply, and a pointer to `## Implementation Observations`.
+   - Below them, as reference: each commit, each tidy with its file, Step 3's proof lines with the tier result, the visual results where they apply, and a pointer to `## Implementation Observations`.
+   - A dispatched story run names each discovery that affects an unstarted story, and that story, for its plan run to triage.
    - End on the `Next (fresh session):` line of Follow-up.
 
 ## Failure handling
