@@ -100,6 +100,7 @@
 ## Distribution
 | Term | Definition | Avoid |
 |------|------------|-------|
+| Plugin host | An agent app the plugin installs on (`HOSTS` in `scripts/andthen.py`): Claude Code, ChatGPT/Codex, GitHub Copilot where hosts are listed or labelled; Codex and Copilot after that and for the CLIs. | Codex CLI, GitHub Copilot CLI; Copilot CLI unless the fact holds for that program alone |
 | Shared Plugin Asset | Canonical file under `plugin/references/` consumed by multiple skills and inlined during loose installs. | shared reference, shared doc |
 | Generic Subagent | The one delegation shape AndThen uses: a host-provided general subagent whose prompt invokes a skill or loads a reference. | custom agent, persona agent, docs agent, sub-agent |
 | Role Agent | One of four opt-in subagent definitions – `oracle`, `implementer`, `reviewer`, `worker` – shipped as templates by the `andthen:init` skill and installed at user or project level. | tier agent, model agent, oracle skill, reviewer agent |

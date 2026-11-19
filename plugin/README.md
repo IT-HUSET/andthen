@@ -4,7 +4,7 @@ Lightweight agentic software engineering for AI coding agents, spec-driven when 
 
 ## Installation
 
-Install steps for Claude Code, Codex CLI, GitHub Copilot CLI, and other agents live in the [main README](../README.md#installation). With the repo cloned, `python3 scripts/andthen.py install` from its root installs it on every host whose CLI is on `PATH`.
+Install steps for Claude Code, ChatGPT/Codex, GitHub Copilot, and other agents live in the [main README](../README.md#installation). With the repo cloned, `python3 scripts/andthen.py install` from its root installs it on every host whose CLI is on `PATH`.
 
 ## Setup
 
@@ -49,7 +49,7 @@ Projections live under the `Models` Index location (default `docs/models/`) and 
   """
   ```
   Do not use `model_instructions_file` for this: it replaces Codex's base instructions.
-- Copilot CLI has no style setting. The closest place is `~/.copilot/copilot-instructions.md`, which every session loads: put the style body there between `<!-- andthen-style -->` and `<!-- /andthen-style -->`, the block init writes and replaces.
+- Copilot has no style setting. The closest place is `~/.copilot/copilot-instructions.md`, which every session loads: put the style body there between `<!-- andthen-style -->` and `<!-- /andthen-style -->`, the block init writes and replaces.
 
 ## Workflows
 
@@ -509,7 +509,7 @@ Behavior-preserving simplification: clarity, reuse, and less over-engineering, w
 
 ## Delegation
 
-AndThen skills hand work to subagents. Nothing is installed by default. The `init` skill can install four optional role agents (for Claude Code as `.md`, for Codex as `.toml`, for Copilot CLI as `.agent.md`) that pin a model and effort level per task type. They take effect from the next session. Re-check the installed pins when a provider's model lineup changes.
+AndThen skills hand work to subagents. Nothing is installed by default. The `init` skill can install four optional role agents (for Claude Code as `.md`, for Codex as `.toml`, for Copilot as `.agent.md`) that pin a model and effort level per task type. They take effect from the next session. Re-check the installed pins when a provider's model lineup changes.
 
 - **`oracle`**: judgment work you assign it (a design, an architecture call, a second opinion on a decision), and hard problems an agent hands over because they exceed its tier. It returns a diagnosis or recommendation. `triage` hands over once, when `oracle` is installed, before it stops after three failed fixes. Two skills also name it at a gate, once per run: `decide` takes a second opinion on the one-way doors before you confirm them, and `plan`, when it breaks the work into several stories, takes one on the reviewed specs and their open questions before it asks you. Both are read-only. Outside those, a second opinion is never requested unasked. The model-initiated form is Claude Code's built-in advisor (`/advisor`): experimental, Anthropic API only, with no Codex equivalent.
 - **`implementer`**: one medium or large unit of pinned work, such as executing a story or authoring a plan story's FIS.

@@ -2,7 +2,7 @@
 
 What to type for a given situation, and what to expect back. The [root README](README.md) says what AndThen is; the [skill reference](plugin/README.md) carries each skill's flags, modes, and edge cases, which this file does not repeat.
 
-Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt, **Expect** (the artifact or closing line), and **Elsewhere** (where else to go). Prompts are the mechanism: skills read intent from your words, and a flag appears only where it changes a machine-consumed contract (`--mode`), a safety boundary (`--fix`), or the run mode (`--auto`, for an unattended run). Commands are shown in Claude Code form (`/andthen:<name>`), which Copilot CLI shares; Codex CLI uses the same skill names through its own skill syntax. Skills recommend complete invocations in your host's syntax, including the target or request and required arguments, so you can paste the whole line.
+Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt, **Expect** (the artifact or closing line), and **Elsewhere** (where else to go). Prompts are the mechanism: skills read intent from your words, and a flag appears only where it changes a machine-consumed contract (`--mode`), a safety boundary (`--fix`), or the run mode (`--auto`, for an unattended run). Commands are shown in Claude Code form (`/andthen:<name>`), which GitHub Copilot shares; ChatGPT/Codex uses the same skill names through its own skill syntax. Skills recommend complete invocations in your host's syntax, including the target or request and required arguments, so you can paste the whole line.
 
 **Contents**
 
@@ -307,7 +307,7 @@ claude -p "/andthen:plan --auto docs/specs/workspace-invitations/"
 claude -p "/andthen:exec-plan --auto docs/specs/workspace-invitations/"
 ```
 
-Each `-p` call is its own session, so fresh context holds by construction. Codex CLI is the same shape through `codex exec`.
+Each `-p` call is its own session, so fresh context holds by construction. Codex is the same shape through `codex exec`.
 
 **Elsewhere.** Read the `ASSUMPTION:` lines the unattended `plan` wrote before trusting the bundle; overturn one with `plan` on that story's FIS and your answer. Contract: [Unattended runs](plugin/README.md#workflows).
 
@@ -470,7 +470,7 @@ andthen:plan and andthen:exec-plan skills in prose, not host slash syntax, so th
 on every host. Then symlink it at .agents/skills/plan-bundle for Codex.
 ```
 
-**Expect.** `/plan-bundle docs/specs/workspace-invitations/` on Claude Code and Copilot CLI, and the same skill from Codex's `/skills` picker: one committed file, read by all three hosts from `.claude/skills/` and `.agents/skills/`. Claude Code also still reads the older `.claude/commands/<name>.md` form, which gives `/<name>` from one file with no directory.
+**Expect.** `/plan-bundle docs/specs/workspace-invitations/` on Claude Code and Copilot, and the same skill from Codex's `/skills` picker: one committed file, read by all three hosts from `.claude/skills/` and `.agents/skills/`. Claude Code also still reads the older `.claude/commands/<name>.md` form, which gives `/<name>` from one file with no directory.
 
 **Wrap only what is settled.** The parts that never change (a plan directory, `--auto`, a review mode) belong in the file; the request itself stays `$ARGUMENTS`, because skills read intent from your words and a frozen sentence is a worse request than the one you would have typed. A recipe you run twice a year is not worth a file.
 
