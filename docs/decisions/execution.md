@@ -118,3 +118,35 @@ Reopens if a review or eval shows a tidy hiding a regression.
 `testing --mode tdd`, `tdd-discipline.md` and `exec-plan --tdd` retired 2026-10-20: Böckeler, "TDD inside the agent loop – theater or actual value?" (martinfowler.com, 10 Aug 2026) measured 3–8.5× tokens and no measured gain, and the procedure restated canon the model knows. Prove-It rests on its own rationale, proof the bug existed and the retained regression guard, which those studies do not measure. `implement-fix` keeps test-first because, with no FIS, writing order is its only independence check.
 
 Reopens on a measured gain from a TDD prompt that carries a test list.
+
+## What a run decided without asking is rolled up from the records that exist
+
+Adopted 2026-11-19. The need rests on analysis under the Decision Rule, not on a failing run: `ASSUMPTION:` lines, best readings, Drift Notes, and Interpretations had no index, and the pull request is the only record left once `ship` deletes the bundle. A person who answers for the change could not find those choices short of reading it.
+
+- **Two forms, both existing.** An `ASSUMPTION:` line, and a Drift Note or Discovered Requirement Interpretation whose reading the run chose. A Drift Note that a `sharedDecision`, a person's declined revision, or a `decide` pivot mandates is not the run's choice. `story.md` records a best reading as an `ASSUMPTION:` line, as the Resolution Ladder's fourth rung already did, because unmarked gap notes among findings and `NOTICED BUT NOT TOUCHING` items could only be gathered by judgment.
+- **The pull request section is a second parsed contract.** `## Decided without asking` sits visible above every `<details>` block with one table, `Choice | Where | Would change it`. andthen-studio 0.2.2's parser, run unmodified over variants of the corpus body on 2026-11-19, fails the whole Ship summary on a fourth table, and returns the same values with a section outside it; an unknown read-closely token fails it too. The Ship summary is also collapsed, where a reviewer does not read. The shape is fixed ahead of its reader because a viewer's decision inbox is the planned next step. A kind column was cut, since how a choice was recorded does not change what the reviewer does.
+- **`ship` gathers by reading**, from the covered stories' FIS files, the branch's review reports, and lines the branch's commits added, so a story's pull request lists neither another story's assumptions nor old ones in durable documents. A choice listed there is not repeated as a `no-check` read-closely item.
+
+Rejected: rows in the Read closely table, which conflates where it could be wrong with what was chosen; a section inside the tooling `<details>`, which needs a visible duplicate; a clause in `unattended-runs.md`, which misses attended best readings and doubles the story rule on the dispatched path; a `plan.json` field or a new artifact, a second record deleted with the bundle; a kind for answers a person gave, which has every asking site write a marker.
+
+Known limits:
+
+- A `plan` `Decided:` line settled by the agent's own reading exists only in `plan`'s reply. An `ASSUMPTION:` for it is barred ("An assumption is reachable only from a question"), and the person saw it when it was made.
+- Completeness rests on the run having recorded the choice.
+- An assumption that a dispatched quick review, simplify pass, or triage repair only returned in its reply reaches the story or plan report, and reaches the pull request only where the story recorded it in its FIS.
+- Other unattended skills' closing reports are unchanged.
+
+Reopens on a shipped pull request that missed a choice a report listed, or when a viewer needs a column the table lacks.
+
+## A story report leads with what the person reads in place of the diff
+
+Adopted 2026-11-19 with the roll-up above, on the same analysis: the report listed what was done, and what a story built and where it could be wrong existed only at `ship`, when the change is largest. The story-by-story default pauses for a person's read, so the report is what they read.
+
+- **Dropped from the report**: per-task status, which a `done` row already implies and `completedTaskIds` holds, and the Chain Attestation, whose ID-level sentences are the reviewer's claims to falsify and say nothing of what exists. No eval rubric or test names either.
+- **`Where to read closely` uses `ship`'s visible name and wording, with no tokens**, because nothing parses a report.
+- **A plan run copies each story's `How it works` and `Reviewed:` verbatim**, because it never saw the code. It consolidates the other two into one list each and drops the checks its Step 3 has since run: a dispatched story defers the full tier, which would otherwise read as unchecked once per story beside `Verification: passed`.
+- **No FIS home for where-to-read-closely items**: persisted, they go stale when the plan-level review covers what a story's quick review did not, and `ship` would have to reconcile them.
+
+Known limit: `How it works` does not reach the pull request, where `ship` states intent and outcomes as specified.
+
+Reopens on a shipped pull request whose read-closely list missed an item a story report named, or on reports that restate the task list under `How it works`.
