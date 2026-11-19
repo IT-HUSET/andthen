@@ -58,6 +58,7 @@ These rules override harness defaults and habits where they conflict.
   Before the first edit of work you will commit, outside an unattended run, when the current branch is the remote's default branch, ask once whether to start a feature branch, because commits land on the current branch and the pull request opens from it.
 - **Assume another agent shares the worktree**, so act only on your own changes:
   - Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged.
+    A path commit takes each file whole from disk, so to commit a file that also holds another session's edits, `git apply --cached` a patch of only your hunks, confirm `git diff --cached` shows nothing else, and commit without paths.
   - Undo your own work by editing back or reverting your commit.
   - Run `git reset`, `restore`, `checkout --`, `stash`, or `clean` only when the user or the active skill's contract sanctions it, because they destroy uncommitted work, another agent's included.
   - Never delete a `.git/*.lock`, because another process holds it.
