@@ -1,0 +1,6 @@
+{"criteria": [
+  {"id": "DESKTOP_LAYOUT_MISMATCH", "intent": "The report identifies that Order summary sits to the left of the Delivery form in the desktop build and to its right in the supplied checkout mockup. General claims about alignment or layout do not pass."},
+  {"id": "PAYMENT_ACTION_OBSCURED", "intent": "The report identifies that the Secure checkout strip covers part of the Pay $54.00 button in the lower portion of the mobile payment capture. A generic warning about mobile spacing does not pass."},
+  {"id": "MOBILE_DELIVERY_CLEAN", "intent": "The report judges mobile delivery as having no visible defect, grounded in concrete evidence from its capture. Accept an observation such as the full Continue to payment button visible above the lower edge or the Add delivery instructions control contained within the delivery card."},
+  {"id": "CONFIRMATION_UNVERIFIED", "intent": "The overall verdict reports both blocking defects and incomplete coverage, and identifies the absent mobile confirmation capture as the gap. Omitting the view, passing it, or discarding the observed defects fails."}
+]}

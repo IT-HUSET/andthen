@@ -1,17 +1,17 @@
 ---
-description: Validate UI screenshots and run visual regression checks against mockups, wireframes, or design specs, or set up the project's capture procedure; design authoring is the andthen:ui-ux-design skill. Trigger on 'visual validation', 'check UI against design', 'set up visual validation'.
+description: Plan visual validation for a project or inspect a built UI and screenshots for layout defects, design mismatches, and visual regressions. Trigger on 'visual validation', 'check UI against design', 'set up visual validation'. Design authoring is the andthen:ui-ux-design skill.
 argument-hint: "[--mode setup] [<screens-or-states-to-validate>] [design-reference/baseline]"
 ---
 
 # Visual Validation
 
-Validate built UI against its design references, listing the differences before any verdict.
+Judge the requested UI from rendered evidence, accounting for every required view before reporting a pass.
 
 ## Input
 
 `$ARGUMENTS` minus flags names the screens, states, URLs, screenshots, Mockups, wireframes, baselines, or design requirements to validate.
 
-- `--mode setup` authors the project's `Visual Validation` document, once per project, and judges nothing: read [`setup.md`](references/setup.md) and follow it.
+- `--mode setup` writes the project's capture strategy without judging the UI, following [`setup.md`](references/setup.md).
 
 ## Rules
 
@@ -21,37 +21,48 @@ Validate built UI against its design references, listing the differences before 
 
 ### 1. Scope and references
 
-Read the `Visual Validation` document (default `docs/VISUAL-VALIDATION.md`) first. Its procedure replaces the fallback in Steps 1 and 2, gates included; the Evidence rule, Step 3 with its gate, and the Output hold either way.
+Read the project's `Visual Validation` document (default `docs/VISUAL-VALIDATION.md`) for capture procedures, viewports, and reference locations.
+Honor explicit limits on screens, states, and viewports.
+For a journey or change, cover affected states within those limits, including failures and layout-changing content the capture guide omits.
+Without a narrower scope, cover the journeys users depend on.
 
-Scope is the states the work under validation touched, non-default states included, at the breakpoints the project names. With no change named, it is the states users depend on.
+- Cover the requested viewports, defaulting to the project's.
+  Within a responsive review's scope, fill coverage gaps at layout transitions and tight supported widths.
+- Judge each requested comparison against its named reference, retaining the comparison as a gap if that reference is unavailable.
+- For built UI layout without a named comparator, use the feature's own Mockup, else its wireframe, then design requirements or a baseline.
+  Judge a design artifact against the caller's requirements.
 
-A state is judged against its own feature's Mockup at the `Mockups` location, layout included, else its own feature's wireframe.
-Another feature's Mockup or wireframe is never the reference.
-
-Fallback: identify the baselines, Mockups, wireframes, design references, or acceptance criteria for every state in scope, consulting the `Mockups`, `Wireframes`, and `Design System` documents.
-
-**Gate**: every state in scope is paired with the reference it will be judged against, or with a note that it has none.
+**Gate**: each required screen, state, and viewport has an expected visible result and its source, or an explicit reference-free defect check.
 
 ### 2. Capture
 
-Select capture and comparison tooling from what the environment already provides: project-documented browser or visual tooling first, then the host's built-in browser tooling or any available browser-automation MCP or CLI. Introduce a new tool only when nothing available can capture the states in scope, because an install is a dependency change the user did not ask for. Fallback captures go in `.agent_temp/validation/`.
+Use the project's capture tooling, else the host's available browser, automation MCP, or CLI.
+If none can capture the view, use temporary tooling or record the gap.
+Save distinct captures under the requested path, defaulting to `.agent_temp/validation/`.
 
-**Evidence.** A vision model downsamples what it is given, so a full-page or side-by-side composite is judged as a thumbnail and its clipped edges read as fine. Each image, captured here or handed in, shows one region at viewport size, with reference and build as separate images of the same region. Scale a high-density capture down to 1×, then crop anything still over about 1600px on its long side. An image that cannot be read at that size is recorded `not judged`, never passed.
+- On a live UI, perform the scoped interactions and capture the response before changing scroll or focus.
+  Scroll the page and its scrolling containers to expose content and fixed overlays in context.
+- Open the images and verify the intended state and viewport.
+  Recapture a wrong state or unreadable shot when the UI is available.
+- Inspect the whole composition, then each region at readable size.
+  Vision models downsample composites, so keep reference and subject separate, scale high-density shots to 1×, and tile anything still over about 1600px on its long side without losing edges or seams.
 
-**Gate**: every state in scope has a capture, or a recorded reason it could not be captured.
+**Gate**: each required view, comparison, or interaction has opened evidence covering it, or a `not judged` entry with the reason.
+Judge the remaining views even when one lacks evidence.
 
 ### 3. Judge
 
-**Differences before verdict**, per region:
+**Differences before verdict.** Compare the arrangement of landmarks, their relative sizes, reading order, spacing, and primary action with the expectation for that viewport.
+Where a Mockup's colours, type, or sizes differ from the current `Design System`, the design system governs those values.
+Use pixel comparison on trustworthy baselines and judge the differences against user intent.
 
-1. List every visible difference from the reference, and every element that is clipped, truncated, overlapping, unintentionally wrapped, or missing. Region edges and container boundaries are where these sit.
-2. Classify each one P1, P2, P3, or as a deviation a named decision allows.
+Inspect every region even where the reference matches or none exists:
 
-With no reference, the defect sweep runs alone, against the design contract. Either way, judge what no reference shows: hierarchy and spacing, readability and contrast, touch-target size, state and focus treatment, responsive behavior, and whether the primary action is obvious and input gets a visible response.
-
-Where a Mockup's colours, type, or sizes differ from the current `Design System`, judge those values against the design system, because a Mockup is frozen at the design system it was built on.
-
-Use pixel comparison when trustworthy baselines exist, and decide whether the diff matters to user intent.
+- Look inside containers and at their edges for missing, clipped, overlapping, truncated, or unintentionally wrapped content.
+- Check readability, contrast, target size, focus and state treatment, and whether the primary action and its response are visible in the relevant state.
+- Report every visible defect and every mismatch with an expectation for this state and viewport.
+- Carry an expectation from another viewport only when its source applies to both.
+- Give the location, expected and observed appearance, and severity supported by the visible or exercised impact, or the named decision allowing the deviation.
 
 Severities:
 
@@ -59,13 +70,17 @@ Severities:
 - **P2 Major** – missing behavior, missing elements, visibly wrong implementation, or broken responsive behavior.
 - **P3 Minor** – polish, small alignment or spacing issues, or low-risk refinement.
 
-**Gate**: every image in scope has its classified list before its verdict. An empty list quotes what was read at the region's edges.
+**Gate**: reconcile the findings with the coverage list.
+A passing region identifies a landmark in its expected position and a visible detail at its boundary, quoting edge text where present.
 
 ## Output
 
-A P1 Critical or P2 Major finding blocks: a caller gates completion on it, and re-validation after the fix recaptures the affected screens and states, the caller recording the second verdict beside the first. P3 is reported, not gated.
+Fail on any open P1 Critical or P2 Major finding.
+Otherwise report incomplete if any required item is `not judged`, and pass when all are judged.
+Report coverage gaps and P3 findings with any verdict.
+After a fix, recapture the affected views and retain both verdicts and their evidence.
 
-- **Summary** – overall status, the screens and states covered, and the workflow used: the document or the fallback.
-- **Detailed Findings** – one line per region judged, naming its screen, state, and viewport: a pass with the edge content it read, the finding with its severity and capture path, or `not judged`.
+- **Summary** – verdict, coverage gaps, and whether the project document or fallback supplied the procedure.
+- **Detailed Findings** – by screen, state, viewport, and region, give each finding or pass with its capture path, or `not judged` with the reason.
 - **Recommended Fixes** – specific changes in priority order, each tied to evidence from the capture, the design reference, or the accessibility guideline it fails.
 - **Next Steps** – remaining gaps or retest needs.

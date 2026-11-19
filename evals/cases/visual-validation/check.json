@@ -1,0 +1,4 @@
+{
+  "requiredArtifacts": ["visual-validation.md"],
+  "allowedPaths": ["visual-validation.md", ".agent_temp/**"]
+}
