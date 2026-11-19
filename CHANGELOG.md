@@ -6,7 +6,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [1.2.1]
+## [1.3.0]
 
 ### Changed
 - **`ship` uploads its PR images and recommends screenshots for UI changes.** Diagrams stay Mermaid unless Mermaid cannot lay them out, and an SVG then uploads with any screenshots through the host's upload (`gh pr create --attach`, gh 2.99 or later). Screenshots of the pushed commit are the recommendation where the project has a `Visual Validation` document, so `--auto` takes them. An image that fails to upload is listed, and the PR still opens.
