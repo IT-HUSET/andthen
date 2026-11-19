@@ -8,4 +8,12 @@ The last act of authoring before an unattended executor takes the FIS or plan bu
 
 **Integrate once** – each answer into the prose that owns it, as the decision, replacing any `ASSUMPTION:` line it answers, with no patch transcript, decision-history section or re-review: a second copy drifts. A ratified recommendation ("take your recommendations") is an answer too. An `ASSUMPTION: <what was assumed> – <what would change it>` line records only an answer nobody could give: in an unattended run, or once the run stopped on the question and nobody answered – one it continued past was not asked, however the question was sent. An item never put to the user has no assumption without `--auto`, however the run was launched, and scope trades are never assumed.
 
-**Ending** – `Decided:` and `Assumed:` list every item, each `Decided:` line naming what settled it (the user's answer, the line it cites, or your own reading), empty blocks omitted, then exactly one next command. The reply that asks ends on its last question and answers none of it – no default in the reply, no `ASSUMPTION:` line in the artifact – since a question behind its own recorded answer reads as settled. No verdict line and no status of Preflight's own: every story it closes stays `pending` with its FIS. `OVERSIZE:` is advice the caller asks about, never a decision.
+**Ending** – the closing reply gives these blocks, then exactly one next command:
+
+- `Approach:` – the ID and name of each story Preflight closes, then what its FIS's `**Approach**:` line and any `**Why this over the floor**:` line say.
+  Read both from the FIS as it now stands, and word them for a person deciding whether to open it.
+- `Decided:` and `Assumed:` – every item, each `Decided:` line naming what settled it (the user's answer, the line it cites, or your own reading), empty blocks omitted.
+
+The reply that asks ends on its last question and answers none of it – no default in the reply, no `ASSUMPTION:` line in the artifact – since a question behind its own recorded answer reads as settled.
+No verdict line and no status of Preflight's own: every story it closes stays `pending` with its FIS.
+`OVERSIZE:` is advice the caller asks about, never a decision.
