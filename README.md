@@ -115,7 +115,7 @@ You answer when `clarify` and `decide` interview you and when `plan` asks its pr
 - **At the PR** – review it as you would any PR.
   In an attended run, `ship` lands the observations worth keeping and prints its recommendations for the rest, so read those and settle the review's open `Note` findings before you say yes to its push-and-PR question.
 
-Two more reads pay off when you have the time: the FIS files after `plan`, with what you decided and what the run assumed listed above the next command, and the review report.
+Two more reads pay off when you have the time: the review report, and after `plan` the FIS of any story you would build differently. `plan` states each story's approach above the next command, with what you decided and what the run assumed, so you can tell which FIS that is without opening them all.
 
 ### Smaller work
 

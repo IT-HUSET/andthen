@@ -77,7 +77,7 @@ One story:
 **Expect.**
 
 - `clarify` interviews at least once, writes `docs/specs/<feature>/prd.md`, and closes on the `plan` command – or on `decide` first when the PRD leaves a design fork open, then `ui-ux-design` when you chose to design new screens first; each of those closes on the next.
-- `plan` writes `plan.json` and one FIS per story (`s{NN}-<story-slug>.md`), self-reviews, asks what is still open (each question with a recommendation), and prints the `exec-plan` command for the first story.
+- `plan` writes `plan.json` and one FIS per story (`s{NN}-<story-slug>.md`), self-reviews, asks what is still open (each question with a recommendation), states how each story will be built, and prints the `exec-plan` command for the first story.
 - `exec-plan` on one FIS implements the story where you invoke it: every proof, the full tier, one fresh quick reviewer, the story's `done` record, and the story commit, then one `simplify-code` pass over the story's code.
   - Before the commit, a discovery that affects a later story goes into that story's FIS. If it contradicts that FIS or changes scope, the run asks whether to revise first.
   - It prints the revision's command when you say yes, else the next story's command, or after the last story the review line above.
@@ -689,13 +689,19 @@ The PRD's open expiry question was asked before slicing, since two stories build
   - **SATISFIES**: SC01
 ```
 
-Authoring left nothing open, so Preflight asked nothing, and `plan` printed:
+Authoring left nothing open, so Preflight asked nothing, and `plan` closed on each story's approach, taken from its FIS's Architecture Decision, the plan's path, and the next command:
 
 ```
+Approach:
+- S01 Send an invitation – the request writes the Invitation and puts the email on the existing background queue. Sending inside the request would reuse today's mailer call, but the email has to leave the request path.
+- S02 Accept an invitation – one transaction consumes the token and creates the Member, so a token cannot be used twice.
+- S03 Revoke pending invitations – revoking sets a status on the Invitation, which the accept path from S02 already checks.
+
+docs/specs/workspace-invitations/plan.json
 Next (fresh session): /andthen:exec-plan docs/specs/workspace-invitations/s01-send-an-invitation.md
 ```
 
-**Checkpoint.** Every story is `pending` with its FIS. Read the three FIS files once – scope, non-goals, proof targets – which is cheaper now than mid-execution. On a team, PR the bundle to `1.2` beside the PRD and review the slicing there. Solo, commit it:
+**Checkpoint.** Every story is `pending` with its FIS. The `Approach:` lines say how each story will be built, so open the FIS of any story you would build differently – scope, non-goals, proof targets – which is cheaper now than mid-execution. On a team, PR the bundle to `1.2` beside the PRD and review the slicing there. Solo, commit it:
 
 ```
 "commit the prd and plan bundle"   # git add -- docs/specs/workspace-invitations/ ; git commit -- docs/specs/workspace-invitations/
