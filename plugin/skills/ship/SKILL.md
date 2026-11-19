@@ -72,19 +72,16 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   Where reverting the merge would not undo the change, say what does and what no revert restores.
 - **Where to read closely**, because no check covers it or a mistake there costs most:
   - the files where an error does the most harm;
-  - each choice no check can judge that Decided without asking does not list, such as a pattern others will copy or a call on scope;
+  - each choice no check can judge that the `## Decided without asking` section does not list, such as a pattern others will copy or a call on scope;
   - each check, lens, or surface that was skipped, unavailable, or marked `not reviewed`;
   - all work after the latest review report's `**Revision**`, committed or still in the tree, except this run's `Learnings` bullets and bundle commit.
     Say which of it the report's `**Remediated**:` line marks as fixes.
     A `-dirty` Revision cannot show which work the review read, so say so.
     With no report, say so.
 - **What stays open**: what the change knowingly leaves open, such as a finding or story the user shipped past.
-- **Decided without asking**: each choice a run made with nobody to ask, because the reviewer answers for them and the bundle that records them is usually deleted.
-  Read them from the covered stories' FIS files, the branch's review reports, and the lines the branch's commits added:
-  - each `ASSUMPTION:` line;
-  - each Drift Note or Discovered Requirement Interpretation whose reading a run chose.
-
-  [`pr-section.md`](references/pr-section.md) fixes their section, which stays visible above every `<details>` block.
+- **Decided without asking**: each `ASSUMPTION:` line, and each Drift Note or Discovered Requirement Interpretation whose reading a run chose, because the reviewer answers for them.
+  Read them from the covered stories' FIS files, the branch's review reports, and the lines the branch's commits added.
+  [`pr-section.md`](references/pr-section.md) fixes their section, which stays visible, outside any `<details>` block.
 - **Pictures**: where a flow, structure, or state change reads faster as a picture, add the smallest view that makes the point.
   Draw it as a Mermaid diagram where the host renders one, else as a pseudocode or tree block, because both stay text in the body.
   Draw an SVG only for what Mermaid cannot lay out legibly, and reference it in the body by relative path for step 5 to attach:

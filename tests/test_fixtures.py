@@ -123,6 +123,13 @@ def decided_spec():
     return {"heading": heading, "header": tables(body)[0][0], "none": none.group(1)}
 
 
+def row_problems(rows, width, label=""):
+    """Each row that is not `width` cells of one unbolded value, an absent one written `-`."""
+    return ([f"{label}row width {row}" for row in rows if len(row) != width]
+            + [f"{label}empty cell {row}" for row in rows if {"", "–", "—"} & set(row)]
+            + [f"{label}bold cell {row}" for row in rows if any("**" in cell for cell in row)])
+
+
 def decided_problems(body):
     """Every way a pull request body's decided section departs from the reference."""
     spec = decided_spec()
@@ -130,7 +137,12 @@ def decided_problems(body):
     starts = [i for i, line in enumerate(lines) if line == spec["heading"]]
     if len(starts) != 1:
         return [f"{len(starts)} decided headings"]
-    problems = ["decided section below a <details> block"] if "<details>" in lines[:starts[0]] else []
+    above, problems = lines[:starts[0]], []
+    opened = sum(line.startswith("<details") for line in above)
+    if opened > sum(line.startswith("</details>") for line in above):
+        problems.append("decided section inside a <details> block")
+    if section_spec()["heading"] in above:
+        problems.append("decided section below the Ship summary")
     rest = lines[starts[0] + 1:]
     section = rest[:next((i for i, line in enumerate(rest) if line.startswith("## ")), len(rest))]
     first = next((line for line in section if line.strip()), "")
@@ -143,9 +155,7 @@ def decided_problems(body):
         problems.append(f"decided header {header}")
     if not rows:
         problems.append("decided table has no row")
-    problems += [f"decided row width {row}" for row in rows if len(row) != len(spec["header"])]
-    problems += [f"decided empty cell {row}" for row in rows if {"", "–", "—"} & set(row)]
-    return problems
+    return problems + row_problems(rows, len(spec["header"]), "decided ")
 
 
 def section_spec():
@@ -180,8 +190,7 @@ def section_problems(body):
     for table, header in zip(found, headers):
         if table[0] != header:
             problems.append(f"header {table[0]}")
-        problems += [f"row width {row}" for row in table[1:] if len(row) != len(header)]
-        problems += [f"empty cell {row}" for row in table[1:] if {"", "–", "—"} & set(row)]
+        problems += row_problems(table[1:], len(header))
     outcome, lens, reading = found
     if [row[0] for row in lens[1:]] != list(spec["lenses"]):
         problems.append(f"lens rows {[row[0] for row in lens[1:]]}")
@@ -249,6 +258,7 @@ class ShipSectionTest(unittest.TestCase):
             (body.replace(" | Remediated |", " |").replace("| 9c4e2a7 | yes |", "| 9c4e2a7 |"), "header"),
             (body.replace("| [OC01] A page script", "| A page script"), "outcome"),
             (body.replace("PRD: ", "PRD: docs/other/prd.md\nPRD: ", 1), "header"),
+            (body.replace("| S01 | scripts/", "| **S01** | scripts/"), "bold cell"),
         ]
         for departed, problem in departures:
             with self.subTest(problem):
@@ -285,14 +295,16 @@ class DecidedSectionTest(unittest.TestCase):
         departures = [
             (body.replace(heading, "## Decisions"), "0 decided headings"),
             (body + f"\n{heading}\n", "2 decided headings"),
-            (body.replace(section, "").replace("</details>\n\n", "</details>\n\n" + section, 1),
-             "decided section below a <details> block"),
+            (body.replace(section, "").replace("</summary>\n\n", "</summary>\n\n" + section, 1),
+             "decided section inside a <details> block"),
+            (body.replace(section, "") + "\n" + section, "decided section below the Ship summary"),
             (body.replace(table, "Nothing was assumed.\n"), "decided section opens on"),
             (body.replace("| Choice | Where |", "| Decision | Where |"), "decided header"),
             (body.replace(table, header), "decided table has no row"),
             (body.replace(" | S01 | A PRD line naming the cross-site policy. |", " | S01 |"),
              "decided row width"),
             (body.replace("| S02 | - |", "| S02 | – |"), "decided empty cell"),
+            (body.replace("| S01 | A PRD line", "| **S01** | A PRD line"), "decided bold cell"),
         ]
         for departed, problem in departures:
             with self.subTest(problem):

@@ -34,7 +34,7 @@ Attended runs keep the preview and one question before publication.*
 An image that fails to upload is listed and the pull request still opens, because the merge decision does not rest on it.*
 
 *Amended 2026-11-19: the PR body lists what a run decided without asking, in a visible `## Decided without asking` section holding one table (choice, where recorded, what would change it), because the FIS files that record those `ASSUMPTION:` lines, Drift Notes, and Interpretations go with the bundle and the reviewer answers for the choices.
-It is a second parsed section above the `<details>` blocks, not a fourth Ship summary table: andthen-studio 0.2.2's parser fails the whole Ship summary on a fourth table and ignores a section outside it, and the Ship summary sits collapsed where a reviewer does not read.
+It is a second parsed section outside the `<details>` blocks, not a fourth Ship summary table: andthen-studio 0.2.2's parser fails the whole Ship summary on a fourth table and ignores a section outside it, and the Ship summary sits collapsed where a reviewer does not read.
 No Ship summary heading, label, table header, or token changed, and `pr-description.md` in the corpus carries the new section.
 `Decisions` § Execution holds the rest.*
 

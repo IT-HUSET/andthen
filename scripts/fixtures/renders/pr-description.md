@@ -27,8 +27,8 @@ The refresh path shares the sign-in audit event kind until the PRD's open questi
 | Choice | Where | Would change it |
 |---|---|---|
 | The session cookie is `SameSite=Lax`, because the PRD names only `HttpOnly` and `Secure`. | S01 | A PRD line naming the cross-site policy. |
-| The refresh path writes the sign-in audit event kind. | S02 | The PRD's open question on refresh events being settled. |
-| spec-stale: the audit row is written after the response is sent, not before as the FIS's flow says \| Stale targets: none \| – | S02 | - |
+| The refresh path writes the `signin` event kind, keeping `kind` to `signin \| signout`. | S02 | The PRD's open question on refresh events being settled. |
+| The audit row is written after the response is sent, not before as the FIS's flow says, so a slow store never delays sign-in (a spec-stale Drift Note). | S02 | - |
 
 <details>
 <summary>Per-story detail</summary>
