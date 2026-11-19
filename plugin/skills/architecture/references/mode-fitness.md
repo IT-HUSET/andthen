@@ -42,8 +42,7 @@ Each proposal gives:
 - threshold;
 - implementation approach, in the stack's tooling (`review-output.md` § Language Tooling); where the stack has no architecture-test library, compose the check from its dependency-graph tool, its analyzer, and a script walking the import graph;
 - which ADR or `Learnings` entry it enforces;
-- severity if violated;
-- the failure message, which says what to do instead.
+- severity if violated.
 
 ### Step 4 – Prioritize
 
