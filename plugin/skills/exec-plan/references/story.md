@@ -30,9 +30,14 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
 
 1. **Run the proofs yourself**: the full tier once, or the fast tier under `--no-full-tier`, then every `Proof` and `Verify` target per `fis-contract.md` § Runnable Proof Forms, and every Final Validation Checklist item the FIS carries. Keep one line per proof id and checklist item – what ran, its exit code, and the runner's own result line, or what it saw – plus the tier result. Those lines are the story's evidence; recalling what a task did is not.
 2. **One fresh reviewer, always.** You wrote this code, so the independent pass is not yours to give. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill with `--quick --fix`, plus `--auto` in an unattended run, over the story's changed paths against its FIS, `<absolute FIS_FILE_PATH>`, carrying the Chain Attestation as the claims to falsify, one line per tidy as intended scope, and that it leaves its fixes uncommitted for Step 4. It applies the Fix-routed findings and returns every finding. Where no subagent can be spawned, your own diff pass against the FIS is the review, you apply its fixes, and the `Reviewed:` line says so.
-3. **UI work** spawns a fresh reviewer subagent that invokes the `andthen:visual-validation` skill with the screens and states this story touched, the project's `Visual Validation` document, and the design contract. It captures for itself and gets nothing else of yours: your measurements, summaries, and earlier verdicts frame it toward a pass. A re-validation carries only the finding it rechecks.
+3. **UI work** spawns a fresh reviewer subagent that invokes the `andthen:visual-validation` skill with the screens and states this story touched, the project's `Visual Validation` document, and the design contract.
+   It captures for itself because your measurements, summaries, and earlier verdicts frame it toward a pass.
+   Scope re-validation to the affected views and add only the finding or coverage gap to that handoff.
 4. **Route what came back.** Objective failures converge and subjective findings thrash, so the two route differently:
-   - An objective failure is Step 2 work until green. A P1 Critical or P2 Major visual finding is one, and its screen is recaptured after the fix.
+   - An objective failure is Step 2 work until green.
+   - Before Step 4, every required view needs a passing visual verdict from a recapture or still-valid earlier evidence.
+     Fix P1 Critical and P2 Major findings and record the new verdict beside the first for all views the fix affected.
+     Recover required evidence marked `not judged` or missing altogether, or return the Failed Story Report with the blocker.
    - The fixes the review applied are the story's one repair round: re-run what they invalidated. A further review is a separate request.
    - Record everything else under `## Implementation Observations`, its location and `Routing:` kept, and report it without gating on it.
 

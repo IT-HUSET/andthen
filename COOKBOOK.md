@@ -254,6 +254,8 @@ The map is recommended first for a project with real domain depth, and never req
 
 Naming modes in order, as in the last prompt, runs them in that order sharing context; there is no chain flag. A run from a PRD closes on the `plan` command; `plan` cites the mockups or wireframes, `exec-plan` builds to them, and `visual-validation` judges the build against that feature's mockups first, else its wireframes. `ship` asks whether to delete the feature's design folders once it is built.
 
+Run `/andthen:visual-validation --mode setup` to record how to reach and capture the journey's states at each relevant viewport. Then run `/andthen:visual-validation "workspace invitation flow"` to exercise it. A required view without evidence keeps the story unverified.
+
 **Elsewhere.** Validating a built screen is `visual-validation`, not a design mode. Questions about requirements rather than interaction are `clarify` territory.
 
 ### A second opinion before committing to a decision

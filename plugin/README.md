@@ -438,11 +438,11 @@ UX research, design systems, wireframes, and clickable mockups, singly or chaine
 
 `[--mode setup] [<screens-or-states-to-validate>] [design-reference/baseline]`
 
-Checks built UI screenshots against mockups, wireframes, design specs, or baselines, and runs visual regression checks. A screen is judged against its own feature's mockup, layout included, else its own feature's wireframe, never another feature's; colours, type, and sizes follow the current design system. For each screen, state, and viewport it lists the differences from the reference before deciding pass or fail.
+Checks a built UI or supplied screenshots against the feature's mockup, wireframe, design requirements, or baseline. It compares each state and viewport against the expectations that apply there, inspects the whole layout and its regions at readable size, and exercises the requested journey when the UI is available. The current design system governs colours, type, and sizes.
 
-- **You get**: one finding line per region judged. A P1 Critical or P2 Major finding blocks: a caller such as `exec-plan` gates completion on it, and after the fix the affected screens are recaptured and the second verdict recorded beside the first. P3 is reported, not gated. An unreadable image is `not judged`, never passed.
-- **Options**: `--mode setup` runs once per project. It serves the app, proves the capture procedure with a trial capture, and writes the `Visual Validation` document (`docs/VISUAL-VALIDATION.md`) with serve command, capture tooling, routes, states, breakpoints, and reference locations. Only what ran successfully is written down.
-- **Good to know**: without the document, each run works out capture itself and says so.
+- **You get**: findings and passes tied to captures by screen, state, viewport, and region. A P1 Critical or P2 Major finding fails validation. Any required view without readable evidence is marked `not judged` and keeps the run incomplete. Both block story completion in `exec-plan`. P3 is reported. After a fix, the affected views are recaptured and both verdicts are retained.
+- **Options**: `--mode setup` writes or updates the `Visual Validation` document (default `docs/VISUAL-VALIDATION.md`). It maps journeys to states, visible results, viewports, and references, exercises each distinct capture procedure, and records missing prerequisites beside the affected views.
+- **Good to know**: the project document supplies capture instructions. Each run derives its coverage from the work under review, including states the document omits. Without a document it uses available capture tooling.
 
 ```bash
 /andthen:visual-validation --mode setup                  # write docs/VISUAL-VALIDATION.md
