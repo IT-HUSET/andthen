@@ -10,7 +10,7 @@ AndThen is a lightweight agentic software engineering framework for AI coding ag
 
 ## Value Propositions
 
-- Aims for fewer omissions, less rework, and less supervision on the way from intent to a verified change. Not yet measured (see Success Metrics).
+- Aims for fewer omissions, less rework, and less routine supervision on the way from intent to a verified change a person can answer for. Not yet measured (see Success Metrics).
 - Integration through files: other tools work with its artifacts' documented shapes (PRD, `plan.json`, FIS, review report), not through an API or service.
 
 ## Product Principles
@@ -25,6 +25,7 @@ AndThen is a lightweight agentic software engineering framework for AI coding ag
 - **Flexible:** adapt to the project and the run at hand. Respect the project's existing locations, tools, and conventions, and keep artifacts readable on every supported host. Word each instruction as generally as the skill's purpose allows, so it fits runs its author did not picture. Strictness – a fixed procedure, format, order, or input check – stands only where a contract, a gate, or a recorded failure needs it.
 - **Robust:** follow Postel's law – write artifacts to their templates, read input leniently. A missing field, a partial header, or an off-template file gets its best reading, recorded where it matters, and the run continues. Stop only when the run cannot proceed, never on form alone.
 - **Verified:** prove intended behavior with evidence its author did not produce – an executed test, a fresh-context reader. A pass that re-reads its own output is not verification. Remove such a pass by an explicit workflow change; a run never skips an active gate.
+- **Human-owned:** a person answers for every change, so three calls stay theirs: its intent, a decision that binds beyond the work or is costly to reverse, and accepting the change into the shared branch. Without reading the whole change, they must be able to find what the agent chose without them, what the change does, and where it could be wrong. Saving human time never justifies giving up either. More questions, approval steps, or pages are not ownership: ask nothing the request or a document already answers, make an aid to understanding replace reading, and add no generated text nobody will read.
 - **Intent-driven:** state outcomes, constraints, and the reason behind each non-obvious rule. A capable model does routine work unprompted, so instructing it changes nothing and dilutes the rules that matter.
 - **Readable:** agents execute skill and reference files, people maintain them. Plain, concise language; a scannable structure with the flow visible at a glance, one concern per paragraph, and file links gathered where a file loads, not threaded through the prose.
 
@@ -44,6 +45,6 @@ AndThen is a lightweight agentic software engineering framework for AI coding ag
 
 ## Success Metrics
 
-Compare equivalent tasks at the same verification bar on requirements met, escaped defects, rework, tokens, elapsed time, and human intervention, counting setup and failed attempts. Skill counts, document volume, and completed workflow steps are not evidence of value.
+Compare equivalent tasks at the same verification bar on requirements met, escaped defects, rework, tokens, elapsed time, and human intervention, counting setup and failed attempts. Count corrections and rescues apart from the questions a skill asks by design. Skill counts, document volume, and completed workflow steps are not evidence of value.
 
 No baseline exists. The eval harness (`evals/`) checks that skills behave as specified on Claude Code and Codex; it does not compare against working without AndThen. Never report an expectation, or an eval pass rate, as a measured gain.
