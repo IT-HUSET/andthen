@@ -39,9 +39,9 @@ always-present header fields, `review-report-mixed.md` a remediated follow-up re
 chain, carrying `Resolved chain`, `Follows`, `Remediated`, the lens-conditional sections, and the one
 `## Verdict` section a mixed report has.
 
-`pr-description.md` is a pull request body `ship` writes, ending on the `## Ship summary` section in the
-shape `plugin/skills/ship/references/pr-section.md` fixes, which `tests/test_fixtures.py` checks it
-against. `prd.md` carries the template's `#### FRn:` Feature Specifications that section's requirement IDs
+`pr-description.md` is a pull request body `ship` writes. It carries the visible
+`## Decided without asking` table and ends on the `## Ship summary` section, both in the shape
+`plugin/skills/ship/references/pr-section.md` fixes, which `tests/test_fixtures.py` checks it against. `prd.md` carries the template's `#### FRn:` Feature Specifications that section's requirement IDs
 name, and the `> **Shipped**:` line `ship` stamps when it deletes a plan; `plan.json` is a finished plan
 whose bundle stayed, so it carries the `shipped` marker instead. Each is a sample of its own type, not one
 consistent history.

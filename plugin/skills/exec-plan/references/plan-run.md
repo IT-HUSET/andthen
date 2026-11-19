@@ -46,6 +46,8 @@ Commit a repair per `verification-evidence.md` § The commit rule, under the own
 
 Always write the summary: completed stories with their `Reviewed:` lines verbatim, the batches executed, the `Scope:` and `Verification:` lines, tree state and commands run, changes pending the user's commit, and `PLAN_PATH`. Success needs green verification from this invocation on the final tree; a gate skipped, unavailable, or run on an earlier tree cannot produce it.
 
+**Decided without asking**: one list, never omitted, of every line a story's report carries under that label, copied under its story ID, and every such choice this run or a subagent it dispatched recorded, or `none`.
+
 Where any story failed or was skipped, add `Completed`, `Failed`, `Skipped`, and `Blocked by` sections: story ids, FIS paths, failure evidence, report paths, preserved worktrees. Each failed story gets its route out.
 
 **Notes rollup**: each completed story's open findings and Drift Notes, or `none`, every stale upstream target they name with a recommend-only reconciliation.

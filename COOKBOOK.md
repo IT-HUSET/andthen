@@ -726,6 +726,8 @@ TI01 Verify – pytest -q tests/invitations/test_send.py::test_owner_invite_crea
 TI02 Verify – pytest -q tests/invitations/test_send.py::test_non_owner_is_forbidden -> exit=0, 1 passed in 0.04s
 TI03 Verify – pytest -q tests/invitations/test_send.py::test_send_is_enqueued_not_awaited -> exit=0, 1 passed in 0.04s
 
+Decided without asking: none
+
 Reviewed: fresh reviewer subagent, review quick pass with --fix against s01-send-an-invitation.md.
   Fixed (1): F1 HIGH token compared with == in routes.py:41, timing-observable → hmac.compare_digest; focused test re-run, exit 0, 1 passed.
   Open (1): F2 MEDIUM Mailer.send swallows SMTP errors – pre-existing, outside this FIS (Routing: Note).
@@ -774,7 +776,7 @@ git switch -c feat/S02-accept-an-invitation 1.2
 /andthen:ship
 ```
 
-S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied.
+S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied. S02's report quotes the line under `Decided without asking:`, and its PR carries it in the table of that name, so the choice outlives the FIS.
 
 S03 `dependsOn` S02, so it starts only after S02 merged. To start it sooner, branch it from S02's branch, and once S02 squash-merges, move it with `git rebase --onto 1.2 feat/S02-accept-an-invitation`, because merging `1.2` into it conflicts in the FIS both stories appended to. S02 found one constraint for it, that the revoke endpoint must invalidate the queued email too. Before its commit, S02's run appended it under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` and named that FIS in its report, so you read the constraint before S03's session and it reached `1.2` with S02's PR.
 
@@ -810,4 +812,4 @@ It ends on a `Next (fresh session):` line for `ship`, which runs on `1.2` as the
 
 It lands what belongs in `Learnings` from each FIS's `## Implementation Observations` and recommends the rest, including the PRD edit S02's Drift Note names, because the Drift Notes and cited ADRs go with the files. It then commits, shows the `1.2` → `main` PR title and body, and asks once before it pushes, in the same question asking whether to delete `plan.json` and the FIS files (`prd.md` stays), recommending deletion. The `1.2` → `main` PR is the one that can close issues, so its body links the parent and every story's child, read from the parent's `## Stories` checklist.
 
-**What survives.** `prd.md`, the tests, the PRs whose bodies state each story's intent, outcomes, and proof, and on a team the issues.
+**What survives.** `prd.md`, the tests, the PRs whose bodies state each story's intent, outcomes, proof, and what its run decided without asking, and on a team the issues.

@@ -18,6 +18,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 - **The `concise-critical` output style bans preamble instead of all narration.** Current models go quiet during long tool runs under a "No narration" rule; progress updates and closing `Next:` lines stay allowed. On Codex, update the copy pasted into `developer_instructions`.
 - **`init`'s project `CLAUDE.md` sends documentation lookups to the `worker` role**, where it named a generic subagent on the session's model. An existing project keeps its copy, so edit its `Documentation Lookup Tools` line to adopt it.
+- **Reports and the pull request list what a run decided without asking.** An `exec-plan` story report quotes each `ASSUMPTION:` line and each divergence or reading the run chose under `Decided without asking:`, a best reading of a FIS gap now being an `ASSUMPTION:` line too, and a plan run gathers them per story. `ship` writes them into a visible `## Decided without asking` table (choice, where recorded, what would change it) above the unchanged Ship summary, because the FIS files that hold them go with the bundle.
 ## [1.2.0] – 2026-11-15
 
 ### Fixed
