@@ -44,9 +44,15 @@ Commit a repair per `verification-evidence.md` § The commit rule, under the own
 
 ## Step 4: Aggregate report
 
-Always write the summary: completed stories with their `Reviewed:` lines verbatim, the batches executed, the `Scope:` and `Verification:` lines, tree state and commands run, changes pending the user's commit, and `PLAN_PATH`. Success needs green verification from this invocation on the final tree; a gate skipped, unavailable, or run on an earlier tree cannot produce it.
+Always write the summary, leading with what the person reads in place of the stories' diffs:
 
-**Decided without asking**: one list, never omitted, of every line a story's report carries under that label, copied under its story ID, and every such choice this run or a subagent it dispatched recorded, or `none`.
+- the `Scope:` and `Verification:` lines;
+- each completed story's How it works and `Reviewed:` blocks, verbatim;
+- **Where to read closely**: one list of the lines the stories' reports carry under that name, copied under their story IDs, without the checks Step 3 has since run;
+- **Decided without asking**: one list, never omitted, of every line a story's report carries under that label, copied under its story ID, and every such choice this run or a subagent it dispatched recorded, or `none`.
+
+Below them, as reference: the batches executed, tree state and commands run, changes pending the user's commit, and `PLAN_PATH`.
+Success needs green verification from this invocation on the final tree; a gate skipped, unavailable, or run on an earlier tree cannot produce it.
 
 Where any story failed or was skipped, add `Completed`, `Failed`, `Skipped`, and `Blocked by` sections: story ids, FIS paths, failure evidence, report paths, preserved worktrees. Each failed story gets its route out.
 

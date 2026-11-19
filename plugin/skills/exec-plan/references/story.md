@@ -51,11 +51,14 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
    ```
 
 5. **Simplify**, in a direct story run, per `between-stories.md` § Simplify.
-6. **Report** per-task status, the changed files, each tidy with its file, and Step 3's proof lines with the tier result. A dispatched story run names each discovery that affects an unstarted story, and that story, for its plan run to triage.
+6. **Report**, leading with what lets the person answer for the story without reading its diff:
+   - **How it works**: what can now be done, through which entry point, and which parts carry it, in the domain's terms.
+   - **Where to read closely**: the files where an error does the most harm, each choice no check can judge that `Decided without asking:` does not list, and each check or surface that was skipped or unavailable.
    - Then the labeled list `Decided without asking:`, never omitted, because a missing list reads as nothing decided.
      It quotes, one per line, each `ASSUMPTION:` line and each Drift Note or Discovered Requirement Interpretation whose reading the run chose, recorded by this run or a subagent it dispatched, or says `none`.
    - Then the labeled line `Reviewed:`, never omitted: what reviewed the change and what it found, which findings the repair round fixed, and what stays open.
-   - Add the Chain Attestation, the visual results where they apply, and a pointer to `## Implementation Observations`.
+   - Below them, as reference: each commit, each tidy with its file, Step 3's proof lines with the tier result, the visual results where they apply, and a pointer to `## Implementation Observations`.
+   - A dispatched story run names each discovery that affects an unstarted story, and that story, for its plan run to triage.
    - End on the `Next (fresh session):` line of Follow-up.
 
 ## Failure handling
