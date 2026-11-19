@@ -17,7 +17,7 @@ Re-picks each role template's model and effort against the hosts' current lineup
 
 ### 1. Lineups
 
-List, per host (Claude Code, Codex CLI, Copilot CLI), every model a user can select today with its exact ID, from the providers' and GitHub's official model pages.
+List, per host (Claude Code, Codex, Copilot CLI), every model a user can select today with its exact ID, from the providers' and GitHub's official model pages.
 Gate: each host has a dated lineup with source URLs, and every Copilot ID is one GitHub publishes for Copilot CLI.
 
 ### 2. Sources

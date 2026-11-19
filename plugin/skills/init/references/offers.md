@@ -25,7 +25,7 @@ Adopt into the project instruction file by default, so the policy travels with t
 
 - **Claude Code**: the installed plugin registers `<plugin-name>:concise-critical`; otherwise copy the style to the host's `output-styles/` and use `concise-critical`. Merge `outputStyle` into user `settings.json`, preserving other keys; report a project setting that shadows it.
 - **Codex**: put the style body below its frontmatter into top-level `developer_instructions` in user `config.toml`, above the first table header. Preserve existing instructions and other settings.
-- **Copilot CLI**: it has no style setting, so put the style body below its frontmatter into user `copilot-instructions.md` between `<!-- andthen-style -->` and `<!-- /andthen-style -->` markers, replacing that block on a re-run.
+- **Copilot**: it has no style setting, so put the style body below its frontmatter into user `copilot-instructions.md` between `<!-- andthen-style -->` and `<!-- /andthen-style -->` markers, replacing that block on a re-run.
 
 Never replace an existing style choice or rewrite an unparseable configuration. Tell the user configuration changes take effect next session.
 

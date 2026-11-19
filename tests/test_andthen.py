@@ -876,7 +876,7 @@ class BootstrapTest(unittest.TestCase):
 
         self.assertEqual(1, code, out)
         self.assertIn(f"Cannot replace {self.home / '9.9.9'}", out)
-        self.assertIn("close Claude Code, Codex, and Copilot CLI, then run again", out)
+        self.assertIn("close Claude Code, Codex, and Copilot, then run again", out)
         self.child.assert_not_called()
 
     def test_another_version_gets_its_own_directory(self) -> None:

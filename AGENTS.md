@@ -4,7 +4,7 @@
 
 AndThen is an experimental, lightweight agentic software engineering framework for AI coding agents, adoptable piece by piece, with no forced workflow or directory layout. Its main workflow is spec-driven: a **Feature Implementation Specification (FIS)** for one story, or a plan with one FIS per story, written before the code (often from a PRD) and executed autonomously. Skills find every document through the **Project Document Index** below, which keeps locations configurable.
 
-It ships to Claude Code, Codex CLI, and GitHub Copilot CLI as one marketplace plugin – one shared `plugin/` directory under dual manifests, no build step – and to other agents as loose skills via `scripts/andthen.py install --loose`. Skills are the unit, invoked as `andthen:<name>` on every plugin host. Copilot reads the Claude Code manifests. Shared content in `plugin/references/` travels whole with the plugin; a loose install inlines it per skill so those bundles stay self-contained.
+It ships to Claude Code, ChatGPT/Codex, and GitHub Copilot as one marketplace plugin – one shared `plugin/` directory under dual manifests, no build step – and to other agents as loose skills via `scripts/andthen.py install --loose`. Skills are the unit, invoked as `andthen:<name>` on every plugin host. Copilot reads the Claude Code manifests. Shared content in `plugin/references/` travels whole with the plugin; a loose install inlines it per skill so those bundles stay self-contained.
 
 ### Repo Map
 
