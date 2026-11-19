@@ -8,13 +8,11 @@ Propose fitness functions for governance and ADR enforcement.
 
 Identify which architectural properties are currently protected (existing tests, CI checks, lint rules) and which are unprotected.
 
-### Step 2 – Map ADRs and Learnings
+### Step 2 – Map ADRs
 
 Check which ADRs have corresponding automated enforcement. An active ADR with no automated check is a **governance gap** and a finding.
 
 New fitness functions are written in the same PR as the ADR and link both ways – the test names the ADR number, the ADR names the test location.
-
-A `Learnings` entry whose trap breaks an architectural property is a Step 3 candidate.
 
 ### Step 3 – Propose Functions
 
@@ -41,12 +39,12 @@ Each proposal gives:
 - what it checks;
 - threshold;
 - implementation approach, in the stack's tooling (`review-output.md` § Language Tooling); where the stack has no architecture-test library, compose the check from its dependency-graph tool, its analyzer, and a script walking the import graph;
-- which ADR or `Learnings` entry it enforces;
+- which ADR it enforces;
 - severity if violated.
 
 ### Step 4 – Prioritize
 
-Rank by: (1) blast radius if violated, (2) likelihood of accidental violation, which a `Learnings` entry evidences, (3) implementation effort.
+Rank by: (1) blast radius if violated, (2) likelihood of accidental violation, (3) implementation effort.
 
 Start with 3 fitness functions and grow; 5–6 actively governed dimensions is a mature codebase, not a starting bar. Fitness functions that enforce seams are runway investment – roughly 2–4 sprints of prepared capacity is the calibration, below which teams pay architecture tax continuously and above which it is speculative.
 
