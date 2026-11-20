@@ -256,14 +256,16 @@ _No tech debt recorded yet._
 >
 > **Boundary**: LEARNINGS = _"watch out for X"_. `DECISIONS.md` = _"we chose X over Y because…"_. Route overlapping entries to their owner.
 >
-> **Graduation ladder** – record each insight at the strongest tier it supports: encode it as a lint rule/test/hook (prose is advisory; a red check is enforced) > DECISIONS/ADR > an entry here > a harness-memory note (personal context only – project-durable knowledge belongs in committed docs, visible to every agent and developer).
+> **Graduation ladder** – record each insight at the strongest tier it supports: DECISIONS/ADR > an entry here > a harness-memory note (personal context only – project-durable knowledge belongs in committed docs, visible to every agent and developer).
 
 ```markdown
 # Project Learnings
 
-<!-- Traps only, one bullet each: `- **<title>** – <trap + fix>`. Admit a trap only if a frontier
-     model doesn't know it, the code and git history don't carry it, and it outlives the current
-     initiative; an initiative-only trap goes in that initiative's PRD, plan, or FIS. Before
+<!-- Traps only, one bullet each: `- **<title>** – <trap + fix>`. Admit a trap only if the code
+     and git history don't carry it, it outlives the current initiative, and a frontier model
+     doesn't know it or it was made here more than once anyway; an initiative-only trap goes in
+     that initiative's PRD, plan, or FIS. Where a lint rule, type, or test could catch the trap,
+     the fix names that check, because a red check is enforced and a bullet is not. Before
      appending, check for a reworded duplicate. Delete an entry once a check encodes it. -->
 
 ## [Topic Area 1]

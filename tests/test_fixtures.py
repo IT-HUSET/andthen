@@ -107,12 +107,61 @@ def choices(cell):
     return [choice.strip() for choice in cell.strip("{}").split(" / ")]
 
 
+def template_sections():
+    """The reference's two `## ` sections in body order, each as its heading and
+    its lines with the guidance notes dropped."""
+    parts = re.split(r"^(## .+)$", PR_SECTION.read_text(encoding="utf-8"), flags=re.M)[1:]
+    return [(heading, [line for line in body.splitlines() if not line.startswith(">")])
+            for heading, body in zip(parts[::2], parts[1::2])]
+
+
+def decided_spec():
+    """What `ship`'s reference fixes for the decided section: its heading, its
+    table header, and the line that stands in for an empty table."""
+    (heading, body), _ = template_sections()
+    none = re.search(r"the line `(.+?)` replaces the table", PR_SECTION.read_text(encoding="utf-8"))
+    return {"heading": heading, "header": tables(body)[0][0], "none": none.group(1)}
+
+
+def row_problems(rows, width, label=""):
+    """Each row that is not `width` cells of one unbolded value, an absent one written `-`."""
+    return ([f"{label}row width {row}" for row in rows if len(row) != width]
+            + [f"{label}empty cell {row}" for row in rows if {"", "–", "—"} & set(row)]
+            + [f"{label}bold cell {row}" for row in rows if any("**" in cell for cell in row)])
+
+
+def decided_problems(body):
+    """Every way a pull request body's decided section departs from the reference."""
+    spec = decided_spec()
+    lines = body.splitlines()
+    starts = [i for i, line in enumerate(lines) if line == spec["heading"]]
+    if len(starts) != 1:
+        return [f"{len(starts)} decided headings"]
+    above, problems = lines[:starts[0]], []
+    opened = sum(line.startswith("<details") for line in above)
+    if opened > sum(line.startswith("</details>") for line in above):
+        problems.append("decided section inside a <details> block")
+    if section_spec()["heading"] in above:
+        problems.append("decided section below the Ship summary")
+    rest = lines[starts[0] + 1:]
+    section = rest[:next((i for i, line in enumerate(rest) if line.startswith("## ")), len(rest))]
+    first = next((line for line in section if line.strip()), "")
+    if first == spec["none"]:
+        return problems
+    if not first.startswith("|"):
+        return problems + [f"decided section opens on {first!r}"]
+    header, *rows = tables(section)[0]
+    if header != spec["header"]:
+        problems.append(f"decided header {header}")
+    if not rows:
+        problems.append("decided table has no row")
+    return problems + row_problems(rows, len(spec["header"]), "decided ")
+
+
 def section_spec():
-    """What `ship`'s reference fixes: heading, line labels, table headers,
+    """What `ship`'s reference fixes for the Ship summary: heading, line labels, table headers,
     lens rows with their verdicts and remediated tokens, and the read-closely tokens."""
-    text = PR_SECTION.read_text(encoding="utf-8")
-    heading = re.search(r"^## .+$", text, re.M).group(0)
-    body = [line for line in text.split(heading, 1)[1].splitlines() if not line.startswith(">")]
+    _, (heading, body) = template_sections()
     outcome, lens, reading = tables(body)
     return {"heading": heading, "labels": re.findall(r"^([A-Z][A-Za-z]+): ", "\n".join(body), re.M),
             "headers": [outcome[0], lens[0], reading[0]],
@@ -141,8 +190,7 @@ def section_problems(body):
     for table, header in zip(found, headers):
         if table[0] != header:
             problems.append(f"header {table[0]}")
-        problems += [f"row width {row}" for row in table[1:] if len(row) != len(header)]
-        problems += [f"empty cell {row}" for row in table[1:] if {"", "–", "—"} & set(row)]
+        problems += row_problems(table[1:], len(header))
     outcome, lens, reading = found
     if [row[0] for row in lens[1:]] != list(spec["lenses"]):
         problems.append(f"lens rows {[row[0] for row in lens[1:]]}")
@@ -210,12 +258,59 @@ class ShipSectionTest(unittest.TestCase):
             (body.replace(" | Remediated |", " |").replace("| 9c4e2a7 | yes |", "| 9c4e2a7 |"), "header"),
             (body.replace("| [OC01] A page script", "| A page script"), "outcome"),
             (body.replace("PRD: ", "PRD: docs/other/prd.md\nPRD: ", 1), "header"),
+            (body.replace("| S01 | scripts/", "| **S01** | scripts/"), "bold cell"),
         ]
         for departed, problem in departures:
             with self.subTest(problem):
                 self.assertNotEqual(departed, body, "departure did not apply")
                 self.assertTrue(any(p.startswith(problem) for p in section_problems(departed)),
                                 section_problems(departed))
+
+
+class DecidedSectionTest(unittest.TestCase):
+    """A reviewer, and a viewer's decision list, find what a run decided without
+    asking in one visible table, because `ship` deletes the FIS files that record
+    those choices. The corpus body must carry the shape the reference fixes, and
+    the checker must fire on each departure a writer is likely to make."""
+
+    def setUp(self):
+        self.body = PR_DESCRIPTION.read_text(encoding="utf-8")
+        self.spec = decided_spec()
+        heading = re.escape(self.spec["heading"])
+        self.table = re.search(heading + r"\n\n((?:\|.*\n)+)", self.body).group(1)
+
+    def test_the_fixture_carries_the_section_the_reference_fixes(self):
+        self.assertEqual(decided_problems(self.body), [])
+        self.assertGreater(len(self.table.splitlines()), 2, "the corpus table shows no row")
+
+    def test_nothing_decided_is_one_line_in_place_of_the_table(self):
+        empty = self.body.replace(self.table, self.spec["none"] + "\n")
+        self.assertNotEqual(empty, self.body)
+        self.assertEqual(decided_problems(empty), [])
+
+    def test_each_departure_fires_with_its_problem(self):
+        body, heading, table = self.body, self.spec["heading"], self.table
+        section = f"{heading}\n\n{table}\n"
+        header = "\n".join(table.splitlines()[:2]) + "\n"
+        departures = [
+            (body.replace(heading, "## Decisions"), "0 decided headings"),
+            (body + f"\n{heading}\n", "2 decided headings"),
+            (body.replace(section, "").replace("</summary>\n\n", "</summary>\n\n" + section, 1),
+             "decided section inside a <details> block"),
+            (body.replace(section, "") + "\n" + section, "decided section below the Ship summary"),
+            (body.replace(table, "Nothing was assumed.\n"), "decided section opens on"),
+            (body.replace("| Choice | Where |", "| Decision | Where |"), "decided header"),
+            (body.replace(table, header), "decided table has no row"),
+            (body.replace(" | S01 | A PRD line naming the cross-site policy. |", " | S01 |"),
+             "decided row width"),
+            (body.replace("| S02 | - |", "| S02 | – |"), "decided empty cell"),
+            (body.replace("| S01 | A PRD line", "| **S01** | A PRD line"), "decided bold cell"),
+        ]
+        for departed, problem in departures:
+            with self.subTest(problem):
+                self.assertNotEqual(departed, body, "departure did not apply")
+                self.assertTrue(any(p.startswith(problem) for p in decided_problems(departed)),
+                                decided_problems(departed))
 
 
 class NotesSampleTest(unittest.TestCase):

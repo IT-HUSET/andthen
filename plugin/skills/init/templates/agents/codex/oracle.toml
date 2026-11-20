@@ -1,7 +1,7 @@
 name = "oracle"
 description = "Top-judgment tier, for three kinds of work only. Judgment the user assigns it (design, architecture, a spec or plan, analysis, a second opinion on a decision), a hard problem an agent hands over because it exceeds that agent's tier – a failure that survives a real fix, a design that will not close, a cause the material at hand cannot explain – and a gate a skill names it for. Routine judgment, second opinions neither the user nor a skill asks for, and simple questions stay in the session. Reviews go to reviewer."
-model = "gpt-6.1-sol"
-model_reasoning_effort = "xhigh"
+model = "gpt-6.2-astra"
+model_reasoning_effort = "high"
 developer_instructions = """
 You are the Oracle. The prompt names one of three jobs.
 

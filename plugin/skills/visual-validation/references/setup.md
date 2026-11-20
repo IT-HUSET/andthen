@@ -1,41 +1,50 @@
 # Setup – Writing the Visual Validation Document
 
-The deliverable is the `Visual Validation` document at its **Project Document Index** location (default `docs/VISUAL-VALIDATION.md`). Later runs capture the way it says, which is what makes a re-validation comparable to the first pass.
+Write the project's `Visual Validation` document at its Project Document Index location (default `docs/VISUAL-VALIDATION.md`).
 
 ## Rules
 
-- Confirm serving, routes, states, and reference locations with the user: a guess made once here is repeated by every run that reads the document.
-- Judging stays out of the document – severity, gates, and the report shape are the skill's, in one copy.
+- Keep severity, verdict rules, and report format in the skill.
 
 ## Workflow
 
-### 1. Prove it
+### 1. Establish coverage
 
-Start from what the project already states: the `Key Dev Commands` document's run and test rows, the browser or screenshot tooling the environment provides, the `Mockups`, `Wireframes`, and `Design System` locations, and any `Visual Validation Workflow` section in the root agent instruction file.
+Trace the project's user journeys through its routes, requirements, design inventories, and any existing `Visual Validation Workflow`.
+Identify the layouts that actually change across supported viewports and content, including non-default states users reach along the way.
 
-A serve command or capture step that was not run successfully in this session does not go in the document. What cannot be proved is left out with the reason. An app that cannot be served at all stops setup.
+**Gate**: every identified journey maps to the views under **Routes and states**, including any with no known capture path.
 
-**Gate**: one route at one breakpoint is captured and its image opened without a 404, blank page, or unloaded fonts, or setup has stopped.
+### 2. Prove the capture paths
 
-### 2. Write it
+Start the UI using `Key Dev Commands` and exercise each distinct way of reaching and capturing a view with the available tooling.
+Open a representative shot from each path and identify the intended state at the requested size.
+A login redirect, blank page, or unloaded font cannot prove the procedure.
 
-Create the document with one heading per bullet in Output, dropping a heading this project has nothing for rather than leaving it `TODO`. Where it already exists, rewrite only the sections this run proved and leave the rest byte-identical, so a hand-written note survives a re-run.
+**Gate**: each capture path has an opened example or a recorded gap with its missing prerequisite.
+A first setup needs at least one working path to write the document.
+
+### 3. Write it
+
+Use the applicable headings under Output.
+On a rerun update the procedures checked, mark any that failed, and preserve unrelated hand-written sections verbatim.
 
 A `Visual Validation Workflow` section's content belongs in this document. Remove the section only after the user confirms the document carries it: it is hand-written project policy in a file this skill does not own.
 
 A new document gets its Index entry per the Index preamble.
 
-**Gate**: the document carries every proven section, and its Index entry exists.
+**Gate**: the indexed document accounts for every planned view, including those with unproven paths.
 
 ## Output
 
 The document carries:
 
 - **Serving** – the command that starts the app, the URL it lands on, how to tell it is ready, and any seed data, fixture, or login the screens need.
-- **Capture** – the tooling a validator invokes and the command shape that takes a viewport and an output path; captures land in `.agent_temp/validation/` unless this project says otherwise.
-- **Routes and states** – the screens worth validating with their paths, plus the non-default states (empty, error, loading, signed-in) and how to reach each.
-- **Breakpoints** – the viewport widths this project judges at.
-- **References** – where each screen's Mockup, wireframe, design spec, or baseline lives, and which screens have none.
+- **Capture** – the proven commands for a viewport and output path, including the first view after an interaction before scrolling or refocusing changes it.
+  Captures land in `.agent_temp/validation/` unless this project says otherwise.
+- **Routes and states** – for each journey, the screen and state, action or data that reaches it, identifying visible result, applicable viewport, and any capture gap.
+- **Breakpoints** – viewport dimensions and the distinct layout or tight fit each exercises.
+- **References** – the matching feature's Mockup, wireframe, design spec, or baseline for each view, or which views have none.
 - **Traps** – what makes a capture lie here: animation, web fonts, non-deterministic data, a scrollbar that shifts layout, a state that needs a reset between shots.
 
-The report is the document path, one line per section naming the command or capture that proved it, and one line per thing left out with its reason.
+Report the document path, the commands and opened captures that prove the procedures, and any remaining gaps.

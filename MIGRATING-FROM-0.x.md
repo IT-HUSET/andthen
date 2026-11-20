@@ -24,7 +24,7 @@ Each step says when it applies; skip the ones that don't.
 
 **1. Update your installation.** Always.
 
-- **Plugin (Claude Code, Codex, or Copilot CLI):** run the README's [upgrade commands](README.md#upgrading-from-0x). They refresh the `andthen` marketplace, which 1.0 shares with 0.x, and update the plugin in place. The host's plugin cache (`~/.claude/plugins/cache`, `~/.codex/plugins/cache`) refreshes itself; leave it alone.
+- **Plugin (Claude Code, ChatGPT/Codex, or GitHub Copilot):** run the README's [upgrade commands](README.md#upgrading-from-0x). They refresh the `andthen` marketplace, which 1.0 shares with 0.x, and update the plugin in place. The host's plugin cache (`~/.claude/plugins/cache`, `~/.codex/plugins/cache`) refreshes itself; leave it alone.
 - **Loose install:** the current installer (`python3 scripts/andthen.py install --loose`, from a checkout of 1.1.0 or later) updates the skills it still ships but does not remove retired ones. It installs only as `andthen-<name>` and has no Claude Code skills target (Claude Code takes the plugin), so a 0.x install under another prefix or in `~/.claude/skills` needs its skills removed by hand. Note the prefix and the skill and agent directories your 0.x install used, remove the retired files listed under [Installation cleanup](#installation-cleanup-loose-installs-only) once you confirm each is AndThen's, then run the current installer.
 - **Moving from loose skills to the plugin:** remove the loose ones the same way, or both naming schemes stay visible as duplicate commands.
 
@@ -190,7 +190,7 @@ The `ops` skill and its script are gone. The session running a plan edits `plan.
 | `ops update-state`, `ops read-state` | Read `plan.json`; `/andthen:handoff` carries session continuity. Retire the old State documents as in step 2. |
 | `ops update-ledger` and the reconciliation ledger | Append the drift note to the FIS's `## Implementation Observations` yourself; there is no separate ledger. |
 | `ops update-fis ...` in every form, `ops update-decisions` | Append to the FIS's `## Implementation Observations` or `## Discovered Requirements` yourself. Preflight settles FIS-local questions. For a durable project choice, use `/andthen:decide` for an ADR or edit the Decisions document. |
-| `ops update-tech-debt append <body>`, `ops update-learnings add\|remove\|error ...` | Edit the document yourself: a Tech Debt entry under its severity heading, or one Learnings bullet under the fitting topic. First check that the entry is unknown to a frontier model, absent from code and history, and durable beyond this initiative. |
+| `ops update-tech-debt append <body>`, `ops update-learnings add\|remove\|error ...` | Edit the document yourself: a Tech Debt entry under its severity heading, or one Learnings bullet under the fitting topic. First check that the entry is absent from code and history, durable beyond this initiative, and unknown to a frontier model, or for a Learnings trap, made more than once anyway. |
 | `ops changelog` | Edit the project changelog under its own rules. |
 | `ops stale`, `ops branch` | Removed. Name a branch `{type}/{story-id}-{slug}` by hand. |
 

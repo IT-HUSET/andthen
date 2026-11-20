@@ -1,6 +1,6 @@
 # Story Run
 
-- **The FIS is the source of truth – execute its intent.** Implement the whole of it. Where its detail falls short, take the best reading rather than stopping, and record the gap under `## Implementation Observations`.
+- **The FIS is the source of truth – execute its intent.** Implement the whole of it. Where its detail falls short, take the best reading rather than stopping, and record it under `## Implementation Observations` as `ASSUMPTION: <what was assumed> – <what would change it>`, or as a Discovered Requirement where the reading adds one.
 - **Surgical scope.** Every changed line traces to a FIS task, an accepted finding, the story's simplification, or a Boy Scout tidy. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. So is the minimum fix to an issue elsewhere that blocks a required check. Make every tidy you find. What no tidy can fix and someone should act on goes under `## Implementation Observations` as `NOTICED BUT NOT TOUCHING`.
 
 `Learnings` and `Tech Debt` are Project Document Index entries.
@@ -30,9 +30,14 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
 
 1. **Run the proofs yourself**: the full tier once, or the fast tier under `--no-full-tier`, then every `Proof` and `Verify` target per `fis-contract.md` § Runnable Proof Forms, and every Final Validation Checklist item the FIS carries. Keep one line per proof id and checklist item – what ran, its exit code, and the runner's own result line, or what it saw – plus the tier result. Those lines are the story's evidence; recalling what a task did is not.
 2. **One fresh reviewer, always.** You wrote this code, so the independent pass is not yours to give. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill with `--quick --fix`, plus `--auto` in an unattended run, over the story's changed paths against its FIS, `<absolute FIS_FILE_PATH>`, carrying the Chain Attestation as the claims to falsify, one line per tidy as intended scope, and that it leaves its fixes uncommitted for Step 4. It applies the Fix-routed findings and returns every finding. Where no subagent can be spawned, your own diff pass against the FIS is the review, you apply its fixes, and the `Reviewed:` line says so.
-3. **UI work** spawns a fresh reviewer subagent that invokes the `andthen:visual-validation` skill with the screens and states this story touched, the project's `Visual Validation` document, and the design contract. It captures for itself and gets nothing else of yours: your measurements, summaries, and earlier verdicts frame it toward a pass. A re-validation carries only the finding it rechecks.
+3. **UI work** spawns a fresh reviewer subagent that invokes the `andthen:visual-validation` skill with the screens and states this story touched, the project's `Visual Validation` document, and the design contract.
+   It captures for itself because your measurements, summaries, and earlier verdicts frame it toward a pass.
+   Scope re-validation to the affected views and add only the finding or coverage gap to that handoff.
 4. **Route what came back.** Objective failures converge and subjective findings thrash, so the two route differently:
-   - An objective failure is Step 2 work until green. A P1 Critical or P2 Major visual finding is one, and its screen is recaptured after the fix.
+   - An objective failure is Step 2 work until green.
+   - For UI work, every required view needs a passing visual verdict before Step 4, from a recapture or still-valid earlier evidence:
+     - fix each P1 Critical and P2 Major finding and re-validate the views it affected, keeping both verdicts;
+     - recover required evidence marked `not judged` or missing, or return the Failed Story Report with the blocker.
    - The fixes the review applied are the story's one repair round: re-run what they invalidated. A further review is a separate request.
    - Record everything else under `## Implementation Observations`, its location and `Routing:` kept, and report it without gating on it.
 
@@ -51,9 +56,15 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
    ```
 
 5. **Simplify**, in a direct story run, per `between-stories.md` § Simplify.
-6. **Report** per-task status, the changed files, each tidy with its file, and Step 3's proof lines with the tier result. A dispatched story run names each discovery that affects an unstarted story, and that story, for its plan run to triage.
+6. **Report**, leading with what lets the person answer for the story without reading its diff:
+   - **How it works**: what can now be done, through which entry point, and which parts carry it, in the domain's terms.
+   - **Where to read closely**: the files where an error does the most harm, each choice no check can judge that `Decided without asking:` does not list, and each check or surface that was skipped or unavailable.
+   - Then the labeled list `Decided without asking:`, never omitted, because a missing list reads as nothing decided.
+     It quotes, one per line, each `ASSUMPTION:` line, and each Drift Note or Discovered Requirement Interpretation whose reading a run chose, recorded by this run or a subagent it dispatched.
+     With none, it says `none`.
    - Then the labeled line `Reviewed:`, never omitted: what reviewed the change and what it found, which findings the repair round fixed, and what stays open.
-   - Add the Chain Attestation, the visual results where they apply, and a pointer to `## Implementation Observations`.
+   - Below them, as reference: each commit, each tidy with its file, Step 3's proof lines with the tier result, the visual results where they apply, and a pointer to `## Implementation Observations`.
+   - A dispatched story run names each discovery that affects an unstarted story, and that story, for its plan run to triage.
    - End on the `Next (fresh session):` line of Follow-up.
 
 ## Failure handling

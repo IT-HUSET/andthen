@@ -1,0 +1,14 @@
+name: andthen-visual-validation-subject
+description: Review checkout captures in a screenshot-only workspace.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: visual-validation
+    name: Review the checkout captures
+    skill: andthen:visual-validation
+    prompt: "prompt.md"
+    outputs:
+      report:
+        format: text

@@ -25,7 +25,7 @@ Organize proposals by the 4-level governance stack:
 
 Default thresholds to propose unless the project's own evidence says otherwise:
 
-- **Modularity** – declared layer directions asserted (ArchUnit `layeredArchitecture()`); cycles zero tolerance (`lakos --no-cycles-allowed <dir>`, exit 5 = cycles → fail CI); public interfaces must not depend on private implementations.
+- **Modularity** – declared layer directions asserted by an architecture test; any dependency cycle fails CI; public interfaces must not depend on private implementations.
 - **Coupling** – SDP asserted per edge; Ce and concrete-hotspot Ca at the calibration's critical thresholds.
 - **Cohesion** – LCOM* > 0.8 **and** > 200 LOC; the God Module composite from the calibration's traps; feature scatter – packages importing a cross-cutting concern directly instead of through a facade.
 - **Testability** – test files / production files per module: < 0.5 warning, < 0.2 fail for new modules; constructor-injected mocks per test class above 4–5; cyclomatic complexity per function < 10 healthy, 10–15 warning, > 15 fail.
@@ -33,7 +33,15 @@ Default thresholds to propose unless the project's own evidence says otherwise:
 - **Security** – a direct dependency with CVE ≥ CVSS 7.0 fails, > 18 months behind latest warns; only designated entry-point layers expose public endpoints (HTTP annotations on inner layers are violations); no source file contains `.ssh/`, `.aws/credentials`, `BEGIN RSA PRIVATE KEY`.
 - **Performance** – p99 latency budget; query count per request capped per endpoint (N+1 guard).
 
-For each proposal give: name, what it checks, threshold, implementation approach (language-specific tooling), which ADR it enforces, and severity if violated. **Dart has no ArchUnit equivalent** – compose from `lakos` (CCD/ACD/NCCD, instability, cycles, DOT output), `dart pub deps --json`, `dart analyze`, `custom_lint`, and a `tool/arch_check.dart` walking the AST with the `analyzer` package.
+Each proposal gives:
+
+- name;
+- what it checks;
+- threshold;
+- implementation approach, in the stack's tooling (`review-output.md` § Language Tooling); where the stack has no architecture-test library, compose the check from its dependency-graph tool, its analyzer, and a script walking the import graph;
+- which ADR it enforces;
+- severity if violated;
+- the failure message, which says what to do instead.
 
 ### Step 4 – Prioritize
 

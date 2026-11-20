@@ -1,7 +1,7 @@
 interface:
   display_name: "AndThen - Visual Validation"
-  short_description: "Validate UI screenshots against design and responsive expectations; --mode setup writes the project's capture procedure"
-  default_prompt: "Validate these screens, states, or screenshots against the design reference and return prioritized findings. Scope: "
+  short_description: "Check UI layout, visual regressions, and coverage, or set up the project's capture strategy"
+  default_prompt: "Run visual validation for these screens and states using the available UI or screenshots and design references. Scope: "
 
 policy:
   allow_implicit_invocation: true

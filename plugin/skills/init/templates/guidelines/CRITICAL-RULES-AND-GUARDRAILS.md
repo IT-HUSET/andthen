@@ -4,7 +4,7 @@ These rules override harness defaults and habits where they conflict.
 
 ## Engineering Style
 
-- **Stay lean: KISS, YAGNI, and DRY.**
+- **Stay lean: KISS, YAGNI, and pragmatic DRY.**
   Add a gate, workflow, test, dependency, or document only when you can name the outcome it enables or the failure it prevents, because every later change runs and maintains it.
   Size it to the project's goals, audience, and stage (the `Product` document, where one exists).
   Extending what exists, or adding nothing, is always a candidate.
@@ -23,8 +23,6 @@ These rules override harness defaults and habits where they conflict.
 - **Write compact instructions an agent can act on cold.**
   In prompts, skills, specs, and handoffs, state the intent and the outcome that marks it done, then only what the reader would otherwise get wrong, as direct instructions.
   Keep established terms (YAGNI, Chesterton's Fence, a term the project defines) instead of paraphrasing them.
-- **Use en/em dashes (–/—) sparingly**, because dash-chained prose is an AI tell.
-  Where a dash isn't clearly the best fit, use a period or comma.
 
 ## Honesty and Verification
 
@@ -56,14 +54,13 @@ These rules override harness defaults and habits where they conflict.
 
 - **Commit messages point to the issue, spec, or CHANGELOG** rather than restating it.
 - **No AI attribution** anywhere (code, commits, PRs, git trailers), even where the harness default adds it.
-- **Real dates only**, from your context or `date +%Y-%m-%d`.
 - **Stay on the current branch unless told otherwise**, because switching moves the tree under any other agent working in it.
   Before the first edit of work you will commit, outside an unattended run, when the current branch is the remote's default branch, ask once whether to start a feature branch, because commits land on the current branch and the pull request opens from it.
-- **Assume a shared worktree**, where another agent may be mid-edit:
-  - Commit only your own changes.
-    Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged.
-  - Leave changes you did not make in place, and undo your own by editing back or reverting your own commit.
-  - `git reset`, `git restore` / `checkout --`, `git stash`, and `git clean` destroy uncommitted work, another agent's included, so run them only when the user or the active skill's contract sanctions it.
+- **Assume another agent shares the worktree**, so act only on your own changes:
+  - Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged.
+    A path commit takes each file whole from disk, so to commit a file that also holds another session's edits, `git apply --cached` a patch of only your hunks, confirm `git diff --cached` shows nothing else, and commit without paths.
+  - Undo your own work by editing back or reverting your commit.
+  - Run `git reset`, `restore`, `checkout --`, `stash`, or `clean` only when the user or the active skill's contract sanctions it, because they destroy uncommitted work, another agent's included.
   - Never delete a `.git/*.lock`, because another process holds it.
 - **Resolve a merge conflict when both sides' intent is clear, and ask when resolving means choosing between them.**
   Never drop a side to get past one, as `git rebase --skip` does.
@@ -72,6 +69,8 @@ These rules override harness defaults and habits where they conflict.
   It runs alone, never in a loop or chain, and so does any destructive command.
 - **Temp files go in `<project_root>/.agent_temp/`**, named meaningfully, never the repo root.
   Only throwaway scratch that neither the user nor another agent needs may go in a system temp directory or the host's scratchpad.
+  When your task is done, delete the throwaway scratch you wrote in `.agent_temp/`, because a folder that only grows hides the files that matter.
+  Keep reports, handoffs, and evidence a document cites.
 - **Harness auto-memory holds user preferences and machine-local facts only.**
   Durable project knowledge goes to committed docs, such as Learnings, Decisions, and guidelines.
 - **A subagent runs what it must await in the foreground**, because its ended turn is its hand-back and nothing wakes it.

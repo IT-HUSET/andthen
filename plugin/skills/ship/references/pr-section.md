@@ -1,17 +1,29 @@
-# Ship Summary Template
+# Pull Request Section Templates
 
-> The section `ship` ends every pull request body with, under a project's template too. `{{…}}` is filled in; a `>` note is guidance, never body text.
+> The two sections `ship` writes into every pull request body, under a project's template too. `{{…}}` is filled in; a `>` note is guidance, never body text.
 >
-> It restates facts the prose above it already gives, so a viewer can join the pull request to its requirements, proof, and reviews without an agent run.
-> Downstream tooling parses the heading, the `PRD:` and `Undo:` labels, the table headers, the lens names, and the tokens as spelled here, so write them exactly.
-> The section runs from its heading to the next `## ` heading or the body's end, once per body, and text added to the body later goes above the section, outside its `<details>` block.
-> Where the host renders no `<details>`, leave out the block's three tag lines.
+> Downstream tooling parses the headings, the `PRD:` and `Undo:` labels, the table headers, the lens names, and the tokens as spelled here, so write them exactly.
+> Each section occurs once per body.
 > Every cell is one line without bold. Write a `|` inside a cell as `\|`, and an absent value as `-`, the ASCII hyphen, never an en or em dash.
+
+## Decided without asking
+
+| Choice | Where | Would change it |
+|---|---|---|
+| {{the choice as recorded, in one sentence}} | {{the story ID of the FIS that records it, else that file's `path`}} | {{the `ASSUMPTION:` line's second half, or -}} |
+
+> The section is its heading and, directly under it, the table with one row per choice.
+> With none, the line `None recorded.` replaces the table.
 
 <details>
 <summary>Ship summary (tables for tooling)</summary>
 
 ## Ship summary
+
+> This section ends the body, running from its heading to the next `## ` heading or the body's end.
+> It restates facts the prose above it already gives, so a viewer can join the pull request to its requirements, proof, and reviews without an agent run.
+> Text added to the body later goes above it, outside its `<details>` block.
+> Where the host renders no `<details>`, leave out the block's three tag lines.
 
 PRD: {{the requirements file's path at the pull request's head, its tracker issue's URL under `Record: tracker`, or -}}
 

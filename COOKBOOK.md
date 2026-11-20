@@ -2,7 +2,7 @@
 
 What to type for a given situation, and what to expect back. The [root README](README.md) says what AndThen is; the [skill reference](plugin/README.md) carries each skill's flags, modes, and edge cases, which this file does not repeat.
 
-Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt, **Expect** (the artifact or closing line), and **Elsewhere** (where else to go). Prompts are the mechanism: skills read intent from your words, and a flag appears only where it changes a machine-consumed contract (`--mode`), a safety boundary (`--fix`), or the run mode (`--auto`, for an unattended run). Commands are shown in Claude Code form (`/andthen:<name>`), which Copilot CLI shares; Codex CLI uses the same skill names through its own skill syntax. Skills recommend complete invocations in your host's syntax, including the target or request and required arguments, so you can paste the whole line.
+Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt, **Expect** (the artifact or closing line), and **Elsewhere** (where else to go). Prompts are the mechanism: skills read intent from your words, and a flag appears only where it changes a machine-consumed contract (`--mode`), a safety boundary (`--fix`), or the run mode (`--auto`, for an unattended run). Commands are shown in Claude Code form (`/andthen:<name>`), which GitHub Copilot shares; ChatGPT/Codex uses the same skill names through its own skill syntax. Skills recommend complete invocations in your host's syntax, including the target or request and required arguments, so you can paste the whole line.
 
 **Contents**
 
@@ -77,7 +77,7 @@ One story:
 **Expect.**
 
 - `clarify` interviews at least once, writes `docs/specs/<feature>/prd.md`, and closes on the `plan` command – or on `decide` first when the PRD leaves a design fork open, then `ui-ux-design` when you chose to design new screens first; each of those closes on the next.
-- `plan` writes `plan.json` and one FIS per story (`s{NN}-<story-slug>.md`), self-reviews, asks what is still open (each question with a recommendation), and prints the `exec-plan` command for the first story.
+- `plan` writes `plan.json` and one FIS per story (`s{NN}-<story-slug>.md`), self-reviews, asks what is still open (each question with a recommendation), states how each story will be built, and prints the `exec-plan` command for the first story.
 - `exec-plan` on one FIS implements the story where you invoke it: every proof, the full tier, one fresh quick reviewer, the story's `done` record, and the story commit, then one `simplify-code` pass over the story's code.
   - Before the commit, a discovery that affects a later story goes into that story's FIS. If it contradicts that FIS or changes scope, the run asks whether to revise first.
   - It prints the revision's command when you say yes, else the next story's command, or after the last story the review line above.
@@ -101,7 +101,7 @@ Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-
 /andthen:implement-fix "return 404 instead of 500 when an export job id does not exist"
 ```
 
-**Expect.** Your sentence is the whole Fix set: tests first where the change adds a branch, the change, the project's checks, and a diff pass as the review. No FIS and no plan state. The verified change is committed by path, and a file that also holds someone else's edit stays uncommitted and is named. Beyond it, only Boy Scout tidies are made, each named: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue the sentence did not ask for comes back under `NOTICED BUT NOT TOUCHING:` rather than as an edit.
+**Expect.** Your sentence is the whole Fix set: tests first where the change adds a branch, the change, the project's checks, and a diff pass as the review. No FIS and no plan state. The verified change is committed by path, taking only its own hunks of a file that also holds someone else's edit; a file whose hunks cannot be separated stays uncommitted and is named. Beyond it, only Boy Scout tidies are made, each named: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue the sentence did not ask for comes back under `NOTICED BUT NOT TOUCHING:` rather than as an edit.
 
 **Elsewhere.** A sentence that turns out to describe a feature, a PRD, or a plan stops at the scope guard and points at `plan` → `exec-plan`, with `clarify` first when requirements are still open. Contract: [`implement-fix`](plugin/README.md#implement-fix).
 
@@ -254,7 +254,7 @@ The map is recommended first for a project with real domain depth, and never req
 
 Naming modes in order, as in the last prompt, runs them in that order sharing context; there is no chain flag. A run from a PRD closes on the `plan` command; `plan` cites the mockups or wireframes, `exec-plan` builds to them, and `visual-validation` judges the build against that feature's mockups first, else its wireframes. `ship` asks whether to delete the feature's design folders once it is built.
 
-**Elsewhere.** Validating a built screen is `visual-validation`, not a design mode. Questions about requirements rather than interaction are `clarify` territory.
+**Elsewhere.** Validating a built screen is `visual-validation`, not a design mode: its `--mode setup` records how to capture each view, and a required view without evidence keeps a UI story unverified. Questions about requirements rather than interaction are `clarify` territory.
 
 ### A second opinion before committing to a decision
 
@@ -305,7 +305,7 @@ claude -p "/andthen:plan --auto docs/specs/workspace-invitations/"
 claude -p "/andthen:exec-plan --auto docs/specs/workspace-invitations/"
 ```
 
-Each `-p` call is its own session, so fresh context holds by construction. Codex CLI is the same shape through `codex exec`.
+Each `-p` call is its own session, so fresh context holds by construction. Codex is the same shape through `codex exec`.
 
 **Elsewhere.** Read the `ASSUMPTION:` lines the unattended `plan` wrote before trusting the bundle; overturn one with `plan` on that story's FIS and your answer. Contract: [Unattended runs](plugin/README.md#workflows).
 
@@ -468,7 +468,7 @@ andthen:plan and andthen:exec-plan skills in prose, not host slash syntax, so th
 on every host. Then symlink it at .agents/skills/plan-bundle for Codex.
 ```
 
-**Expect.** `/plan-bundle docs/specs/workspace-invitations/` on Claude Code and Copilot CLI, and the same skill from Codex's `/skills` picker: one committed file, read by all three hosts from `.claude/skills/` and `.agents/skills/`. Claude Code also still reads the older `.claude/commands/<name>.md` form, which gives `/<name>` from one file with no directory.
+**Expect.** `/plan-bundle docs/specs/workspace-invitations/` on Claude Code and Copilot, and the same skill from Codex's `/skills` picker: one committed file, read by all three hosts from `.claude/skills/` and `.agents/skills/`. Claude Code also still reads the older `.claude/commands/<name>.md` form, which gives `/<name>` from one file with no directory.
 
 **Wrap only what is settled.** The parts that never change (a plan directory, `--auto`, a review mode) belong in the file; the request itself stays `$ARGUMENTS`, because skills read intent from your words and a frozen sentence is a worse request than the one you would have typed. A recipe you run twice a year is not worth a file.
 
@@ -689,13 +689,19 @@ The PRD's open expiry question was asked before slicing, since two stories build
   - **SATISFIES**: SC01
 ```
 
-Authoring left nothing open, so Preflight asked nothing, and `plan` printed:
+Authoring left nothing open, so Preflight asked nothing, and `plan` closed on each story's approach, taken from its FIS's Architecture Decision, the plan's path, and the next command:
 
 ```
+Approach:
+- S01 Send an invitation – the request writes the Invitation and puts the email on the existing background queue. Sending inside the request would reuse today's mailer call, but the email has to leave the request path.
+- S02 Accept an invitation – one transaction consumes the token and creates the Member, so a token cannot be used twice.
+- S03 Revoke pending invitations – revoking sets a status on the Invitation, which the accept path from S02 already checks.
+
+docs/specs/workspace-invitations/plan.json
 Next (fresh session): /andthen:exec-plan docs/specs/workspace-invitations/s01-send-an-invitation.md
 ```
 
-**Checkpoint.** Every story is `pending` with its FIS. Read the three FIS files once – scope, non-goals, proof targets – which is cheaper now than mid-execution. On a team, PR the bundle to `1.2` beside the PRD and review the slicing there. Solo, commit it:
+**Checkpoint.** Every story is `pending` with its FIS. The `Approach:` lines say how each story will be built, so open the FIS of any story you would build differently – scope, non-goals, proof targets – which is cheaper now than mid-execution. On a team, PR the bundle to `1.2` beside the PRD and review the slicing there. Solo, commit it:
 
 ```
 "commit the prd and plan bundle"   # git add -- docs/specs/workspace-invitations/ ; git commit -- docs/specs/workspace-invitations/
@@ -715,8 +721,22 @@ git switch -c feat/S01-send-an-invitation 1.2            # {type}/{story-id}-{sl
 The run resolved the plan from the FIS header, wrote the three tests and confirmed each red for its intended behavior (its Testing Strategy requires test-first), implemented `TI01`–`TI03` in `src/invitations/`, each passing its `Verify` before the next, then ran the full tier, the new scenario proofs, and every `Verify` itself. Its illustrative completion report shows the result each command returned:
 
 ```
-TI01 done · TI02 done · TI03 done
-Changed: src/invitations/models.py, src/invitations/routes.py, src/invitations/jobs.py, tests/invitations/test_send.py
+How it works: an Owner posts an email address to POST /workspaces/{id}/invitations. The route stores one
+pending Invitation with a single-use token that expires in 7 days and enqueues the email on the existing
+background queue, so the response never waits on the mailer. A Member who is not an Owner gets 403.
+
+Where to read closely:
+- src/invitations/routes.py – the Owner check and the token comparison; an error here lets any Member invite.
+- src/invitations/models.py – the token is 32 random bytes; no check judges whether that is strong enough.
+
+Decided without asking: none
+
+Reviewed: fresh reviewer subagent, review quick pass with --fix against s01-send-an-invitation.md.
+  Fixed (1): F1 HIGH token compared with == in routes.py:41, timing-observable → hmac.compare_digest; focused test re-run, exit 0, 1 passed.
+  Open (1): F2 MEDIUM Mailer.send swallows SMTP errors – pre-existing, outside this FIS (Routing: Note).
+
+Commit: 4f2c9a1 feat(S01): send an invitation
+        src/invitations/models.py, src/invitations/routes.py, src/invitations/jobs.py, tests/invitations/test_send.py
 Tidied: routes.py – dropped an unused import
 
 full tier   – pytest -q -> exit=0, 3 passed in 0.12s
@@ -726,24 +746,18 @@ TI01 Verify – pytest -q tests/invitations/test_send.py::test_owner_invite_crea
 TI02 Verify – pytest -q tests/invitations/test_send.py::test_non_owner_is_forbidden -> exit=0, 1 passed in 0.04s
 TI03 Verify – pytest -q tests/invitations/test_send.py::test_send_is_enqueued_not_awaited -> exit=0, 1 passed in 0.04s
 
-Reviewed: fresh reviewer subagent, review quick pass with --fix against s01-send-an-invitation.md.
-  Fixed (1): F1 HIGH token compared with == in routes.py:41, timing-observable → hmac.compare_digest; focused test re-run, exit 0, 1 passed.
-  Open (1): F2 MEDIUM Mailer.send swallows SMTP errors – pre-existing, outside this FIS (Routing: Note).
-
-Chain Attestation: OC01 holds – S01 passed, satisfied by TI01 and TI03. OC02 holds – S02 passed, satisfied by TI02.
 Observations: docs/specs/workspace-invitations/s01-send-an-invitation.md#implementation-observations
 NOTICED BUT NOT TOUCHING: Mailer.send swallows SMTP errors
 
 S01 record: fis s01-send-an-invitation.md · completedTaskIds TI01, TI02, TI03
             verified 2026-08-31T14:22Z "pytest -q -> exit=0, 3 passed in 0.12s" · status done
-Commit: 4f2c9a1 feat(S01): send an invitation
 
 Next (fresh session): /andthen:exec-plan docs/specs/workspace-invitations/s02-accept-an-invitation.md
 ```
 
 Three things the report does not spell out. The reviewer was a fresh subagent, so the pass was independent; F1 was Fix-routed and applied as the story's one repair round, and F2 stays open and reported, never gated. `status done` went into the row beside the `verified` line, the durable trace once the bundle is deleted; `done` is never written without it. The commit staged the changed files, the plan, and the FIS by path, so the `Story-ID:` and `Plan:` trailers ride it.
 
-**Checkpoint.** Read the report and S02's FIS before S02's session; this pause is why `plan` printed one story. S01 changed no later FIS, so the one call left is the open Note: whether `Mailer.send` becomes a Tech Debt entry.
+**Checkpoint.** Read the report and S02's FIS before S02's session; this pause is why `plan` printed one story, and the report's four lead blocks are written to be read in place of the diff. S01 changed no later FIS, so the one call left is the open Note: whether `Mailer.send` becomes a Tech Debt entry.
 
 ### Turn 4 – ship S01 *(session C continues)*
 
@@ -774,7 +788,7 @@ git switch -c feat/S02-accept-an-invitation 1.2
 /andthen:ship
 ```
 
-S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied.
+S02 recorded one Drift Note: the PRD's accept flow said `GET`, the implementation is `POST` because a `GET` would leak the token into access logs. It sits under `#### DRIFT` in the FIS's Implementation Observations as `- spec-stale: accept is POST, not GET as prd.md#fr2 says | Stale targets: prd.md#fr2-accept-an-invitation | –`. The story's quick review read it first, so the divergence routed as a Note, not a blocker; the PRD edit is recommended, never applied. S02's report quotes the line under `Decided without asking:`, and its PR carries it in the table of that name, so the choice outlives the FIS.
 
 S03 `dependsOn` S02, so it starts only after S02 merged. To start it sooner, branch it from S02's branch, and once S02 squash-merges, move it with `git rebase --onto 1.2 feat/S02-accept-an-invitation`, because merging `1.2` into it conflicts in the FIS both stories appended to. S02 found one constraint for it, that the revoke endpoint must invalidate the queued email too. Before its commit, S02's run appended it under `## Discovered Requirements` in `s03-revoke-pending-invitations.md` and named that FIS in its report, so you read the constraint before S03's session and it reached `1.2` with S02's PR.
 
@@ -810,4 +824,4 @@ It ends on a `Next (fresh session):` line for `ship`, which runs on `1.2` as the
 
 It lands what belongs in `Learnings` from each FIS's `## Implementation Observations` and recommends the rest, including the PRD edit S02's Drift Note names, because the Drift Notes and cited ADRs go with the files. It then commits, shows the `1.2` → `main` PR title and body, and asks once before it pushes, in the same question asking whether to delete `plan.json` and the FIS files (`prd.md` stays), recommending deletion. The `1.2` → `main` PR is the one that can close issues, so its body links the parent and every story's child, read from the parent's `## Stories` checklist.
 
-**What survives.** `prd.md`, the tests, the PRs whose bodies state each story's intent, outcomes, and proof, and on a team the issues.
+**What survives.** `prd.md`, the tests, the PRs whose bodies state each story's intent, outcomes, proof, and what its run decided without asking, and on a team the issues.

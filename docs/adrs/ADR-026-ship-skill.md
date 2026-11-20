@@ -29,6 +29,18 @@ This reverses the local-only `--auto` decision below and the 2026-10-22 amendmen
 Unattended runs take the cleanup recommendations; deletion, stamping, and marking happen when the push proceeds or there is no remote.
 Attended runs keep the preview and one question before publication.*
 
+*Amended 2026-11-18: the pull request's images are part of its publication, so `--auto`'s consent to open it covers them.
+`ship` attaches step 3's SVGs and the screenshots through the host's upload, and recommends screenshots in the one existing question where the `Visual Validation` document exists.
+An image that fails to upload is listed and the pull request still opens, because the merge decision does not rest on it.*
+
+*Amended 2026-11-19: the PR body lists what a run decided without asking, in a visible `## Decided without asking` section holding one table (choice, where recorded, what would change it), because the FIS files that record those `ASSUMPTION:` lines, Drift Notes, and Interpretations go with the bundle and the reviewer answers for the choices.
+It is a second parsed section outside the `<details>` blocks, not a fourth Ship summary table: andthen-studio 0.2.2's parser fails the whole Ship summary on a fourth table and ignores a section outside it, and the Ship summary sits collapsed where a reviewer does not read.
+No Ship summary heading, label, table header, or token changed, and `pr-description.md` in the corpus carries the new section.
+`Decisions` § Execution holds the rest.*
+
+*Amended 2026-11-20: § The commit rule commits a run's own hunks of a file that also holds another session's edits, through `git apply --cached`, reversing the 2026-11-10 amendment's "leaving a file that holds another session's edit uncommitted", because a path commit takes the file whole and the critical-rules starter already commits by hunk.
+A file whose hunks cannot be separated still stays uncommitted and goes in the report.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:

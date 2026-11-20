@@ -4,7 +4,7 @@
 
 AndThen is an experimental, lightweight agentic software engineering framework for AI coding agents, adoptable piece by piece, with no forced workflow or directory layout. Its main workflow is spec-driven: a **Feature Implementation Specification (FIS)** for one story, or a plan with one FIS per story, written before the code (often from a PRD) and executed autonomously. Skills find every document through the **Project Document Index** below, which keeps locations configurable.
 
-It ships to Claude Code, Codex CLI, and GitHub Copilot CLI as one marketplace plugin – one shared `plugin/` directory under dual manifests, no build step – and to other agents as loose skills via `scripts/andthen.py install --loose`. Skills are the unit, invoked as `andthen:<name>` on every plugin host. Copilot reads the Claude Code manifests. Shared content in `plugin/references/` travels whole with the plugin; a loose install inlines it per skill so those bundles stay self-contained.
+It ships to Claude Code, ChatGPT/Codex, and GitHub Copilot as one marketplace plugin – one shared `plugin/` directory under dual manifests, no build step – and to other agents as loose skills via `scripts/andthen.py install --loose`. Skills are the unit, invoked as `andthen:<name>` on every plugin host. Copilot reads the Claude Code manifests. Shared content in `plugin/references/` travels whole with the plugin; a loose install inlines it per skill so those bundles stay self-contained.
 
 ### Repo Map
 
@@ -37,7 +37,7 @@ Create a missing document and its entry here from `project-document-templates.md
   Bullets stay tight (bold lead plus one or two sentences).
   On a `feat/<version>` branch, write under `## [<version>]`, never `[Unreleased]`; the version bump (see Plugin manifests) sets that heading.
 - **Plugin reference** – `plugin/README.md`: canonical user-facing reference for every shipped skill. Read the skill's section and every line naming it before changing or describing its behavior; update when a flag, mode, or edge case changes.
-- **Public intro** – `README.md`: the front door, about 2k words – what AndThen is, install, setup, the first feature, and the nine core skills; everything deeper is one link away in the Cookbook. Update when a user-invocable skill is added, renamed, or removed – the shipped skill count, and a row when it is one of the nine – and regenerate its figure (`python3 scripts/skills-overview.py` writes `assets/skills-overview.svg`).
+- **Public intro** – `README.md`: the front door, about 3k words – what AndThen is, install, setup, the first feature, and the nine core skills; everything deeper is one link away in the Cookbook. Update when a user-invocable skill is added, renamed, or removed – the shipped skill count, and a row when it is one of the nine – and regenerate its figure (`python3 scripts/skills-overview.py` writes `assets/skills-overview.svg`).
 - **Cookbook** – `COOKBOOK.md`: task-oriented recipes, how the workflow fits together (steps, artifacts, loops, terms), team work, the framework comparison, and the continuous worked example. Read the recipes for the workflow you describe before describing it to users; update when a skill, option, or artifact a recipe names changes – `scripts/audit-cookbook.py` fails CI on a stale reference.
 - **Migration guide** – `MIGRATING-FROM-0.x.md`: 0.x → 1.0 migration prompt and the retired-name mapping; transient, delete it once 0.x is out of circulation. Read and update when a 1.0 skill named in its table is renamed or moved – `scripts/audit-cookbook.py` covers it as a fourth document.
 - **Ubiquitous Language** – `docs/UBIQUITOUS_LANGUAGE.md`: canonical terms and the synonyms to avoid. Read before naming, renaming, or describing framework concepts in skills, references, docs, or specs; add a row when a term settles, on the shape its own header states.
@@ -91,7 +91,7 @@ Both paths' commands are in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
 - Adding, renaming, or removing a shared canonical in `plugin/references/` updates `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table and, in `scripts/andthen_loose.py`, `_canonical_assets` and the `_skill_assets_*` array of every consuming skill.
 - Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`.
   Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
-- Release-time flips carry a `pre-release` comment (found by `rg 'pre-release[:]'`) at their site, each stating its own flip. The 1.0 cut has its own steps in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
+- Release-time flips carry a `pre-release` comment (found by `rg 'pre-release[:]'`) at their site, each stating its own flip.
 - Before a release, and when a provider ships or reprices a model, run the project-level `recalibrate-roles` skill (`.claude/skills/recalibrate-roles/`) over the role templates (`plugin/skills/init/templates/agents/`): the pins are recommendations as of their last change, chosen by `docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Choosing a role's pin.
 
 ---
@@ -111,7 +111,7 @@ Both paths' commands are in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
 
 ## Documentation Lookup Tools
 
-For library/framework/API documentation lookups, spawn a generic subagent whose prompt names the concrete question and relevant library versions. It:
+For library/framework/API documentation lookups, spawn a worker subagent whose prompt names the concrete question and relevant library versions. It:
 
 - uses the project's available search and fetch tools;
 - prefers official documentation matching those versions or the highest-authority fallback;

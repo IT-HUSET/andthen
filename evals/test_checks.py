@@ -1474,8 +1474,11 @@ class RunnerTest(unittest.TestCase):
                     forwarded = ["--version", "argument with spaces", "'literal' $HOME; &"]
                     environment = dict(os.environ, HOME="dispatch home",
                                        CLAUDE_CONFIG_DIR="dispatch config")
+                    # HOME stays relative on purpose; running from tmp keeps the
+                    # fake claude's Python bytecode cache ($HOME/Library/Caches)
+                    # out of the repo root.
                     result = subprocess.run([str(wrapper)] + forwarded, env=environment,
-                                            capture_output=True, text=True)
+                                            capture_output=True, text=True, cwd=str(self.tmp))
                     self.assertEqual(0, result.returncode, result.stderr)
                     self.assertEqual({
                         "argv": ["--plugin-dir", str(run / "candidate" / "plugin")] + forwarded,

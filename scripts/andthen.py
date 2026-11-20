@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Set up AndThen on Claude Code, Codex, and Copilot CLI, and prove the result.
+"""Set up AndThen on Claude Code, Codex, and Copilot, and prove the result.
 
   andthen.py install [--ref REF] [options]
 
@@ -112,7 +112,7 @@ HOSTS = [
          lambda mp: ["codex", "plugin", "marketplace", "remove", mp],
          lambda s: ["codex", "plugin", "marketplace", "add", s],
          lambda n, mp: ["codex", "plugin", "add", f"{n}@{mp}"]),
-    Host("copilot", "Copilot CLI", "copilot", "COPILOT_HOME", ".copilot",
+    Host("copilot", "Copilot", "copilot", "COPILOT_HOME", ".copilot",
          lambda n, mp: ["copilot", "plugin", "uninstall", f"{n}@{mp}"],
          lambda mp: ["copilot", "plugin", "marketplace", "remove", mp],
          lambda s: ["copilot", "plugin", "marketplace", "add", s],
@@ -640,7 +640,7 @@ def bootstrap(args: list[str], *, home: Path | None = None,
             tree.rename(destination)
         except OSError as err:  # Windows refuses to delete a file a running host holds open
             print(f"Cannot replace {destination}: {err}\n"
-                  "  It may be in use: close Claude Code, Codex, and Copilot CLI, then run again.")
+                  "  It may be in use: close Claude Code, Codex, and Copilot, then run again.")
             return 1
     # Flushed, or a piped stdout prints this after the child's own output.
     print(f"AndThen {version} ({ns.ref}) downloaded to {destination}", flush=True)
@@ -679,7 +679,7 @@ def main(argv: list[str] | None = None) -> int:
             report.bad("--trust needs Codex: `codex` is not on PATH, or another --*-only flag excludes it")
 
     if mf and not args.dry_run:
-        print("Restart Claude Code / Codex / Copilot CLI to load the new copy.")
+        print("Restart Claude Code / Codex / Copilot to load the new copy.")
     return 1 if report.failed else 0
 
 

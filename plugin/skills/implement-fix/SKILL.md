@@ -122,7 +122,7 @@ Update only what the verified work justifies: state never advances before proof.
 
 **Gate**: status artifacts reflect the verified state, the report is annotated when writable, and each `DEFERRED` finding is written or awaiting approval.
 
-### Phase 6: Capture Cross-Finding Patterns _(optional)_
+### Phase 6: Capture Recurring Traps _(optional)_
 
 A recurring trap becomes a lint or test only when a Fix row includes that prevention, because prevention is scope, never a tidy. Then delete the `Learnings` entries it supersedes. Otherwise recommend it, and append to `Learnings` only a trap passing its admission test.
 

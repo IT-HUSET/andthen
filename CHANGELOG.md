@@ -6,6 +6,22 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
+## [1.3.0] – 2026-11-20
+
+### Changed
+- **`ship` uploads its PR images and recommends screenshots for UI changes.** Diagrams stay Mermaid unless Mermaid cannot lay them out; an SVG and any screenshots of the pushed commit upload with the PR (`gh pr create --attach`, gh 2.99 or later), and one that fails is listed while the PR still opens. Where the project has a `Visual Validation` document, screenshots are the recommendation, so `--auto` takes them.
+- **Visual validation accounts for every required view before passing.** Setup maps journeys to states and viewports, proves the capture procedures, and records gaps. Validation inspects whole layouts and their regions against expectations for that viewport, including scrolled and interactive states, and a required view marked `not judged` keeps a UI story unverified.
+- **The critical-rules starter drops its date and dash rules, commits only an agent's own hunks of a file another session also edited, and has agents delete their own throwaway scratch.** The skills' commit rule takes the same hunks, so `exec-plan`, `implement-fix`, `review --fix`, `triage`, and `simplify-code` leave such a file uncommitted only where the hunks cannot be separated. Rerun `init`'s rules offer, or `andthen.py install --rules` after removing the old block, to update an installed copy.
+- **`init`'s Codex role agents pin the GPT-6.2 models.** The `oracle` moves from GPT-6.1 Sol at `xhigh` to GPT-6.2 Astra at `high`, the `implementer` and `reviewer` move to GPT-6.2 Sol at their previous efforts, and the `worker` and the Copilot templates keep their pins. To update an installed copy, rerun `init`, or run `andthen.py install --replace-roles`.
+- **A new `Learnings` document asks each trap's fix to name the lint rule, type, or test that would catch it, and admits a trap a frontier model knows once it was made in the project more than once.** Every skill that appends a trap follows its header, and `review` counts a mistake made at two or more sites as a recurring trap, even when one finding covers them all. An existing document keeps its header, so copy the new header comment from the template to adopt it.
+- **`plan` closes by stating how each story will be built.** Under `Approach:`, its closing reply gives each story's approach and, where the FIS names one, the simpler option it was chosen over, so you can tell which FIS to open without opening them all. Nothing waits on it, and `--auto` prints it too.
+- **Every fitness function `architecture` proposes states its failure message**, in `fitness` and `review` modes, saying what to do instead.
+- **`review` no longer treats a comment the reviewed change adds as a recorded trade-off.** An ADR, the Decisions register, or an earlier comment still withdraws a design-choice finding, but a comment justifying the change's own workaround is part of the claim being reviewed.
+- **The `concise-critical` output style bans preamble instead of all narration.** Current models go quiet during long tool runs under a "No narration" rule; progress updates and closing `Next:` lines stay allowed. On Codex, update the copy pasted into `developer_instructions`.
+- **`init`'s project `CLAUDE.md` sends documentation lookups to the `worker` role**, where it named a generic subagent on the session's model. An existing project keeps its copy, so edit its `Documentation Lookup Tools` line to adopt it.
+- **Reports and the pull request list what a run decided without asking.** An `exec-plan` story report quotes each `ASSUMPTION:` line and each divergence or reading the run chose under `Decided without asking:`, a best reading of a FIS gap now being an `ASSUMPTION:` line too, and a plan run gathers them per story. `ship` writes them into a visible `## Decided without asking` table (choice, where recorded, what would change it) above the unchanged Ship summary, because the FIS files that hold them go with the bundle.
+- **An `exec-plan` story report leads with what you read in place of the diff**: how the story works as built, where to read closely, what the run decided without asking, and the `Reviewed:` line, with commits, tidies, and proof lines below as reference. Per-task status and the Chain Attestation leave the report, and a plan run's summary carries each story's how-it-works and `Reviewed:` blocks plus one list each for the other two.
+
 ## [1.2.0] – 2026-11-15
 
 ### Fixed

@@ -53,3 +53,21 @@ The first evals harness (16k lines, never ran) was redone small rather than prun
 ## Rejected concepts are Product non-goals, not a registry
 
 Reopens if a project needs per-request provenance a bullet cannot carry.
+
+## `plan`'s closing reply states each story's approach
+
+Adopted 2026-11-19 on an `oracle` second opinion, with no new run.
+The eight retained `--auto` closings of the `spec` and `spec-two-stories` cases show the gap: all five two-story closings list the stories, `Decided:` and `Assumed:` and state no story's approach, while both one-story Claude closings already print an `Approach:` bullet unprompted.
+Of their 13 FIS, 5 carry a floor line and none a `Flow`.
+
+The label is the FIS's own field name.
+The entry is reworded, not quoted, because nothing parses the reply, `Decided:` and `Assumed:` lines already reword their FIS, and a floor line can cite a FIS-internal id (`SC02`) that means nothing with the file closed.
+It lives in `preflight.md` § Ending because only a run where Preflight ran closes on it (`--batch` skips Preflight, and a run that stops early for another skill closes before it), so the text needs no branch.
+It is read from the FIS at the close because the story brief keeps the approach out of `plan.json`, and a copy in the `--batch` report would be stale once the bundle review and Preflight edit the FIS.
+
+Rejected: the `Flow` per story, a confirmation question as `clarify` and `decide` ask (it reopens "Preflight closes, never holds"), an `approach` field in `plan.json`, and a quoted line.
+
+The `spec-two-stories` case requires the block as its own criterion, `TWO_STORIES_APPROACH`, so a failure names its clause, and the `plan` and `spec` cases only tolerate it.
+No cell has run that criterion as of 2026-11-19, so read its first FAIL as rubric or skill.
+
+Reopens on a run whose `Approach:` entry contradicts the FIS it describes, or on closings where the block grows into a summary of each FIS.

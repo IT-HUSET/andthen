@@ -1,6 +1,6 @@
 # Permissions and sandboxing
 
-Example settings for Claude Code and Codex CLI that keep the agent's shell commands away from your secrets and the network, while it works freely inside the project. Copy what you need. Nothing here is installed by the plugin.
+Example settings for Claude Code and Codex that keep the agent's shell commands away from your secrets and the network, while it works freely inside the project. Copy what you need. Nothing here is installed by the plugin.
 
 ## Three layers
 
@@ -14,7 +14,7 @@ Bypass modes (`--dangerously-skip-permissions`, and Codex's `--yolo` or `danger-
 
 Claude Code's auto mode and Codex's `approvals_reviewer = "auto_review"` hand the approval prompt to a model that reviews each action in your place. That is safer than `acceptEdits` or a bypass mode, but it replaces your review rather than adding to it, so keep the sandbox and the rules underneath. Auto mode suits interactive work in Claude Code. The Codex files keep you as the reviewer (`approvals_reviewer = "user"`), because `auto_review` would also answer the network and `git push` prompts the files are there to raise, prompt rules included. Without a sandbox the trade flips. Every command then needs approval, so if you turn Codex's sandbox off, set `approvals_reviewer = "auto_review"`, the counterpart of auto mode, and never Full access.
 
-| | Claude Code | Codex CLI |
+| | Claude Code | Codex |
 |---|---|---|
 | Starting mode | `auto` from 2.1.283: a classifier reviews each action | `Auto`: workspace writes, asks when the sandbox blocks a command |
 | Sandbox | **off** until enabled; none on native Windows | on |
@@ -66,7 +66,7 @@ Codex has a Windows sandbox, but its `unelevated` implementation ignores denied 
 
 ## Verified
 
-Checked on 2026-10-15 with Claude Code 2.1.300 and Codex CLI 0.162.1 on macOS.
+Checked on 2026-10-15 with Claude Code 2.1.300 and Codex 0.162.1 on macOS.
 
 - **Both personal files:** under the sandbox, reading `.env`, a nested `sub/.env`, `~/.ssh`, or the Chrome profile failed with "Operation not permitted", from `cat` and from a Python script alike. `GITHUB_TOKEN` was unset, `example.com` was unreachable, and `ok.txt` read fine.
 - **Codex also:** writing outside the workspace or into `.git` was refused. With an empty config, the same `.env`, Chrome profile, and token came through. The hook refused `rm -rf` and pipe-to-shell when given Codex's `PreToolUse` input directly, not yet in a live Codex session.

@@ -78,12 +78,13 @@
 | Close-out | `ship` landing the FIS Implementation Observations, then deleting `plan.json` and the FIS files, before the branch merges (the milestone on a team); `prd.md` stays unless `Record: tracker`. | plan cleanup, archive the plan, teardown |
 | plan.schema.json | The machine form of `plan-schema.md` (JSON Schema draft 2020-12), a shared canonical in `plugin/references/`. | plan schema file, the JSON schema |
 | `Reviewed:` line | The completion report's one review signal: what reviewed the change, which findings were fixed, and what stays open. Prose for the reader, never parsed. | gate result, story verdict |
+| Decided without asking | A choice a run recorded making with nobody to ask: the list a story or plan report carries under that label, and the table `ship` writes into the pull request. | decided alone, agent decisions, decision log |
 | Scope Discipline | The `review-calibration.md` counterweight to the Anti-Leniency Protocol – Analysis Paralysis, Finding Distillation, Verdict first. | proportionality, going easy |
 | Follow-up review | A `review` run after a `**Remediated**:` report: the work since its Revision, its callers, and its open findings, unless a condition fails; says which findings are now resolved. | closure pass, review campaign, re-review round |
 | Anchor move | A routing decision `intent-and-rules-context.md` defines against the Intent bundle, named in one cited clause. | intent check, guardrail rule |
 | Implement Fix | Workflow run by the `andthen:implement-fix` skill to turn a request or a review report's findings into re-validated minimal fixes, verify them, and update workflow state. | quick implement, address comments, remediate findings |
 | Tech Debt Backlog | Durable backlog for deferred validated findings that cannot be fixed in the current remediation pass. | parking lot |
-| Admission test | The agent's judgment before a durable-store write, never a script check: does a frontier model already know this, does code or git history carry it, does it outlive the initiative? | quality bar, entry filter |
+| Admission test | The agent's judgment before a durable-store write, never a script check: does code or git history carry it, does it outlive the initiative, and is it unknown to a frontier model or repeated here? | quality bar, entry filter |
 | Drift Note | One line under `#### DRIFT` in a FIS `## Implementation Observations`, recording deliberate code↔FIS divergence and any upstream doc it leaves stale. | reconciliation ledger, drift log |
 
 ## Protocols
@@ -100,6 +101,7 @@
 ## Distribution
 | Term | Definition | Avoid |
 |------|------------|-------|
+| Plugin host | An agent app the plugin installs on (`HOSTS` in `scripts/andthen.py`): Claude Code, ChatGPT/Codex, GitHub Copilot where hosts are listed or labelled; Codex and Copilot after that and for the CLIs. | Codex CLI, GitHub Copilot CLI; Copilot CLI unless the fact holds for that program alone |
 | Shared Plugin Asset | Canonical file under `plugin/references/` consumed by multiple skills and inlined during loose installs. | shared reference, shared doc |
 | Generic Subagent | The one delegation shape AndThen uses: a host-provided general subagent whose prompt invokes a skill or loads a reference. | custom agent, persona agent, docs agent, sub-agent |
 | Role Agent | One of four opt-in subagent definitions – `oracle`, `implementer`, `reviewer`, `worker` – shipped as templates by the `andthen:init` skill and installed at user or project level. | tier agent, model agent, oracle skill, reviewer agent |

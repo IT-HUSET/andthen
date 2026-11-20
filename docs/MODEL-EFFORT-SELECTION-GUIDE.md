@@ -1,6 +1,6 @@
 # Model & Effort Selection Guide
 
-How AndThen steers model and reasoning depth across Claude Code, Codex CLI, and Copilot CLI, and how each role's pin is chosen. Principles and the selection rule only: no model version numbers, prices, or benchmark tables, because those rot. The last recalibration's scored shortlist is `docs/ROLE-PINS.md`, and the project-level `recalibrate-roles` skill (`.claude/skills/recalibrate-roles/`) runs the procedure.
+How AndThen steers model and reasoning depth across Claude Code, ChatGPT/Codex, and GitHub Copilot, and how each role's pin is chosen. Principles and the selection rule only: no model version numbers, prices, or benchmark tables, because those rot. The last recalibration's scored shortlist is `docs/ROLE-PINS.md`, and the project-level `recalibrate-roles` skill (`.claude/skills/recalibrate-roles/`) runs the procedure.
 
 ---
 
@@ -77,6 +77,7 @@ Candidates are the eligible (model, effort) pairs.
 - **`reviewer`**: the implementer's model at `medium`.
 - **`worker`**: the cheapest pair whose coding score is at least half the implementer pin's.
 - **Change a pin only when the rule's pick scores outside the margin of the current pin, or costs at least a third less within it.** Without this, pins flip on noise.
+  When Stage 1 replaces the current pin's model with its successor, the pin moves to the successor at the same effort, and this rule compares the pick with that pair.
 
 Copilot templates list one Anthropic and one OpenAI model per role, each the rule's pick for its provider, and set the effort the first model's pick uses, since one file carries one effort. List only model IDs GitHub publishes for Copilot CLI.
 
@@ -108,13 +109,13 @@ Skill frontmatter (`plugin/skills/*/SKILL.md`) carries no model or effort overri
 
 The session model is the user's choice (`/model`, `claude --model`, the alias system including 1M variants); AndThen does not override it. Session-level effort: `/effort`, `claude --effort`, `CLAUDE_CODE_EFFORT_LEVEL`, `effortLevel` in settings.json, per-turn `ultrathink`. Role definitions live in `~/.claude/agents/` or `.claude/agents/` with `model:` and `effort:` frontmatter; precedence is `CLAUDE_CODE_EFFORT_LEVEL` env > agent frontmatter `effort` > session level. `init` reports whether the installed roles match the shipped templates.
 
-### Codex CLI
+### ChatGPT/Codex
 
-The session/profile (`codex --profile X`, `-m`) is the user's model choice; `model_reasoning_effort` sets depth. Role definitions are `.toml` files under the Codex agents directory; Codex has no `inherit` sentinel, so omitting `model` *is* the inherit signal, the shape the generic fallback relies on.
+In the CLI, the session/profile (`codex --profile X`, `-m`) is the user's model choice; `model_reasoning_effort` sets depth. Role definitions are `.toml` files under the Codex agents directory; Codex has no `inherit` sentinel, so omitting `model` *is* the inherit signal, the shape the generic fallback relies on.
 
-### Copilot CLI
+### GitHub Copilot
 
-The session model is the user's choice (`/model`, `copilot --model`, `--reasoning-effort`). Role definitions are `.agent.md` files with `model:` and `reasoning-effort:` frontmatter (kebab-case; `reasoningEffort` is silently ignored). A `model:` list loads as the first model plus fallbacks. An effort the model does not support draws a warning and keeps the session's effort rather than failing.
+In the CLI, the session model is the user's choice (`/model`, `copilot --model`, `--reasoning-effort`). Role definitions are `.agent.md` files with `model:` and `reasoning-effort:` frontmatter (kebab-case; `reasoningEffort` is silently ignored). A `model:` list loads as the first model plus fallbacks. An effort the model does not support draws a warning and keeps the session's effort rather than failing.
 
 ---
 
