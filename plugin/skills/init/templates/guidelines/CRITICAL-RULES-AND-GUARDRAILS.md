@@ -17,7 +17,7 @@ These rules override harness defaults and habits where they conflict.
 - **Respect Chesterton's Fence.**
 - **Surface conflicting patterns, don't average them.**
   Align new code with one, usually the newer or better-tested, say why, and note the other.
-- **Comments explain *why*, not *what*.**
+- **Comment only what the code cannot say**: a reason, a constraint or trap, or a contract the signature leaves open, never what a reader could write from the adjacent code alone.
 - **Lean deliverables.**
   In artifacts (PRDs, ADRs, FISs), PRs, docs, and reports, name the mechanism or number, not the quality ("retries 3× with backoff", not "robust retry handling"), and cut a sentence that would hold for any project.
 - **Write compact instructions an agent can act on cold.**

@@ -8,6 +8,9 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ## [1.4.0]
 
+### Changed
+- **`simplify-code` deletes comments that repeat the code, and the critical-rules starter says which comments to write.** A comment a reader could write from the adjacent code alone goes, a doc comment judged against its declaration, and story, task, and finding IDs of a plan, spec, or review report are cut out of comments; a reason, a constraint, a contract the signature leaves open, and a comment a project guideline requires stay. An existing project keeps its copy of the starter, so replace its "Comments explain *why*, not *what*" line to adopt the rule.
+
 ## [1.3.0] – 2026-11-20
 
 ### Changed

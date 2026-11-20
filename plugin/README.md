@@ -498,10 +498,10 @@ Answers one named design question by building a throwaway runnable spike, then r
 
 `[--auto] [scope: paths and/or description]`
 
-Behavior-preserving simplification: clarity, reuse, and less over-engineering, within the scope you give.
+Behavior-preserving simplification: clarity, reuse, less over-engineering, and no comments that repeat the code, within the scope you give.
 
 - **You get**: edits that keep behavior, checked against the baseline it records first and committed once green (on the default branch, after asking whether to start a feature branch). Cleanups that contradict the governing FIS's `What We're NOT Doing` or `Architecture Decision` are dropped and reported. Run standalone, a substantial change ends on a `Next (fresh session):` line for a `review` of the changed paths.
-- **Good to know**: without a scope it falls back to the current branch diff, and an unattended run stops if that is not a cohesive set. Removing anything observable or exported needs your approval; unattended, it is deferred. `exec-plan` runs it once per `done` story, as its own `refactor` commit before the next story runs (under `--worktree`, one pass per merged batch).
+- **Good to know**: without a scope it falls back to the current branch diff, and an unattended run stops if that is not a cohesive set. Removing anything observable or exported needs your approval; unattended, it is deferred. It deletes a comment a reader could write from the adjacent code alone, judging a doc comment against its declaration, and cuts plan, spec, and review-report IDs out of comments. A reason, a constraint, a contract the signature leaves open, a comment a project guideline requires, a licence header, and anything a build, a linter, or the running program acts on stay, as does any comment it cannot classify. `exec-plan` runs it once per `done` story, as its own `refactor` commit before the next story runs (under `--worktree`, one pass per merged batch).
 
 ```bash
 /andthen:simplify-code src/billing/invoice.ts
