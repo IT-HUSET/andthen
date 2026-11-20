@@ -47,7 +47,7 @@ Leave no `TODO` placeholder behind: resolve each from the project context or del
 
 Append `.agent_temp/` and `*-andthen-*-review-*.md` to `.gitignore` when absent, creating the file if missing.
 
-When Step 1 found a manifest, derive the `fast`, `full` and run-one-test commands from it and the task runner beside it (`Makefile`, `justfile`, the CI workflow). Seed the `Key Dev Commands` document with them through a subagent – the installed `worker` role agent when available, else a generic inherited one – that invokes this skill with `seed Key Dev Commands` and those commands, so the template set stays out of this run's context.
+When Step 1 found a manifest, derive per-story `fast` checks (with package or component selectors in a workspace), integrated `full` sweeps and the run-one-test command from it and the project's task runner or CI. Seed the `Key Dev Commands` document with them through a subagent – the installed `worker` role agent when available, else a generic inherited one – that invokes this skill with `seed Key Dev Commands` and those commands, so the template set stays out of this run's context.
 
 **Gate**: The instruction file(s) carry the preamble's first-write sentences, the `Agent Temp` entry, an Index entry for each other AndThen document that exists and none for one that does not, and no `TODO`; `.gitignore` carries both entries; `Key Dev Commands` exists when a manifest does; nothing else was created – then Step 3.
 

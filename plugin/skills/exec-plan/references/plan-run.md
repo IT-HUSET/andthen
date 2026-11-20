@@ -19,7 +19,7 @@ Re-read `plan.json` before each batch and take its wave, the stories now depende
 
 **Dispatch** a fresh implementer subagent that invokes the `andthen:exec-plan` skill on `{FIS_PATH}`, telling it it is a story subagent of an `andthen:exec-plan` plan run, with:
 - `--auto`, whether or not this run carries it, since nobody is watching a story subagent;
-- `--no-full-tier`, since the full tier it defers is Step 3's.
+- `--no-full-tier`, since this run owns the integrated checks in Step 3.
 
 The FIS names its own plan, so no further argument passes. The subagent owns the story whole, so add no second review.
 
@@ -31,10 +31,14 @@ The FIS names its own plan, so no further argument passes. The subagent owns the
 
 ## Step 3: Final verification
 
-Run it whenever at least one story is `done`: each got only the fast tier, so a partial run's retained code is otherwise unverified. On the final tree, run build, lint/types, cross-story integration, and the full tier the stories deferred, or the fast tier under `--no-full-tier`. Report the tier that ran and the evidence fields of `verification-evidence.md`, then the integration result on two lines:
+Whenever at least one story is `done`, verify the combined revision after simplification, including a partial or resumed run:
+
+1. Collect build, lint/types, cross-story integration, the full tier, applicable plan-final checklist items and the deferred commands in every `done` FIS's Implementation Observations. An unreadable `done` FIS leaves its obligations unaccounted for.
+2. Run each distinct obligation once on that tree. A covering tier invocation counts for every source item whose command, configurations and assertions it actually exercises. Run uncovered commands separately. Under `--no-full-tier`, run fast, leaving any broad portion covered by the caller's full tier for that caller. Mark only coverage still unexecuted as outstanding.
+3. Report the checked revision, each obligation's story/item or tier, and the command and result that covered it, or why it remains outstanding. Give the evidence fields of `verification-evidence.md` and the integration result on two lines:
 
 - `Scope: complete` or `Scope: incomplete – {failed/skipped ids}`;
-- `Verification: passed`, `failed – {evidence}`, or `not run – {reason}` when a failed story's leftovers make the checks impossible.
+- `Verification: passed` only when all required integrated checks passed on that revision, `failed – {evidence}` for a red gate, or `not run – {outstanding checks and reason}` for incomplete verification.
 
 Each repair round of a red gate is a fresh implementer subagent that invokes the `andthen:triage` skill with `--auto` and a scope naming the failing checks – the commands and what they returned – and the affected FIS paths. The assigned checks bound the work, so no original task is replayed. Require its changed paths, left uncommitted for this run, and check evidence, then re-run what the repair invalidated.
 
@@ -63,4 +67,4 @@ Where any story failed or was skipped, add `Completed`, `Failed`, `Skipped`, and
 
 Leave `plan.json` and the FIS files in place: the `andthen:ship` skill deletes or keeps them, on the user's answer, when the plan's branch ships.
 
-**The plan-level review is not yours**: after every story's report this is the run's most loaded context. End with exactly one `Next (fresh session):` line carrying it on `{PLAN_PATH}`, plus `--auto` in an unattended run. Where the person stopped the run on a revision at triage, end on the skill's Follow-up revision line instead, because a review of the old spec would be spent. Under `--no-full-tier` the line opens with running the full tier first. Scope it to the `done` stories, because a review over the whole plan raises gap findings against stories nobody implemented: where any story failed or was skipped, name the `done` ids after `{PLAN_PATH}`. Where none is `done`, print `Next: no completed stories – nothing to review.` instead.
+**The plan-level review is not yours**: after every story's report this is the run's most loaded context. End with exactly one `Next (fresh session):` line carrying it on `{PLAN_PATH}`, plus `--auto` in an unattended run. Where the person stopped the run on a revision at triage, end on the skill's Follow-up revision line instead, because a review of the old spec would be spent. Open the review handoff with any integrated check still to fix or run, including the caller's full tier under `--no-full-tier`. Scope it to the `done` stories, because a review over the whole plan raises gap findings against stories nobody implemented: where any story failed or was skipped, name the `done` ids after `{PLAN_PATH}`. Where none is `done`, print `Next: no completed stories – nothing to review.` instead.

@@ -35,7 +35,7 @@ Every run reads [`verification-evidence.md`](../../references/verification-evide
    4. Files named or edited earlier in this conversation.
 
    In an unattended run, the diff/conversation fallback is defensible only when it yields a non-empty, cohesive set; otherwise stop rather than simplifying against noise.
-2. Resolve the project's check commands per `verification-evidence.md`; they serve both this baseline and Step 4. A green gate result the invocation hands over for this tree is the baseline; otherwise run them and record the result.
+2. Use the check commands the invocation supplies, else resolve them per `verification-evidence.md`. They serve both this baseline and Step 4. Use a supplied green result for this tree or run the check and record the result.
 3. The governing FIS is the Intent anchor: the one the arguments name, each FIS of a plan they name, else the one discoverable for the scope's paths. Read its `What We're NOT Doing` and `Architecture Decision` sections, and the PRD or `Product` document only where it cites them: the FIS already carries what binds from them. With none, record `Intent Context: none discoverable` in the completion summary.
 
 **Gate**: scope defined, baseline recorded, Intent anchor read or recorded as absent.

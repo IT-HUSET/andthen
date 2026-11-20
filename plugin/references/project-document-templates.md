@@ -336,8 +336,8 @@ Application URL: `TODO` <!-- e.g. http://localhost:3000 -->
      them is whatever this project's runner takes. -->
 | Tier | Command | Description |
 |------|---------|-------------|
-| fast | `TODO`  | Once per story – unit tests and the checks that finish in seconds |
-| full | `TODO`  | End of run – integration, E2E, and performance suites |
+| fast | `TODO`  | Per-story checks that finish in seconds. In a workspace, give the affected package or component selector |
+| full | `TODO`  | End of run on the integrated tree, including workspace, browser-matrix and cross-application sweeps |
 | run one test | `TODO {file}::{test}` | One test, by file and name |
 
 ## Build & Deployment

@@ -35,5 +35,5 @@
 
 - **TI01 Write the exported record count**
   - Add `test_run_records_the_exported_row_count` to `tests/test_pipeline.py` asserting the scenario, then extend `run` in `src/reporter/pipeline.py` so the count of loaded records is written to `rows.txt` under the output root.
-  - **Verify**: `cmd: python3 -m unittest tests.test_pipeline` – the count is proved beside the existing stages
+  - **Verify**: `cmd: python3 -m unittest tests.test_pipeline && python3 -m unittest discover -s tests -t . -p "journey_*.py"` – the pipeline writes the count and the project journeys stay green
   - **SATISFIES**: S01, SC01, SC02

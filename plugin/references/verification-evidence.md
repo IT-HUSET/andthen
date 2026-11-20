@@ -4,12 +4,12 @@ The project's checks contract: where a skill's check commands come from, how the
 
 ## Where the commands come from
 
-The `Key Dev Commands` document (**Project Document Index**; default `docs/KEY_DEVELOPMENT_COMMANDS.md`) is the one source for every skill that runs a check. Read it before running any check. Run a command its row states as written, never re-derived.
+Read `Key Dev Commands` (**Project Document Index**; default `docs/KEY_DEVELOPMENT_COMMANDS.md`) before running checks. Run the documented commands as written for the selected scope, filling in the project's selectors.
 
-Its Testing section declares two tiers plus one single-test row, so no skill has to infer what is heavy:
+Its Testing section declares two tiers plus one single-test row:
 
-- **fast** – once per story: unit tests and the checks that finish in seconds.
-- **full** – end of a run: integration, E2E, and performance suites.
+- **fast** – per-story checks that finish in seconds. For a workspace, document how to select the affected package, component or test.
+- **full** – end-of-run checks, including workspace and cross-application sweeps.
 - **run one test** – a template with literal `{file}` and `{test}` placeholders, substituted to execute a single proof target.
 
 ## When the document does not answer

@@ -13,7 +13,7 @@ Execute a FIS, or a plan with one fresh subagent per story, verify against its p
 
 - `--auto` makes the run unattended: read [`unattended-runs.md`](../../references/unattended-runs.md) and follow it.
 - `--worktree` runs a plan run's ready stories in parallel worktrees.
-- `--no-full-tier` runs the fast tier where the run would run the full one, for a caller that runs the full tier on the final tree.
+- `--no-full-tier` selects fast and leaves full to the caller on the final tree. Dispatched stories apply the story procedure's scoping to fast as well.
 
 ## Rules
 

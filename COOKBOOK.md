@@ -545,7 +545,7 @@ This is a scope-and-cadence split, not the DevEx sense of inner loop (edit-build
 - **Plan Bundle** – the feature directory holding `plan.json`, its FIS files, and `prd.md` when a PRD was the source.
 - **FIS** – Feature Implementation Specification, one per story: intent, expected outcomes, acceptance scenarios with runnable `Proof` bindings, and tasks, each naming what it `SATISFIES` and how to `Verify` it.
 - **Preflight** – the closing round of `plan`: every question the run could not answer itself, asked in one sitting with a recommendation preselected and answered into the FIS. Unanswered, the recommendation is recorded as an assumption.
-- **Verification tier** – `fast` or `full`, declared in `Key Dev Commands`. `exec-plan` on one FIS runs `full`; on a plan directory each story gets `fast` and the final tree gets `full` once.
+- **Verification tier** – `fast` or `full`, declared in `Key Dev Commands`. `exec-plan` on one FIS runs `full`. In a plan run, stories and their simplification use focused checks. The plan runs `full` once on the combined tree, plus any deferred sweep it does not cover.
 
 
 ## Coming from Spec Kit, Kiro, BMAD, or GSD
