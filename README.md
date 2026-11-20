@@ -20,10 +20,10 @@ AndThen is a set of skills for AI coding agents (Claude Code, ChatGPT/Codex, Git
 
 An agent writes code faster than you can read it, and you still answer for what merges. AndThen aims to keep you in charge:
 
-- **Control** – the calls that matter stay yours. Skills ask instead of assuming. A plan runs one story per session, so you can adjust the next one before it runs, and `ship` pushes only after your yes.
+- **Control** – the calls that matter stay yours. A plan runs one story per session, so you can adjust the next one before it runs, and `ship` pushes only after your yes.
 - **Ownership** – the intent and the decisions are yours. `clarify` writes the requirements only once you confirm what it understood, and `decide` records each choice that is costly to reverse as an architecture decision record (ADR) you accept. Both documents outlive the branch.
 - **Trust** – nothing is done on the agent's word. A subagent that didn't write the code reviews every story against its spec, and a story is marked done only with a quoted line from the check that proved it.
-- **Transparency** – you can see what was done and why. Each story ends in a report, and the PR states the intent, each outcome with its proof, where to read closely, and how to undo the change. An unattended run (`--auto`) records each choice it made for you as an `ASSUMPTION:`.
+- **Transparency** – you can see what was done and why. Each story ends in a report, and the PR states the intent, each outcome with its proof, where to read closely, and how to undo the change. Each story report and the PR list what the run decided without asking.
 
 The process is sized to the work: a change you can state in one sentence skips the specs (`implement-fix`), and a plan's specs are deleted before the merge unless you keep them. [Where you take part](#where-you-take-part) lists each point where the work waits for you.
 

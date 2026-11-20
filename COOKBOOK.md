@@ -101,7 +101,7 @@ Contracts: [`plan`](plugin/README.md#plan), [`exec-plan`](plugin/README.md#exec-
 /andthen:implement-fix "return 404 instead of 500 when an export job id does not exist"
 ```
 
-**Expect.** Your sentence is the whole Fix set: tests first where the change adds a branch, the change, the project's checks, and a diff pass as the review. No FIS and no plan state. The verified change is committed by path, and a file that also holds someone else's edit stays uncommitted and is named. Beyond it, only Boy Scout tidies are made, each named: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue the sentence did not ask for comes back under `NOTICED BUT NOT TOUCHING:` rather than as an edit.
+**Expect.** Your sentence is the whole Fix set: tests first where the change adds a branch, the change, the project's checks, and a diff pass as the review. No FIS and no plan state. The verified change is committed by path, taking only its own hunks of a file that also holds someone else's edit; a file whose hunks cannot be separated stays uncommitted and is named. Beyond it, only Boy Scout tidies are made, each named: behavior-preserving fixes in the functions or doc sections the change edits and minor ones elsewhere. A larger issue the sentence did not ask for comes back under `NOTICED BUT NOT TOUCHING:` rather than as an edit.
 
 **Elsewhere.** A sentence that turns out to describe a feature, a PRD, or a plan stops at the scope guard and points at `plan` → `exec-plan`, with `clarify` first when requirements are still open. Contract: [`implement-fix`](plugin/README.md#implement-fix).
 
@@ -254,9 +254,7 @@ The map is recommended first for a project with real domain depth, and never req
 
 Naming modes in order, as in the last prompt, runs them in that order sharing context; there is no chain flag. A run from a PRD closes on the `plan` command; `plan` cites the mockups or wireframes, `exec-plan` builds to them, and `visual-validation` judges the build against that feature's mockups first, else its wireframes. `ship` asks whether to delete the feature's design folders once it is built.
 
-Run `/andthen:visual-validation --mode setup` to record how to reach and capture the journey's states at each relevant viewport. Then run `/andthen:visual-validation "workspace invitation flow"` to exercise it. A required view without evidence keeps the story unverified.
-
-**Elsewhere.** Validating a built screen is `visual-validation`, not a design mode. Questions about requirements rather than interaction are `clarify` territory.
+**Elsewhere.** Validating a built screen is `visual-validation`, not a design mode: its `--mode setup` records how to capture each view, and a required view without evidence keeps a UI story unverified. Questions about requirements rather than interaction are `clarify` territory.
 
 ### A second opinion before committing to a decision
 

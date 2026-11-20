@@ -123,9 +123,9 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   An untracked one is written once the pull request opens, else at the run's end with `pr` null, and left uncommitted.
 - Before the push, capture the screenshots or recording the request asked for or the answer or `--auto` took up, per the `Visual Validation` document.
   Capture the commit being pushed, in the fewest screens that show a reviewer what changed, because an earlier capture can predate a fix.
-  Keep a capture only when it shows the state its alt text names.
+  Keep a capture only when it shows the state its alt text names, and reference each kept one in the body by relative path above the Ship summary.
 - With consent and a remote, push the branch and open the pull request.
-  Attach every capture and step 3's SVGs through the host's upload, such as `gh pr create --attach <file>` (gh 2.99 or later), which swaps the body's relative reference for the uploaded copy.
+  Attach every kept capture and step 3's SVGs through the host's upload, such as `gh pr create --attach <file>` (gh 2.99 or later), which swaps the body's relative reference for the uploaded copy.
   A create that exits non-zero after printing the pull request's URL opened it without the files that failed, and the publication is complete without them.
   Remove the body's reference to each file not uploaded, and list it for the user to attach, with its reason.
 

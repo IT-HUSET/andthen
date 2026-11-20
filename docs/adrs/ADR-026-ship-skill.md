@@ -38,6 +38,9 @@ It is a second parsed section outside the `<details>` blocks, not a fourth Ship 
 No Ship summary heading, label, table header, or token changed, and `pr-description.md` in the corpus carries the new section.
 `Decisions` § Execution holds the rest.*
 
+*Amended 2026-11-20: § The commit rule commits a run's own hunks of a file that also holds another session's edits, through `git apply --cached`, reversing the 2026-11-10 amendment's "leaving a file that holds another session's edit uncommitted", because a path commit takes the file whole and the critical-rules starter already commits by hunk.
+A file whose hunks cannot be separated still stays uncommitted and goes in the report.*
+
 ## Context
 
 **The workflow ends on a checklist.** Once a plan's stories are done and its plan-level review is clean, `review`, `implement-fix` on that review's report, and `now-what` print `Next: ship –` with four steps for the user:

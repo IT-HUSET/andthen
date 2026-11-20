@@ -1,5 +1,5 @@
 ---
-description: Plan visual validation for a project or inspect a built UI and screenshots for layout defects, design mismatches, and visual regressions. Trigger on 'visual validation', 'check UI against design', 'set up visual validation'. Design authoring is the andthen:ui-ux-design skill.
+description: Inspect a built UI and screenshots for layout defects, design mismatches, and visual regressions, or set up the project's capture strategy. Trigger on 'visual validation', 'check UI against design', 'set up visual validation'. Design authoring is the andthen:ui-ux-design skill.
 argument-hint: "[--mode setup] [<screens-or-states-to-validate>] [design-reference/baseline]"
 ---
 
@@ -23,13 +23,13 @@ Judge the requested UI from rendered evidence, accounting for every required vie
 
 Read the project's `Visual Validation` document (default `docs/VISUAL-VALIDATION.md`) for capture procedures, viewports, and reference locations.
 Honor explicit limits on screens, states, and viewports.
-For a journey or change, cover affected states within those limits, including failures and layout-changing content the capture guide omits.
+For a journey or change, cover affected states within those limits, including failures and layout-changing content the `Visual Validation` document omits.
 Without a narrower scope, cover the journeys users depend on.
 
 - Cover the requested viewports, defaulting to the project's.
   Within a responsive review's scope, fill coverage gaps at layout transitions and tight supported widths.
 - Judge each requested comparison against its named reference, retaining the comparison as a gap if that reference is unavailable.
-- For built UI layout without a named comparator, use the feature's own Mockup, else its wireframe, then design requirements or a baseline.
+- For built UI layout without a named comparator, use the feature's own Mockup at the `Mockups` location, else its wireframe at the `Wireframes` location, then design requirements or a baseline.
   Judge a design artifact against the caller's requirements.
 
 **Gate**: each required screen, state, and viewport has an expected visible result and its source, or an explicit reference-free defect check.
@@ -38,7 +38,7 @@ Without a narrower scope, cover the journeys users depend on.
 
 Use the project's capture tooling, else the host's available browser, automation MCP, or CLI.
 If none can capture the view, use temporary tooling or record the gap.
-Save distinct captures under the requested path, defaulting to `.agent_temp/validation/`.
+Save distinct captures under the requested path, else where the `Visual Validation` document puts them, else `.agent_temp/validation/`.
 
 - On a live UI, perform the scoped interactions and capture the response before changing scroll or focus.
   Scroll the page and its scrolling containers to expose content and fixed overlays in context.
@@ -70,7 +70,7 @@ Severities:
 - **P2 Major** – missing behavior, missing elements, visibly wrong implementation, or broken responsive behavior.
 - **P3 Minor** – polish, small alignment or spacing issues, or low-risk refinement.
 
-**Gate**: reconcile the findings with the coverage list.
+**Gate**: reconcile the findings with Step 1's required views.
 A passing region identifies a landmark in its expected position and a visible detail at its boundary, quoting edge text where present.
 
 ## Output
@@ -80,7 +80,7 @@ Otherwise report incomplete if any required item is `not judged`, and pass when 
 Report coverage gaps and P3 findings with any verdict.
 After a fix, recapture the affected views and retain both verdicts and their evidence.
 
-- **Summary** – verdict, coverage gaps, and whether the project document or fallback supplied the procedure.
+- **Summary** – verdict, coverage gaps, and whether the project document or the host's tooling supplied the procedure.
 - **Detailed Findings** – by screen, state, viewport, and region, give each finding or pass with its capture path, or `not judged` with the reason.
 - **Recommended Fixes** – specific changes in priority order, each tied to evidence from the capture, the design reference, or the accessibility guideline it fails.
 - **Next Steps** – remaining gaps or retest needs.

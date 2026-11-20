@@ -20,7 +20,8 @@
 
 ## Ship summary
 
-> This section ends the body, running from its heading to the next `## ` heading or the body's end. It restates facts the prose above it already gives, so a viewer can join the pull request to its requirements, proof, and reviews without an agent run.
+> This section ends the body, running from its heading to the next `## ` heading or the body's end.
+> It restates facts the prose above it already gives, so a viewer can join the pull request to its requirements, proof, and reviews without an agent run.
 > Text added to the body later goes above it, outside its `<details>` block.
 > Where the host renders no `<details>`, leave out the block's three tag lines.
 

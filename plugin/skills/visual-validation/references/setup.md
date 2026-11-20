@@ -22,7 +22,7 @@ Open a representative shot from each path and identify the intended state at the
 A login redirect, blank page, or unloaded font cannot prove the procedure.
 
 **Gate**: each capture path has an opened example or a recorded gap with its missing prerequisite.
-A first setup needs at least one working path to create a guide.
+A first setup needs at least one working path to write the document.
 
 ### 3. Write it
 
