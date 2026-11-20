@@ -30,7 +30,7 @@ These rules override harness defaults and habits where they conflict.
   "Done", "tests pass", and "works" are false while anything was skipped, a test excluded, or the requested edge case unchecked.
   An orchestrator runs the top-level checks itself rather than trusting its subagents' reports.
 - **Say how you know.**
-  A claim carries its evidence, such as the checks' key results, or is marked as inferred, because an unmarked inference reads as fact to whoever acts on it or relays it.
+  A claim carries its evidence, such as the checks' key results, or is marked as inferred, because an unmarked inference reads as fact.
   Never hand the user a check, or a question, that a local, non-destructive command would settle.
 - **Tests verify intent.**
   A test that still passes when the business logic changes is wrong.
@@ -55,10 +55,10 @@ These rules override harness defaults and habits where they conflict.
 - **Commit messages point to the issue, spec, or CHANGELOG** rather than restating it.
 - **No AI attribution** anywhere (code, commits, PRs, git trailers), even where the harness default adds it.
 - **Stay on the current branch unless told otherwise**, because switching moves the tree under any other agent working in it.
-  Before the first edit of work you will commit, outside an unattended run, when the current branch is the remote's default branch, ask once whether to start a feature branch, because commits land on the current branch and the pull request opens from it.
+  On the remote's default branch, ask once before the first edit of work you will commit whether to start a feature branch, unless the run is unattended.
 - **Assume another agent shares the worktree**, so act only on your own changes:
-  - Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged.
-    A path commit takes each file whole from disk, so to commit a file that also holds another session's edits, `git apply --cached` a patch of only your hunks, confirm `git diff --cached` shows nothing else, and commit without paths.
+  - Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`).
+  - Commit only your own hunks of a file another session also edited.
   - Undo your own work by editing back or reverting your commit.
   - Run `git reset`, `restore`, `checkout --`, `stash`, or `clean` only when the user or the active skill's contract sanctions it, because they destroy uncommitted work, another agent's included.
   - Never delete a `.git/*.lock`, because another process holds it.
@@ -69,7 +69,7 @@ These rules override harness defaults and habits where they conflict.
   It runs alone, never in a loop or chain, and so does any destructive command.
 - **Temp files go in `<project_root>/.agent_temp/`**, named meaningfully, never the repo root.
   Only throwaway scratch that neither the user nor another agent needs may go in a system temp directory or the host's scratchpad.
-  When your task is done, delete the throwaway scratch you wrote in `.agent_temp/`, because a folder that only grows hides the files that matter.
+  When your task is done, delete the throwaway scratch you wrote in `.agent_temp/`.
   Keep reports, handoffs, and evidence a document cites.
 - **Harness auto-memory holds user preferences and machine-local facts only.**
   Durable project knowledge goes to committed docs, such as Learnings, Decisions, and guidelines.
@@ -79,30 +79,23 @@ These rules override harness defaults and habits where they conflict.
 ## Subagent Model Policy
 
 Delegate work that would fill the session's context without needing its judgment, and work that needs independence, such as a review of the session's own work.
-Route delegated work by the task, never a model name, because names go stale.
-Two questions set the role: how pinned is the scope, and how much judgment does it take?
-
-The `andthen:init` skill can install four role agents, `oracle`, `implementer`, `reviewer`, and `worker`, each pinning the model and effort chosen for that role on its host.
-Spawn a role as the subagent type of that name.
-Delegated work no row below fits goes to `implementer`, with its scope and done-criterion pinned in the prompt.
-Where the roles are not installed, spawn a generic subagent on the session's model.
-
-Label each subagent role first, or model family first where no role is installed, then the task in plain words (`Reviewer: audit prompt diff`), in the field the host lists it by (Claude Code's `description`).
-On Claude Code leave the Agent tool's `name` unset, because a named spawn can run as a teammate whose report never returns.
+Route by the task, never a model name, because names go stale.
 
 | Task | Route |
 |---|---|
-| **Judgment** – orchestration, planning, spec authoring, architecture, design, ambiguous or creative work | **The session**, because a subagent loses the conversation the judgment rests on. |
-| **Implementation**, research that weighs or synthesises, other medium or large pinned work – a FIS pins a story, and authoring one for a plan story is pinned work too | `implementer` |
-| **Reviews** – code, doc, gap, per-story review, critic pass | `reviewer` |
-| **Small, well-specified, verifiable subtasks** – retrieval, scans, mechanical edits, fact lookups against a pinned question, small clear-spec fixes | `worker`; the prompt carries exact scope, output contract, and done-criterion |
+| **Judgment** – orchestration, planning, spec authoring, architecture, design, ambiguous or creative work | **The session**, because a subagent loses the conversation the judgment rests on |
+| **Medium or large pinned work** – implementation, research that weighs or synthesises, authoring a plan story's FIS | `implementer` |
+| **Any review** | `reviewer` |
+| **A small, well-specified, verifiable subtask** | `worker` |
+| **Judgment the user asks you to delegate**, such as a second opinion, or work at a skill's gate that names `oracle` | `oracle` |
+| **A hard problem beyond your tier** – a failure that survives a real fix, a design that will not close, a cause the material at hand cannot explain | `oracle` |
+| **Other delegated work** | `implementer` |
 
-Outside a gate a skill names it for, `oracle` takes two kinds of work:
-
-- **Judgment the user assigns it**, such as a second opinion on a decision, which you spawn only when the user asks.
-  Its prompt carries the decision, its reasoning, and the rejected alternatives, and asks where the decision is wrong.
-- **A hard problem an agent hands over** because it exceeds that agent's tier: a failure that survives a real fix, a design that will not close, or a cause the material at hand cannot explain.
-  The hand-over states what was tried, what every attempt assumed, and what stays unexplained, and the task stays the asker's.
-
-On a quality miss, escalate one step: `worker` to `implementer`, `implementer` to the session.
-Never retry unchanged.
+- Spawn each role in the Route column as the subagent type of that name, or as a generic subagent on the session's model where it is not installed.
+- Pin the scope, output contract, and done-criterion in every subagent's prompt.
+- A second opinion's prompt carries the decision, its reasoning, and the rejected alternatives, and asks where the decision is wrong.
+- A hand-over to `oracle` states what was tried, what every attempt assumed, and what stays unexplained, and the task stays yours.
+- Label each subagent role first, or model family first where no role is installed, then the task in plain words (`Reviewer: audit prompt diff`), in the field the host lists it by (Claude Code's `description`).
+- On Claude Code leave the Agent tool's `name` unset, because a named spawn can run as a teammate whose report never returns.
+- On a quality miss, escalate one step: `worker` to `implementer`, `implementer` to the session.
+  Never retry unchanged.

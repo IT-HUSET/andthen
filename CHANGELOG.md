@@ -10,6 +10,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ### Changed
 - **`simplify-code` deletes comments that repeat the code, and the critical-rules starter says which comments to write.** A comment a reader could write from the adjacent code alone goes, a doc comment judged against its declaration, and story, task, and finding IDs of a plan, spec, or review report are cut out of comments; a reason, a constraint, a contract the signature leaves open, and a comment a project guideline requires stay. An existing project keeps its copy of the starter, so replace its "Comments explain *why*, not *what*" line to adopt the rule.
+- **The critical-rules starter's Subagent Model Policy is one routing table and a short list of spawn rules.** `oracle`'s two cases and the catch-all join the table, every subagent prompt pins its scope and done-criterion, and the example lists the role descriptions already carry are gone. Rerun `init`'s rules offer, or `andthen.py install --rules` after removing the old block, to update an installed copy.
 
 ## [1.3.0] – 2026-11-20
 
