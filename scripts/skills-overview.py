@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Emit assets/skills-overview.svg – the README overview figure.
+"""Emit the README figures: assets/skills-overview.svg and assets/choose-path.svg.
 
-One file serves two roles: GitHub's README renders it through <img> (static,
+The overview serves two roles: GitHub's README renders it through <img> (static,
 dark-mode aware via prefers-color-scheme); opened directly from raw GitHub
 (image/svg+xml, inline styles allowed, scripts blocked) the CSS-only
 hover/focus hotspots show each skill's purpose in the bottom panel.
+choose-path, the which-skill-starts-the-work flowchart, is static.
 
 Rerun after a skill is added, renamed, or removed – the layout is computed,
-the inventory and the one-line purposes are the tables below.
+the inventory, the one-line purposes, and the routing questions are the tables below.
 """
 from pathlib import Path
 
@@ -68,14 +69,19 @@ def detail(kicker, lines):
     out.append('</g>')
 
 
-def hot(key, x, y, w, h, label, cls, kicker, body, sub=None, size=13, rx=9, asks=False):
-    """A hotspot: box + label, plus a detail block drawn in the bottom panel; asks marks a step that interviews you."""
-    out.append(f'<g class="hot" tabindex="0" data-hotspot="{key}">')
+def node(x, y, w, h, label, cls, sub=None, size=13, rx=9):
+    """A skill box: the name in mono, an optional line under it."""
     out.append(f'<rect x="{x:.0f}" y="{y:.0f}" width="{w:.0f}" height="{h:.0f}" rx="{rx}" class="{cls}"/>')
     ly = y + h / 2 + size * 0.36 - (7 if sub else 0)
     text(x + w / 2, ly, label, cls + "-t", size, anchor="middle", family=MONO, weight="600")
     if sub:
         text(x + w / 2, ly + 15, sub, cls + "-s", 11.5, anchor="middle")
+
+
+def hot(key, x, y, w, h, label, cls, kicker, body, sub=None, size=13, rx=9, asks=False):
+    """A hotspot: box + label, plus a detail block drawn in the bottom panel; asks marks a step that interviews you."""
+    out.append(f'<g class="hot" tabindex="0" data-hotspot="{key}">')
+    node(x, y, w, h, label, cls, sub, size, rx)
     if asks:
         bubble(x + w - 13, y + min(10, h / 2))
     detail(kicker, body)
@@ -129,12 +135,24 @@ class Flow:
 
 
 # ---------------------------------------------------------------- document
-H = 892
-PANEL_Y = H - PANEL_H - 24
+def begin(w, h, title):
+    """Open a figure: both share one palette, so they read as one set in light and dark."""
+    out.clear()
+    out.append(f'<svg viewBox="0 0 {w} {h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ttl" font-family="{SANS}">')
+    out.append(f'<title id="ttl">{title}</title>')
+    out.append(STYLE)
+    out.append('<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>')
+    out.append(f'<rect width="{w}" height="{h}" class="bg"/>')
 
-out.append(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ttl" font-family="{SANS}">')
-out.append('<title id="ttl">AndThen skills and workflow – the one workflow with its three human gates and three optional reads, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles</title>')
-out.append('''<style>
+
+def write(name):
+    out.append('</svg>')
+    target = Path(__file__).resolve().parents[1] / "assets" / name
+    target.write_text("\n".join(out) + "\n")
+    print(f"wrote {target.relative_to(Path.cwd())} {target.stat().st_size} bytes")
+
+
+STYLE = '''<style>
 .bg{fill:#FBF8F3}
 .t1{fill:#1A140E}.t2{fill:#5E564C}.t3{fill:#6F665B}
 .kick{fill:#2C5738}
@@ -148,7 +166,7 @@ out.append('''<style>
 .pre{fill:#FFFFFF;stroke:#8DB294;stroke-width:1.5;stroke-dasharray:5,4}.pre-t{fill:#21452C}.pre-s{fill:#5E564C}
 .core{fill:#FBF8F3;stroke:#8DB294;stroke-width:1.5}.core-t{fill:#21452C}.core-s{fill:#5E564C}
 .role{fill:#E9E1D2}.role-t{fill:#1A140E}.role-s{fill:#5E564C}
-.pill{fill:none;stroke:#A84F18;stroke-width:2}.pill-t{fill:#A84F18}
+.pill{fill:none;stroke:#A84F18;stroke-width:2}.pill-t,.pill-s{fill:#A84F18}
 .cp{fill:#A84F18}.cp-t{fill:#FFFFFF}.cp-ring{fill:none;stroke:#A84F18;stroke-width:2}
 .card{fill:#FBF8F3;stroke:#D4C9B3;stroke-width:1.5;stroke-linejoin:round}.card-t{fill:#1A140E}.card-s{fill:#5E564C}
 .fold{fill:#E9E1D2;stroke:#D4C9B3;stroke-width:1.5;stroke-linejoin:round}
@@ -173,16 +191,19 @@ out.append('''<style>
 .pre{fill:#142218;stroke:#5F8E69}.pre-t{fill:#DFEAE1}.pre-s{fill:#C9C0B2}
 .core{fill:#1B2A1F;stroke:#3E6E48}.core-t{fill:#DFEAE1}.core-s{fill:#C9C0B2}
 .role{fill:#3D362E}.role-t{fill:#F5F0E7}.role-s{fill:#C9C0B2}
-.pill{stroke:#E29A63}.pill-t{fill:#E29A63}
+.pill{stroke:#E29A63}.pill-t,.pill-s{fill:#E29A63}
 .cp{fill:#E29A63}.cp-t{fill:#11251A}.cp-ring{stroke:#E29A63}
 .card{fill:#1A211C;stroke:#3D362E}.card-t{fill:#FBF8F3}.card-s{fill:#C9C0B2}.fold{fill:#3D362E;stroke:#3D362E}
 .arrow{stroke:#C9C0B2}.ah{fill:#C9C0B2}
 .panel{fill:#21452C}
 .hot:hover>rect,.hot:focus>rect,.hot:hover>.card,.hot:focus>.card{stroke:#E29A63}
 }
-</style>''')
-out.append('<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>')
-out.append(f'<rect width="{W}" height="{H}" class="bg"/>')
+</style>'''
+
+# ================================================================ skills-overview.svg
+H = 892
+PANEL_Y = H - PANEL_H - 24
+begin(W, H, "AndThen skills and workflow – the one workflow with its three human gates and three optional reads, the design stage, the artifacts they exchange, the standalone skills, and the delegation roles")
 
 text(BX, 40, "AndThen skills and workflow", "t1", 26, weight="700")
 text(BX, 62, "Agentic software engineering for AI coding agents – one spec-driven workflow, the artifacts it exchanges, standalone skills on call", "t2", 13)
@@ -359,8 +380,102 @@ rx = BR - 22 - 4 * rw - 3 * rg
 for i, (key, tier, body) in enumerate(roles):
     hot("role-" + key, rx + i * (rw + rg), y + 12, rw, 40, key, "role", f"role · {key} · {tier}", body, sub=tier, size=12, rx=20)
 assert y + 64 + 16 <= PANEL_Y, (y, PANEL_Y)
+write("skills-overview.svg")
 
-out.append('</svg>')
-target = Path(__file__).resolve().parents[1] / "assets" / "skills-overview.svg"
-target.write_text("\n".join(out) + "\n")
-print(f"wrote {target.relative_to(Path.cwd())} {target.stat().st_size} bytes")
+# ================================================================ choose-path.svg
+# Static, and narrower than the overview so its type stays readable at README width.
+# The questions are the README's own tests for each step: "Smaller work" for the first two,
+# the workflow's optional steps for the other three.
+CW2 = 960
+C_BX, C_BW = 24, CW2 - 48
+QX, QW, QH = 60, 360, 50          # question column; its centre is the spine
+SPINE = QX + QW / 2
+SKX, SKW, SKH = 500, 160, 40      # the skill a yes runs
+NOTE_X = SKX + SKW + 20           # what that skill leaves you with
+PITCH = QH + 46                   # room under a question for the "no" label and a rejoining arrow
+
+# (question, hint, skill, box class, what it does, rejoins the spine?)
+questions = [
+    ("Is something broken and you don't know why?", "a failing build, a failing test, a bug",
+     "triage", "tail", ["Reproduces it, finds the root cause,", "fixes it, runs the checks, and commits."], False),
+    ("Can you state the change in one sentence?", "with no design question behind it",
+     "implement-fix", "tail", ["Tests where the change adds a branch,", "the change, the checks, and a commit."], False),
+    ("Are the requirements still open?", "you can't list three acceptance criteria",
+     "clarify", "pre", ["Interviews you, then writes the PRD:", "the problem and what counts as solved."], True),
+    ("Is a technical choice costly to reverse?", "or does it reach beyond this work",
+     "decide", "pre", ["Settles the choice with you and", "records it as an ADR."], True),
+    ("Are there new screens to design first?", "no wireframe or mockup covers them",
+     "ui-ux-design", "pre", ["Wireframes or clickable mockups", "for the build to follow."], True),
+]
+groups = {0: "SMALL WORK · ENDS HERE, WITHOUT A SPEC", 2: "OPTIONAL · THEN ON TO THE NEXT QUESTION"}
+
+B1_Y = 84
+ROW0 = B1_Y + 104
+B1_H = ROW0 - B1_Y + len(questions) * PITCH - 6
+B2_Y = B1_Y + B1_H + 16
+CHAIN_Y = B2_Y + 58
+B2_H = CHAIN_Y - B2_Y + QH + 22
+B3_Y = B2_Y + B2_H + 16
+B3_H = 106
+CH2 = B3_Y + B3_H + 24
+
+begin(CW2, CH2, "Which AndThen skill starts the work – five yes/no questions that route to triage, implement-fix, clarify, decide or ui-ux-design, then plan, exec-plan, review --fix and ship")
+text(C_BX, 40, "Which skill starts the work", "t1", 26, weight="700")
+text(C_BX, 62, "Answer from the top – or run now-what, which reads your project state and routes you", "t2", 13)
+
+band(C_BX, B1_Y, C_BW, B1_H, "band-flow", "START HERE", "What do you have?",
+     "A yes runs the skill on its right; a no moves down.")
+text(SKX, B1_Y + 26, "FIRST TIME IN THIS PROJECT?", "kick", 11, family=MONO, spacing="0.12em")
+text(SKX, B1_Y + 49, "Run init once. It sets up the document index the skills", "t2", 12)
+text(SKX, B1_Y + 65, "find your specs and docs through.", "t2", 12)
+# drawn before the questions, so the last "no" arrow lands on plan above this band
+out.append(f'<rect x="{C_BX}" y="{B2_Y}" width="{C_BW}" height="{B2_H}" rx="14" class="band-core"/>')
+
+for i, (q, hint, skill, cls, note, rejoins) in enumerate(questions):
+    y = ROW0 + i * PITCH
+    mid = y + QH / 2
+    if i in groups:
+        text(SKX, y - 9, groups[i], "kick", 10.5, family=MONO, spacing="0.1em")
+    # a stretched hexagon reads as a decision and still holds a sentence
+    out.append(f'<path d="M{QX + 14},{y} H{QX + QW - 14} L{QX + QW},{mid:.0f} L{QX + QW - 14},{y + QH} '
+               f'H{QX + 14} L{QX},{mid:.0f} Z" class="core" stroke-linejoin="round"/>')
+    text(SPINE, y + 21, q, "t1", 13.5, anchor="middle", weight="600")
+    text(SPINE, y + 39, hint, "t2", 12, anchor="middle")
+    arrow(QX + QW + 5, mid, SKX - 5, mid)
+    text((QX + QW + SKX) / 2, mid - 7, "yes", "kick", 11, anchor="middle", family=MONO, weight="600")
+    node(SKX, mid - SKH / 2, SKW, SKH, skill, cls, size=13)
+    for j, ln in enumerate(note):
+        text(NOTE_X, mid - 3 + j * 16, ln, "t2", 12)
+    # the "no" arrow runs to the next question, or from the last one down into plan
+    next_y = y + PITCH if i < len(questions) - 1 else CHAIN_Y
+    arrow(SPINE, y + QH + 4, SPINE, next_y - 4)
+    text(SPINE + 9, y + QH + 16, "no", "kick", 11, family=MONO, weight="600")
+    if rejoins:
+        # merges into the spine with no head of its own: the spine's arrow carries both into the next question
+        out.append(f'<path d="M{SKX + SKW / 2:.0f},{mid + SKH / 2 + 3:.0f} V{y + QH + 26} H{SPINE:.0f}" '
+                   f'class="arrow" stroke-linejoin="round"/>')
+
+text(SKX, B2_Y + 26, "THE SPEC-DRIVEN WORKFLOW", "kick", 11, family=MONO, spacing="0.12em")
+text(SKX, B2_Y + 44, "Each step runs in a fresh session and prints the next command.", "t2", 12)
+x = QX
+for j, (label, cls, sub, w) in enumerate([
+        ("plan", "step", "writes the spec (a FIS) for each story, one or several", QW),
+        ("exec-plan", "exec", "one story per session", 140),
+        ("review --fix", "tail", "the change as a whole", 140),
+        ("ship", "pill", "the PR, after your yes", 140)]):
+    if j:
+        arrow(x + 6, CHAIN_Y + QH / 2, x + 18, CHAIN_Y + QH / 2)
+        x += 24
+    node(x, CHAIN_Y, w, QH, label, cls, sub=sub, rx=QH / 2 if cls == "pill" else 9)
+    x += w
+assert x <= C_BX + C_BW - 14, x
+
+out.append(f'<rect x="{C_BX}" y="{B3_Y}" width="{C_BW}" height="{B3_H}" rx="14" class="band-roles"/>')
+text(C_BX + 22, B3_Y + 26, "AT ANY POINT", "kick", 11, family=MONO, spacing="0.12em")
+anytime = [("now-what", "not sure where you are"), ("spike", "only running code can answer it"),
+           ("domain", "a new or tangled domain"), ("handoff", "the session has to end mid-work")]
+g = 10
+w = (C_BW - 44 - (len(anytime) - 1) * g) // len(anytime)   # whole pixels, so box and label centres agree
+for j, (label, sub) in enumerate(anytime):
+    node(C_BX + 22 + j * (w + g), B3_Y + 40, w, 46, label, "core", sub=sub, size=12, rx=7)
+write("choose-path.svg")

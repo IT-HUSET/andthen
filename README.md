@@ -82,6 +82,12 @@ Not sure where to start, or where you are? `/andthen:now-what` reads your projec
 
 ## The workflow
 
+<p align="center">
+  <img src="assets/choose-path.svg" width="780" alt="Which skill starts the work – five yes/no questions asked in order. Something broken with no known cause goes to triage, and a change you can state in one sentence goes to implement-fix; both end there, without a spec. Open requirements go to clarify, a technical choice that is costly to reverse to decide, and new screens to ui-ux-design; each then carries on to the next question. Everything else starts at plan, followed by exec-plan, review --fix and ship. now-what, spike, domain and handoff apply at any point. In a new project, run init once first.">
+</p>
+
+Where a piece of work starts depends on what you have. Work that gets a spec takes this path:
+
 ```
 [clarify] → [decide] → [ui-ux-design] → plan → exec-plan → review --fix → ship
 ```

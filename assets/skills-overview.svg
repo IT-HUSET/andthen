@@ -14,7 +14,7 @@
 .pre{fill:#FFFFFF;stroke:#8DB294;stroke-width:1.5;stroke-dasharray:5,4}.pre-t{fill:#21452C}.pre-s{fill:#5E564C}
 .core{fill:#FBF8F3;stroke:#8DB294;stroke-width:1.5}.core-t{fill:#21452C}.core-s{fill:#5E564C}
 .role{fill:#E9E1D2}.role-t{fill:#1A140E}.role-s{fill:#5E564C}
-.pill{fill:none;stroke:#A84F18;stroke-width:2}.pill-t{fill:#A84F18}
+.pill{fill:none;stroke:#A84F18;stroke-width:2}.pill-t,.pill-s{fill:#A84F18}
 .cp{fill:#A84F18}.cp-t{fill:#FFFFFF}.cp-ring{fill:none;stroke:#A84F18;stroke-width:2}
 .card{fill:#FBF8F3;stroke:#D4C9B3;stroke-width:1.5;stroke-linejoin:round}.card-t{fill:#1A140E}.card-s{fill:#5E564C}
 .fold{fill:#E9E1D2;stroke:#D4C9B3;stroke-width:1.5;stroke-linejoin:round}
@@ -39,7 +39,7 @@
 .pre{fill:#142218;stroke:#5F8E69}.pre-t{fill:#DFEAE1}.pre-s{fill:#C9C0B2}
 .core{fill:#1B2A1F;stroke:#3E6E48}.core-t{fill:#DFEAE1}.core-s{fill:#C9C0B2}
 .role{fill:#3D362E}.role-t{fill:#F5F0E7}.role-s{fill:#C9C0B2}
-.pill{stroke:#E29A63}.pill-t{fill:#E29A63}
+.pill{stroke:#E29A63}.pill-t,.pill-s{fill:#E29A63}
 .cp{fill:#E29A63}.cp-t{fill:#11251A}.cp-ring{stroke:#E29A63}
 .card{fill:#1A211C;stroke:#3D362E}.card-t{fill:#FBF8F3}.card-s{fill:#C9C0B2}.fold{fill:#3D362E;stroke:#3D362E}
 .arrow{stroke:#C9C0B2}.ah{fill:#C9C0B2}

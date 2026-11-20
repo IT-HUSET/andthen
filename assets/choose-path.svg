@@ -1,0 +1,153 @@
+<svg viewBox="0 0 960 954" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ttl" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<title id="ttl">Which AndThen skill starts the work – five yes/no questions that route to triage, implement-fix, clarify, decide or ui-ux-design, then plan, exec-plan, review --fix and ship</title>
+<style>
+.bg{fill:#FBF8F3}
+.t1{fill:#1A140E}.t2{fill:#5E564C}.t3{fill:#6F665B}
+.kick{fill:#2C5738}
+.band-flow{fill:#F2F6F3;stroke:#B9D0BD;stroke-width:1.5}
+.band-art{fill:#FFFFFF;stroke:#D4C9B3;stroke-width:1.5;stroke-dasharray:6,5}
+.band-core{fill:#FFFFFF;stroke:#B9D0BD;stroke-width:1.5}
+.band-roles{fill:#F5F0E7;stroke:#D4C9B3;stroke-width:1.5}
+.step{fill:#21452C}.step-t{fill:#FBF8F3}.step-s{fill:#B9D0BD}
+.exec{fill:#11251A}.exec-t{fill:#FBF8F3}.exec-s{fill:#8DB294}
+.tail{fill:#3E6E48}.tail-t{fill:#FBF8F3}.tail-s{fill:#DFEAE1}
+.pre{fill:#FFFFFF;stroke:#8DB294;stroke-width:1.5;stroke-dasharray:5,4}.pre-t{fill:#21452C}.pre-s{fill:#5E564C}
+.core{fill:#FBF8F3;stroke:#8DB294;stroke-width:1.5}.core-t{fill:#21452C}.core-s{fill:#5E564C}
+.role{fill:#E9E1D2}.role-t{fill:#1A140E}.role-s{fill:#5E564C}
+.pill{fill:none;stroke:#A84F18;stroke-width:2}.pill-t,.pill-s{fill:#A84F18}
+.cp{fill:#A84F18}.cp-t{fill:#FFFFFF}.cp-ring{fill:none;stroke:#A84F18;stroke-width:2}
+.card{fill:#FBF8F3;stroke:#D4C9B3;stroke-width:1.5;stroke-linejoin:round}.card-t{fill:#1A140E}.card-s{fill:#5E564C}
+.fold{fill:#E9E1D2;stroke:#D4C9B3;stroke-width:1.5;stroke-linejoin:round}
+.arrow{stroke:#5E564C;stroke-width:1.8;fill:none}.ah{fill:#5E564C}
+.link{stroke:#8A8075;stroke-width:1.3}.dot{fill:#8A8075}
+.panel{fill:#11251A}.dk{fill:#E29A63}.db{fill:#FBF8F3}.dh{fill:#8DB294}
+.hot{cursor:pointer}.hot:focus{outline:none}
+.hot:hover>rect,.hot:focus>rect,.hot:hover>.card,.hot:focus>.card{stroke:#C46326;stroke-width:2.5;stroke-dasharray:none}
+.d{display:none;pointer-events:none}.hot:hover .d,.hot:focus .d{display:block}
+:root:has(.hot:hover) .hot:focus:not(:hover) .d{display:none}
+@media (prefers-color-scheme:dark){
+.bg{fill:#0F1A13}
+.t1{fill:#FBF8F3}.t2{fill:#C9C0B2}.t3{fill:#A39A8D}
+.kick{fill:#8DB294}
+.band-flow{fill:#172A1D;stroke:#2C5738}
+.band-art{fill:#131C16;stroke:#3D362E}
+.band-core{fill:#142218;stroke:#2C5738}
+.band-roles{fill:#1C1A15;stroke:#3D362E}
+.step{fill:#3E6E48}.step-s{fill:#DFEAE1}
+.exec{fill:#2C5738}.exec-s{fill:#B9D0BD}
+.tail{fill:#5F8E69}.tail-t,.tail-s{fill:#0F1A13}
+.pre{fill:#142218;stroke:#5F8E69}.pre-t{fill:#DFEAE1}.pre-s{fill:#C9C0B2}
+.core{fill:#1B2A1F;stroke:#3E6E48}.core-t{fill:#DFEAE1}.core-s{fill:#C9C0B2}
+.role{fill:#3D362E}.role-t{fill:#F5F0E7}.role-s{fill:#C9C0B2}
+.pill{stroke:#E29A63}.pill-t,.pill-s{fill:#E29A63}
+.cp{fill:#E29A63}.cp-t{fill:#11251A}.cp-ring{stroke:#E29A63}
+.card{fill:#1A211C;stroke:#3D362E}.card-t{fill:#FBF8F3}.card-s{fill:#C9C0B2}.fold{fill:#3D362E;stroke:#3D362E}
+.arrow{stroke:#C9C0B2}.ah{fill:#C9C0B2}
+.panel{fill:#21452C}
+.hot:hover>rect,.hot:focus>rect,.hot:hover>.card,.hot:focus>.card{stroke:#E29A63}
+}
+</style>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+<rect width="960" height="954" class="bg"/>
+<text x="24" y="40" class="t1" font-size="26" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="700">Which skill starts the work</text>
+<text x="24" y="62" class="t2" font-size="13" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Answer from the top – or run now-what, which reads your project state and routes you</text>
+<rect x="24" y="84" width="912" height="578" rx="14" class="band-flow"/>
+<text x="46" y="110" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">START HERE</text>
+<text x="46" y="134" class="t1" font-size="16" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-weight="600">What do you have?</text>
+<text x="46" y="153" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">A yes runs the skill on its right; a no moves down.</text>
+<text x="500" y="110" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">FIRST TIME IN THIS PROJECT?</text>
+<text x="500" y="133" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Run init once. It sets up the document index the skills</text>
+<text x="500" y="149" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">find your specs and docs through.</text>
+<rect x="24" y="678" width="912" height="130" rx="14" class="band-core"/>
+<text x="500" y="179" class="kick" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.1em">SMALL WORK · ENDS HERE, WITHOUT A SPEC</text>
+<path d="M74,188 H406 L420,213 L406,238 H74 L60,213 Z" class="core" stroke-linejoin="round"/>
+<text x="240" y="209" class="t1" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle" font-weight="600">Is something broken and you don't know why?</text>
+<text x="240" y="227" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">a failing build, a failing test, a bug</text>
+<line x1="425" y1="213" x2="495" y2="213" class="arrow" marker-end="url(#ah)"/>
+<text x="460" y="206" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">yes</text>
+<rect x="500" y="193" width="160" height="40" rx="9" class="tail"/>
+<text x="580" y="218" class="tail-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">triage</text>
+<text x="680" y="210" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Reproduces it, finds the root cause,</text>
+<text x="680" y="226" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">fixes it, runs the checks, and commits.</text>
+<line x1="240" y1="242" x2="240" y2="280" class="arrow" marker-end="url(#ah)"/>
+<text x="249" y="254" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="600">no</text>
+<path d="M74,284 H406 L420,309 L406,334 H74 L60,309 Z" class="core" stroke-linejoin="round"/>
+<text x="240" y="305" class="t1" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle" font-weight="600">Can you state the change in one sentence?</text>
+<text x="240" y="323" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">with no design question behind it</text>
+<line x1="425" y1="309" x2="495" y2="309" class="arrow" marker-end="url(#ah)"/>
+<text x="460" y="302" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">yes</text>
+<rect x="500" y="289" width="160" height="40" rx="9" class="tail"/>
+<text x="580" y="314" class="tail-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">implement-fix</text>
+<text x="680" y="306" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Tests where the change adds a branch,</text>
+<text x="680" y="322" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">the change, the checks, and a commit.</text>
+<line x1="240" y1="338" x2="240" y2="376" class="arrow" marker-end="url(#ah)"/>
+<text x="249" y="350" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="600">no</text>
+<text x="500" y="371" class="kick" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.1em">OPTIONAL · THEN ON TO THE NEXT QUESTION</text>
+<path d="M74,380 H406 L420,405 L406,430 H74 L60,405 Z" class="core" stroke-linejoin="round"/>
+<text x="240" y="401" class="t1" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle" font-weight="600">Are the requirements still open?</text>
+<text x="240" y="419" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">you can't list three acceptance criteria</text>
+<line x1="425" y1="405" x2="495" y2="405" class="arrow" marker-end="url(#ah)"/>
+<text x="460" y="398" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">yes</text>
+<rect x="500" y="385" width="160" height="40" rx="9" class="pre"/>
+<text x="580" y="410" class="pre-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">clarify</text>
+<text x="680" y="402" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Interviews you, then writes the PRD:</text>
+<text x="680" y="418" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">the problem and what counts as solved.</text>
+<line x1="240" y1="434" x2="240" y2="472" class="arrow" marker-end="url(#ah)"/>
+<text x="249" y="446" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="600">no</text>
+<path d="M580,428 V456 H240" class="arrow" stroke-linejoin="round"/>
+<path d="M74,476 H406 L420,501 L406,526 H74 L60,501 Z" class="core" stroke-linejoin="round"/>
+<text x="240" y="497" class="t1" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle" font-weight="600">Is a technical choice costly to reverse?</text>
+<text x="240" y="515" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">or does it reach beyond this work</text>
+<line x1="425" y1="501" x2="495" y2="501" class="arrow" marker-end="url(#ah)"/>
+<text x="460" y="494" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">yes</text>
+<rect x="500" y="481" width="160" height="40" rx="9" class="pre"/>
+<text x="580" y="506" class="pre-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">decide</text>
+<text x="680" y="498" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Settles the choice with you and</text>
+<text x="680" y="514" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">records it as an ADR.</text>
+<line x1="240" y1="530" x2="240" y2="568" class="arrow" marker-end="url(#ah)"/>
+<text x="249" y="542" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="600">no</text>
+<path d="M580,524 V552 H240" class="arrow" stroke-linejoin="round"/>
+<path d="M74,572 H406 L420,597 L406,622 H74 L60,597 Z" class="core" stroke-linejoin="round"/>
+<text x="240" y="593" class="t1" font-size="13.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle" font-weight="600">Are there new screens to design first?</text>
+<text x="240" y="611" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">no wireframe or mockup covers them</text>
+<line x1="425" y1="597" x2="495" y2="597" class="arrow" marker-end="url(#ah)"/>
+<text x="460" y="590" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">yes</text>
+<rect x="500" y="577" width="160" height="40" rx="9" class="pre"/>
+<text x="580" y="602" class="pre-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">ui-ux-design</text>
+<text x="680" y="594" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Wireframes or clickable mockups</text>
+<text x="680" y="610" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">for the build to follow.</text>
+<line x1="240" y1="626" x2="240" y2="732" class="arrow" marker-end="url(#ah)"/>
+<text x="249" y="638" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="600">no</text>
+<path d="M580,620 V648 H240" class="arrow" stroke-linejoin="round"/>
+<text x="500" y="704" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">THE SPEC-DRIVEN WORKFLOW</text>
+<text x="500" y="722" class="t2" font-size="12" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">Each step runs in a fresh session and prints the next command.</text>
+<rect x="60" y="736" width="360" height="50" rx="9" class="step"/>
+<text x="240" y="759" class="step-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">plan</text>
+<text x="240" y="774" class="step-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">writes the spec (a FIS) for each story, one or several</text>
+<line x1="426" y1="761" x2="438" y2="761" class="arrow" marker-end="url(#ah)"/>
+<rect x="444" y="736" width="140" height="50" rx="9" class="exec"/>
+<text x="514" y="759" class="exec-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">exec-plan</text>
+<text x="514" y="774" class="exec-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">one story per session</text>
+<line x1="590" y1="761" x2="602" y2="761" class="arrow" marker-end="url(#ah)"/>
+<rect x="608" y="736" width="140" height="50" rx="9" class="tail"/>
+<text x="678" y="759" class="tail-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">review --fix</text>
+<text x="678" y="774" class="tail-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">the change as a whole</text>
+<line x1="754" y1="761" x2="766" y2="761" class="arrow" marker-end="url(#ah)"/>
+<rect x="772" y="736" width="140" height="50" rx="25.0" class="pill"/>
+<text x="842" y="759" class="pill-t" font-size="13" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">ship</text>
+<text x="842" y="774" class="pill-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">the PR, after your yes</text>
+<rect x="24" y="824" width="912" height="106" rx="14" class="band-roles"/>
+<text x="46" y="850" class="kick" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" letter-spacing="0.12em">AT ANY POINT</text>
+<rect x="46" y="864" width="209" height="46" rx="7" class="core"/>
+<text x="150" y="884" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">now-what</text>
+<text x="150" y="899" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">not sure where you are</text>
+<rect x="265" y="864" width="209" height="46" rx="7" class="core"/>
+<text x="370" y="884" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">spike</text>
+<text x="370" y="899" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">only running code can answer it</text>
+<rect x="484" y="864" width="209" height="46" rx="7" class="core"/>
+<text x="588" y="884" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">domain</text>
+<text x="588" y="899" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">a new or tangled domain</text>
+<rect x="703" y="864" width="209" height="46" rx="7" class="core"/>
+<text x="808" y="884" class="core-t" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle" font-weight="600">handoff</text>
+<text x="808" y="899" class="core-s" font-size="11.5" font-family="ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" text-anchor="middle">the session has to end mid-work</text>
+</svg>
