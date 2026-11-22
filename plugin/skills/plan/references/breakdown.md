@@ -20,7 +20,9 @@ A story with no user-facing behavior (infrastructure, a migration) is cut by mod
   Each story thickening it consumes that path, so it carries the skeleton in `dependsOn`.
 - **Module fan-out**: where module boundaries are strong, a feature crossing modules splits along the seam into per-module stories, each vertical within its module, the interface pinned in `sharedDecisions`.
 - Merge stories that touch substantially the same files, the walking skeleton and its thickeners excepted, or that chain with no independent demo ("define endpoint", "wire handler", "surface in UI").
-- `dependsOn` holds causal edges only: a predecessor whose artifact, contract or decision the story consumes.
+- `dependsOn` holds every order the run must keep, because the executor reads no other field: a predecessor whose artifact, contract or decision the story consumes, or one that changes the same or adjacent lines.
+  `andthen:exec-plan --worktree` runs two stories with no edge between them side by side, and fails the second merge where their lines overlap.
+  Cut so the second kind is rare: one list or registry that every story edits orders them all.
 - A story entry is a brief its authoring subagent reads once before the FIS supersedes it. Keep out what the FIS will state (scenarios, criteria, approach, file paths) and the source's rationale. Cite the source through `sourceRefs`; a story no source covers carries `provenance` saying why.
 
 ### 3. Write `plan.json`

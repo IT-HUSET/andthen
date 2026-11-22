@@ -44,7 +44,7 @@ The fields whose *meaning* prose has to state:
 | `completedTaskIds` | Unique task IDs naming tasks of the FIS `fis` points at: empty while `fis` is `null`, and cleared when that pointer changes. |
 | `verified` | `{at, summary}`, written with `done` and never without it; `at` a UTC ISO-8601 minute. |
 | `provenance` | Why no `sourceRefs` entry covers the story, or `null`. |
-| `sequencing` | Residual dependency rationale, or `null`. |
+| `sequencing` | Why the story sits where it does, for the FIS author and a reader, or `null`. It orders nothing. |
 | `shipped` | Top-level `{at, pr}`, written by `ship` when a ready plan's bundle stays, kept or untracked: `at` a UTC ISO-8601 minute, `pr` the PR's URL or `null`. A plan carrying it is a shipped record. |
 
 ## FIS identity
