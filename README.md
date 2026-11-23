@@ -110,6 +110,7 @@ What each step does:
 6. **`ship`** lands what each story's `Implementation Observations` hold worth keeping, commits, and shows the PR title and body (a merge request on GitLab).
    It pushes and opens it after your one yes, and that question also asks whether to delete `plan.json` and the FIS files; `ship --auto` publishes without asking.
    The PR body states the change's intent, outcomes, and proof, so with `prd.md` the stories' intent outlives the deleted FIS files.
+   On a team, `ship` also opens one PR per story and keeps a published plan's issues current: [Working in a team](COOKBOOK.md#working-in-a-team).
 
 The [quick start](#quick-start) is this path for a request typed inline, which `plan` treats as one story.
 

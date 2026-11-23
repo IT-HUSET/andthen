@@ -123,7 +123,7 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
 
 ### 5. Publish
 
-- Show the base branch, the commits leaving, the title, and the body.
+- Show the base branch, the commits leaving, the title, and the body in full, never as a summary or a file path, because the yes publishes it.
 - Where step 3's read succeeded, invoke the `andthen:tracker` skill with `publish <plan.json> --dry-run` before asking, and the question below covers its preview, in each case:
   - the plan is published;
   - the run is under `Record: tracker`;

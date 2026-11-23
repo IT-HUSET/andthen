@@ -21,6 +21,8 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ### Fixed
 - **`plan` records every order a story must keep in `dependsOn`, including stories that change the same or adjacent lines.** Such an order used to go only into `sequencing`, which no executor reads, so `exec-plan --worktree` could run those stories side by side and fail their merge. `sequencing` now only explains a story's place, to its FIS author and readers.
+- **`ship` shows the pull request body in full before it asks.** Runs wrote the body to a file and showed its path and section names, so the yes approved text nobody had read.
+- **`review`'s gap lens checks each Discovered Requirement in a FIS.** One that another story's run appended after this story finished got no Coverage Matrix row, so nothing proved it.
 
 ## [1.3.0] – 2026-11-20
 
