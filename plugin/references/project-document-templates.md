@@ -449,10 +449,12 @@ Record: repo
 ## Operation Table
 <!-- Non-GitHub backends only. Map every abstract operation to the backend's concrete command/API call.
      A required operation left unmapped stops triage/publish before the first external call.
+     fetch links, set parent and add blocked-by are optional: publish writes a link only where its operation and fetch links are both mapped.
+     Otherwise the parent's checklist and the child's body carry that link.
      Each value is a single direct command invocation (executable + fixed args + <placeholders>) – no pipes,
      shell operators, command substitution, or piping to an interpreter.
      This file is security-critical executable config: review changes as code.
-     Placeholders, each passed as one argv element: <N> the issue's id or key, <title>, <body-file> (a UTF-8 file), <query>, <label>. -->
+     Placeholders, each passed as one argv element: <N> the issue's id or key, <M> a second issue's, <title>, <body-file> (a UTF-8 file), <query>, <label>. -->
 
 | Operation      | Backend call |
 |----------------|--------------|
@@ -464,6 +466,9 @@ Record: repo
 | add label      | ...          |
 | remove label   | ...          |
 | close issue    | ...          |
+| fetch links    | ...          |
+| set parent     | ...          |
+| add blocked-by | ...          |
 
 ## Label Role Mapping
 <!-- Canonical role → the label this repo actually uses. Defaults equal the canonical names;

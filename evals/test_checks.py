@@ -883,6 +883,69 @@ class ValidationTest(unittest.TestCase):
         self.assertEqual(1, done.returncode)
         self.assertIn("spike/csv-writer carries src/reporter/cli.py", done.stderr)
 
+    def tracker(self, workspace, *args):
+        """One call of the tracker-publish stub, from the workspace as the subject runs it."""
+        done = subprocess.run([sys.executable, "tools/issues.py"] + list(args),
+                              cwd=str(workspace), capture_output=True, text=True)
+        self.assertEqual(0, done.returncode, done.stderr)
+
+    def tracker_first_publish(self, workspace, link=("3", "2")):
+        """The tracker as the case seeds it, then what a correct first publish
+        writes: the parent's projection and checklist, the seeded child's body,
+        the new child, and, where `link` names one, its blocked-by link."""
+        shutil.copy(str(cases.CASES_DIR / "tracker-publish" / "overlay" / "tools" / "issues.json"),
+                    str(workspace / "tools" / "issues.json"))
+        source = "docs/specs/ledger-hygiene/prd.md"
+        bodies = {
+            "parent.md": "At month close the ledger owner's notes stop the run.\n"
+                         "<!-- andthen-projection %s -->\nThe PRD.\n\n## Stories\n"
+                         "- [ ] S01 #2 – Comment lines\n- [ ] S02 #3 – Short labels\n" % source,
+            "s01.md": "<!-- andthen-projection S01 %s -->\nSkip comment lines.\n" % source,
+            "s02.md": "<!-- andthen-projection S02 %s -->\nCut at 24 characters.\n"
+                      "Blocked by: #2\n" % source,
+        }
+        for name, text in bodies.items():
+            stage.write(workspace / ".agent_temp" / name, text)
+        self.tracker(workspace, "create", "--title", "ledger-hygiene S02 - Short run labels",
+                     "--body-file", ".agent_temp/s02.md")
+        self.tracker(workspace, "edit", "1", "--body-file", ".agent_temp/parent.md")
+        self.tracker(workspace, "edit", "2", "--body-file", ".agent_temp/s01.md")
+        if link:
+            self.tracker(workspace, "block", *link)
+
+    def test_tracker_publish_oracle_needs_the_dependency_linked_once(self):
+        """The mapped `add blocked-by` links #3 to #2, its plan dependency, through
+        the operation, and the re-run reads the link instead of writing it again.
+        No link, a link the wrong way, and one re-written after the checkpoint
+        each fail; the unmapped `set parent` asks for nothing."""
+        workspace = self.stage_case("tracker-publish")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(1, done.returncode)
+
+        self.tracker_first_publish(workspace)
+        self.tracker(workspace, "checkpoint")
+        self.tracker(workspace, "links", "3")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(0, done.returncode, done.stderr)
+
+        self.tracker(workspace, "block", "3", "2")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("step 2 wrote link(s) ['#3 by #2']", done.stderr)
+
+        self.tracker_first_publish(workspace, link=None)
+        self.tracker(workspace, "checkpoint")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("#3 is blocked by [], expected [2]", done.stderr)
+        self.assertIn("never ran the mapped add blocked-by for #3 by #2", done.stderr)
+
+        self.tracker_first_publish(workspace, link=("2", "3"))
+        self.tracker(workspace, "checkpoint")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("#2 is blocked by [3], expected []", done.stderr)
+
     def test_implement_fix_deferred_oracle_accepts_a_filed_deferral_and_rejects_the_rest(self):
         """A finding whose repair encodes an open decision is filed, not fixed: the
         module untouched, one backlog entry naming what was deferred and what

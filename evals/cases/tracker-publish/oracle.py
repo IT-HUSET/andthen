@@ -9,6 +9,13 @@ body's hidden line, and the store's activity log, which no single check.json key
 sees. Two runs of the same publish then settle on the same three issues, the
 second creating nothing.
 
+The Operation Table maps `fetch links` and `add blocked-by` but not `set parent`,
+so one case shows an optional operation used where mapped and skipped, without a
+stop, where not: S02 depends on S01, so #3 ends blocked by #2 and nothing else is
+blocked, and the second run, reading the link first, writes none. The stub logs
+every `block` call, a duplicate included, which is how a re-written link shows;
+its docstring leaves that out, because the subject reads it.
+
 The tracker is the stub's JSON store, so the checks read it directly.
 
 Python 3 standard library only, 3.9-compatible.
@@ -30,6 +37,7 @@ PLAN_ID = "ledger-hygiene"  # the plan directory's name, leading a created child
 # What each story's body must carry, so a body that kept its hidden line and lost
 # its projection does not pass.
 STORY_WORDS = {"S01": "comment", "S02": "24 characters"}
+BLOCKED_BY = {1: [], 2: [], 3: [2]}  # issue -> its blockers: S02 depends on S01
 
 LINE = re.compile(r"<!--[ \t]*andthen-projection[ \t]+([^>]*?)[ \t]*-->")
 # A path the Durability rule bars from a body: a project directory, or a file
@@ -116,6 +124,12 @@ def main():
         if PROOF.search(text):
             problems.append("#%d carries a Proof line" % number)
 
+    # The mapped link operation, used for the plan's one dependency and nothing else.
+    for number, blockers in sorted(BLOCKED_BY.items()):
+        found = sorted(issues.get(number, {}).get("blocked_by", []))
+        if found != blockers:
+            problems.append("#%d is blocked by %s, expected %s" % (number, found, blockers))
+
     # The second step creates nothing: no create after the checkpoint it opened with.
     marks = [i for i, event in enumerate(log) if event.get("op") == "checkpoint"]
     if len(marks) != 1:
@@ -126,6 +140,16 @@ def main():
         created = [e for e in log[marks[0]:] if e.get("op") == "create"]
         if created:
             problems.append("step 2 created issue(s) %s" % [e.get("number") for e in created])
+        for number, blockers in sorted(BLOCKED_BY.items()):
+            for blocker in blockers:
+                if not any(e.get("op") == "block" and e.get("number") == number
+                           and e.get("blocker") == blocker for e in log[:marks[0]]):
+                    problems.append("step 1 never ran the mapped add blocked-by for #%d by #%d"
+                                    % (number, blocker))
+        relinked = [e for e in log[marks[0]:] if e.get("op") == "block"]
+        if relinked:
+            problems.append("step 2 wrote link(s) %s it could have read first"
+                            % ["#%s by #%s" % (e.get("number"), e.get("blocker")) for e in relinked])
         if not any(e.get("op") == "create" for e in log[:marks[0]]):
             problems.append("step 1 created nothing, so #3 was never made")
 
