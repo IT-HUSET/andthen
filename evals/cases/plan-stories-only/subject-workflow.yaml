@@ -1,0 +1,19 @@
+name: andthen-plan-stories-only-subject
+description: Cut the committed two-requirement PRD into stories, unattended, and stop before any FIS.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: cut
+    name: Cut the stories
+    skill: andthen:plan
+    prompt:
+      - >-
+        --auto --stories-only docs/specs/ledger-hygiene
+
+        Leave docs/specs/ledger-hygiene/prd.md unchanged, and return the
+        workspace-relative plan.json path.
+    outputs:
+      plan:
+        format: text

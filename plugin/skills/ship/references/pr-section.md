@@ -48,7 +48,7 @@ PRD: {{the requirements file's path at the pull request's head, its tracker issu
 > All four rows, in this order. Each takes the latest review report that ran the lens: the PASS or FAIL its verdict gives the lens, and its `**Revision**` verbatim, a `-dirty` suffix kept.
 > Remediated is `yes` on every row a report carrying a `**Remediated**:` line supplies, a mixed report's included, because its verdict predates the fixes and no review has re-run the lens since.
 > A report written before verdicts were PASS or FAIL maps `Ready` to `PASS`, and `Needs Fixes` and `Blocked` to `FAIL`.
-> A lens no report gave a verdict is `not reviewed` with commit and Remediated `-`, and gets an `unchecked` row below.
+> A lens no report gave a verdict is `not reviewed` with commit and Remediated `-`, and gets an `unchecked` row below. A story's `Reviewed:` line is a quick pass and gives no lens a verdict.
 
 | Read closely | Files | Note |
 |---|---|---|

@@ -38,7 +38,7 @@ LIVE_CASE = "spec"
 
 # The cases that run unattended, and the flag that makes them so - the only
 # trigger (Decisions: "`--auto` is the only unattended trigger").
-UNATTENDED_CASES = ("spec", "spec-two-stories", "architecture",
+UNATTENDED_CASES = ("spec", "spec-two-stories", "plan-stories-only", "architecture",
                     "implement-fix", "implement-fix-deferred", "implement-fix-intent")
 UNATTENDED = "--auto"
 # The cases whose subject is the interview: `plan` grades the reply that asks the
@@ -602,6 +602,82 @@ class ValidationTest(unittest.TestCase):
         done = self.run_oracle("spec-two-stories", workspace)
         self.assertEqual(1, done.returncode)
         self.assertIn("Story-ID is 'S01', expected 'S02'", done.stderr)
+
+    def stories_only_checks(self, label, mutate):
+        """The plan-stories-only case's whole check.json over a freshly staged tree
+        that `mutate` changes, run as the checks step runs it - diff, then
+        evaluate - so each state is judged by the case's real keys, commands and
+        oracle: ({check id: evidence} for every check that did not pass)."""
+        case = cases.CASES_DIR / "plan-stories-only"
+        run = self.tmp / ("run-stories-only-" + label)
+        run.mkdir()
+        workspace = stage.stage_workspace(run, case)
+        mutate(workspace)
+        changed, _ = stage.stage_diff(run, workspace)
+        check, error = cases.load_json(case / "check.json")
+        self.assertIsNone(error)
+        return dict((r["id"], r["evidence"])
+                    for r in checks.evaluate(check, workspace, changed, case)
+                    if r["status"] != checks.PASS)
+
+    def test_plan_stories_only_checks_pass_the_cut_and_fail_each_step_past_it(self):
+        """`--stories-only` stops a several-story run after the cut: the end state
+        is a schema-valid plan.json of at least two stories, each `pending` with
+        `fis` null, no FIS beside it, and nothing changed outside the plan's
+        directory. Each state that breaks one of those - a FIS written, a FIS
+        pointer, one story, a started story, code edited, a malformed plan, the
+        PRD rewritten - fails exactly the check that guards it, so no check
+        passes on the state it exists to catch."""
+        spec = pathlib.Path("docs/specs/ledger-hygiene")
+        rows = [{"id": "S01", "name": "Comment lines in the ledger", "dependsOn": [],
+                 "status": "pending", "fis": None, "completedTaskIds": [],
+                 "scope": "The ledger reader skips a comment line.",
+                 "sourceRefs": ["docs/specs/ledger-hygiene/prd.md#fr1-comment-lines-in-a-ledger"]},
+                {"id": "S02", "name": "Short run labels", "dependsOn": [],
+                 "status": "pending", "fis": None, "completedTaskIds": [],
+                 "scope": "Label normalization cuts a label to 24 characters.",
+                 "sourceRefs": ["docs/specs/ledger-hygiene/prd.md#fr2-short-run-labels"]}]
+
+        def cut(stories=None, **story_one):
+            stories = [dict(r) for r in (rows if stories is None else stories)]
+            stories[0].update(story_one)
+
+            def write(workspace):
+                stage.write(workspace / spec / "plan.json", json.dumps({
+                    "schemaVersion": "2", "prd": "docs/specs/ledger-hygiene/prd.md",
+                    "overview": {"summary": "Run an annotated ledger and keep labels short."},
+                    "stories": stories}, indent=2) + "\n")
+            return write
+
+        def also(first, then):
+            return lambda workspace: (first(workspace), then(workspace))
+
+        def append(rel, text):
+            return lambda workspace: stage.write(
+                workspace / rel, cases.read_text(workspace / rel) + text)
+
+        self.assertEqual([], sorted(self.stories_only_checks("cut", cut())))
+        staged = self.stories_only_checks("staged", lambda workspace: None)
+        self.assertEqual(["commands[0]", "oracle[0]", "requiredArtifacts[0]"], sorted(staged))
+
+        fis_written = also(cut(), lambda workspace: stage.write(
+            workspace / spec / "s01-comment-lines.md", "# Comment lines\n\n" + CURRENT_FIS))
+        unscoped = [dict(rows[0]), dict((k, v) for k, v in rows[1].items() if k != "scope")]
+        for label, mutate, failing, evidence in (
+                ("fis-written", fis_written, "forbiddenArtifacts[0]", "s01-comment-lines.md"),
+                ("fis-pointer", cut(fis="s01-comment-lines.md"), "oracle[0]",
+                 "story S01 fis is 's01-comment-lines.md', expected None"),
+                ("one-story", cut(stories=rows[:1]), "oracle[0]", "1 story, expected at least 2"),
+                ("started", cut(status="in-progress"), "oracle[0]",
+                 "story S01 status is 'in-progress', expected 'pending'"),
+                ("code-edited", also(cut(), append("src/reporter/records.py", "\n# note\n")),
+                 "allowedPaths[0]", "src/reporter/records.py"),
+                ("malformed", cut(stories=unscoped), "commands[0]", "missing required field 'scope'"),
+                ("prd-edited", also(cut(), append(spec / "prd.md", "\nA third request.\n")),
+                 "commands[1]", "prd.md")):
+            failed = self.stories_only_checks(label, mutate)
+            self.assertEqual([failing], sorted(failed), label)
+            self.assertIn(evidence, failed[failing], label)
 
     def test_implement_fix_oracle_accepts_an_annotated_fix_and_rejects_the_rest(self):
         """A remediated report is judged by the code and the annotation together:

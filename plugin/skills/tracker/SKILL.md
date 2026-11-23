@@ -1,6 +1,6 @@
 ---
 description: Work the issue tracker – `publish` projects a PRD and its plan into a parent issue and one child issue per story, `triage` labels and routes incoming items toward implementation or a human decision, and `setup` writes the Issue Tracker document. Trigger on 'publish this plan to the tracker', 'triage the backlog', 'set up the issue tracker'.
-argument-hint: "[--auto] (publish <plan.json | prd.md> [--dry-run] | triage [issue number(s) or tracker query] | setup)"
+argument-hint: "[--auto] (publish <plan.json | prd.md> [--dry-run] [--only <ids,prd>] | triage [issue number(s) or tracker query] | setup)"
 ---
 
 # Tracker
@@ -55,6 +55,9 @@ Taking `setup` means offering it, and an unattended run stops as step 2c says. O
 
 The bundle is agent truth, and the tracker is its human projection. `publish` never writes `plan.json`, and sync is one way: a PM reprioritizing in the tracker is a re-plan.
 
+`--only <ids,prd>` writes only the named stories' children, checklist entries, and tracker links, and the PRD text when `prd` is named.
+It leaves every other issue and the rest of the parent as found, because the copy publishing may be older than another branch's.
+
 **Operations used**: `fetch issue`, `list issues`, `create issue`, `edit body`, and, where `fetch links` is mapped, it and whichever of `set parent` and `add blocked-by` are.
 
 #### The issues
@@ -62,12 +65,13 @@ The bundle is agent truth, and the tracker is its human projection. `publish` ne
 Each body you write is projected from one hidden line down. On the parent the line is `<!-- andthen-projection <source> -->`, where `<source>` is the repo path of the PRD, else of the `plan.json`, kept as identity only. On a child it is `<!-- andthen-projection <id> <source> -->`, led by its story's id so the parent's line never matches it. Keep the text above the line, such as a source issue's original request, and put the line below the text of an issue that has none.
 
 - **The parent** is titled by the PRD's heading, else `Plan: <plan directory name>`. Below the line goes the PRD, each file path it cites replaced by what the file is, then a `## Stories` checklist with one `- [ ] <id> <ref> – <name>` per story, `<ref>` the child's `#<number>`, or its key (`ENG-123`) on a tracker whose issue ids are keys, checked once the story is `done` or `skipped`. A plan without a PRD writes only the checklist. A `prd.md` alone writes only the PRD and keeps the checklist already there.
-- **A child** per story is titled `<plan directory name> <id> - <name>`, because story ids restart in every plan. Below the line go the story's scope, then its FIS's Intent, Expected Outcomes, and Acceptance Scenarios without their Proof lines, then `Blocked by:` its dependencies' issues, and once the story is done `Verified:` with its `verified.summary`.
+- **A child** per story is titled `<plan directory name> <id> - <name>`, because story ids restart in every plan. Below the line go the story's scope, then its FIS's Intent, Expected Outcomes, and Acceptance Scenarios without their Proof lines, or with no FIS the heading text of each `#### FRn:` its `sourceRefs` cite.
+  Then come `Blocked by:` its dependencies' issues, and once the story is done `Verified:` with its `verified.summary`.
 - **A closed issue is the shipped record**, so never edit one. A found issue keeps its title, because `publish` has no retitle operation.
 - **Tracker links** make each child a sub-issue of the parent and blocked by each dependency's issue, through the tracker's own relationships, because boards and filters read those and never a body.
   Read a child's links with `fetch links`, and add only what it lacks, never removing or replacing one, because a person may have linked it in the tracker and GitHub's `--parent` replaces an existing parent.
   Write none for a child whose links could not be read, and none that touches a closed issue.
-- **The checklist never loses a finished story or a link.** A story it checks stays checked, because another branch's copy of `plan.json` finished it; while this copy has not, leave that story's child as it is. An entry for a story the plan no longer has stays too, and the preview and Output name its open child to close. A re-plan numbers new stories after the highest old ID, so an old entry never names a new story.
+- **A publish never loses what another branch's copy wrote.** A story the checklist checks stays checked, because another branch's copy of `plan.json` finished it; while this copy has not, leave that story's child as it is. Leave a child carrying FIS sections as it is too while this copy has no FIS for its story. An entry for a story the plan no longer has stays too, and the preview and Output name its open child to close. A re-plan numbers new stories after the highest old ID, so an old entry never names a new story.
 
 #### Find them
 

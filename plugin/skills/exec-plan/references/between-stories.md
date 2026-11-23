@@ -5,6 +5,7 @@ A dispatched story run never takes these steps: its plan run takes them for it.
 ## Discovery triage
 
 Carry each discovery in the finished story's `## Discovered Requirements` and `## Implementation Observations`, Drift Notes included, to each unstarted story it affects, whose executor reads only its own FIS.
+Skip a story with no FIS, because the run that writes its FIS reads these sections.
 
 - A constraint is appended under that story's `## Discovered Requirements` per `fis-mutability.md`. One that contradicts a scenario or Expected Outcome there also needs a revision folding it in.
 - A scope change, such as a PRD rule or `sharedDecisions` entry that no longer holds, or a story the plan lacks or no longer needs, never goes into a FIS: recommend the `andthen:clarify` skill's amendment.

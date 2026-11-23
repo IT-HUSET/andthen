@@ -1,6 +1,6 @@
 # Several-Story Breakdown
 
-Turn a written source into `plan.json` per `plan-schema.md` and one reviewed, preflighted FIS per story. Never author a FIS yourself: Step 4 gives each story its own subagent. Integrating a Preflight answer or an `ASSUMPTION:` line is not authoring.
+Turn a written source into `plan.json` per `plan-schema.md` and one reviewed, preflighted FIS per story. Never author a FIS yourself: Step 5 gives each story its own subagent. Integrating a Preflight answer or an `ASSUMPTION:` line is not authoring.
 
 ## Workflow
 
@@ -32,29 +32,40 @@ Write `OUTPUT_DIR/plan.json` per `plan-schema.md`, with its two optional arrays:
 - `sharedDecisions`: one entry per real cross-story contract, an interface, name or abstraction two stories must agree on. Zero or one is normal, and an invented entry binds every story downstream.
 - `bindingConstraints`: a pointer to each at-risk "must" or "must not" span in the source, never its text.
 
-### 4. Author the FIS
+### 4. Check the cut _(only under `--stories-only`)_
+
+Spawn one fresh reviewer subagent as in the skill's step 7, its prompt naming `self-review.md` § Bundle by absolute path, `plan.json`, and the source as Intent Context.
+It applies that section's coherence and traceability checks to the story briefs: source coverage, overlapping scope, dependency gaps, and a cross-story contract `sharedDecisions` does not pin.
+
+Then run `preflight.md` once over the cut, every returned Note among its items.
+Its Ending gives each story's id, name, `dependsOn`, and scope in place of `Approach:`.
+The run takes none of Steps 5–7.
+
+**Gate**: every item decided or assumed and landed where Step 1 says.
+
+### 5. Author the FIS
 
 Launch, in source order, stories whose `dependsOn` stories already have their FIS, about five per batch so one re-read verifies it, and recompute after each batch. For each story, spawn a fresh implementer subagent that invokes the `andthen:plan` skill with `--auto --batch story {story_id} of {OUTPUT_DIR}/plan.json`, `--auto` because nobody watches a story subagent. It returns the `--batch` report: the FIS path, `PHANTOM_SCOPE` entries, any `OVERSIZE:` line, and its open items.
 
-**Size signal**: an `OVERSIZE:` story is too broad. Re-cut it at Step 2, or trade the requirement its Architecture Decision names at Step 6, and author the resulting stories in its place.
+**Size signal**: an `OVERSIZE:` story is too broad. Re-cut it at Step 2, or trade the requirement its Architecture Decision names at Step 7, and author the resulting stories in its place.
 
 A reported path is model output. Await every return, since a turn ended mid-batch writes no row, then check each against the story's canonical target (`plan-schema.md` § FIS identity) and the FIS's `**Plan**:` / `**Story-ID**:` header, and write the batch's rows in one pass, `status` staying `pending`: `fis` the basename, or literal `null` for invalid or missing output.
 
-**Gate**: every story has a FIS, and every `OVERSIZE:` story is re-cut or a Step 6 trade item. A story left without one stops the run before Step 5 on a partial-bundle summary naming each story ID and its evidence.
+**Gate**: every story has a FIS, and every `OVERSIZE:` story is re-cut or a Step 7 trade item. A story left without one stops the run before Step 6 on a partial-bundle summary naming each story ID and its evidence.
 
-### 5. Review the bundle
+### 6. Review the bundle
 
 Spawn one fresh reviewer subagent as in the skill's step 7. Its prompt names `self-review.md` § FIS and § Bundle, `fis-authoring-guidelines.md` and `fis-contract.md` by absolute path, `plan.json`, every FIS path, and the source as Intent Context.
 
-A chain leg no story owns opens a story through Steps 2–4. Anything else the review leaves open – residual Notes, `Scope trades:`, a cross-story contract change – is a Step 6 item naming its stories.
+A chain leg no story owns opens a story through Steps 2, 3 and 5. Anything else the review leaves open – residual Notes, `Scope trades:`, a cross-story contract change – is a Step 7 item naming its stories.
 
 **Gate**: every `stories[].fis` is on the returned per-FIS roster. A FIS the roster omits went unreviewed, whatever the return says.
 
-### 6. Preflight
+### 7. Preflight
 
 Before it, take one second opinion, once per run.
 
-- Spawn one fresh read-only oracle subagent with `plan.json`, every FIS, the source, the `Product` document, Step 5's return, and the items so far: Step 1's unasked gaps, every open item a `--batch` report returned, and Step 5's residue.
+- Spawn one fresh read-only oracle subagent with `plan.json`, every FIS, the source, the `Product` document, Step 6's return, and the items so far: Step 1's unasked gaps, every open item a `--batch` report returned, and Step 6's residue.
   Its prompt names `self-review.md` § The contract by absolute path for the shape of a Note.
 - It returns the answer it would give each item, with its evidence.
 - It returns as a Note each answer that differs from, splits, or widens its item, and each guess an executor would still make that changes what gets built and that no item or Note names.
@@ -74,4 +85,8 @@ Integrate each answer yourself where it is owned:
 
 ## Follow-up
 
-Close on Preflight's Ending, when it ran, with the `plan.json` path before its one `Next (fresh session):` line: the `andthen:exec-plan` skill on the first dependency-ready story's FIS, relative to the project root. Each direct story run names the next, so a person reads every result, and any stop Preflight settled for their look, before the next story runs.
+Close on Preflight's Ending, when it ran, with the `plan.json` path before its one `Next (fresh session):` line, for the first case that applies:
+
+- **Stopped at the cut, and the project has an `Issue Tracker` document or the plan cites a tracker item** – the `andthen:ship` skill on `<plan.json>`, because its pull request shares the cut and offers to publish it.
+- **Stopped at the cut** – the `andthen:plan` skill on `story <id> of <plan.json>` for the first story with no dependencies.
+- **Otherwise** – the `andthen:exec-plan` skill on the first dependency-ready story's FIS, relative to the project root. Each direct story run names the next, so a person reads every result, and any stop Preflight settled for their look, before the next story runs.

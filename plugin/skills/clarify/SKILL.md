@@ -53,7 +53,7 @@ Never write over an existing `prd.md`: a resolved directory holding one from thi
 - **Directory or file holding an `intent.md`** – a baseline stating what its author knew, not a finished artifact: Step 3 folds its sections into the PRD, and the interview still runs. Read `intent-template.md` for its shape. `OUTPUT_DIR`: that directory.
 - **Other directory** – `OUTPUT_DIR`: that directory.
 - **Other file path** – `OUTPUT_DIR`: root + lowercase kebab-case stem.
-- **Tracker item URL** – fetch it as the `Issue Tracker` document says, or with `gh issue view <url> --json title,body,labels,state,comments`, and offer the `andthen:tracker` skill's `setup` when neither works. Store the number. `OUTPUT_DIR`: root + `issue-{number}-<slug>/`, with the issue reference in the PRD header. A PRD the `andthen:tracker` skill published into its body, below the hidden `andthen-projection` line and up to any `## Stories` checklist, is the PRD to amend: copy it to `OUTPUT_DIR/prd.md` unless one is there.
+- **Tracker item URL** – fetch it as the `Issue Tracker` document says, or with `gh issue view <url> --json title,body,labels,state,comments`, and offer the `andthen:tracker` skill's `setup` when neither works. Store the number. `OUTPUT_DIR`: root + `issue-{number}-<slug>/`, with the issue reference in the PRD header. A PRD the `andthen:tracker` skill published below a parent's `andthen-projection <source>` line, up to any `## Stories` checklist, is the PRD to amend: copy it to `OUTPUT_DIR/prd.md` unless one is there.
 - **Other URL** – `OUTPUT_DIR`: root + the normalized final path segment without extension.
 - **Inline description** – `OUTPUT_DIR`: root + the first six alphanumeric words, lowercase and hyphenated.
 

@@ -42,6 +42,7 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
      - recover required evidence marked `not judged` or missing, or return the Failed Story Report with the blocker.
    - The fixes the review applied are the story's one repair round: re-run what they invalidated. A further review is a separate request.
    - Record everything else under `## Implementation Observations`, its location and `Routing:` kept, and report it without gating on it.
+   - Append the labeled line `Reviewed:` there too: what reviewed the change and what it found, which findings the repair round fixed, and what stays open. The `andthen:ship` skill quotes it in the pull request, because the review's return ends with this session.
 
 ## Step 4: Complete
 
@@ -64,7 +65,7 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
    - Then the labeled list `Decided without asking:`, never omitted, because a missing list reads as nothing decided.
      It quotes, one per line, each `ASSUMPTION:` line, and each Drift Note or Discovered Requirement Interpretation whose reading a run chose, recorded by this run or a subagent it dispatched.
      With none, it says `none`.
-   - Then the labeled line `Reviewed:`, never omitted: what reviewed the change and what it found, which findings the repair round fixed, and what stays open.
+   - Then Step 3's `Reviewed:` line, never omitted.
    - Below them, as reference: each commit, each tidy with its file, Step 3's proof lines with the tier result, the visual results where they apply, and a pointer to `## Implementation Observations`.
    - A dispatched story run names each discovery that affects an unstarted story, and that story, for its plan run to triage.
    - End on the `Next (fresh session):` line of Follow-up.

@@ -6,7 +6,7 @@
 
 ## Current ADRs
 
-ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-032.
+ADR-003 was written retrospectively for 1.0; its commit references are the evidence. On 2026-09-28, before 1.0 shipped, the ADRs a later record superseded or already carried were deleted once rather than kept as lineage; what survived of them lives in the ADRs below and the Still Current notes, and git keeps the rest. Numbers are never reused: the next is ADR-033.
 
 | ID | Title | Status | Scope |
 |----|-------|--------|-------|
@@ -18,12 +18,13 @@ ADR-003 was written retrospectively for 1.0; its commit references are the evide
 | [ADR-022](adrs/ADR-022-init-asks-only-what-it-cannot-infer.md) | `init` asks only what it cannot infer | Accepted | Core documents on first write; Proportionality asked at first use |
 | [ADR-024](adrs/ADR-024-plan-names-and-story-status-writers.md) | Name the skills `plan` and `exec-plan`, and give every story status a writer | Accepted | `spec` → `plan`, `exec-spec` → `exec-plan`; statuses `pending`/`in-progress`/`done`/`skipped`; `skipped` blocks dependents |
 | [ADR-025](adrs/ADR-025-decide-skill.md) | Make and record technical decisions in a `decide` skill | Accepted | `decide` interviews over technical decisions and writes ADRs; `architecture` loses `trade-off` and `advise`'s Design sub-mode |
-| [ADR-026](adrs/ADR-026-ship-skill.md) | Ship the branch with a `ship` skill | Accepted | `ship` closes out the branch; attended publication asks once, `--auto` authorizes push, tracker publication, and PR creation |
+| [ADR-026](adrs/ADR-026-ship-skill.md) | Ship the branch with a `ship` skill | Accepted | `ship` closes out the branch; attended publication asks once, `--auto` authorizes push, tracker publication, and PR creation; a story's own pull request is a named route |
 | [ADR-027](adrs/ADR-027-visualize-skill.md) | Draw AndThen artifacts as checked pages with a small `visualize` skill | Accepted | Model-written self-contained HTML with inline SVG, gated by a render-and-look loop; any artifact; `now-what` drops its notes route |
-| [ADR-028](adrs/ADR-028-tracker-record.md) | Keep a feature's record in the issue tracker, opt-in per project | Accepted | `Record: repo \| tracker`; the PRD lives in the source issue, story issues carry intent and acceptance, `ship` writes the final record and the merge closes it; prose, no script |
+| [ADR-028](adrs/ADR-028-tracker-record.md) | Keep a feature's record in the issue tracker, opt-in per project | Accepted | `Record: repo \| tracker`; the PRD lives in the source issue, story issues carry intent and acceptance, `ship` keeps published issues current, the merge closes them; prose, no script |
 | [ADR-029](adrs/ADR-029-domain-skill-and-domain-map.md) | Model the domain in a `domain` skill, recorded in one Domain Map | Accepted | `domain` modes `subdomains`, `contexts`, `glossary`, `event-storming`; `DOMAIN-MAP.md` replaces `CONTEXT-MAP.md`; `context-map.json` retires; one Markdown-or-JSON rule |
 | [ADR-030](adrs/ADR-030-one-setup-script.md) | One setup script installs AndThen and places its role agents and rules | Accepted | `scripts/andthen.py` replaces both install scripts; opt-in user-level roles and rules, written only where no merge is needed; `validate-plugin.py`; white-label and `--claude-user` go |
 | [ADR-031](adrs/ADR-031-oracle-at-two-gates.md) | Name the `oracle` at two gates | Accepted | One read-only second opinion each: `decide` on its one-way doors before the playback, `plan` on a several-story bundle before Preflight; never self-selected |
+| [ADR-032](adrs/ADR-032-stories-before-specs.md) | Let a plan stop at the cut, with each FIS written when its story is claimed | Accepted | `plan --stories-only`; a reviewer pass and Preflight over the cut; scope-and-requirement child issues; late FIS on the one-story path; the stop hands off to `ship` |
 
 ## Superseded
 
@@ -46,7 +47,7 @@ Rationale and reopen conditions: [decisions/workflow-and-skills.md](decisions/wo
 
 - **Where work starts: two questions, and `plan` answers one**: the user answers "do I know what to build?", `plan` answers "one story or several?" (ADR-020). `clarify` writes the PRD at any size; the plan's `prd` stays a nullable path with no URL form, since a PRD is never mandatory. An open design choice that binds beyond the work or is costly to reverse goes to `decide` first (ADR-025).
 - **`clarify` writes the brief too, and has no unattended form**: `--brief` stops at `intent.md`, the intake the next run folds into the PRD. No unattended form: the interview is the skill's value, and a pipeline with requirements starts at `plan`.
-- **Specs are co-produced with the story breakdown**: `plan` cuts the stories and authors their FIS in one run, because specs decay when divorced from the story context that motivated them, and one cross-cutting review catches inter-story inconsistencies before execution.
+- **Specs are co-produced with the story breakdown by default**: `plan` cuts the stories and authors their FIS in one run, because specs decay when divorced from the story context that motivated them, and one cross-cutting review catches inter-story inconsistencies before execution. `--stories-only` stops at the cut and gives up that review, each FIS then written when its story is claimed (ADR-032).
 - **One authoring subagent per story**: `plan` on several stories spawns one fresh authoring subagent per story, never one for several siblings, and a re-author stays scoped to its story, so an `OVERSIZE:` or `PHANTOM_SCOPE` finding stays attributable and each retry separate.
 - **One no-spec change skill**: `implement-fix` takes a review report or a request, and a request is its own findings list routed `Fix` by the user, so the agent never invents scope; what it leaves unstated is reported, not edited, unless a Boy Scout tidy. Accepted: a one-line fix runs the full phases.
 - **No model-only or user-only skills**: a capability is a skill a user invokes by name and a subagent invokes with arguments, never a `user-invocable: false` or `disable-model-invocation` skill or a "read X and perform it" reference. References are rubrics, few and one level deep, except a skill's own load-site branch (ADR-020).

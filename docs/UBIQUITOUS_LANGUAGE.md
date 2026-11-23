@@ -29,7 +29,8 @@
 | Plan Bundle | Co-located planning directory containing `plan.json`, generated FIS files, `prd.md` when the source was one, and optional supporting assets. | implementation plan, plan folder |
 | Shipped record | A plan bundle `ship` kept with a `shipped` marker in `plan.json`, or a `prd.md` stamped `> **Shipped**:` after `ship` deleted the bundle; `now-what` reads it as history, not work. | shipped plan, finished bundle |
 | plan.json | Local typed runtime plan written by the `andthen:plan` skill and read by execution, review, and routing skills; runtime state is written by the session executing each story. | plan.md, markdown plan, plan table, ledger |
-| Story | Vertical, bounded, verifiable unit in `plan.json` that maps 1:1 to a FIS. | task, ticket, work item |
+| Story | Vertical, bounded, verifiable unit in `plan.json`, specified by one FIS – written with the plan, or when claimed after `plan --stories-only`. | task, ticket, work item |
+| Cut | A several-story plan's stories in `plan.json` before any FIS exists; `plan --stories-only` stops there, after one reviewer checks it (`breakdown.md` Step 4). | skeleton plan, story list |
 | Wave | The stories dependency-ready at one point of a plan run (`plan-schema.md` § Execution semantics), derived from `dependsOn` and never stored. | dependency-ready batch, phase, batch field |
 | Plan run | An `andthen:exec-plan` run on a plan directory or its `plan.json`, dispatching each ready story as a story run and owning the final gate (`plan-run.md`). | plan execution, orchestrated run |
 | Story run | An `andthen:exec-plan` run on one FIS (`story.md`): dispatched when a plan run launched it as a story subagent, as its request says, else direct. | FIS run, direct FIS execution, a story run no plan run dispatched |
@@ -44,6 +45,7 @@
 | Spike Verdict | The block the `andthen:spike` skill prints answering its one question. | spike result |
 | Agent Brief | The `ready-for-agent` handoff block `tracker triage` appends to an issue body. | handoff comment |
 | Tracker resolution | Resolving the `Issue Tracker` document before any issue operation, stated once in the `andthen:tracker` skill. | backend switch |
+| Published plan | A plan whose parent issue carries the `## Stories` checklist `tracker publish` writes; `ship` keeps its issues current. | synced plan, tracked plan |
 | Proportionality | The `PRODUCT.md` section stating the facts a proposal is sized against: stage, scale, and standing technical non-goals. | lean mode, complexity score, simplicity principles |
 | Floor option | The smallest option that still satisfies the stated criteria – do nothing, or extend what exists – carried by every alternative set. | do-nothing baseline, minimal alternative, null option |
 | Preflight | Closing step of the `andthen:plan` skill: each open item asked in one sitting with a recommendation and answered into the FIS; exec-side pre-run checks are admission. | decision closure, convergence gate, closure verdict |
@@ -75,9 +77,10 @@
 | Task progress | Stable task IDs in `stories[].completedTaskIds`, appended as each task's `Verify` passes. | checked tasks, FIS state |
 | Proof lines | The story's evidence, produced by `exec-plan` where it runs: one line per `Proof` or `Verify` id – what ran and its exit code, or what was seen. | verifier, verifier report, proof report |
 | Completion transition | The executing story's write of `status: "done"` together with `verified: {at, summary}`, whose summary quotes executed proof output. | mark done, status write |
+| Covered stories | The stories a pull request ships: those whose `plan.json` rows the branch's own commits changed, or every story when the base has no `plan.json`. | PR stories, branch stories |
 | Close-out | `ship` landing the FIS Implementation Observations, then deleting `plan.json` and the FIS files, before the branch merges (the milestone on a team); `prd.md` stays unless `Record: tracker`. | plan cleanup, archive the plan, teardown |
 | plan.schema.json | The machine form of `plan-schema.md` (JSON Schema draft 2020-12), a shared canonical in `plugin/references/`. | plan schema file, the JSON schema |
-| `Reviewed:` line | The completion report's one review signal: what reviewed the change, which findings were fixed, and what stays open. Prose for the reader, never parsed. | gate result, story verdict |
+| `Reviewed:` line | The completion report's one review signal: what reviewed the change, which findings were fixed, and what stays open. Also appended to the story's FIS, where `ship` quotes it. Never parsed. | gate result, story verdict |
 | Decided without asking | A choice a run recorded making with nobody to ask: the list a story or plan report carries under that label, and the table `ship` writes into the pull request. | decided alone, agent decisions, decision log |
 | Scope Discipline | The `review-calibration.md` counterweight to the Anti-Leniency Protocol – Analysis Paralysis, Finding Distillation, Verdict first. | proportionality, going easy |
 | Follow-up review | A `review` run after a `**Remediated**:` report: the work since its Revision, its callers, and its open findings, unless a condition fails; says which findings are now resolved. | closure pass, review campaign, re-review round |
@@ -113,7 +116,7 @@
 |------|-----------|-----------|-----------|-----------|
 | spec | General discussion | Any specification-like document | AndThen planning | Prefer FIS for the execution artifact generated by the `andthen:plan` skill |
 | plan | Prose | The planning act, or the breakdown `andthen:plan` runs for several stories | Artifact | `plan.json`, the typed local runtime plan |
-| story | Product requirements | User story in a PRD or Intent Document | Plan bundle | A `stories[]` entry that maps 1:1 to a FIS |
+| story | Product requirements | User story in a PRD or Intent Document | Plan bundle | A `stories[]` entry, specified by one FIS once it is written |
 | review | Skill | The unified workflow run by the `andthen:review` skill | Report content | Findings, verdict, and evidence produced by a lens or chain |
 | agent | User environment | An AI coding agent such as Claude Code, Codex, Aider, or Cursor | AndThen delegation | A generic subagent spawned by a skill |
 | Intent | FIS field | The one-sentence `Intent` under `## Feature Overview and Goal` – why this feature exists | Artifact | `intent.md`, the Intent Document that precedes the PRD |
