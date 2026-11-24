@@ -211,7 +211,16 @@ The `skill-review` skill's `--fix` runs this.
 
 ## Repository constraints
 
-A reference in `plugin/references/` needs two consuming skills, and with one it moves into that skill.
+- A reference in `plugin/references/` needs two consuming skills, and with one it moves into that skill.
+- No plugin agent auto-loads. The `andthen:init` skill bundles four optional roles in both host formats (`oracle`, `implementer`, `reviewer`, `worker`), and an installed definition owns its tier's model and effort.
+- Every dispatch site names its role, or a generic inherited subagent for judgment work, and each skill states once that an absent role falls back to the generic shape, so a run never guesses a tier.
+  The generic shape is a generic inherited subagent whose prompt invokes the `andthen:<name>` skill or loads the named reference, with the task, any persona or reference instructions, and read-only constraints, never a role-specific pin.
+- In prose, every `andthen:<name>` reference has the type noun adjacent – "the `andthen:<name>` skill" or "the `andthen:<name>` agent".
+  - Mandatory wherever the name follows an invocation or delegation verb (spawn, invoke, dispatch, delegate to), because verb plus bare name is the shape behind the known-bad "Spawn `andthen:<skill-name>` subagent", which passes skill names as agent types.
+  - Machine-contract identifiers, headings, command examples, argument surfaces, and assertional text that does not instruct invocation may use the bare form.
+  - A delegated agent is a **subagent** in prose – never a kinship metaphor.
+- Shipped skills and references (`plugin/`) never use invocation sigils (`/andthen:<name>`, `$andthen-<name>`), because sigils are host syntax and render wrong on other hosts; `scripts/validate-plugin.py` rejects them. User-facing docs (README, plugin/README) may show real commands.
+- Audit the wording across the repo, for skill-as-agent phrasing and other drift, with `rg 'andthen:[a-z-]+' AGENTS.md plugin/ docs/`.
 
 ## References
 
