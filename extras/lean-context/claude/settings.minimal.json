@@ -22,11 +22,9 @@
       "mcp__claude_ai_Excalidraw",
       "mcp__claude-in-chrome",
       "mcp__Claude_Browser",
-      "mcp__visualize",
       "mcp__terminal",
       "mcp__scheduled-tasks",
-      "mcp__mcp-registry",
-      "mcp__context7"
+      "mcp__mcp-registry"
     ]
   }
 }

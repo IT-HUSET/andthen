@@ -46,6 +46,12 @@ The organization files enforce part of this on every machine they manage:
 - **Codex's** enforces the secret denies and the `git push` prompt, that a person answers prompts (`allowed_approvals_reviewers`), and, on Windows, a sandbox that enforces the denies. It allows neither `danger-full-access` nor the `never` approval policy, so `--yolo` falls back to an allowed mode. It does not enforce network or environment settings; Codex 0.138+ can pin a whole permission profile with `allowed_permission_profiles` and a managed `default_permissions`.
 - **Neither ships the hook**, because a managed hook needs its script at the same root-owned path on every machine. To add it, install the script there, add the personal file's `hooks` entry with that path, and in Claude Code set `allowManagedHooksOnly` if users' own hooks should not run.
 
+## What Claude Code sends to Anthropic
+
+Claude Code's personal file also turns off usage telemetry (`DISABLE_TELEMETRY`, which also stops the "How is Claude doing?" survey), error reports (`DISABLE_ERROR_REPORTING`), and the `/feedback`, `/bug`, and `/share` commands (`DISABLE_FEEDBACK_COMMAND`). `DO_NOT_TRACK=1` has the same effect as `DISABLE_TELEMETRY`, so the file leaves it out. Telemetry events carry no code, file paths, or commands, so this settles what leaves your machine about your usage, not about your code.
+
+Turning telemetry off also stops Claude Code fetching its feature flags, so `/skill-doctor`, `claude import` and `/import`, and `/restart` on Pro, Max, and Ultra stop working. Remote Control still works, from 2.1.283 (2.1.304 in the desktop app), but sessions no longer connect to it on their own, and it is unavailable where your organization requires Trusted Devices. Drop `DISABLE_TELEMETRY` if you need those. `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` turns all three off and more, but also stops auto-updates and Remote Control.
+
 ## Native Windows
 
 Claude Code has no sandbox on native Windows; it runs commands unsandboxed. Run it inside WSL2 to get the sandbox. The organization file refuses to start without one (`failIfUnavailable`), which moves managed Windows users to WSL2. Natively, under the personal file:
@@ -71,4 +77,4 @@ Checked on 2026-10-15 with Claude Code 2.1.300 and Codex 0.162.1 on macOS.
 - **Both personal files:** under the sandbox, reading `.env`, a nested `sub/.env`, `~/.ssh`, or the Chrome profile failed with "Operation not permitted", from `cat` and from a Python script alike. `GITHUB_TOKEN` was unset, `example.com` was unreachable, and `ok.txt` read fine.
 - **Codex also:** writing outside the workspace or into `.git` was refused. With an empty config, the same `.env`, Chrome profile, and token came through. The hook refused `rm -rf` and pipe-to-shell when given Codex's `PreToolUse` input directly, not yet in a live Codex session.
 - **Claude Code also:** the hook refused `rm -rf`. The Read tool was refused `sub/.env` and read a file beside it. In auto mode an unknown host got "host is not on the allow list", and a retry outside the sandbox did not run in headless mode, where an ask becomes a refusal. With the organization file loaded, a blocked request could not leave the sandbox.
-- **Not run:** `codex/requirements.toml`, which needs a write to `/etc`, the Claude Code prompts, which need an interactive session, and anything on Windows. These follow the documented shapes.
+- **Not run:** `codex/requirements.toml`, which needs a write to `/etc`, the Claude Code prompts, which need an interactive session, and anything on Windows. These follow the documented shapes, as does the telemetry `env` block, checked against the environment variable and Remote Control docs on 2026-11-24.
