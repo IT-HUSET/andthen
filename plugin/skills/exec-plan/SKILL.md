@@ -31,8 +31,8 @@ Execute a FIS, or a plan with one fresh subagent per story, verify against its p
   4. **Work around** through a sanctioned amendment path, else on the narrowest defensible reading, never as the cheap way past a gate. Record a code↔FIS divergence as a Drift Note, and an outcome-neutral reading as an `ASSUMPTION:` line (`unattended-runs.md` § Recording an assumption) or a Discovered Requirement.
   5. **Stop** when no rung answered and no reading is defensible, naming the rungs tried.
 
-  Stopping on what an earlier rung answers is the dominant cause of premature aborts in unattended runs.
-- **Every dispatch is a fresh subagent**: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt. Dispatch in the foreground (`run_in_background: false` on Claude Code) and await each required result within your turn, because a progress message is not completion and a subagent's ended turn hands its run back. Keep failed or partial evidence.
+  Stopping the run on what an earlier rung answers aborts an unattended run for nothing.
+- **Every dispatch is a fresh subagent**: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt. Await each required result to completion, because a progress message is not completion, and keep failed or partial evidence.
 
 ## Workflow
 

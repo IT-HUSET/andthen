@@ -45,7 +45,7 @@ Save distinct captures under the requested path, else where the `Visual Validati
 - Open the images and verify the intended state and viewport.
   Recapture a wrong state or unreadable shot when the UI is available.
 - Inspect the whole composition, then each region at readable size.
-  Vision models downsample composites, so keep reference and subject separate, scale high-density shots to 1×, and tile anything still over about 1600px on its long side without losing edges or seams.
+  Keep reference and subject as separate images, because a side-by-side composite is downsampled as one image.
 
 **Gate**: each required view, comparison, or interaction has opened evidence covering it, or a `not judged` entry with the reason.
 Judge the remaining views even when one lacks evidence.

@@ -49,8 +49,8 @@ Document each issue with severity, location, symptoms, and the relevant error ou
 
 1. Prioritize issues: critical (build/start, security, core functionality broken), then high (failing tests, regressions, integration and performance failures), then medium/low quality and polish.
 2. For each critical/high issue, reach a root cause worth fixing:
-   - 5 Whys.
    - Rank hypotheses by probability and investigate several in parallel.
+   - Ask why again (the Five Whys) while the cause you found is itself a symptom.
 3. Search for each root cause's other instances, the same pattern or wrong assumption elsewhere, and put them in the fix plan, because an instance left in place fails later as a new report.
 
 **Gate**: each critical and high issue has a root cause that a test or reproduction separates from the other hypotheses, and its other instances are listed or none were found. With `MODE=plan-only`, stop here and deliver the fix plan in the shape under Output.
