@@ -10,8 +10,10 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ### Added
 - **`plan --stories-only` stops a several-story run at the cut**: `plan.json` with no FIS, checked by one fresh reviewer and one Preflight round, without the bundle review or `oracle` second opinion. Each FIS is written later by `plan` on its story or the story's issue, whose child issue shows its scope and cited requirement headings until then.
+- **Example settings that shrink every Claude Code request** in [`extras/lean-context/`](extras/lean-context/README.md): three files, `trim`, `focused` and `minimal`, deny tools a session rarely calls and cut a desktop session's first request by about 25,600, 32,300 and 43,700 tokens.
 
 ### Changed
+- **The optional `hooks/` and `permissions/` folders moved to `extras/`.** Hooks copied into `~/.claude/hooks/` keep working; settings that run a script from a clone's `hooks/scripts/` need `extras/hooks/scripts/`.
 - **`tracker publish` links each story issue to the plan's issue as a sub-issue and marks it blocked by its dependencies' issues, and `--only <ids,prd>` limits a publish to the named stories and the PRD.** It only adds missing links and reports one that fails without stopping; another backend opts in through the new `fetch links`, `set parent`, and `add blocked-by` rows of its `Issue Tracker` document.
 - **`ship` keeps a published plan's issues current under either `Record:` setting, and offers the first publication on a plan's own pull request.** Each pull request refreshes the stories it covers and the PRD its branch changed, and the one whose base holds no `plan.json`, or that finishes the plan, publishes the whole plan, so nobody re-runs `tracker publish`; under `Record: repo` the offer has no recommendation and `--auto` never takes it.
 - **One pull request per story is a route the skills follow.** `exec-plan` on a story's own branch names `ship`, not the next story; `ship` bases the pull request on the one other remote branch holding the plan, counts as open work only what the pull request ships, quotes the story run's `Reviewed:` line, which the run now records in the FIS, and under `--auto` ends on `BLOCKED:` where work is open.
@@ -103,7 +105,7 @@ Changes since 0.40.4; each `v1.0.0-rc.N` tag's CHANGELOG.md keeps that candidate
 - **`ui-ux-design` writes clickable mockups** into `docs/mockups/<feature>/`, built from your design system with working in-page interactions and checked for contrast, off-token values, and dead links. Wireframes go to `docs/wireframes/<feature>/`.
 - **More documents skills read and write.** `Testing Strategy` (`testing --mode strategy`), `Key Dev Commands` (the `fast` and `full` tiers and a run-one-test row), `Visual Validation` (`visual-validation --mode setup`), `Domain Map`, `Issue Tracker`, and an optional `Review Policy`. The `Product` document gains Proportionality facts, which `clarify`, `decide`, `plan`, `architecture`, `domain`, and `review` size proposals against, and Product Principles for design tiebreakers.
 - **Optional role agents.** `init` offers `oracle`, `implementer`, `reviewer`, and `worker` for Claude Code, Codex, and Copilot, each pinning a model and effort per task tier.
-- **Example permission and sandbox settings** for Claude Code and Codex in [`permissions/`](permissions/README.md): sandbox on with no network, credentials and `.env` files hidden from commands, `git push` asking first, and `block-dangerous-commands.py` as a pre-tool hook.
+- **Example permission and sandbox settings** for Claude Code and Codex in [`permissions/`](extras/permissions/README.md): sandbox on with no network, credentials and `.env` files hidden from commands, `git push` asking first, and `block-dangerous-commands.py` as a pre-tool hook.
 - **`COOKBOOK.md`.** Task-oriented recipes (the prompt, what comes back, where to go next), how the workflow fits together, working in a team, and one worked example.
 
 ### Changed

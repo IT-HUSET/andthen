@@ -1,5 +1,5 @@
 # Admin-enforced limits for /etc/codex/requirements.toml (or the MDM key requirements_toml_base64).
-# Users cannot override these. See permissions/README.md.
+# Users cannot override these. See extras/permissions/README.md.
 
 # No `never`, so unattended runs need their own machine or config.
 allowed_approval_policies = ["on-request"]

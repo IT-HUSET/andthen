@@ -1,5 +1,5 @@
 #:schema https://developers.openai.com/codex/config-schema.json
-# Personal baseline for ~/.codex/config.toml. See permissions/README.md.
+# Personal baseline for ~/.codex/config.toml. See extras/permissions/README.md.
 
 # Ask before anything the sandbox blocks; `never` is for unattended runs only.
 approval_policy = "on-request"
@@ -57,7 +57,7 @@ inherit = "all"
 # Drop variables whose names contain KEY, SECRET, or TOKEN.
 ignore_default_excludes = false
 
-# Refuses destructive shell commands before they run; see hooks/README.md. Trust it once in /hooks.
+# Refuses destructive shell commands before they run; see extras/hooks/README.md. Trust it once in /hooks.
 [[hooks.PreToolUse]]
 matcher = "Bash"
 

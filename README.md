@@ -198,10 +198,12 @@ To set up by hand instead, start from [`CLAUDE.template.md`](plugin/skills/init/
 
 `exec-plan` runs for a long time without you watching, so it is worth limiting what the agent's shell commands can reach. They run as you. Approval prompts and allow/deny rules decide what asks you first, but a command you approve can still read `~/.ssh` or send data anywhere. An OS sandbox closes that gap. Every command and its child processes can write only inside the workspace, has no network, and cannot read the files you deny. Codex turns its sandbox on by default; Claude Code does not.
 
-- [`permissions/`](permissions/README.md) – example settings for both hosts. The sandbox is on and the network off. Commands cannot see `.env` files, cloud credentials, browser profiles, or token variables. `git push` asks first, the destructive-command hook below runs before every command, and Claude Code's bypass flag is refused. Organization-enforced variants are included.
-- [`hooks/`](hooks/README.md) – four optional hooks: a guard against destructive shell commands, desktop or voice notifications, and a context-size hint that tells you when to start a fresh session. The guard matches patterns, so it adds a layer and does not replace the sandbox.
+- [`extras/permissions/`](extras/permissions/README.md) – example settings for both hosts. The sandbox is on and the network off. Commands cannot see `.env` files, cloud credentials, browser profiles, or token variables. `git push` asks first, the destructive-command hook below runs before every command, and Claude Code's bypass flag is refused. Organization-enforced variants are included.
+- [`extras/hooks/`](extras/hooks/README.md) – four optional hooks: a guard against destructive shell commands, desktop or voice notifications, and a context-size hint that tells you when to start a fresh session. The guard matches patterns, so it adds a layer and does not replace the sandbox.
 
 Run `--dangerously-skip-permissions` or `--yolo` only inside a container or VM that holds none of your credentials.
+
+[`extras/lean-context/`](extras/lean-context/README.md) has three Claude Code settings files, `trim`, `focused` and `minimal`, that deny tools a session rarely calls. In the desktop app they cut the first request by about 25,600, 32,300 and 43,700 tokens, and its README says what each one costs you.
 
 
 ## Installation

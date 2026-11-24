@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for hooks/scripts/context-hint.py.
+"""Tests for extras/hooks/scripts/context-hint.py.
 
     python3 -m unittest tests.test_context_hint
 
@@ -20,7 +20,7 @@ import tempfile
 import unittest
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-SCRIPT = REPO / "hooks/scripts/context-hint.py"
+SCRIPT = REPO / "extras/hooks/scripts/context-hint.py"
 
 
 def claude_transcript(tokens, prompts=2, entrypoint="claude-desktop"):

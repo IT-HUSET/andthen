@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PROJECT_DIR}/hooks/scripts/block-dangerous-commands.py",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/extras/hooks/scripts/block-dangerous-commands.py",
             "timeout": 15,
             "statusMessage": "Checking for dangerous commands..."
           }
