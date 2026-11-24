@@ -30,6 +30,23 @@ Separately and not fixable here: DartClaw's Codex adapter accepts that call and 
 
 Reopens if a host offers a non-blocking channel that does reliably deliver.
 
+## What a skill asks up front and offers at its close lives in the critical-rules starter, not in each skill
+
+Asked for on 2026-11-24, so a person need not know a skill's arguments or paste a `Next` command into a session they open by hand.
+A per-skill version was built first: a flag offer in each `## Input`, and the `Next` offer in each `## Follow-up`.
+It passed an `oracle` second opinion and two skill-reviews, then gave way to two lines in the starter, because the behaviour is one cross-skill rule.
+Per skill it was a no-op in five skills, and in four it was a second rule beside Step 1's mode ask.
+The trigger is a missing input the skill has no default for, which neither the arguments nor the request supply.
+It never fires under `--auto`, in a subagent, or in an eval cell, whose prompts carry their arguments, nor on a run a `Next` line starts, since that line carries the required ones.
+The per-skill trigger, flags the request left open, fired on every such run.
+`init` asks nothing outside an empty repository, and `ship`, `handoff`, `describe`, `testing`, and `simplify-code` run on empty arguments, so none of them asks; the modes and main flags ride in a question the skill must ask anyway, and a skill's own ask for that input is the same question (skill-review, 2026-11-24).
+The `Next` offer stays out of subagents, because a review a subagent runs hands its next step to its orchestrator and Claude Code filters its question tool out of them.
+There is no "here" option: `simplify-code`, `implement-fix`, `review --fix`, and a plan run hand off to a reader who did not write the change, and their lines are printed, never invoked.
+The rule says "choice question", not "structured user-input tool", because `tests/test_unattended_runs_load.py` would otherwise pull the full ask contract into the starter, which loads every turn and must stay compact.
+Accepted: only projects or users that adopted the rules get either line, and on a host that cannot start a session, such as the Claude Code CLI, the printed line stays the whole hand-off.
+
+Reopens if users ask to run a hand-off that is not a review in the same session, or on a run that puts an offer in its reply.
+
 ## An assumption is reachable only from a question
 
 The old wording keyed an assumption on a question "nobody answered", which the run certifies about itself: Codex closed the `plan` case with "Unanswered choices … are recorded as assumptions in the specs", having asked nothing. Asked-then-unanswered is a fact about the transcript, so it can be checked, but only if "asked" means the run stopped for the answer: a question sent down a channel the run continued past satisfied the weaker reading, which is how six Codex cells wrote their own choice into the specs.

@@ -75,6 +75,8 @@ These rules override harness defaults and habits where they conflict.
   Durable project knowledge goes to committed docs, such as Learnings, Decisions, and guidelines.
 - **A subagent runs what it must await in the foreground**, because its ended turn is its hand-back and nothing wakes it.
 - **`AGENTS.md` and `CLAUDE.md` are auto-loaded**, so never write instructions to read them.
+- **A skill missing an input it has no default for asks for it first in a choice question, offering its modes and main flags too.**
+- **Also offer a skill's closing `Next (fresh session):` line as a choice that starts it in a new session**, where the host can, outside subagents and `--auto`.
 
 ## Subagent Model Policy
 

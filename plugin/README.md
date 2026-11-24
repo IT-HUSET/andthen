@@ -32,7 +32,7 @@ Projections live under the `Models` Index location (default `docs/models/`) and 
 
 ### Foundational Rules and Conversation Style
 
-**Project rules.** At the end of a run, `init` offers the [critical-rules starter](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) for your root instruction file. The rules then travel with the checkout into CI and containers. Your team owns them: init preserves your customizations and never overwrites them.
+**Project rules.** At the end of a run, `init` offers the [critical-rules starter](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) for your root instruction file. The rules then travel with the checkout into CI and containers. Your team owns them: init preserves your customizations and never overwrites them. Among them, a skill you invoke with no arguments asks for its target, mode, and main flags first.
 
 - Declining writes `<!-- AndThen critical rules: skipped -->` to the instruction file, and later runs respect it. Ignoring the offer writes nothing, so the next run offers again.
 - To adopt later, ask init to remove the marker and add the rules. Without init, ask your agent to adopt the starter in your root instruction file, preserving existing policy.
@@ -63,7 +63,7 @@ It records each open decision as `ASSUMPTION: <what> – <what would change it>`
 Only the flag does this, never how the run was launched, and the run passes it on to every skill it invokes.
 `clarify` has no unattended form, because the interview is the skill.
 
-**Fresh sessions.** `plan` on several stories and `exec-plan` work best in a clean session. Each step of the pipeline – `clarify`, `decide`, `ui-ux-design`, `plan`, `exec-plan`, `review` – ends on one `Next (fresh session):` command, never a menu, and skips a step with nothing to do. Every skill recommendation includes the full invocation in your host's syntax, with its target or request and required arguments, ready to paste. `handoff` compacts a session that has to end mid-work.
+**Fresh sessions.** `plan` on several stories and `exec-plan` work best in a clean session. Each step of the pipeline – `clarify`, `decide`, `ui-ux-design`, `plan`, `exec-plan`, `review` – ends on one `Next (fresh session):` command, never a menu, and skips a step with nothing to do. With the critical rules adopted, where your host can start a new session, the run also offers to start that command in one. Every skill recommendation includes the full invocation in your host's syntax, with its target or request and required arguments, ready to paste. `handoff` compacts a session that has to end mid-work.
 
 **Proportionality.** `clarify`, `decide`, `plan`, `architecture`, and `domain` size proposals against the stage, scale, and technical non-goals in your `PRODUCT.md`. If they are missing, the first of these skills you run asks once and records the answers (`unknown` for anything left open). Every set of alternatives includes a do-nothing or extend-what-exists option.
 
