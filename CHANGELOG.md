@@ -10,6 +10,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ### Added
 - **`plan --stories-only` stops a several-story run at the cut**: `plan.json` with no FIS, checked by one fresh reviewer and one Preflight round, without the bundle review or `oracle` second opinion. Each FIS is written later by `plan` on its story or the story's issue, whose child issue shows its scope and cited requirement headings until then.
+- **A `decide` trade-off shows its weighted scores as an interactive visual before it asks**, where the host can draw one in the chat, with weights you can move to see whether yours change the winner. You still answer through the question; weights you keep re-run the comparison.
 - **Example settings that shrink every Claude Code request** in [`extras/lean-context/`](extras/lean-context/README.md): three files, `trim`, `focused` and `minimal`, deny tools a session rarely calls and cut a desktop session's first request by about 25,600, 32,300 and 43,700 tokens.
 
 ### Changed

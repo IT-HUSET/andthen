@@ -51,7 +51,8 @@ Its prompt carries the decision, the scored comparison with the research evidenc
 
 Apply the returned verdicts, then write the recommendation: the chosen option and what it buys over the floor option, evidence-based rationale naming which criteria were decisive and which only broke ties, implementation path, risks and mitigations, confidence level, and the alternatives worth reconsidering if conditions change.
 
-Ask it as the decision's question: accept, **refine** (adjust criteria, weights, or options and re-run), or **deeper analysis** of one option.
+Where the host can draw an interactive visual in the chat, show the weighted scores with weights the user can move, so they see whether their own weights change the winner.
+Then ask it as the decision's question: accept, **refine** (adjust criteria, weights, or options and re-run; weights the user keeps in the visual are a refine), or **deeper analysis** of one option.
 
 ## Step 6 – Artifacts
 

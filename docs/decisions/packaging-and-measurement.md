@@ -6,6 +6,8 @@ Rationale, evidence, history, and reopen conditions for the **Packaging and meas
 
 The `scripts/fixtures/renders/` corpus carries its owner routing. A downstream viewer's own views include its boards and atlas. ADR-027 holds the rest of the rationale.
 
+The trade-off visual gets no render gate, unlike `visualize`, because it stores nothing and the answer still comes through the question. Reopen it when a run's visual shows scores that differ from its matrix.
+
 ## No tests inside the plugin directory
 
 Reopens only if a host gains an install-time exclude.
