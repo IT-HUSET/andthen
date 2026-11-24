@@ -29,7 +29,7 @@ Create a missing document and its entry here from `project-document-templates.md
 - **Architecture** – `docs/ARCHITECTURE.md`. Read for architecture-touching changes: skill structure, shared references, install-time propagation.
 - **Specs & Plans** – `docs/temp/specs/<feature>/`: local working specs, never committed (`docs/temp` is gitignored), holding a PRD, `plan.json`, and one FIS per story, co-located per feature and written by the `clarify` and `plan` skills. Read the governing FIS before implementing a story, and resolve the plan path from this entry. Update the plan and FIS as execution proceeds, never the PRD. `plan.json` has one writer per copy at a time – the session executing a story writes its row, and a `plan` breakdown's story subagents never write it. An oversized FIS is a story too big: decompose it (`OVERSIZE:`), never trim it.
 - **Key Dev Commands** – `docs/KEY_DEVELOPMENT_COMMANDS.md`: the test tiers, the run-one-test row, the live evals, the shipped-surface word count, and the install-script cautions. Read before running any check; its rows are executed verbatim. Update when a command changes.
-- **Testing Strategy** – `docs/TESTING-STRATEGY.md`: levels in use, the stdlib-unittest and prompt-contract conventions, the before-merge bar, known gotchas. Read before authoring a test; update when a convention changes.
+- **Testing Strategy** – `docs/TESTING-STRATEGY.md`: levels in use, the stdlib-unittest and prompt-contract conventions, the before-merge bar, the live GitHub check, known gotchas. Read before authoring a test; update when a convention changes.
 - **Changelog** – `CHANGELOG.md`. Read the section you write under before writing an entry.
   Write one when a release changes what a user runs, gets, or must do: a skill, flag, artifact, or install step added, removed, or behaving differently.
   Skip a change that leaves behavior as it was, such as doc wording, a figure, layout, or an internal refactor, because every extra bullet buries the ones an upgrading user needs.
@@ -91,6 +91,7 @@ Both paths' commands are in `docs/KEY_DEVELOPMENT_COMMANDS.md` § Release.
 - Adding, renaming, or removing a shared canonical in `plugin/references/` updates `docs/ARCHITECTURE.md`'s **Shared Plugin Assets** table and, in `scripts/andthen_loose.py`, `_canonical_assets` and the `_skill_assets_*` array of every consuming skill.
 - Renaming or reshaping a parsed contract (a report template, finding IDs, a heading another file cites by name) updates its readers in the same change, found by `rg` for the old token across `plugin/` and `evals/cases/`.
   Nothing on the cited side marks a citation, and an eval case keyed on the old shape fails on both hosts.
+- A change to a `gh` command the `tracker` skill spells gets the live GitHub check (`docs/TESTING-STRATEGY.md` § Live GitHub Check) before merge.
 - Release-time flips carry a `pre-release` comment (found by `rg 'pre-release[:]'`) at their site, each stating its own flip.
 - Before a release, and when a provider ships or reprices a model, run the project-level `recalibrate-roles` skill (`.claude/skills/recalibrate-roles/`) over the role templates (`plugin/skills/init/templates/agents/`): the pins are recommendations as of their last change, chosen by `docs/MODEL-EFFORT-SELECTION-GUIDE.md` § Choosing a role's pin.
 
