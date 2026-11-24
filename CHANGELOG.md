@@ -11,7 +11,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 ### Added
 - **`plan --stories-only` stops a several-story run at the cut**: `plan.json` with no FIS, checked by one fresh reviewer and one Preflight round, without the bundle review or `oracle` second opinion. Each FIS is written later by `plan` on its story or the story's issue, whose child issue shows its scope and cited requirement headings until then.
 - **A `decide` trade-off shows its weighted scores as an interactive visual before it asks**, where the host can draw one in the chat, with weights you can move to see whether yours change the winner. You still answer through the question; weights you keep re-run the comparison.
-- **Example settings that shrink every Claude Code request** in [`extras/lean-context/`](extras/lean-context/README.md): three files, `trim`, `focused` and `minimal`, deny tools a session rarely calls and cut a desktop session's first request by about 25,600, 30,900 and 42,200 tokens.
+- **Example settings that shrink every Claude Code request** in [`extras/lean-context/`](extras/lean-context/README.md): three files, `trim`, `focused` and `minimal`, deny tools a session rarely calls and cut a desktop session's first request by about 24,000, 28,500 and 36,500 tokens.
 
 ### Changed
 - **The optional `hooks/` and `permissions/` folders moved to `extras/`.** Hooks copied into `~/.claude/hooks/` keep working; settings that run a script from a clone's `hooks/scripts/` need `extras/hooks/scripts/`.

@@ -3,11 +3,7 @@
   "enableArtifact": false,
   "permissions": {
     "deny": [
-      "ReportFindings",
-      "mcp__Claude_Code_iOS_Simulator",
-      "mcp__computer-use",
-      "mcp__claude_ai_Claude_Docs",
-      "mcp__1a59c906-04da-521d-bda7-7f71b9f9e01c"
+      "mcp__Claude_Code_iOS_Simulator"
     ]
   }
 }

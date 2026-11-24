@@ -203,7 +203,7 @@ To set up by hand instead, start from [`CLAUDE.template.md`](plugin/skills/init/
 
 Run `--dangerously-skip-permissions` or `--yolo` only inside a container or VM that holds none of your credentials.
 
-[`extras/lean-context/`](extras/lean-context/README.md) has three Claude Code settings files, `trim`, `focused` and `minimal`, that deny tools a session rarely calls. In the desktop app they cut the first request by about 25,600, 30,900 and 42,200 tokens, and its README says what each one costs you.
+[`extras/lean-context/`](extras/lean-context/README.md) has three Claude Code settings files, `trim`, `focused` and `minimal`, that deny tools a session rarely calls. In the desktop app they cut the first request by about 24,000, 28,500 and 36,500 tokens, and its README says what each one costs you.
 
 
 ## Installation
