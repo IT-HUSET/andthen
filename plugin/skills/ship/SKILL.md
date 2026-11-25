@@ -24,6 +24,8 @@ A branch carrying a plan bundle – `plan.json` and the FIS files beside it – 
 
 - **Publishing needs the user's yes.**
   `--auto` supplies it for pushing the branch, refreshing a published plan's issues, publishing under `Record: tracker`, and opening the pull request with its images.
+- **What the run publishes holds nothing private.**
+  Its commit messages and the pull request's title and body carry no secret or URL with a password, no absolute path into a home folder (write a repository path from its root), and no `@name` outside a code span, because under `--auto` nobody reads them first and the host notifies whoever owns a mentioned name.
 - **Commit per [`verification-evidence.md`](../../references/verification-evidence.md) § The commit rule.**
   Its feature-branch ask joins step 1's question, because step 2 is the first edit.
   Under `--auto` on the remote's default branch, start a feature branch before step 2 using the project's branch-start convention, else `<type>/<slug>`, so the push can open a pull request from it.
