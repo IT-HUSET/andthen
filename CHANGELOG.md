@@ -6,7 +6,7 @@ Follows [Semantic Versioning](https://semver.org/) and [Keep a Changelog](https:
 
 ---
 
-## [1.4.0]
+## [1.4.0] – 2026-11-25
 
 ### Added
 - **The critical-rules starter has a skill run without arguments ask before taking its defaults, and holds a run to its next step.** Such a skill first asks for any required input and which mode and main flags to use, recommending the defaults; `init`, `ship` and `handoff`, with nothing to choose, skip this question. Where the host can start a new session, such as the Claude desktop app, a closing `Next (fresh session):` command is offered as a choice that starts it there; elsewhere the printed line is unchanged. The run never swaps that line for a question of its own or skips it without your word, even where the host keeps follow-ups in the session, and a skill you run on a spec, plan, report, or issue in a session that already did other work first offers a fresh one. To update an installed copy for this and the starter's other 1.4.0 changes, remove the old block, then rerun `init`'s rules offer or `andthen.py install --rules`.
