@@ -42,8 +42,13 @@ Save distinct captures under the requested path, else where the `Visual Validati
 
 - On a live UI, perform the scoped interactions and capture the response before changing scroll or focus.
   Scroll the page and its scrolling containers to expose content and fixed overlays in context.
+- Record an interaction, transition, or flow where the request or the `Visual Validation` document asks, beside the stills each required view needs.
+  A recording is evidence only through frames you open, because you cannot watch video:
+  - take them from the tool's contact sheet (agent-browser: `record start <file>.mp4 --cursor --contact-sheet` also writes `<file>.contact-sheet.png`);
+  - extract with ffmpeg any moment the sheet skips, such as a small inline change;
+  - judge a defect on a full-size frame or still, because a contact sheet is a downsampled composite.
 - Open the images and verify the intended state and viewport.
-  Recapture a wrong state or unreadable shot when the UI is available.
+  Recapture a wrong state, an unreadable shot, or a take that misses the flow's result when the UI is available.
 - Inspect the whole composition, then each region.
   Keep reference and subject as separate images, because a side-by-side composite is downsampled as one image.
 

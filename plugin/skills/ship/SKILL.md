@@ -138,7 +138,7 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   It also names each feature folder under the `Wireframes` or `Mockups` locations that the branch added or the plan cites (`assetRefs`, its FIS files), never a location itself, and asks whether to delete them.
   Recommend deleting them unless their build is still to come: the plan is not ready, or the branch changed nothing outside design and spec folders.
   With no remote, ask only about the bundle, those folders, and the issues.
-  For a visible UI change the request said nothing about, it offers screenshots, recommending them where the `Visual Validation` document exists.
+  For a visible UI change the request said nothing about, it offers screenshots, plus a recording where the `Visual Validation` document's **Recording** section says the change gets one, recommending them where that document exists.
 - On a yes, or under `--auto` outside the offer, invoke the previewed publish without `--dry-run`.
   Add step 3's closing links from the issues it reports, and under `Record: tracker` put the parent issue's URL on `pr-section.md`'s `PRD:` line.
 - A deletion (step 1's delete answer included), the `> **Shipped**:` stamp, and the `shipped` marker happen only when the push goes ahead or there is no remote.
@@ -152,9 +152,11 @@ Give each `<details>` block a blank line after `</summary>`, because without it 
   An untracked one is written once the pull request opens, else at the run's end with `pr` null, and left uncommitted.
 - Before the push, capture the screenshots or recording the request asked for or the answer or `--auto` took up, per the `Visual Validation` document.
   Capture the commit being pushed, in the fewest screens that show a reviewer what changed, because an earlier capture can predate a fix.
-  Keep a capture only when it shows the state its alt text names, and reference each kept one in the body by relative path above the Ship summary.
+  Keep a screenshot only when it shows the state its alt text names, and a recording only when its frames show the flow.
+  Reference each kept one in the body as `![<alt text>](<relative path>)` above the Ship summary, because `gh pr create --attach` swaps only that form for the uploaded copy and appends a file referenced any other way at the body's end.
+  A recording plays under its file name with no alt text, so name the file for the flow and put one body line above it saying what the take shows.
 - With consent and a remote, push the branch and open the pull request.
-  Attach every kept capture and step 3's SVGs through the host's upload, such as `gh pr create --attach <file>` (gh 2.99 or later), which swaps the body's relative reference for the uploaded copy.
+  Attach every kept capture and step 3's SVGs through the host's upload, such as `gh pr create --attach <file>` (gh 2.99 or later).
   A create that exits non-zero after printing the pull request's URL opened it without the files that failed, and the publication is complete without them.
   Remove the body's reference to each file not uploaded, and list it for the user to attach, with its reason.
 

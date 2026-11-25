@@ -17,8 +17,9 @@ Identify the layouts that actually change across supported viewports and content
 
 ### 2. Prove the capture paths
 
-Start the UI using `Key Dev Commands` and exercise each distinct way of reaching and capturing a view with the available tooling.
+Start the UI using `Key Dev Commands` and exercise each distinct way of reaching and capturing a view with the available tooling, recording included where the request or an existing **Recording** section asks for it.
 Open a representative shot from each path and identify the intended state at the requested size.
+For a take, identify the flow's result in its frames.
 A login redirect, blank page, or unloaded font cannot prove the procedure.
 
 **Gate**: each capture path has an opened example or a recorded gap with its missing prerequisite.
@@ -42,6 +43,9 @@ The document carries:
 - **Serving** – the command that starts the app, the URL it lands on, how to tell it is ready, and any seed data, fixture, or login the screens need.
 - **Capture** – the proven commands for a viewport and output path, including the first view after an interaction before scrolling or refocusing changes it.
   Captures land in `.agent_temp/validation/` unless this project says otherwise.
+- **Recording** – where step 2 proved a recording path: which changes get a take (an interaction, transition, or flow), the proven command for an H.264 `.mp4` (GitHub's recommended codec), its output path, and how its frames are opened.
+  Its length cap keeps a take under the host's video upload limit (GitHub: 10 MB on free plans).
+  Set the cap with headroom over the proven take's bytes per second, because a busier page can record ten times larger.
 - **Routes and states** – for each journey, the screen and state, action or data that reaches it, identifying visible result, applicable viewport, and any capture gap.
 - **Breakpoints** – viewport dimensions and the distinct layout or tight fit each exercises.
 - **References** – the matching feature's Mockup, wireframe, design spec, or baseline for each view, or which views have none.
