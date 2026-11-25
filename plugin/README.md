@@ -32,7 +32,7 @@ Projections live under the `Models` Index location (default `docs/models/`) and 
 
 ### Foundational Rules and Conversation Style
 
-**Project rules.** At the end of a run, `init` offers the [critical-rules starter](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) for your root instruction file. The rules then travel with the checkout into CI and containers. Your team owns them: init preserves your customizations and never overwrites them. Among them, outside subagents and `--auto`, a skill missing an input it has no default for asks for it first, offering its modes and main flags.
+**Project rules.** At the end of a run, `init` offers the [critical-rules starter](skills/init/templates/guidelines/CRITICAL-RULES-AND-GUARDRAILS.md) for your root instruction file. The rules then travel with the checkout into CI and containers. Your team owns them: init preserves your customizations and never overwrites them. Among them, outside subagents and `--auto`, a skill you run without arguments first asks for any required input and which mode and main flags to use, recommending the defaults.
 
 - Declining writes `<!-- AndThen critical rules: skipped -->` to the instruction file, and later runs respect it. Ignoring the offer writes nothing, so the next run offers again.
 - To adopt later, ask init to remove the marker and add the rules. Without init, ask your agent to adopt the starter in your root instruction file, preserving existing policy.

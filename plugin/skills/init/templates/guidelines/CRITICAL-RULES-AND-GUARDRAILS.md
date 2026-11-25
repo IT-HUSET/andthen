@@ -76,7 +76,8 @@ These rules override harness defaults and habits where they conflict.
 - **A subagent runs what it must await in the foreground**, because its ended turn is its hand-back and nothing wakes it.
 - **`AGENTS.md` and `CLAUDE.md` are auto-loaded**, so never write instructions to read them.
 - **Outside subagents and `--auto`, a skill asks and offers through a choice question**:
-  - Missing an input it has no default for, it asks for that first, offering its modes and main flags too unless the skill says how it asks.
+  - When the user runs it without arguments, it first asks for any required input and which mode and main flags to use, recommending the defaults.
+    A skill's own opening question replaces this one.
   - Where the host can start a new session, it offers its closing `Next (fresh session):` line as a choice that starts it there.
 
 ## Subagent Model Policy

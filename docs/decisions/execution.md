@@ -36,10 +36,12 @@ Asked for on 2026-11-24, so a person need not know a skill's arguments or paste 
 A per-skill version was built first: a flag offer in each `## Input`, and the `Next` offer in each `## Follow-up`.
 It passed an `oracle` second opinion and two skill-reviews, then gave way to two lines in the starter, because the behaviour is one cross-skill rule.
 Per skill it was a no-op in five skills, and in four it was a second rule beside Step 1's mode ask.
-The trigger is a missing input the skill has no default for, which neither the arguments nor the request supply.
-It never fires under `--auto`, in a subagent, or in an eval cell, whose prompts carry their arguments, nor on a run a `Next` line starts, since that line carries the required ones.
+The trigger is a run the user starts without arguments; a request in the user's own words, such as "review the auth diff", counts as arguments even where the host passes none, as Codex never does.
+It never fires under `--auto`, in a subagent, in an eval cell, or on a run a `Next` line starts, whose prompts carry their arguments, nor where another skill invokes it, as `now-what` does after its own `Run it?`.
 The per-skill trigger, flags the request left open, fired on every such run.
-`init` asks nothing outside an empty repository, and `ship`, `handoff`, `describe`, `testing`, and `simplify-code` run on empty arguments, so none of them asks; the modes and main flags ride in a question the skill must ask anyway, and a skill's own ask for that input is the same question, worded as the skill says where it says how it asks, as `ui-ux-design` and `now-what` do (skill-review, 2026-11-24).
+The first starter trigger, an input with no default, fired only where the skill asked anyway, because `review`, `testing`, `describe`, and `simplify-code` default their mode or input; it gave way on 2026-11-25, because the user wants a skill to ask rather than take a default.
+Modes and main flags are offered with each default recommended, so the default stays one choice away; an input with a default is not asked for, so `init`, `ship`, and `handoff`, which have nothing to choose, still run without a question.
+A skill with its own opening question, as `init`, `now-what`, `architecture`, `domain`, and `ui-ux-design` have, keeps it, so the run asks once (oracle, 2026-11-25).
 The `Next` offer stays out of subagents, because a review a subagent runs hands its next step to its orchestrator and Claude Code filters its question tool out of them.
 There is no "here" option: `simplify-code`, `implement-fix`, `review --fix`, and a plan run hand off to a reader who did not write the change, and their lines are printed, never invoked.
 The rule says "choice question", not "structured user-input tool", because `tests/test_unattended_runs_load.py` would otherwise pull the full ask contract into the starter, which loads every turn and must stay compact.
