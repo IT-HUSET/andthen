@@ -59,9 +59,10 @@ Each was written for models that needed it, and on current ones at best dilutes 
   - Cut filler and mannered turns: an aphorism, a clause restating the one before, a contrast written for rhythm.
   - A rewrite tends to cut a binding or a leading word as filler, so check each cut against what the sentence did.
   - Shorten by selecting, never by packing clauses.
-- **One sentence per source line** (semantic line breaks), in paragraphs and list items alike.
-  Markdown renders the paragraph unchanged, and a diff shows the sentence that changed instead of a rewritten paragraph.
-  The rule covers text a change writes: reflow an old paragraph only when the change rewrites most of it.
+- **One sentence per source line** (semantic line breaks) in the text a change writes, in paragraphs and list items alike.
+  Markdown renders the paragraph unchanged, and a diff or merge acts on the changed sentence instead of the whole paragraph.
+  A sentence that only makes sense with the line before ("So is…", "It runs…", "replaces this one") reads as a stray rule, so name its subject or merge it into that sentence.
+  Reflow an old paragraph only when the change rewrites most of it.
 - **Contrast only a named failure** – write "X, not Y" only where Y is behaviour a recorded run produced.
 - **One concern per paragraph**, so an "otherwise" never reaches back past its condition.
   Layout adds markup, never instructions, so it does not count against concision.

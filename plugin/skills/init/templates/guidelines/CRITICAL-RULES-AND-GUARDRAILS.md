@@ -45,7 +45,7 @@ These rules override harness defaults and habits where they conflict.
 - **Make every Boy Scout tidy you find.**
   A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it.
   In an edited function, an obvious small bug fixed under a test that fails first is a tidy too.
-  So is the minimum fix to an issue elsewhere that blocks a required check.
+  The minimum fix to an issue elsewhere that blocks a required check is also a tidy.
 - **Unless the task asks for it, make no redesign, public API change, or change that settles an open decision or reverses a recorded one**, because each needs its own review.
   If the task cannot fit without a redesign or public API change, make the smallest one that works and name it in the report.
 - **List as `NOTICED BUT NOT TOUCHING` only what no tidy can fix**, and only when someone should act on it.
@@ -63,10 +63,10 @@ These rules override harness defaults and habits where they conflict.
   - Run `git reset`, `restore`, `checkout --`, `stash`, or `clean` only when the user or the active skill's contract sanctions it, because they destroy uncommitted work, another agent's included.
   - Never delete a `.git/*.lock`, because another process holds it.
 - **Resolve a merge conflict when both sides' intent is clear, and ask when resolving means choosing between them.**
-  Never drop a side to get past one, as `git rebase --skip` does.
+  Never drop a side to get past a conflict, as `git rebase --skip` does.
 - **Remove a temporary worktree and its branch when the work lands** (`git worktree remove`, `git branch -d`), because other agents resolve paths into a lingering one.
 - **A command that may prompt for approval keeps literal arguments and no inline script**, so a person reads it at a glance.
-  It runs alone, never in a loop or chain, and so does any destructive command.
+  A command that may prompt for approval runs alone, never in a loop or chain, and so does any destructive command.
 - **Temp files go in `<project_root>/.agent_temp/`**, named meaningfully, never the repo root.
   Only throwaway scratch that neither the user nor another agent needs may go in a system temp directory or the host's scratchpad.
   When your task is done, delete the throwaway scratch you wrote in `.agent_temp/`.
@@ -76,8 +76,7 @@ These rules override harness defaults and habits where they conflict.
 - **A subagent runs what it must await in the foreground**, because its ended turn is its hand-back and nothing wakes it.
 - **`AGENTS.md` and `CLAUDE.md` are auto-loaded**, so never write instructions to read them.
 - **Outside subagents and `--auto`, a skill asks and offers through a choice question**:
-  - When the user runs it without arguments, it first asks for any required input and which mode and main flags to use, recommending the defaults.
-    A skill's own opening question replaces this one.
+  - When the user runs it without arguments, it first asks for any required input and which mode and main flags to use, recommending the defaults, unless the skill opens with a question of its own.
   - Where the host can start a new session, it offers its closing `Next (fresh session):` line as a choice that starts it there.
 
 ## Subagent Model Policy
