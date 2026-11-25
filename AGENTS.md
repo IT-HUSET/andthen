@@ -60,7 +60,6 @@ Create a missing document and its entry here from `project-document-templates.md
 - Before a refactor beyond a Boy Scout tidy, a design change to a skill or the architecture, or a change in `plugin/references/`, get a second opinion from an `oracle` subagent (the decision, its reasoning, the rejected alternatives), then review the change in a subagent as the next section routes it. This standing rule is the user's ask.
 - On Codex only the smoke set is a gate. Treat any other Codex failure, `plan-asks` included, as a host-behaviour report until reproduced, never a reason to reword a skill, because rewording against an upstream cause has cost sessions hours. Read `evals/README.md` before acting on an eval result.
 - While an eval tier runs, edit nothing in `evals/`, because running cells read it from this tree; `plugin/` is editable once the run prints `candidate staged:`.
-- The repo's Bash hook blocks inline interpreters (`python3 -c`, `sh -c`, `eval`) and `rm -rf`, so write a script under `.agent_temp/`, run it by path, and delete with `rm -r`.
 - Before editing `plugin/` while another session's uncommitted changes sit there, or launching a side session on it, write which files each session owns in the gitignored `.agent_temp/session-ownership.md`, because five sessions on `plugin/` once ended in a 21-file consolidation.
   Every session in this tree reads that file, and a side session in its own worktree gets its files in its launch prompt.
 
