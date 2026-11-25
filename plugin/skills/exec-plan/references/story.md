@@ -8,7 +8,7 @@
 ## Step 1: Admission
 
 1. **Provenance.** Resolve `PLAN_FILE_PATH` and `STORY_ID` from the FIS's `**Plan**:` / `**Story-ID**:` header – the path repo-root-relative, from the git root holding the FIS, never the working directory.
-2. **Plan check.** Stop unless `PLAN_FILE_PATH` holds that story and its `fis` names this file.
+2. **Plan check.** Stop unless `PLAN_FILE_PATH` holds that story and its `fis` names this file; writing a missing plan or row, or repointing a row's `fis`, is the `andthen:plan` skill's.
 3. **Dependencies.** A `dependsOn` story not yet `done` means this one would build on work that is not there: ask whether to run anyway, recommending no.
 4. **Shared decisions and discoveries.** Applicable `sharedDecisions` and the FIS's Discovered Requirements (read through their Interpretation) are execution input and outrank FIS text contradicting them: record that text as a `spec-stale` `#### DRIFT` line, and the scenario's bound Proof follows the outranking reading.
 

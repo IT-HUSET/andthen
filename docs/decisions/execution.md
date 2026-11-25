@@ -101,6 +101,19 @@ The line takes the first case of the skill's Follow-up that applies. The Archite
 
 Reopens if a host starts skill hand-offs in a fresh context on its own.
 
+## The `Next` line outranks a host's keep-it-here default, through the critical-rules starter
+
+On 2026-11-25 an arch-site run (issue #23), in a Claude desktop session that had spent its context on research, ran `exec-plan` there on the user's "Start with #23", hand-wrote a one-story `plan.json` to pass admission, and closed on its own "ship now or keep building?" instead of the `Next` line, skipping the plan-level review.
+The desktop system prompt keeps follow-up work in the session and asks one decision in its end-of-turn box; nothing in AndThen said which wins, and the user's starter copy lacked the 1.4.0 `Next` offer.
+The precedence lives in the starter, whose header already overrides harness defaults, plus "never a menu or a question of your own" at `exec-plan`'s close, the one close site that lacked "never a menu".
+A clause at every close site was rejected (oracle, 2026-11-25): it reverses the starter-only decision above on evidence that does not reopen it, because the failing run had a stale starter, not none.
+The fresh-session offer covers a skill the user invokes on a spec, plan, report, or issue, the inputs a `Next (fresh session):` line hands over, so it names no skill; `handoff` and `now-what`, which work on the session itself, take none of them. A first version named `exec-plan` alone, which the user found odd in a cross-skill rule (2026-11-25).
+It is an offer, not a refusal, because a decision never stops a run, and it binds only a run the user starts, so `now-what`'s in-session route and `--auto` runs are untouched.
+A FIS no `plan.json` holds goes to `plan` on the tracker item the request named, else the FIS, because `plan` writes the plan beside a FIS it has reviewed and a story run never writes the schema; that admission stop used to fall to a dead-end `Next` line.
+Accepted: non-adopters get only the skills' "never a menu", and no eval runs the desktop host, so whether the wording beats its prompt is unverified; `plan` on a hand-written FIS re-authors it and may write over it, inferred from its Output rule, not run.
+
+Reopens if an adopted starter still loses to a host's keep-it-here default in a recorded run.
+
 ## Per-story parallelism is plain git in the run session, not AndThen scripts
 
 A worktree comes from `git worktree add`, one per story of a batch of the wave, merged per return. Each story carries its code, FIS appends, and its own `plan.json` row, edited in place so sibling rows merge cleanly and nothing is reconciled. A failed story reports the conflicting paths. The flags and the `merge-resolve` squash protocol were dropped because Agent Teams is host-experimental, and squash was what made rollback, the `Squashed-story:` trailer, and `branch -D` necessary.
