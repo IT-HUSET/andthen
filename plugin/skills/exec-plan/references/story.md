@@ -18,9 +18,13 @@ Read `Learnings` and the `Tech Debt` item for the story's area.
 
 **Baseline the tree before the first edit**, because the worktree may be shared. What `git status` shows then is foreign, except on a re-run of this story the changes implementing its FIS tasks. Never revert, stash, or stage a foreign change. Then set the row's `status` to `in-progress`, before the first task edit, so a reader of `plan.json` sees the story executing.
 
-- **Tasks in FIS order, implemented yourself.** Pass each task's `Verify` before the next, scoped on dispatch as follows.
-- **Dispatched stories** scope the fast tier, every `Verify`, `Proof` and checklist item by what it actually exercises. Run the focused checks now. For a mixed command, keep its setup, selectors and assertions when separating the broad sweep. Select the covering tests at the required boundary, or run the suite if its proof cannot be isolated. Derive a focused proof for each story assertion the suite misses.
-  Record each remaining broad obligation under `## Implementation Observations` with its source item, exact runnable command and assertion, marked deferred to plan-final verification. Only executed local evidence counts toward task and story completion.
+- **Tasks in FIS order, implemented yourself** (`plan` sizes a story to one run), each passing its `Verify` before the next.
+- **A dispatched story runs only what exercises its own change**, in the fast tier and every `Verify`, `Proof`, and checklist item, because the plan run runs broad checks once on the combined revision.
+  - Run the tests covering the story's assertions, or the whole command where they cannot be isolated.
+    Split a mixed command keeping its setup, selectors, and assertions.
+  - An assertion left with no local proof gets a focused one.
+  - Record each deferred check under `## Implementation Observations` with its source item, exact command, and assertion, marked deferred to plan-final verification.
+    Only what ran here counts toward completion.
 - **Tests go through the `andthen:testing` skill** for every unbound scenario, each written before the code it proves wherever the `Testing Strategy` document or the request requires test-first. A task that fixes a defect, and any defect surfaced mid-run, takes a failing test that proves the defect: it precedes the fix and stays as the regression guard.
 - **UI work with no design contract in the FIS** writes one to `.agent_temp/ui-spec-<feature>.md` before the first screen is built, sourced from the design system, then the UX guidelines, then defaults.
 - **The FIS changes only as `fis-mutability.md` allows.** A pivot records its ADR with the `andthen:decide` skill before the amendment.
@@ -30,7 +34,7 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
 
 ## Step 3: Verify and review
 
-1. **Verify the finished story yourself.** Run the full tier, or fast under `--no-full-tier`, and account for every `Proof`, `Verify` and Final Validation Checklist item, applying Step 2's scoping on dispatch. Reuse a result only while it covers the finished change. For each item and tier report what ran, its exit code and the runner's result line or what you observed. Name deferred commands separately.
+1. **Run the proofs yourself**: the full tier once, or the fast tier under `--no-full-tier`, then every `Proof` and `Verify` target per `fis-contract.md` § Runnable Proof Forms, and every Final Validation Checklist item, scoped as Step 2 says on dispatch. A result counts only while it covers the finished change. Keep one line per proof id and checklist item – what ran, its exit code, and the runner's own result line, or what it saw – plus the tier result, and list deferred commands apart. Those lines are the story's evidence; recalling what a task did is not.
 2. **One fresh reviewer, always.** You wrote this code, so the independent pass is not yours to give. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill with `--quick --fix`, plus `--auto` in an unattended run, over the story's changed paths against its FIS, `<absolute FIS_FILE_PATH>`, carrying the Chain Attestation as the claims to falsify, the story's checks for rechecking repairs, one line per tidy as intended scope, and that it leaves its fixes uncommitted for Step 4. It applies the Fix-routed findings and returns every finding. Where no subagent can be spawned, your own diff pass against the FIS is the review, you apply its fixes, and the `Reviewed:` line says so.
 3. **UI work** spawns a fresh reviewer subagent that invokes the `andthen:visual-validation` skill with the screens and states this story touched, the project's `Visual Validation` document, and the design contract.
    It captures for itself because your measurements, summaries, and earlier verdicts frame it toward a pass.

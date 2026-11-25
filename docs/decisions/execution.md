@@ -39,7 +39,7 @@ Per skill it was a no-op in five skills, and in four it was a second rule beside
 The trigger is a missing input the skill has no default for, which neither the arguments nor the request supply.
 It never fires under `--auto`, in a subagent, or in an eval cell, whose prompts carry their arguments, nor on a run a `Next` line starts, since that line carries the required ones.
 The per-skill trigger, flags the request left open, fired on every such run.
-`init` asks nothing outside an empty repository, and `ship`, `handoff`, `describe`, `testing`, and `simplify-code` run on empty arguments, so none of them asks; the modes and main flags ride in a question the skill must ask anyway, and a skill's own ask for that input is the same question (skill-review, 2026-11-24).
+`init` asks nothing outside an empty repository, and `ship`, `handoff`, `describe`, `testing`, and `simplify-code` run on empty arguments, so none of them asks; the modes and main flags ride in a question the skill must ask anyway, and a skill's own ask for that input is the same question, worded as the skill says where it says how it asks, as `ui-ux-design` and `now-what` do (skill-review, 2026-11-24).
 The `Next` offer stays out of subagents, because a review a subagent runs hands its next step to its orchestrator and Claude Code filters its question tool out of them.
 There is no "here" option: `simplify-code`, `implement-fix`, `review --fix`, and a plan run hand off to a reader who did not write the change, and their lines are printed, never invoked.
 The rule says "choice question", not "structured user-input tool", because `tests/test_unattended_runs_load.py` would otherwise pull the full ask contract into the starter, which loads every turn and must stay compact.

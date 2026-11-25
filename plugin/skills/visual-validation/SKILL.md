@@ -44,7 +44,7 @@ Save distinct captures under the requested path, else where the `Visual Validati
   Scroll the page and its scrolling containers to expose content and fixed overlays in context.
 - Open the images and verify the intended state and viewport.
   Recapture a wrong state or unreadable shot when the UI is available.
-- Inspect the whole composition, then each region at readable size.
+- Inspect the whole composition, then each region.
   Keep reference and subject as separate images, because a side-by-side composite is downsampled as one image.
 
 **Gate**: each required view, comparison, or interaction has opened evidence covering it, or a `not judged` entry with the reason.

@@ -961,7 +961,7 @@ class ValidationTest(unittest.TestCase):
         self.assertIn("spike/csv-writer carries src/reporter/cli.py", done.stderr)
 
     def tracker(self, workspace, *args):
-        """One call of the tracker-publish stub, from the workspace as the subject runs it."""
+        """One call of the overlay's tracker stub, from the workspace as the subject runs it."""
         done = subprocess.run([sys.executable, "tools/issues.py"] + list(args),
                               cwd=str(workspace), capture_output=True, text=True)
         self.assertEqual(0, done.returncode, done.stderr)

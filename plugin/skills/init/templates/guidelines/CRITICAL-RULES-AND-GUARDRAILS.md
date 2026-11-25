@@ -57,8 +57,8 @@ These rules override harness defaults and habits where they conflict.
 - **Stay on the current branch unless told otherwise**, because switching moves the tree under any other agent working in it.
   On the remote's default branch, ask once before the first edit of work you will commit whether to start a feature branch, unless the run is unattended.
 - **Assume another agent shares the worktree**, so act only on your own changes:
-  - Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`).
-  - Commit only your own hunks of a file another session also edited.
+  - Stage by path, never `-A` or `-u`, and commit by path (`git commit -- <paths>`), because a plain commit takes whatever another session has staged.
+    A path commit takes each file whole from disk, so to commit a file that also holds another session's edits, `git apply --cached` a patch of only your hunks, confirm `git diff --cached` shows nothing else, and commit without paths.
   - Undo your own work by editing back or reverting your commit.
   - Run `git reset`, `restore`, `checkout --`, `stash`, or `clean` only when the user or the active skill's contract sanctions it, because they destroy uncommitted work, another agent's included.
   - Never delete a `.git/*.lock`, because another process holds it.
@@ -75,8 +75,9 @@ These rules override harness defaults and habits where they conflict.
   Durable project knowledge goes to committed docs, such as Learnings, Decisions, and guidelines.
 - **A subagent runs what it must await in the foreground**, because its ended turn is its hand-back and nothing wakes it.
 - **`AGENTS.md` and `CLAUDE.md` are auto-loaded**, so never write instructions to read them.
-- **A skill missing an input it has no default for asks for it first in a choice question, offering its modes and main flags too.**
-- **Also offer a skill's closing `Next (fresh session):` line as a choice that starts it in a new session**, where the host can, outside subagents and `--auto`.
+- **Outside subagents and `--auto`, a skill asks and offers through a choice question**:
+  - Missing an input it has no default for, it asks for that first, offering its modes and main flags too unless the skill says how it asks.
+  - Where the host can start a new session, it offers its closing `Next (fresh session):` line as a choice that starts it there.
 
 ## Subagent Model Policy
 

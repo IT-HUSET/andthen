@@ -13,7 +13,7 @@ Execute a FIS, or a plan with one fresh subagent per story, verify against its p
 
 - `--auto` makes the run unattended: read [`unattended-runs.md`](../../references/unattended-runs.md) and follow it.
 - `--worktree` runs a plan run's ready stories in parallel worktrees.
-- `--no-full-tier` selects fast and leaves full to the caller on the final tree. Dispatched stories apply the story procedure's scoping to fast as well.
+- `--no-full-tier` selects fast and leaves full to the caller on the final tree.
 
 ## Rules
 
@@ -32,7 +32,7 @@ Execute a FIS, or a plan with one fresh subagent per story, verify against its p
   5. **Stop** when no rung answered and no reading is defensible, naming the rungs tried.
 
   Stopping the run on what an earlier rung answers aborts an unattended run for nothing.
-- **Every dispatch is a fresh subagent**: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt. Await each required result to completion, because a progress message is not completion, and keep failed or partial evidence.
+- **Every dispatch is a fresh subagent**: the installed role agent it names (`implementer`, `reviewer`, `worker`) when available, else a generic inherited subagent. Never pin model or effort in a prompt. Await each required result within your turn, because a progress message is not completion and a subagent's ended turn hands its run back. Keep failed or partial evidence.
 
 ## Workflow
 
@@ -64,7 +64,7 @@ Close on one `Next (fresh session):` line. A dispatched story run prints none, a
 
 - **The story failed** – its route out.
 - **The person chose a revision at triage** (never in an unattended run) – the `andthen:clarify` skill's amendment on the PRD for a scope change, else the `andthen:plan` skill on `"story <id> of <plan.json> – <the discovery, and the FIS's other Discovered Requirements>; revise its FIS"` for the first story whose FIS needs it, since `plan` writes from its request and never reads the old FIS.
-- **Another remote branch holds this `plan.json`, and this branch's own commits set exactly one story `done`, unless it finished the plan and the remote's default branch holds it** – the `andthen:ship` skill on `<plan.json>`, because there each story ships as its own pull request and the next starts from its own branch.
+- **Another remote branch holds this `plan.json`, and this branch's own commits set exactly one story `done`, unless that story finished a plan the remote's default branch holds** – the `andthen:ship` skill on `<plan.json>`, because there each story ships as its own pull request and the next starts from its own branch.
 - **A dependency-ready story is left** – this skill on the first such story's FIS.
 - **A `pending` story with no FIS has every dependency `done`** – the `andthen:plan` skill on `story <id> of <plan.json>` for the first such story.
 - **Every story is `done` or `skipped`** – the plan-level review.

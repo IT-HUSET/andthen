@@ -19,6 +19,8 @@ Commit these writes before the next story starts, because its run treats an unco
 
 Make it work, then make it good, before the next story builds on it: each `done` story is simplified once.
 
-Dispatch a fresh implementer subagent that invokes the `andthen:simplify-code` skill with `--auto` on the code paths changed by commits carrying the story's `Story-ID:` and `Plan:` trailers. Name `plan.json` and leave the commit to you. In a plan run, pass the focused checks exercising those paths as its baseline and recheck commands. Hand over green results for the same tree. Under `--worktree`, one pass covers the merged batch and runs those checks on the merge for its baseline.
+Dispatch a fresh implementer subagent that invokes the `andthen:simplify-code` skill with `--auto` on the code paths changed by commits carrying the story's `Story-ID:` and `Plan:` trailers, naming `plan.json`, handing over the checks exercising those paths with their green results on this tree as its baseline, and leaving the commit to you.
+Under `--worktree`, one pass covers each merged batch, and its baseline is those checks run on the merge.
 
-Confirm its rechecks cover the edits and run any invalidated proof still outstanding locally. Commit per `verification-evidence.md` § The commit rule as one `refactor` with the story's trailers, or only the `Plan:` trailer for a merged batch. Report what it applied, deferred and re-ran.
+Re-run each proof its change invalidated and it did not re-run, then commit it per `verification-evidence.md` § The commit rule as one `refactor` commit carrying the story's trailers, or only the `Plan:` trailer for a merged batch.
+Report what it applied and deferred, and what it re-ran.

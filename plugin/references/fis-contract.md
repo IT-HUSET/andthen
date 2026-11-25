@@ -30,14 +30,15 @@ A reader resolves a `Required Context` path against the repo root, then the FIS 
 
 ## Runnable Proof Forms
 
-Choose the smallest target that proves the whole story assertion. Keep a focused browser journey, E2E boundary or regression test when that is where the behavior is observable. Leave project-wide sweeps to the full tier. Record a required integrated check outside that tier once, in the Final Validation Checklist of the story that makes it runnable.
+Choose the smallest target that proves the whole story assertion, keeping a focused browser journey, E2E boundary, or regression test where only it observes the behavior.
+Leave project-wide sweeps to the full tier, and record a required integrated check outside it once, in the Final Validation Checklist of the story that makes it runnable.
 
 Every `Proof` and `Verify` value opens with a backticked target in one of exactly three forms. A form the executing skill cannot act on is an authoring defect: execution derives a runnable proof for it and records the gap.
 
 | form | shape | how it runs |
 |---|---|---|
 | test | `` `<file>#<test>` `` – `tests.test_orders#Checkout.test_x` | substituted into the `Key Dev Commands` **run one test** row: a dotted module where it writes `{file}.{test}`, a path otherwise |
-| command | `` `cmd: <command>` `` | run the selected check as written in the host's shell. Exit 0 is the pass. Use the project toolchain and `git` (`git grep` to search), so a missing host tool cannot fail it |
+| command | `` `cmd: <command>` `` | executed as written in the host's shell; exit 0 is the pass. Project toolchain and `git` only (`git grep` to search), so a missing host tool cannot fail it |
 | inspection | `` `inspect: path/to/file:LINE` `` | **not** executable – the FIS declaring this proof needs a reader |
 
 A trailing ` – <assertion>` names what must be true. **Free prose is not a form**: a proof nothing can run is what lets unwired code complete green.

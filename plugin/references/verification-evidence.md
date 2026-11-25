@@ -8,7 +8,7 @@ Read `Key Dev Commands` (**Project Document Index**; default `docs/KEY_DEVELOPME
 
 Its Testing section declares two tiers plus one single-test row:
 
-- **fast** – per-story checks that finish in seconds. For a workspace, document how to select the affected package, component or test.
+- **fast** – per-story checks that finish in seconds. In a workspace, it gives the affected package or component selector.
 - **full** – end-of-run checks, including workspace and cross-application sweeps.
 - **run one test** – a template with literal `{file}` and `{test}` placeholders, substituted to execute a single proof target.
 

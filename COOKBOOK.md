@@ -7,7 +7,7 @@ Each recipe has a **Situation** (skim these to find yours), a paste-ready prompt
 **Contents**
 
 - **[Starting work](#starting-work)**: [Choosing a path](#choosing-a-path) · [One story or several](#one-story-or-several) · [A small change](#a-small-change) · [A bug or a broken build](#a-bug-or-a-broken-build) · [An existing codebase](#an-existing-codebase) · [Product vision vs feature](#product-vision-vs-feature-clarify) · [An intent doc first](#an-intent-doc-before-the-prd) · [Questions for someone else](#questions-for-someone-else-to-answer) · [Revising a spec](#revising-a-spec-or-re-planning)
-- **[The design stage](#the-design-stage)**: [Technical decisions or an architecture question](#technical-decisions-or-an-architecture-question) · [Event storming](#event-storming-a-new-domain-or-a-system-to-rewrite) · [Domain Map first](#the-domain-map-for-a-domain-heavy-project) · [Research, design system, wireframes](#research-a-design-system-wireframes) · [A second opinion](#a-second-opinion-before-committing-to-a-decision)
+- **[The design stage](#the-design-stage)**: [Technical decisions or an architecture question](#technical-decisions-or-an-architecture-question) · [Event storming](#event-storming-a-new-domain-or-a-system-to-rewrite) · [Domain Map first](#the-domain-map-for-a-domain-heavy-project) · [Research, design system, wireframes](#research-a-design-system-wireframes-mockups) · [A second opinion](#a-second-opinion-before-committing-to-a-decision)
 - **[Running unattended](#running-unattended)**: [Unattended execution and CI chaining](#unattended-execution)
 - **[Reviewing](#reviewing)**: [Quick look, big PR, one pass](#review-phrasing-a-quick-look-a-big-pr-one-pass) · [Spec fit vs problem fit](#does-it-match-the-spec-or-does-it-solve-the-problem) · [Review, then remediate](#review-then-remediate) · [Review/fix loop](#review-and-fix-until-clean-from-a-coordinating-session)
 - **[Across people and sessions](#across-people-and-sessions)**: [Working in a team](#working-in-a-team) · [Stories before their specs](#publishing-stories-before-their-specs) · [Resuming interrupted work](#resuming-interrupted-work) · [A recipe you run every week](#a-recipe-you-run-every-week)
@@ -458,7 +458,8 @@ Each child issue is titled `workspace-invitations S02 - Accept an invitation`, b
 
 - `plan` cuts the stories and writes `plan.json`, every story `pending` with `fis: null`. One reviewer and one Preflight round check the cut; there is no bundle review or `oracle` pass.
 - It names `ship` next where the project has an `Issue Tracker` document or the plan cites a tracker item, else `plan` on the first story with no dependencies.
-- A story with no FIS publishes as its scope, the heading of each requirement it cites, and its blocked-by links.- `plan` on a story writes its one FIS with the one-story self-review and Preflight, reading the finished stories' Discovered Requirements and Implementation Observations first. A story's issue URL resolves to that story of its plan, never to a new plan.
+- A story with no FIS publishes as its scope, the heading of each requirement it cites, and its blocked-by links.
+- `plan` on a story writes its one FIS with the one-story self-review and Preflight, reading the finished stories' Discovered Requirements and Implementation Observations first. A story's issue URL resolves to that story of its plan, never to a new plan.
 
 **Elsewhere.**
 
@@ -732,7 +733,7 @@ docs/specs/workspace-invitations/plan.json
 Next (fresh session): /andthen:exec-plan docs/specs/workspace-invitations/s01-send-an-invitation.md
 ```
 
-**Checkpoint.** Every story is `pending` with its FIS. The `Approach:` lines say how each story will be built, so open the FIS of any story you would build differently – scope, non-goals, proof targets – which is cheaper now than mid-execution. On a team, `ship` with `"into 1.2"` opens the bundle's PR beside the PRD, where you review the slicing, and its question offers to publish the breakdown. Solo, commit it:
+**Checkpoint.** Every story is `pending` with its FIS. The `Approach:` lines say how each story will be built, so open the FIS of any story you would build differently – scope, non-goals, proof targets – which is cheaper now than mid-execution. On a team, `ship` with `"into 1.2"` opens the plan's PR beside the PRD, where you review the slicing, and its question offers to publish the breakdown. Solo, commit it:
 
 ```
 "commit the prd and plan bundle"   # git add -- docs/specs/workspace-invitations/ ; git commit -- docs/specs/workspace-invitations/

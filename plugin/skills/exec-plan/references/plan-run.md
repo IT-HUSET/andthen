@@ -31,14 +31,14 @@ The FIS names its own plan, so no further argument passes. The subagent owns the
 
 ## Step 3: Final verification
 
-Whenever at least one story is `done`, verify the combined revision after simplification, including a partial or resumed run:
+Whenever at least one story is `done`, a partial or resumed run included, verify the combined revision after simplification, because each story ran only its focused checks:
 
-1. Collect build, lint/types, cross-story integration, the full tier, applicable plan-final checklist items and the deferred commands in every `done` FIS's Implementation Observations. An unreadable `done` FIS leaves its obligations unaccounted for.
-2. Run each distinct obligation once on that tree. A covering tier invocation counts for every source item whose command, configurations and assertions it actually exercises. Run uncovered commands separately. Under `--no-full-tier`, run fast, leaving any broad portion covered by the caller's full tier for that caller. Mark only coverage still unexecuted as outstanding.
-3. Report the checked revision, each obligation's story/item or tier, and the command and result that covered it, or why it remains outstanding. Give the evidence fields of `verification-evidence.md` and the integration result on two lines:
+1. Collect the obligations: build, lint/types, cross-story integration, the full tier, the plan-final checklist items, and the deferred commands in each `done` FIS's Implementation Observations. A `done` FIS you cannot read leaves its obligations outstanding.
+2. Run each once on that tree. A tier run covers each item whose command, configurations, and assertions it exercises. Under `--no-full-tier`, run fast; what only full covers stays outstanding for the caller.
+3. Report the checked revision and, per obligation, its source and the command and result that covered it, or why it is outstanding, with the evidence fields of `verification-evidence.md`, then the integration result on two lines:
 
 - `Scope: complete` or `Scope: incomplete – {failed/skipped ids}`;
-- `Verification: passed` only when all required integrated checks passed on that revision, `failed – {evidence}` for a red gate, or `not run – {outstanding checks and reason}` for incomplete verification.
+- `Verification: passed` only when every obligation passed on that revision, `failed – {evidence}` for a red gate, or `not run – {outstanding checks and reason}`.
 
 Each repair round of a red gate is a fresh implementer subagent that invokes the `andthen:triage` skill with `--auto` and a scope naming the failing checks – the commands and what they returned – and the affected FIS paths. The assigned checks bound the work, so no original task is replayed. Require its changed paths, left uncommitted for this run, and check evidence, then re-run what the repair invalidated.
 
