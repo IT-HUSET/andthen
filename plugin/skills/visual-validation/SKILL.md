@@ -42,10 +42,15 @@ Save distinct captures under the requested path, else where the `Visual Validati
 
 - On a live UI, perform the scoped interactions and capture the response before changing scroll or focus.
   Scroll the page and its scrolling containers to expose content and fixed overlays in context.
+- Record an interaction, transition, or flow when the request or the `Visual Validation` document asks for one, in addition to the stills each required view needs.
+  A recording is evidence only through frames you open, because you cannot watch video:
+  - use the frames in the recording tool's contact sheet (agent-browser: `record start <file>.mp4 --cursor --contact-sheet` also writes `<file>.contact-sheet.png`);
+  - extract a frame with ffmpeg for any moment the sheet skips, such as a small inline change;
+  - judge a defect on a full-size frame or still, because a contact sheet is a downsampled composite.
 - Open the images and verify the intended state and viewport.
-  Recapture a wrong state or unreadable shot when the UI is available.
-- Inspect the whole composition, then each region at readable size.
-  Vision models downsample composites, so keep reference and subject separate, scale high-density shots to 1×, and tile anything still over about 1600px on its long side without losing edges or seams.
+  Recapture a wrong state, an unreadable shot, or a recording that misses the flow's result when the UI is available.
+- Inspect the whole composition, then each region.
+  Keep reference and subject as separate images, because a side-by-side composite is downsampled as one image.
 
 **Gate**: each required view, comparison, or interaction has opened evidence covering it, or a `not judged` entry with the reason.
 Judge the remaining views even when one lacks evidence.

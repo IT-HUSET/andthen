@@ -1,5 +1,5 @@
 # Admin-enforced limits for /etc/codex/requirements.toml (or the MDM key requirements_toml_base64).
-# Users cannot override these. See permissions/README.md.
+# Users cannot override these. See extras/permissions/README.md.
 
 # No `never`, so unattended runs need their own machine or config.
 allowed_approval_policies = ["on-request"]
@@ -16,13 +16,21 @@ allowed_sandbox_implementations = ["elevated"]
 deny_read = [
   "/**/.env",
   "/**/.env.*",
+  "/**/.envrc",
   "~/.ssh",
+  "~/.gnupg",
   "~/.aws",
   "~/.azure",
   "~/.config/gcloud",
   "~/.kube",
   "~/.config/gh",
+  "~/.git-credentials",
+  "~/.config/git/credentials",
   "~/.npmrc",
+  "~/.pypirc",
+  "~/.cargo/credentials",
+  "~/.cargo/credentials.toml",
+  "~/.docker/config.json",
   "~/.netrc",
   "~/Library/Application Support/Google/Chrome",
   "~/Library/Application Support/Chromium",
@@ -47,4 +55,6 @@ deny_read = [
 prefix_rules = [
   { pattern = [{ token = "git" }, { token = "push" }], decision = "prompt", justification = "Publishing leaves the machine; review it first." },
   { pattern = [{ token = "gh" }, { token = "pr" }], decision = "prompt", justification = "Publishing leaves the machine; review it first." },
+  # The read-only .git stops the other commands that discard work; git clean touches only the working tree.
+  { pattern = [{ token = "git" }, { token = "clean" }], decision = "prompt", justification = "Deletes untracked files, which no commit can bring back." },
 ]

@@ -5,6 +5,7 @@ A dispatched story run never takes these steps: its plan run takes them for it.
 ## Discovery triage
 
 Carry each discovery in the finished story's `## Discovered Requirements` and `## Implementation Observations`, Drift Notes included, to each unstarted story it affects, whose executor reads only its own FIS.
+Skip a story with no FIS, because the run that writes its FIS reads these sections.
 
 - A constraint is appended under that story's `## Discovered Requirements` per `fis-mutability.md`. One that contradicts a scenario or Expected Outcome there also needs a revision folding it in.
 - A scope change, such as a PRD rule or `sharedDecisions` entry that no longer holds, or a story the plan lacks or no longer needs, never goes into a FIS: recommend the `andthen:clarify` skill's amendment.
@@ -18,4 +19,8 @@ Commit these writes before the next story starts, because its run treats an unco
 
 Make it work, then make it good, before the next story builds on it: each `done` story is simplified once.
 
-Dispatch a fresh implementer subagent that invokes the `andthen:simplify-code` skill with `--auto` on the code paths the story's commits changed – those carrying both its `Story-ID:` and the plan's `Plan:` trailer – naming the plan's `plan.json`, handing over the latest green check results as its baseline, and leaving the commit to you. Re-run what its change invalidated, then commit it per `verification-evidence.md` § The commit rule as one `refactor` commit carrying the story's trailers. Under `--worktree`, one pass covers each merged batch's stories, with no baseline since nothing has run on the merged tree, and its commit carries only the `Plan:` trailer. Report what it applied and deferred, and what it re-ran.
+Dispatch a fresh implementer subagent that invokes the `andthen:simplify-code` skill with `--auto` on the code paths changed by commits carrying the story's `Story-ID:` and `Plan:` trailers, naming `plan.json`, handing over the checks exercising those paths with their green results on this tree as its baseline, and leaving the commit to you.
+Under `--worktree`, one pass covers each merged batch, and its baseline is those checks run on the merge.
+
+Re-run each proof its change invalidated and it did not re-run, then commit it per `verification-evidence.md` § The commit rule as one `refactor` commit carrying the story's trailers, or only the `Plan:` trailer for a merged batch.
+Report what it applied and deferred, and what it re-ran.

@@ -24,7 +24,7 @@ Run from the repo root. `{file}` is a dotted module path (not a slash path); `{t
 
 Publish with the user's authorization; a push without it has waited hours for approval in an unattended run.
 
-1. Bump the version in the four places `AGENTS.md` § Plugin manifests names, unless the branch's first commit already did, and set `## [<version>]` in `CHANGELOG.md` to `## [<version>] – <date>`, with the date from `date +%Y-%m-%d` at tag time (rename `## [Unreleased]` if that is still the heading). Run the `full` tier, then commit titled `<version>`.
+1. Bump the version per § Version bump below, unless the branch's first commit already did, and set `## [<version>]` in `CHANGELOG.md` to `## [<version>] – <date>`, with the date from `date +%Y-%m-%d` at tag time (rename `## [Unreleased]` if that is still the heading). Run the `full` tier, then commit titled `<version>`.
 2. Update your installs on every host with the refresh command above and restart sessions: Claude Code and Codex cache by version, so a session otherwise loads the previous release's skills.
 3. Open the feature branch's pull request into `develop`, wait for its checks, and squash-merge with title `<version>` and a message pointing to its CHANGELOG section.
 4. Run `git fetch origin`, then tag the merged commit with `git tag -a v<version> -m <version> <sha>`, where `<sha>` is the squash merge's commit, and publish it with `git push origin v<version>`.
@@ -38,3 +38,11 @@ A patch whose pull request targets `main` (`AGENTS.md` § Git Remotes) replaces 
 Its version bump and dated `CHANGELOG.md` heading go in the pull request, dated the day you merge and tag, because nothing is committed to `main` outside one.
 Once it merges, `git fetch origin`, then `git tag -a v<version> -m <version> origin/main`, then `git push origin v<version>`.
 Last, carry `develop` onto that commit: `git push origin origin/main:refs/heads/develop` where the two refs were level, else `git merge origin/main` on `develop` and push the result, because a `develop` holding its own pre-release work cannot be fast-forwarded.
+
+### Version bump
+
+A version bump is one commit titled with the version.
+It sets the version in `CHANGELOG.md`, the `andthen` entry of `.claude-plugin/marketplace.json`, and both `plugin.json` files (`plugin/.claude-plugin/plugin.json`, `plugin/.codex-plugin/plugin.json`); `.agents/plugins/marketplace.json` carries none.
+It opens `## [<version>]` in `CHANGELOG.md`, renaming `## [Unreleased]` when present.
+CI fails on skew and reads only the first bracketed semver in `CHANGELOG.md`, so the heading's date can wait for the tag.
+A pre-release bump renames its release's one cumulative section to `## [<version>-rc.N]` instead of opening another, and the release renames it `## [<version>] – <date>`.

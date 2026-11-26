@@ -1,0 +1,19 @@
+name: andthen-ship-story-pr-subject
+description: Ship one story's branch of a published two-story plan, attended, up to its one question.
+stepDefaults:
+  - match: "*"
+    provider: "@workflow"
+    model: "@workflow"
+steps:
+  - id: branch
+    name: Build the story branch and its remote
+    type: bash
+    timeout: 120
+    script: python3 {{case_dir}}/history.py {{run_dir}}
+  - id: ship
+    name: Ship the story branch
+    skill: andthen:ship
+    prompt: "prompt.md"
+    outputs:
+      ship_report:
+        format: text

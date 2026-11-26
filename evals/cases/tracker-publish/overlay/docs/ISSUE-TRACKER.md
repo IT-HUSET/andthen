@@ -18,6 +18,8 @@ The tracker is a JSON file driven by `tools/issues.py`. Run every command from t
 | add label    | `python3 tools/issues.py label add <N> <label>` |
 | remove label | `python3 tools/issues.py label remove <N> <label>` |
 | close issue  | `python3 tools/issues.py close <N>` |
+| fetch links  | `python3 tools/issues.py links <N>` |
+| add blocked-by | `python3 tools/issues.py block <N> <M>` |
 
 `<query>` is one exact phrase matched against issue bodies.
 

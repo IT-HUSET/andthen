@@ -26,27 +26,27 @@ A template's `>` note sits above its fenced block, states who owns that document
 > The skill that creates a document appends that document's line below to the Index, changing the path only where the project keeps the document elsewhere, so each path below is the default location. `Key Dev Commands` points at the instruction file's § Key Development Commands instead when the project keeps its commands inline. `Agent Temp` ships in the `init` template. An Index that already has a `Context Map` entry keeps it, read as the `Domain Map`, so the skill seeding the `Domain Map` adds no second line.
 
 ```markdown
-- **Product** – `docs/PRODUCT.md`: vision, personas, principles, non-goals (firmly rejected concepts included), Proportionality facts. Read before proposing a feature, a design, or new machinery, or triaging an issue or feature request: features anchor to it, and its stage and scale size what gets built.
+- **Product** – `docs/PRODUCT.md`: vision, personas, principles, non-goals, Proportionality facts. Read before proposing a feature, a design, or new machinery, or triaging an issue or feature request: its stage and scale size what gets built.
 - **Roadmap** – `docs/ROADMAP.md`: phases with success criteria. Read when sequencing work across phases; update when a phase's scope or criteria change.
-- **Specs & Plans** – `docs/specs/<version-or-feature>/`: per version or feature, its `prd.md`, `plan.json`, and one FIS per story (`s01-*.md`, …), written by the `clarify` and `plan` skills. Read the governing FIS before implementing; update the FIS and its story's `plan.json` row as execution proceeds. `plan.json` has one writer per copy at a time, so a `plan` breakdown's story subagents never write it. An oversized FIS is a story too big: decompose it (`OVERSIZE:`), never trim it.
+- **Specs & Plans** – `docs/specs/<version-or-feature>/`: `prd.md`, `plan.json`, and one FIS per story. Read the governing FIS before implementing; update the FIS and its story's `plan.json` row as execution proceeds.
 - **Issue Tracker** – `docs/ISSUE-TRACKER.md` (optional): tracker backend, its commands, label role mapping, where the requirements record lives. Read before any issue fetch, triage, or label write.
 - **Decisions** – `docs/DECISIONS.md`: ADR index and Still Current notes. Read before proposing or changing a design or architecture choice; settled decisions are not relitigated without new evidence.
 - **ADRs** – `docs/adrs/`. Read the ADR a decision cites before revisiting it; add one per new decision.
 - **Research** – `docs/research/`: trade-off analyses. Read when re-opening a settled trade-off; add one per new analysis.
-- **Architecture** – `docs/ARCHITECTURE.md`: components, data flow, integrations, key constraints. Read before changing a component, a boundary, or data flow.
+- **Architecture** – `docs/ARCHITECTURE.md`. Read before changing a component, a boundary, an integration, or data flow.
 - **Models** – `docs/models/`: committed typed projections (`architecture-model.json`, `event-storms/<slug>.json`). Read when a task needs component boundaries or a storming session's findings. Regenerate at deliberate points; never hand-edit, since the sources stay the records.
-- **Domain Map** – `docs/DOMAIN-MAP.md`: the parts of the business, how much each matters, and the bounded contexts that own them, with their integration patterns. Read before placing a feature, boundary, or integration; update when a subdomain, context, or relationship changes.
+- **Domain Map** – `docs/DOMAIN-MAP.md`. Read before placing a feature, boundary, or integration; update when a subdomain, bounded context, or relationship changes.
 - **Ubiquitous Language** – `docs/UBIQUITOUS_LANGUAGE.md`: canonical terms and the synonyms to avoid. Read before naming, renaming, or describing domain concepts; add a row when a term settles.
 - **Guidelines** – `docs/guidelines/`. Read a guideline when its condition under Project Guidelines and Standards matches the task.
 - **Review Policy** – `docs/REVIEW-POLICY.md` (optional): paths excluded from review, extra passes, verdict thresholds. Read before a review.
 - **Wireframes** – `docs/wireframes/`: one folder per feature (HTML or images), design input until the feature ships. Read before building or validating a screen; update when a flow changes.
-- **Mockups** – `docs/mockups/`: one folder per feature of clickable pages built on the design system, frozen once written; design input until the feature ships. Read before building or validating a screen; a Mockup outranks its wireframe.
+- **Mockups** – `docs/mockups/`: one folder per feature of clickable pages, frozen once written; design input until the feature ships. Read before building or validating a screen; a Mockup outranks its wireframe.
 - **Design System** – `docs/design-system/`: `DESIGN.md` is canonical (tokens and rationale), `showcase.html` renders it. Read before writing UI markup or styles; update when a token or component is added.
-- **Visual Validation** – `docs/VISUAL-VALIDATION.md`: how the UI is served and captured (serve command, capture tooling, routes and states, breakpoints, reference locations). Read before capturing a screen.
+- **Visual Validation** – `docs/VISUAL-VALIDATION.md`: how the UI is served and captured. Read before capturing a screen.
 - **Learnings** – `docs/LEARNINGS.md`. Read at task start; add a bullet when bitten by a non-obvious failure.
 - **Tech Debt** – `docs/TECH-DEBT-BACKLOG.md`. Read when working in an area that has a listed item; add an entry when deferring a fix.
-- **Key Dev Commands** – `docs/KEY_DEVELOPMENT_COMMANDS.md`: dev, test, build, deploy commands. Read before running verification; update when a command changes.
-- **Testing Strategy** – `docs/TESTING-STRATEGY.md`: levels in use, framework and fixture conventions, the before-merge bar, known gotchas. Read before authoring tests; update when a convention changes.
+- **Key Dev Commands** – `docs/KEY_DEVELOPMENT_COMMANDS.md`. Read before running verification; update when a command changes.
+- **Testing Strategy** – `docs/TESTING-STRATEGY.md`. Read before authoring tests or calling work ready to merge; update when a convention changes.
 - **Agent Temp** – `.agent_temp/`: scratch workspace for reviews, research, and QA; never ship from it.
 ```
 
@@ -336,8 +336,8 @@ Application URL: `TODO` <!-- e.g. http://localhost:3000 -->
      them is whatever this project's runner takes. -->
 | Tier | Command | Description |
 |------|---------|-------------|
-| fast | `TODO`  | Once per story – unit tests and the checks that finish in seconds |
-| full | `TODO`  | End of run – integration, E2E, and performance suites |
+| fast | `TODO`  | Per-story checks that finish in seconds. In a workspace, give the affected package or component selector |
+| full | `TODO`  | End of run on the integrated tree, including workspace, browser-matrix and cross-application sweeps |
 | run one test | `TODO {file}::{test}` | One test, by file and name |
 
 ## Build & Deployment
@@ -449,10 +449,12 @@ Record: repo
 ## Operation Table
 <!-- Non-GitHub backends only. Map every abstract operation to the backend's concrete command/API call.
      A required operation left unmapped stops triage/publish before the first external call.
+     fetch links, set parent and add blocked-by are optional: publish writes a link only where its operation and fetch links are both mapped.
+     Otherwise the parent's checklist and the child's body carry that link.
      Each value is a single direct command invocation (executable + fixed args + <placeholders>) – no pipes,
      shell operators, command substitution, or piping to an interpreter.
      This file is security-critical executable config: review changes as code.
-     Placeholders, each passed as one argv element: <N> the issue's id or key, <title>, <body-file> (a UTF-8 file), <query>, <label>. -->
+     Placeholders, each passed as one argv element: <N> the issue's id or key, <M> a second issue's, <title>, <body-file> (a UTF-8 file), <query>, <label>. -->
 
 | Operation      | Backend call |
 |----------------|--------------|
@@ -464,6 +466,9 @@ Record: repo
 | add label      | ...          |
 | remove label   | ...          |
 | close issue    | ...          |
+| fetch links    | ...          |
+| set parent     | ...          |
+| add blocked-by | ...          |
 
 ## Label Role Mapping
 <!-- Canonical role → the label this repo actually uses. Defaults equal the canonical names;

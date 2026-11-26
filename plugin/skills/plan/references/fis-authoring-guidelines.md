@@ -32,9 +32,9 @@ One scenario per behavior the user would notice.
 
 **Problem-domain language** – Given/When/Then states what a user or caller observes, in domain terms (the `Ubiquitous Language` document's, where one exists) with concrete values. It names a mechanism or surface – a transport, UI control, storage layout, or code symbol – only where that is the requirement: a mechanism per *Mechanism Fidelity*, or a surface something outside the change depends on (a published API, a CLI flag or output, a file format, a control or copy the PRD or design contract fixes). A scenario that names its solution is a design, and breaks on the first better one.
 
-What the user notices only when it breaks is a Structural Criterion, an invariant this story's own diff could break. A run-wide check – a performance baseline, the full suite green, an E2E journey – is the run's final verification, never a criterion.
+What the user notices only when it breaks is a Structural Criterion, an invariant this story's own diff could break.
 
-**Walking skeleton** – its own end-to-end path is a `[runtime]` scenario, not a run-wide check. Its proof is a sociable test with doubles only at trust boundaries, each playing the outside party over the real protocol with the credentials the system issues it, under no marker that skips it when the project's suite runs.
+**Walking skeleton** – its own end-to-end path is a `[runtime]` scenario, not a project-wide sweep. Its proof is a sociable test with doubles only at trust boundaries, each playing the outside party over the real protocol with the credentials the system issues it, under no marker that skips it when the project's suite runs.
 
 **Negative-path checklist** – after drafting, add one scenario for the riskiest gap in each category still uncovered, not one per parameter: omitted optional inputs, no-match cases (a lookup matching nothing and falling through), rejection paths.
 

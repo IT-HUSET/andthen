@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for hooks/scripts/block-dangerous-commands.py.
+"""Tests for extras/hooks/scripts/block-dangerous-commands.py.
 
     python3 -m unittest tests.test_block_dangerous_commands
 
@@ -19,7 +19,7 @@ import tempfile
 import unittest
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-SCRIPT = REPO / "hooks/scripts/block-dangerous-commands.py"
+SCRIPT = REPO / "extras/hooks/scripts/block-dangerous-commands.py"
 
 
 def run_hook(payload, fallback=False):

@@ -38,14 +38,15 @@ LIVE_CASE = "spec"
 
 # The cases that run unattended, and the flag that makes them so - the only
 # trigger (Decisions: "`--auto` is the only unattended trigger").
-UNATTENDED_CASES = ("spec", "spec-two-stories", "architecture",
+UNATTENDED_CASES = ("spec", "spec-two-stories", "plan-stories-only", "architecture",
                     "implement-fix", "implement-fix-deferred", "implement-fix-intent")
 UNATTENDED = "--auto"
-# The cases whose subject is the interview: `plan` grades the reply that asks the
+# The cases whose subject is a question: `plan` grades the reply that asks the
 # PRD's self-contradiction, `clarify` the round it asks at all, `clarify-brief`
-# that round on a source that reads as settled. Passing the flag would make any
-# of them pass by no longer being the test.
-ASKING_CASES = ("plan", "clarify", "clarify-brief")
+# that round on a source that reads as settled, `ship-story-pr` the one question
+# a ship ends on before it publishes. Passing the flag would make any of them pass
+# by no longer being the test.
+ASKING_CASES = ("plan", "clarify", "clarify-brief", "ship-story-pr")
 
 # A minimal subject workflow of the shape staging appends the tail to.
 SUBJECT_WORKFLOW = ("name: synthetic-subject\nsteps:\n  - id: s1\n"
@@ -603,6 +604,82 @@ class ValidationTest(unittest.TestCase):
         self.assertEqual(1, done.returncode)
         self.assertIn("Story-ID is 'S01', expected 'S02'", done.stderr)
 
+    def stories_only_checks(self, label, mutate):
+        """The plan-stories-only case's whole check.json over a freshly staged tree
+        that `mutate` changes, run as the checks step runs it - diff, then
+        evaluate - so each state is judged by the case's real keys, commands and
+        oracle: ({check id: evidence} for every check that did not pass)."""
+        case = cases.CASES_DIR / "plan-stories-only"
+        run = self.tmp / ("run-stories-only-" + label)
+        run.mkdir()
+        workspace = stage.stage_workspace(run, case)
+        mutate(workspace)
+        changed, _ = stage.stage_diff(run, workspace)
+        check, error = cases.load_json(case / "check.json")
+        self.assertIsNone(error)
+        return dict((r["id"], r["evidence"])
+                    for r in checks.evaluate(check, workspace, changed, case)
+                    if r["status"] != checks.PASS)
+
+    def test_plan_stories_only_checks_pass_the_cut_and_fail_each_step_past_it(self):
+        """`--stories-only` stops a several-story run after the cut: the end state
+        is a schema-valid plan.json of at least two stories, each `pending` with
+        `fis` null, no FIS beside it, and nothing changed outside the plan's
+        directory. Each state that breaks one of those - a FIS written, a FIS
+        pointer, one story, a started story, code edited, a malformed plan, the
+        PRD rewritten - fails exactly the check that guards it, so no check
+        passes on the state it exists to catch."""
+        spec = pathlib.Path("docs/specs/ledger-hygiene")
+        rows = [{"id": "S01", "name": "Comment lines in the ledger", "dependsOn": [],
+                 "status": "pending", "fis": None, "completedTaskIds": [],
+                 "scope": "The ledger reader skips a comment line.",
+                 "sourceRefs": ["docs/specs/ledger-hygiene/prd.md#fr1-comment-lines-in-a-ledger"]},
+                {"id": "S02", "name": "Short run labels", "dependsOn": [],
+                 "status": "pending", "fis": None, "completedTaskIds": [],
+                 "scope": "Label normalization cuts a label to 24 characters.",
+                 "sourceRefs": ["docs/specs/ledger-hygiene/prd.md#fr2-short-run-labels"]}]
+
+        def cut(stories=None, **story_one):
+            stories = [dict(r) for r in (rows if stories is None else stories)]
+            stories[0].update(story_one)
+
+            def write(workspace):
+                stage.write(workspace / spec / "plan.json", json.dumps({
+                    "schemaVersion": "2", "prd": "docs/specs/ledger-hygiene/prd.md",
+                    "overview": {"summary": "Run an annotated ledger and keep labels short."},
+                    "stories": stories}, indent=2) + "\n")
+            return write
+
+        def also(first, then):
+            return lambda workspace: (first(workspace), then(workspace))
+
+        def append(rel, text):
+            return lambda workspace: stage.write(
+                workspace / rel, cases.read_text(workspace / rel) + text)
+
+        self.assertEqual([], sorted(self.stories_only_checks("cut", cut())))
+        staged = self.stories_only_checks("staged", lambda workspace: None)
+        self.assertEqual(["commands[0]", "oracle[0]", "requiredArtifacts[0]"], sorted(staged))
+
+        fis_written = also(cut(), lambda workspace: stage.write(
+            workspace / spec / "s01-comment-lines.md", "# Comment lines\n\n" + CURRENT_FIS))
+        unscoped = [dict(rows[0]), dict((k, v) for k, v in rows[1].items() if k != "scope")]
+        for label, mutate, failing, evidence in (
+                ("fis-written", fis_written, "forbiddenArtifacts[0]", "s01-comment-lines.md"),
+                ("fis-pointer", cut(fis="s01-comment-lines.md"), "oracle[0]",
+                 "story S01 fis is 's01-comment-lines.md', expected None"),
+                ("one-story", cut(stories=rows[:1]), "oracle[0]", "1 story, expected at least 2"),
+                ("started", cut(status="in-progress"), "oracle[0]",
+                 "story S01 status is 'in-progress', expected 'pending'"),
+                ("code-edited", also(cut(), append("src/reporter/records.py", "\n# note\n")),
+                 "allowedPaths[0]", "src/reporter/records.py"),
+                ("malformed", cut(stories=unscoped), "commands[0]", "missing required field 'scope'"),
+                ("prd-edited", also(cut(), append(spec / "prd.md", "\nA third request.\n")),
+                 "commands[1]", "prd.md")):
+            failed = self.stories_only_checks(label, mutate)
+            self.assertEqual([failing], sorted(failed), label)
+            self.assertIn(evidence, failed[failing], label)
+
     def test_implement_fix_oracle_accepts_an_annotated_fix_and_rejects_the_rest(self):
         """A remediated report is judged by the code and the annotation together:
         the fix has to land in src/reporter/pipeline.py and the report has to say
@@ -882,6 +959,142 @@ class ValidationTest(unittest.TestCase):
         done = self.run_oracle("spike-isolation", workspace)
         self.assertEqual(1, done.returncode)
         self.assertIn("spike/csv-writer carries src/reporter/cli.py", done.stderr)
+
+    def tracker(self, workspace, *args):
+        """One call of the overlay's tracker stub, from the workspace as the subject runs it."""
+        done = subprocess.run([sys.executable, "tools/issues.py"] + list(args),
+                              cwd=str(workspace), capture_output=True, text=True)
+        self.assertEqual(0, done.returncode, done.stderr)
+
+    def tracker_first_publish(self, workspace, link=("3", "2")):
+        """The tracker as the case seeds it, then what a correct first publish
+        writes: the parent's projection and checklist, the seeded child's body,
+        the new child, and, where `link` names one, its blocked-by link."""
+        shutil.copy(str(cases.CASES_DIR / "tracker-publish" / "overlay" / "tools" / "issues.json"),
+                    str(workspace / "tools" / "issues.json"))
+        source = "docs/specs/ledger-hygiene/prd.md"
+        bodies = {
+            "parent.md": "At month close the ledger owner's notes stop the run.\n"
+                         "<!-- andthen-projection %s -->\nThe PRD.\n\n## Stories\n"
+                         "- [ ] S01 #2 – Comment lines\n- [ ] S02 #3 – Short labels\n" % source,
+            "s01.md": "<!-- andthen-projection S01 %s -->\nSkip comment lines.\n" % source,
+            "s02.md": "<!-- andthen-projection S02 %s -->\nCut at 24 characters.\n"
+                      "Blocked by: #2\n" % source,
+        }
+        for name, text in bodies.items():
+            stage.write(workspace / ".agent_temp" / name, text)
+        self.tracker(workspace, "create", "--title", "ledger-hygiene S02 - Short run labels",
+                     "--body-file", ".agent_temp/s02.md")
+        self.tracker(workspace, "edit", "1", "--body-file", ".agent_temp/parent.md")
+        self.tracker(workspace, "edit", "2", "--body-file", ".agent_temp/s01.md")
+        if link:
+            self.tracker(workspace, "block", *link)
+
+    def test_tracker_publish_oracle_needs_the_dependency_linked_once(self):
+        """The mapped `add blocked-by` links #3 to #2, its plan dependency, through
+        the operation, and the re-run reads the link instead of writing it again.
+        No link, a link the wrong way, and one re-written after the checkpoint
+        each fail; the unmapped `set parent` asks for nothing."""
+        workspace = self.stage_case("tracker-publish")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(1, done.returncode)
+
+        self.tracker_first_publish(workspace)
+        self.tracker(workspace, "checkpoint")
+        self.tracker(workspace, "links", "3")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(0, done.returncode, done.stderr)
+
+        self.tracker(workspace, "block", "3", "2")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("step 2 wrote link(s) ['#3 by #2']", done.stderr)
+
+        self.tracker_first_publish(workspace, link=None)
+        self.tracker(workspace, "checkpoint")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("#3 is blocked by [], expected [2]", done.stderr)
+        self.assertIn("never ran the mapped add blocked-by for #3 by #2", done.stderr)
+
+        self.tracker_first_publish(workspace, link=("2", "3"))
+        self.tracker(workspace, "checkpoint")
+        done = self.run_oracle("tracker-publish", workspace)
+        self.assertEqual(1, done.returncode)
+        self.assertIn("#2 is blocked by [3], expected []", done.stderr)
+
+    def ship_story_checks(self, label, mutate, branch=True):
+        """The ship-story-pr case's whole check.json over a staged tree, its branch
+        step run as the case's first workflow step runs it unless `branch` is
+        False, then `mutate`d and judged as the checks step judges it: ({check id:
+        evidence} for every check that did not pass)."""
+        case = cases.CASES_DIR / "ship-story-pr"
+        run = self.tmp / ("run-ship-" + label)
+        run.mkdir()
+        workspace = stage.stage_workspace(run, case)
+        if branch:
+            done = subprocess.run([sys.executable, str(case / "history.py"), str(run)],
+                                  capture_output=True, text=True)
+            self.assertEqual(0, done.returncode, done.stderr)
+        mutate(workspace)
+        changed, _ = stage.stage_diff(run, workspace)
+        check, error = cases.load_json(case / "check.json")
+        self.assertIsNone(error)
+        return dict((r["id"], r["evidence"])
+                    for r in checks.evaluate(check, workspace, changed, case)
+                    if r["status"] != checks.PASS)
+
+    def test_ship_story_pr_checks_pass_a_run_held_at_its_question_and_fail_each_write(self):
+        """Attended, `ship` ends on its one question with nothing published: the
+        remote's refs as built, the tracker's store as seeded, and the plan bundle
+        kept, because S02 is still pending. A dry run's scratch under .agent_temp
+        passes; a pushed story branch, a moved milestone, a tracker edit, and a
+        deleted or rewritten bundle each fail, and a tree whose branch step never
+        ran fails naming the step rather than the skill. The history the subject
+        reads through git keeps the silence an overlay keeps."""
+        case = cases.CASES_DIR / "ship-story-pr"
+        for step in sorted((case / "history").iterdir()):
+            self.assertEqual([], cases._staged_errors(step), step.name)
+        plan = "docs/specs/ledger-hygiene/plan.json"
+
+        def scratch(workspace):
+            stage.write(workspace / ".agent_temp" / "tracker-bodies" / "s01.md", "Verified\n")
+
+        def push(*refspec):
+            return lambda workspace: stage.git(workspace, "push", "-q", "origin", *refspec)
+
+        def tracker_edit(workspace):
+            scratch(workspace)
+            self.tracker(workspace, "edit", "2", "--body-file", ".agent_temp/tracker-bodies/s01.md")
+
+        def bundle_deleted(workspace):
+            stage.git(workspace, "rm", "-q", "-r", "docs/specs/ledger-hygiene")
+            stage.git(workspace, *(stage.IDENTITY + ("commit", "-q", "-m", "chore: drop the plan")))
+
+        def plan_marked(workspace):
+            text = cases.read_text(workspace / plan)
+            stage.write(workspace / plan, text.replace(
+                '"stories"', '"shipped": {"at": "2026-05-07T10:00Z", "pr": null},\n  "stories"', 1))
+
+        self.assertEqual({}, self.ship_story_checks("asked", scratch))
+        unbuilt = self.ship_story_checks("unbuilt", scratch, branch=False)
+        self.assertEqual(["oracle[0]"], sorted(unbuilt))
+        self.assertIn("branch step did not run", unbuilt["oracle[0]"])
+
+        for label, mutate, failing, evidence in (
+                ("pushed", push("feat/ledger-hygiene-s01"), ["oracle[0]"],
+                 "gained refs/heads/feat/ledger-hygiene-s01"),
+                ("milestone-moved", push("HEAD:feat/ledger-hygiene"), ["oracle[0]"],
+                 "refs/heads/feat/ledger-hygiene moved"),
+                ("tracker-edited", tracker_edit, ["allowedPaths[0]", "oracle[0]"], "edit #2"),
+                # The evidence is the oracle's last two lines, the bundle's last files.
+                ("bundle-deleted", bundle_deleted, ["allowedPaths[0]", "oracle[0]"],
+                 "s02-short-labels.md is gone"),
+                ("plan-marked", plan_marked, ["allowedPaths[0]", "oracle[0]"],
+                 plan + " changed")):
+            failed = self.ship_story_checks(label, mutate)
+            self.assertEqual(failing, sorted(failed), label)
+            self.assertIn(evidence, failed["oracle[0]"], label)
 
     def test_implement_fix_deferred_oracle_accepts_a_filed_deferral_and_rejects_the_rest(self):
         """A finding whose repair encodes an open decision is filed, not fixed: the

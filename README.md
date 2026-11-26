@@ -82,6 +82,12 @@ Not sure where to start, or where you are? `/andthen:now-what` reads your projec
 
 ## The workflow
 
+<p align="center">
+  <a href="https://github.com/IT-HUSET/andthen/raw/main/assets/choose-path.svg"><img src="assets/choose-path.svg" width="780" alt="Which skill starts the work – five yes/no questions asked in order. Something broken with no known cause goes to triage, and a change you can state in one sentence goes to implement-fix; both end there, without a spec. Open requirements go to clarify, a technical choice that is costly to reverse to decide, and new screens to ui-ux-design; each then carries on to the next question. Everything else starts at plan, followed by exec-plan, review --fix and ship. now-what, spike, domain and handoff apply at any point. In a new project, run init once first."></a>
+</p>
+
+Where a piece of work starts depends on what you have. Work that gets a spec takes this path:
+
 ```
 [clarify] → [decide] → [ui-ux-design] → plan → exec-plan → review --fix → ship
 ```
@@ -99,11 +105,12 @@ What each step does:
 1. **`clarify`** (optional) interviews you and writes the PRD. Skip it when the requirements already exist, in your head, an issue, or a document. A rule of thumb: if you can't list three concrete acceptance criteria, you have an idea, not requirements.
 2. **`decide`** (optional) settles a technical choice that reaches beyond this work or is costly to reverse, and records it as an architecture decision record (ADR). **`ui-ux-design`** (optional) designs new screens first when you choose that.
 3. **`plan`** writes the specs. It decides whether the work is one story or several.
-4. **`exec-plan`** builds the stories, one per fresh session. For each one it writes the code and tests, runs every check, has a fresh subagent review it, commits, and then simplifies the result. What a story learns goes into the stories still to run.
+4. **`exec-plan`** builds the stories, one per fresh session. For each one it writes the code and tests, proves the changed behavior, has a fresh subagent review it, commits, and then simplifies the result. A plan run checks the broad suites once on the combined tree. What a story learns goes into the stories still to run.
 5. **`review --fix`** reviews the finished work as a whole and applies the findings it marks `Fix`. Findings marked `Note` are left for you to decide. It picks the review modes (lenses) that apply: `code`, `gap` (does it match its source and specs), `security` when the change calls for it, and `outcome` (does the feature solve the problem the PRD describes) when there is a PRD. A clean review ends on a `Next (fresh session):` line for `ship`.
 6. **`ship`** lands what each story's `Implementation Observations` hold worth keeping, commits, and shows the PR title and body (a merge request on GitLab).
    It pushes and opens it after your one yes, and that question also asks whether to delete `plan.json` and the FIS files; `ship --auto` publishes without asking.
    The PR body states the change's intent, outcomes, and proof, so with `prd.md` the stories' intent outlives the deleted FIS files.
+   On a team, `ship` on each story's branch opens that story's PR and keeps a published plan's issues current: [Working in a team](COOKBOOK.md#working-in-a-team).
 
 The [quick start](#quick-start) is this path for a request typed inline, which `plan` treats as one story.
 
@@ -191,10 +198,12 @@ To set up by hand instead, start from [`CLAUDE.template.md`](plugin/skills/init/
 
 `exec-plan` runs for a long time without you watching, so it is worth limiting what the agent's shell commands can reach. They run as you. Approval prompts and allow/deny rules decide what asks you first, but a command you approve can still read `~/.ssh` or send data anywhere. An OS sandbox closes that gap. Every command and its child processes can write only inside the workspace, has no network, and cannot read the files you deny. Codex turns its sandbox on by default; Claude Code does not.
 
-- [`permissions/`](permissions/README.md) – example settings for both hosts. The sandbox is on and the network off. Commands cannot see `.env` files, cloud credentials, browser profiles, or token variables. `git push` asks first, the destructive-command hook below runs before every command, and Claude Code's bypass flag is refused. Organization-enforced variants are included.
-- [`hooks/`](hooks/README.md) – four optional hooks: a guard against destructive shell commands, desktop or voice notifications, and a context-size hint that tells you when to start a fresh session. The guard matches patterns, so it adds a layer and does not replace the sandbox.
+- [`extras/permissions/`](extras/permissions/README.md) – example settings for both hosts. The sandbox is on and the network off. Commands cannot see `.env` files, cloud credentials, browser profiles, or token variables. `git push` asks first, the destructive-command hook below runs before every command, and Claude Code's bypass flag is refused. Organization-enforced variants are included.
+- [`extras/hooks/`](extras/hooks/README.md) – four optional hooks: a guard against destructive shell commands, desktop or voice notifications, and a context-size hint that tells you when to start a fresh session. The guard matches patterns, so it adds a layer and does not replace the sandbox.
 
 Run `--dangerously-skip-permissions` or `--yolo` only inside a container or VM that holds none of your credentials.
+
+[`extras/lean-context/`](extras/lean-context/README.md) has three Claude Code settings files, `trim`, `focused` and `minimal`, that deny tools a session rarely calls. In the desktop app they cut the first request by about 24,000, 28,500 and 36,500 tokens, and its README says what each one costs you.
 
 
 ## Installation

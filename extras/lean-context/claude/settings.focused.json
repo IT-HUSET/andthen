@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enableArtifact": false,
+  "disableWorkflows": true,
+  "disableClaudeAiConnectors": true,
+  "permissions": {
+    "deny": [
+      "ScheduleWakeup",
+      "mcp__Claude_Code_iOS_Simulator"
+    ]
+  }
+}

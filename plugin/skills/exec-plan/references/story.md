@@ -1,14 +1,14 @@
 # Story Run
 
 - **The FIS is the source of truth – execute its intent.** Implement the whole of it. Where its detail falls short, take the best reading rather than stopping, and record it under `## Implementation Observations` as `ASSUMPTION: <what was assumed> – <what would change it>`, or as a Discovered Requirement where the reading adds one.
-- **Surgical scope.** Every changed line traces to a FIS task, an accepted finding, the story's simplification, or a Boy Scout tidy. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. So is the minimum fix to an issue elsewhere that blocks a required check. Make every tidy you find. What no tidy can fix and someone should act on goes under `## Implementation Observations` as `NOTICED BUT NOT TOUCHING`.
+- **Surgical scope.** Every changed line traces to a FIS task, an accepted finding, the story's simplification, or a Boy Scout tidy. A Boy Scout tidy is a behavior-preserving fix to a smell or problem in a function or doc section the change edits, or to a minor one elsewhere when the fix is mechanical, touches only comments or docs, or is covered by checks that would catch a mistake in it. In an edited function, an obvious small bug fixed under a test that fails first is a tidy too. The minimum fix to an issue elsewhere that blocks a required check is also a tidy. Make every tidy you find. What no tidy can fix and someone should act on goes under `## Implementation Observations` as `NOTICED BUT NOT TOUCHING`.
 
 `Learnings` and `Tech Debt` are Project Document Index entries.
 
 ## Step 1: Admission
 
 1. **Provenance.** Resolve `PLAN_FILE_PATH` and `STORY_ID` from the FIS's `**Plan**:` / `**Story-ID**:` header – the path repo-root-relative, from the git root holding the FIS, never the working directory.
-2. **Plan check.** Stop unless `PLAN_FILE_PATH` holds that story and its `fis` names this file.
+2. **Plan check.** Stop unless `PLAN_FILE_PATH` holds that story and its `fis` names this file; writing a missing plan or row, or repointing a row's `fis`, is the `andthen:plan` skill's.
 3. **Dependencies.** A `dependsOn` story not yet `done` means this one would build on work that is not there: ask whether to run anyway, recommending no.
 4. **Shared decisions and discoveries.** Applicable `sharedDecisions` and the FIS's Discovered Requirements (read through their Interpretation) are execution input and outrank FIS text contradicting them: record that text as a `spec-stale` `#### DRIFT` line, and the scenario's bound Proof follows the outranking reading.
 
@@ -19,6 +19,12 @@ Read `Learnings` and the `Tech Debt` item for the story's area.
 **Baseline the tree before the first edit**, because the worktree may be shared. What `git status` shows then is foreign, except on a re-run of this story the changes implementing its FIS tasks. Never revert, stash, or stage a foreign change. Then set the row's `status` to `in-progress`, before the first task edit, so a reader of `plan.json` sees the story executing.
 
 - **Tasks in FIS order, implemented yourself** (`plan` sizes a story to one run), each passing its `Verify` before the next.
+- **A dispatched story runs only what exercises its own change**, in the fast tier and every `Verify`, `Proof`, and checklist item, because the plan run runs broad checks once on the combined revision.
+  - Run the tests covering the story's assertions, or the whole command where they cannot be isolated.
+    Split a mixed command keeping its setup, selectors, and assertions.
+  - An assertion left with no local proof gets a focused one.
+  - Record each deferred check under `## Implementation Observations` with its source item, exact command, and assertion, marked deferred to plan-final verification.
+    Only what ran here counts toward completion.
 - **Tests go through the `andthen:testing` skill** for every unbound scenario, each written before the code it proves wherever the `Testing Strategy` document or the request requires test-first. A task that fixes a defect, and any defect surfaced mid-run, takes a failing test that proves the defect: it precedes the fix and stays as the regression guard.
 - **UI work with no design contract in the FIS** writes one to `.agent_temp/ui-spec-<feature>.md` before the first screen is built, sourced from the design system, then the UX guidelines, then defaults.
 - **The FIS changes only as `fis-mutability.md` allows.** A pivot records its ADR with the `andthen:decide` skill before the amendment.
@@ -28,8 +34,8 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
 
 ## Step 3: Verify and review
 
-1. **Run the proofs yourself**: the full tier once, or the fast tier under `--no-full-tier`, then every `Proof` and `Verify` target per `fis-contract.md` § Runnable Proof Forms, and every Final Validation Checklist item the FIS carries. Keep one line per proof id and checklist item – what ran, its exit code, and the runner's own result line, or what it saw – plus the tier result. Those lines are the story's evidence; recalling what a task did is not.
-2. **One fresh reviewer, always.** You wrote this code, so the independent pass is not yours to give. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill with `--quick --fix`, plus `--auto` in an unattended run, over the story's changed paths against its FIS, `<absolute FIS_FILE_PATH>`, carrying the Chain Attestation as the claims to falsify, one line per tidy as intended scope, and that it leaves its fixes uncommitted for Step 4. It applies the Fix-routed findings and returns every finding. Where no subagent can be spawned, your own diff pass against the FIS is the review, you apply its fixes, and the `Reviewed:` line says so.
+1. **Run the proofs yourself**: the full tier once, or the fast tier under `--no-full-tier`, then every `Proof` and `Verify` target per `fis-contract.md` § Runnable Proof Forms, and every Final Validation Checklist item, scoped as Step 2 says on dispatch. A result counts only while it covers the finished change. Keep one line per proof id and checklist item – what ran, its exit code, and the runner's own result line, or what it saw – plus the tier result, and list deferred commands apart. Those lines are the story's evidence; recalling what a task did is not.
+2. **One fresh reviewer, always.** You wrote this code, so the independent pass is not yours to give. Spawn a fresh reviewer subagent that invokes the `andthen:review` skill with `--quick --fix`, plus `--auto` in an unattended run, over the story's changed paths against its FIS, `<absolute FIS_FILE_PATH>`, carrying the Chain Attestation as the claims to falsify, the story's checks for rechecking repairs, one line per tidy as intended scope, and that it leaves its fixes uncommitted for Step 4. It applies the Fix-routed findings and returns every finding. Where no subagent can be spawned, your own diff pass against the FIS is the review, you apply its fixes, and the `Reviewed:` line says so.
 3. **UI work** spawns a fresh reviewer subagent that invokes the `andthen:visual-validation` skill with the screens and states this story touched, the project's `Visual Validation` document, and the design contract.
    It captures for itself because your measurements, summaries, and earlier verdicts frame it toward a pass.
    Scope re-validation to the affected views and add only the finding or coverage gap to that handoff.
@@ -40,6 +46,7 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
      - recover required evidence marked `not judged` or missing, or return the Failed Story Report with the blocker.
    - The fixes the review applied are the story's one repair round: re-run what they invalidated. A further review is a separate request.
    - Record everything else under `## Implementation Observations`, its location and `Routing:` kept, and report it without gating on it.
+   - Append the labeled line `Reviewed:` there too: what reviewed the change and what it found, which findings the repair round fixed, and what stays open. The `andthen:ship` skill quotes it in the pull request, because the review's return ends with this session.
 
 ## Step 4: Complete
 
@@ -62,7 +69,7 @@ Close with the **Chain Attestation**: one sentence per Expected Outcome over its
    - Then the labeled list `Decided without asking:`, never omitted, because a missing list reads as nothing decided.
      It quotes, one per line, each `ASSUMPTION:` line, and each Drift Note or Discovered Requirement Interpretation whose reading a run chose, recorded by this run or a subagent it dispatched.
      With none, it says `none`.
-   - Then the labeled line `Reviewed:`, never omitted: what reviewed the change and what it found, which findings the repair round fixed, and what stays open.
+   - Then Step 3's `Reviewed:` line, never omitted.
    - Below them, as reference: each commit, each tidy with its file, Step 3's proof lines with the tier result, the visual results where they apply, and a pointer to `## Implementation Observations`.
    - A dispatched story run names each discovery that affects an unstarted story, and that story, for its plan run to triage.
    - End on the `Next (fresh session):` line of Follow-up.

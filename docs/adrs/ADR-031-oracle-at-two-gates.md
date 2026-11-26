@@ -5,6 +5,8 @@ Accepted. Recorded 2026-11-12.
 
 *Amended 2026-11-13: the `plan` second opinion runs only when `plan` breaks the work into several stories. As first recorded it ran on every non-batch run. A one-story run now goes from the self-review straight to Preflight. The text below is the amended record, and alternative 10 holds what was withdrawn.*
 
+*Amended 2026-11-23: a `plan --stories-only` run takes no second opinion, because it stops before any FIS exists (ADR-032). A late one-story FIS takes none either, as decision 2 already says of one-story runs.*
+
 Narrows the rule that a second opinion is never requested unasked (the Subagent Model Policy, `docs/MODEL-EFFORT-SELECTION-GUIDE.md`, `plugin/README.md` § Delegation). Two skills now take one read-only `oracle` second opinion at a gate. The session still never self-selects it.
 
 ## Context

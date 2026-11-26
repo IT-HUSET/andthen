@@ -30,6 +30,25 @@ Separately and not fixable here: DartClaw's Codex adapter accepts that call and 
 
 Reopens if a host offers a non-blocking channel that does reliably deliver.
 
+## What a skill asks up front and offers at its close lives in the critical-rules starter, not in each skill
+
+Asked for on 2026-11-24, so a person need not know a skill's arguments or paste a `Next` command into a session they open by hand.
+A per-skill version was built first: a flag offer in each `## Input`, and the `Next` offer in each `## Follow-up`.
+It passed an `oracle` second opinion and two skill-reviews, then gave way to two lines in the starter, because the behaviour is one cross-skill rule.
+Per skill it was a no-op in five skills, and in four it was a second rule beside Step 1's mode ask.
+The trigger is a run the user starts without arguments; a request in the user's own words, such as "review the auth diff", counts as arguments even where the host passes none, as Codex never does.
+It never fires under `--auto`, in a subagent, in an eval cell, or on a run a `Next` line starts, whose prompts carry their arguments, nor where another skill invokes it, as `now-what` does after its own `Run it?`.
+The per-skill trigger, flags the request left open, fired on every such run.
+The first starter trigger, an input with no default, fired only where the skill asked anyway, because `review`, `testing`, `describe`, and `simplify-code` default their mode or input; it gave way on 2026-11-25, because the user wants a skill to ask rather than take a default.
+Modes and main flags are offered with each default recommended, so the default stays one choice away; an input with a default is not asked for, so `init`, `ship`, and `handoff`, which have nothing to choose, still run without a question.
+A skill with its own opening question, as `init`, `now-what`, `architecture`, `domain`, and `ui-ux-design` have, keeps it, so the run asks once (oracle, 2026-11-25).
+The `Next` offer stays out of subagents, because a review a subagent runs hands its next step to its orchestrator and Claude Code filters its question tool out of them.
+There is no "here" option: `simplify-code`, `implement-fix`, `review --fix`, and a plan run hand off to a reader who did not write the change, and their lines are printed, never invoked.
+The rule says "choice question", not "structured user-input tool", because `tests/test_unattended_runs_load.py` would otherwise pull the full ask contract into the starter, which loads every turn and must stay compact.
+Accepted: only projects or users that adopted the rules get either line, and on a host that cannot start a session, such as the Claude Code CLI, the printed line stays the whole hand-off.
+
+Reopens if users ask to run a hand-off that is not a review in the same session, or on a run that puts an offer in its reply.
+
 ## An assumption is reachable only from a question
 
 The old wording keyed an assumption on a question "nobody answered", which the run certifies about itself: Codex closed the `plan` case with "Unanswered choices … are recorded as assumptions in the specs", having asked nothing. Asked-then-unanswered is a fact about the transcript, so it can be checked, but only if "asked" means the run stopped for the answer: a question sent down a channel the run continued past satisfied the weaker reading, which is how six Codex cells wrote their own choice into the specs.
@@ -81,6 +100,19 @@ Reopens on a run where a transforming step shipped a change the `Product` docume
 The line takes the first case of the skill's Follow-up that applies. The Architecture document's Conversation Boundaries map is for maintainers; the user sees only the printed line. 0.x carried clean-session tips, 1.0 trims dropped them, and a 2026-09-24 manual `plan` run closed on a bare `exec-plan` command. One shape, because a 2026-10-02 audit found two: `clarify` and `plan` printed prose that does not paste. It also found menus in `ui-ux-design` and `review`, and `decide` and design reachable only by an aside.
 
 Reopens if a host starts skill hand-offs in a fresh context on its own.
+
+## The `Next` line outranks a host's keep-it-here default, through the critical-rules starter
+
+On 2026-11-25 an arch-site run (issue #23), in a Claude desktop session that had spent its context on research, ran `exec-plan` there on the user's "Start with #23", hand-wrote a one-story `plan.json` to pass admission, and closed on its own "ship now or keep building?" instead of the `Next` line, skipping the plan-level review.
+The desktop system prompt keeps follow-up work in the session and asks one decision in its end-of-turn box; nothing in AndThen said which wins, and the user's starter copy lacked the 1.4.0 `Next` offer.
+The precedence lives in the starter, whose header already overrides harness defaults, plus "never a menu or a question of your own" at `exec-plan`'s close, the one close site that lacked "never a menu".
+A clause at every close site was rejected (oracle, 2026-11-25): it reverses the starter-only decision above on evidence that does not reopen it, because the failing run had a stale starter, not none.
+The fresh-session offer covers a skill the user invokes on a spec, plan, report, or issue, the inputs a `Next (fresh session):` line hands over, so it names no skill; `handoff` and `now-what`, which work on the session itself, take none of them. A first version named `exec-plan` alone, which the user found odd in a cross-skill rule (2026-11-25).
+It is an offer, not a refusal, because a decision never stops a run, and it binds only a run the user starts, so `now-what`'s in-session route and `--auto` runs are untouched.
+A FIS no `plan.json` holds goes to `plan` on the tracker item the request named, else the FIS, because `plan` writes the plan beside a FIS it has reviewed and a story run never writes the schema; that admission stop used to fall to a dead-end `Next` line.
+Accepted: non-adopters get only the skills' "never a menu", and no eval runs the desktop host, so whether the wording beats its prompt is unverified; `plan` on a hand-written FIS re-authors it and may write over it, inferred from its Output rule, not run.
+
+Reopens if an adopted starter still loses to a host's keep-it-here default in a recorded run.
 
 ## Per-story parallelism is plain git in the run session, not AndThen scripts
 

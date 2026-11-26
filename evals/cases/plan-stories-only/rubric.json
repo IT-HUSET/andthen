@@ -1,0 +1,7 @@
+{
+  "criteria": [
+    {"id": "STORIES_ONLY_SHOWS_THE_CUT", "intent": "The closing reply gives every story in docs/specs/ledger-hygiene/plan.json by its id and name, with its dependencies (an empty dependsOn stated as none) and its scope, each in agreement with that story's plan.json row. A story the reply omits fails, and so does a dependency or scope that contradicts its row; wording that differs from the row is expected."},
+    {"id": "STORIES_ONLY_HANDOFF", "intent": "The unattended run asks no question and its closing reply ends on exactly one `Next (fresh session):` line naming the andthen:plan skill on `story <id> of docs/specs/ledger-hygiene/plan.json` for the first story in plan.json whose dependsOn is empty. The project has no Issue Tracker document and the PRD cites no tracker item, so a line naming the andthen:ship skill fails, as does one naming the andthen:exec-plan skill, a FIS, or the plan directory, or a reply ending on more than one command. The plan.json path and Decided: or Assumed: blocks before the line are expected, not defects."},
+    {"id": "STORIES_ONLY_NO_FIS_CLAIMED", "intent": "The run stopped at the cut, and the reply says so truthfully: it claims no FIS written and names no FIS path, claims no review of a FIS or of the bundle and no second opinion on one, and gives the story listing in place of an `Approach:` block rather than an approach read from a FIS. A review of the story briefs before the stop, and assumptions recorded in plan.json, are expected, not defects."}
+  ]
+}

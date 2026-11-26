@@ -1,0 +1,4 @@
+{
+  "allowedPaths": [".agent_temp/**"],
+  "oracle": "oracle.py"
+}

@@ -13,7 +13,7 @@ AndThen ships prompts, not an application. What is testable is a contract stated
 |-------------|------------|----------|
 | Unit | Pure logic: the word-budget rules, cookbook/README invocation extraction | `tests/test_*.py` |
 | Integration | A script driven through `subprocess` over a real temp-dir repo – real files, real exit codes; the eval harness through `run.py`'s own seams | `tests/test_*.py`, `evals/test_checks.py` |
-| E2E | Not run as tests. Closest: the install checks (`scripts/validate-plugin.py`, `andthen.py install --loose --dry-run`) and the live evals (`evals/README.md`) | – |
+| E2E | Not run as tests. Closest: the install checks (`scripts/validate-plugin.py`, `andthen.py install --loose --dry-run`), the live evals (`evals/README.md`), and the live GitHub check below | – |
 
 Code that writes files or shells out is tested through the process boundary with a real temp tree, because a mocked filesystem proves the mock.
 
@@ -35,6 +35,30 @@ Sized to one maintainer: the `fast` tier green on every change, the `full` tier 
 - **Test-first for script defects:** a bug in any script gets a failing test before the fix (Prove-It). Prompt text has no executable behavior; its gate is a prompt-contract test where one exists, otherwise the evals.
 - **No coverage gate** – stdlib only, no coverage tool, and the suites are small enough to review whole.
 - **No quarantine.** A flaky test in `tests/` or `evals/test_checks.py` is made deterministic before merge; the suites run offline, so flakiness is a bug in the test. Live eval cells vary by design – compare runs, never read one cell as a verdict on a rule change.
+
+## Live GitHub Check
+
+The evals run the tracker through a Local backend's Operation Table (`tools/issues.py`), so no eval runs a `gh` command the `tracker` skill spells.
+Those are the GitHub mapping under its Argv-safe rule, `list issues` in § Find them, and triage's `gh label create`.
+Run this check before merging a change to one of them, and ask first, because it writes issues.
+
+- **Target**: `IT-HUSET/andthen-sandbox`, private and disposable.
+  Work from a scratch project under `.agent_temp/` whose only remote is the sandbox, and pass `--repo IT-HUSET/andthen-sandbox` on every hand-run `gh` call.
+- **By hand**: each changed command, its failure exit included.
+- **End to end**: copy `evals/cases/tracker-publish/overlay/docs/specs/ledger-hygiene/` into the scratch project, create an issue carrying the PRD's request, and set the PRD header's `#1` to its number, because the sandbox's #1 is closed.
+  Then have a fresh subagent run `tracker publish <plan.json> --auto` twice, then `--only S01` with S01 set `done`.
+  It passes when the first run takes the new issue as parent and creates the children with their sub-issue and blocked-by links, the second writes nothing, and `--only` changes only S01's checklist entry and child.
+- **Compare snapshots of bodies, links, and timeline events**, never `updatedAt` alone, because a link write leaves `updatedAt` as it was.
+- **Close every issue the check created; delete none.**
+
+GitHub facts the skill relies on without saying them, from the 2026-11-23 run (gh 2.103.3):
+
+- Re-adding an existing parent or blocked-by link exits 1, so the skill's read-before-add rule is what keeps a rerun from reporting false failures.
+- GitHub links closed issues freely, so only the skill's own rule keeps a publish off them.
+- Search lists a new issue about 4 s after its create.
+- Create caps a body at 65,536 characters; edit accepts more.
+
+`ship`'s `gh pr create` and `gh issue view` calls have not been run here.
 
 ## Known Gotchas
 

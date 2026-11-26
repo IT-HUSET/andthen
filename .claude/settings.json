@@ -1,61 +1,21 @@
 {
   "plansDirectory": "docs/temp/plans",
   "autoMemoryEnabled": false,
+  "enableArtifact": false,
+  "disableBundledSkills": true,
+  "disableClaudeAiConnectors": true,
   "permissions": {
     "deny": [
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Read(./secrets/**)",
-      "Read(./.envrc)",
-      "Read(./*.pem)",
-      "Read(./*.key)",
-      "Read(./*.p12)",
-      "Read(./*.pfx)",
-      "Read(./id_rsa*)"
+      "mcp__Claude_Code_iOS_Simulator",
+      "mcp__claude_ai_Claude_Docs",
+      "mcp__claude_ai_Gmail",
+      "mcp__claude_ai_Google_Calendar",
+      "mcp__claude_ai_Google_Drive",
+      "mcp__claude_ai_Excalidraw",
+      "mcp__claude-in-chrome",
+      "mcp__Claude_Browser"
     ],
-    "ask": [
-      "Bash(git push *)",
-      "Bash(git reset --hard*)",
-      "Bash(git rebase *)",
-      "Bash(git revert *)",
-      "Bash(git branch -D *)",
-      "Bash(git branch -d *)",
-      "Bash(git branch --delete*)",
-      "Bash(git branch -m *)",
-      "Bash(git branch -M *)",
-      "Bash(git tag -d *)",
-      "Bash(git checkout .)",
-      "Bash(git checkout -- *)",
-      "Bash(git checkout -B *)",
-      "Bash(git checkout -f *)",
-      "Bash(git checkout --force*)",
-      "Bash(git checkout --orphan *)",
-      "Bash(git commit --amend*)",
-      "Bash(git restore *)",
-      "Bash(gh pr create *)",
-      "Bash(gh pr merge *)",
-      "Bash(gh pr close *)",
-      "Bash(gh pr comment *)",
-      "Bash(gh issue create *)",
-      "Bash(gh issue close *)",
-      "Bash(gh issue comment *)",
-      "Bash(gh release create *)"
-    ],
+    "ask": [],
     "allow": []
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 ${CLAUDE_PROJECT_DIR}/hooks/scripts/block-dangerous-commands.py",
-            "timeout": 15,
-            "statusMessage": "Checking for dangerous commands..."
-          }
-        ]
-      }
-    ]
   }
 }

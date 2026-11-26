@@ -45,7 +45,8 @@ Restate the one design question and the outcome that would answer it: a number, 
 
 Write the smallest spike that produces the deciding observation, run it, and capture the evidence: numbers, output, the error it hit.
 
-Commit the files the spike owns by path, bypassing repo hooks, since throwaway code must not fight them: `git add <spike paths> && git commit --no-verify -m "spike: <question>"`.
+Commit the files the spike owns by path, bypassing repo hooks, since throwaway code must not fight them.
+Run `git add <spike paths>`, then, as its own command, `git commit --no-verify -m "spike: <question>" -- <spike paths>`, so an approval prompt shows one action.
 
 **Gate**: the question is answered by something that actually ran, and any spike code is committed on `spike/<slug>`.
 

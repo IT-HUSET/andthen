@@ -8,12 +8,15 @@
     issues.py comment <N> --body-file <file>
     issues.py label add|remove <N> <label>
     issues.py close <N>
+    issues.py links <N>
+    issues.py block <N> <M>
     issues.py checkpoint
 
 Every command prints JSON on stdout and exits 0, or prints one line on stderr and
 exits 1 (argparse usage errors exit 2); `list` includes each issue's body. `--search` takes one exact phrase: an issue matches when its body
 contains the phrase as a contiguous, case-insensitive substring. A surrounding
 pair of double quotes and an `in:body` qualifier are accepted and ignored.
+`links` prints the issues blocking <N>. `block` records <N> as blocked by <M>.
 `checkpoint` writes a marker into the activity log and nothing else.
 
 Python 3.9+, standard library only.
@@ -102,6 +105,17 @@ def run(args):
         save(store)
         return {"number": issue["number"], "title": issue["title"], "url": "local:%d" % issue["number"]}
     issue = find(store, number_arg(args.number))
+    if args.command == "links":
+        return {"number": issue["number"], "blockedBy": issue.get("blocked_by", [])}
+    if args.command == "block":
+        blocker = find(store, number_arg(args.blocker))["number"]
+        if blocker == issue["number"]:
+            raise Failure("#%d cannot block itself" % blocker)
+        if blocker not in issue.setdefault("blocked_by", []):
+            issue["blocked_by"].append(blocker)
+        log.append({"op": "block", "number": issue["number"], "blocker": blocker})
+        save(store)
+        return {"number": issue["number"], "blockedBy": issue["blocked_by"]}
     if args.command == "edit":
         issue["body"] = read_body(args.body_file)
     elif args.command == "comment":
@@ -137,6 +151,10 @@ def parser():
     labeller.add_argument("number")
     labeller.add_argument("label")
     sub.add_parser("close").add_argument("number")
+    sub.add_parser("links").add_argument("number")
+    blocker = sub.add_parser("block")
+    blocker.add_argument("number")
+    blocker.add_argument("blocker")
     sub.add_parser("checkpoint")
     return top
 

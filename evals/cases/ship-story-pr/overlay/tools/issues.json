@@ -1,0 +1,35 @@
+{
+  "next": 4,
+  "issues": [
+    {
+      "number": 1,
+      "title": "Ledger hygiene for month close",
+      "body": "At month close the ledger owner's notes stop the run, and the run label overflows the summary sheet. Please make an annotated ledger run as it is and keep every run label to what the sheet holds.\n<!-- andthen-projection docs/specs/ledger-hygiene/prd.md -->\n# Ledger Hygiene\n\n**Problem**: a ledger the owner annotates by hand stops the run, and the run label is too long for the summary sheet the analyst pastes it into.\n\n**Vision**: an annotated ledger runs as it is, and every run label fits the sheet.\n\n## Functional Requirements\n\n#### FR1: Comment lines in the ledger\nThe ledger reader skips a line whose first character is `#`.\n- A ledger with comment lines yields the same records as the same ledger without them.\n- A `#` anywhere but the first character of a line is part of the record as before.\n\n#### FR2: Short run labels\nLabel normalization limits a run label to 24 characters.\n- A label of 24 characters or fewer is unchanged.\n- A longer label is cut at the last word boundary within 24 characters.\n\n**Out of scope**: a comment after a record on the same line, a configurable limit, new command-line options.\n\n## Stories\n- [ ] S01 #2 – Comment lines in the ledger\n- [ ] S02 #3 – Short run labels\n",
+      "state": "open",
+      "labels": [
+        "ready-for-agent"
+      ],
+      "comments": []
+    },
+    {
+      "number": 2,
+      "title": "ledger-hygiene S01 - Comment lines in the ledger",
+      "body": "<!-- andthen-projection S01 docs/specs/ledger-hygiene/prd.md -->\nThe ledger reader skips a line that starts with a hash, so an annotated ledger yields the records of the ledger without its notes.\n\n**Intent**: The ledger owner keeps month-close notes in the ledger itself, and the run reads past them instead of stopping on them.\n\n**Expected Outcomes**:\n- [OC01] A ledger with comment lines yields exactly the records of the same ledger without them.\n- [OC02] A hash that is not the first character of a line stays part of its record.\n\n**Acceptance Scenarios**:\n- Comment lines are skipped: given a ledger whose first line and one middle line start with `#`, when `load_records` reads it, the result holds only the records of the lines that do not start with `#`.\n- A later hash is data: given a record whose label contains `#` after its first character, when `load_records` reads it, the record keeps its label unchanged.\n",
+      "state": "open",
+      "labels": [],
+      "comments": []
+    },
+    {
+      "number": 3,
+      "title": "ledger-hygiene S02 - Short run labels",
+      "body": "<!-- andthen-projection S02 docs/specs/ledger-hygiene/prd.md -->\nLabel normalization cuts a run label longer than 24 characters at the last word boundary within that limit.\n\n**Intent**: The analyst pastes a run label into a 24-character column and never trims it by hand.\n\n**Expected Outcomes**:\n- [OC01] A run label of 24 characters or fewer comes out unchanged.\n- [OC02] A longer run label comes out cut at the last word boundary within 24 characters, never mid-word.\n\n**Acceptance Scenarios**:\n- A short label is untouched: given a label of 24 characters, when `normalize_label` runs, the result is the label as normalized before this story.\n- A long label is cut at a word boundary: given a label of 40 characters made of words, when `normalize_label` runs, the result is at most 24 characters and ends on a whole word.\n\nThe analyst's sheet may widen its label column to 32 characters next quarter, so keep the limit in one place.\n\nBlocked by: #2\n",
+      "state": "open",
+      "labels": [],
+      "comments": [],
+      "blocked_by": [
+        2
+      ]
+    }
+  ],
+  "log": []
+}

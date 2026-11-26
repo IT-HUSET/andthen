@@ -1,5 +1,5 @@
 #:schema https://developers.openai.com/codex/config-schema.json
-# Personal baseline for ~/.codex/config.toml. See permissions/README.md.
+# Personal baseline for ~/.codex/config.toml. See extras/permissions/README.md.
 
 # Ask before anything the sandbox blocks; `never` is for unattended runs only.
 approval_policy = "on-request"
@@ -21,12 +21,19 @@ extends = ":workspace"
 [permissions.andthen.filesystem]
 # On native Windows these need the elevated or MXC sandbox; the unelevated fallback ignores them.
 "~/.ssh" = "deny"
+"~/.gnupg" = "deny"
 "~/.aws" = "deny"
 "~/.azure" = "deny"
 "~/.config/gcloud" = "deny"
 "~/.kube" = "deny"
 "~/.config/gh" = "deny"
+"~/.git-credentials" = "deny"
+"~/.config/git/credentials" = "deny"
 "~/.npmrc" = "deny"
+"~/.pypirc" = "deny"
+"~/.cargo/credentials" = "deny"
+"~/.cargo/credentials.toml" = "deny"
+"~/.docker/config.json" = "deny"
 "~/.netrc" = "deny"
 "~/Library/Application Support/Google/Chrome" = "deny"
 "~/Library/Application Support/Chromium" = "deny"
@@ -51,13 +58,14 @@ glob_scan_max_depth = 3
 [permissions.andthen.filesystem.":workspace_roots"]
 "**/.env" = "deny"
 "**/.env.*" = "deny"
+"**/.envrc" = "deny"
 
 [shell_environment_policy]
 inherit = "all"
 # Drop variables whose names contain KEY, SECRET, or TOKEN.
 ignore_default_excludes = false
 
-# Refuses destructive shell commands before they run; see hooks/README.md. Trust it once in /hooks.
+# Refuses destructive shell commands before they run; see extras/hooks/README.md. Trust it once in /hooks.
 [[hooks.PreToolUse]]
 matcher = "Bash"
 

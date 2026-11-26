@@ -29,14 +29,14 @@ Two approaches – pick one per hook:
 # Create directories
 mkdir -p ~/.claude/hooks/scripts ~/.claude/hooks/configs
 
-# Copy scripts you want (pick any combination)
-cp hooks/scripts/block-dangerous-commands.py ~/.claude/hooks/scripts/
-cp hooks/scripts/notify.sh                   ~/.claude/hooks/scripts/
-cp hooks/scripts/notify-elevenlabs.sh        ~/.claude/hooks/scripts/
-cp hooks/scripts/context-hint.py             ~/.claude/hooks/scripts/
+# Copy scripts you want (pick any combination), from the repository root
+cp extras/hooks/scripts/block-dangerous-commands.py ~/.claude/hooks/scripts/
+cp extras/hooks/scripts/notify.sh                   ~/.claude/hooks/scripts/
+cp extras/hooks/scripts/notify-elevenlabs.sh        ~/.claude/hooks/scripts/
+cp extras/hooks/scripts/context-hint.py             ~/.claude/hooks/scripts/
 
 # Copy config
-cp hooks/configs/blocked-commands.json       ~/.claude/hooks/configs/
+cp extras/hooks/configs/blocked-commands.json       ~/.claude/hooks/configs/
 
 # Make scripts executable
 chmod +x ~/.claude/hooks/scripts/*.py ~/.claude/hooks/scripts/*.sh
@@ -46,7 +46,7 @@ Then reference as `~/.claude/hooks/scripts/<script>` in settings.
 
 ### Option B: Reference from repo (auto-updates with pulls)
 
-Point settings directly at the cloned repo path.
+Point settings directly at the cloned repo path, `<clone>/extras/hooks/scripts/<script>`.
 
 Config customization still works – scripts check `~/.claude/hooks/configs/` first (user override), then script-relative `../configs/` (repo defaults), then hardcoded defaults.
 
@@ -243,7 +243,7 @@ Complete `~/.claude/settings.json` with the command blocker and desktop notifica
 
 ## Config Customization
 
-Default configs live in `hooks/configs/`. To customize, copy to `~/.claude/hooks/configs/` and edit. Scripts check:
+Default configs live in `extras/hooks/configs/`. To customize, copy to `~/.claude/hooks/configs/` and edit. Scripts check:
 1. `~/.claude/hooks/configs/<name>.json` (user override)
 2. Script-relative `../configs/<name>.json` (repo defaults)
 3. Hardcoded fail-closed defaults

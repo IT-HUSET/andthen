@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for hooks/scripts/notify.sh and hooks/scripts/notify-elevenlabs.sh.
+"""Tests for extras/hooks/scripts/notify.sh and extras/hooks/scripts/notify-elevenlabs.sh.
 
     python3 -m unittest tests.test_notify
 
@@ -26,7 +26,7 @@ BASH = shutil.which("bash")
 
 @unittest.skipIf(os.name == "nt" or not BASH, "POSIX shell hook")
 class DesktopNotifyTest(unittest.TestCase):
-    SCRIPT = REPO / "hooks/scripts/notify.sh"
+    SCRIPT = REPO / "extras/hooks/scripts/notify.sh"
     TURN_FILE = "claude-notify-turn-s1"
     SHIMS = {"uname": "echo Linux", "notify-send": 'echo "$@" >> "$SHIM_LOG"'}
     PERMISSION_TEXT = "Permission Required"
@@ -90,7 +90,7 @@ class DesktopNotifyTest(unittest.TestCase):
 
 
 class VoiceNotifyTest(DesktopNotifyTest):
-    SCRIPT = REPO / "hooks/scripts/notify-elevenlabs.sh"
+    SCRIPT = REPO / "extras/hooks/scripts/notify-elevenlabs.sh"
     TURN_FILE = "claude-tts-notify-turn-s1"
     SHIMS = {"claude": 'echo "claude $@" >> "$SHIM_LOG"; echo "Done"',
              "curl": 'echo "curl $@" >> "$SHIM_LOG"; echo 500'}

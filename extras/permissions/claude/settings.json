@@ -1,16 +1,30 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "DISABLE_FEEDBACK_COMMAND": "1"
+  },
   "permissions": {
+    "defaultMode": "auto",
     "deny": [
       "Read(**/.env)",
       "Read(**/.env.*)",
+      "Read(**/.envrc)",
       "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
       "Read(~/.aws/**)",
       "Read(~/.azure/**)",
       "Read(~/.config/gcloud/**)",
       "Read(~/.kube/**)",
       "Read(~/.config/gh/**)",
+      "Read(~/.git-credentials)",
+      "Read(~/.config/git/credentials)",
       "Read(~/.npmrc)",
+      "Read(~/.pypirc)",
+      "Read(~/.cargo/credentials)",
+      "Read(~/.cargo/credentials.toml)",
+      "Read(~/.docker/config.json)",
       "Read(~/.netrc)",
       "Read(~/Library/Application Support/Google/Chrome/**)",
       "Read(~/Library/Application Support/Chromium/**)",
@@ -31,22 +45,27 @@
       "Read(//mnt/c/Users/*/AppData/Roaming/Mozilla/Firefox/**)"
     ],
     "ask": [
-      "Bash(git push *)",
-      "Bash(gh *)"
-    ],
-    "disableBypassPermissionsMode": "disable"
+      "Bash(git reset --hard*)",
+      "Bash(git checkout -- *)",
+      "Bash(git checkout .)",
+      "Bash(git clean -*f*)",
+      "Bash(git stash drop*)",
+      "Bash(git stash clear*)"
+    ]
   },
   "sandbox": {
     "enabled": true,
-    "failIfUnavailable": true,
-    "allowUnsandboxedCommands": false,
     "excludedCommands": [
       "git push *",
-      "gh *"
+      "git fetch *",
+      "git pull *",
+      "gh pr *",
+      "gh issue *",
+      "gh label *"
     ],
     "network": {
       "allowedDomains": [],
-      "allowManagedDomainsOnly": true
+      "strictAllowlist": true
     },
     "credentials": {
       "envVars": [
@@ -57,5 +76,19 @@
         { "name": "OPENAI_API_KEY", "mode": "deny" }
       ]
     }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/scripts/block-dangerous-commands.py",
+            "statusMessage": "Validating command safety..."
+          }
+        ]
+      }
+    ]
   }
 }

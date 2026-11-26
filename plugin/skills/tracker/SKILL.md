@@ -1,6 +1,6 @@
 ---
 description: Work the issue tracker – `publish` projects a PRD and its plan into a parent issue and one child issue per story, `triage` labels and routes incoming items toward implementation or a human decision, and `setup` writes the Issue Tracker document. Trigger on 'publish this plan to the tracker', 'triage the backlog', 'set up the issue tracker'.
-argument-hint: "[--auto] (publish <plan.json | prd.md> [--dry-run] | triage [issue number(s) or tracker query] | setup)"
+argument-hint: "[--auto] (publish <plan.json | prd.md> [--dry-run] [--only <ids,prd>] | triage [issue number(s) or tracker query] | setup)"
 ---
 
 # Tracker
@@ -26,7 +26,14 @@ Work the project's issue tracker through its `Issue Tracker` document, one verb 
 - **Executable config.** The `Issue Tracker` document is security-critical, because its table values run as commands. Each value is a single direct command invocation (an executable, fixed arguments, `<placeholders>`) with no pipes, shell operators, command substitution, or piping to an interpreter. Review changes to it as code.
 - **Complete mapping first.** Before a verb's first tracker call, reads included, stop on any operation it needs that the Operation Table leaves unmapped, so a multi-issue write never strands partial state.
 - **Durability rule.** What you write into a tracker body or comment outlives the branch that prompted it. Name interfaces (types, signatures, commands) and behavior, never file paths, line numbers, commits, or code snippets. A snippet that itself encodes a settled decision (schema, state machine, type) may be inlined, trimmed to the decision-carrying part.
-- **Argv-safe.** Every title, body, and issue number is data: pass the title, the body file, and the issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. On GitHub, `fetch issue` maps the issue number to `gh issue view <N> --json title,body,labels,state,comments`, `create issue` maps them to `gh issue create --title` and `--body-file`, `edit body` maps the issue number and the body file to `gh issue edit --body-file`, and `comment` maps them to `gh issue comment <N> --body-file`. An operation-table backend keeps the same argument boundary, and a mapping that only offers a shell template is unresolved executable config: stop before the first external call.
+- **Argv-safe.** Every title, body, and issue number is data: pass the title, the body file, and the issue number as distinct argv elements (or structured MCP fields), never as interpolated shell source. An operation-table backend keeps the same argument boundary, and a mapping that only offers a shell template is unresolved executable config: stop before the first external call. On GitHub these operations map to:
+  - `fetch issue` – `gh issue view <N> --json title,body,labels,state,comments`
+  - `create issue` – `gh issue create --title <title> --body-file <body-file>`
+  - `edit body` – `gh issue edit <N> --body-file <body-file>`
+  - `comment` – `gh issue comment <N> --body-file <body-file>`
+  - `fetch links` – `gh issue view <N> --json parent,blockedBy`
+  - `set parent` – `gh issue edit <N> --parent <M>`
+  - `add blocked-by` – `gh issue edit <N> --add-blocked-by <M>`
 
 ## Workflow
 
@@ -48,16 +55,23 @@ Taking `setup` means offering it, and an unattended run stops as step 2c says. O
 
 The bundle is agent truth, and the tracker is its human projection. `publish` never writes `plan.json`, and sync is one way: a PM reprioritizing in the tracker is a re-plan.
 
-**Operations used**: `fetch issue`, `list issues`, `create issue`, `edit body`.
+`--only <ids,prd>` writes only the named stories' children, checklist entries, and tracker links, and the PRD text when `prd` is named.
+It leaves every other issue and the rest of the parent as found, because the copy publishing may be older than another branch's.
+
+**Operations used**: `fetch issue`, `list issues`, `create issue`, `edit body`, and, where `fetch links` is mapped, it and whichever of `set parent` and `add blocked-by` are.
 
 #### The issues
 
 Each body you write is projected from one hidden line down. On the parent the line is `<!-- andthen-projection <source> -->`, where `<source>` is the repo path of the PRD, else of the `plan.json`, kept as identity only. On a child it is `<!-- andthen-projection <id> <source> -->`, led by its story's id so the parent's line never matches it. Keep the text above the line, such as a source issue's original request, and put the line below the text of an issue that has none.
 
 - **The parent** is titled by the PRD's heading, else `Plan: <plan directory name>`. Below the line goes the PRD, each file path it cites replaced by what the file is, then a `## Stories` checklist with one `- [ ] <id> <ref> – <name>` per story, `<ref>` the child's `#<number>`, or its key (`ENG-123`) on a tracker whose issue ids are keys, checked once the story is `done` or `skipped`. A plan without a PRD writes only the checklist. A `prd.md` alone writes only the PRD and keeps the checklist already there.
-- **A child** per story is titled `<plan directory name> <id> - <name>`, because story ids restart in every plan. Below the line go the story's scope, then its FIS's Intent, Expected Outcomes, and Acceptance Scenarios without their Proof lines, then `Blocked by:` its dependencies' issues, and once the story is done `Verified:` with its `verified.summary`.
+- **A child** per story is titled `<plan directory name> <id> - <name>`, because story ids restart in every plan. Below the line go the story's scope, then its FIS's Intent, Expected Outcomes, and Acceptance Scenarios without their Proof lines, or with no FIS the heading text of each `#### FRn:` its `sourceRefs` cite.
+  Then come `Blocked by:` its dependencies' issues, and once the story is done `Verified:` with its `verified.summary`.
 - **A closed issue is the shipped record**, so never edit one. A found issue keeps its title, because `publish` has no retitle operation.
-- **The checklist never loses a finished story or a link.** A story it checks stays checked, because another branch's copy of `plan.json` finished it; while this copy has not, leave that story's child as it is. An entry for a story the plan no longer has stays too, and the preview and Output name its open child to close. A re-plan numbers new stories after the highest old ID, so an old entry never names a new story.
+- **Tracker links** make each child a sub-issue of the parent and blocked by each dependency's issue, through the tracker's own relationships, because boards and filters read those and never a body.
+  Read a child's links with `fetch links`, and add only what it lacks, never removing or replacing one, because a person may have linked it in the tracker and GitHub's `--parent` replaces an existing parent.
+  Write none for a child whose links could not be read, and none that touches a closed issue.
+- **A publish never loses what another branch's copy wrote.** A story the checklist checks stays checked, because another branch's copy of `plan.json` finished it; while this copy has not, leave that story's child as it is. Leave a child carrying FIS sections as it is too while this copy has no FIS for its story. An entry for a story the plan no longer has stays too, and the preview and Output name its open child to close. A re-plan numbers new stories after the highest old ID, so an old entry never names a new story.
 
 #### Find them
 
@@ -67,14 +81,16 @@ On GitHub, `list issues` for a line is `gh issue list --state all --json number,
 
 #### Preview and send
 
-Compare each composed body with the issue's text below its line. Show each issue to create and what each update changes, and ask once before the first write, because an update replaces an edit made in the tracker since the last publish. An edit worth keeping goes into its source first: `prd.md` through the `andthen:clarify` skill, or the story's FIS. When the skill that invoked this run already showed this preview and got a yes, as the `andthen:ship` skill does, that answer is the ask.
+Compare each composed body with the issue's text below its line. Show each issue to create, what each update changes, and the tracker links to add, and ask once before the first write, because an update replaces an edit made in the tracker since the last publish. An edit worth keeping goes into its source first: `prd.md` through the `andthen:clarify` skill, or the story's FIS. When the skill that invoked this run already showed this preview and got a yes, as the `andthen:ship` skill does, that answer is the ask.
 A body over the tracker's limit (GitHub: 65,536 characters) stops the run at the preview, never shortened, because the issue can become the PRD's only copy.
 
 `--dry-run` prints the preview and stops before any write. An unattended run skips the ask.
 
 Write each body as a UTF-8 file under `.agent_temp/tracker-bodies/` and send it as the body file. Create the missing issues, parent first and stories in plan order, and add each child to the parent's checklist as soon as it exists. Then edit each body still missing an issue reference it names, and send the other updates.
+Add the tracker links last.
+A tracker link that fails is reported and stops nothing, because its issues exist and their bodies name it.
 
-**Gate**: every issue created, updated, or found unchanged, or the user's no; under `--dry-run`, the preview printed.
+**Gate**: every issue created, updated, or found unchanged, and each tracker link added or reported, or the user's no; under `--dry-run`, the preview printed.
 
 ### 2b. Triage
 
@@ -91,4 +107,9 @@ Ask which backend the tracker uses, for any backend but GitHub the command each 
 
 ## Output
 
-`publish` reports each issue it created, updated, found unchanged, or left closed, by number or key, naming the open child of a dropped story for the user to close, and in an unattended run what each update replaced.
+`publish` reports, by number or key:
+
+- each issue it created, updated, found unchanged, or left closed;
+- the open child of a dropped story, for the user to close;
+- in one line, the tracker links it added and each it could not, with the reason;
+- in an unattended run, what each update replaced.

@@ -59,9 +59,10 @@ Each was written for models that needed it, and on current ones at best dilutes 
   - Cut filler and mannered turns: an aphorism, a clause restating the one before, a contrast written for rhythm.
   - A rewrite tends to cut a binding or a leading word as filler, so check each cut against what the sentence did.
   - Shorten by selecting, never by packing clauses.
-- **One sentence per source line** (semantic line breaks), in paragraphs and list items alike.
-  Markdown renders the paragraph unchanged, and a diff shows the sentence that changed instead of a rewritten paragraph.
-  The rule covers text a change writes: reflow an old paragraph only when the change rewrites most of it.
+- **One sentence per source line** (semantic line breaks) in the text a change writes, in paragraphs and list items alike.
+  Markdown renders the paragraph unchanged, and a diff or merge acts on the changed sentence instead of the whole paragraph.
+  A sentence that only makes sense with the line before ("So is…", "It runs…", "replaces this one") reads as a stray rule, so name its subject or merge it into that sentence.
+  Reflow an old paragraph only when the change rewrites most of it.
 - **Contrast only a named failure** – write "X, not Y" only where Y is behaviour a recorded run produced.
 - **One concern per paragraph**, so an "otherwise" never reaches back past its condition.
   Layout adds markup, never instructions, so it does not count against concision.
@@ -211,7 +212,16 @@ The `skill-review` skill's `--fix` runs this.
 
 ## Repository constraints
 
-A reference in `plugin/references/` needs two consuming skills, and with one it moves into that skill.
+- A reference in `plugin/references/` needs two consuming skills, and with one it moves into that skill.
+- No plugin agent auto-loads. The `andthen:init` skill bundles four optional roles in both host formats (`oracle`, `implementer`, `reviewer`, `worker`), and an installed definition owns its tier's model and effort.
+- Every dispatch site names its role, or a generic inherited subagent for judgment work, and each skill states once that an absent role falls back to the generic shape, so a run never guesses a tier.
+  The generic shape is a generic inherited subagent whose prompt invokes the `andthen:<name>` skill or loads the named reference, with the task, any persona or reference instructions, and read-only constraints, never a role-specific pin.
+- In prose, every `andthen:<name>` reference has the type noun adjacent – "the `andthen:<name>` skill" or "the `andthen:<name>` agent".
+  - Mandatory wherever the name follows an invocation or delegation verb (spawn, invoke, dispatch, delegate to), because verb plus bare name is the shape behind the known-bad "Spawn `andthen:<skill-name>` subagent", which passes skill names as agent types.
+  - Machine-contract identifiers, headings, command examples, argument surfaces, and assertional text that does not instruct invocation may use the bare form.
+  - A delegated agent is a **subagent** in prose – never a kinship metaphor.
+- Shipped skills and references (`plugin/`) never use invocation sigils (`/andthen:<name>`, `$andthen-<name>`), because sigils are host syntax and render wrong on other hosts; `scripts/validate-plugin.py` rejects them. User-facing docs (README, plugin/README) may show real commands.
+- Audit the wording across the repo, for skill-as-agent phrasing and other drift, with `rg 'andthen:[a-z-]+' AGENTS.md plugin/ docs/`.
 
 ## References
 

@@ -30,6 +30,8 @@ Size a case to what `stage.py` enforces: `TURN_TIMEOUT` gives one step an hour a
 
 A cell runs with `SHELL=/bin/bash`, so the operator's login shell does not change a result. The `init` cases also get a scratch `HOME` holding only Claude's login, because the skill inspects `~/.claude/agents` and `~/.codex` and the operator's machine would pick its branch.
 
+A case that needs branches or a remote builds them in a leading `type: bash` step that runs a script of its own (`ship-story-pr/history.py`). The script rewrites `fixture-head.txt` to its tip, so the diff shows only the subject's work, and the case's own test checks the files it commits for answer-key words, because validation reads only `overlay/`.
+
 `subject-defects.md` records the deliberate flaws a case pins its expectation to. It sits beside the app, never inside it, because a subject that can read the answer key can satisfy it.
 
 ## Running and reading
